@@ -1,0 +1,258 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"ObjC",
+				"ObjCRuntime"
+			]
+		]
+	},
+	"build_system": "Packages/Makefile/Make.sublime-build",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"Packages/Makefile/Make.sublime-build",
+					""
+				],
+				[
+					"Packages/Makefile/Make.sublime-build",
+					"Clean"
+				],
+				[
+					"Packages/User/make-clang.sublime-build",
+					""
+				]
+			],
+			[
+				"Packages/Makefile/Make.sublime-build",
+				""
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 610.0,
+		"last_filter": "inden",
+		"selected_items":
+		[
+			[
+				"inden",
+				"Indentation: Reindent Lines"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Disable Package"
+			],
+			[
+				"subl",
+				"SublimeGDB: Open Breakpoint View"
+			],
+			[
+				"sublimeC",
+				"SublimeGDB: Open Console View"
+			],
+			[
+				"gdb",
+				"Preferences: SublimeGDB Settings – Default"
+			],
+			[
+				"colo",
+				"Colorsublime: Install Theme"
+			]
+		],
+		"width": 1042.0
+	},
+	"console":
+	{
+		"height": 724.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = 'eb2297e1a458f27d836c04bb0cbaf282' + 'd0e7a3098092775ccb37ca9d6b2e4b7d'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by) "
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGObjC.cpp",
+		"/home/nat/src/unix/mulle-clang/clang-build/Clang.sublime-project",
+		"/home/nat/.config/sublime-text-3/Packages/Default/Default (Linux).sublime-keymap",
+		"/home/nat/.config/sublime-text-3/Packages/User/SublimeClang.sublime-settings",
+		"/home/nat/src/unix/mulle-clang/llvm/include/llvm/Support/PointerLikeTypeTraits.h",
+		"/home/nat/src/unix/mulle-clang/Clang.sublime-settings",
+		"/home/nat/.config/sublime-text-3/Packages/User/make-clang.sublime-build",
+		"/home/nat/src/unix/mulle-clang/update-project.sh",
+		"/home/nat/.config/sublime-text-3/Packages/User/Default (Linux).sublime-keymap",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGObjCRuntime.cpp",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CMakeLists.txt",
+		"/home/nat/src/unix/mulle-clang/clang/include/clang/Basic/ObjCRuntime.h",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGObjCMac.cpp",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGException.cpp",
+		"/home/nat/src/unix/mulle-clang/clang/lib/Basic/ObjCRuntime.cpp",
+		"/home/nat/src/unix/clang/lib/CodeGen/CGObjCSwifter.cpp",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGObjCMulleRuntime.h",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CodeGenModule.cpp",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGObjCGNU.cpp",
+		"/home/nat/src/unix/clang/lib/CodeGen/CGObjCSwifter.h",
+		"/home/nat/src/unix/clang/lib/CodeGen/CGObjCSwifterVirtual.h",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGOpenMPRuntime.h",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/CGObjCMulleRuntime.cpp",
+		"/home/nat/src/unix/mulle-clang/clang/lib/CodeGen/README.txt",
+		"/home/nat/.config/sublime-text-3/Packages/SublimeGDB/SublimeGDB.sublime-settings",
+		"/home/nat/.config/sublime-text-3/Packages/sublemacspro/Default.sublime-keymap",
+		"/home/nat/bin/mulle-parallelize-sublime-project.sh",
+		"/home/nat/.config/sublime-text-3/Packages/Colorsublime/Colorsublime.sublime-settings",
+		"/home/nat/.config/sublime-text-3/Packages/User/SublimeGDB.sublime-settings",
+		"/home/nat/.config/sublime-text-3/Packages/User/Preferences.sublime-settings"
+	],
+	"find":
+	{
+		"height": 61.0
+	},
+	"find_in_files":
+	{
+		"height": 167.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"10",
+			"\"Clang - clang",
+			"\"ctrl+x\"",
+			"main",
+			"StartObjCMethod",
+			"build",
+			"CGObjCRuntime",
+			"ObjC",
+			"StartObjC",
+			"StartObjCMethod",
+			" = 0;",
+			"ObjC",
+			"CreateMacObjCRuntime",
+			"FragileMacOSX",
+			"LookupIMP",
+			"CGObjCGCC",
+			"CGObjCGNUstep",
+			"main(",
+			"main",
+			"\":\n",
+			"sublime",
+			"q"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			""
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"incremental_find":
+	{
+		"height": 60.0
+	},
+	"input":
+	{
+		"height": 376.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 374.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"pinned_build_system": "",
+	"replace":
+	{
+		"height": 70.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 773.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

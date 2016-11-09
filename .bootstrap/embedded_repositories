@@ -1,0 +1,10 @@
+#
+# override the repositories like so:
+#    echo "https://www.mulle-kybernetik.com/repositories" > .bootstrap.local/MULLE_REPOSITORIES
+#
+# override the branches like so:
+#    echo "master" > .bootstrap.local/MULLE_THREAD_BRANCH
+
+${MULLE_REPOSITORIES}/mulle-tests;tests/mulle-tests;${MULLE_TESTS_BRANCH:-release}
+${MULLE_REPOSITORIES}/mulle-homebrew;bin/mulle-homebrew;${MULLE_HOMEBREW_BRANCH:-release}
+${MULLE_REPOSITORIES}/mulle-configuration;;${MULLE_CONFIGURATION_BRANCH:-release}

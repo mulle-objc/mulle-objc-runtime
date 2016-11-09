@@ -1,0 +1,148 @@
+digraph settings
+{
+   node [shape=record];
+
+   mulle_c11
+   mulle_aba
+   mulle_allocator
+   mulle_test_allocator      [ color = "orange" ];
+   mulle_container
+   mulle_concurrent
+   mulle_sprintf
+   mulle_thread
+   mulle_vararg
+
+
+   mulle_objc
+   { rank = same; "mulle clang "; "gcc | clang "}
+   { rank = same; "C11 | [pthreads / mintomic]"; "C standard libraries"; "cityhash", "expat", "icu", "POSIX" }
+   { rank = same; "mulle_c11", "mulle_thread", "mulle_allocator" }; # "mulle_test_allocator" }
+   { rank = same; "mulle_utf", "mulle_sprintf", "mulle_container", "mulle_concurrent", "mulle_aba" }
+
+   "mulle clang "                 [ shape="rarrow" fontcolor = "purple" ];
+   "gcc | clang "                 [ style=filled fillcolor="lightgray" shape="rarrow" ];
+   "C11 | [pthreads / mintomic]"  [ style=filled fillcolor="lightgray" color = "black" fontcolor = "black" shape = "note" ];
+   "C standard libraries"         [ style=filled fillcolor="lightgray" color = "black" fontcolor = "black" shape = "note" ];
+   POSIX                          [ style=filled fillcolor="lightgray" color = "black" ];
+   cityhash                       [ style=filled fillcolor="lightgray" color = "black" ];
+   expat                          [ style=filled fillcolor="lightgray" color = "black" ];
+   icu                            [ style=filled fillcolor="lightgray" color = "black" ];
+
+
+   mulle_thread -> "C11 | [pthreads / mintomic]";
+   mulle_thread -> "C standard libraries";
+   mulle_test_allocator -> "mulle_allocator";
+   mulle_test_allocator -> "mulle_thread";
+   mulle_thread -> "mulle_c11";
+   mulle_vararg -> "mulle_c11";
+   mulle_objc -> "mulle_test_allocator";
+   mulle_container -> cityhash;
+   MulleObjC -> "mulle clang ";
+
+   { rank = same; "MulleObjCLinuxFoundation"; "MulleObjCDarwinFoundation"; "MulleObjCExpatFoundation"; "MulleObjCICUFoundation" }
+   { rank = same; "MulleObjCPosixFoundation"; }
+
+   MulleObjC                  [ fontcolor = "purple"];
+   MulleObjCFoundation        [ color = "purple" fontcolor = "purple"  ];
+   MulleObjCPosixFoundation   [ color = "purple" fontcolor = "purple"  ];
+   MulleObjCDarwinFoundation  [ color = "purple" fontcolor = "purple" ];
+   MulleObjCFreeBSDFoundation [ color = "purple" fontcolor = "purple" ];
+   MulleObjCExpatFoundation   [ color = "purple" fontcolor = "purple"  ];
+   MulleObjCLinuxFoundation   [ color = "purple" fontcolor = "purple" ];
+   MulleObjCICUFoundation     [ color = "purple" fontcolor = "purple"  ];
+
+#   { rank = same; "mulle_standalone_objc_runtime";
+#                  "MulleStandaloneObjC";
+#                  "MulleStandaloneObjCFoundation" ;
+#                  "MulleStandaloneObjCPosixFoundation",
+#                  "MulleStandaloneObjCExpatFoundation",
+#                  "MulleStandaloneObjCICUFoundation" }
+
+
+
+#   mulle_standalone_objc_runtime       [ color = "orange" shape = "note" ];
+#   MulleStandaloneObjC                 [ color = "orange" fontcolor = "purple" shape = "note" ];
+#   MulleStandaloneObjCFoundation       [ color = "orange" fontcolor = "purple" shape = "note" ];
+#   MulleStandaloneObjCPosixFoundation  [ color = "orange" fontcolor = "purple" shape = "note" ];
+#   MulleStandaloneObjCExpatFoundation  [ color = "orange" fontcolor = "purple" shape = "note" ];
+#   MulleStandaloneObjCICUFoundation    [ color = "orange" fontcolor = "purple" shape = "note" ];
+
+   { rank = source; "Cocotron Foundation"; "GnuSTEP Foundation" ; "Foundation (OS X)", "Foundation (Linux)", "Foundation (FreeBSD)" }
+
+   "Cocotron Foundation"    [ style=filled fillcolor="lightgray" color = "black" fontcolor = "purple" shape = "note" ];
+   "GnuSTEP Foundation"     [ style=filled fillcolor="lightgray" color = "black" fontcolor = "purple" shape = "note" ];
+   "Foundation (OS X)"      [ color = "purple" fontcolor = "purple" shape = "note" ];
+   "Foundation (Linux)"     [ color = "purple" fontcolor = "purple" shape = "note" ];
+   "Foundation (FreeBSD)"   [ color = "purple" fontcolor = "purple" shape = "note" ];
+
+   "C11 | [pthreads / mintomic]" -> "gcc | clang ";
+   "C standard libraries" -> "gcc | clang ";
+
+   mulle_allocator -> "C standard libraries";
+   mulle_allocator -> mulle_thread;
+#   mulle_test_allocator -> mulle_allocator;
+   mulle_container -> mulle_allocator;
+   mulle_utf -> mulle_allocator;
+   mulle_concurrent -> mulle_aba;
+ 	mulle_aba -> mulle_allocator;
+   mulle_objc -> mulle_vararg;
+   mulle_objc -> mulle_concurrent;
+   mulle_sprintf -> mulle_vararg;
+   mulle_sprintf -> mulle_allocator;
+# 	mulle_standalone_objc_runtime -> mulle_objc;
+# 	mulle_standalone_objc_runtime -> mulle_test_allocator;
+
+ 	MulleObjC -> mulle_objc;
+   MulleObjC -> mulle_container;
+ 	MulleObjCFoundation -> MulleObjC;
+ 	MulleObjCFoundation -> mulle_utf;
+   MulleObjCFoundation -> mulle_sprintf;
+   MulleObjCExpatFoundation -> MulleObjCPosixFoundation;
+   MulleObjCExpatFoundation -> expat;
+   MulleObjCICUFoundation -> MulleObjCPosixFoundation;
+   MulleObjCICUFoundation -> icu;
+   MulleObjCPosixFoundation -> POSIX;
+   MulleObjCPosixFoundation -> MulleObjCFoundation;
+   MulleObjCDarwinFoundation -> MulleObjCPosixFoundation;
+   MulleObjCLinuxFoundation -> MulleObjCPosixFoundation;
+   MulleObjCFreeBSDFoundation -> MulleObjCPosixFoundation;
+
+#   MulleStandaloneObjC -> MulleObjC;
+#   MulleStandaloneObjC -> mulle_test_allocator;
+#   MulleStandaloneObjCFoundation -> MulleObjCFoundation;
+#   MulleStandaloneObjCFoundation -> mulle_test_allocator;
+#   MulleStandaloneObjCPosixFoundation -> MulleObjCPosixFoundation;
+#   MulleStandaloneObjCPosixFoundation -> mulle_test_allocator;
+#   MulleStandaloneObjCExpatFoundation -> MulleObjCExpatFoundation;
+#   MulleStandaloneObjCExpatFoundation -> mulle_test_allocator;
+#   MulleStandaloneObjCICUFoundation -> MulleObjCICUFoundation;
+#   MulleStandaloneObjCICUFoundation -> mulle_test_allocator;
+
+   "Foundation (FreeBSD)" -> MulleObjCFreeBSDFoundation;
+   "Foundation (FreeBSD)" -> MulleObjCExpatFoundation;
+   "Foundation (FreeBSD)" -> MulleObjCICUFoundation;
+   "Foundation (Linux)" -> MulleObjCLinuxFoundation;
+   "Foundation (Linux)" -> MulleObjCExpatFoundation;
+   "Foundation (Linux)" -> MulleObjCICUFoundation;
+   "Foundation (OS X)" -> MulleObjCDarwinFoundation;
+   "Foundation (OS X)" -> MulleObjCExpatFoundation;
+   "Foundation (OS X)" -> MulleObjCICUFoundation;
+
+ 	"Cocotron Foundation" -> MulleObjC   [style=dotted];
+ 	"GnuSTEP Foundation" -> MulleObjC    [style=dotted];
+
+ 	subgraph legend {
+    label = "Legend";
+    key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+			       <tr><td align="right"><font color="#000000">black text:</font></td><td>C</td></tr>
+			       <tr><td align="right"><font color="#a020f0">purple text:</font></td><td>Objective C</td></tr>
+			       <!--tr><td></td><td></td></tr>
+			       <tr><td align="right"><font color="#000000">black shape:</font></td><td>Core Functionality</td></tr>
+			       <tr><td align="right"><font color="#e08000">orange shape:</font></td><td>Test Support</td></tr -->
+			       <tr><td></td><td></td></tr>
+     			    <tr><td align="right">file:</td><td>Shared Library</td></tr>
+					 <tr><td align="right">box:</td><td>Static Library</td></tr>
+					 <tr><td align="right">arrow:</td><td>Tool</td></tr>
+			      </table>>]
+ 	}
+}

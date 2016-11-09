@@ -1,0 +1,18 @@
+{
+	"folders":
+	[
+		{
+			"file_exclude_patterns":
+			[
+				"._.DS_Store"
+			],
+			"folder_exclude_patterns":
+			[
+				".idea",
+				"build",
+				"mulle-objc-runtime.xcodeproj"
+			],
+			"path": "."
+		}
+	]
+}

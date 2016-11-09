@@ -1,0 +1,212 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4130FD2A1AB72C6B00741DFA /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4130FD291AB72C6B00741DFA /* main.c */; };
+		4130FD311AB72C7E00741DFA /* mt19937ar.c in Sources */ = {isa = PBXBuildFile; fileRef = 4130FD301AB72C7E00741DFA /* mt19937ar.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		4130FD271AB72C6B00741DFA /* research-cache-spread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "research-cache-spread"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4130FD291AB72C6B00741DFA /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		4130FD2F1AB72C7E00741DFA /* mt19937ar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mt19937ar.h; sourceTree = "<group>"; };
+		4130FD301AB72C7E00741DFA /* mt19937ar.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mt19937ar.c; sourceTree = "<group>"; };
+		415A0A031C4E6E9A00290E05 /* Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Common.xcconfig; sourceTree = "<group>"; };
+		415A0A041C4E6E9A00290E05 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		415A0A051C4E6E9A00290E05 /* IOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = IOS.xcconfig; sourceTree = "<group>"; };
+		415A0A061C4E6E9A00290E05 /* OSX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = OSX.xcconfig; sourceTree = "<group>"; };
+		415A0A081C4E6E9A00290E05 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		415A0A091C4E6E9A00290E05 /* StaticLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = StaticLibrary.xcconfig; sourceTree = "<group>"; };
+		415A0A0A1C4E6E9A00290E05 /* StaticLibraryIOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = StaticLibraryIOS.xcconfig; sourceTree = "<group>"; };
+		415A0A0B1C4E6E9A00290E05 /* StaticLibraryOSX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = StaticLibraryOSX.xcconfig; sourceTree = "<group>"; };
+		415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = ToolOSX.xcconfig; sourceTree = "<group>"; };
+		415A0A0D1C4E6E9A00290E05 /* _Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = _Common.xcconfig; sourceTree = "<group>"; };
+		41B2CC6E1C512D64006CA7BB /* DynamicLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DynamicLibrary.xcconfig; sourceTree = "<group>"; };
+		41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DynamicLibraryOSX.xcconfig; sourceTree = "<group>"; };
+		41B2CC701C512D64006CA7BB /* Library.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Library.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		4130FD281AB72C6B00741DFA /* research-cache-spread */ = {
+			isa = PBXGroup;
+			children = (
+				4130FD2F1AB72C7E00741DFA /* mt19937ar.h */,
+				4130FD301AB72C7E00741DFA /* mt19937ar.c */,
+				4130FD291AB72C6B00741DFA /* main.c */,
+			);
+			path = "research-cache-spread";
+			sourceTree = "<group>";
+		};
+		413C8AC11A17A0A700BA0630 = {
+			isa = PBXGroup;
+			children = (
+				415A0A021C4E6E9A00290E05 /* mulle-configuration */,
+				4130FD281AB72C6B00741DFA /* research-cache-spread */,
+				413C8ACB1A17A0A700BA0630 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		413C8ACB1A17A0A700BA0630 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4130FD271AB72C6B00741DFA /* research-cache-spread */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		415A0A021C4E6E9A00290E05 /* mulle-configuration */ = {
+			isa = PBXGroup;
+			children = (
+				41B2CC6E1C512D64006CA7BB /* DynamicLibrary.xcconfig */,
+				41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */,
+				41B2CC701C512D64006CA7BB /* Library.xcconfig */,
+				415A0A031C4E6E9A00290E05 /* Common.xcconfig */,
+				415A0A041C4E6E9A00290E05 /* Debug.xcconfig */,
+				415A0A051C4E6E9A00290E05 /* IOS.xcconfig */,
+				415A0A061C4E6E9A00290E05 /* OSX.xcconfig */,
+				415A0A081C4E6E9A00290E05 /* Release.xcconfig */,
+				415A0A091C4E6E9A00290E05 /* StaticLibrary.xcconfig */,
+				415A0A0A1C4E6E9A00290E05 /* StaticLibraryIOS.xcconfig */,
+				415A0A0B1C4E6E9A00290E05 /* StaticLibraryOSX.xcconfig */,
+				415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */,
+				415A0A0D1C4E6E9A00290E05 /* _Common.xcconfig */,
+			);
+			path = "mulle-configuration";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4130FD261AB72C6B00741DFA /* research-cache-spread */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4130FD2B1AB72C6B00741DFA /* Build configuration list for PBXNativeTarget "research-cache-spread" */;
+			buildPhases = (
+				4130FD231AB72C6B00741DFA /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "research-cache-spread";
+			productName = "research-cache-spread";
+			productReference = 4130FD271AB72C6B00741DFA /* research-cache-spread */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		413C8AC21A17A0A700BA0630 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0720;
+				ORGANIZATIONNAME = "Mulle kybernetiK";
+				TargetAttributes = {
+					4130FD261AB72C6B00741DFA = {
+						CreatedOnToolsVersion = 6.2;
+					};
+				};
+			};
+			buildConfigurationList = 413C8AC51A17A0A700BA0630 /* Build configuration list for PBXProject "research" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 413C8AC11A17A0A700BA0630;
+			productRefGroup = 413C8ACB1A17A0A700BA0630 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4130FD261AB72C6B00741DFA /* research-cache-spread */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4130FD231AB72C6B00741DFA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4130FD2A1AB72C6B00741DFA /* main.c in Sources */,
+				4130FD311AB72C7E00741DFA /* mt19937ar.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4130FD2C1AB72C6B00741DFA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		4130FD2D1AB72C6B00741DFA /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		4130FD2E1AB72C6B00741DFA /* Disassembly */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
+			buildSettings = {
+			};
+			name = Disassembly;
+		};
+		413C8AD11A17A0A700BA0630 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 415A0A041C4E6E9A00290E05 /* Debug.xcconfig */;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		413C8AD21A17A0A700BA0630 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 415A0A081C4E6E9A00290E05 /* Release.xcconfig */;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		41D268C41A253E5800A2BAF8 /* Disassembly */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 415A0A081C4E6E9A00290E05 /* Release.xcconfig */;
+			buildSettings = {
+			};
+			name = Disassembly;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4130FD2B1AB72C6B00741DFA /* Build configuration list for PBXNativeTarget "research-cache-spread" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4130FD2C1AB72C6B00741DFA /* Debug */,
+				4130FD2D1AB72C6B00741DFA /* Release */,
+				4130FD2E1AB72C6B00741DFA /* Disassembly */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		413C8AC51A17A0A700BA0630 /* Build configuration list for PBXProject "research" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				413C8AD11A17A0A700BA0630 /* Debug */,
+				413C8AD21A17A0A700BA0630 /* Release */,
+				41D268C41A253E5800A2BAF8 /* Disassembly */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 413C8AC21A17A0A700BA0630 /* Project object */;
+}

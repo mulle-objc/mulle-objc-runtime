@@ -1,0 +1,17 @@
+digraph global_concept
+{
+   PROCESS -> "thread (1)"
+   PROCESS -> "thread (n)"
+
+   node [shape="box"];
+
+  "thread (1)" -> "_mulle_objc_runtime"
+  "thread (n)" -> "_mulle_objc_runtime"
+  "thread (1)" -> "_mulle_objc_threadconfig (1)"
+  "thread (n)" -> "_mulle_objc_threadconfig (n)"
+
+   node [shape="note"];
+
+  "_mulle_objc_runtime" -> "_mulle_objc_class (1)"
+  "_mulle_objc_runtime" -> "_mulle_objc_class (n)"
+}
