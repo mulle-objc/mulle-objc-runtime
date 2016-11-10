@@ -12,7 +12,7 @@
 
 usage()
 {
-	cat <<EOF >&2
+   cat <<EOF >&2
 USAGE
 
 mulle-objc-reverse-uniqueid.sh <uniqueid|command> [pattern] [paths]
@@ -37,7 +37,7 @@ EXAMPLE
            check if the string "init" appears anywhere in the header
            files in /usr/local/include or the current directory.
 EOF
-	exit 1
+   exit 1
 }
 
 
@@ -46,9 +46,9 @@ HASH=$1
 [ -z "$#" ] || shift
 
 case "$HASH" in
-	0x*)
-		HASH="`echo "$HASH" | sed 's/^0x\(.*\)/\1/g'`"
-		;;
+   0x*)
+      HASH="`echo "$HASH" | sed 's/^0x\(.*\)/\1/g'`"
+      ;;
 esac
 [ -z "${HASH}" ] && usage
 
@@ -70,23 +70,22 @@ grep -h -s -o -E '\w+' -r --include "${PATTERN}" ${PATHS} | \
    sort -u | \
 while read -r word
 do
-	case "${HASH}" in
-		words)
-	      echo "${word}"
-	      ;;
+   hash="`mulle-objc-uniqueid "${word}" | head -1 | awk '{ print $3 }'`"
+   case "${HASH}" in
+      words)
+         echo "${word}"
+         ;;
 
-		hashed-words)
-			hash="`md5 -q -s "${word}" | cut -c1-16`"
-	      echo "${hash} ${word}"
-	      ;;
+      hashed-words)
+         echo "${hash} ${word}"
+         ;;
 
-	   *)
-			hash="`md5 -q -s "${word}" | cut -c1-16`"
-			case "${hash}" in
-				"${HASH}"*)
-	   		 echo "${word}"
-	      	;;
-		   esac
-		   ;;
-	esac
+      *)
+         case "${hash}" in
+            "${HASH}"*)
+             echo "${word}"
+            ;;
+         esac
+         ;;
+   esac
 done
