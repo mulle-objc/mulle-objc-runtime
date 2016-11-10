@@ -6,12 +6,10 @@ It follows the Apple "Objective-C 1 Runtime" and
 from "Objective-C 2.0", but the function calls are completely different.
 It is designed to be suitable for massive multi-threading.
 
-Fork         | Branch  | Version | Build Status 
--------------|-------- |---------|----------------
-[Mulle kybernetiK](//github.com/mulle-nat/mulle-objc)  | release | ![GitHub version](https://badge.fury.io/gh/mulle-nat%2Fmulle-objc.svg) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc)
-[Community](https://github.com/mulle-objc/mulle-objc/tree/release)      | release | ![GitHub version](https://badge.fury.io/gh/mulle-objc%2Fmulle-objc.svg) |  [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-objc/mulle-objc)
-[Community](//github.com/mulle-objc/mulle-objc)    | master | current |  [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg?branch=master)](https://travis-ci.org/mulle-objc/mulle-objc)
-
+Fork      |  Build Status | Release Version
+----------|---------------|-----------------------------------
+[Mulle kybernetiK](//github.com/mulle-nat/mulle-objc) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc)
+[Community](https://github.com/mulle-objc/mulle-objc/tree/release) | [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg)](https://travis-ci.org/mulle-objc/mulle-objc) | ![Community tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-objc/mulle-objc)
 
 ## What's so different ?
 
@@ -106,11 +104,11 @@ brew install mulle-objc
 ```
 
 On other platforms you can use **mulle-install** from
-[mulle-build](//www.mulle-kybernetik.com/software/git/mulle-build)
+[mulle-build](//github.com/mulle-nat/mulle-objc)
 to install the library:
 
 ```
-mulle-install --prefix /usr/local --branch release https://www.mulle-kybernetik.com/repositories/mulle-objc
+mulle-install --prefix /usr/local --branch release https://github.com/mulle-objc/mulle-objc
 ```
 
 Otherwise read:
