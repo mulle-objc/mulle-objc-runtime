@@ -17,7 +17,7 @@
                BlueprintIdentifier = "41B2CC711C512DD8006CA7BB"
                BuildableName = "Libraries"
                BlueprintName = "Libraries"
-               ReferencedContainer = "container:mulle-objc.xcodeproj">
+               ReferencedContainer = "container:mulle-objc-runtime.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -48,7 +48,7 @@
             BlueprintIdentifier = "41B2CC711C512DD8006CA7BB"
             BuildableName = "Libraries"
             BlueprintName = "Libraries"
-            ReferencedContainer = "container:mulle-objc.xcodeproj">
+            ReferencedContainer = "container:mulle-objc-runtime.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -66,7 +66,7 @@
             BlueprintIdentifier = "41B2CC711C512DD8006CA7BB"
             BuildableName = "Libraries"
             BlueprintName = "Libraries"
-            ReferencedContainer = "container:mulle-objc.xcodeproj">
+            ReferencedContainer = "container:mulle-objc-runtime.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
