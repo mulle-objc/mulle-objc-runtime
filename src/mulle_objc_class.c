@@ -147,7 +147,7 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
          initialize = _mulle_objc_class_search_method( meta, MULLE_OBJC_INITIALIZE_METHODID, NULL,MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS);
          if( initialize)
          {
-            (*initialize->implementation)( (struct _mulle_objc_object *) _mulle_objc_class_get_infraclass( meta), MULLE_OBJC_INITIALIZE_METHODID, NULL);
+            (*_mulle_objc_method_get_implementation( initialize))( (struct _mulle_objc_object *) _mulle_objc_class_get_infraclass( meta), MULLE_OBJC_INITIALIZE_METHODID, NULL);
          }
       }
       
@@ -1290,7 +1290,7 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
    
    runtime = _mulle_objc_class_get_runtime( cls);
    if( runtime->debug.trace.method_searches)
-      fprintf( stderr, "mulle_objc_runtime %p trace: search class %s for methodid %08x (previous=%p)\"\n", runtime, cls->name, methodid, previous ? previous->implementation : NULL);
+      fprintf( stderr, "mulle_objc_runtime %p trace: search class %s for methodid %08x (previous=%p)\"\n", runtime, cls->name, methodid, previous ? _mulle_objc_method_get_implementation( previous) : NULL);
    
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
