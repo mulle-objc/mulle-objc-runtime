@@ -73,7 +73,6 @@
 		41837DCD1C845B5A00DA9F1D /* libmulle_test_allocator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 41837DCC1C845B5A00DA9F1D /* libmulle_test_allocator.a */; };
 		4184C4791C8DC0BC004CED2F /* libmulle_concurrent.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4184C4781C8DC0BC004CED2F /* libmulle_concurrent.a */; };
 		4188ADDF1D37B7E900926C82 /* mulle_objc_taggedpointer.h in Headers */ = {isa = PBXBuildFile; fileRef = 4188ADDE1D37B7E900926C82 /* mulle_objc_taggedpointer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		419627FA1C8323A300DABA63 /* libmulle_objc_standalone.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 41B2CC621C512BBD006CA7BB /* libmulle_objc_standalone.dylib */; };
 		41978C341A1DF39600DAFA51 /* mulle_objc_callqueue.c in Sources */ = {isa = PBXBuildFile; fileRef = 41978C331A1DF39600DAFA51 /* mulle_objc_callqueue.c */; };
 		41A2882F1C65597A00BBA54E /* mulle_objc_uniqueid.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A2882E1C65597A00BBA54E /* mulle_objc_uniqueid.c */; };
 		41A41E431AB0908000A92452 /* mulle_objc_object_convenience.h in Headers */ = {isa = PBXBuildFile; fileRef = 41A41E421AB0908000A92452 /* mulle_objc_object_convenience.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -95,13 +94,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		419627F81C83239E00DABA63 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 413C8AC21A17A0A700BA0630 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 41B2CC611C512BBD006CA7BB;
-			remoteInfo = mulle_objc_standalone_runtime;
-		};
 		41B2CC671C512BC9006CA7BB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 413C8AC21A17A0A700BA0630 /* Project object */;
@@ -201,7 +193,6 @@
 		41837DCC1C845B5A00DA9F1D /* libmulle_test_allocator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmulle_test_allocator.a; path = dependencies/lib/Debug/libmulle_test_allocator.a; sourceTree = "<group>"; };
 		4184C4781C8DC0BC004CED2F /* libmulle_concurrent.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmulle_concurrent.a; path = dependencies/lib/Debug/libmulle_concurrent.a; sourceTree = "<group>"; };
 		4188ADDE1D37B7E900926C82 /* mulle_objc_taggedpointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_taggedpointer.h; sourceTree = "<group>"; };
-		419627F01C83237700DABA63 /* sometest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sometest; sourceTree = BUILT_PRODUCTS_DIR; };
 		41978C331A1DF39600DAFA51 /* mulle_objc_callqueue.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_callqueue.c; sourceTree = "<group>"; };
 		41978C351A1DF8C300DAFA51 /* mulle_objc_callqueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_callqueue.h; sourceTree = "<group>"; };
 		41A2882E1C65597A00BBA54E /* mulle_objc_uniqueid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_uniqueid.c; sourceTree = "<group>"; };
@@ -240,14 +231,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		419627ED1C83237700DABA63 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				419627FA1C8323A300DABA63 /* libmulle_objc_standalone.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,7 +277,6 @@
 			children = (
 				4158AC8A1A1A0180007F2A2D /* libmulle_objc.a */,
 				41B2CC621C512BBD006CA7BB /* libmulle_objc_standalone.dylib */,
-				419627F01C83237700DABA63 /* sometest */,
 				4138D0E01CC6704B00940B7B /* mulle-objc-uniqueid */,
 			);
 			name = Products;
@@ -506,23 +488,6 @@
 			productReference = 4158AC8A1A1A0180007F2A2D /* libmulle_objc.a */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
-		419627EF1C83237700DABA63 /* sometest */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 419627F71C83237700DABA63 /* Build configuration list for PBXNativeTarget "sometest" */;
-			buildPhases = (
-				419627EC1C83237700DABA63 /* Sources */,
-				419627ED1C83237700DABA63 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				419627F91C83239E00DABA63 /* PBXTargetDependency */,
-			);
-			name = sometest;
-			productName = sometest;
-			productReference = 419627F01C83237700DABA63 /* sometest */;
-			productType = "com.apple.product-type.tool";
-		};
 		41B2CC611C512BBD006CA7BB /* mulle_objc_standalone */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 41B2CC631C512BBD006CA7BB /* Build configuration list for PBXNativeTarget "mulle_objc_standalone" */;
@@ -553,9 +518,6 @@
 					4138D0DF1CC6704B00940B7B = {
 						CreatedOnToolsVersion = 7.2.1;
 					};
-					419627EF1C83237700DABA63 = {
-						CreatedOnToolsVersion = 7.1;
-					};
 					41B2CC611C512BBD006CA7BB = {
 						CreatedOnToolsVersion = 7.1;
 					};
@@ -564,7 +526,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 413C8AC51A17A0A700BA0630 /* Build configuration list for PBXProject "mulle-objc" */;
+			buildConfigurationList = 413C8AC51A17A0A700BA0630 /* Build configuration list for PBXProject "mulle-objc-runtime" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -579,7 +541,6 @@
 				41B2CC711C512DD8006CA7BB /* Libraries */,
 				4158AC891A1A0180007F2A2D /* mulle_objc */,
 				41B2CC611C512BBD006CA7BB /* mulle_objc_standalone */,
-				419627EF1C83237700DABA63 /* sometest */,
 				4138D0DF1CC6704B00940B7B /* mulle-objc-uniqueid */,
 			);
 		};
@@ -628,13 +589,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		419627EC1C83237700DABA63 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		41B2CC5E1C512BBD006CA7BB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -646,11 +600,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		419627F91C83239E00DABA63 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 41B2CC611C512BBD006CA7BB /* mulle_objc_standalone */;
-			targetProxy = 419627F81C83239E00DABA63 /* PBXContainerItemProxy */;
-		};
 		41B2CC681C512BC9006CA7BB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 4158AC891A1A0180007F2A2D /* mulle_objc */;
@@ -751,27 +700,6 @@
 			buildSettings = {
 			};
 			name = Release;
-		};
-		419627F41C83237700DABA63 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
-			buildSettings = {
-			};
-			name = Debug;
-		};
-		419627F51C83237700DABA63 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
-			buildSettings = {
-			};
-			name = Release;
-		};
-		419627F61C83237700DABA63 /* Disassembly */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
-			buildSettings = {
-			};
-			name = Disassembly;
 		};
 		41B2CC641C512BBD006CA7BB /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -876,7 +804,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		413C8AC51A17A0A700BA0630 /* Build configuration list for PBXProject "mulle-objc" */ = {
+		413C8AC51A17A0A700BA0630 /* Build configuration list for PBXProject "mulle-objc-runtime" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				413C8AD11A17A0A700BA0630 /* Debug */,
@@ -892,16 +820,6 @@
 				4158AC8C1A1A0180007F2A2D /* Debug */,
 				4158AC8D1A1A0180007F2A2D /* Release */,
 				41D268C51A253E5800A2BAF8 /* Disassembly */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		419627F71C83237700DABA63 /* Build configuration list for PBXNativeTarget "sometest" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				419627F41C83237700DABA63 /* Debug */,
-				419627F51C83237700DABA63 /* Release */,
-				419627F61C83237700DABA63 /* Disassembly */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
