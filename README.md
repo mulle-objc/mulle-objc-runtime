@@ -100,8 +100,7 @@ On OS X and Linux you can use
 to install the library:
 
 ```
-brew tap mulle-kybernetik/software
-brew install mulle-objc-runtime
+brew install mulle-objc/software/mulle-objc-runtime
 ```
 
 On other platforms you can use **mulle-install** from
