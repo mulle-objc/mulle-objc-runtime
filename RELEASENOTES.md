@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Community release
+
+
 ## 0.2.1
 
 * add support for char5-encoding check
