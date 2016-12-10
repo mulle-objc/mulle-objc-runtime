@@ -34,7 +34,6 @@ optimize-fail.s
 /bin/mulle-homebrew
 /mulle-configuration
 /tests/mulle-tests
-
 /tests/include/
 /tests/lib/
 tests/c/struct/call
@@ -44,3 +43,4 @@ tests/hash/fnv1/fnv1
 tests/kvc/kvc
 tests/methods/inheritance/inheritance
 tests/punish/punish
+/research/

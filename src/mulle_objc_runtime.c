@@ -304,7 +304,9 @@ static void   _mulle_objc_runtime_set_defaults( struct _mulle_objc_runtime  *run
    _mulle_concurrent_pointerarray_init( &runtime->gifts, 16, &runtime->memory.allocator);
    
    runtime->config.max_optlevel = 0x7;
-   
+#if MULLE_OBJC_THREAD_LOCAL_RUNTIME
+   runtime->config.thread_local_rt = 1;
+#endif
    _mulle_objc_runtime_set_debug_defaults_from_environment( runtime);
 }
 
@@ -345,7 +347,7 @@ struct _mulle_objc_runtime  *__mulle_objc_get_runtime( void)
 {
    struct _mulle_objc_runtime  *runtime;
    
-#if MULLE_OBJC_HAVE_THREAD_LOCAL_RUNTIME
+#if MULLE_OBJC_THREAD_LOCAL_RUNTIME
    if( mulle_objc_runtime_thread_key)
    {
       runtime = __mulle_objc_get_thread_runtime();
@@ -364,6 +366,17 @@ void  _mulle_objc_runtime_assert_version( struct _mulle_objc_runtime  *runtime,
 {
    if( mulle_objc_version_get_major( version->runtime) !=
        mulle_objc_version_get_major( runtime->version))
+   {
+      errno = ENOEXEC;
+      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+   }
+
+   //
+   // during 0 versions, any minor jump is incompatible
+   //
+   if( ! mulle_objc_version_get_major( version->runtime) &&
+         (mulle_objc_version_get_minor( version->runtime) !=
+          mulle_objc_version_get_minor( runtime->version)))
    {
       errno = ENOEXEC;
       _mulle_objc_runtime_raise_fail_errno_exception( runtime);
@@ -484,13 +497,13 @@ static void   _mulle_objc_runtime_free_friend( struct _mulle_objc_runtime *runti
 
 static void   print_loadclass( struct _mulle_objc_loadclass *cls)
 {
-   fprintf( stderr, "\t%s\n", cls->class_name);
+   fprintf( stderr, "\t%s\n", cls->classname);
 }
 
 
 static void   print_loadcategory( struct _mulle_objc_loadcategory *category)
 {
-   fprintf( stderr, "\t%s (%s)\n", category->class_name, category->category_name);
+   fprintf( stderr, "\t%s (%s)\n", category->classname, category->categoryname);
 }
 
 
@@ -967,7 +980,7 @@ void   mulle_objc_raise_taggedpointer_exception( void *obj)
 //
 struct _mulle_objc_runtime  *mulle_objc_get_runtime( void)
 {
-#if MULLE_OBJC_HAVE_THREAD_LOCAL_RUNTIME
+#if MULLE_OBJC_THREAD_LOCAL_RUNTIME
    return( mulle_objc_get_thread_runtime());
 #else
    return( mulle_objc_get_global_runtime());

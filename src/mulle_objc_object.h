@@ -93,7 +93,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_get_isa( void *obj)
    struct _mulle_objc_runtime   *runtime;
 
    index = _mulle_objc_object_get_taggedpointer_index( obj);
-   if( ! index)
+   if( __builtin_expect( ! index, 1))
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    runtime = mulle_objc_inlined_get_runtime();
