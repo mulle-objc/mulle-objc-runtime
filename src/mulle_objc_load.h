@@ -55,39 +55,41 @@ struct _mulle_objc_propertylist;
 struct _mulle_objc_loadclass
 {
    mulle_objc_classid_t              classid;
-   char                              *class_name;
-   mulle_objc_hash_t                 class_ivarhash;
+   char                              *classname;
+   mulle_objc_hash_t                 classivarhash;
 
    mulle_objc_classid_t              superclassid;
-   char                              *superclass_name;
-   mulle_objc_hash_t                 superclass_ivarhash;
+   char                              *superclassname;
+   mulle_objc_hash_t                 superclassivarhash;
 
    int                               fastclassindex;
-   int                               instance_size;
+   int                               instancesize;
    
-   struct _mulle_objc_ivarlist       *instance_variables;
+   struct _mulle_objc_ivarlist       *instancevariables;
    
-   struct _mulle_objc_methodlist     *class_methods;
-   struct _mulle_objc_methodlist     *instance_methods;
+   struct _mulle_objc_methodlist     *classmethods;
+   struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
    
-   mulle_objc_protocolid_t           *protocol_uniqueids;
+   mulle_objc_protocolid_t           *protocolids;
+   mulle_objc_classid_t              *protocolclassids;
 };
 
 
 struct _mulle_objc_loadcategory
 {
-   char                              *category_name;
+   char                              *categoryname;
 
    mulle_objc_classid_t              classid;
-   char                              *class_name;         // useful ??
-   mulle_objc_hash_t                 class_ivarhash;
+   char                              *classname;         // useful ??
+   mulle_objc_hash_t                 classivarhash;
    
-   struct _mulle_objc_methodlist     *class_methods;
-   struct _mulle_objc_methodlist     *instance_methods;
+   struct _mulle_objc_methodlist     *classmethods;
+   struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
 
-   mulle_objc_protocolid_t           *protocol_uniqueids;
+   mulle_objc_protocolid_t           *protocolids;
+   mulle_objc_classid_t              *protocolclassids;
 };
 
 
@@ -171,14 +173,21 @@ static inline void   mulle_objc_loadhashedstringlist_sort( struct _mulle_objc_lo
 //
 enum _mulle_objc_loadinfobits
 {
-   _mulle_objc_loadinfo_unsorted     = 0x1,
-   _mulle_objc_loadinfo_aaomode      = 0x2,
-   _mulle_objc_loadinfo_notaggedptrs = 0x4,
-   _mulle_objc_loadinfo_optlevel_0   = (0 << 16),
-   _mulle_objc_loadinfo_optlevel_1   = (1 << 16),
-   _mulle_objc_loadinfo_optlevel_2   = (2 << 16),
-   _mulle_objc_loadinfo_optlevel_3   = (3 << 16),
-   _mulle_objc_loadinfo_optlevel_s   = (7 << 16)
+   _mulle_objc_loadinfo_unsorted      = 0x1,
+   _mulle_objc_loadinfo_aaomode       = 0x2,
+   _mulle_objc_loadinfo_notaggedptrs  = 0x4,
+   _mulle_objc_loadinfo_threadlocalrt = 0x8,
+
+   _mulle_objc_loadinfo_optlevel_0   = (0 << 8),  // actual values...
+   _mulle_objc_loadinfo_optlevel_1   = (1 << 8),
+   _mulle_objc_loadinfo_optlevel_2   = (2 << 8),
+   _mulle_objc_loadinfo_optlevel_3   = (3 << 8),
+   _mulle_objc_loadinfo_optlevel_s   = (7 << 8)
+
+   // lower 16 bits for runtime
+   
+   // next 12 bits free for foundation (future: somehow)
+   // last  4 bits free for user       (future: somehow)
 };
 
 
@@ -209,7 +218,6 @@ struct _mulle_objc_loadinfo
    struct _mulle_objc_loadstringlist         *loadstringlist;
    struct _mulle_objc_loadhashedstringlist   *loadhashedstringlist;  // optional for debugging
 };
-
 
 
 # pragma mark  -

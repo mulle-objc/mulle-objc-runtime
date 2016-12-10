@@ -50,7 +50,7 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
    struct _mulle_objc_garbagecollection   *gc;
    struct _mulle_objc_runtime             *runtime;
 
-#if ! MULLE_OBJC_HAVE_THREAD_LOCAL_RUNTIME
+#if ! MULLE_OBJC_THREAD_LOCAL_RUNTIME
    if( cls && (cls->classid == 0x5b791fc6 || cls->classid == 0x645eeb40))
       return( -1);
 #endif

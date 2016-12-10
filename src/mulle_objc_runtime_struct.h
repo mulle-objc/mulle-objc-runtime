@@ -69,6 +69,7 @@ struct _mulle_objc_runtimeconfig
    unsigned   max_optlevel             : 3;  // max compiler optimization level: (7)
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
    unsigned   no_tagged_pointers       : 1;  // don't use tagged pointers
+   unsigned   thread_local_rt          : 1;  // use thread local runtimes
 };
 
 

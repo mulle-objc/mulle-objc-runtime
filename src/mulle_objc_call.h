@@ -63,10 +63,12 @@ void   *mulle_objc_object_call2_empty_cache( void *obj, mulle_objc_methodid_t me
 void   *mulle_objc_object_call_class_empty_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
 
 
-//// on x86_64 this should optimize into 30 bytes tops
-// when inlining, we are "fine" if the cache is stale
+//// on x86_64 this should optimize into 30 bytes tops w/o tagged pointers
 //
-// use this for -O2 -O3
+// When inlining, we are "fine" if the cache is stale
+// Unfortunately llvm sometimes really produces pathetic code.
+//
+// use this for -O3
 //
 MULLE_C_ALWAYS_INLINE
 static inline void  *mulle_objc_object_inline_constant_methodid_call( void *obj,
@@ -85,6 +87,10 @@ static inline void  *mulle_objc_object_inline_constant_methodid_call( void *obj,
    if( __builtin_expect( ! obj, 0))
       return( obj);
    
+   //
+   // with tagged pointers inlining starts to become useless, because this
+   // _mulle_objc_object_get_isa function produces too much code IMO
+   //
    cls = _mulle_objc_object_get_isa( obj);
    
    //
@@ -132,7 +138,6 @@ static inline void   *mulle_objc_object_constant_methodid_call( void *obj,
 
    return( (*cls->call)( obj, methodid, parameter, cls));
 }
-
 
 
 //
@@ -408,9 +413,9 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 #define mulle_objc_void_5_pointers( size)  \
    (((size) +  sizeof( void *[ 5]) - 1) /  sizeof( void *[ 5]))
 
-#define mulle_objc_metaabi_param_block( param_type, rval_type)               \
-   union    \
-   {        \
+#define mulle_objc_metaabi_param_block( param_type, rval_type) \
+   union                   \
+   {                       \
       rval_type    r;      \
       param_type   p;      \
       void         *space[ 5][ sizeof( rval_type) > sizeof( param_type)        \
