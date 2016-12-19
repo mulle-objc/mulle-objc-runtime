@@ -250,6 +250,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->name                     = name;
    
    cls->superclass               = superclass;
+   cls->superclassid             = superclass ? superclass->classid : MULLE_OBJC_NO_CLASSID;
    cls->classid                  = classid;
 
    cls->instance_and_header_size = sizeof( struct _mulle_objc_objectheader) + instance_size;
@@ -388,6 +389,7 @@ static void  _mulle_objc_class_raise_method_not_found( struct _mulle_objc_class 
 }
 
 
+MULLE_C_NON_NULL_RETURN
 struct _mulle_objc_method    *_mulle_objc_class_unfailing_get_or_search_forwardmethod( struct _mulle_objc_class *cls,
                                                                                mulle_objc_methodid_t   missing_method)
 {
@@ -398,7 +400,6 @@ struct _mulle_objc_method    *_mulle_objc_class_unfailing_get_or_search_forwardm
       return( method);
    
    _mulle_objc_class_raise_method_not_found( cls, missing_method);
-   return( NULL);  // compilers...
 }
 
 

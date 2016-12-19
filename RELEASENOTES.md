@@ -1,3 +1,7 @@
+## 0.2.3
+
+* improved super calls
+
 ## 0.2.1
 
 * add support for char5-encoding check

@@ -43,10 +43,10 @@ uint32_t   _mulle_objc_chained_fnv1_32( void *buf, size_t len, uint32_t hash)
 {
    unsigned char   *s;
    unsigned char   *sentinel;
-   
+
    s        = buf;
    sentinel = &s[ len];
-   
+
    /*
     * FNV-1 hash each octet in the buffer
     */
@@ -55,7 +55,7 @@ uint32_t   _mulle_objc_chained_fnv1_32( void *buf, size_t len, uint32_t hash)
       hash *= FNV1_32_PRIME;
       hash ^= (uint32_t) *s++;
    }
-   
+
    return( hash);
 }
 
@@ -67,10 +67,10 @@ uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
 {
    unsigned char   *s;
    unsigned char   *sentinel;
-   
+
    s        = buf;
    sentinel = &s[ len];
-   
+
    /*
     * FNV-1 hash each octet in the buffer
     */
@@ -79,19 +79,24 @@ uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
       hash *= FNV1_64_PRIME;
       hash ^= *s++;
    }
-   
+
    return( hash);
 }
 
 
+// Build it with:
+// cc -o mulle_objc_fnv1 -DMAIN mulle_objc_fnv1.c mulle_objc_uniqueid.c
+//
 #ifdef MAIN
+#include <stdio.h>
+extern uint32_t  mulle_objc_uniqueid_from_string( char *s);
 
 int main(int argc, const char * argv[])
 {
    if( argc != 2)
       return( -1);
-   
-   printf( "%08lx\n", (long) mulle_objc_uniqueid_from_string( (char *) argv[ 1]));
+
+   printf( "%08x\n", (uint32_t) mulle_objc_uniqueid_from_string( (char *) argv[ 1]));
    return 0;
 }
 

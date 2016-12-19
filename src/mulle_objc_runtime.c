@@ -95,7 +95,7 @@ void   mulle_objc_runtime_dump_to_tmp( void)
 }
 
 
-MULLE_C_NO_RETURN
+MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE
 static void   _mulle_objc_printf_abort( char *format, ...)
 {
    va_list   args;

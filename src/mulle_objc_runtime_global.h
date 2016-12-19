@@ -94,6 +94,7 @@ static inline int   mulle_objc_runtime_thread_key_is_intitialized( void)
    return( mulle_objc_runtime_thread_key != (mulle_thread_tss_t) -1);
 }
 
+
 static inline struct _mulle_objc_threadconfig  *_mulle_objc_get_threadconfig( void)
 {
    MULLE_OBJC_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_runtime_thread_key;

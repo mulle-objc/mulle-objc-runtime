@@ -682,8 +682,6 @@ void   *mulle_objc_object_call( void *obj,
 }
 
 
-// _mulle_objc_class_call_classid moved to runtime header
-
 void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_methodid_t methodid, void *params)
 {
    mulle_objc_methodimplementation_t   (*lookup)( struct _mulle_objc_class *, mulle_objc_methodid_t);
