@@ -41,13 +41,13 @@
 // up the minor for added features
 // up the patch for bugfixes
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (2 << 8) | 1)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (2 << 8) | 3)
 
 // these three values are read by the compiler(!)
 // only use integers and no expressions
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0  // max 1023
 #define MULLE_OBJC_RUNTIME_VERSION_MINOR  2  // max 1023
-#define MULLE_OBJC_RUNTIME_VERSION_PATCH  1  // max 255
+#define MULLE_OBJC_RUNTIME_VERSION_PATCH  3  // max 255
 
 
 static inline uint32_t  mulle_objc_version_get_major( uint32_t version)

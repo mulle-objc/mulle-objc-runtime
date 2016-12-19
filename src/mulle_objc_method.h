@@ -94,7 +94,7 @@ enum
 {
    _mulle_objc_method_check_unexpected_override = 0x01,
    _mulle_objc_method_preload                   = 0x02,
-   _mulle_objc_method_aaomode                   = 0x04,
+   _mulle_objc_method_aam                       = 0x04,
    _mulle_objc_method_variadic                  = 0x08,
    
 // this is from clang ObjCMethodFamilyAttr

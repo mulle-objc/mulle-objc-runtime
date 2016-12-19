@@ -93,7 +93,7 @@ int main(int argc, const char * argv[])
    {
       if( slots[ i] != value)
       {
-         printf( "%d%%: %u\n", ((count * 100 + n_entries / 2) / n_entries), value);
+         printf( "%.1f%%: %u\n", ((count * 100.0 + n_entries / 2) / n_entries), value);
          value = slots[ i];
          count = 1;
       }

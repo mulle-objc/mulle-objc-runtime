@@ -84,6 +84,7 @@ static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
 // 8 basic functions are predefined, it's not that these need
 // to be very speedy, but being fastmethods, they also reduce the generated
 // code-size a lot for the inlineable code and the compiler generated code.
+// retain/release may be a waste of space really
 //
 MULLE_C_CONST_RETURN
 static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t methodid)
@@ -123,6 +124,32 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
 #endif
 #ifdef MULLE_OBJC_FASTMETHODHASH_15
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_15) : return( 15);
+#endif
+
+#ifdef MULLE_OBJC_FASTMETHODHASH_16
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_16) : return( 16);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_17
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_17) : return( 17);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_18
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_18) : return( 18);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_19
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_19) : return( 19);
+#endif
+
+#ifdef MULLE_OBJC_FASTMETHODHASH_20
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_20) : return( 20);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_21
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_21) : return( 21);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_22
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_22) : return( 22);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_23
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_23) : return( 23);
 #endif
    }
    return( -1);

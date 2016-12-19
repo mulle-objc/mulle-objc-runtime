@@ -127,6 +127,7 @@ struct _mulle_objc_class
    uintptr_t                         instance_and_header_size;
    uintptr_t                         extension_offset;         // 4 later #1#
    mulle_objc_classid_t              classid;
+   mulle_objc_classid_t              superclassid;
    mulle_objc_hash_t                 ivarhash;
 
    struct _mulle_objc_method         *forwardmethod;
@@ -717,6 +718,7 @@ struct _mulle_objc_method    *_mulle_objc_class_unfailing_get_or_search_forwardm
 struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);
 
 
+MULLE_C_NON_NULL_RETURN
 static inline struct _mulle_objc_method   *_mulle_objc_class_unfailing_search_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *method;

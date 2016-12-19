@@ -208,6 +208,7 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
 #pragma mark -
 #pragma mark calls for super
 
+#if 0 // unused apparently
 static inline void   *_mulle_objc_class_call_classid( struct _mulle_objc_class *cls,
                                                       mulle_objc_methodid_t methodid,
                                                       void *parameter,
@@ -237,6 +238,7 @@ static inline void   *mulle_objc_class_call_classid( struct _mulle_objc_class *c
    return( _mulle_objc_class_call_classid( cls, methodid, parameter, classid));
 }
 
+#endif
 
 
 //
@@ -252,7 +254,9 @@ static inline void   *_mulle_objc_class_inline_metacall_classid( struct _mulle_o
    struct _mulle_objc_runtime   *runtime;
    
    runtime = _mulle_objc_class_get_runtime( cls);
-   call_cls = _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
+   call_cls = (cls->superclassid == classid)
+               ? cls->superclass
+               : _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
    call_cls = _mulle_objc_class_get_metaclass( call_cls);
    // need to call cls->call to prepare caches
    return( (*call_cls->call)( cls, methodid, parameter, call_cls));
@@ -282,18 +286,19 @@ void   *mulle_objc_class_metacall_classid( struct _mulle_objc_class *cls,
 // the compiler since it is a super call, self is known to be non-nil.
 //
 static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
-                                                       mulle_objc_methodid_t methodid,
-                                                       void *parameter,
-                                                       mulle_objc_classid_t classid)
+                                                              mulle_objc_methodid_t methodid,
+                                                              void *parameter,
+                                                              mulle_objc_classid_t classid)
 {
    struct _mulle_objc_class     *call_cls;
    struct _mulle_objc_class     *cls;
    struct _mulle_objc_runtime   *runtime;
    
-   cls     = _mulle_objc_object_get_isa( obj);
-   runtime = _mulle_objc_class_get_runtime( cls);
-   
-   call_cls = _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
+   cls      = _mulle_objc_object_get_isa( obj);
+   runtime  = _mulle_objc_class_get_runtime( cls);
+   call_cls = (cls->superclassid == classid)
+               ? cls->superclass
+               : _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
    // need to call cls->call to prepare caches
    return( (*call_cls->call)( obj, methodid, parameter, call_cls));
 }
@@ -472,6 +477,5 @@ void   *mulle_objc_object_call_classid( void *obj,
                                         mulle_objc_methodid_t methodid,
                                         void *parameter,
                                         mulle_objc_classid_t classid);
-
 
 #endif

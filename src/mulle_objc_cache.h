@@ -94,18 +94,18 @@ struct _mulle_objc_cachepivot
 
 
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry  *_mulle_objc_cachepivot_get_entries_non_atomically( struct _mulle_objc_cachepivot *p)
+static inline struct _mulle_objc_cacheentry  *_mulle_objc_cachepivot_nonatomic_get_entries( struct _mulle_objc_cachepivot *p)
 {
    return( _mulle_atomic_pointer_nonatomic_read( &p->entries));
 }
 
 
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cache  *_mulle_objc_cachepivot_get_cache_non_atomically( struct _mulle_objc_cachepivot *p)
+static inline struct _mulle_objc_cache  *_mulle_objc_cachepivot_nonatomic_get_cache( struct _mulle_objc_cachepivot *p)
 {
    struct _mulle_objc_cacheentry  *entries;
    
-   entries = _mulle_objc_cachepivot_get_entries_non_atomically( p);
+   entries = _mulle_objc_cachepivot_nonatomic_get_entries( p);
    return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
 }
 
