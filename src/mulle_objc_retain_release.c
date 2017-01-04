@@ -128,24 +128,34 @@ void  _mulle_objc_object_perform_finalize( void *obj)
 void   _mulle_objc_objects_call_retain( void **objects, size_t n)
 {
    void   **sentinel;
+   void   *p;
    
    // assume compiler can do unrolling
    sentinel = &objects[ n];
    
    while( objects < sentinel)
-      mulle_objc_object_retain( *objects++);
+   {
+      p = *objects++;
+      if( p)
+         _mulle_objc_object_retain( *objects++);
+   }
 }
 
 
 void   _mulle_objc_objects_call_release( void **objects, size_t n)
 {
    void   **sentinel;
+   void   *p;
 
    // assume compiler can do unrolling
    sentinel = &objects[ n];
    
    while( objects < sentinel)
-      mulle_objc_object_release( *objects++);
+   {
+      p = *objects++;
+      if( p)
+         _mulle_objc_object_release( *objects++);
+   }
 }
 
 
@@ -159,9 +169,13 @@ void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n)
    
    while( objects < sentinel)
    {
-      p        = *objects;
-      *objects++ = 0;
-      mulle_objc_object_release( p);
+      p = *objects;
+      if( p)
+      {
+         *objects = 0;
+         _mulle_objc_object_release( p);
+      }
+      ++objects;
    }
 }
 

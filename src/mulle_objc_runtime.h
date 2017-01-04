@@ -188,15 +188,13 @@ int  _mulle_objc_runtime_set_taggedpointerclass_at_index( struct _mulle_objc_run
 // initialize them easily)
 //
 
-// always returns same value (in same thread), if you use this consistently
-// then you don't have to recompile for MULLE_OBJC_THREAD_LOCAL_RUNTIME
-//
-MULLE_C_CONST_NON_NULL_RETURN  struct _mulle_objc_runtime  *mulle_objc_get_runtime( void);
+MULLE_C_CONST_NON_NULL_RETURN
+struct _mulle_objc_runtime  *mulle_objc_get_runtime( void);
 
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
 static inline struct _mulle_objc_runtime  *mulle_objc_inlined_get_runtime( void)
 {
-#if MULLE_OBJC_THREAD_LOCAL_RUNTIME
+#if __MULLE_OBJC_TRT__
    return( mulle_objc_get_thread_runtime());
 #else
    return( mulle_objc_get_global_runtime());

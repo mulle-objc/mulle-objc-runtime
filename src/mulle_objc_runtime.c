@@ -186,6 +186,19 @@ static void   nop( struct _mulle_objc_runtime  *runtime, mulle_objc_classid_t cl
 }
 
 
+static void   _mulle_objc_runtimeconfig_dump( struct _mulle_objc_runtimeconfig  *config)
+{
+   fprintf( stderr, "%s", config->thread_local_rt ? "thread local" : "global");
+   fprintf( stderr, ", %stagged pointers", config->no_tagged_pointers ? "no " : "");
+   if( config->forget_strings)
+      fprintf( stderr, ", forget strings");
+   
+   if( config->ignore_ivarhash_mismatch)
+      fprintf( stderr, ", ignore ivarhash mismatch");
+   fprintf( stderr, ", min:-O%u max:-O%u", config->min_optlevel, config->max_optlevel);
+}
+
+
 static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _mulle_objc_runtime  *runtime)
 {
    runtime->debug.warn.methodid_types        = getenv( "MULLE_OBJC_WARN_METHODID_TYPES") != NULL;
@@ -203,6 +216,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.warn.not_loaded_categories = 1;
    }
    
+   runtime->debug.trace.runtime_config     = getenv( "MULLE_OBJC_TRACE_RUNTIME_CONFIG") != NULL;
    runtime->debug.trace.category_adds      = getenv( "MULLE_OBJC_TRACE_CATEGORY_ADDS") != NULL;
    runtime->debug.trace.class_adds         = getenv( "MULLE_OBJC_TRACE_CLASS_ADDS") != NULL;
    runtime->debug.trace.class_frees        = getenv( "MULLE_OBJC_TRACE_CLASS_FREES") != NULL;
@@ -226,6 +240,17 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.trace.fastclass_adds        = 1;
       runtime->debug.trace.string_adds           = 1;
       runtime->debug.trace.tagged_pointers       = 1;
+      runtime->debug.trace.runtime_config        = 1;
+   }
+ 
+   if( runtime->debug.trace.runtime_config)
+   {
+      fprintf( stderr, "mulle-objc: v%u.%u.%u (",
+         MULLE_OBJC_RUNTIME_VERSION_MAJOR,
+         MULLE_OBJC_RUNTIME_VERSION_MINOR,
+         MULLE_OBJC_RUNTIME_VERSION_PATCH);
+      _mulle_objc_runtimeconfig_dump( &runtime->config);
+      fprintf( stderr, ")\n");
    }
 }
 
@@ -304,8 +329,11 @@ static void   _mulle_objc_runtime_set_defaults( struct _mulle_objc_runtime  *run
    _mulle_concurrent_pointerarray_init( &runtime->gifts, 16, &runtime->memory.allocator);
    
    runtime->config.max_optlevel = 0x7;
-#if MULLE_OBJC_THREAD_LOCAL_RUNTIME
+#if __MULLE_OBJC_TRT__
    runtime->config.thread_local_rt = 1;
+#endif
+#if ! __MULLE_OBJC_TPS__
+   runtime->config.no_tagged_pointers = 1;
 #endif
    _mulle_objc_runtime_set_debug_defaults_from_environment( runtime);
 }
@@ -347,7 +375,7 @@ struct _mulle_objc_runtime  *__mulle_objc_get_runtime( void)
 {
    struct _mulle_objc_runtime  *runtime;
    
-#if MULLE_OBJC_THREAD_LOCAL_RUNTIME
+#if __MULLE_OBJC_TRT__
    if( mulle_objc_runtime_thread_key)
    {
       runtime = __mulle_objc_get_thread_runtime();
@@ -980,7 +1008,7 @@ void   mulle_objc_raise_taggedpointer_exception( void *obj)
 //
 struct _mulle_objc_runtime  *mulle_objc_get_runtime( void)
 {
-#if MULLE_OBJC_THREAD_LOCAL_RUNTIME
+#if __MULLE_OBJC_TRT__
    return( mulle_objc_get_thread_runtime());
 #else
    return( mulle_objc_get_global_runtime());

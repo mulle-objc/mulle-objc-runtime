@@ -56,12 +56,12 @@ struct _mulle_objc_method;
 # pragma mark -
 # pragma mark isa handling
 
-static inline int  _mulle_objc_object_get_taggedpointer_index( struct _mulle_objc_object *obj)
+static inline int  mulle_objc_object_get_taggedpointer_index( struct _mulle_objc_object *obj)
 {
-#ifdef MULLE_OBJC_NO_TAGGED_POINTERS
-   return( 0);
-#else
+#if __MULLE_OBJC_TPS__
    return( mulle_objc_taggedpointer_get_index( obj));
+#else
+   return( 0);
 #endif
 }
 
@@ -75,7 +75,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
    unsigned int                 index;
    struct _mulle_objc_runtime   *runtime;
 
-   index = _mulle_objc_object_get_taggedpointer_index( obj);
+   index = mulle_objc_object_get_taggedpointer_index( obj);
    if( ! index)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
    
@@ -92,7 +92,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_get_isa( void *obj)
    unsigned int                 index;
    struct _mulle_objc_runtime   *runtime;
 
-   index = _mulle_objc_object_get_taggedpointer_index( obj);
+   index = mulle_objc_object_get_taggedpointer_index( obj);
    if( __builtin_expect( ! index, 1))
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
@@ -107,7 +107,7 @@ static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_cl
    unsigned int   index;
    extern void    mulle_objc_raise_taggedpointer_exception( void *obj);
 
-   index = _mulle_objc_object_get_taggedpointer_index( obj);
+   index = mulle_objc_object_get_taggedpointer_index( obj);
    if( index)
       mulle_objc_raise_taggedpointer_exception( obj);
    
