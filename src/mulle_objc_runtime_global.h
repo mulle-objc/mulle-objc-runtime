@@ -47,7 +47,7 @@
 #endif
 
 
-#if ! MULLE_OBJC_THREAD_LOCAL_RUNTIME
+#if ! __MULLE_OBJC_TRT__
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
 static inline struct _mulle_objc_runtime  *mulle_objc_get_global_runtime( void)
 {

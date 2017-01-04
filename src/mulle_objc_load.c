@@ -629,12 +629,21 @@ static void  dump_bits( unsigned int bits)
 }
 
 
+static void   print_version( char *prefix, uint32_t version)
+{
+   fprintf( stderr, "%s=%u.%u.%u", prefix,
+            mulle_objc_version_get_major( version),
+            mulle_objc_version_get_minor( version),
+            mulle_objc_version_get_patch( version));
+}
+
 static void   loadinfo_dump( struct _mulle_objc_loadinfo *info, char *prefix)
 {
-   fprintf( stderr, "%sversion: v%d.%d.%d (", prefix,
-         info->version.user,
-         info->version.foundation,
-         info->version.runtime);
+   fprintf( stderr, "%sversion: ", prefix);
+   print_version( "runtime", info->version.runtime);
+   print_version( ", foundation", info->version.foundation);
+   print_version( ", user", info->version.user);
+   fprintf( stderr, " (");
    dump_bits( info->version.bits);
    fprintf( stderr, ")\n");
 
@@ -649,10 +658,18 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    int         need_sort;
    int         optlevel;
    int         load_tps;
-   int         load_tlrt;
    int         mismatch;
    uintptr_t   bits;
    
+   runtime = __get_or_create_objc_runtime();
+   
+   if( ! mulle_objc_class_is_current_thread_registered( NULL))
+   {
+      loadinfo_dump( info, "loadinfo:   ");
+      _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: The function \"mulle_objc_loadinfo_unfailing_enqueue\" is called from a non-registered thread.", runtime, info->version.foundation);
+   }
+   _mulle_objc_runtime_assert_version( runtime, &info->version);
+
    if( getenv( "MULLE_OBJC_TRACE_LOADINFO"))
    {
       fprintf( stderr, "mulle-objc: enqueues loadinfo %p\n", info);
@@ -661,32 +678,22 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    }
    assert( info);
 
-   runtime = __get_or_create_objc_runtime();
-   if( ! mulle_objc_class_is_current_thread_registered( NULL))
-   {
-      loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: The function \"mulle_objc_loadinfo_unfailing_enqueue\" is called from a non-registered thread.", runtime, info->version.foundation);
-   }
-
-   _mulle_objc_runtime_assert_version( runtime, &info->version);
-
-   /* 1848 is test standard, pass thru */
-   if( info->version.foundation != 1848)
+   if( info->version.foundation)
    {
       if( ! runtime->foundation.runtimefriend.versionassert)
       {
          loadinfo_dump( info, "loadinfo:   ");
-         _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: foundation version set to %d but foundation provides no versionassert", runtime, info->version.foundation);
+         _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: foundation version set (0x%x), but runtime foundation provides no versionassert", runtime, info->version.foundation);
       }
       (*runtime->foundation.runtimefriend.versionassert)( runtime, &runtime->foundation, &info->version);
    }
 
    if( info->version.user)
    {
-      if( ! runtime->foundation.runtimefriend.versionassert)
+      if( ! runtime->userinfo.versionassert)
       {
          loadinfo_dump( info, "loadinfo:   ");
-         _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: loadinfo user version set to %d but userinfo provides no versionassert", runtime, info->version.foundation);
+         _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: loadinfo user version set (0x%x), but runtime userinfo provides no versionassert", runtime, info->version.user);
       }
       (*runtime->userinfo.versionassert)( runtime, &runtime->userinfo, &info->version);
    }
@@ -698,13 +705,15 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    // check for tagged pointers. What can happen ?
    // Remember that static strings can be tps!
    //
-   //                | Class TPS | Class NO TPS
-   // --------------------------------------------------------------
-   // Runtime TPS    |       OK  | FAIL
-   // Runtime NO TPS |      FAIL | OK
+   // Runtime | Code   | Description
+   // --------|--------|--------------
+   // No-TPS  | No-TPS | Works
+   // No-TPS  | TPS    | Crashes
+   // TPS     | No-TPS | Works, but slower. Does not mix with "TPS Code"
+   // TPS     | YES    | Works
    //
-   // For convenience in testing we allow loading of "NO TPS"-code
-   // into a "TPS" aware runtime as long as no "TPS"-code is loaded also.
+   // Allow loading of "NO TPS"-code into a "TPS" aware runtime as long
+   // as no "TPS"-code is loaded also.
    //
    load_tps = ! (info->version.bits & _mulle_objc_loadinfo_notaggedptrs);
 
@@ -725,16 +734,20 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    //
    // check for thread local runtime
    //
-   load_tlrt = ! ! (info->version.bits & _mulle_objc_loadinfo_threadlocalrt);
-   mismatch  = runtime->config.thread_local_rt ^ load_tlrt;
-   if( mismatch)
-   {
-      loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: the runtime is %sglobal, but classes are compiled differently",
-                                                        runtime,
-                                                        runtime->config.thread_local_rt ? "not " : "");
-   }
-
+   // Runtime | Code   | Description
+   // --------|--------|--------------
+   // Global  | Global | Default
+   // Global  | TRT    | Works, but slower. Mixes with "Global Code" too
+   // TRT     | Global | Crashes
+   // TRT     | TRT    | Works
+   //
+   if( runtime->config.thread_local_rt)
+      if( ! (info->version.bits & _mulle_objc_loadinfo_threadlocalrt))
+      {
+         loadinfo_dump( info, "loadinfo:   ");
+         _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: the runtime is thead local, but classes are compiled for a global runtime");
+      }
+   
    // make sure everything is compiled with say -O0 (or -O1 at least)
    // if u want to...
    optlevel = ((info->version.bits >> 16) & 0x7);

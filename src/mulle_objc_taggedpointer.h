@@ -106,7 +106,7 @@ static inline void   *mulle_objc_create_signed_taggedpointer( intptr_t value, un
    return( (void *) ((value << mulle_objc_get_taggedpointer_shift()) | index));
 }
 
-
+MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
 static inline unsigned int   mulle_objc_taggedpointer_get_index( void *pointer)
 {
    uintptr_t   value;

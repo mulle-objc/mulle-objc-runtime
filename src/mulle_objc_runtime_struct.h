@@ -102,6 +102,7 @@ struct _mulle_objc_runtimedebug
       unsigned   delayed_category_adds: 1;
       unsigned   string_adds          : 1;
       unsigned   tagged_pointers      : 1;
+      unsigned   runtime_config       : 1;
    } trace;
    
    struct

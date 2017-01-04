@@ -47,6 +47,15 @@ the much better documented "Mac OS X Objective-C 1.0" runtime first.
 [Intro to the Objective-C Runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html) could be a good starting point.
 
 
+> #### C Caveat
+>
+> It you use `.c` files that include `<mulle_objc/mulle_objc.h>` make sure
+> that you compile with `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_TRT__` as 
+> they were defined when compiling the runtime. Since C-only compilations do not 
+> emit runtime information, mismatched can not be checked by the runtime.
+> Easy fix: rename `.c` to `.m` and use **mulle-clang**
+
+
 ### Data structures
 
 API                                                  | Description
