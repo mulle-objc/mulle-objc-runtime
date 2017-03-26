@@ -62,10 +62,9 @@ void   mulle_objc_class_dump_graphviz_to_file( struct _mulle_objc_class *cls, ch
 void   mulle_objc_class_dump_graphviz_tmp( struct _mulle_objc_class *cls);
 
 
-#pragma mark -
-#pragma mark -
+# pragma mark - -
 #pragma mark stuff for the debugger
 
 void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list);
 
-#endif 
+#endif

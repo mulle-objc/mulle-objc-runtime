@@ -46,8 +46,7 @@
 #include <assert.h>
 
 
-# pragma mark -
-# pragma mark method cache
+# pragma mark - method cache
 
 
 #define MULLE_OBJC_MIN_CACHE_SIZE  32
@@ -104,7 +103,7 @@ MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_cache  *_mulle_objc_cachepivot_nonatomic_get_cache( struct _mulle_objc_cachepivot *p)
 {
    struct _mulle_objc_cacheentry  *entries;
-   
+
    entries = _mulle_objc_cachepivot_nonatomic_get_entries( p);
    return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
 }
@@ -129,14 +128,13 @@ static inline int  _mulle_objc_cachepivot_atomic_set_entries( struct _mulle_objc
 static inline struct _mulle_objc_cache  *_mulle_objc_cachepivot_atomic_get_cache( struct _mulle_objc_cachepivot *p)
 {
    struct _mulle_objc_cacheentry   *entries;
-   
+
    entries = _mulle_objc_cachepivot_atomic_get_entries( p);
    return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
 }
 
 
-# pragma mark -
-# pragma mark cache petty accessors
+# pragma mark - cache petty accessors
 
 static inline mulle_objc_cache_uint_t   _mulle_objc_cache_count( struct _mulle_objc_cache *cache)
 {
@@ -163,8 +161,7 @@ static inline unsigned int   _mulle_objc_cache_slots( struct _mulle_objc_cache *
 }
 
 
-# pragma mark -
-# pragma mark cache allocation
+# pragma mark - cache allocation
 
 struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
                                                   struct mulle_allocator *allocator);
@@ -185,8 +182,7 @@ static inline void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
 }
 
 
-# pragma mark -
-# pragma mark cache add entry
+# pragma mark - cache add entry
 
 struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache, void *pointer, mulle_objc_uniqueid_t uniqueid);
 
@@ -197,8 +193,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mu
 struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_functionpointer_entry( struct _mulle_objc_cache *cache, mulle_functionpointer_t pointer, mulle_objc_uniqueid_t uniqueid);
 
 
-# pragma mark -
-# pragma mark cache method lookup
+# pragma mark - cache method lookup
 
 void   *_mulle_objc_cache_lookup_pointer( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid);
 mulle_functionpointer_t   _mulle_objc_cache_lookup_functionpointer( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid);
@@ -206,8 +201,7 @@ mulle_functionpointer_t   _mulle_objc_cache_lookup_functionpointer( struct _mull
 mulle_objc_cache_uint_t   _mulle_objc_cache_offset_for_uniqueid( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid);
 
 
-# pragma mark -
-# pragma mark cache utilitites
+# pragma mark - cache utilitites
 
 unsigned int   mulle_objc_cache_fill_percentage( struct _mulle_objc_cache *cache);
 

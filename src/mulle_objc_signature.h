@@ -104,7 +104,7 @@ struct mulle_objc_typeinfo
 
    uint16_t   bits_struct_alignment;
    uint16_t   natural_alignment;
-   
+
    uint16_t   n_members;        // 0, for scalar, n: for union (members), array(len), bitfield(len), struct( members)
    char       *type;            // not a copy(!) keep your passed in in "types" around, will be past "const"
    char       *pure_type_end;   // if you have "{?=QQ}16", will point just after '}'
@@ -118,7 +118,7 @@ static inline char    *mulle_objc_signature_supply_next_typeinfo( char *types, s
 {
    // don't call this yourself, always check types first
    char   *_mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_objc_typeinfo *info);
-   
+
    if( ! types || ! *types)
       return( NULL);
 

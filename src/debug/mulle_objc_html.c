@@ -49,18 +49,18 @@ static int   mulle_vasprintf( char **output, char *format, va_list args)
 {
    int      size;
    va_list  tmp;
-   
+
    va_copy( tmp, args);
    size = vsnprintf( NULL, 0, format, tmp);
    va_end( tmp);
-   
+
    if( size < 0)
       return( size);
-   
+
    *output = (char *) malloc( size + 1);
    if( ! *output)
       return( -1);
-   
+
    return( vsprintf( *output, format, args));
 }
 
@@ -69,11 +69,11 @@ static int   mulle_asprintf( char **output, char *format, ...)
 {
    va_list  args;
    int      size;
-   
+
    va_start( args, format);
    size = mulle_vasprintf( output, format, args);
    va_end(args);
-   
+
    return size;
 }
 
@@ -91,11 +91,11 @@ static char  *inheritance_description( unsigned int inheritance)
 {
    char     *tmp;
    size_t   len;
-   
+
    tmp = malloc( 128);
    if( ! tmp)
       return( tmp);
-   
+
    tmp[ 0] = 0;
    if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
       strcat( tmp, "superclass ");
@@ -105,7 +105,7 @@ static char  *inheritance_description( unsigned int inheritance)
       strcat( tmp, "protocols ");
    if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES))
       strcat( tmp, "protocol_categories ");
-   
+
    len = strlen( tmp);
    if( len)
       tmp[ len - 1] = 0;
@@ -119,7 +119,7 @@ char  *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime)
    char           *s;
    char           *tmp[ 3];
    unsigned int   i;
-   
+
    // create single lines for each method and two for head/tail
    asprintf( &tmp[ 0],
             "<TABLE>\n<TR><TD COLSPAN=\"2\" BGCOLOR=\"red\"><FONT COLOR=\"white\">runtime</FONT></TD></TR>\n");
@@ -128,22 +128,22 @@ char  *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime)
                runtime->version);
    asprintf( &tmp[ 2],
             "</TABLE>");
-   
+
    len = 0;
    for( i = 0; i < 3; i++)
       len += strlen( tmp[ i]);
-   
+
    // concatenate all strings
-   
+
    s = malloc( len + 1);
    s[ 0] = 0;
-   
+
    for( i = 0; i < 3; i++)
    {
       strcat( s, tmp[ i]);
       free( tmp[ i]);
    }
-   
+
    return( s);
 }
 
@@ -154,7 +154,7 @@ char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring
    char           *s;
    char           *tmp[ 4];
    unsigned int   i;
-   
+
    // create single lines for each method and two for head/tail
    asprintf( &tmp[ 0],
             "<TABLE>\n<TR><TD COLSPAN=\"2\" BGCOLOR=\"green\"><FONT COLOR=\"white\">string</FONT></TD></TR>\n");
@@ -166,22 +166,22 @@ char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring
                string->_len);
    asprintf( &tmp[ 3],
             "</TABLE>");
-   
+
    len = 0;
    for( i = 0; i < 4; i++)
       len += strlen( tmp[ i]);
-   
+
    // concatenate all strings
-   
+
    s = malloc( len + 1);
    s[ 0] = 0;
-   
+
    for( i = 0; i < 4; i++)
    {
       strcat( s, tmp[ i]);
       free( tmp[ i]);
    }
-   
+
    return( s);
 }
 
@@ -209,8 +209,8 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *c
             "<TABLE>\n<TR><TD COLSPAN=\"2\" BGCOLOR=\"%s\"><FONT COLOR=\"white\">%s</FONT></TD></TR>\n",
             color, cls->name);
    asprintf( &tmp[ 1],
-            "<TR><TD>instance_and_header_size</TD><TD>%lu</TD></TR>\n",
-            cls->instance_and_header_size);
+            "<TR><TD>allocationsize</TD><TD>%lu</TD></TR>\n",
+            cls->allocationsize);
 
    s = inheritance_description( cls->inheritance);
    asprintf( &tmp[ 2],
@@ -224,7 +224,7 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *c
    asprintf( &tmp[ 4],
             "<TR><TD>ivarhash</TD><TD>0x%lx</TD></TR>\n",
             (long) cls->ivarhash);
-   
+
    asprintf( &tmp[ 5],
             "<TR><TD>preloads</TD><TD>0x%x</TD></TR>\n",
             cls->preloads);
@@ -239,7 +239,7 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *c
 
    s = malloc( len + 1);
    s[ 0] = 0;
-   
+
    for( i = 0; i < sizeof( tmp) / sizeof( char *); i++)
    {
       strcat( s, tmp[ i]);
@@ -371,7 +371,7 @@ char   *mulle_objc_methoddescriptor_html_description( struct _mulle_objc_methodd
             desc->signature,
             (long) desc->methodid,
             desc->bits);
-   
+
    return( s);
 }
 
@@ -391,7 +391,7 @@ char   *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_met
             desc->signature,
             desc->methodid,
             desc->bits);
-   
+
    return( s);
 }
 
@@ -434,7 +434,7 @@ char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist
                list->properties[ i].getter,
                list->properties[ i].setter,
                list->properties[ i].clearer);
-               
+
       len += strlen( tmp[ i + 1]);
    }
 
@@ -630,19 +630,19 @@ char  *mulle_concurrent_pointerarray_html_description( struct mulle_concurrent_p
    unsigned int            i;
    unsigned int            n;
    void                    *value;
-   
+
    count = mulle_concurrent_pointerarray_get_count( list);
 
    n   = (unsigned int) count + 2;
    tmp = calloc( n, sizeof( char *));
    if( ! tmp)
       return( NULL);
-   
+
    asprintf( &tmp[ 0],
             "<TABLE>\n<TR BGCOLOR=\"gray\"><TD>count</TD><TD>%lu</TD></TR>\n",
             count);
    len = strlen( tmp[ 0]);
-   
+
    i = 1;
    rover = mulle_concurrent_pointerarray_enumerate( list);
    while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover))
@@ -651,21 +651,21 @@ char  *mulle_concurrent_pointerarray_html_description( struct mulle_concurrent_p
       len += strlen( tmp[ i]);
       ++i;
    }
-   
+
    asprintf( &tmp[ i], "</TABLE>");
    len += strlen( tmp[ i]);
-   
+
    // concatenate all strings
-   
+
    s = realloc( tmp[ 0], len + 1);
    for( i = 1; i < n; i++)
    {
       strcat( s, tmp[ i]);
       free( tmp[ i]);
    }
-   
+
    free( tmp);
-   
+
    return( s);
 }
 
@@ -683,23 +683,23 @@ char  *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashma
    unsigned int            i;
    unsigned int            n;
    void                    *value;
-   
+
    count = mulle_concurrent_hashmap_count( map);
 
    n   = (unsigned int) count + 2;
    tmp = calloc( n, sizeof( char *));
    if( ! tmp)
       return(NULL);
-   
-   
+
+
    asprintf( &tmp[ 0],
             "<TABLE>\n<TR BGCOLOR=\"gray\"><TD>n_entries</TD><TD>%lu</TD></TR>\n",
             count);
-   
+
    len = strlen( tmp[ 0]);
-   
+
    null_description = "*null*";
-   
+
    i = 1;
    rover = mulle_concurrent_hashmap_enumerate( map);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &uniqueid, &value))
@@ -708,26 +708,26 @@ char  *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashma
       asprintf( &tmp[ i],"<TR><TD COLSPAN=\"2\">%s</TD></TR>\n", s);
       if( s != null_description)
          free( s);
-      
+
       len += strlen( tmp[ i]);
       ++i;
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
-   
+
    asprintf( &tmp[ i], "</TABLE>");
    len += strlen( tmp[ i]);
-   
+
    // concatenate all strings
-   
+
    s = realloc( tmp[ 0], len + 1);
    for( i = 1; i < n; i++)
    {
       strcat( s, tmp[ i]);
       free( tmp[ i]);
    }
-   
+
    free( tmp);
-   
+
    return( s);
 }
 

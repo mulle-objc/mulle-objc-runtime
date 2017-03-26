@@ -2,12 +2,11 @@ cmake_minimum_required (VERSION 3.0)
 
 project (mulle-objc)
 
-# // add -D__MULLE_OBJC_TRT__ for thread local runtime
 add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern
                  -DMULLE_OBJC_EXTERN_GLOBAL=extern
-                 -D__MULLE_OBJC_TPS__  ## tagged pointers runtime (default)
-#                -D__MULLE_OBJC_TRT__  ## thread local runtime 
-                 )
+                 -D__MULLE_OBJC_TPS__     ## tagged pointers runtime (default: on)
+                 -D__MULLE_OBJC_NO_TRT__  ## thread local runtime (default: off)
+                )
 
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration)
 message(STATUS "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}")

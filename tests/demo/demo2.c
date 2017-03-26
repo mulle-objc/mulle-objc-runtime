@@ -102,7 +102,7 @@ static int   Object_conforms_to_protocol( struct Object *self, mulle_objc_method
    mulle_objc_protocolid_t   protocolid;
 
    protocolid = ((struct { mulle_objc_protocolid_t  protocolid; } *) _params)->protocolid;
-   return( _mulle_objc_class_conforms_to_protocol( _mulle_objc_object_get_class( (void *) self),  protocolid));
+   return( _mulle_objc_class_conformsto_protocol( _mulle_objc_object_get_class( (void *) self),  protocolid));
 }
 
 
@@ -187,8 +187,9 @@ struct _mulle_objc_loadclasslist class_list =
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
+      MULLE_OBJC_RUNTIME_LOAD_VERSION,
       MULLE_OBJC_RUNTIME_VERSION,
-      1848,
+      0,
       0,
       0
    },

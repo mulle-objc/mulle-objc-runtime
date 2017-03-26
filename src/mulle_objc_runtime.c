@@ -52,8 +52,7 @@
 #include <stdlib.h>
 
 
-# pragma mark -
-# pragma mark errors
+# pragma mark - errors
 
 static void   _mulle_objc_vprintf_abort( char *format, va_list args) MULLE_C_NO_RETURN;
 static void   _mulle_objc_perror_abort( char *s)                     MULLE_C_NO_RETURN;
@@ -85,7 +84,7 @@ void   mulle_objc_runtime_dump_to_tmp( void)
 
    struct _mulle_objc_runtime   *runtime;
    size_t                       count;
-   
+
    runtime = mulle_objc_get_runtime();
    count   = mulle_concurrent_hashmap_count( &runtime->classtable);
    if( count > 5)
@@ -99,14 +98,14 @@ MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE
 static void   _mulle_objc_printf_abort( char *format, ...)
 {
    va_list   args;
-   
+
    va_start( args, format);
-   
+
    vfprintf( stderr, format, args);
    fprintf( stderr, "\n");
 
    va_end( args);
-   
+
 #if DEBUG
    mulle_objc_runtime_dump_to_tmp();
 #endif
@@ -118,7 +117,7 @@ MULLE_C_NO_RETURN
 void   _mulle_objc_runtime_raise_fail_exception( struct _mulle_objc_runtime *runtime, char *format, ...)
 {
    va_list   args;
-   
+
    va_start( args, format);
    (*runtime->failures.fail)( format, args);
    va_end( args);
@@ -140,10 +139,10 @@ static void   _mulle_objc_method_not_found_abort( struct _mulle_objc_class *cls,
    struct _mulle_objc_methoddescriptor  *desc;
    char   *methodname;
    char   *name;
-   
+
    name       = _mulle_objc_class_get_name( cls);
    methodname = NULL;
-   
+
    // known methodids are not necessarily compiled in
    switch( missing_method)
    {
@@ -155,7 +154,7 @@ static void   _mulle_objc_method_not_found_abort( struct _mulle_objc_class *cls,
    case MULLE_OBJC_INIT_METHODID        : methodname = "init"; break;
    case MULLE_OBJC_LOAD_METHODID        : methodname = "load"; break;
    }
-   
+
    if( ! methodname)
    {
       desc = _mulle_objc_runtime_lookup_methoddescriptor( cls->runtime, missing_method);
@@ -178,8 +177,7 @@ static void   _mulle_objc_method_not_found_abort( struct _mulle_objc_class *cls,
 }
 
 
-# pragma mark -
-# pragma mark setup
+# pragma mark - setup
 
 static void   nop( struct _mulle_objc_runtime  *runtime, mulle_objc_classid_t classid)
 {
@@ -192,7 +190,7 @@ static void   _mulle_objc_runtimeconfig_dump( struct _mulle_objc_runtimeconfig  
    fprintf( stderr, ", %stagged pointers", config->no_tagged_pointers ? "no " : "");
    if( config->forget_strings)
       fprintf( stderr, ", forget strings");
-   
+
    if( config->ignore_ivarhash_mismatch)
       fprintf( stderr, ", ignore ivarhash mismatch");
    fprintf( stderr, ", min:-O%u max:-O%u", config->min_optlevel, config->max_optlevel);
@@ -215,7 +213,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.warn.not_loaded_categories = 1;
       runtime->debug.warn.not_loaded_categories = 1;
    }
-   
+
    runtime->debug.trace.runtime_config     = getenv( "MULLE_OBJC_TRACE_RUNTIME_CONFIG") != NULL;
    runtime->debug.trace.category_adds      = getenv( "MULLE_OBJC_TRACE_CATEGORY_ADDS") != NULL;
    runtime->debug.trace.class_adds         = getenv( "MULLE_OBJC_TRACE_CLASS_ADDS") != NULL;
@@ -242,7 +240,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.trace.tagged_pointers       = 1;
       runtime->debug.trace.runtime_config        = 1;
    }
- 
+
    if( runtime->debug.trace.runtime_config)
    {
       fprintf( stderr, "mulle-objc: v%u.%u.%u (",
@@ -281,7 +279,7 @@ static void   _mulle_objc_runtime_set_defaults( struct _mulle_objc_runtime  *run
                                                 struct mulle_allocator *allocator)
 {
    void    mulle_objc_vprintf_abort( char *format, va_list args);
-   
+
    assert( runtime);
    assert( MULLE_THREAD_VERSION    >= ((2 << 20) | (2 << 8) | 0));
    assert( MULLE_ALLOCATOR_VERSION >= ((1 << 20) | (5 << 8) | 0));
@@ -290,23 +288,23 @@ static void   _mulle_objc_runtime_set_defaults( struct _mulle_objc_runtime  *run
    // check this also, easily fixable with padding
    if( sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1))
       abort();
-   
+
    if( ! allocator)
       allocator = &mulle_default_allocator;
-   
+
    strncpy( runtime->compilation, __DATE__ " "__TIME__ " " __FILE__, 128);
-   
+
    assert( allocator->calloc);
    assert( allocator->free);
    assert( allocator->realloc);
-   
+
    assert( ! _mulle_objc_runtime_is_initalized( runtime)); // != 0!
    runtime->version = MULLE_OBJC_RUNTIME_VERSION;
    _mulle_atomic_pointer_nonatomic_write( &runtime->cachepivot.entries, runtime->empty_cache.entries);
 
    runtime->memory.allocator         = *allocator;
    mulle_allocator_set_fail( &runtime->memory.allocator, mulle_objc_allocator_fail);
-   
+
    runtime->memory.allocator.aba     = &runtime->garbage.aba;
    runtime->memory.allocator.abafree = unfailing_abafree;
 
@@ -314,25 +312,25 @@ static void   _mulle_objc_runtime_set_defaults( struct _mulle_objc_runtime  *run
    runtime->failures.inconsistency    = _mulle_objc_vprintf_abort;
    runtime->failures.class_not_found  = _mulle_objc_class_not_found_abort;
    runtime->failures.method_not_found = _mulle_objc_method_not_found_abort;
-   
+
    runtime->exceptionvectors.throw     = _mulle_objc_runtime_throw;
    runtime->exceptionvectors.try_enter = _mulle_objc_runtime_try_enter;
    runtime->exceptionvectors.try_exit  = _mulle_objc_runtime_try_exit;
    runtime->exceptionvectors.extract   = _mulle_objc_runtime_extract_exception;
    runtime->exceptionvectors.match     = _mulle_objc_runtime_match_exception;
-   
+
    runtime->classdefaults.inheritance      = MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
    runtime->classdefaults.class_is_missing = nop;
-   
+
    _mulle_concurrent_pointerarray_init( &runtime->staticstrings, 16, &runtime->memory.allocator);
    _mulle_concurrent_pointerarray_init( &runtime->hashnames, 16, &runtime->memory.allocator);
    _mulle_concurrent_pointerarray_init( &runtime->gifts, 16, &runtime->memory.allocator);
-   
+
    runtime->config.max_optlevel = 0x7;
 #if __MULLE_OBJC_TRT__
    runtime->config.thread_local_rt = 1;
 #endif
-#if ! __MULLE_OBJC_TPS__
+#if __MULLE_OBJC_NO_TPS__
    runtime->config.no_tagged_pointers = 1;
 #endif
    _mulle_objc_runtime_set_debug_defaults_from_environment( runtime);
@@ -348,12 +346,12 @@ void   __mulle_objc_runtime_setup( struct _mulle_objc_runtime *runtime,
    _mulle_concurrent_hashmap_init( &runtime->descriptortable, 2048, &runtime->memory.allocator);
    _mulle_concurrent_hashmap_init( &runtime->classestoload, 64, &runtime->memory.allocator);
    _mulle_concurrent_hashmap_init( &runtime->categoriestoload, 32, &runtime->memory.allocator);
-   
+
    mulle_objc_unfailing_get_or_create_runtimekey();
 
    mulle_thread_mutex_init( &runtime->lock);
    runtime->thread = mulle_thread_self();
-   
+
    mulle_objc_set_thread_runtime( runtime);
    _mulle_objc_runtime_register_current_thread_if_needed( runtime);
 }
@@ -374,7 +372,7 @@ struct _mulle_objc_runtime  *mulle_objc_alloc_runtime( void)
 struct _mulle_objc_runtime  *__mulle_objc_get_runtime( void)
 {
    struct _mulle_objc_runtime  *runtime;
-   
+
 #if __MULLE_OBJC_TRT__
    if( mulle_objc_runtime_thread_key)
    {
@@ -412,8 +410,7 @@ void  _mulle_objc_runtime_assert_version( struct _mulle_objc_runtime  *runtime,
 }
 
 
-#pragma mark -
-#pragma mark TPS and Loadbits
+# pragma mark - TPS and Loadbits
 
 void  _mulle_objc_runtime_set_loadbit( struct _mulle_objc_runtime *runtime,
                                        uintptr_t bit)
@@ -441,20 +438,19 @@ int  _mulle_objc_runtime_set_taggedpointerclass_at_index( struct _mulle_objc_run
 {
    if( ! index || index > mulle_objc_get_taggedpointer_mask())
       return( -1);
-   
+
    assert( ! runtime->taggedpointers.pointerclass[ index]);
    if( runtime->debug.trace.tagged_pointers)
       fprintf( stderr, "mulle_objc_runtime %p trace: set tagged pointers with index %d to isa %p (class \"%s\" with id %08x)\n", runtime, index, cls, cls->name, cls->classid);
    runtime->taggedpointers.pointerclass[ index] = cls;
-   
+
    _mulle_objc_runtime_set_loadbit( runtime, MULLE_OBJC_RUNTIME_HAVE_TPS_CLASSES);
-   
+
    return( 0);
 }
 
 
-# pragma mark -
-# pragma mark thread local
+# pragma mark - thread local
 
 static void   mulle_objc_thread_runtime_destructor( struct _mulle_objc_threadconfig *config)
 {
@@ -485,7 +481,7 @@ static void   mulle_objc_unset_thread_runtime( void)
 
    if( ! mulle_objc_runtime_thread_key_is_intitialized())
       return;
-   
+
    config = mulle_thread_tss_get( mulle_objc_runtime_thread_key);
    assert( config);
    if( config)
@@ -509,8 +505,7 @@ void   mulle_objc_delete_runtimekey( void)
 }
 
 
-#pragma mark -
-#pragma mark dealloc
+# pragma mark - dealloc
 
 static void   _mulle_objc_runtime_free_friend( struct _mulle_objc_runtime *runtime,
                                                struct _mulle_objc_runtimefriend *pfriend)
@@ -540,7 +535,7 @@ static void   pointerarray_in_hashmap_map( struct mulle_concurrent_hashmap *map,
 {
    struct mulle_concurrent_hashmapenumerator  rover;
    struct mulle_concurrent_pointerarray       *list;
-   
+
    rover = mulle_concurrent_hashmap_enumerate( map);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &list))
    {
@@ -554,7 +549,7 @@ static int  compare_depth_deeper_first( struct _mulle_objc_class **a, struct _mu
 {
    int  depth_a;
    int  depth_b;
-   
+
    depth_a = (int) _mulle_objc_class_count_depth( *a);
    depth_b = (int) _mulle_objc_class_count_depth( *b);
    return( depth_b - depth_a);
@@ -575,16 +570,16 @@ static struct _mulle_objc_class   **_mulle_objc_runtime_all_classes( struct _mul
    struct _mulle_objc_class                    **p_cls;
    struct _mulle_objc_class                    **array;
    struct mulle_concurrent_hashmapenumerator   rover;
-   
+
    *n_classes = mulle_concurrent_hashmap_count( &runtime->classtable);
    array      = mulle_allocator_calloc( allocator, *n_classes, sizeof( struct _mulle_objc_classpair *));
-   
+
    p_cls = array;
    rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) p_cls))
       p_cls++;
    mulle_concurrent_hashmapenumerator_done( &rover);
-   
+
    return( array);
 }
 
@@ -605,7 +600,7 @@ static void   _mulle_objc_runtime_free_classpairs( struct _mulle_objc_runtime *r
    {
       if( runtime->debug.trace.class_frees)
          fprintf( stderr, "mulle_objc_runtime %p trace: destroying class pair %p \"%s\"\n", runtime, _mulle_objc_class_get_classpair( *p), _mulle_objc_class_get_name( *p));
-      
+
       _mulle_objc_classpair_destroy( _mulle_objc_class_get_classpair( *p), &runtime->memory.allocator);
       ++p;
    }
@@ -639,12 +634,12 @@ static void   _mulle_objc_runtime_free_classgraph( struct _mulle_objc_runtime *r
 
    /* free classes */
    _mulle_objc_runtime_free_classpairs( runtime);
-   
+
    _mulle_concurrent_hashmap_done( &runtime->categoriestoload);
    _mulle_concurrent_hashmap_done( &runtime->classestoload);
    _mulle_concurrent_hashmap_done( &runtime->descriptortable);
    _mulle_concurrent_hashmap_done( &runtime->classtable);
-  
+
    _mulle_concurrent_pointerarray_done( &runtime->staticstrings);
    _mulle_concurrent_pointerarray_done( &runtime->hashnames);
 
@@ -663,20 +658,20 @@ static inline void  _mulle_objc_runtime_uninitalize( struct _mulle_objc_runtime 
 void   _mulle_objc_runtime_dealloc( struct _mulle_objc_runtime *runtime)
 {
    struct _mulle_objc_cache    *cache;
-   
+
    if( runtime->thread && runtime->thread != mulle_thread_self())
       _mulle_objc_runtime_raise_inconsistency_exception( runtime, "runtime must be deallocated by the same thread that created it (sorry)");
 
    mulle_objc_set_thread_runtime( NULL);
-   
+
    if( ! _mulle_objc_runtime_is_current_thread_registered( runtime))
       _mulle_objc_runtime_register_current_thread( runtime);
 
    _mulle_objc_runtime_free_friend( runtime, &runtime->userinfo);
    _mulle_objc_runtime_free_friend( runtime, &runtime->foundation.runtimefriend);
-   
+
    _mulle_objc_runtime_free_classgraph( runtime);
-   
+
    cache = _mulle_objc_cachepivot_atomic_get_cache( &runtime->cachepivot);
    if( cache != &runtime->empty_cache)
       _mulle_objc_cache_free( cache, &runtime->memory.allocator);
@@ -686,23 +681,22 @@ void   _mulle_objc_runtime_dealloc( struct _mulle_objc_runtime *runtime)
    mulle_thread_mutex_done( &runtime->lock);
 
    mulle_objc_delete_runtimekey();
-   
+
    _mulle_objc_runtime_uninitalize( runtime);
-   
+
    if( _mulle_objc_is_global_runtime( runtime))
       return;
-   
+
    free( runtime);
 }
 
 
-#pragma mark -
-#pragma mark runtime release convenience
+# pragma mark - runtime release convenience
 
 void  mulle_objc_release_runtime( void)
 {
    struct _mulle_objc_runtime *runtime;
-   
+
    runtime = __mulle_objc_get_runtime();
    if( runtime && _mulle_objc_runtime_is_initalized( runtime))
       _mulle_objc_runtime_release( runtime);
@@ -712,7 +706,7 @@ void  mulle_objc_release_runtime( void)
 struct _mulle_objc_garbagecollection  *_mulle_objc_runtime_get_garbagecollection( struct _mulle_objc_runtime *runtime)
 {
    assert( _mulle_objc_runtime_is_initalized( runtime));
-   
+
    if( ! _mulle_aba_is_setup( &runtime->garbage.aba))
    {
       if( _mulle_aba_init( &runtime->garbage.aba, &runtime->memory.allocator))
@@ -748,7 +742,7 @@ void   _mulle_objc_runtime_register_current_thread_if_needed( struct _mulle_objc
    gc = _mulle_objc_runtime_get_garbagecollection( runtime);
    if( _mulle_aba_is_current_thread_registered( &gc->aba))
       return;
-   
+
    if( _mulle_aba_register_current_thread( &gc->aba))
       _mulle_objc_perror_abort( "_mulle_aba_register_current_thread");
 }
@@ -804,8 +798,7 @@ void   mulle_objc_free( void *block)
 // admittedly its fairly tricky, to set mulle_objc_globals before any of the
 // class loads hit...
 //
-# pragma mark -
-# pragma mark "exceptions"
+# pragma mark - "exceptions"
 
 
 long   __mulle_objc_personality_v0 = 1848;  // no idea what this is used for
@@ -821,7 +814,7 @@ MULLE_C_NO_RETURN
 void   _mulle_objc_runtime_raise_inconsistency_exception( struct _mulle_objc_runtime *runtime, char *format, ...)
 {
    va_list   args;
-   
+
    va_start( args, format);
    (*runtime->failures.inconsistency)( format, args);
    va_end( args);
@@ -872,21 +865,21 @@ void   _mulle_objc_runtime_throw( struct _mulle_objc_runtime *runtime, void *exc
 {
    struct _mulle_objc_exceptionstackentry  *entry;
    struct _mulle_objc_threadconfig         *config;
- 
+
    config = mulle_objc_get_threadconfig();
    entry  = config->exception_stack;
    if( ! entry)
    {
       if( runtime->failures.uncaughtexception)
          (*runtime->failures.uncaughtexception)( exception);
-      
+
       fprintf( stderr, "uncaught exception %p", exception);
       abort();
    }
 
    entry->exception        = exception;
    config->exception_stack = entry->previous;
-   
+
    // from Apple objc_runtime.mm
 #if _WIN32
     longjmp( entry->buf, 1);
@@ -905,7 +898,7 @@ void   _mulle_objc_runtime_try_enter( struct _mulle_objc_runtime *runtime,
    struct _mulle_objc_exceptionstackentry  *entry = data;
    struct _mulle_objc_exceptionstackentry  *top;
    struct _mulle_objc_threadconfig         *config;
- 
+
    config                  = mulle_objc_get_threadconfig();
    top                     = config->exception_stack;
    entry->exception        = NULL;
@@ -923,7 +916,7 @@ void   _mulle_objc_runtime_try_exit( struct _mulle_objc_runtime *runtime,
 {
    struct _mulle_objc_exceptionstackentry *entry = data;
    struct _mulle_objc_threadconfig        *config;
-   
+
    config                  = mulle_objc_get_threadconfig();
    config->exception_stack = entry->previous;
 }
@@ -933,7 +926,7 @@ void   *_mulle_objc_runtime_extract_exception( struct _mulle_objc_runtime *runti
                                                void *data)
 {
    struct _mulle_objc_exceptionstackentry *entry = data;
-   
+
    return( entry->exception);
 }
 
@@ -944,13 +937,13 @@ int  _mulle_objc_runtime_match_exception( struct _mulle_objc_runtime *runtime,
 {
    struct _mulle_objc_class   *cls;
    struct _mulle_objc_class   *exceptionCls;
-   
+
    assert( classId);
    assert( exception);
-   
+
    cls          = _mulle_objc_runtime_unfailing_lookup_class( runtime, classId);
    exceptionCls = _mulle_objc_object_get_isa( exception);
-   
+
    do
    {
       if( cls == exceptionCls)
@@ -958,7 +951,7 @@ int  _mulle_objc_runtime_match_exception( struct _mulle_objc_runtime *runtime,
       exceptionCls = _mulle_objc_class_get_superclass( exceptionCls);
    }
    while( exceptionCls);
-   
+
    return( 0);
 }
 
@@ -969,7 +962,7 @@ int  _mulle_objc_runtime_match_exception( struct _mulle_objc_runtime *runtime,
 void   mulle_objc_raise_fail_exception( char *format, ...)
 {
    va_list   args;
-   
+
    va_start( args, format);
    _mulle_objc_runtime_raise_fail_exception( __get_or_create_objc_runtime(), format, args);
    va_end( args);
@@ -985,7 +978,7 @@ void   mulle_objc_raise_fail_errno_exception( void)
 void   mulle_objc_raise_inconsistency_exception( char *format, ...)
 {
    va_list   args;
-   
+
    va_start( args, format);
    _mulle_objc_runtime_raise_inconsistency_exception( __get_or_create_objc_runtime(), format, args);
    va_end( args);
@@ -999,8 +992,7 @@ void   mulle_objc_raise_taggedpointer_exception( void *obj)
 }
 
 
-# pragma mark -
-# pragma mark "classes"
+# pragma mark - "classes"
 
 //
 // can be useful if you are using the thread local runtime, and the
@@ -1019,13 +1011,13 @@ struct _mulle_objc_runtime  *mulle_objc_get_runtime( void)
 void  mulle_objc_set_thread_runtime( struct _mulle_objc_runtime *runtime)
 {
    struct _mulle_objc_threadconfig    *config;
-   
+
    if( ! runtime)
    {
       mulle_objc_unset_thread_runtime();
       return;
    }
-   
+
    config = _mulle_objc_runtime_calloc( runtime, 1, sizeof( struct _mulle_objc_threadconfig));
 
    config->runtime = runtime;
@@ -1074,7 +1066,7 @@ struct _mulle_objc_classpair
    *mulle_objc_runtime_new_classpair( struct _mulle_objc_runtime *runtime,
                                       mulle_objc_classid_t  classid,
                                       char *name,
-                                      size_t instance_size,
+                                      size_t instancesize,
                                       struct _mulle_objc_class *superclass)
 {
    extern int     _mulle_objc_class_is_sane( struct _mulle_objc_class *cls);
@@ -1087,21 +1079,21 @@ struct _mulle_objc_classpair
       errno = EINVAL;
       return( NULL);
    }
-   
+
    if( classid == MULLE_OBJC_NO_CLASSID || classid == MULLE_OBJC_INVALID_CLASSID)
    {
       errno = EINVAL;
       return( NULL);
    }
-   
+
    if( ! name || ! strlen( name))
    {
       errno = EINVAL;
       return( NULL);
    }
-   
+
    assert( mulle_objc_classid_from_string( name) == classid);
-   
+
    super_meta     = NULL;
    super_meta_isa = NULL;
    if( superclass)
@@ -1110,24 +1102,24 @@ struct _mulle_objc_classpair
       super_meta_isa = _mulle_objc_class_get_metaclass( super_meta);
       assert( super_meta_isa);
    }
-   
+
    pair = (struct _mulle_objc_classpair *)  _mulle_objc_runtime_calloc( runtime, 1, sizeof( struct _mulle_objc_classpair) + sizeof( uint32_t));
-   
+
    _mulle_objc_objectheader_init( &pair->metaclassheader, super_meta_isa ? super_meta_isa : &pair->infraclass);
    _mulle_objc_objectheader_init( &pair->infraclassheader, &pair->metaclass);
 
-   _mulle_objc_class_init( &pair->infraclass, name, instance_size, classid, superclass, runtime);
+   _mulle_objc_class_init( &pair->infraclass, name, instancesize, classid, superclass, runtime);
    _mulle_objc_class_init( &pair->metaclass, name, sizeof( struct _mulle_objc_class), classid, super_meta ? super_meta : &pair->infraclass, runtime);
-   
+
    _mulle_concurrent_hashmap_init( &pair->infraclass.cvars, 0, &runtime->memory.allocator);
    _mulle_objc_class_set_infraclass( &pair->metaclass, &pair->infraclass);
-   
+
    _mulle_objc_class_setup_pointerarrays( &pair->infraclass, runtime);
    _mulle_objc_class_setup_pointerarrays( &pair->metaclass, runtime);
 
    _mulle_concurrent_pointerarray_add( &pair->metaclass.propertylists, &runtime->empty_propertylist);
    _mulle_concurrent_pointerarray_add( &pair->metaclass.ivarlists, &runtime->empty_ivarlist);
-   
+
    assert( _mulle_objc_class_is_sane( &pair->metaclass));
    assert( _mulle_objc_class_is_sane( &pair->infraclass));
 
@@ -1138,14 +1130,14 @@ struct _mulle_objc_classpair
 // convenience during loading
 struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_classid_t  classid,
                                                                     char *name,
-                                                                    size_t instance_size,
+                                                                    size_t instancesize,
                                                                     struct _mulle_objc_class *superclass)
 {
    struct _mulle_objc_classpair     *pair;
    struct _mulle_objc_runtime       *runtime;
-   
+
    runtime = __get_or_create_objc_runtime();
-   pair     = mulle_objc_runtime_new_classpair( runtime, classid, name, instance_size, superclass);
+   pair     = mulle_objc_runtime_new_classpair( runtime, classid, name, instancesize, superclass);
    if( ! pair)
       _mulle_objc_runtime_raise_fail_errno_exception( runtime);  // unfailing vectors through there
    return( pair);
@@ -1171,16 +1163,16 @@ struct _mulle_objc_class   *mulle_objc_runtime_unfailing_lookup_class( struct _m
 int   mulle_objc_runtime_add_class( struct _mulle_objc_runtime *runtime, struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_class   *superclass;
-   
+
    if( ! runtime || ! cls)
    {
       errno = EINVAL;
       return( -1);
    }
-   
+
    if( ! mulle_objc_class_is_sane( cls))
       return( -1);
-   
+
    if( _mulle_objc_class_is_metaclass( cls))
    {
       errno = EDOM;
@@ -1192,7 +1184,7 @@ int   mulle_objc_runtime_add_class( struct _mulle_objc_runtime *runtime, struct 
       errno = EEXIST;
       return( -1);
    }
-   
+
    superclass = cls->superclass;
    if( superclass)
    {
@@ -1202,10 +1194,10 @@ int   mulle_objc_runtime_add_class( struct _mulle_objc_runtime *runtime, struct 
          return( -1);
       }
    }
-   
+
    if( runtime->debug.trace.class_adds)
       fprintf( stderr, "mulle_objc_runtime %p trace: add class \"%s\" with id %08x (-%p +%p %p)\n", runtime, cls->name, cls->classid, cls, _mulle_objc_class_get_metaclass( cls), _mulle_objc_class_get_superclass( cls));
-   
+
    return( _mulle_concurrent_hashmap_insert( &runtime->classtable, cls->classid, cls));
 }
 
@@ -1219,10 +1211,10 @@ void   _mulle_objc_runtime_set_fastclass( struct _mulle_objc_runtime *runtime,
    assert( runtime);
    assert( cls);
    assert( _mulle_objc_class_is_metaclass( cls));
-   
+
    if( runtime->debug.trace.fastclass_adds)
       fprintf( stderr, "mulle_objc_runtime %p trace: add fastclass \"%s\" at index %d\n", runtime, cls->name, index);
-   
+
    if( index >= MULLE_OBJC_S_FASTCLASSES)
       _mulle_objc_runtime_raise_fail_exception( runtime, "error in mulle_objc_runtime %p: "
             "fastclass index %d for %s (id %08lx) out of bounds\n",
@@ -1255,7 +1247,7 @@ MULLE_C_CONST_RETURN  // always returns same value (in same thread)
 struct _mulle_objc_class   *mulle_objc_unfailing_lookup_class( mulle_objc_classid_t classid)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = mulle_objc_runtime_unfailing_lookup_class( mulle_objc_inlined_get_runtime(), classid);
    return( cls);
 }
@@ -1268,8 +1260,7 @@ void   mulle_objc_unfailing_add_class( struct _mulle_objc_class *cls)
 #endif
 
 
-# pragma mark -
-# pragma mark methods
+# pragma mark - methods
 
 struct _mulle_objc_methoddescriptor   *_mulle_objc_runtime_lookup_methoddescriptor( struct _mulle_objc_runtime *runtime, mulle_objc_methodid_t methodid)
 {
@@ -1280,20 +1271,20 @@ struct _mulle_objc_methoddescriptor   *_mulle_objc_runtime_lookup_methoddescript
 int   _mulle_objc_runtime_add_methoddescriptor( struct _mulle_objc_runtime *runtime, struct _mulle_objc_methoddescriptor *p)
 {
    struct _mulle_objc_methoddescriptor   *dup;
-   
+
    if( ! mulle_objc_methoddescriptor_is_sane( p))
       return( -1);
-   
+
    dup   = _mulle_concurrent_hashmap_lookup( &runtime->descriptortable, p->methodid);
    if( ! dup)
       return( _mulle_concurrent_hashmap_insert( &runtime->descriptortable, p->methodid, p));
-   
+
    if( strcmp( dup->name, p->name))
    {
       errno = EEXIST;
       return( -1);
    }
-   
+
    if( runtime->debug.warn.methodid_types)
       if( strcmp( dup->signature, p->signature))
          fprintf( stderr, "mulle_objc_runtime %p warning: varying types \"%s\" and \"%s\" for method \"%s\"\n",
@@ -1306,9 +1297,9 @@ int   _mulle_objc_runtime_add_methoddescriptor( struct _mulle_objc_runtime *runt
 void    mulle_objc_runtime_unfailing_add_methoddescriptor( struct _mulle_objc_runtime *runtime, struct _mulle_objc_methoddescriptor *p)
 {
    struct _mulle_objc_methoddescriptor   *dup;
-   
+
    assert( runtime);
-   
+
    if( _mulle_objc_runtime_add_methoddescriptor( runtime, p))
    {
       dup = _mulle_objc_runtime_lookup_methoddescriptor( runtime, p->methodid);
@@ -1321,7 +1312,7 @@ char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_runtime            *runtime;
    struct _mulle_objc_methoddescriptor   *desc;
-   
+
    runtime = __get_or_create_objc_runtime();
    desc    = _mulle_objc_runtime_lookup_methoddescriptor( runtime, methodid);
    return( desc ? desc->name : NULL);
@@ -1331,14 +1322,13 @@ char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid)
 char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_runtime            *runtime;
-   
+
    runtime = __get_or_create_objc_runtime();
    return( _mulle_objc_runtime_search_debughashname( runtime, uniqueid));
 }
 
 
-#pragma mark -
-#pragma mark method cache
+# pragma mark - method cache
 
 // cheap conveniences
 #ifndef MULLE_OBJC_NO_CONVENIENCES
@@ -1357,8 +1347,7 @@ void   mulle_objc_free_methodlist( struct _mulle_objc_methodlist *list)
 #endif
 
 
-#pragma mark -
-#pragma mark string cache
+# pragma mark - string cache
 
 //
 // this cache is needed until, the foundation sets the proper string class
@@ -1378,7 +1367,7 @@ void   _mulle_objc_runtime_add_staticstring( struct _mulle_objc_runtime *runtime
 {
    assert( runtime);
    assert( string);
-   
+
    if( ! runtime->foundation.staticstringclass)
    {
       if( runtime->debug.trace.string_adds)
@@ -1386,7 +1375,7 @@ void   _mulle_objc_runtime_add_staticstring( struct _mulle_objc_runtime *runtime
                runtime, ((struct _NSConstantString *) string)->_storage, string);
       _mulle_concurrent_pointerarray_add( &runtime->staticstrings, (void *) string);
    }
-   
+
    _mulle_objc_object_set_isa( string, runtime->foundation.staticstringclass);
    if( runtime->debug.trace.string_adds)
       fprintf( stderr, "mulle_objc_runtime %p trace: add string \"%s\" at %p\n",
@@ -1402,7 +1391,7 @@ void   _mulle_objc_runtime_staticstringclass_did_change( struct _mulle_objc_runt
    struct mulle_concurrent_pointerarrayenumerator   rover;
    struct _mulle_objc_object                        *string;
    int                                              flag;
-   
+
    flag  = runtime->debug.trace.string_adds;
    rover = mulle_concurrent_pointerarray_enumerate( &runtime->staticstrings);
    while( string = _mulle_concurrent_pointerarrayenumerator_next( &rover))
@@ -1421,14 +1410,13 @@ void  _mulle_objc_runtime_set_staticstringclass( struct _mulle_objc_runtime *run
 {
    assert( runtime);
    assert( cls);
-   
+
    runtime->foundation.staticstringclass = cls;
    _mulle_objc_runtime_staticstringclass_did_change( runtime);
 }
 
 
-# pragma mark -
-# pragma mark hashnames (debug output only)
+# pragma mark - hashnames (debug output only)
 
 void   _mulle_objc_runtime_add_loadhashedstringlist( struct _mulle_objc_runtime *runtime,
                                                           struct _mulle_objc_loadhashedstringlist *hashnames)
@@ -1443,7 +1431,7 @@ char  *_mulle_objc_runtime_search_debughashname( struct _mulle_objc_runtime *run
    struct mulle_concurrent_pointerarrayenumerator   rover;
    struct _mulle_objc_loadhashedstringlist          *map;
    char                                             *s;
-   
+
    s     = NULL;
    rover = mulle_concurrent_pointerarray_enumerate( &runtime->hashnames);
    while( map = _mulle_concurrent_pointerarrayenumerator_next( &rover))
@@ -1453,13 +1441,12 @@ char  *_mulle_objc_runtime_search_debughashname( struct _mulle_objc_runtime *run
          break;
    }
    mulle_concurrent_pointerarrayenumerator_done( &rover);
-   
+
    return( s);
 }
 
 
-# pragma mark -
-# pragma mark gifts (externally allocated memory)
+# pragma mark - gifts (externally allocated memory)
 
 void  _mulle_objc_runtime_unfailing_add_gift( struct _mulle_objc_runtime *runtime,
                                               void *gift)
@@ -1468,8 +1455,7 @@ void  _mulle_objc_runtime_unfailing_add_gift( struct _mulle_objc_runtime *runtim
 }
 
 
-# pragma mark -
-# pragma mark debug support
+# pragma mark - debug support
 
 /* debug support */
 
@@ -1481,7 +1467,7 @@ static inline int   is_stopper_command( mulle_objc_runtime_walkcommand_t cmd)
    case mulle_objc_runtime_walk_done   :
    case mulle_objc_runtime_walk_cancel :
       return( 1);
-      
+
    default :
       return( 0);
    }
@@ -1501,7 +1487,7 @@ struct bouncy_info
 static int   bouncy_method( struct _mulle_objc_method *method, struct _mulle_objc_class *cls, void *userinfo)
 {
    struct bouncy_info   *info;
-   
+
    info       = userinfo;
    info->rval = (info->callback)( info->runtime, method, mulle_objc_runtime_is_method, NULL, cls, info->userinfo);
    return( is_stopper_command( info->rval));
@@ -1511,7 +1497,7 @@ static int   bouncy_method( struct _mulle_objc_method *method, struct _mulle_obj
 static int   bouncy_property( struct _mulle_objc_property *property, struct _mulle_objc_class *cls, void *userinfo)
 {
    struct bouncy_info   *info;
-   
+
    info       = userinfo;
    info->rval = (info->callback)( info->runtime, property, mulle_objc_runtime_is_property, NULL, cls, info->userinfo);
    return( is_stopper_command( info->rval));
@@ -1521,7 +1507,7 @@ static int   bouncy_property( struct _mulle_objc_property *property, struct _mul
 static int   bouncy_ivar( struct _mulle_objc_ivar *ivar, struct _mulle_objc_class *cls, void *userinfo)
 {
    struct bouncy_info   *info;
-   
+
    info       = userinfo;
    info->rval = (info->callback)( info->runtime, ivar, mulle_objc_runtime_is_ivar, NULL, cls, info->userinfo);
    return( is_stopper_command( info->rval));
@@ -1548,7 +1534,7 @@ mulle_objc_runtime_walkcommand_t
 {
    mulle_objc_runtime_walkcommand_t   cmd;
    struct bouncy_info                 info;
-   
+
    cmd = (*callback)( runtime, cls, type, NULL, parent, userinfo);
    if( cmd != mulle_objc_runtime_walk_ok)
       return( cmd);
@@ -1557,11 +1543,11 @@ mulle_objc_runtime_walkcommand_t
    info.parent   = parent;
    info.userinfo = userinfo;
    info.runtime  = runtime;
-   
+
    cmd = _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), bouncy_method, &info);
    if( cmd != mulle_objc_runtime_walk_ok)
       return( cmd);
-   
+
    cmd = _mulle_objc_class_walk_properties( cls, _mulle_objc_class_get_inheritance( cls), bouncy_property, &info);
    if( cmd != mulle_objc_runtime_walk_ok)
       return( cmd);
@@ -1579,21 +1565,21 @@ mulle_objc_runtime_walkcommand_t   mulle_objc_runtime_walk( struct _mulle_objc_r
    struct _mulle_objc_class                   *cls;
    struct _mulle_objc_class                   *meta;
    struct mulle_concurrent_hashmapenumerator  rover;
-   
+
    if( ! runtime || ! callback)
       return( mulle_objc_runtime_walk_error);
-   
+
    cmd = (*callback)( runtime, runtime, mulle_objc_runtime_is_runtime, NULL, NULL, userinfo);
    if( cmd != mulle_objc_runtime_walk_ok)
       return( cmd);
-   
+
    rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);  // slow!
    while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &cls))
    {
       cmd = mulle_objc_runtime_class_walk( runtime, cls, mulle_objc_runtime_is_class, callback, runtime, userinfo);
       if( is_stopper_command( cmd))
          return( cmd);
-      
+
       meta = _mulle_objc_class_get_metaclass( cls);
       if( meta && meta != cls)
       {
@@ -1616,10 +1602,10 @@ mulle_objc_runtime_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mull
    struct _mulle_objc_class                    *cls;
    struct _mulle_objc_class                    *meta;
    struct mulle_concurrent_hashmapenumerator   rover;
-   
+
    if( ! runtime || ! callback)
       return( mulle_objc_runtime_walk_error);
-   
+
    cmd   = mulle_objc_runtime_walk_done;
    rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);  // slow!
    while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &cls))
@@ -1627,7 +1613,7 @@ mulle_objc_runtime_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mull
       cmd = (*callback)( runtime, cls, mulle_objc_runtime_is_class, NULL, NULL, userinfo);
       if( is_stopper_command( cmd))
          return( cmd);
-      
+
       meta = _mulle_objc_class_get_metaclass( cls);
       if( meta && meta != cls)
       {
@@ -1646,7 +1632,7 @@ void   mulle_objc_walk_classes( mulle_objc_runtime_walkcallback callback,
                                 void *userinfo)
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_get_runtime();
    mulle_objc_runtime_walk_classes( runtime, callback, userinfo);
 }

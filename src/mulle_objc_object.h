@@ -53,8 +53,7 @@
 struct _mulle_objc_method;
 
 
-# pragma mark -
-# pragma mark isa handling
+# pragma mark - isa handling
 
 static inline int  mulle_objc_object_get_taggedpointer_index( struct _mulle_objc_object *obj)
 {
@@ -78,7 +77,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
    index = mulle_objc_object_get_taggedpointer_index( obj);
    if( ! index)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    return( runtime->taggedpointers.pointerclass[ index]);
 }
@@ -110,7 +109,7 @@ static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_cl
    index = mulle_objc_object_get_taggedpointer_index( obj);
    if( index)
       mulle_objc_raise_taggedpointer_exception( obj);
-   
+
    _mulle_objc_objectheader_set_isa( _mulle_objc_object_get_objectheader( obj), cls);
 }
 
@@ -123,27 +122,25 @@ static inline struct _mulle_objc_object   *_mulle_objc_object_get_zone( void *ob
 }
 
 
-#pragma mark -
-#pragma mark convenience
+# pragma mark - convenience
 
 // convenience for object
 static inline struct _mulle_objc_runtime   *_mulle_objc_object_get_runtime( void *obj)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    return( _mulle_objc_class_get_runtime( cls));
 }
 
 
-# pragma mark -
-# pragma mark get_class
+# pragma mark - get_class
 
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_class   *_mulle_objc_object_get_class( void *obj)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    if( _mulle_objc_class_is_metaclass( cls))
       return( _mulle_objc_class_get_infraclass( cls));
@@ -151,8 +148,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_get_class( void *ob
 }
 
 
-#pragma mark -
-#pragma mark ivar access
+# pragma mark - ivar access
 
 // these are not calculating the size from the signature
 static inline void  _mulle_objc_object_get_value_for_ivar( void *obj, struct _mulle_objc_ivar *ivar, void *buf, size_t length)
@@ -179,8 +175,7 @@ static inline void  _mulle_objc_object_set_pointervalue_for_ivar( void *obj, str
 }
 
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_class   *mulle_objc_object_get_isa( void *obj)

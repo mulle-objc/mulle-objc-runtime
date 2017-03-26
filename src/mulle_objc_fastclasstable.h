@@ -64,7 +64,7 @@ static inline struct _mulle_objc_class   *mulle_objc_fastclasstable_unfailing_ge
 {
    extern int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
    struct _mulle_objc_class   *cls;
-   
+
    cls = (struct _mulle_objc_class *) _mulle_atomic_pointer_read( &table->classes[ i].pointer);
 
    assert( cls);
@@ -101,7 +101,7 @@ static inline int   mulle_objc_get_fastclasstable_index( mulle_objc_classid_t cl
 #ifdef MULLE_OBJC_FASTCLASSHASH_3
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_3 ) : return( 3);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTCLASSHASH_4
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_4 ) : return( 4);
 #endif
@@ -127,7 +127,7 @@ static inline int   mulle_objc_get_fastclasstable_index( mulle_objc_classid_t cl
 #ifdef MULLE_OBJC_FASTCLASSHASH_11
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_11) : return( 11);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTCLASSHASH_12
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_12) : return( 12);
 #endif
@@ -140,7 +140,7 @@ static inline int   mulle_objc_get_fastclasstable_index( mulle_objc_classid_t cl
 #ifdef MULLE_OBJC_FASTCLASSHASH_15
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_15) : return( 15);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTCLASSHASH_16
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_16) : return( 16);
 #endif
@@ -153,7 +153,7 @@ static inline int   mulle_objc_get_fastclasstable_index( mulle_objc_classid_t cl
 #ifdef MULLE_OBJC_FASTCLASSHASH_19
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_19) : return( 19);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTCLASSHASH_20
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_20) : return( 20);
 #endif
@@ -166,7 +166,7 @@ static inline int   mulle_objc_get_fastclasstable_index( mulle_objc_classid_t cl
 #ifdef MULLE_OBJC_FASTCLASSHASH_23
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_23) : return( 23);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTCLASSHASH_24
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_24) : return( 24);
 #endif
@@ -179,7 +179,7 @@ static inline int   mulle_objc_get_fastclasstable_index( mulle_objc_classid_t cl
 #ifdef MULLE_OBJC_FASTCLASSHASH_27
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_27) : return( 27);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTCLASSHASH_28
       case MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_28) : return( 28);
 #endif

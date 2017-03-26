@@ -62,7 +62,7 @@ MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_objectheader   *_mulle_objc_object_get_objectheader( void *obj)
 {
    struct _mulle_objc_objectheader   *header;
-   
+
    assert( obj);
    assert( ! ((uintptr_t) obj & 0x3) && "tagged pointer");
    header = (void *) &((char *) obj)[ - (int) sizeof( struct _mulle_objc_objectheader)];
@@ -86,8 +86,7 @@ static inline struct _mulle_objc_object   *_mulle_objc_objectheader_init( struct
 }
 
 
-# pragma mark -
-# pragma mark object / header
+# pragma mark - object / header
 
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_class   *_mulle_objc_objectheader_get_isa( struct _mulle_objc_objectheader *header)

@@ -68,19 +68,18 @@ static inline void   queue_entry_set( struct _queue_entry *q,
 static inline void   queue_entry_execute( struct _queue_entry *q)
 {
    struct _mulle_objc_object *obj;
-   
+
    obj = _mulle_atomic_pointer_read( &q->obj);
    if( obj == MULLE_CONCURRENT_INVALID_POINTER)
       return;
    if( ! _mulle_atomic_pointer_compare_and_swap( &q->obj, MULLE_CONCURRENT_INVALID_POINTER, obj))
       return;
-   
+
    (*q->imp)( obj, q->uniqueid, q->imp);
 }
 
 
-#pragma mark -
-#pragma mark mulle_objc_callqueue
+#pragma mark - mulle_objc_callqueue
 
 
 int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *queue, struct mulle_allocator *allocator)
@@ -90,7 +89,7 @@ int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *queue, struct mul
       errno = EINVAL;
       return( -1);
    }
-   
+
    _mulle_concurrent_pointerarray_init( &queue->list, 32, allocator);
    return( 0);
 }
@@ -102,14 +101,14 @@ int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *queue,
                                 mulle_objc_methodimplementation_t imp)
 {
    struct _queue_entry   *entry;
-   
+
    if( ! queue || ! obj || ! imp || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
    {
       errno = EINVAL;
       return( -1);
    }
    entry = _mulle_allocator_calloc( queue->list.allocator, 1, sizeof( struct _queue_entry));
-   
+
    queue_entry_set( entry, obj, methodid, imp);
    _mulle_concurrent_pointerarray_add( &queue->list, entry);
    return( 0);
@@ -132,12 +131,12 @@ void   mulle_objc_callqueue_done( struct _mulle_objc_callqueue *queue)
 {
    struct mulle_concurrent_pointerarrayenumerator   rover;
    struct _queue_entry                              *entry;
-   
+
    rover = mulle_concurrent_pointerarray_enumerate( &queue->list);
    while( entry = _mulle_concurrent_pointerarrayenumerator_next( &rover))
       _mulle_allocator_abafree( queue->list.allocator, entry);
    mulle_concurrent_pointerarrayenumerator_done( &rover);
-   
+
    _mulle_concurrent_pointerarray_done( &queue->list);
 }
 

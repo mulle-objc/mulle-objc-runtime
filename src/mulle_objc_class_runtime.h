@@ -51,8 +51,7 @@ struct _mulle_objc_runtime;
 int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
 
 
-#pragma mark -
-#pragma mark class lookup
+#pragma mark - class lookup
 
 MULLE_C_CONST_RETURN
 struct _mulle_objc_class  *_mulle_objc_runtime_lookup_class( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid);
@@ -80,7 +79,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_runtime_unfailing_get_or_l
 {
    int                        index;
    struct _mulle_objc_class   *cls;
-   
+
    assert( runtime);
    assert( runtime->version == MULLE_OBJC_RUNTIME_VERSION);
    assert( classid);
@@ -99,7 +98,7 @@ MULLE_C_NON_NULL_RETURN
 static inline struct _mulle_objc_class   *mulle_objc_inline_unfailing_get_or_lookup_class( mulle_objc_classid_t classid)
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    return( _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid));
 }
@@ -128,13 +127,13 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_unfailing_uncached_
 {
    struct _mulle_objc_class     *cls;
    struct _mulle_objc_runtime   *runtime;
-   
+
    // super calls can not have obj = nil
    assert( obj);
-   
+
    cls     = _mulle_objc_object_get_isa( obj);
    runtime = _mulle_objc_class_get_runtime( cls);
-   
+
    return( _mulle_objc_runtime_unfailing_lookup_uncached_class( runtime, classid));
 }
 
@@ -153,15 +152,14 @@ struct _mulle_objc_class   *mulle_objc_unfailing_lookup_class( mulle_objc_classi
 #endif
 
 
-#pragma mark -
-#pragma mark instance creation
+#pragma mark - instance creation
 
 static inline struct _mulle_objc_object   *_mulle_objc_class_alloc_instance( struct _mulle_objc_class *cls, struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
    struct _mulle_objc_object        *obj;
 
-   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_class_get_instance_and_header_size( cls));
+   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_class_get_allocationsize( cls));
    obj    = _mulle_objc_objectheader_get_object( header);
    _mulle_objc_object_set_isa( obj, cls);
    return( obj);
@@ -172,11 +170,11 @@ static inline struct _mulle_objc_object   *_mulle_objc_class_alloc_instance_extr
 {
    struct _mulle_objc_objectheader  *header;
    struct _mulle_objc_object        *obj;
-   
-   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_class_get_instance_and_header_size( cls) + extra);
+
+   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_class_get_allocationsize( cls) + extra);
    if( ! header)
       return( NULL);
-   
+
    obj = _mulle_objc_objectheader_get_object( header);
    _mulle_objc_object_set_isa( obj, cls);
    return( obj);
@@ -186,7 +184,7 @@ static inline struct _mulle_objc_object   *_mulle_objc_class_alloc_instance_extr
 static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj, struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
-   
+
    header = _mulle_objc_object_get_objectheader( obj);
    mulle_allocator_free( allocator, header);
 }
@@ -222,8 +220,7 @@ static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj, str
 }
 
 
-#pragma mark -
-#pragma mark API
+#pragma mark - API
 
 MULLE_C_CONST_RETURN
 static inline struct _mulle_objc_class  *mulle_objc_runtime_lookup_class( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)

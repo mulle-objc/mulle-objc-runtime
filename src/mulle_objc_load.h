@@ -50,6 +50,14 @@ struct _mulle_objc_class;
 struct _mulle_objc_ivarlist;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_propertylist;
+struct _mulle_objc_runtime;
+
+
+//
+// up the number if binary loads are incompatible
+// this is read and checked against by the compiler
+//
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   4
 
 
 struct _mulle_objc_loadclass
@@ -64,13 +72,13 @@ struct _mulle_objc_loadclass
 
    int                               fastclassindex;
    int                               instancesize;
-   
+
    struct _mulle_objc_ivarlist       *instancevariables;
-   
+
    struct _mulle_objc_methodlist     *classmethods;
    struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
-   
+
    mulle_objc_protocolid_t           *protocolids;
    mulle_objc_classid_t              *protocolclassids;
 };
@@ -78,13 +86,14 @@ struct _mulle_objc_loadclass
 
 struct _mulle_objc_loadcategory
 {
+   mulle_objc_categoryid_t           categoryid;
    char                              *categoryname;
 
    mulle_objc_classid_t              classid;
-   char                              *classname;         // useful ??
+   char                              *classname;           // useful ??
    mulle_objc_hash_t                 classivarhash;
-   
-   struct _mulle_objc_methodlist     *classmethods;
+
+   struct _mulle_objc_methodlist     *classmethods;       // contains categoryid
    struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
 
@@ -185,23 +194,24 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_optlevel_s   = (7 << 8)
 
    // lower 16 bits for runtime
-   
+
    // next 12 bits free for foundation (future: somehow)
    // last  4 bits free for user       (future: somehow)
 };
 
 
 //
-// The objc_version is the MULLE_OBJC_RUNTIME_VERSION built into the compiler.
+// the load is the MULLE_OBJC_RUNTIME_LOAD_VERSION built into the compiler
+// The runtime is the MULLE_OBJC_RUNTIME_VERSION read by the compiler.
 // The foundation version is necessary for the fastcalls. Since the foundation
 // defines the fastcalls and fastclasses, the foundation must match.
 // Whenever the fastcall/fastclasses change you need to update the foundation
 // number.
 // There is no minor/major scheme with respect to foundation.
-// it's not underscored, coz it's public by design
-
+//
 struct mulle_objc_loadversion
 {
+   uint32_t   load;
    uint32_t   runtime;
    uint32_t   foundation;
    uint32_t   user;
@@ -212,7 +222,7 @@ struct mulle_objc_loadversion
 struct _mulle_objc_loadinfo
 {
    struct mulle_objc_loadversion             version;
-   
+
    struct _mulle_objc_loadclasslist          *loadclasslist;
    struct _mulle_objc_loadcategorylist       *loadcategorylist;
    struct _mulle_objc_loadstringlist         *loadstringlist;
@@ -229,6 +239,21 @@ struct _mulle_objc_loadinfo
 //
 void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info);
 
+//
+// use this function to determine, if the runtime is ready to load this class
+// yet. Returns the class, that's not yet loaded.
+//
+mulle_objc_classid_t   mulle_objc_loadclass_missingclassid( struct _mulle_objc_loadclass *info,
+                                                            struct _mulle_objc_runtime *runtime,
+                                                            struct _mulle_objc_class  **p_superclass);
+
+// same for categories
+int   mulle_objc_loadcategory_is_categorycomplete( struct _mulle_objc_loadcategory *info,
+                                                   struct _mulle_objc_class *cls);
+
+mulle_objc_classid_t   mulle_objc_loadcategory_missingclassid( struct _mulle_objc_loadcategory *info,
+                                                               struct _mulle_objc_runtime *runtime,
+                                                               struct _mulle_objc_class **p_cls);
 
 # pragma mark  -
 # pragma mark class

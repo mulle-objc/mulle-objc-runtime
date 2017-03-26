@@ -55,7 +55,7 @@
 void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
 {
    unsigned int   i;
-   
+
    for( i = 0; i < list->n_methods; i++)
       printf( "{ "
               "name = \"%s\""
@@ -75,8 +75,7 @@ void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
 
 
 
-# pragma mark -
-# pragma mark walker runtime callback
+# pragma mark - walker runtime callback
 
 static void   print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
 {
@@ -84,29 +83,29 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    int   i;
    struct _mulle_objc_staticstring           *string;
    struct mulle_concurrent_pointerarrayenumerator  rover;
-   
+
    label = mulle_objc_runtime_html_description( runtime);
    fprintf( fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n", runtime, label, "component");
    free( label);
-   
+
    fprintf( fp, "\"%p\" -> \"%p\" [ label=\"descriptortable\" ];\n", runtime, &runtime->descriptortable);
 
    label = mulle_concurrent_hashmap_html_description( &runtime->descriptortable, (void *) mulle_objc_methoddescriptor_html_description);
    fprintf( fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n", &runtime->descriptortable, label, "box");
    free( label);
-   
+
    for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
       if( _mulle_atomic_pointer_nonatomic_read( &runtime->fastclasstable.classes[ i].pointer))
          fprintf( fp, "\"%p\" -> \"%p\" [ label=\"fastclass #%d\" ];\n",
             runtime, _mulle_atomic_pointer_nonatomic_read( &runtime->fastclasstable.classes[ i].pointer), i);
-   
+
    i = 0;
    rover = mulle_concurrent_pointerarray_enumerate( &runtime->staticstrings);
    while( string = _mulle_concurrent_pointerarrayenumerator_next( &rover))
    {
       fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"string #%d\" ];\n",
               runtime, string, i++);
-      
+
       label = mulle_objc_staticstring_html_description( string);
       fprintf( fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", string, label);
       free( label);
@@ -120,8 +119,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
 }
 
 
-# pragma mark -
-# pragma mark walker class callback
+# pragma mark - walker class callback
 
 struct dump_info
 {
@@ -142,11 +140,11 @@ static void   print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta)
    struct _mulle_objc_methodlist                    *methodlist;
    struct _mulle_objc_propertylist                  *propertylist;
    unsigned int                                     i;
-   
+
    label = mulle_objc_class_html_description( cls, is_meta ? "purple" : "blue");
    fprintf( fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n", cls, label, is_meta ? "component" : "box");
    free( label);
-   
+
    if( _mulle_objc_class_get_runtime( cls))
       fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"runtime\" ];\n", cls,  _mulle_objc_class_get_runtime( cls));
 
@@ -160,7 +158,7 @@ static void   print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta)
    {
       fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"ivarlist #%d\" ];\n",
               cls, ivarlist, i++);
-      
+
       label = mulle_objc_ivarlist_html_description( ivarlist);
       fprintf( fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", ivarlist, label);
       free( label);
@@ -173,20 +171,20 @@ static void   print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta)
    {
       fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"propertylist #%d\" ];\n",
               cls, propertylist, i++);
-      
+
       label = mulle_objc_propertylist_html_description( propertylist);
       fprintf( fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", propertylist, label);
       free( label);
    }
    mulle_concurrent_pointerarrayenumerator_done( &rover);
-   
+
    i = 0;
    rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
    while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
    {
       fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"methodlist #%d\" ];\n",
               cls, methodlist, i++);
-      
+
       label = mulle_objc_methodlist_html_description( methodlist);
       fprintf( fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", methodlist, label);
       free( label);
@@ -210,12 +208,12 @@ static void   print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta)
    {
       fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"protocolids\" ];\n",
               cls, &cls->protocolids);
-      
+
       label = mulle_concurrent_pointerarray_html_description( &cls->protocolids);
       fprintf( fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", &cls->protocolids, label);
       free( label);
    }
-   
+
    cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
             cls, cache);
@@ -237,9 +235,9 @@ static int   callback( struct _mulle_objc_runtime *runtime,
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_class        *infraclass;
    struct dump_info                *info;
-   
+
    assert( p);
-   
+
    if( key)
       return( mulle_objc_runtime_walk_ok);
 
@@ -287,8 +285,7 @@ static int   callback( struct _mulle_objc_runtime *runtime,
 }
 
 
-#pragma mark -
-#pragma mark runtime dump
+# pragma mark - runtime dump
 
 
 void   _mulle_objc_runtime_dump_graphviz( struct _mulle_objc_runtime *runtime, FILE *fp)
@@ -348,14 +345,14 @@ void   mulle_objc_runtime_dump_graphviz_to_file( char *filename)
       fprintf( stderr, "No runtime found!\n");
       return;
    }
-   
+
    fp = fopen( filename, "w");
    if( ! fp)
    {
       perror( "fopen:");
       return;
    }
-   
+
    _mulle_objc_runtime_dump_graphviz( runtime, fp);
    fclose( fp);
 
@@ -369,8 +366,7 @@ void   mulle_objc_runtime_dump_graphviz_tmp( void)
 }
 
 
-#pragma mark -
-#pragma mark class dump
+# pragma mark - class dump
 
 
 void   _mulle_objc_class_dump_graphviz( struct _mulle_objc_class *cls, FILE *fp)
@@ -386,12 +382,12 @@ void   _mulle_objc_class_dump_graphviz( struct _mulle_objc_class *cls, FILE *fp)
 
    c_set_init( &info.set);
    info.fp = fp;
-   
+
    fprintf( fp, "digraph mulle_objc_class\n{\n");
-   
+
    mulle_objc_runtime_class_walk( cls->runtime, cls, mulle_objc_runtime_is_class, callback, NULL, &info);
    fprintf( fp, "}\n");
-   
+
    c_set_done( &info.set);
 }
 
@@ -399,17 +395,17 @@ void   _mulle_objc_class_dump_graphviz( struct _mulle_objc_class *cls, FILE *fp)
 void   mulle_objc_class_dump_graphviz_to_file( struct _mulle_objc_class *cls, char *filename)
 {
    FILE   *fp;
-   
+
    fp = fopen( filename, "w");
    if( ! fp)
    {
       perror( "fopen:");
       return;
    }
-   
+
    _mulle_objc_class_dump_graphviz( cls, fp);
    fclose( fp);
-   
+
    fprintf( stderr, "Dumped \"%s\"\n", filename);
 }
 

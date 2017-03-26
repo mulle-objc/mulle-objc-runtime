@@ -39,7 +39,7 @@
 #include <mulle_c11/mulle_c11.h>
 
 
-#if ! __MULLE_OBJC_TRT__
+#if __MULLE_OBJC_NO_TRT__
 MULLE_C_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime =
 {
    .version = -1

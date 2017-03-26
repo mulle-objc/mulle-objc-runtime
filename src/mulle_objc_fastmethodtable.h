@@ -74,11 +74,11 @@ static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
                                                           unsigned int index)
 {
    mulle_objc_methodimplementation_t   imp;
-   
+
    imp = (mulle_objc_methodimplementation_t) _mulle_atomic_pointer_read( &table->methods[ index].pointer);
    return( (*imp)( obj, methodid, param));
 }
-   
+
 
 //
 // 8 basic functions are predefined, it's not that these need
@@ -93,13 +93,13 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
    {
    case MULLE_OBJC_ALLOC_METHODID       : return( 0);
    case MULLE_OBJC_INIT_METHODID        : return( 1);  // makes new faster
-   case MULLE_OBJC_FINALIZE_METHODID    : return( 2); 
+   case MULLE_OBJC_FINALIZE_METHODID    : return( 2);
    case MULLE_OBJC_DEALLOC_METHODID     : return( 3);  // in AAO mode noone can call dealloc
    case MULLE_OBJC_INSTANTIATE_METHODID : return( 4);  // alloc + autorelease
    case MULLE_OBJC_AUTORELEASE_METHODID : return( 5);  // for compiler
    case MULLE_OBJC_RETAIN_METHODID      : return( 6);  // not used in -O2 and up
    case MULLE_OBJC_RELEASE_METHODID     : return( 7);  // not used in -O2 and up
-         
+
 #ifdef MULLE_OBJC_FASTMETHODHASH_8
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_8 ) : return( 8);
 #endif
@@ -112,7 +112,7 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
 #ifdef MULLE_OBJC_FASTMETHODHASH_11
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_11) : return( 11);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTMETHODHASH_12
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_12) : return( 12);
 #endif

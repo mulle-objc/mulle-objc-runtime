@@ -76,8 +76,7 @@ static inline int  _mulle_objc_kvcinfo_equals( struct _mulle_objc_kvcinfo *entry
 }
 
 
-#pragma mark -
-#pragma mark _mulle_objc_kvccache
+#pragma mark - _mulle_objc_kvccache
 
 struct _mulle_objc_kvccache
 {
@@ -118,8 +117,7 @@ struct _mulle_objc_kvcinfo  *_mulle_objc_kvccache_lookup_kvcinfo( struct _mulle_
                                                                  char *key);
 
 
-#pragma mark -
-#pragma mark _mulle_objc_kvccachepivot
+#pragma mark - _mulle_objc_kvccachepivot
 
 struct _mulle_objc_kvccachepivot
 {

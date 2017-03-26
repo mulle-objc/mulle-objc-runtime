@@ -46,7 +46,7 @@ static inline struct mulle_allocator   *_mulle_objc_class_get_allocator( struct 
 {
    struct _mulle_objc_runtime      *runtime;
    struct _mulle_objc_foundation   *foundation;
-   
+
    runtime    = _mulle_objc_class_get_runtime( cls);
    foundation = _mulle_objc_runtime_get_foundation( runtime);
    return( _mulle_objc_foundation_get_allocator( foundation));

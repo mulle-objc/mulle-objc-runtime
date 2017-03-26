@@ -59,8 +59,7 @@ struct _mulle_objc_property
 };
 
 
-# pragma mark -
-# pragma mark property petty accessors
+# pragma mark - property petty accessors
 
 static inline char   *_mulle_objc_property_get_name( struct _mulle_objc_property *property)
 {
@@ -96,8 +95,7 @@ char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *p
 char   *_mulle_objc_propertysignature_next_types( char *s, char *types);
 
 
-# pragma mark -
-# pragma mark bsearch
+# pragma mark - bsearch
 
 struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_property *buf,
                                                              unsigned int n,
@@ -108,28 +106,22 @@ static inline struct _mulle_objc_property   *mulle_objc_property_bsearch( struct
                                                                           unsigned int n,
                                                                           mulle_objc_propertyid_t search)
 {
-   assert( buf);
-   if( ! buf || n > INT_MAX)
-   {
-      errno = EINVAL;
-      return( (void *) INTPTR_MIN);
-   }
-   
+   if( ! buf || (int) n <= 0)
+      return( NULL);
+
    return( _mulle_objc_property_bsearch( buf, n, search));
 }
 
-# pragma mark -
-# pragma mark qsort
+# pragma mark - qsort
 
 int  _mulle_objc_property_compare( struct _mulle_objc_property *a,
                                    struct _mulle_objc_property *b);
-                                  
+
 void   mulle_objc_property_sort( struct _mulle_objc_property *properties,
                                  unsigned int n);
 
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 static inline char   *mulle_objc_property_get_name( struct _mulle_objc_property *property)
 {

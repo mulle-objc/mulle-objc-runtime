@@ -62,9 +62,9 @@ void   test_message_sending()
    {
       sprintf( storage->names[ i], "f%d", i);
 
-      methodlist->methods[ i].implementation       = f[ i];
+      methodlist->methods[ i].implementation       = (mulle_functionpointer_t) f[ i];
       methodlist->methods[ i].descriptor.name      = storage->names[ i];
-      methodlist->methods[ i].descriptor.methodid = mulle_objc_methodid_from_string( storage->names[ i]);
+      methodlist->methods[ i].descriptor.methodid  = mulle_objc_methodid_from_string( storage->names[ i]);
       methodlist->methods[ i].descriptor.signature = "@:";
 
       //printf( "#%04d: %s -> %lld\n", i, methods[ i].descriptor.name, (int64_t) methods[ i].descriptor.methodid);

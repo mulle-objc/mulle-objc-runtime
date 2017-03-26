@@ -124,20 +124,20 @@ static void   test_normal_foo_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_class_search_method( classes->A_cls, foo_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
 
    // root meta inherits from root...
    method = mulle_objc_class_search_method( classes->A_meta_cls, foo_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
 
    method = mulle_objc_class_search_method( classes->B_cls, foo_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
 
    method = mulle_objc_class_search_method( classes->B_meta_cls, foo_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
 
    method = mulle_objc_class_search_method( classes->C_cls, foo_methodid);
    assert( ! method);
@@ -159,26 +159,26 @@ static void   test_normal_bar_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_class_search_method( classes->B_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) B_cat_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_cat_bar);
 
    method = mulle_objc_class_search_method( classes->B_meta_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) B_meta_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
 
    method = mulle_objc_class_search_method( classes->C_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 
    method = mulle_objc_class_search_method( classes->C_meta_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 }
 
 
 #if DEBUG
 static int   print_method( struct _mulle_objc_method *method, struct _mulle_objc_class *cls, void *userinfo)
 {
-   printf( "\t%s %s : %c%s(%p)\n", _mulle_objc_class_get_name( cls), _mulle_objc_class_is_metaclass( userinfo) ? "META" : "    ", _mulle_objc_class_is_metaclass( userinfo) ? '+' : '-', _mulle_objc_method_get_name( method), method->implementation);
+   printf( "\t%s %s : %c%s(%p)\n", _mulle_objc_class_get_name( cls), _mulle_objc_class_is_metaclass( userinfo) ? "META" : "    ", _mulle_objc_class_is_metaclass( userinfo) ? '+' : '-', _mulle_objc_method_get_name( method), _mulle_objc_method_get_implementation( method));
    return( 0);
 }
 #endif
@@ -206,16 +206,16 @@ void   test_protocol_inheritance( void)
 
    method = mulle_objc_class_search_method( classes.A_cls, foo_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
 
    // root meta inherits from root...
    method = mulle_objc_class_search_method( classes.A_meta_cls, foo_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
 
    method = mulle_objc_class_search_method( classes.B_meta_cls, foo_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
 
    method = mulle_objc_class_search_method( classes.C_cls, foo_methodid);
    assert( ! method);
@@ -228,27 +228,27 @@ void   test_protocol_inheritance( void)
    //
    method = mulle_objc_class_search_method( classes.A_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 
    method = mulle_objc_class_search_method( classes.A_meta_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 
    method = mulle_objc_class_search_method( classes.B_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) B_cat_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_cat_bar);
 
    method = mulle_objc_class_search_method( classes.B_meta_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) B_meta_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
 
    method = mulle_objc_class_search_method( classes.C_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 
    method = mulle_objc_class_search_method( classes.C_meta_cls, bar_methodid);
    assert( method);
-   assert( method->implementation == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 
 #if DEBUG
    {

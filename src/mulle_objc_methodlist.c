@@ -55,19 +55,19 @@ int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
    struct _mulle_objc_method   *sentinel;
    struct _mulle_objc_method   *p;
    int                         rval;
-   
+
    assert( list);
-   
+
    p        = &list->methods[ 0];
    sentinel = &p[ list->n_methods];
-   
+
    while( p < sentinel)
    {
       if( rval = (*f)( p, cls, userinfo))
          return( rval);
       ++p;
    }
-   
+
    return( 0);
 }
 
@@ -77,10 +77,10 @@ struct _mulle_objc_method  *_mulle_objc_methodlist_linear_search( struct _mulle_
 {
    struct _mulle_objc_method   *sentinel;
    struct _mulle_objc_method   *p;
-   
+
    assert( list);
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
-   
+
    p        = &list->methods[ 0];
    sentinel = &p[ list->n_methods];
 
@@ -109,12 +109,12 @@ int  mulle_objc_methodlist_execute_load( struct _mulle_objc_methodlist *list,
    struct _mulle_objc_method            *method;
    struct _mulle_objc_class             *infra;
    mulle_objc_methodimplementation_t    imp;
-   
+
    assert( _mulle_objc_class_is_metaclass( cls));
    // that's ok here, but not for _mulle_objc_methodlist_search_method
    if( ! list)
       return( 0);
-   
+
    /* now should execute the +load routine, which is tricky */
    method = _mulle_objc_methodlist_search( list, MULLE_OBJC_LOAD_METHODID);
    if( method)

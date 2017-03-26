@@ -46,10 +46,10 @@ intptr_t  _mulle_objc_object_get_retaincount( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
    intptr_t                            retaincount_1;
-   
+
    header        = _mulle_objc_object_get_objectheader( obj);
    retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
-   
+
    if( retaincount_1 == MULLE_OBJC_NEVER_RELEASE)
       return( MULLE_OBJC_NEVER_RELEASE);
    if( retaincount_1 < -1)
@@ -60,10 +60,10 @@ intptr_t  _mulle_objc_object_get_retaincount( void *obj)
 /* ideally, we enter with retainCount == 0
    call finalize, afterwards retainCount is still 0
    then we call dealloc
-   
+
    but finalize may up the retainCount and we don't want to
    call it again, nor do we want to call dealloc
-   
+
    so we add INTPTR_MIN to the retainCount and only dealloc
    when we reach INTPTR_MIN again
  */
@@ -72,10 +72,10 @@ void  _mulle_objc_object_try_finalize_try_dealloc( void *obj)
 {
    struct _mulle_objc_objectheader     *header;
    volatile intptr_t                   retaincount_1;  // volatile vooodo ?
-   
+
    // when we enter this, we are single threaded if -1
    // but we are not when we have been finalized
-   
+
    header        = _mulle_objc_object_get_objectheader( obj);
    retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
 
@@ -86,11 +86,11 @@ void  _mulle_objc_object_try_finalize_try_dealloc( void *obj)
       _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) retaincount_1);
 
       _mulle_objc_object_finalize( obj);
-      
+
       // reread
       retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
    }
-   
+
    if( retaincount_1 == INTPTR_MIN)    // yes ? :: single threaded(!)
    {
       // set it back to be nice
@@ -108,19 +108,19 @@ void  _mulle_objc_object_perform_finalize( void *obj)
    struct _mulle_objc_objectheader     *header;
    volatile intptr_t                    retaincount_1;  // volatile vooodo ?
    intptr_t                             new_retaincount_1;
-   
+
    header = _mulle_objc_object_get_objectheader( obj);
    do
    {
       retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
-   
+
       if( retaincount_1 < 0)
          return;     // already finalized
-   
+
       new_retaincount_1 = retaincount_1 + INTPTR_MIN + 1;
    }
    while( ! _mulle_atomic_pointer_compare_and_swap( &header->_retaincount_1, (void *) new_retaincount_1,  (void *) retaincount_1));
-   
+
    _mulle_objc_object_finalize( obj);
 }
 
@@ -129,10 +129,10 @@ void   _mulle_objc_objects_call_retain( void **objects, size_t n)
 {
    void   **sentinel;
    void   *p;
-   
+
    // assume compiler can do unrolling
    sentinel = &objects[ n];
-   
+
    while( objects < sentinel)
    {
       p = *objects++;
@@ -149,7 +149,7 @@ void   _mulle_objc_objects_call_release( void **objects, size_t n)
 
    // assume compiler can do unrolling
    sentinel = &objects[ n];
-   
+
    while( objects < sentinel)
    {
       p = *objects++;
@@ -163,10 +163,10 @@ void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n)
 {
    void   **sentinel;
    void   *p;
-   
+
    // assume compiler can do unrolling
    sentinel = &objects[ n];
-   
+
    while( objects < sentinel)
    {
       p = *objects;

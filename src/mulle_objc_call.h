@@ -83,29 +83,29 @@ static inline void  *mulle_objc_object_inline_constant_methodid_call( void *obj,
    struct _mulle_objc_class            *cls;
    mulle_objc_cache_uint_t             mask;
    mulle_objc_cache_uint_t             offset;
-   
+
    if( __builtin_expect( ! obj, 0))
       return( obj);
-   
+
    //
    // with tagged pointers inlining starts to become useless, because this
    // _mulle_objc_object_get_isa function produces too much code IMO
    //
    cls = _mulle_objc_object_get_isa( obj);
-   
+
    //
    // try to simplify to return( (*cls->vtab.methods[ index])( obj, methodid, parameter)
    //
    index = mulle_objc_get_fastmethodtable_index( methodid);
    if( index >= 0)
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
-   
+
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
-   
+
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;  // preshifted so we can just AND it to entries
-   
+
    offset  = (mulle_objc_cache_uint_t) methodid & mask;
    entry   = (void *) &((char *) entries)[ offset];
 
@@ -127,7 +127,7 @@ static inline void   *mulle_objc_object_constant_methodid_call( void *obj,
 {
    struct _mulle_objc_class   *cls;
    int                        index;
-   
+
    if( __builtin_expect( ! obj, 0))
       return( obj);
 
@@ -156,17 +156,17 @@ static inline void  *mulle_objc_object_inline_variable_methodid_call( void *obj,
    struct _mulle_objc_class            *cls;
    mulle_objc_cache_uint_t             mask;
    mulle_objc_cache_uint_t             offset;
-   
+
    if( __builtin_expect( ! obj, 0))
       return( obj);
-   
+
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
-   
+
    cls     = _mulle_objc_object_get_isa( obj);
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;  // preshifted so we can just AND it to entries
-   
+
    offset  = (mulle_objc_cache_uint_t) methodid & mask;
    entry   = (void *) &((char *) entries)[ offset];
 
@@ -188,7 +188,7 @@ static inline void   *mulle_objc_object_variable_methodid_call( void *obj,
                                                                 void *parameter)
 {
    struct _mulle_objc_class   *cls;
-   
+
    if( __builtin_expect( ! obj, 0))
       return( obj);
 
@@ -205,8 +205,7 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
 
 
 
-#pragma mark -
-#pragma mark calls for super
+#pragma mark - calls for super
 
 #if 0 // unused apparently
 static inline void   *_mulle_objc_class_call_classid( struct _mulle_objc_class *cls,
@@ -216,7 +215,7 @@ static inline void   *_mulle_objc_class_call_classid( struct _mulle_objc_class *
 {
    struct _mulle_objc_class   *call_cls;
    struct _mulle_objc_runtime *runtime;
-   
+
    runtime  = _mulle_objc_class_get_runtime( cls);
    call_cls = _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
    // need to call cls->call to prepare caches
@@ -232,7 +231,7 @@ static inline void   *mulle_objc_class_call_classid( struct _mulle_objc_class *c
                                                      void *parameter,
                                                      mulle_objc_classid_t classid)
 {
-   
+
    if( ! cls)
       return( cls);
    return( _mulle_objc_class_call_classid( cls, methodid, parameter, classid));
@@ -252,7 +251,7 @@ static inline void   *_mulle_objc_class_inline_metacall_classid( struct _mulle_o
 {
    struct _mulle_objc_class     *call_cls;
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = _mulle_objc_class_get_runtime( cls);
    call_cls = (cls->superclassid == classid)
                ? cls->superclass
@@ -268,7 +267,7 @@ static inline void   *mulle_objc_class_inline_metacall_classid( struct _mulle_ob
                                                                 void *parameter,
                                                                 mulle_objc_classid_t classid)
 {
-   
+
    if( ! cls)
       return( cls);
    return( _mulle_objc_class_inline_metacall_classid( cls, methodid, parameter, classid));
@@ -293,7 +292,7 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
    struct _mulle_objc_class     *call_cls;
    struct _mulle_objc_class     *cls;
    struct _mulle_objc_runtime   *runtime;
-   
+
    cls      = _mulle_objc_object_get_isa( obj);
    runtime  = _mulle_objc_class_get_runtime( cls);
    call_cls = (cls->superclassid == classid)
@@ -339,7 +338,7 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_or_search_methodimp
 static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_or_search_methodimplementation_no_forward( struct _mulle_objc_object *obj, mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    return( _mulle_objc_class_lookup_or_search_methodimplementation_no_forward( cls, methodid));
 }
@@ -348,7 +347,7 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_or_s
 static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_or_search_methodimplementation( struct _mulle_objc_object *obj, mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    return( _mulle_objc_class_lookup_or_search_methodimplementation( cls, methodid));
 }
@@ -370,8 +369,7 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_cached_methodimplem
 mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementation_no_forward( struct _mulle_objc_class *cls,
                                                                          mulle_objc_methodid_t methodid);
 
-#pragma mark -
-#pragma mark lldb support
+#pragma mark - lldb support
 
 mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation( void *object,
                                                                                  mulle_objc_methodid_t sel,
@@ -380,13 +378,12 @@ mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation(
                                                                                  int is_meta,
                                                                                  int debug);
 
-#pragma mark -
-#pragma mark low level support
+#pragma mark - low level support
 
 static inline void   _mulle_objc_object_finalize( void *obj)
 {
    struct _mulle_objc_class   *isa;
-   
+
    isa = _mulle_objc_object_get_isa( obj);
    assert( isa);
    _mulle_objc_fastmethodtable_invoke( obj, MULLE_OBJC_FINALIZE_METHODID, NULL, &isa->vtab, 2);
@@ -396,7 +393,7 @@ static inline void   _mulle_objc_object_finalize( void *obj)
 static inline void   _mulle_objc_object_dealloc( void *obj)
 {
    struct _mulle_objc_class   *isa;
-   
+
    isa = _mulle_objc_object_get_isa( obj);
    assert( isa);
    _mulle_objc_fastmethodtable_invoke( obj, MULLE_OBJC_DEALLOC_METHODID, NULL, &isa->vtab, 3);
@@ -405,16 +402,16 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 
 /* if you need to "manually" call a MetaABI function with a _param block
    use mulle_objc_metaabi_param_block to generate it.
-   
-   ex.  
-   
+
+   ex.
+
    mulle_objc_metaabi_param_block( NSRange, NSUInteger)   _param;
-   
+
    _param.p = NSMakeRange( 1, 1);
    mulle_objc_object_call( obj, sel, &_param);
    return( _param.rval);
 */
- 
+
 #define mulle_objc_void_5_pointers( size)  \
    (((size) +  sizeof( void *[ 5]) - 1) /  sizeof( void *[ 5]))
 
@@ -432,8 +429,7 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
    mulle_objc_metaabi_param_block( param_type, void *)
 
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 static inline void   mulle_objc_object_finalize( void *obj)
 {

@@ -48,7 +48,7 @@ char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *p
 {
    char   *s;
    int    c;
-   
+
    s = _mulle_objc_property_get_signature( property);
    while( c = *s++)
    {
@@ -63,7 +63,7 @@ char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *p
 char   *_mulle_objc_propertysignature_next_types( char *s, char *types)
 {
    int    c;
-   
+
    while( c = *s++)
       if( c == ',' && strchr( types, *s))
          return( s);
@@ -79,13 +79,13 @@ struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_
    int        last;
    int        middle;
    struct _mulle_objc_property   *p;
-   
+
    assert( search != MULLE_OBJC_NO_PROPERTYID && search != MULLE_OBJC_INVALID_PROPERTYID);
-   
+
    first  = 0;
    last   = n - 1;
    middle = (first + last) / 2;
- 
+
    while( first <= last)
    {
       p = &buf[ middle];
@@ -93,15 +93,15 @@ struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_
       {
          if( p->propertyid == search)
             return( p);
-         
+
          first = middle + 1;
       }
       else
          last = middle - 1;
- 
+
       middle = (first + last) / 2;
    }
-   
+
    return( NULL);
 }
 
@@ -111,7 +111,7 @@ int  _mulle_objc_property_compare( struct _mulle_objc_property *a,
 {
    mulle_objc_propertyid_t   a_id;
    mulle_objc_propertyid_t   b_id;
-   
+
    a_id = a->propertyid;
    b_id = b->propertyid;
    if( a_id < b_id)
@@ -125,7 +125,7 @@ void   mulle_objc_property_sort( struct _mulle_objc_property *properties,
 {
    if( ! properties)
       return;
-   
+
    qsort( properties, n, sizeof( struct _mulle_objc_property), (void *) _mulle_objc_property_compare);
 }
 
