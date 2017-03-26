@@ -47,7 +47,7 @@ struct _mulle_objc_class;
 
 struct _mulle_objc_propertylist
 {
-   unsigned int                 n_properties; 
+   unsigned int                 n_properties;
    struct _mulle_objc_property  properties[ 1];
 };
 
@@ -85,8 +85,7 @@ static inline void   mulle_objc_propertylist_sort( struct _mulle_objc_propertyli
 
 
 
-# pragma mark -
-# pragma mark Enumerator
+# pragma mark - Enumerator
 
 struct _mulle_objc_propertylistenumerator
 {
@@ -98,12 +97,12 @@ struct _mulle_objc_propertylistenumerator
 static inline struct  _mulle_objc_propertylistenumerator   _mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_propertylistenumerator   rover;
-   
+
    rover.property   = &list->properties[ 0];
    rover.sentinel = &list->properties[ list->n_properties];
-   
+
    assert( rover.sentinel >= rover.property);
-   
+
    return( rover);
 }
 
@@ -119,8 +118,7 @@ static inline void  _mulle_objc_propertylistenumerator_done( struct _mulle_objc_
 }
 
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 static inline int   mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
                                                int (*f)( struct _mulle_objc_property *, struct _mulle_objc_class *, void *),
@@ -136,7 +134,7 @@ static inline int   mulle_objc_propertylist_walk( struct _mulle_objc_propertylis
 static inline struct  _mulle_objc_propertylistenumerator   mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_propertylistenumerator   rover;
-   
+
    if( ! list)
    {
       rover.property   = NULL;

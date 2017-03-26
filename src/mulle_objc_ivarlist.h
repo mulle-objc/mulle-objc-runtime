@@ -88,8 +88,7 @@ int   _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
 
 void   mulle_objc_ivarlist_sort( struct _mulle_objc_ivarlist *list);
 
-#pragma mark -
-#pragma mark API
+#pragma mark - API
 
 
 static inline int   mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,

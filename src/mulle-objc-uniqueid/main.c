@@ -40,7 +40,7 @@ int   main( int argc, const char * argv[])
 {
    if( argc != 2)
       return( -1);
-   
+
    printf( "%08lx\n", (long) mulle_objc_uniqueid_from_string( (char *) argv[ 1]));
    return 0;
 }

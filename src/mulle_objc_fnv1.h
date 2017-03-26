@@ -36,7 +36,7 @@
 #ifndef mulle_objc_fnv1_h__
 # define mulle_objc_fnv1_h__
 
-/* renamed to mulle_objc to keep symbols clean 
+/* renamed to mulle_objc to keep symbols clean
  * It's an implementation of the [FNV1 hash](//en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function#FNV-1_hash).
  * The 32 bit value is in no form and shape compatible with the
  * 64 bit value.

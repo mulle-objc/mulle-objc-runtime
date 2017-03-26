@@ -36,6 +36,16 @@
 #ifndef mulle_objc_h__
 #define mulle_objc_h__
 
+
+// catch this early
+#if ! defined( __MULLE_OBJC_TPS__) && ! defined( __MULLE_OBJC_NO_TPS__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (or define either __MULLE_OBJC_TPS__ or __MULLE_OBJC_NO_TPS__)"
+#endif
+
+#if ! defined( __MULLE_OBJC_TRT__) && ! defined( __MULLE_OBJC_NO_TRT__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (or define either __MULLE_OBJC_TRT__ or __MULLE_OBJC_NO_TRT__)"
+#endif
+
 #include "mulle_objc_atomicpointer.h"
 #include "mulle_objc_builtin.h"
 #include "mulle_objc_call.h"
@@ -74,10 +84,16 @@
 
 // add some functions to mulle-vararg for ObjC
 
+#define mulle_vararg_count_ids( args, obj) \
+   mulle_vararg_count_pointers( (args), (obj))
 #define mulle_vararg_count_objects( args, obj) \
    mulle_vararg_count_pointers( (args), (obj))
-#define mulle_vararg_next_object( args) \
+
+#define mulle_vararg_next_id( args) \
    mulle_vararg_next_pointer( (args), id)
+#define mulle_vararg_next_object( args, type) \
+   mulle_vararg_next_pointer( (args), id)
+
 
 #if MULLE_ABA_VERSION < ((1 << 20) | (4 << 8) | 0)
 # error "mulle_aba is too old"

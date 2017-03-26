@@ -49,14 +49,13 @@
 #include "c_set.inc"
 
 
-# pragma mark -
-# pragma mark small routines to output the html
+# pragma mark - small routines to output the html
 
 static char   *filename_for_class( struct _mulle_objc_class  *cls, char *directory, int is_meta)
 {
    char     *buf;
    size_t   len;
-   
+
    len = strlen( cls->name) + strlen( directory) + 16;
    buf = mulle_malloc( len);
    sprintf( buf, "%s/%s%s.html", directory, is_meta ? "+" : "", cls->name);
@@ -68,7 +67,7 @@ static char   *filename_for_runtime( struct _mulle_objc_runtime  *runtime, char 
 {
    char     *buf;
    size_t   len;
-   
+
    len = strlen( directory) + 16;
    buf = mulle_malloc( len);
    sprintf( buf, "%s/index.html", directory);
@@ -79,14 +78,14 @@ static char   *filename_for_runtime( struct _mulle_objc_runtime  *runtime, char 
 static FILE  *open_and_print_start( char *name, char *title)
 {
    FILE  *fp;
-   
+
    fp = fopen( name, "w");
    if( ! fp)
    {
       perror( "fopen");
       abort();
    }
-   
+
    fprintf( fp, "\
 <html>\n\
 <header>\n\
@@ -118,8 +117,7 @@ static void  print_end_and_close( FILE *fp)
 }
 
 
-# pragma mark -
-# pragma mark walker runtime callback
+# pragma mark - walker runtime callback
 
 static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
 {
@@ -132,12 +130,12 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    label = mulle_objc_runtime_html_description( runtime);
    print_to_body( "Values", label, fp);
    free( label);
-   
+
    label = mulle_concurrent_hashmap_html_description( &runtime->classtable, (char *(*)()) mulle_objc_class_short_html_description);
    print_to_body( "Classes", label, fp);
    free( label);
 
-   
+
    print_to_body( "Fast Classes", NULL, fp);
    fprintf( fp, "<ol>\n");
    for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
@@ -149,8 +147,8 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
          free( label);
       }
    fprintf( fp, "</ol>\n");
-   
-   
+
+
    label = mulle_concurrent_hashmap_html_description( &runtime->descriptortable, (char *(*)()) mulle_objc_methoddescriptor_html_hor_description);
    print_to_body( "Descriptor Table", label, fp);
    free( label);
@@ -175,19 +173,18 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime, char *director
 {
    char   *path;
    FILE   *fp;
-   
+
    path = filename_for_runtime( runtime, directory);
 
    fp = open_and_print_start( path, "Runtime");
    _print_runtime( runtime, fp);
    print_end_and_close( fp);
-   
+
    mulle_free( path);
 }
 
 
-# pragma mark -
-# pragma mark walker class callback
+# pragma mark - walker class callback
 
 struct dump_info
 {
@@ -211,7 +208,7 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
    struct _mulle_objc_propertylist                  *propertylist;
 
    print_to_body( "Runtime","<a href=\"index.html\">Runtime</a>", fp);
-   
+
    superclass = _mulle_objc_class_get_superclass( cls);
    if( superclass)
    {
@@ -235,7 +232,7 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
       print_to_body( "Metaclass", label, fp);
       free( label);
    }
-   
+
    label = mulle_objc_class_html_description( cls, is_meta ? "purple" : "blue");
    print_to_body( "Values", label, fp);
    free( label);
@@ -266,7 +263,7 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
    }
    mulle_concurrent_pointerarrayenumerator_done( &rover);
    fprintf( fp, "</ol>\n");
-   
+
 
    print_to_body( "Method Lists", NULL, fp);
    fprintf( fp, "<ol>\n");
@@ -303,7 +300,7 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
       print_to_body( "Conforming to Protocols", label, fp);
       free( label);
    }
-   
+
    cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    label = mulle_objc_cache_html_description( cache);
    print_to_body( "Cache", label, fp);
@@ -321,7 +318,7 @@ static void   print_class( struct _mulle_objc_class *cls, char *directory, int i
    fp = open_and_print_start( path, cls->name);
    _print_class( cls, fp, is_meta);
    print_end_and_close( fp);
-   
+
    mulle_free( path);
 }
 
@@ -336,9 +333,9 @@ static int   callback( struct _mulle_objc_runtime *runtime,
    char                       *directory;
    struct _mulle_objc_class   *cls;
    struct dump_info           *info;
-   
+
    assert( p);
-   
+
    if( key)
       return( mulle_objc_runtime_walk_ok);
 
@@ -380,16 +377,15 @@ static int   callback( struct _mulle_objc_runtime *runtime,
 }
 
 
-#pragma mark -
-#pragma mark runtime dump
+# pragma mark - runtime dump
 
 void   mulle_objc_runtime_dump_as_html_to_directory( struct _mulle_objc_runtime *runtime, char *directory)
 {
    struct dump_info  info;
-   
+
    c_set_init( &info.set);
    info.directory = directory;
-   
+
    mulle_objc_runtime_walk( runtime, callback, &info);
 
    c_set_done( &info.set);

@@ -12,6 +12,7 @@
 
 #define ___Foo_classid         MULLE_OBJC_CLASSID( 0x40413ff3)
 #define ___Object_classid      MULLE_OBJC_CLASSID( 0x5bd95814)
+#define ___Print_categoryid    MULLE_OBJC_CATEGORYID( 0xcbe38fa2)
 
 #define ___setA_b___methodid   MULLE_OBJC_METHODID( 0x3c146ada)
 #define ___print__methodid     MULLE_OBJC_METHODID( 0x4bb743c2)
@@ -365,6 +366,7 @@ static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
 
 struct _mulle_objc_loadcategory   Foo_Print_category_load =
 {
+   ___Print_categoryid,
    "Print",
 
    ___Foo_classid,
@@ -400,8 +402,9 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
+      MULLE_OBJC_RUNTIME_LOAD_VERSION,
       MULLE_OBJC_RUNTIME_VERSION,
-      1848,
+      0,
       0,
       0
    },

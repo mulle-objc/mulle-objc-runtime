@@ -70,8 +70,18 @@ mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s);
 // (include cycles..)
 
 
-#pragma mark -
-#pragma mark mulle_objc_classid_t
+
+#pragma mark - mulle_objc_categoryid_t
+
+typedef mulle_objc_uniqueid_t   mulle_objc_categoryid_t;
+
+#define MULLE_OBJC_CATEGORYID( x)           MULLE_OBJC_UNIQUEID( x)
+
+#define MULLE_OBJC_NO_CATEGORYID            MULLE_OBJC_NO_UNIQUEID
+#define MULLE_OBJC_INVALID_CATEGORYID       MULLE_OBJC_INVALID_UNIQUEID
+
+
+#pragma mark - mulle_objc_classid_t
 
 typedef mulle_objc_uniqueid_t   mulle_objc_classid_t;
 
@@ -81,8 +91,7 @@ typedef mulle_objc_uniqueid_t   mulle_objc_classid_t;
 #define MULLE_OBJC_INVALID_CLASSID       MULLE_OBJC_INVALID_UNIQUEID
 
 
-#pragma mark -
-#pragma mark mulle_objc_ivarid_t
+#pragma mark - mulle_objc_ivarid_t
 
 typedef mulle_objc_uniqueid_t   mulle_objc_ivarid_t;
 
@@ -92,8 +101,7 @@ typedef mulle_objc_uniqueid_t   mulle_objc_ivarid_t;
 #define MULLE_OBJC_INVALID_IVARID   MULLE_OBJC_INVALID_UNIQUEID
 
 
-#pragma mark -
-#pragma mark mulle_objc_methodid_t
+#pragma mark - mulle_objc_methodid_t
 
 typedef mulle_objc_uniqueid_t      mulle_objc_methodid_t;
 
@@ -103,8 +111,7 @@ typedef mulle_objc_uniqueid_t      mulle_objc_methodid_t;
 #define MULLE_OBJC_INVALID_METHODID   MULLE_OBJC_INVALID_UNIQUEID
 
 
-#pragma mark -
-#pragma mark mulle_objc_propertyid_t
+#pragma mark - mulle_objc_propertyid_t
 
 typedef mulle_objc_uniqueid_t      mulle_objc_propertyid_t;
 
@@ -114,8 +121,7 @@ typedef mulle_objc_uniqueid_t      mulle_objc_propertyid_t;
 #define MULLE_OBJC_INVALID_PROPERTYID   MULLE_OBJC_INVALID_UNIQUEID
 
 
-#pragma mark -
-#pragma mark mulle_objc_protocolid_t
+#pragma mark - mulle_objc_protocolid_t
 
 typedef mulle_objc_uniqueid_t      mulle_objc_protocolid_t;
 
@@ -126,14 +132,12 @@ typedef mulle_objc_uniqueid_t      mulle_objc_protocolid_t;
 
 
 
-#pragma mark -
-#pragma mark mulle_objc_hash_t
+#pragma mark - mulle_objc_hash_t
 
 typedef mulle_objc_uniqueid_t   mulle_objc_hash_t;
 
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 static inline mulle_objc_classid_t   mulle_objc_classid_from_string( char *s)
 {

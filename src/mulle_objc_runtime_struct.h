@@ -104,7 +104,7 @@ struct _mulle_objc_runtimedebug
       unsigned   tagged_pointers      : 1;
       unsigned   runtime_config       : 1;
    } trace;
-   
+
    struct
    {
       unsigned   methodid_types        : 1;
@@ -166,7 +166,7 @@ struct _mulle_objc_classdefaults
 {
    struct _mulle_objc_method   *forwardmethod;
    void                        (*class_is_missing)( struct _mulle_objc_runtime *, mulle_objc_classid_t);
-   
+
    unsigned short              inheritance;
 };
 
@@ -211,7 +211,7 @@ struct _mulle_objc_foundation
 
 struct _mulle_objc_memorymanagement
 {
-   struct mulle_allocator   allocator; 
+   struct mulle_allocator   allocator;
 };
 
 
@@ -232,7 +232,7 @@ struct _mulle_objc_taggedpointers
  * autorelease pool, you should be able to completely remove the
  * runtime AND all created instances.
  *
- * All no, unfortunately there is one static class needed for 
+ * All no, unfortunately there is one static class needed for
  * static strings.
  */
 struct _mulle_objc_runtime
@@ -246,7 +246,7 @@ struct _mulle_objc_runtime
    struct mulle_concurrent_hashmap          descriptortable;
    struct mulle_concurrent_hashmap          classestoload;
    struct mulle_concurrent_hashmap          categoriestoload;
-   
+
    struct mulle_concurrent_pointerarray     staticstrings;
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
@@ -264,22 +264,22 @@ struct _mulle_objc_runtime
    //    if you think you need to change something, use the lock
    //
    char                                     compilation[ 128];   // debugging
-   
+
    mulle_thread_t                           thread;  // init-done thread
-   
+
    uint32_t                                 version;
 
    struct _mulle_objc_memorymanagement      memory;
 
    struct _mulle_objc_classdefaults         classdefaults;
    struct _mulle_objc_garbagecollection     garbage;
-   struct _mulle_objc_preloadmethodids      methodidstopreload;  
+   struct _mulle_objc_preloadmethodids      methodidstopreload;
 
    struct _mulle_objc_runtimefailures       failures;
    struct _mulle_objc_runtimeexceptionvectors   exceptionvectors;
    struct _mulle_objc_runtimeconfig         config;
    struct _mulle_objc_runtimedebug          debug;
-  
+
    // duplicate zeros, but it dumps nicer
    struct _mulle_objc_cache                 empty_cache;
    struct _mulle_objc_methodlist            empty_methodlist;

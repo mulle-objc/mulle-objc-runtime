@@ -50,7 +50,7 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
    struct _mulle_objc_garbagecollection   *gc;
    struct _mulle_objc_runtime             *runtime;
 
-#ifndef __MULLE_OBJC_TRT__
+#if __MULLE_OBJC_TRT__
    if( cls && (cls->classid == 0x5b791fc6 || cls->classid == 0x645eeb40))
       return( -1);
 #endif
@@ -60,8 +60,7 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 }
 
 
-#pragma mark -
-#pragma mark class lookup
+#pragma mark - class lookup
 
 MULLE_C_NON_NULL_RETURN
 struct _mulle_objc_class   *mulle_objc_unfailing_get_or_lookup_class( mulle_objc_classid_t classid)
@@ -84,9 +83,9 @@ struct _mulle_objc_class   *_mulle_objc_runtime_unfailing_lookup_uncached_class(
 {
    struct _mulle_objc_class   *cls;
    int                        retry;
-   
+
    assert( classid != MULLE_OBJC_INVALID_CLASSID && classid != MULLE_OBJC_NO_CLASSID);
-   
+
    retry = 1;
    for(;;)
    {
@@ -96,21 +95,20 @@ struct _mulle_objc_class   *_mulle_objc_runtime_unfailing_lookup_uncached_class(
          assert( cls->classid == classid);
          return( cls);
       }
-      
+
       if( retry)
       {
          retry = 0;
          (*runtime->classdefaults.class_is_missing)( runtime, classid);
          continue;
       }
-      
+
       _mulle_objc_runtime_raise_class_not_found_exception( runtime, classid);
    }
 }
 
 
-#pragma mark -
-#pragma mark class cache
+#pragma mark - class cache
 
 static struct _mulle_objc_cacheentry
    *_mulle_objc_runtime_add_classcacheentry_by_swapping_caches( struct _mulle_objc_runtime *runtime, struct _mulle_objc_cache *cache, struct _mulle_objc_class *cls)
@@ -118,26 +116,26 @@ static struct _mulle_objc_cacheentry
    struct _mulle_objc_cache        *old_cache;
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_cache_uint_t          new_size;
-   
+
    old_cache = cache;
-   
+
    // a new beginning.. let it be filled anew
    new_size  = old_cache->size * 2;
    cache     = mulle_objc_cache_new( new_size, &cls->runtime->memory.allocator);
    if( ! cache)
       return( NULL);
-   
+
    entry = _mulle_objc_cache_inactivecache_add_pointer_entry( cache, cls, cls->classid);
-   
+
    if( _mulle_objc_cachepivot_atomic_set_entries( &runtime->cachepivot, cache->entries, old_cache->entries))
    {
       _mulle_objc_cache_free( cache, &cls->runtime->memory.allocator);
       return( NULL);
    }
-   
+
    if( &old_cache->entries[ 0] != &runtime->empty_cache.entries[ 0])
       _mulle_objc_cache_abafree( old_cache, &cls->runtime->memory.allocator);
-   
+
    return( entry);
 }
 
@@ -146,10 +144,10 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache_with
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entry;
-   
+
    assert( cls && ! _mulle_objc_class_is_metaclass( cls));
    assert( runtime);
-   
+
    //
    // here try to get most up to date value
    //
@@ -175,11 +173,11 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache( str
 {
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cacheentry   *entry;
-   
+
    cls = _mulle_objc_runtime_lookup_uncached_class( runtime, classid);
    if( ! cls)
       return( NULL);
-   
+
    entry = _mulle_objc_runtime_fill_classcache_with_class( runtime, cls);
    assert( entry);
    return( entry);
@@ -190,17 +188,16 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_unfailing_fill_class
 {
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cacheentry   *entry;
-   
+
    cls   = _mulle_objc_runtime_unfailing_lookup_uncached_class( runtime, classid);
    assert( mulle_objc_class_is_current_thread_registered( cls));
-   
+
    entry = _mulle_objc_runtime_fill_classcache_with_class( runtime, cls);
    return( entry);
 }
 
 
-#pragma mark -
-#pragma mark class lookup
+#pragma mark - class lookup
 
 MULLE_C_CONST_RETURN
 struct _mulle_objc_class  *_mulle_objc_runtime_lookup_class( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
@@ -210,11 +207,11 @@ struct _mulle_objc_class  *_mulle_objc_runtime_lookup_class( struct _mulle_objc_
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_cache_uint_t         offset;
    mulle_objc_cache_uint_t         mask;
-   
+
    entries = _mulle_objc_cachepivot_atomic_get_entries( &runtime->cachepivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;
-   
+
    offset  = (mulle_objc_cache_uint_t) classid;
    for(;;)
    {
@@ -222,13 +219,13 @@ struct _mulle_objc_class  *_mulle_objc_runtime_lookup_class( struct _mulle_objc_
       entry   = (void *) &((char *) entries)[ offset];
       if( entry->key.uniqueid == classid)
          return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-      
+
       if( ! entry->key.uniqueid)
       {
          entry = _mulle_objc_runtime_fill_classcache( runtime, classid);
          if( ! entry)
             return( NULL);
-         
+
          return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
       }
 
@@ -246,11 +243,11 @@ struct _mulle_objc_class  *_mulle_objc_runtime_unfailing_lookup_class( struct _m
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_cache_uint_t         offset;
    mulle_objc_cache_uint_t         mask;
-   
+
    entries = _mulle_objc_cachepivot_atomic_get_entries( &runtime->cachepivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;
-   
+
    offset  = (mulle_objc_cache_uint_t) classid;
    for(;;)
    {
@@ -258,7 +255,7 @@ struct _mulle_objc_class  *_mulle_objc_runtime_unfailing_lookup_class( struct _m
       entry   = (void *) &((char *) entries)[ offset];
       if( entry->key.uniqueid == classid)
          return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-      
+
       if( ! entry->key.uniqueid)
       {
          entry = _mulle_objc_runtime_unfailing_fill_classcache( runtime, classid);

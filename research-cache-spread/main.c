@@ -38,57 +38,57 @@ int main(int argc, const char * argv[])
    unsigned int   i;
    unsigned int   n;
    unsigned int   count;
-   
+
    if( argc != 3)
    {
       errno = EINVAL;
       perror( "argc:");
       return( -1);
    }
-   
+
    n_slots   = atoi( argv[ 1]);     // ex. 3000
    n_entries = atoi( argv[ 2]);     // ex. 1000
-   
+
    if( n_slots <= n_entries)
    {
       errno = EINVAL;
       perror( "argv:");
       return( -1);
    }
-   
+
    slots = calloc( n_slots, sizeof( unsigned int));
    if( ! slots)
    {
       perror( "calloc:");
       return( -1);
    }
-   
+
    srand( (unsigned) time( NULL));
 #if USE_MERSENNE
    {
       unsigned long   init[4] ={ rand(), rand(), rand(), rand() };
-      
+
       init_by_array (init, 4);
    }
 #define rand()   genrand_int32()
 #endif
-   
+
    // generate random numbers, figure out how many
    // clashes there are to be expected
-   
+
    for( i = 0; i < n_entries; i++)
    {
       value = rand() % n_slots;
       slots[ value]++;
    }
-   
+
    qsort( slots, n_slots, sizeof( unsigned int), (void *) compare_unsigned_int);
-   
-   
+
+
    /* auswerten */
    value = slots[ 0];
    count = 1;
-   
+
    for( i = 0; i < n_entries; i++)
    {
       if( slots[ i] != value)
@@ -101,6 +101,6 @@ int main(int argc, const char * argv[])
          break;
       ++count;
    }
-   
+
    return 0;
 }

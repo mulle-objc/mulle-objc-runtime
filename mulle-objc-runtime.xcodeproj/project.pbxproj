@@ -661,7 +661,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A041C4E6E9A00290E05 /* Debug.xcconfig */;
 			buildSettings = {
+				COMMON_GCC_PREPROCESSOR_DEFINITIONS = "__STDC_NO_THREADS__ __MULLE_OBJC_TPS__ __MULLE_OBJC_NO_TRT__";
 				CURRENT_PROJECT_VERSION = 1.1.0;
+				DEPENDENCIES_DIR = "$(PROJECT_DIR)/../dependencies";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OTHER_CFLAGS = (
@@ -677,7 +679,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A081C4E6E9A00290E05 /* Release.xcconfig */;
 			buildSettings = {
+				COMMON_GCC_PREPROCESSOR_DEFINITIONS = "__STDC_NO_THREADS__ __MULLE_OBJC_TPS__ __MULLE_OBJC_NO_TRT__";
 				CURRENT_PROJECT_VERSION = 1.1.0;
+				DEPENDENCIES_DIR = "$(PROJECT_DIR)/../dependencies";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OTHER_CFLAGS = (
@@ -705,7 +709,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */;
 			buildSettings = {
-				COMMON_GCC_PREPROCESSOR_DEFINITIONS = "__STDC_NO_THREADS__ __MULLE_OBJC_TPS__";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				LIBRARY_SEARCH_PATHS = (
@@ -723,7 +726,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */;
 			buildSettings = {
-				COMMON_GCC_PREPROCESSOR_DEFINITIONS = "__STDC_NO_THREADS__ __MULLE_OBJC_TPS__";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				LIBRARY_SEARCH_PATHS = (
@@ -741,7 +743,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */;
 			buildSettings = {
-				COMMON_GCC_PREPROCESSOR_DEFINITIONS = "__STDC_NO_THREADS__ __MULLE_OBJC_TPS__";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				LIBRARY_SEARCH_PATHS = (
@@ -777,7 +778,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A081C4E6E9A00290E05 /* Release.xcconfig */;
 			buildSettings = {
+				COMMON_GCC_PREPROCESSOR_DEFINITIONS = "__STDC_NO_THREADS__ __MULLE_OBJC_TPS__ __MULLE_OBJC_NO_TRT__";
 				CURRENT_PROJECT_VERSION = 1.1.0;
+				DEPENDENCIES_DIR = "$(PROJECT_DIR)/../dependencies";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OTHER_CFLAGS = (

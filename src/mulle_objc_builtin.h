@@ -44,8 +44,7 @@
 #include <assert.h>
 
 
-# pragma mark -
-# pragma mark compiler support
+# pragma mark - compiler support
 
 static inline void   *mulle_objc_object_copy( void *self)
 {
@@ -74,7 +73,7 @@ static inline void   mulle_objc_object_set_property_value(
                               char is_copy)
 {
    void  **ivar;
-   
+
    assert( ! is_atomic);
 
    if( ! self)
@@ -85,7 +84,7 @@ static inline void   mulle_objc_object_set_property_value(
       value = mulle_objc_object_copy( value);
    else
       mulle_objc_object_retain( value);
-   
+
    mulle_objc_object_autorelease( *ivar);
    *ivar = value;
 }
@@ -98,12 +97,12 @@ static inline void   *mulle_objc_object_get_property_value(
                               char is_atomic)
 {
    void  **ivar;
-   
+
    assert( ! is_atomic);
-   
+
    if( ! self)
       return( NULL);
-   
+
    ivar = (void **) &((char *) self)[ offset];
    return( *ivar);
 }

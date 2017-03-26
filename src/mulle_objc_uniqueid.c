@@ -45,7 +45,7 @@ mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
 {
    mulle_objc_uniqueid_t  value;
    unsigned int           len;
-   
+
    len = (unsigned int) strlen( s);
    if( ! s || ! len)
    {
@@ -53,7 +53,7 @@ mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
       return( MULLE_OBJC_INVALID_UNIQUEID);
    }
    value = _mulle_objc_fnv1_32( s, len);
-   
+
    // make sure key is valid
    if( value == MULLE_OBJC_INVALID_UNIQUEID || value == MULLE_OBJC_NO_UNIQUEID)
       value = MULLE_OBJC_MIN_UNIQUEID;  // assumed to be unlikely
@@ -62,7 +62,7 @@ mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
 //      value |= 0x80000000;
 //   if( ! (value & 0xFFFF))
 //      value |= 0x1;
-   
+
    return( value);
 }
 
@@ -75,18 +75,18 @@ mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
    unsigned char          digest[ MULLE_OBJC_MD5_DIGESTLENGTH];
    unsigned int           i;
    unsigned int           len;
-   
+
    len = (unsigned int) strlen( s);
    if( ! s || ! len)
    {
       errno = EINVAL;
       return( MULLE_OBJC_INVALID_UNIQUEID);
    }
-   
+
    mulle_objc_md5_init( &context);
    mulle_objc_md5_update( &context, (const unsigned char *) s, len);
    mulle_objc_md5_final( &context, digest);
-   
+
    // non-optimal
    value = 0;
    for( i = 0; i < sizeof( mulle_objc_uniqueid_t); i++)

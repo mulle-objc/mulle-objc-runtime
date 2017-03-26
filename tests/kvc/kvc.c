@@ -231,8 +231,9 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
+      MULLE_OBJC_RUNTIME_LOAD_VERSION,
       MULLE_OBJC_RUNTIME_VERSION,
-      1848,
+      0,
       0,
       0
    },

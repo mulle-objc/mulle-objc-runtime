@@ -49,7 +49,7 @@
 
 //
 // Your root class MUST implement -finalize and -dealloc.
-// 
+//
 void  _mulle_objc_object_try_finalize_try_dealloc( void *obj);
 void  _mulle_objc_object_perform_finalize( void *obj);
 
@@ -81,7 +81,7 @@ static inline intptr_t   mulle_objc_object_get_retaincount( void *obj)
 {
    if( mulle_objc_taggedpointer_get_index( obj))
       return( MULLE_OBJC_NEVER_RELEASE);
-   
+
    if( obj)
       return( _mulle_objc_object_get_retaincount( obj));
    return( 0);
@@ -91,10 +91,10 @@ static inline intptr_t   mulle_objc_object_get_retaincount( void *obj)
 static inline void   _mulle_objc_object_increment_retaincount( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
-   
+
    header = _mulle_objc_object_get_objectheader( obj);
    if( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
       _mulle_atomic_pointer_increment( &header->_retaincount_1); // atomic increment needed
@@ -104,10 +104,10 @@ static inline void   _mulle_objc_object_increment_retaincount( void *obj)
 static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return( 0);
-   
+
    header = _mulle_objc_object_get_objectheader( obj);
    assert( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != -1 &&
            (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != INTPTR_MIN);
@@ -123,7 +123,7 @@ static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj
 static inline void   _mulle_objc_object_infinite_retain( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
 
@@ -142,7 +142,7 @@ static inline void   _mulle_objc_object_infinite_retain( void *obj)
 static inline void   _mulle_objc_object_release( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
 
@@ -171,8 +171,7 @@ void   _mulle_objc_objects_call_retain( void **objects, size_t n);
 void   _mulle_objc_objects_call_release( void **objects, size_t n);
 void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n);
 
-#pragma mark -
-#pragma mark API, compiler uses this code too
+# pragma mark - API, compiler uses this code too
 
 // must be void *, for compiler
 static inline void   *mulle_objc_object_retain( void *obj)
@@ -189,7 +188,7 @@ static inline void   mulle_objc_object_release( void *obj)
       return;
 #if DEBUG
    struct _mulle_objc_class  *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    (*cls->call)( obj, MULLE_OBJC_RELEASE_METHODID, NULL, cls);
 #else
@@ -198,8 +197,7 @@ static inline void   mulle_objc_object_release( void *obj)
 }
 
 
-#pragma mark -
-#pragma mark API
+# pragma mark - API
 
 
 static inline void   mulle_objc_objects_call_retain( void **objects, size_t n)

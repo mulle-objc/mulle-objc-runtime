@@ -93,8 +93,7 @@ static inline void  _mulle_objc_runtime_release( struct _mulle_objc_runtime *run
 }
 
 
-#pragma mark -
-#pragma mark globals / tables
+#pragma mark - globals / tables
 
 // keep it to 512 bytes
 #define S_MULLE_OBJC_THREADCONFIG_FOUNDATION_SPACE  (256 - sizeof( struct _mulle_objc_runtime *))
@@ -157,8 +156,7 @@ static inline void   *_mulle_objc_threadconfig_get_userspace( struct _mulle_objc
 }
 
 
-#pragma mark -
-#pragma mark loadbits && tagged pointer support
+#pragma mark - loadbits && tagged pointer support
 
 static inline uintptr_t   _mulle_objc_runtime_get_loadbits( struct _mulle_objc_runtime *runtime)
 {
@@ -228,8 +226,7 @@ struct _mulle_concurrent_pointerarray  *_mulle_objc_runtime_get_staticstrings( s
 void  mulle_objc_release_runtime( void);
 
 
-#pragma mark -
-#pragma mark non concurrent memory allocation
+#pragma mark - non concurrent memory allocation
 
 MULLE_C_NON_NULL_RETURN
 static inline struct mulle_allocator   *_mulle_objc_foundation_get_allocator( struct _mulle_objc_foundation *foundation)
@@ -289,7 +286,7 @@ static inline void   mulle_objc_runtime_free( struct _mulle_objc_runtime *runtim
 {
    if( ! block)
       return;
-   
+
    if( ! runtime)
    {
       errno = EINVAL;
@@ -316,8 +313,7 @@ void   mulle_objc_free( void *p);
 #endif
 
 
-#pragma mark -
-#pragma mark lock support
+#pragma mark - lock support
 
 //
 // If your program wants to make some other changes to the runtime,
@@ -342,8 +338,7 @@ static inline int   _mulle_objc_runtime_unlock( struct _mulle_objc_runtime  *run
 }
 
 
-#pragma mark -
-#pragma mark exceptions
+#pragma mark - exceptions
 
 /* the default implementation for handling exceptions */
 mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_exceptionstack_key( void);
@@ -379,8 +374,7 @@ void   mulle_objc_raise_taggedpointer_exception( void *obj);
 
 
 
-#pragma mark -
-#pragma mark memory garbage collection
+#pragma mark - memory garbage collection
 
 // don't use this too much
 
@@ -396,8 +390,7 @@ void   _mulle_objc_runtime_register_current_thread_if_needed( struct _mulle_objc
 void   _mulle_objc_runtime_unregister_current_thread( struct _mulle_objc_runtime *runtime);
 
 
-#pragma mark -
-#pragma mark ObjC thread support
+#pragma mark - ObjC thread support
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
@@ -409,8 +402,7 @@ int   mulle_objc_create_thread( mulle_thread_rval_t (*f)(void *), void *arg, mul
 #endif
 
 
-#pragma mark -
-#pragma mark friends
+#pragma mark - friends
 
 static inline void  _mulle_objc_runtime_set_userinfo( struct _mulle_objc_runtime *runtime,
                                                       struct _mulle_objc_runtimefriend *pfriend)
@@ -455,20 +447,19 @@ static inline void  _mulle_objc_runtime_get_foundationspace( struct _mulle_objc_
 }
 
 
-#pragma mark -
-#pragma mark classes
+#pragma mark - classes
 
 struct _mulle_objc_classpair   *mulle_objc_runtime_new_classpair( struct _mulle_objc_runtime *runtime,
                                                                   mulle_objc_classid_t  classid,
                                                                   char *name,
-                                                                  size_t instance_size,
+                                                                  size_t instancesize,
                                                                   struct _mulle_objc_class *superclass);
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
 struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_classid_t  classid,
                                                                     char *name,
-                                                                    size_t instance_size,
+                                                                    size_t instancesize,
                                                                     struct _mulle_objc_class *superclass);
 #endif
 
@@ -493,8 +484,7 @@ void   mulle_objc_unfailing_add_class( struct _mulle_objc_class *cls);
 
 
 
-#pragma mark -
-#pragma mark method cache
+#pragma mark - method cache
 
 static inline unsigned int   _mulle_objc_runtime_number_of_preload_methods( struct _mulle_objc_runtime *runtime)
 {
@@ -502,8 +492,7 @@ static inline unsigned int   _mulle_objc_runtime_number_of_preload_methods( stru
 }
 
 
-#pragma mark -
-#pragma mark methods
+#pragma mark - methods
 
 int    _mulle_objc_runtime_add_methoddescriptor( struct _mulle_objc_runtime *runtime, struct _mulle_objc_methoddescriptor *p);
 
@@ -540,8 +529,7 @@ char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid);
 char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid);
 
 
-#pragma mark -
-#pragma mark method lists
+#pragma mark - method lists
 
 //
 // method lists
@@ -559,8 +547,7 @@ static inline void   mulle_objc_runtime_free_methodlist( struct _mulle_objc_runt
 }
 
 
-#pragma mark -
-#pragma mark static strings
+#pragma mark - static strings
 
 struct _mulle_objc_staticstring  // really an object
 {
@@ -577,8 +564,7 @@ void   _mulle_objc_runtime_staticstringclass_did_change( struct _mulle_objc_runt
 void  _mulle_objc_runtime_set_staticstringclass( struct _mulle_objc_runtime *runtime,
                                                  struct _mulle_objc_class *cls);
 
-#pragma mark -
-#pragma mark hashnames (debug output only)
+#pragma mark - hashnames (debug output only)
 
 void   _mulle_objc_runtime_add_loadhashedstringlist( struct _mulle_objc_runtime *runtime,
                                                           struct _mulle_objc_loadhashedstringlist *hashnames);
@@ -588,8 +574,7 @@ char   *_mulle_objc_runtime_search_debughashname( struct _mulle_objc_runtime *ru
 
 
 
-# pragma mark -
-# pragma mark gifts (externally allocated memory)
+# pragma mark - gifts (externally allocated memory)
 
 //
 // a gift must have been allocated with the runtime->memory.allocator
@@ -645,12 +630,13 @@ typedef enum
 
 struct _mulle_objc_runtime;
 
-typedef   int (*mulle_objc_runtime_walkcallback)( struct _mulle_objc_runtime *runtime,
-                                                  void *p,
-                                                  enum mulle_objc_runtime_type_t type,
-                                                  char *key,
-                                                  void *parent,
-                                                  void *userinfo);
+typedef mulle_objc_runtime_walkcommand_t
+   (*mulle_objc_runtime_walkcallback)( struct _mulle_objc_runtime *runtime,
+                                       void *p,
+                                       enum mulle_objc_runtime_type_t type,
+                                       char *key,
+                                       void *parent,
+                                       void *userinfo);
 
 // this walks recursively through the whole runtime
 mulle_objc_runtime_walkcommand_t   mulle_objc_runtime_walk( struct _mulle_objc_runtime *runtime,
@@ -666,8 +652,7 @@ mulle_objc_runtime_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mull
 void   mulle_objc_walk_classes( mulle_objc_runtime_walkcallback callback,
                                 void *userinfo);
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 static inline void   mulle_objc_register_current_thread( void)
 {

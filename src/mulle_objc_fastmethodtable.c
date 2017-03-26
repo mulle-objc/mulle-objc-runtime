@@ -68,7 +68,7 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
       else
          _mulle_atomic_pointer_write( &cls->vtab.methods[ index].pointer, imp);
    }
-   
+
    // go through class call to hit +initialize
    return( (cls->call)( obj, methodid, param, cls));
 }

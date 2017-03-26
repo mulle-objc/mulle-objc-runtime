@@ -1,17 +1,35 @@
+## 0.4.1
+
+* this runtime needs the mulle-clang compiler, based on clang 4.0.0
+* the runtime load structures now have their own independent versioning
+called MULLE_OBJC_RUNTIME_LOAD_VERSION
+* the class now contains a list of categoryids, which can be queried at runtime
+* the category loader will check if a category implements +categoryDependencies,
+this allows proper sequenced +loads of categories and their order in the 
+methodlists. 
+* Renamed `mulle_vararg_count_objects` and `mulle_vararg_next_object` to
+`mulle_vararg_count_ids` and  `mulle_vararg_next_id`. `mulle_vararg_next_object` 
+now resides in MulleObjC.
+
+
 ## 0.3.1
 
 * renamed `MULLE_OBJC_HAVE_THREAD_LOCAL_RUNTIME` to `__MULLE_OBJC_TRT__` and
 added compiler support for it
+* added `__MULLE_OBJC_NO_TRT__`, `__MULLE_OBJC_NO_TPS__`, `__MULLE_OBJC_NO_AAM__`,
+this helps to find problems, when mulle-objc code is compiled with a C compiler
+only
 * renamed `mulle_objc_object_get_taggedpointer_index` to `mulle_objc_object_get_taggedpointer_index`
 * new trace flag `MULLE_OBJC_TRACE_RUNTIME_CONFIG`
-* `CMakeLists.txt` sets `__MULLE_OBJC_TPS__` by default. Since the runtime is 
-built by the standard host compiler, this matches the default of the 
-mulle-clang compiler.
+* `CMakeLists.txt` sets `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_NO_TRT__` by 
+default. Since the runtime is  built by the standard host compiler, this 
+matches the current default of the  mulle-clang compiler
 * improved and more lenient thread local compatibility check on load
 * the pass-through for foundation code w/o version has been removed
 * `MULLE_OBJC_USER_VERSION_MAJOR` and friends shortened to `USER_VERSION_MAJOR`
 * `MULLE_OBJC_FOUNDATION_VERSION_MAJOR` and friends shortened to `FOUNDATION_VERSION_MAJOR`
-
+* `mulle_vararg_next_id` is the old `mulle_vararg_next_object`.
+`mulle_vararg_next_object` now accepts a type.
 
 ## 0.2.3
 
