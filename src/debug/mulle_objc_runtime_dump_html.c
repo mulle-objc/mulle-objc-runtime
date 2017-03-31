@@ -237,52 +237,63 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
    print_to_body( "Values", label, fp);
    free( label);
 
-   print_to_body( "Instance Variables", NULL, fp);
-   fprintf( fp, "<ol>\n");
-
-   rover = mulle_concurrent_pointerarray_enumerate( &cls->ivarlists);
-   while( ivarlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   if( mulle_concurrent_pointerarray_get_count( &cls->ivarlists))
    {
-      label = mulle_objc_ivarlist_html_hor_description( ivarlist);
-      fprintf( fp, "<li> %s\n", label);
-      free( label);
+      print_to_body( "Instance Variables", NULL, fp);
+      fprintf( fp, "<ol>\n");
+      
+      rover = mulle_concurrent_pointerarray_enumerate( &cls->ivarlists);
+      while( ivarlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+      {
+         label = mulle_objc_ivarlist_html_hor_description( ivarlist);
+         fprintf( fp, "<li> %s\n", label);
+         free( label);
+      }
+      mulle_concurrent_pointerarrayenumerator_done( &rover);
+
+      fprintf( fp, "</ol>\n");
    }
-   fprintf( fp, "</ol>\n");
-
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
-
-   print_to_body( "Properties", NULL, fp);
-   fprintf( fp, "<ol>\n");
-
-   rover = mulle_concurrent_pointerarray_enumerate( &cls->propertylists);
-   while( propertylist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   
+   if( mulle_concurrent_pointerarray_get_count( &cls->propertylists))
    {
-      label = mulle_objc_propertylist_html_description( propertylist);
-      fprintf( fp, "<li> %s\n", label);
-      free( label);
+      print_to_body( "Properties", NULL, fp);
+      fprintf( fp, "<ol>\n");
+      
+      rover = mulle_concurrent_pointerarray_enumerate( &cls->propertylists);
+      while( propertylist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+      {
+         label = mulle_objc_propertylist_html_description( propertylist);
+         fprintf( fp, "<li> %s\n", label);
+         free( label);
+      }
+      mulle_concurrent_pointerarrayenumerator_done( &rover);
+
+      fprintf( fp, "</ol>\n");
    }
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
-   fprintf( fp, "</ol>\n");
-
-
-   print_to_body( "Method Lists", NULL, fp);
-   fprintf( fp, "<ol>\n");
-
-   rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
-   while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   
+   if( mulle_concurrent_pointerarray_get_count( &cls->methodlists))
    {
-      label = mulle_objc_methodlist_html_hor_description( methodlist);
-      fprintf( fp, "<li> %s\n", label);
-      free( label);
+      print_to_body( "Method Lists", NULL, fp);
+      fprintf( fp, "<ol>\n");
+      
+      rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
+      while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+      {
+         label = mulle_objc_methodlist_html_hor_description( methodlist);
+         fprintf( fp, "<li> %s\n", label);
+         free( label);
+      }
+      mulle_concurrent_pointerarrayenumerator_done( &rover);
+
+      fprintf( fp, "</ol>\n");
    }
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
-   fprintf( fp, "</ol>\n");
 
-
-   print_to_body( "Inherited Protocols", NULL, fp);
-   fprintf( fp, "<ol>\n");
-   if( ! (cls->inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
+   if( ! (_mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS) &&
+         mulle_concurrent_pointerarray_get_count( &cls->protocolids))
    {
+      print_to_body( "Inherited Protocol Classes", NULL, fp);
+      fprintf( fp, "<ol>\n");
+      
       prover = _mulle_objc_class_enumerate_protocolclasses( cls);
       while( propertyclass = _mulle_objc_protocolclassenumerator_next( &prover))
       {
@@ -291,13 +302,21 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
          free( label);
       }
       mulle_concurrent_pointerarrayenumerator_done( &rover);
+
+      fprintf( fp, "</ol>\n");
    }
-   fprintf( fp, "</ol>\n");
 
    if( mulle_concurrent_pointerarray_get_count( &cls->protocolids))
    {
       label = mulle_concurrent_pointerarray_html_description( &cls->protocolids);
       print_to_body( "Conforming to Protocols", label, fp);
+      free( label);
+   }
+
+   if( mulle_concurrent_pointerarray_get_count( &cls->categoryids))
+   {
+      label = mulle_concurrent_pointerarray_html_description( &cls->categoryids);
+      print_to_body( "Categories", label, fp);
       free( label);
    }
 
@@ -414,7 +433,3 @@ void   mulle_objc_dump_runtime_as_html_to_tmp( void)
 {
    mulle_objc_dump_runtime_as_html_to_directory( "/tmp");
 }
-
-
-
-

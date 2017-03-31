@@ -103,6 +103,7 @@ struct _mulle_objc_runtimedebug
       unsigned   string_adds          : 1;
       unsigned   tagged_pointers      : 1;
       unsigned   runtime_config       : 1;
+      unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
    } trace;
 
    struct

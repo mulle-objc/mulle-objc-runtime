@@ -222,6 +222,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
    runtime->debug.trace.fastclass_adds     = getenv( "MULLE_OBJC_TRACE_FASTCLASS_ADDS") != NULL;
    runtime->debug.trace.method_calls       = getenv( "MULLE_OBJC_TRACE_METHOD_CALLS") != NULL;  // totally excessive!
    runtime->debug.trace.method_searches    = getenv( "MULLE_OBJC_TRACE_METHOD_SEARCHES") != NULL;  // fairly excessive!
+   runtime->debug.trace.load_calls         = getenv( "MULLE_OBJC_TRACE_LOAD_CALLS") != NULL;
    runtime->debug.trace.string_adds        = getenv( "MULLE_OBJC_TRACE_STRING_ADDS") != NULL;
    runtime->debug.trace.tagged_pointers    = getenv( "MULLE_OBJC_TRACE_TAGGED_POINTERS") != NULL;
 
@@ -239,14 +240,16 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.trace.string_adds           = 1;
       runtime->debug.trace.tagged_pointers       = 1;
       runtime->debug.trace.runtime_config        = 1;
+      runtime->debug.trace.load_calls            = 1;
    }
 
    if( runtime->debug.trace.runtime_config)
    {
-      fprintf( stderr, "mulle-objc: v%u.%u.%u (",
+      fprintf( stderr, "mulle-objc: v%u.%u.%u (load-version: %u) (",
          MULLE_OBJC_RUNTIME_VERSION_MAJOR,
          MULLE_OBJC_RUNTIME_VERSION_MINOR,
-         MULLE_OBJC_RUNTIME_VERSION_PATCH);
+         MULLE_OBJC_RUNTIME_VERSION_PATCH,
+         MULLE_OBJC_RUNTIME_LOAD_VERSION);
       _mulle_objc_runtimeconfig_dump( &runtime->config);
       fprintf( stderr, ")\n");
    }
@@ -258,7 +261,6 @@ void   mulle_objc_allocator_fail( void *block, size_t size)
 {
    mulle_objc_raise_fail_errno_exception();
 }
-
 
 
 static int   unfailing_abafree( void  *aba,
@@ -1196,7 +1198,7 @@ int   mulle_objc_runtime_add_class( struct _mulle_objc_runtime *runtime, struct 
    }
 
    if( runtime->debug.trace.class_adds)
-      fprintf( stderr, "mulle_objc_runtime %p trace: add class \"%s\" with id %08x (-%p +%p %p)\n", runtime, cls->name, cls->classid, cls, _mulle_objc_class_get_metaclass( cls), _mulle_objc_class_get_superclass( cls));
+      fprintf( stderr, "mulle_objc_runtime %p trace: add class \"%s\" with id %08x (-:%p +:%p s:%p)\n", runtime, cls->name, cls->classid, cls, _mulle_objc_class_get_metaclass( cls), _mulle_objc_class_get_superclass( cls));
 
    return( _mulle_concurrent_hashmap_insert( &runtime->classtable, cls->classid, cls));
 }
