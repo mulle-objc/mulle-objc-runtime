@@ -52,6 +52,9 @@
 #include "c_set.inc"
 
 
+//
+// just don't output stuff with ampersands for now
+//
 void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
 {
    unsigned int   i;
@@ -70,9 +73,6 @@ void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
                list->methods[ i].descriptor.bits,
                list->methods[ i].implementation);
 }
-
-
-
 
 
 # pragma mark - walker runtime callback
@@ -191,7 +191,7 @@ static void   print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta)
    }
    mulle_concurrent_pointerarrayenumerator_done( &rover);
 
-   if( ! (cls->inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
+   if( ! (_mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
    {
       i = 0;
       prover = _mulle_objc_class_enumerate_protocolclasses( cls);
@@ -211,6 +211,16 @@ static void   print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta)
 
       label = mulle_concurrent_pointerarray_html_description( &cls->protocolids);
       fprintf( fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", &cls->protocolids, label);
+      free( label);
+   }
+
+   if( mulle_concurrent_pointerarray_get_count( &cls->categoryids))
+   {
+      fprintf( fp, "\"%p\" -> \"%p\"  [ label=\"categoryids\" ];\n",
+              cls, &cls->protocolids);
+
+      label = mulle_concurrent_pointerarray_html_description( &cls->categoryids);
+      fprintf( fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", &cls->categoryids, label);
       free( label);
    }
 

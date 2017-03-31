@@ -57,7 +57,7 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
 
    // looking up methods, should be thread safe
    {
-      method = _mulle_objc_class_search_method( cls, methodid, NULL, _mulle_objc_class_get_inheritance( cls));
+      method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, _mulle_objc_class_get_inheritance( cls));
       if( ! method)
          method = _mulle_objc_class_unfailing_get_or_search_forwardmethod( cls, methodid);
 

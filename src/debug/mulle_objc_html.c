@@ -42,6 +42,16 @@
 #include <stdio.h>
 
 
+
+static char   *html_escape( char *s)
+{
+   if( ! strchr( s, '&'))
+      return( s);
+   
+   return( "*bad HTML*");
+}
+
+//
 // have my own, because asprintf is a gnu extension, whereas
 // vsnprintf should be C99. Use malloc because that's what vsprintf does
 //
@@ -212,7 +222,7 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *c
             "<TR><TD>allocationsize</TD><TD>%lu</TD></TR>\n",
             cls->allocationsize);
 
-   s = inheritance_description( cls->inheritance);
+   s = inheritance_description( _mulle_objc_class_get_inheritance( cls));
    asprintf( &tmp[ 2],
             "<TR><TD>inheritance</TD><TD>%s</TD></TR>\n",
             s);
@@ -279,7 +289,7 @@ char  *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list)
                "</TABLE></TD>"
                "</TR>\n",
                list->ivars[ i].descriptor.name,
-               list->ivars[ i].descriptor.signature,
+               html_escape( list->ivars[ i].descriptor.signature),
                (long) list->ivars[ i].descriptor.ivarid,
                list->ivars[ i].offset);
       len += strlen( tmp[ i + 1]);
@@ -331,7 +341,7 @@ char  *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *li
                "<TD>%d</TD>"
                "</TR>\n",
                list->ivars[ i].descriptor.name,
-               list->ivars[ i].descriptor.signature,
+               html_escape( list->ivars[ i].descriptor.signature),
                list->ivars[ i].descriptor.ivarid,
                list->ivars[ i].offset);
       len += strlen( tmp[ i + 1]);
@@ -368,7 +378,7 @@ char   *mulle_objc_methoddescriptor_html_description( struct _mulle_objc_methodd
             "<TR><TD>bits</TD><TD>0x%x</TD></TR>"
             "</TABLE>",
             desc->name,
-            desc->signature,
+            html_escape( desc->signature),
             (long) desc->methodid,
             desc->bits);
 
@@ -388,14 +398,12 @@ char   *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_met
             "<TD>0x%x</TD>"
             "</TR>",
             desc->name,
-            desc->signature,
+            html_escape( desc->signature),
             desc->methodid,
             desc->bits);
 
    return( s);
 }
-
-
 
 
 char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list)
@@ -429,7 +437,7 @@ char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist
                "</TABLE></TD>"
                "</TR>\n",
                list->properties[ i].name,
-               list->properties[ i].signature,
+               html_escape( list->properties[ i].signature),
                list->properties[ i].propertyid,
                list->properties[ i].getter,
                list->properties[ i].setter,
@@ -454,7 +462,6 @@ char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist
 
    return( s);
 }
-
 
 
 char  *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache)
@@ -534,7 +541,7 @@ char  *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *li
                "</TABLE></TD>"
                "</TR>\n",
                list->methods[ i].descriptor.name,
-               list->methods[ i].descriptor.signature,
+               html_escape( list->methods[ i].descriptor.signature),
                (long) list->methods[ i].descriptor.methodid,
                list->methods[ i].descriptor.bits,
                list->methods[ i].implementation);
@@ -565,6 +572,7 @@ char  *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist
    char           **tmp;
    char           *s;
    unsigned int   i;
+   unsigned int   j;
    unsigned int   n;
 
    n   = list->n_methods + 3;
@@ -573,42 +581,49 @@ char  *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist
       return(NULL);
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
+   j = 0;
+   asprintf( &tmp[ j],
              "<TABLE>\n<TR BGCOLOR=\"gray\"><TD>n_methods</TD><TD>%u</TD></TR>\n",
              list->n_methods);
-   len = strlen( tmp[ 0]);
+   len = strlen( tmp[ j]);
 
-   asprintf( &tmp[ 1], "<TR><TH>name</TH>"
-               "<TH>signature</TH>"
-               "<TH>methodid</TH>"
-               "<TH>bits</TH>"
-               "<TH>implementation</TH>"
-               "</TR>\n");
-   len += strlen( tmp[ 1]);
+   if( list->n_methods)
+   {
+      ++j;
+      asprintf( &tmp[ j], "<TR><TH>name</TH>"
+                          "<TH>signature</TH>"
+                          "<TH>methodid</TH>"
+                          "<TH>bits</TH>"
+                          "<TH>implementation</TH>"
+                           "</TR>\n");
+      len += strlen( tmp[ j]);
+   }
 
    for( i = 0; i < list->n_methods; i++)
    {
-      asprintf( &tmp[ i + 2], "<TR><TD>%s</TD>"
+      ++j;
+      asprintf( &tmp[ j], "<TR><TD>%s</TD>"
                "<TD>%s</TD>"
                "<TD>%08x</TD>"
                "<TD>0x%x</TD>"
                "<TD>%p</TD>"
                "</TR>\n",
                list->methods[ i].descriptor.name,
-               list->methods[ i].descriptor.signature,
+               html_escape( list->methods[ i].descriptor.signature),
                list->methods[ i].descriptor.methodid,
                list->methods[ i].descriptor.bits,
                list->methods[ i].implementation);
-      len += strlen( tmp[ i + 2]);
+      len += strlen( tmp[ j]);
    }
 
-   asprintf( &tmp[ i + 2], "</TABLE>");
-   len += strlen( tmp[ i + 2]);
+   ++j;
+   asprintf( &tmp[ j], "</TABLE>");
+   len += strlen( tmp[ j]);
 
    // concatenate all strings
 
    s = realloc( tmp[ 0], len + 1);
-   for( i = 1; i < n; i++)
+   for( i = 1; i <= j; i++)
    {
       strcat( s, tmp[ i]);
       free( tmp[ i]);

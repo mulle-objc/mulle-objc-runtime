@@ -10,7 +10,9 @@ methodlists.
 * Renamed `mulle_vararg_count_objects` and `mulle_vararg_next_object` to
 `mulle_vararg_count_ids` and  `mulle_vararg_next_id`. `mulle_vararg_next_object` 
 now resides in MulleObjC.
-
+* new trace flag `MULLE_OBJC_TRACE_LOAD_CALLS` traces `+load`, `+initialize` and
+`+categoryDependencies` calls.
+* more detailed output of the loadinfo wheen `MULLE_OBJC_TRACE_LOADINFO` is defined
 
 ## 0.3.1
 

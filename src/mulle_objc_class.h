@@ -75,6 +75,8 @@ struct _mulle_objc_methodcachepivot
 };
 
 
+#define MULLE_OBJC_ANY_OWNER  ((void *) -1)
+
 enum
 {
    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS          = 0x01,
@@ -431,6 +433,13 @@ int   _mulle_objc_class_set_taggedpointerindex( struct _mulle_objc_class *cls,
 
 
 
+static inline int   _mulle_objc_class_is_taggedpointerclass( struct _mulle_objc_class *cls)
+{
+   if( ! _mulle_objc_class_is_infraclass( cls))
+      cls = _mulle_objc_class_get_infraclass( cls);
+   return( _mulle_objc_class_get_taggedpointerindex( cls) != 0);
+}
+
 # pragma mark - convenience accessors
 
 static inline unsigned int   _mulle_objc_class_count_depth( struct _mulle_objc_class *cls)
@@ -660,19 +669,10 @@ struct _mulle_objc_method  *mulle_objc_class_search_method( struct _mulle_objc_c
 struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc_class *cls,
                                                               mulle_objc_methodid_t methodid,
                                                               struct _mulle_objc_method *previous,
+                                                              void *owner,
                                                               unsigned int inheritance);
 
 # pragma mark - categories
-
-static inline void   _mulle_objc_class_add_category( struct _mulle_objc_class *cls,
-                                                     mulle_objc_categoryid_t categoryid)
-{
-   assert( cls);
-   assert( categoryid != MULLE_OBJC_NO_CATEGORYID);
-   assert( categoryid != MULLE_OBJC_INVALID_CATEGORYID);
-
-   _mulle_concurrent_pointerarray_add( &cls->categoryids, (void *) (uintptr_t) categoryid);
-}
 
 
 static inline int   _mulle_objc_class_has_category( struct _mulle_objc_class *cls, mulle_objc_categoryid_t categoryid)
@@ -681,18 +681,42 @@ static inline int   _mulle_objc_class_has_category( struct _mulle_objc_class *cl
 }
 
 
+static inline void   _mulle_objc_class_add_category( struct _mulle_objc_class *cls,
+                                                     mulle_objc_categoryid_t categoryid)
+{
+   assert( cls);
+   assert( categoryid != MULLE_OBJC_NO_CATEGORYID);
+   assert( categoryid != MULLE_OBJC_INVALID_CATEGORYID);
+   assert( ! _mulle_objc_class_has_category( cls, categoryid));
+   
+   _mulle_concurrent_pointerarray_add( &cls->categoryids, (void *) (uintptr_t) categoryid);
+}
+
+
 void   mulle_objc_class_unfailing_add_category( struct _mulle_objc_class *cls,
                                                 mulle_objc_categoryid_t categoryid);
 
 
+int   _mulle_objc_class_walk_categoryids( struct _mulle_objc_class *cls,
+                                          int (*f)( mulle_objc_categoryid_t, struct  _mulle_objc_class *, void *),
+                                          void *userinfo);
+
 # pragma mark - protocols
 
 void   _mulle_objc_class_add_protocol( struct _mulle_objc_class *cls,
-                                     mulle_objc_protocolid_t uniqueid);
+                                       mulle_objc_protocolid_t uniqueid);
 void   mulle_objc_class_unfailing_add_protocols( struct _mulle_objc_class *cls,
                                                  mulle_objc_protocolid_t *protocolids);
 
-int   _mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid);
+static inline int   _mulle_objc_class_has_protocol( struct _mulle_objc_class *cls,
+                                                    mulle_objc_protocolid_t protocolid)
+{
+   return( _mulle_concurrent_pointerarray_find( &cls->protocolids, (void *) (uintptr_t) protocolid));
+}
+
+// searches hierarchy
+int   _mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls,
+                                             mulle_objc_protocolid_t protocolid);
 
 
 # pragma mark - protocol conveniences
@@ -758,7 +782,7 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_unfailing_search_me
 {
    struct _mulle_objc_method   *method;
 
-   method = _mulle_objc_class_search_method( cls, methodid, NULL, cls->inheritance);
+   method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, _mulle_objc_class_get_inheritance( cls));
    assert( ! method || method->descriptor.methodid == methodid);
    if( ! method)
       method = _mulle_objc_class_unfailing_get_or_search_forwardmethod( cls, methodid);

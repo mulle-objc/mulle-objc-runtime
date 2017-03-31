@@ -128,6 +128,11 @@ int  mulle_objc_methodlist_execute_load( struct _mulle_objc_methodlist *list,
       }
       else
       {
+         struct _mulle_objc_runtime   *runtime;
+         
+         runtime = _mulle_objc_class_get_runtime( cls);
+         if( runtime->debug.trace.load_calls)
+            fprintf( stderr, "mulle_objc_runtime %p trace: call +[%s load]\n", runtime, infra->name);
          (*imp)( (struct _mulle_objc_object *) infra, MULLE_OBJC_LOAD_METHODID, NULL);
       }
       _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_LOAD_SCHEDULED);

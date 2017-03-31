@@ -260,12 +260,14 @@ static inline void   _mulle_objc_runtime_free( struct _mulle_objc_runtime *runti
 }
 
 
+void   mulle_objc_raise_fail_errno_exception( void) MULLE_C_NO_RETURN;
+
 static inline void   *mulle_objc_runtime_calloc( struct _mulle_objc_runtime *runtime, size_t n, size_t size)
 {
    if( ! runtime)
    {
       errno = EINVAL;
-      (*runtime->memory.allocator.fail)( NULL, 0);
+      mulle_objc_raise_fail_errno_exception();
    }
    return( _mulle_allocator_calloc( &runtime->memory.allocator, n, size));
 }
@@ -276,7 +278,7 @@ static inline void   *mulle_objc_runtime_realloc( struct _mulle_objc_runtime *ru
    if( ! runtime)
    {
       errno = EINVAL;
-      (*runtime->memory.allocator.fail)( NULL, 0);
+      mulle_objc_raise_fail_errno_exception();
    }
    return( _mulle_allocator_realloc( &runtime->memory.allocator, block, size));
 }
@@ -290,7 +292,7 @@ static inline void   mulle_objc_runtime_free( struct _mulle_objc_runtime *runtim
    if( ! runtime)
    {
       errno = EINVAL;
-      (*runtime->memory.allocator.fail)( NULL, 0);
+      mulle_objc_raise_fail_errno_exception();
    }
 
    _mulle_allocator_free( &runtime->memory.allocator, block);

@@ -309,7 +309,7 @@ static int  preload( struct _mulle_objc_method *method, struct _mulle_objc_class
 
 void   _mulle_objc_class_fill_inactivecache_with_preload_methods( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache)
 {
-   _mulle_objc_class_walk_methods( cls, cls->inheritance, (int(*)()) preload, cache);
+   _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), (int(*)()) preload, cache);
 }
 
 

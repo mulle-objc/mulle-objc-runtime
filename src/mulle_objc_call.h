@@ -428,6 +428,9 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 #define mulle_objc_metaabi_param_block_void_return( param_type) \
    mulle_objc_metaabi_param_block( param_type, void *)
 
+#define mulle_objc_metaabi_param_block_void_parameter( return_type) \
+   mulle_objc_metaabi_param_block( void *, return_type)
+
 
 # pragma mark - API
 

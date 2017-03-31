@@ -142,9 +142,15 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
       if( _mulle_objc_class_set_state_bit( meta, MULLE_OBJC_INITIALIZE_DONE))
       {
          // this stays "flat", don't grab code from superclass
-         initialize = _mulle_objc_class_search_method( meta, MULLE_OBJC_INITIALIZE_METHODID, NULL,MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS);
+         initialize = _mulle_objc_class_search_method( meta, MULLE_OBJC_INITIALIZE_METHODID, NULL, MULLE_OBJC_ANY_OWNER, MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS);
          if( initialize)
          {
+            struct _mulle_objc_runtime   *runtime;
+
+            runtime = _mulle_objc_class_get_runtime( cls);
+            if( runtime->debug.trace.load_calls)
+               fprintf( stderr, "mulle_objc_runtime %p trace: call +[%s initialize]\n", runtime, cls->name);
+
             (*_mulle_objc_method_get_implementation( initialize))( (struct _mulle_objc_object *) _mulle_objc_class_get_infraclass( meta), MULLE_OBJC_INITIALIZE_METHODID, NULL);
          }
       }
@@ -341,7 +347,7 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_search_forwardmetho
 {
    struct _mulle_objc_method   *method;
 
-   method = _mulle_objc_class_search_method( cls, MULLE_OBJC_FORWARD_METHODID, NULL, cls->inheritance);
+   method = _mulle_objc_class_search_method( cls, MULLE_OBJC_FORWARD_METHODID, NULL, MULLE_OBJC_ANY_OWNER, cls->inheritance);
    if( ! method)
       method = cls->runtime->classdefaults.forwardmethod;
 
@@ -403,6 +409,17 @@ struct _mulle_objc_method    *_mulle_objc_class_unfailing_get_or_search_forwardm
 
 
 # pragma mark - consistency check
+
+static void   _mulle_objc_class_raise_einval_exception( void)
+{
+   struct _mulle_objc_runtime   *runtime;
+
+   runtime = __get_or_create_objc_runtime();
+   errno = EINVAL;
+   _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+}
+
+
 static int  mulle_objc_classlists_are_sane( struct _mulle_objc_class *cls)
 {
    void   *storage;
@@ -635,7 +652,7 @@ void   mulle_objc_class_unfailing_add_propertylist( struct _mulle_objc_class *cl
 }
 
 
-# pragma mark - categories
+# pragma mark - methodlists
 
 static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class *cls,
                                                        mulle_objc_uniqueid_t uniqueid)
@@ -787,16 +804,58 @@ void   mulle_objc_class_unfailing_add_methodlist( struct _mulle_objc_class *cls,
 
 # pragma mark - categories
 
+static int  print_category( mulle_objc_protocolid_t categoryid,
+                            struct _mulle_objc_class *cls,
+                            void *userinfo)
+{
+   char   *s;
+
+   s = _mulle_objc_runtime_search_debughashname( _mulle_objc_class_get_runtime( cls), categoryid);
+   if( s)
+      fprintf( stderr, "\t<%s>\n", s);
+   else
+      fprintf( stderr, "\t%08x\n", categoryid);
+   return( 0);
+}
+
+
 void   mulle_objc_class_unfailing_add_category( struct _mulle_objc_class *cls,
                                                 mulle_objc_categoryid_t categoryid)
 {
    if( ! cls)
-      _mulle_objc_class_raise_null_exception();
+      _mulle_objc_class_raise_einval_exception();
 
    if( categoryid == MULLE_OBJC_NO_CATEGORYID || categoryid == MULLE_OBJC_INVALID_CATEGORYID)
-      _mulle_objc_class_raise_null_exception();
+      _mulle_objc_class_raise_einval_exception();
+
+   if( _mulle_objc_class_has_category( cls, categoryid))
+      _mulle_objc_class_raise_einval_exception();
 
    _mulle_objc_class_add_category( cls, categoryid);
+}
+
+
+int   _mulle_objc_class_walk_categoryids( struct _mulle_objc_class *cls,
+                                          int (*f)( mulle_objc_categoryid_t, struct _mulle_objc_class *, void *),
+                                          void *userinfo)
+{
+   int                                         rval;
+   mulle_objc_categoryid_t                     categoryid;
+   struct mulle_concurrent_pointerarrayenumerator   rover;
+   void                                        *value;
+
+   rover = mulle_concurrent_pointerarray_enumerate( &cls->protocolids);
+   while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   {
+      categoryid = (mulle_objc_categoryid_t) (uintptr_t) value; // fing warning
+      if( rval = (*f)( categoryid, cls, userinfo))
+      {
+         if( rval < 0)
+            errno = ENOENT;
+         return( rval);
+      }
+   }
+   return( 0);
 }
 
 
@@ -891,45 +950,62 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
       return( 0);
    }
 
+   //
+   // check if someone bolted on categories to the protocol. In theory
+   // it's OK, but they not being picked up might be a point of
+   // confusion
+   //
+   if( mulle_concurrent_pointerarray_get_count( &cls->categoryids) != 0)
+   {
+      if( _mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
+      {
+         if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
+         {
+            fprintf( stderr, "mulle_objc_runtime %p warning: %sclass \"%s\" conforms to a protocol but has gained some categories, which will be ignored.",
+                    runtime,
+                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "", cls->name);
+
+            fprintf( stderr, "Categories:\n");
+            _mulle_objc_class_walk_categoryids( cls, print_category, NULL);
+         }
+      }
+   }
+
    return( 1);
 }
 
 
 void   _mulle_objc_class_add_protocol( struct _mulle_objc_class *cls,
-                                       mulle_objc_protocolid_t uniqueid)
+                                       mulle_objc_protocolid_t protocolid)
 {
    assert( cls);
-   assert( uniqueid != MULLE_OBJC_NO_PROTOCOLID);
-   assert( uniqueid != MULLE_OBJC_INVALID_PROTOCOLID);
+   assert( protocolid != MULLE_OBJC_NO_PROTOCOLID);
+   assert( protocolid != MULLE_OBJC_INVALID_PROTOCOLID);
 
-   _mulle_concurrent_pointerarray_add( &cls->protocolids, (void *) (uintptr_t) uniqueid);
-}
+   // adding the same protocol again is harmless and ignored
+   // but don't search class hierarchy, so don't use conformsto
 
-
-void   _mulle_objc_class_raise_null_exception( void)
-{
-   struct _mulle_objc_runtime   *runtime;
-
-   runtime = __get_or_create_objc_runtime();
-   errno = EINVAL;
-   _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+   if( ! _mulle_objc_class_has_protocol( cls, protocolid))
+      _mulle_concurrent_pointerarray_add( &cls->protocolids, (void *) (uintptr_t) protocolid);
 }
 
 
 void   mulle_objc_class_unfailing_add_protocols( struct _mulle_objc_class *cls,
                                                  mulle_objc_protocolid_t *protocolids)
 {
-   mulle_objc_protocolid_t   uniqueid;
+   mulle_objc_protocolid_t   protocolid;
 
    if( ! cls)
-      _mulle_objc_class_raise_null_exception();
+      _mulle_objc_class_raise_einval_exception();
 
    if( ! protocolids)
       return;
 
-   while( uniqueid = *protocolids++)
+   while( protocolid = *protocolids++)
    {
-      _mulle_concurrent_pointerarray_add( &cls->protocolids, (void *) (uintptr_t) uniqueid);
+      if( protocolid == MULLE_OBJC_NO_PROTOCOLID || protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
+         _mulle_objc_class_raise_einval_exception();
+      _mulle_objc_class_add_protocol( cls, protocolid);
    }
 }
 
@@ -938,7 +1014,7 @@ int   _mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls, mull
 {
    int   rval;
 
-   rval = _mulle_concurrent_pointerarray_find( &cls->protocolids, (void *) (uintptr_t) protocolid);
+   rval = _mulle_objc_class_has_protocol( cls, protocolid);
    if( rval)
       return( rval);
 
@@ -956,7 +1032,6 @@ int   _mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls, mull
 
    return( rval);
 }
-
 
 
 struct _mulle_objc_class  *_mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
@@ -1018,6 +1093,7 @@ static int   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *
 static struct _mulle_objc_method  *_mulle_objc_class_protocol_search_method( struct _mulle_objc_class *cls,
                                                                              mulle_objc_methodid_t methodid,
                                                                              struct _mulle_objc_method *previous,
+                                                                             void *owner,
                                                                             unsigned int inheritance)
 {
    struct _mulle_objc_class                     *proto_cls;
@@ -1033,7 +1109,7 @@ static struct _mulle_objc_method  *_mulle_objc_class_protocol_search_method( str
       if( proto_cls == cls)
          continue;
 
-      method = _mulle_objc_class_search_method( proto_cls, methodid, previous, inheritance | proto_cls->inheritance);
+      method = _mulle_objc_class_search_method( proto_cls, methodid, previous, owner, inheritance | proto_cls->inheritance);
       if( method)
       {
          if( found)
@@ -1270,6 +1346,7 @@ int   _mulle_objc_class_walk_protocolids( struct _mulle_objc_class *cls,
 struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc_class *cls,
                                                               mulle_objc_methodid_t methodid,
                                                               struct _mulle_objc_method *previous,
+                                                              void *owner,
                                                               unsigned int inheritance)
 {
    struct _mulle_objc_runtime                         *runtime;
@@ -1292,15 +1369,29 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
       n = 1;
 
+   runtime = _mulle_objc_class_get_runtime( cls);
+   if( runtime->debug.trace.method_searches)
+   {
+      char   *s;
+
+      s = _mulle_objc_runtime_search_debughashname( runtime, methodid);
+      fprintf( stderr, "mulle_objc_runtime %p trace: search class %s for methodid %08x \"%s\" (owner=%p, previous=%p)\n",
+            runtime,
+            cls->name,
+            methodid,
+            s ? s : "???",
+            owner,
+            previous ? _mulle_objc_method_get_implementation( previous) : NULL);
+   }
+
    rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
    found = NULL;
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   if( runtime->debug.trace.method_searches)
-      fprintf( stderr, "mulle_objc_runtime %p trace: search class %s for methodid %08x (previous=%p)\"\n", runtime, cls->name, methodid, previous ? _mulle_objc_method_get_implementation( previous) : NULL);
-
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
+      if( owner != MULLE_OBJC_ANY_OWNER && list->owner != owner)
+         continue;
+
       method = _mulle_objc_methodlist_search( list, methodid);
 
       if( method)
@@ -1326,7 +1417,7 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
             {
                // one more ? it's a category
                if( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-                  fprintf( stderr, "mulle_objc_runtime %p trace: found in category %s( %s) implementation %p for methodid %08x ( \"%s\")\"\n", runtime, cls->name, list->owner ? list->owner : "", _mulle_objc_method_get_implementation( method), method->descriptor.methodid, method->descriptor.name);
+                  fprintf( stderr, "mulle_objc_runtime %p trace: found in category %s( %p) implementation %p for methodid %08x ( \"%s\")\"\n", runtime, cls->name, list->owner, _mulle_objc_method_get_implementation( method), method->descriptor.methodid, method->descriptor.name);
                else
                   fprintf( stderr, "mulle_objc_runtime %p trace: found in class %s implementation %p for methodid %08x ( \"%s\")\"\n", runtime, cls->name, _mulle_objc_method_get_implementation( method), method->descriptor.methodid, method->descriptor.name);
             }
@@ -1346,7 +1437,13 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
       if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
          tmp |= MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES;
 
-      method = _mulle_objc_class_protocol_search_method( cls, methodid, previous, tmp);
+      //
+      // A protocol could well have a category of the same name and it would
+      // match, which would be unexpected or would it ? Probably not.
+      // Generally: MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES is not
+      // enabled, so it is a non-issue.
+      //
+      method = _mulle_objc_class_protocol_search_method( cls, methodid, previous, owner, tmp);
       if( method)
       {
          if( found)
@@ -1362,11 +1459,14 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
       }
    }
 
+   //
+   // searching the superclass for owner seems wanted
+   //
    if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
    {
       if( cls->superclass)
       {
-         method = _mulle_objc_class_search_method( cls->superclass, methodid, previous, cls->superclass->inheritance);
+         method = _mulle_objc_class_search_method( cls->superclass, methodid, previous, owner, cls->superclass->inheritance);
          if( method)
          {
             if( found)
@@ -1408,7 +1508,7 @@ struct _mulle_objc_method  *mulle_objc_class_search_method( struct _mulle_objc_c
       return( NULL);
    }
 
-   method = _mulle_objc_class_search_method( cls, methodid, NULL, cls->inheritance);
+   method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, cls->inheritance);
    if( ! method && errno == EEXIST)
       _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %llx", _mulle_objc_class_get_name( cls), methodid);
 
@@ -1429,7 +1529,7 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
       return( NULL);
    }
 
-   method = _mulle_objc_class_search_method( cls, methodid, NULL, cls->inheritance);
+   method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, cls->inheritance);
    if( ! method && errno == EEXIST)
       _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %llx", _mulle_objc_class_get_name( cls), methodid);
 
