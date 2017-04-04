@@ -37,6 +37,7 @@
 #include "mulle_objc_callqueue.h"
 
 #include "mulle_objc_runtime.h"
+#include "mulle_objc_class.h"
 
 #include <mulle_allocator/mulle_allocator.h>
 #include <stdlib.h>
@@ -47,7 +48,7 @@ struct _mulle_objc_object;
 
 struct _queue_entry
 {
-   mulle_atomic_pointer_t              obj;
+   struct _mulle_objc_object           *obj;
    mulle_objc_methodid_t               uniqueid;
    mulle_objc_methodimplementation_t   imp;
 };
@@ -58,7 +59,7 @@ static inline void   queue_entry_set( struct _queue_entry *q,
                                       mulle_objc_methodid_t methodid,
                                       mulle_objc_methodimplementation_t imp)
 {
-   _mulle_atomic_pointer_nonatomic_write( &q->obj, obj);
+   q->obj      = obj;
    q->uniqueid = methodid;
    q->imp      = imp;
 }
@@ -67,16 +68,10 @@ static inline void   queue_entry_set( struct _queue_entry *q,
 // ensure each entry is only executed once
 static inline void   queue_entry_execute( struct _queue_entry *q)
 {
-   struct _mulle_objc_object *obj;
-
-   obj = _mulle_atomic_pointer_read( &q->obj);
-   if( obj == MULLE_CONCURRENT_INVALID_POINTER)
-      return;
-   if( ! _mulle_atomic_pointer_compare_and_swap( &q->obj, MULLE_CONCURRENT_INVALID_POINTER, obj))
-      return;
-
-   (*q->imp)( obj, q->uniqueid, q->imp);
+   (*q->imp)( q->obj, q->uniqueid, q->imp);
 }
+
+
 
 
 #pragma mark - mulle_objc_callqueue
@@ -111,6 +106,7 @@ int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *queue,
 
    queue_entry_set( entry, obj, methodid, imp);
    _mulle_concurrent_pointerarray_add( &queue->list, entry);
+
    return( 0);
 }
 
@@ -123,6 +119,28 @@ void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *queue)
    rover = mulle_concurrent_pointerarray_enumerate( &queue->list);
    while( entry = _mulle_concurrent_pointerarrayenumerator_next( &rover))
       queue_entry_execute( entry);
+   mulle_concurrent_pointerarrayenumerator_done( &rover);
+}
+
+
+void   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
+                                  void (*callback)( struct _mulle_objc_object *obj,
+                                                    mulle_objc_methodid_t methodid,
+                                                    mulle_objc_methodimplementation_t imp,
+                                                    void *userinfo),
+                                  void *userinfo)
+{
+   struct mulle_concurrent_pointerarrayenumerator   rover;
+   struct _queue_entry                              *entry;
+
+   rover = mulle_concurrent_pointerarray_enumerate( &queue->list);
+   while( entry = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   {
+      (*callback)( entry->obj,
+                   entry->uniqueid,
+                   entry->imp,
+                   userinfo);
+   }
    mulle_concurrent_pointerarrayenumerator_done( &rover);
 }
 

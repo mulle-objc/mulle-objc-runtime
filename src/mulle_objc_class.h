@@ -356,6 +356,11 @@ static inline struct _mulle_objc_class   *_mulle_objc_class_get_metaclass( struc
 }
 
 
+static inline char   *_mulle_objc_class_get_classtypename( struct _mulle_objc_class *cls)
+{
+   return( _mulle_objc_class_is_metaclass( cls) ? "metaclass" : "infraclass");
+}
+
 
 int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned int bit);
 
@@ -925,18 +930,17 @@ static inline int   mulle_objc_class_conforms_to_protocol( struct _mulle_objc_cl
    return( mulle_objc_class_conformsto_protocol( cls, protocolid));
 }
 
+void   mulle_objc_class_unfailing_add_protocols( struct _mulle_objc_class *cls,
+                                                 mulle_objc_protocolid_t *protocolids);
 
+
+// deprecated
 static inline void   mulle_objc_class_add_protocol( struct _mulle_objc_class *cls,
                                                     mulle_objc_protocolid_t protocolid)
 {
-   if( ! cls)
-      return;
+   auto mulle_objc_protocolid_t  ids[ 2] = { protocolid, 0 };
 
-   if( protocolid == MULLE_OBJC_NO_PROTOCOLID ||
-      protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
-      return;
-
-   _mulle_objc_class_add_protocol( cls, protocolid);
+   mulle_objc_class_unfailing_add_protocols( cls, ids);
 }
 
 
@@ -952,6 +956,13 @@ struct _mulle_objc_property  *mulle_objc_class_search_property( struct _mulle_ob
 struct _mulle_objc_ivar  *mulle_objc_class_search_ivar( struct _mulle_objc_class *cls,
                                                         mulle_objc_ivarid_t ivarid);
 
+
+#pragma mark - debug support
+
+mulle_objc_runtime_walkcommand_t
+   mulle_objc_classpair_walk( struct _mulle_objc_classpair *pair,
+                              mulle_objc_runtime_walkcallback callback,
+                              void *userinfo);
 
 #endif
 

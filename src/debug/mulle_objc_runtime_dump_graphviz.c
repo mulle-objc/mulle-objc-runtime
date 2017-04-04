@@ -383,19 +383,18 @@ void   _mulle_objc_class_dump_graphviz( struct _mulle_objc_class *cls, FILE *fp)
 {
    struct dump_info  info;
    extern mulle_objc_runtime_walkcommand_t
-   mulle_objc_runtime_class_walk( struct _mulle_objc_runtime *,
-                                 struct _mulle_objc_class *,
-                                 enum mulle_objc_runtime_type_t,
-                                 mulle_objc_runtime_walkcallback,
-                                 void *,
-                                 void *);
+      mulle_objc_class_walk( struct _mulle_objc_class *,
+                             enum mulle_objc_runtime_type_t,
+                             mulle_objc_runtime_walkcallback,
+                             void *,
+                             void *);
 
    c_set_init( &info.set);
    info.fp = fp;
 
    fprintf( fp, "digraph mulle_objc_class\n{\n");
 
-   mulle_objc_runtime_class_walk( cls->runtime, cls, mulle_objc_runtime_is_class, callback, NULL, &info);
+   mulle_objc_class_walk( cls, mulle_objc_runtime_is_class, callback, NULL, &info);
    fprintf( fp, "}\n");
 
    c_set_done( &info.set);

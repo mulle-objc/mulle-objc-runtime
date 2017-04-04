@@ -11,6 +11,9 @@
 #undef NDEBUG
 #endif
 
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
+
 #include <mulle_objc/mulle_objc.h>
 #include <mulle_test_allocator/mulle_test_allocator.h>
 

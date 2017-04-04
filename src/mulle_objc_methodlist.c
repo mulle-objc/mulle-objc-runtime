@@ -102,48 +102,37 @@ void   mulle_objc_methodlist_sort( struct _mulle_objc_methodlist *list)
 }
 
 
-int  mulle_objc_methodlist_execute_load( struct _mulle_objc_methodlist *list,
-                                         struct _mulle_objc_class *cls,
-                                         struct _mulle_objc_callqueue *loads)
+
+int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
+                                                  struct _mulle_objc_class *cls,
+                                                  struct _mulle_objc_callqueue *loads)
 {
    struct _mulle_objc_method            *method;
-   struct _mulle_objc_class             *infra;
    mulle_objc_methodimplementation_t    imp;
 
+   assert( loads);
    assert( _mulle_objc_class_is_metaclass( cls));
+
    // that's ok here, but not for _mulle_objc_methodlist_search_method
    if( ! list)
       return( 0);
 
-   /* now should execute the +load routine, which is tricky */
    method = _mulle_objc_methodlist_search( list, MULLE_OBJC_LOAD_METHODID);
    if( method)
    {
       imp   = _mulle_objc_method_get_implementation( method);
-      infra = _mulle_objc_class_get_infraclass( cls);
-      if( loads)
-      {
-         if( mulle_objc_callqueue_add( loads, (struct _mulle_objc_object *) infra, MULLE_OBJC_LOAD_METHODID, imp))
-            return( -1);
-      }
-      else
-      {
-         struct _mulle_objc_runtime   *runtime;
-         
-         runtime = _mulle_objc_class_get_runtime( cls);
-         if( runtime->debug.trace.load_calls)
-            fprintf( stderr, "mulle_objc_runtime %p trace: call +[%s load]\n", runtime, infra->name);
-         (*imp)( (struct _mulle_objc_object *) infra, MULLE_OBJC_LOAD_METHODID, NULL);
-      }
-      _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_LOAD_SCHEDULED);
+      _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_LOAD_SCHEDULED);  // super floua
+
+      if( mulle_objc_callqueue_add( loads, (struct _mulle_objc_object *) cls, MULLE_OBJC_LOAD_METHODID, imp))
+         return( -1);
    }
    return( 0);
 }
 
 
-void   mulle_objc_methodlist_unfailing_execute_load( struct _mulle_objc_methodlist *list, struct _mulle_objc_class *cls, struct _mulle_objc_callqueue *loads)
+void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list, struct _mulle_objc_class *cls, struct _mulle_objc_callqueue *loads)
 {
-   if( mulle_objc_methodlist_execute_load( list, cls, loads))
+   if( mulle_objc_methodlist_add_load_to_callqueue( list, cls, loads))
       _mulle_objc_runtime_raise_fail_errno_exception( _mulle_objc_class_get_runtime( cls));
 }
 

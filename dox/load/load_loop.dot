@@ -1,0 +1,35 @@
+digraph load_loop
+{
+   node [ shape="box"]
+
+
+   "list of loadclasses and loadcategories" -> "next loadclass"     [ label=" has classes"]
+   "list of loadclasses and loadcategories" -> "next loadcategory"  [ label=" has categories"]
+   "list of loadclasses and loadcategories"
+
+   { rank = same; "next loadclass"; "next loadcategory"}
+
+   "next loadclass"        -> "superclass missing"
+   "superclass missing"    -> "**Crash**"         [ label="YES"]
+   "superclass missing"    -> "protocolclass missing"   [ label="NO"]
+   "protocolclass missing" -> "**Crash**"          [ label="YES"]
+   "protocolclass missing" -> "setup class"              [ label="NO"]
+   "setup class"           -> "add class"
+   "add class"             -> "call +load"
+   "call +load"            -> "next loadclass"
+
+
+   "next loadcategory"      -> ".superclass missing"
+   ".superclass missing"    -> "**Crash**"          [ label="YES"]
+   ".superclass missing"    -> ".protocolclass missing"   [ label="NO"]
+   ".protocolclass missing" -> "**Crash**"          [ label="YES"]
+   ".protocolclass missing" -> ".categoryDependency missing"           [ label="NO"]
+   ".categoryDependency missing" -> "**Crash**"     [ label="YES"]
+   ".categoryDependency missing" -> "setup category"                   [ label="NO"]
+   "setup category"         -> "add category"
+   "add category"           -> ".call +load"
+   ".call +load"            -> "next loadcategory"
+
+   "next loadclass"
+   "next loadcategory"
+}

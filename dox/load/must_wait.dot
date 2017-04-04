@@ -1,0 +1,35 @@
+digraph dilemma
+{
+   node [ shape="note"]
+
+   { rank = same; "A"; "B" }
+
+   "A"
+   "B" [ color="red"]
+
+   node [ shape="box"]
+
+   "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // start" [ color="red"]
+   "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // end" [ color="red"]
+   "B: add Foo(B) to #Foo waitqueue" [ color="red"]
+   "B: [Foo new] **CRASH**" [ color="red"]
+
+   { rank = same; "A: [[NSBundle bundleWithPath:@\"Foo\"] load] // start"; "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // start" }
+
+   "A" -> "A: [[NSBundle bundleWithPath:@\"Foo\"] load] // start"
+   "B" -> "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // start" [ color="red"]
+
+   "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // start" -> "B: add Foo(B) to #Foo waitqueue" [ color="red"]
+   "B: add Foo(B) to #Foo waitqueue" -> "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // end" [ color="red"]
+   "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // end" -> "B: [Foo new] **CRASH**" [ color="red"]
+   "B: [Foo new] **CRASH**" -> "A: add Foo" [ style="invis"]
+
+   "A: [[NSBundle bundleWithPath:@\"Foo\"] load] // start" -> "A: queue +[Foo load]"
+   "A: queue +[Foo load]" -> "B: add Foo(B) to #Foo waitqueue" [ style="invis"]
+   "A: queue +[Foo load]" -> "A: add Foo"
+   "A: run #Foo waitqueue" -> "A: add Foo(B)"
+   "A: add Foo" -> "B: [[NSBundle bundleWithPath:@\"Foo_Bar\"] load] // end" [ style="invis"]
+   "A: add Foo" -> "A: run #Foo waitqueue"
+   "A: add Foo(B)" -> "A: +[Foo load]"
+   "A: +[Foo load]" -> "A: +[Foo(B) load]"
+}

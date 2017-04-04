@@ -6,13 +6,22 @@ called MULLE_OBJC_RUNTIME_LOAD_VERSION
 * the class now contains a list of categoryids, which can be queried at runtime
 * the category loader will check if a category implements +categoryDependencies,
 this allows proper sequenced +loads of categories and their order in the 
-methodlists. 
+methodlists. To make this really happen though, the loading of classes and
+categories had to be serialized with lock!
 * Renamed `mulle_vararg_count_objects` and `mulle_vararg_next_object` to
 `mulle_vararg_count_ids` and  `mulle_vararg_next_id`. `mulle_vararg_next_object` 
 now resides in MulleObjC.
 * new trace flag `MULLE_OBJC_TRACE_LOAD_CALLS` traces `+load`, `+initialize` and
 `+categoryDependencies` calls.
-* more detailed output of the loadinfo wheen `MULLE_OBJC_TRACE_LOADINFO` is defined
+
+#### New Environment Variables
+
+Variable                          | Description
+----------------------------------|-----------------------
+`MULLE_OBJC_TRACE_LOADINFO`       | more detailed output of the loadinfo
+`MULLE_OBJC_TRACE_CATEGORY_ADDS`  | trace runtime category additions
+`MULLE_OBJC_TRACE_PROTOCOL_ADDS`  | trace runtime protocol additions
+
 
 ## 0.3.1
 

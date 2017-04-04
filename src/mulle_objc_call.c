@@ -185,7 +185,7 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_class_fill_cache_with_method
    // need to check that we are initialized
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED))
    {
-      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "call comes to early, the class \"%s\" hasn't been initialized yet.", cls->name);
+      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "call comes to early, the %s \"%s\" hasn't been initialized yet.", _mulle_objc_class_get_classtypename( cls), cls->name);
    }
 
    // when we trace method calls, we don't cache ever

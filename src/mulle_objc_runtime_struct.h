@@ -104,6 +104,7 @@ struct _mulle_objc_runtimedebug
       unsigned   tagged_pointers      : 1;
       unsigned   runtime_config       : 1;
       unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
+      unsigned   protocol_adds        : 1;
    } trace;
 
    struct
@@ -227,6 +228,13 @@ struct _mulle_objc_taggedpointers
 
 #define S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE   1024
 
+struct _mulle_objc_waitqueues
+{
+   mulle_thread_mutex_t                     lock;  // used for
+   struct mulle_concurrent_hashmap          classestoload;
+   struct mulle_concurrent_hashmap          categoriestoload;
+};
+
 /*
  * All (?) global variables used by the runtime are in this struct.
  * in fact if you setup the runtime properly with a root
@@ -245,13 +253,13 @@ struct _mulle_objc_runtime
 
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
-   struct mulle_concurrent_hashmap          classestoload;
-   struct mulle_concurrent_hashmap          categoriestoload;
 
    struct mulle_concurrent_pointerarray     staticstrings;
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
-
+   
+   struct _mulle_objc_waitqueues            waitqueues;
+   
    struct _mulle_objc_fastclasstable        fastclasstable;
    struct _mulle_objc_taggedpointers        taggedpointers;
 

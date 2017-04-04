@@ -315,7 +315,27 @@ void   mulle_objc_free( void *p);
 #endif
 
 
-#pragma mark - lock support
+#pragma mark - load lock
+
+static inline int   _mulle_objc_runtime_waitqueues_lock( struct _mulle_objc_runtime  *runtime)
+{
+   return( mulle_thread_mutex_lock( &runtime->waitqueues.lock));
+}
+
+
+static inline int   _mulle_objc_runtime_waitqueues_trylock( struct _mulle_objc_runtime  *runtime)
+{
+   return( mulle_thread_mutex_trylock( &runtime->waitqueues.lock));
+}
+
+
+static inline int   _mulle_objc_runtime_waitqueues_unlock( struct _mulle_objc_runtime  *runtime)
+{
+   return( mulle_thread_mutex_unlock( &runtime->waitqueues.lock));
+}
+
+
+#pragma mark - user lock support
 
 //
 // If your program wants to make some other changes to the runtime,
@@ -528,7 +548,6 @@ static inline void   mulle_objc_runtime_free_array_of_methods( struct _mulle_obj
 
 
 char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid);
-char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid);
 
 
 #pragma mark - method lists
@@ -574,6 +593,50 @@ void   _mulle_objc_runtime_add_loadhashedstringlist( struct _mulle_objc_runtime 
 char   *_mulle_objc_runtime_search_debughashname( struct _mulle_objc_runtime *runtime,
                                                   mulle_objc_uniqueid_t hash);
 
+
+
+# pragma mark - debug struing API
+
+char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid);
+
+// never returns NULL
+char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t classid);
+
+
+static inline char   *mulle_objc_string_for_classid( mulle_objc_classid_t classid)
+{
+   return( mulle_objc_string_for_uniqueid( classid));
+}
+
+
+static inline char   *mulle_objc_string_for_ivarid( mulle_objc_ivarid_t ivarid)
+{
+   return( mulle_objc_string_for_uniqueid( ivarid));
+}
+
+
+static inline char   *mulle_objc_string_for_methodid( mulle_objc_methodid_t methodid)
+{
+   return( mulle_objc_string_for_uniqueid( methodid));
+}
+
+
+static inline char   *mulle_objc_string_for_protocolid( mulle_objc_methodid_t protocolid)
+{
+   return( mulle_objc_string_for_uniqueid( protocolid));
+}
+
+
+static inline char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid)
+{
+   return( mulle_objc_string_for_uniqueid( categoryid));
+}
+
+
+static inline char   *mulle_objc_string_for_propertyid( mulle_objc_categoryid_t propertyid)
+{
+   return( mulle_objc_string_for_uniqueid( propertyid));
+}
 
 
 # pragma mark - gifts (externally allocated memory)

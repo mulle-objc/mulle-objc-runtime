@@ -98,6 +98,7 @@ static void   *_mulle_objc_call_class_waiting_for_cache( void *obj, mulle_objc_m
    if( _mulle_atomic_pointer_read( &cls->thread) != (void *) mulle_thread_self())
    {
       /* wait for other thread to finish with +initialize */
+      /* TODO: using yield is poor though! Use a condition to be awaken! */
       while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED))
          mulle_thread_yield();
    }
@@ -808,13 +809,7 @@ static int  print_category( mulle_objc_protocolid_t categoryid,
                             struct _mulle_objc_class *cls,
                             void *userinfo)
 {
-   char   *s;
-
-   s = _mulle_objc_runtime_search_debughashname( _mulle_objc_class_get_runtime( cls), categoryid);
-   if( s)
-      fprintf( stderr, "\t<%s>\n", s);
-   else
-      fprintf( stderr, "\t%08x\n", categoryid);
+   fprintf( stderr, "\t%08x \"%s\"\n", categoryid, mulle_objc_string_for_categoryid( categoryid));
    return( 0);
 }
 
@@ -822,14 +817,27 @@ static int  print_category( mulle_objc_protocolid_t categoryid,
 void   mulle_objc_class_unfailing_add_category( struct _mulle_objc_class *cls,
                                                 mulle_objc_categoryid_t categoryid)
 {
+   struct _mulle_objc_runtime   *runtime;
+   
    if( ! cls)
       _mulle_objc_class_raise_einval_exception();
 
    if( categoryid == MULLE_OBJC_NO_CATEGORYID || categoryid == MULLE_OBJC_INVALID_CATEGORYID)
       _mulle_objc_class_raise_einval_exception();
 
+   // adding a category is very bad
    if( _mulle_objc_class_has_category( cls, categoryid))
       _mulle_objc_class_raise_einval_exception();
+
+   runtime = _mulle_objc_class_get_runtime( cls);
+   if( runtime->debug.trace.category_adds)
+      fprintf( stderr, "mulle_objc_runtime %p trace: add category %08x \"%s\" to %sclass %08x \"%s\"\n",
+               runtime,
+               categoryid,
+                mulle_objc_string_for_categoryid( categoryid),
+               _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
+               _mulle_objc_class_get_classid( cls),
+               _mulle_objc_class_get_name( cls));
 
    _mulle_objc_class_add_category( cls, categoryid);
 }
@@ -867,13 +875,7 @@ static int  print_protocol( mulle_objc_protocolid_t protocolid,
                             struct _mulle_objc_class *cls,
                             void *userinfo)
 {
-   char   *s;
-
-   s = _mulle_objc_runtime_search_debughashname( _mulle_objc_class_get_runtime( cls), protocolid);
-   if( s)
-      fprintf( stderr, "\t<%s>\n", s);
-   else
-      fprintf( stderr, "\t%08x\n", protocolid);
+   fprintf( stderr, "\t%08x \"%s\"\n", protocolid, mulle_objc_string_for_protocolid( protocolid));
    return( 0);
 }
 
@@ -896,9 +898,11 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
    {
       if( runtime->debug.warn.protocol_class)
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: %sclass \"%s\" matches a protocol of same name, but it is not a root class %s",
+            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol of same name, but it is not a root class %s",
                     runtime,
-                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "", cls->name, footer);
+                    _mulle_objc_class_get_classtypename( cls),
+                    cls->name,
+                    footer);
       return( 0);
    }
 
@@ -906,10 +910,12 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
    {
       if( runtime->debug.warn.protocol_class)
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: %sclass \"%s\" matches a protocol of the same name"
+            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol of the same name"
                  ", but implements instance variables %s",
                    runtime,
-                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "", cls->name, footer);
+                   _mulle_objc_class_get_classtypename( cls),
+                   cls->name,
+                   footer);
       return( 0);
    }
 
@@ -917,9 +923,11 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
    {
       if( runtime->debug.warn.protocol_class)
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: %sclass \"%s\" matches a protocol but does not conform to it %s",
+            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol but does not conform to it %s",
                     runtime,
-                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "", cls->name, footer);
+                    _mulle_objc_class_get_classtypename( cls),
+                    cls->name,
+                    footer);
       return( 0);
    }
 
@@ -936,9 +944,11 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
       {
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
          {
-            fprintf( stderr, "mulle_objc_runtime %p warning: %sclass \"%s\" conforms to a protocol but also conforms to other protocols %s",
+            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" conforms to a protocol but also conforms to other protocols %s",
                     runtime,
-                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "", cls->name, footer);
+                    _mulle_objc_class_get_classtypename( cls),
+                    cls->name,
+                    footer);
 
             fprintf( stderr, "Protocols:\n");
             _mulle_objc_class_walk_protocolids( cls, print_protocol, NULL);
@@ -961,9 +971,10 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
       {
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
          {
-            fprintf( stderr, "mulle_objc_runtime %p warning: %sclass \"%s\" conforms to a protocol but has gained some categories, which will be ignored.",
+            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" conforms to a protocol but has gained some categories, which will be ignored.",
                     runtime,
-                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "", cls->name);
+                    _mulle_objc_class_get_classtypename( cls),
+                    cls->name);
 
             fprintf( stderr, "Categories:\n");
             _mulle_objc_class_walk_categoryids( cls, print_category, NULL);
@@ -993,18 +1004,34 @@ void   _mulle_objc_class_add_protocol( struct _mulle_objc_class *cls,
 void   mulle_objc_class_unfailing_add_protocols( struct _mulle_objc_class *cls,
                                                  mulle_objc_protocolid_t *protocolids)
 {
-   mulle_objc_protocolid_t   protocolid;
-
+   mulle_objc_protocolid_t      protocolid;
+   struct _mulle_objc_runtime   *runtime;
+   
    if( ! cls)
       _mulle_objc_class_raise_einval_exception();
 
    if( ! protocolids)
       return;
 
+   runtime = _mulle_objc_class_get_runtime( cls);
+
    while( protocolid = *protocolids++)
    {
       if( protocolid == MULLE_OBJC_NO_PROTOCOLID || protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
          _mulle_objc_class_raise_einval_exception();
+
+      if( _mulle_objc_class_has_protocol( cls, protocolid))
+         continue;
+
+      if( runtime->debug.trace.protocol_adds)
+         fprintf( stderr, "mulle_objc_runtime %p trace: add protocol %08x \"%s\" to %sclass %08x \"%s\"\n",
+                 runtime,
+                 protocolid,
+                 mulle_objc_string_for_protocolid( protocolid),
+                 _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
+                 _mulle_objc_class_get_classid( cls),
+                 _mulle_objc_class_get_name( cls));
+
       _mulle_objc_class_add_protocol( cls, protocolid);
    }
 }
@@ -1372,14 +1399,12 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
    runtime = _mulle_objc_class_get_runtime( cls);
    if( runtime->debug.trace.method_searches)
    {
-      char   *s;
-
-      s = _mulle_objc_runtime_search_debughashname( runtime, methodid);
-      fprintf( stderr, "mulle_objc_runtime %p trace: search class %s for methodid %08x \"%s\" (owner=%p, previous=%p)\n",
+      fprintf( stderr, "mulle_objc_runtime %p trace: search %s %s for methodid %08x \"%s\" (owner=%p, previous=%p)\n",
             runtime,
+            _mulle_objc_class_get_classtypename( cls),
             cls->name,
             methodid,
-            s ? s : "???",
+            mulle_objc_string_for_methodid( methodid),
             owner,
             previous ? _mulle_objc_method_get_implementation( previous) : NULL);
    }
@@ -1417,9 +1442,21 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
             {
                // one more ? it's a category
                if( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-                  fprintf( stderr, "mulle_objc_runtime %p trace: found in category %s( %p) implementation %p for methodid %08x ( \"%s\")\"\n", runtime, cls->name, list->owner, _mulle_objc_method_get_implementation( method), method->descriptor.methodid, method->descriptor.name);
+                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s category %s( %p) implementation %p for methodid %08x ( \"%s\")\"\n",
+                        runtime,
+                        _mulle_objc_class_get_classtypename( cls),
+                        cls->name,
+                        list->owner,
+                        _mulle_objc_method_get_implementation( method),
+                        method->descriptor.methodid,
+                        method->descriptor.name);
                else
-                  fprintf( stderr, "mulle_objc_runtime %p trace: found in class %s implementation %p for methodid %08x ( \"%s\")\"\n", runtime, cls->name, _mulle_objc_method_get_implementation( method), method->descriptor.methodid, method->descriptor.name);
+                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s %s implementation %p for methodid %08x ( \"%s\")\"\n", runtime,
+                        _mulle_objc_class_get_classtypename( cls),
+                        cls->name,
+                        _mulle_objc_method_get_implementation( method),
+                        method->descriptor.methodid,
+                        method->descriptor.name);
             }
 
             mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
@@ -1535,3 +1572,128 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
 
    return( method);
 }
+
+
+#pragma mark - debug supprt
+
+
+static inline int   is_stopper_command( mulle_objc_runtime_walkcommand_t cmd)
+{
+   switch( cmd)
+   {
+      case mulle_objc_runtime_walk_error  :
+      case mulle_objc_runtime_walk_done   :
+      case mulle_objc_runtime_walk_cancel :
+         return( 1);
+         
+      default :
+         return( 0);
+   }
+}
+
+
+
+struct bouncy_info
+{
+   void                               *userinfo;
+   struct _mulle_objc_runtime         *runtime;
+   void                               *parent;
+   mulle_objc_runtime_walkcallback    callback;
+   mulle_objc_runtime_walkcommand_t   rval;
+};
+
+
+static int   bouncy_method( struct _mulle_objc_method *method, struct _mulle_objc_class *cls, void *userinfo)
+{
+   struct bouncy_info   *info;
+   
+   info       = userinfo;
+   info->rval = (info->callback)( info->runtime, method, mulle_objc_runtime_is_method, NULL, cls, info->userinfo);
+   return( is_stopper_command( info->rval));
+}
+
+
+static int   bouncy_property( struct _mulle_objc_property *property, struct _mulle_objc_class *cls, void *userinfo)
+{
+   struct bouncy_info   *info;
+   
+   info       = userinfo;
+   info->rval = (info->callback)( info->runtime, property, mulle_objc_runtime_is_property, NULL, cls, info->userinfo);
+   return( is_stopper_command( info->rval));
+}
+
+
+static int   bouncy_ivar( struct _mulle_objc_ivar *ivar, struct _mulle_objc_class *cls, void *userinfo)
+{
+   struct bouncy_info   *info;
+   
+   info       = userinfo;
+   info->rval = (info->callback)( info->runtime, ivar, mulle_objc_runtime_is_ivar, NULL, cls, info->userinfo);
+   return( is_stopper_command( info->rval));
+}
+
+
+// don't expose, because it's bit too weird
+
+mulle_objc_runtime_walkcommand_t
+mulle_objc_class_walk( struct _mulle_objc_class   *cls,
+                      enum mulle_objc_runtime_type_t  type,
+                      mulle_objc_runtime_walkcallback   callback,
+                      void *parent,
+                      void *userinfo);
+
+mulle_objc_runtime_walkcommand_t
+mulle_objc_class_walk( struct _mulle_objc_class   *cls,
+                      enum mulle_objc_runtime_type_t  type,
+                      mulle_objc_runtime_walkcallback   callback,
+                      void *parent,
+                      void *userinfo)
+{
+   struct _mulle_objc_runtime         *runtime;
+   mulle_objc_runtime_walkcommand_t   cmd;
+   struct bouncy_info                 info;
+   
+   runtime = _mulle_objc_class_get_runtime( cls);
+   cmd     = (*callback)( runtime, cls, type, NULL, parent, userinfo);
+   if( cmd != mulle_objc_runtime_walk_ok)
+      return( cmd);
+   
+   info.callback = callback;
+   info.parent   = parent;
+   info.userinfo = userinfo;
+   info.runtime  = runtime;
+   
+   cmd = _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), bouncy_method, &info);
+   if( cmd != mulle_objc_runtime_walk_ok)
+      return( cmd);
+   
+   cmd = _mulle_objc_class_walk_properties( cls, _mulle_objc_class_get_inheritance( cls), bouncy_property, &info);
+   if( cmd != mulle_objc_runtime_walk_ok)
+      return( cmd);
+   
+   cmd = _mulle_objc_class_walk_ivars( cls, _mulle_objc_class_get_inheritance( cls), bouncy_ivar, &info);
+   return( cmd);
+}
+
+
+mulle_objc_runtime_walkcommand_t
+    mulle_objc_classpair_walk( struct _mulle_objc_classpair *pair,
+                               mulle_objc_runtime_walkcallback callback,
+                               void *userinfo)
+{
+   mulle_objc_runtime_walkcommand_t   cmd;
+   struct _mulle_objc_class           *infra;
+   struct _mulle_objc_class           *meta;
+   struct _mulle_objc_runtime         *runtime;
+   
+   infra   = _mulle_objc_classpair_get_infraclass( pair);
+   runtime = _mulle_objc_class_get_runtime( infra);
+   cmd = mulle_objc_class_walk( infra, mulle_objc_runtime_is_class, callback, runtime, userinfo);
+   if( is_stopper_command( cmd))
+      return( cmd);
+   
+   meta = _mulle_objc_classpair_get_metaclass( pair);
+   cmd = mulle_objc_class_walk( meta, mulle_objc_runtime_is_meta_class, callback, infra, userinfo);
+   return( cmd);
+}
+
