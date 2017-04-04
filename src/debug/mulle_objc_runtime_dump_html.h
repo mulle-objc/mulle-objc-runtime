@@ -37,9 +37,17 @@
 #define mulle_objc_runtime_dump_html_h__
 
 struct _mulle_objc_runtime;
+struct _mulle_objc_classpair;
 
 void   mulle_objc_runtime_dump_as_html_to_directory( struct _mulle_objc_runtime *runtime, char *directory);
 void   mulle_objc_dump_runtime_as_html_to_directory( char *directory);
 void   mulle_objc_dump_runtime_as_html_to_tmp( void);
+
+
+void   mulle_objc_classpair_dump_as_html_to_directory( struct _mulle_objc_classpair *pair,
+                                                       char *directory);
+void   mulle_objc_dump_classpair_as_html_to_directory( char *classname,
+                                                       char *directory);
+void   mulle_objc_dump_classpair_as_html_to_tmp( char *classname);
 
 #endif

@@ -408,6 +408,7 @@ void   mulle_objc_runtime_dump_as_html_to_directory( struct _mulle_objc_runtime 
    mulle_objc_runtime_walk( runtime, callback, &info);
 
    c_set_done( &info.set);
+
    fprintf( stderr, "Dumped to \"%s\"\n", directory);
 }
 
@@ -425,6 +426,8 @@ void   mulle_objc_dump_runtime_as_html_to_directory( char *directory)
    }
    else
       fprintf( stderr, "runtime locked\n");
+
+   fprintf( stderr, "Dumped to \"%s\"\n", directory);
 }
 
 
@@ -433,3 +436,67 @@ void   mulle_objc_dump_runtime_as_html_to_tmp( void)
 {
    mulle_objc_dump_runtime_as_html_to_directory( "/tmp");
 }
+
+
+#pragma mark - class dump
+
+void   mulle_objc_classpair_dump_as_html_to_directory( struct _mulle_objc_classpair *pair,
+                                                      char *directory)
+{
+   struct dump_info  info;
+   
+   c_set_init( &info.set);
+   info.directory = directory;
+   
+   mulle_objc_classpair_walk( pair, callback, &info);
+   
+   c_set_done( &info.set);
+}
+
+
+void   mulle_objc_dump_classpair_as_html_to_directory( char *classname,
+                                                       char *directory)
+{
+   struct _mulle_objc_runtime     *runtime;
+   struct _mulle_objc_class       *cls;
+   struct _mulle_objc_classpair   *pair;
+   mulle_objc_classid_t           classid;
+   
+   if( ! classname)
+   {
+      fprintf( stderr, "empty classname\n");
+      return;
+   }
+
+   runtime = mulle_objc_get_runtime();
+   classid = mulle_objc_classid_from_string( classname);
+   cls     = _mulle_objc_runtime_lookup_class( runtime, classid);
+   if( ! cls)
+   {
+      fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
+      return;
+   }
+   
+   if( ! _mulle_objc_runtime_trylock( runtime))
+   {
+      do
+      {
+         pair = _mulle_objc_class_get_classpair( cls);
+         mulle_objc_classpair_dump_as_html_to_directory( pair, directory);
+      }
+      while( cls = _mulle_objc_class_get_superclass( cls));
+
+      _mulle_objc_runtime_unlock( runtime);
+   }
+   else
+      fprintf( stderr, "runtime locked\n");
+
+   fprintf( stderr, "Dumped to \"%s\"\n", directory);
+}
+
+
+void   mulle_objc_dump_classpair_as_html_to_tmp( char *classname)
+{
+   mulle_objc_dump_classpair_as_html_to_directory( classname, "/tmp");
+}
+

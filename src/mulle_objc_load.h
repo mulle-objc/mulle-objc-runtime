@@ -258,13 +258,16 @@ mulle_objc_classid_t   mulle_objc_loadcategory_missingclassid( struct _mulle_obj
 # pragma mark  -
 # pragma mark class
 
-void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info);
+void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
+                                               struct _mulle_objc_callqueue *loads);
 
 
 # pragma mark  -
 # pragma mark category
 
-int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info, struct _mulle_objc_callqueue *loads);
-void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info, struct _mulle_objc_callqueue *loads);
+int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info,
+                                        struct _mulle_objc_callqueue *loads);
+void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info,
+                                                  struct _mulle_objc_callqueue *loads);
 
 #endif

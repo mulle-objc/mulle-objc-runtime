@@ -48,7 +48,10 @@ struct _mulle_objc_object;
 // to store imps with objc and a method id (no parameters)
 //
 // ok, ok basically just +load calls ;)
-// this is NOT yet threadsafe
+//
+// Should probably be rewritten to not use concurrent,
+// now that +load is locked anyway, but that's what we have here
+// in the runtime.
 //
 struct _mulle_objc_callqueue
 {
@@ -74,5 +77,13 @@ int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *p,
 
 
 void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *p);
+
+void   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
+                                  void (*callback)( struct _mulle_objc_object *obj,
+                                                    mulle_objc_methodid_t methodid,
+                                                    mulle_objc_methodimplementation_t imp,
+                                                    void *userinfo),
+                                  void *userinfo);
+
 
 #endif

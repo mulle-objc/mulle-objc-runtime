@@ -1,0 +1,44 @@
+digraph load_queue
+{
+   node [ shape="box"]
+
+
+   "queue of loadclasses and loadcategories" -> "next loadclass"     [ label=" has classes"]
+   "queue of loadclasses and loadcategories" -> "next loadcategory"  [ label=" has categories"]
+   "queue of loadclasses and loadcategories"
+
+   { rank = same; "next loadclass"; "next loadcategory"}
+
+   "next loadclass"        -> "superclass missing"
+   "superclass missing"    -> "add to waitqueue for classid"         [ label="YES"]
+   "superclass missing"    -> "protocolclass missing"   [ label="NO"]
+   "protocolclass missing" -> "add to waitqueue for classid"          [ label="YES"]
+   "protocolclass missing" -> "setup class"              [ label="NO"]
+   "setup class"           -> "add class"
+   "add class"             -> "call +load"
+   "call +load"            -> "run waitqueue for classid"
+   "run waitqueue for classid" -> "queue of loadclasses and loadcategories"
+   "add to waitqueue for classid" -> "queue of loadclasses and loadcategories"
+
+
+   "next loadcategory"      -> ".superclass missing"
+   ".superclass missing"    -> "add to waitqueue for classid"         [ label="YES"]
+   ".superclass missing"    -> ".protocolclass missing"   [ label="NO"]
+   ".protocolclass missing" -> "add to waitqueue for classid"          [ label="YES"]
+   ".protocolclass missing" -> ".categoryDependency missing"           [ label="NO"]
+   ".categoryDependency missing" -> "add to waitqueue for classid"     [ label="YES"]
+   ".categoryDependency missing" -> "setup category"                   [ label="NO"]
+   "setup category"         -> "add category"
+   "add category"           -> ".call +load"
+   ".call +load"            -> "run waitqueue for classid"
+
+   "next loadclass"     [ penwidth=3]
+   "next loadcategory"  [ penwidth=3]
+
+   "queue of loadclasses and loadcategories" [ color="blue", penwidth=3]
+
+   { rank = same; "run waitqueue for classid" ; "add to waitqueue for classid" }
+
+   "run waitqueue for classid"               [ color="blue", penwidth=3]
+   "add to waitqueue for classid"            [ color="blue", penwidth=3]
+}

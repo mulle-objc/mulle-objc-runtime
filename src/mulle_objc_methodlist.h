@@ -89,13 +89,13 @@ static inline struct _mulle_objc_method  *_mulle_objc_methodlist_search( struct 
 
 # pragma mark - +load
 
-int   mulle_objc_methodlist_execute_load( struct _mulle_objc_methodlist *list,
-                                           struct _mulle_objc_class *cls,
-                                           struct _mulle_objc_callqueue *loads);
+int   mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
+                                                   struct _mulle_objc_class *cls,
+                                                   struct _mulle_objc_callqueue *loads);
 
-void   mulle_objc_methodlist_unfailing_execute_load( struct _mulle_objc_methodlist *list,
-                                                      struct _mulle_objc_class *cls,
-                                                      struct _mulle_objc_callqueue *loads);
+void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
+                                                              struct _mulle_objc_class *cls,
+                                                              struct _mulle_objc_callqueue *loads);
 
 
 # pragma mark - Enumerator
