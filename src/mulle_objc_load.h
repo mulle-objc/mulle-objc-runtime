@@ -57,7 +57,7 @@ struct _mulle_objc_runtime;
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   4
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   5
 
 
 struct _mulle_objc_loadclass
@@ -81,6 +81,8 @@ struct _mulle_objc_loadclass
 
    mulle_objc_protocolid_t           *protocolids;
    mulle_objc_classid_t              *protocolclassids;
+   
+   char                              *origin;
 };
 
 
@@ -99,6 +101,8 @@ struct _mulle_objc_loadcategory
 
    mulle_objc_protocolid_t           *protocolids;
    mulle_objc_classid_t              *protocolclassids;
+
+   char                              *origin;
 };
 
 
@@ -227,17 +231,22 @@ struct _mulle_objc_loadinfo
    struct _mulle_objc_loadcategorylist       *loadcategorylist;
    struct _mulle_objc_loadstringlist         *loadstringlist;
    struct _mulle_objc_loadhashedstringlist   *loadhashedstringlist;  // optional for debugging
+
+   // v5 could have this ?
+   //    char   *originator;        // can be nil, compiler writes __FILE__ here when executing in -O0
 };
 
 
-# pragma mark  -
-# pragma mark master calls
+# pragma mark  - "master" load call
 
 //
 // use this if the compiler was able to sort all protocol_uniqueids
 // all method lists referenced by load_categories and loadclasses by their methodid
 //
 void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info);
+
+
+# pragma mark - class
 
 //
 // use this function to determine, if the runtime is ready to load this class
@@ -247,23 +256,21 @@ mulle_objc_classid_t   mulle_objc_loadclass_missingclassid( struct _mulle_objc_l
                                                             struct _mulle_objc_runtime *runtime,
                                                             struct _mulle_objc_class  **p_superclass);
 
-// same for categories
-int   mulle_objc_loadcategory_is_categorycomplete( struct _mulle_objc_loadcategory *info,
-                                                   struct _mulle_objc_class *cls);
-
-mulle_objc_classid_t   mulle_objc_loadcategory_missingclassid( struct _mulle_objc_loadcategory *info,
-                                                               struct _mulle_objc_runtime *runtime,
-                                                               struct _mulle_objc_class **p_cls);
-
-# pragma mark  -
-# pragma mark class
-
 void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
                                                struct _mulle_objc_callqueue *loads);
 
 
-# pragma mark  -
-# pragma mark category
+# pragma mark - category
+
+// same for categories
+int   mulle_objc_loadcategory_is_categorycomplete( struct _mulle_objc_loadcategory *info,
+                                                   struct _mulle_objc_class *cls);
+
+mulle_objc_categoryid_t   mulle_objc_loadcategory_missingcategoryid( struct _mulle_objc_loadcategory *info,
+                                                                     struct _mulle_objc_class *cls);
+mulle_objc_classid_t   mulle_objc_loadcategory_missingclassid( struct _mulle_objc_loadcategory *info,
+                                                               struct _mulle_objc_runtime *runtime,
+                                                               struct _mulle_objc_class **p_cls);
 
 int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info,
                                         struct _mulle_objc_callqueue *loads);

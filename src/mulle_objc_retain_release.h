@@ -61,20 +61,10 @@ static inline void   mulle_objc_object_perform_finalize( void *obj)
 }
 
 
-#define MULLE_OBJC_NEVER_RELEASE   INTPTR_MAX
 
-// retaincount_1
-//    0       -> INTPTR_MAX-1 :: normal retain counting, actual retainCount is retaincount_1 + 1
-//    -1                      :: released
-//    INTPTR_MIN              :: retainCount 0, when finalizing
-//    INTPTR_MIN -> -2        :: finalizing/finalized retainCount
-//
-// you can use INTPTR_MAX to create static objects
-//
-// like f.e.
-// { INTPTR_MAX, MULLE_OBJC_METHODID( 0x423aeba60e4eb3be), "VfL Bochum 1848" }; // 0x423aeba60e4eb3be == NXConstantString
-//
-intptr_t  _mulle_objc_object_get_retaincount( void *obj);
+// this function will create an "adjusted" always positive value
+// if you want the raw number, check the header function retaincount_1
+uintptr_t  _mulle_objc_object_get_retaincount( void *obj);
 
 
 static inline intptr_t   mulle_objc_object_get_retaincount( void *obj)

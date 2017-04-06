@@ -70,7 +70,7 @@ typedef void    *(*mulle_objc_methodimplementation_t)( void *, mulle_objc_method
 
 #define MULLE_OBJC_FORWARD_METHODID       MULLE_OBJC_METHODID( 0x3f134576)
 #define MULLE_OBJC_CATEGORY_DEPENDENCIES_METHODID  MULLE_OBJC_METHODID( 0x3dde45ea)
-//#define MULLE_OBJC_CLASS_DEPENDENCIES     MULLE_OBJC_METHODID( 0xc55b3834)
+#define MULLE_OBJC_CLASS_DEPENDENCIES_METHODID     MULLE_OBJC_METHODID( 0xc55b3834)
 
 //
 // idea... add a bit to this _mulle_objc_methoddescriptor, that the compiler

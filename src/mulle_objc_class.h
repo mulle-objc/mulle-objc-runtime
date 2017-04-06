@@ -159,6 +159,12 @@ struct _mulle_objc_class
 
 #define _MULLE_OBJC_CLASSPAIR_PADDING     (0x10 - ((sizeof( struct _mulle_objc_class) + sizeof( struct _mulle_objc_objectheader)) & 0xF))
 
+// TODO:
+// I should put all the common information like name, runtime.
+// protocolids, categoryids and the like into the classpair
+// structure. I should also have a separate space for infraclassinfo,
+// that just pertains to the infraclass.
+//
 struct _mulle_objc_classpair
 {
    struct _mulle_objc_objectheader    infraclassheader;
@@ -166,6 +172,8 @@ struct _mulle_objc_classpair
    unsigned char                      _padding[ _MULLE_OBJC_CLASSPAIR_PADDING];
    struct _mulle_objc_objectheader    metaclassheader;
    struct _mulle_objc_class           metaclass;
+   
+   char                               *origin;  // a start of shared info
 };
 
 
@@ -186,6 +194,20 @@ static inline struct _mulle_objc_classpair   *_mulle_objc_class_get_classpair( s
    assert( cls->infraclass == NULL);
    return( (struct _mulle_objc_classpair *) _mulle_objc_object_get_objectheader( cls));
 }
+
+
+static inline void   _mulle_objc_classpair_set_origin( struct _mulle_objc_classpair *pair,
+                                                char *name)
+{
+   pair->origin = name;  // not copied gotta be a constant string
+}
+
+
+static inline char   *_mulle_objc_classpair_get_origin( struct _mulle_objc_classpair *pair)
+{
+   return( pair->origin);
+}
+
 
 
 void   _mulle_objc_classpair_call_class_finalize( struct _mulle_objc_classpair *pair);
