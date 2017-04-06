@@ -62,13 +62,13 @@ GNUStep basically guarantees nothing. `+load`s are performed as they are coming 
 ## +load in mulle-objc-runtime
 
 The **mulle-objc-runtime** supports classes, that depend on a superclass and
-protocol classes and it supports categories, that additionaly depend on other categories of the same class.
+protocol classes and it supports categories, that additionally depend on other categories of the same class.
 
 > A **class** is created with the information of a **loadclass**, a **category**
 > is added with the information of a **loadcategory**. A loadclass or loadcategory
 > is called a loadable for short.
 
-If we assume, that the executable is composed of a complete set of loadcategories and loadclasses without missing dependencies, then all classes and categories will be installed ahead of `main`. They get installed via `__attribute__((constructor))` function calls to `mulle_objc_loadinfo_unfailing_enqueue, the **mulle-clang** compiler emits:
+If we assume, that the executable is composed of a complete set of loadcategories and loadclasses without missing dependencies, then all classes and categories will be installed ahead of `main`. They get installed via `__attribute__((constructor))` function calls to `mulle_objc_loadinfo_unfailing_enqueue`, the **mulle-clang** compiler emits:
 
 ![Excecutable](executable.svg)
 

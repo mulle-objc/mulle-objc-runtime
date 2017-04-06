@@ -156,7 +156,7 @@ static inline void   *_mulle_objc_threadconfig_get_userspace( struct _mulle_objc
 }
 
 
-#pragma mark - loadbits && tagged pointer support
+#pragma mark - loadbits and tagged pointer support
 
 static inline uintptr_t   _mulle_objc_runtime_get_loadbits( struct _mulle_objc_runtime *runtime)
 {
@@ -595,7 +595,7 @@ char   *_mulle_objc_runtime_search_debughashname( struct _mulle_objc_runtime *ru
 
 
 
-# pragma mark - debug struing API
+# pragma mark - debug string
 
 char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid);
 
@@ -637,6 +637,11 @@ static inline char   *mulle_objc_string_for_propertyid( mulle_objc_categoryid_t 
 {
    return( mulle_objc_string_for_uniqueid( propertyid));
 }
+
+
+# pragma mark - debug waitqueues
+
+void   mulle_objc_check_runtimewaitqueues( void);
 
 
 # pragma mark - gifts (externally allocated memory)

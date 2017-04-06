@@ -6,21 +6,21 @@ problems.
 ## Warnings
 
 Use the following environment variables to let the runtime warn you about
-inconsistencies:
+inconsistencies. You can set the environment variables to "YES" or "NO".
+
 
 Variable                              |  Function
 ------------------------------------- | --------------------------------
 `MULLE_OBJC_WARN_ENABLED`             | Enables all the following warnings.
 &nbsp;                                | &nbsp;
 `MULLE_OBJC_WARN_METHODID_TYPES`      | Warn if methods with identical names have different types. Example: `- (BOOL) load` and `+ (void) load.
-`MULLE_OBJC_WARN_NOTLOADED_CATEGORIES`| Warn if categories could not be integrated into the runtime class system. This indicates a missing class.
-`MULLE_OBJC_WARN_NOTLOADED_CLASSES`   | Warn if classes could not be integrated into the runtime class system. This indicates a missing superclass.
+`MULLE_OBJC_WARN_STUCK_LOADABLES`     | Warn if classes or categories could not be integrated into the runtime class system. This indicates a missing class or category.
 `MULLE_OBJC_WARN_PROTOCOL_CLASS`      | Warn if a class does not fit the requirements to be a protocol class, but a protocol of the same name exists
 
 ## Traces
 
-Use the following environment variables to trace runtime operations. If the
-environment variable exists, it counts as set.
+Use the following environment variables to trace runtime operations. You can set the environment variables to "YES" or "NO".
+
 
  Variable                               |  Function
 ----------------------------------------|--------------------------------

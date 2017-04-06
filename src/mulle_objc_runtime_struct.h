@@ -105,14 +105,15 @@ struct _mulle_objc_runtimedebug
       unsigned   runtime_config       : 1;
       unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
       unsigned   protocol_adds        : 1;
+      unsigned   print_origin         : 1; // set by default
+      unsigned   loadinfo             : 1; 
    } trace;
 
    struct
    {
       unsigned   methodid_types        : 1;
       unsigned   protocol_class        : 1;
-      unsigned   not_loaded_classes    : 1;
-      unsigned   not_loaded_categories : 1;
+      unsigned   stuck_loadables       : 1;  // set by default
    } warn;
 };
 
@@ -181,8 +182,10 @@ struct _mulle_objc_garbagecollection
 };
 
 
-typedef void   mulle_objc_runtimefriend_destructor_t( struct _mulle_objc_runtime *runtime, void *);
-typedef void   mulle_objc_runtimefriend_versionassert_t( struct _mulle_objc_runtime *, void *, struct mulle_objc_loadversion *);
+typedef void   mulle_objc_runtimefriend_destructor_t( struct _mulle_objc_runtime *, void *);
+typedef void   mulle_objc_runtimefriend_versionassert_t( struct _mulle_objc_runtime *,
+                                                         void *,
+                                                         struct mulle_objc_loadversion *);
 
 
 //
@@ -192,9 +195,9 @@ typedef void   mulle_objc_runtimefriend_versionassert_t( struct _mulle_objc_runt
 //
 struct _mulle_objc_runtimefriend
 {
-   void                                       *data;
-   mulle_objc_runtimefriend_destructor_t      *destructor;
-   mulle_objc_runtimefriend_versionassert_t   *versionassert;
+   void                                          *data;
+   mulle_objc_runtimefriend_destructor_t         *destructor;
+   mulle_objc_runtimefriend_versionassert_t      *versionassert;
 };
 
 //
@@ -202,7 +205,13 @@ struct _mulle_objc_runtimefriend
 // itself into the runtime during +load using
 // `_mulle_objc_runtime_add_staticstring`. The allocator should be setup during
 // the runtime initialization.
-//
+// The postponer is used to wait for staticstring (or something else)
+
+typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_runtime *,
+                                                struct _mulle_objc_loadinfo *);
+
+
+
 struct _mulle_objc_foundation
 {
    struct _mulle_objc_runtimefriend    runtimefriend;
@@ -226,7 +235,6 @@ struct _mulle_objc_taggedpointers
    struct _mulle_objc_class    *pointerclass[ 8];         // only 1 ... are really used
 };
 
-#define S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE   1024
 
 struct _mulle_objc_waitqueues
 {
@@ -234,6 +242,8 @@ struct _mulle_objc_waitqueues
    struct mulle_concurrent_hashmap          classestoload;
    struct mulle_concurrent_hashmap          categoriestoload;
 };
+
+#define S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE   1024
 
 /*
  * All (?) global variables used by the runtime are in this struct.

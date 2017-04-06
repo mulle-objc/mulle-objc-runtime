@@ -888,7 +888,10 @@ static int  print_protocol( mulle_objc_protocolid_t protocolid,
 int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_runtime   *runtime;
-
+   int                          is_NSObject;
+   int                          has_categories;
+   int                          has_more_protocols;
+   
    if( ! cls)
       return( 0);
 
@@ -897,18 +900,21 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
    if( _mulle_objc_class_get_superclass( cls))
    {
       if( runtime->debug.warn.protocol_class)
+      {
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol of same name, but it is not a root class %s",
                     runtime,
                     _mulle_objc_class_get_classtypename( cls),
                     cls->name,
                     footer);
+      }
       return( 0);
    }
 
    if( cls->allocationsize > sizeof( struct _mulle_objc_objectheader))
    {
       if( runtime->debug.warn.protocol_class)
+      {
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol of the same name"
                  ", but implements instance variables %s",
@@ -916,38 +922,44 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
                    _mulle_objc_class_get_classtypename( cls),
                    cls->name,
                    footer);
+      }
       return( 0);
    }
 
    if( ! _mulle_objc_class_conformsto_protocol( cls, cls->classid))
    {
       if( runtime->debug.warn.protocol_class)
+      {
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol but does not conform to it %s",
                     runtime,
                     _mulle_objc_class_get_classtypename( cls),
                     cls->name,
                     footer);
+      }
       return( 0);
    }
 
-   //
-   //
-   //
-   if( mulle_concurrent_pointerarray_get_count( &cls->protocolids) != 1)
+   has_categories     = mulle_concurrent_pointerarray_get_count( &cls->categoryids) != 0;
+   has_more_protocols = mulle_concurrent_pointerarray_get_count( &cls->protocolids) != 1;
+
+   // quick check before going into more detail
+   if( ! has_categories && ! has_more_protocols)
+      return( 1);
+
+
+   is_NSObject = ! strcmp( cls->name, "NSObject");
+
+   if( has_more_protocols)
    {
-      int   is_NSObject;
-
-      is_NSObject = ! strcmp( cls->name, "NSObject");
-
       if( is_NSObject || runtime->debug.warn.protocol_class)
       {
          if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
          {
-            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" conforms to a protocol but also conforms to other protocols %s",
+            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\" conforms to a protocol but also conforms to other protocols %s",
                     runtime,
-                    _mulle_objc_class_get_classtypename( cls),
-                    cls->name,
+                    _mulle_objc_class_get_classid( cls),
+                    _mulle_objc_class_get_name( cls),
                     footer);
 
             fprintf( stderr, "Protocols:\n");
@@ -956,29 +968,28 @@ int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
          if( is_NSObject)
             _mulle_objc_runtime_raise_inconsistency_exception( runtime, "multiple protocols on NSObject is fatal for #mulle_objc");
       }
-
       return( 0);
    }
 
+   if( is_NSObject || ! runtime->debug.warn.protocol_class)
+      return( 1);
+   
    //
    // check if someone bolted on categories to the protocol. In theory
-   // it's OK, but they not being picked up might be a point of
-   // confusion
+   // it's OK, but them not being picked up might be a point of
+   // confusion (On NSObject though it's OK)
    //
-   if( mulle_concurrent_pointerarray_get_count( &cls->categoryids) != 0)
+   if( _mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
    {
-      if( _mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
+      if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
       {
-         if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-         {
-            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" conforms to a protocol but has gained some categories, which will be ignored.",
-                    runtime,
-                    _mulle_objc_class_get_classtypename( cls),
-                    cls->name);
-
-            fprintf( stderr, "Categories:\n");
-            _mulle_objc_class_walk_categoryids( cls, print_category, NULL);
-         }
+         fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" conforms to a protocol but has gained some categories, which will be ignored.\n",
+                 runtime,
+                 _mulle_objc_class_get_classtypename( cls),
+                 cls->name);
+         
+         fprintf( stderr, "Categories:\n");
+         _mulle_objc_class_walk_categoryids( cls, print_category, NULL);
       }
    }
 

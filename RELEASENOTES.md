@@ -4,23 +4,32 @@
 * the runtime load structures now have their own independent versioning
 called MULLE_OBJC_RUNTIME_LOAD_VERSION
 * the class now contains a list of categoryids, which can be queried at runtime
-* the category loader will check if a category implements +categoryDependencies,
-this allows proper sequenced +loads of categories and their order in the 
-methodlists. To make this really happen though, the loading of classes and
-categories had to be serialized with lock!
+* the class loader will check if a class implements +classDependencies,
+this allows proper sequenced +loads of classes. the category loader will check 
+if a category implements +categoryDependencies. this allows proper sequenced 
++loads of categories and their order in the  methodlists. To make this really 
+happen though, the loading of classes and categories had to be serialized with lock!
 * Renamed `mulle_vararg_count_objects` and `mulle_vararg_next_object` to
 `mulle_vararg_count_ids` and  `mulle_vararg_next_id`. `mulle_vararg_next_object` 
 now resides in MulleObjC.
 * new trace flag `MULLE_OBJC_TRACE_LOAD_CALLS` traces `+load`, `+initialize` and
 `+categoryDependencies` calls.
+* With mulle_objc_check_runtimewaitqueues you can see if clases or categories are "stuck" waiting for dependencies
+* `mulle_objc_object_get_retaincount` now returns a human readable number. 
+Ask the header for the raw value (if its not a tagged pointer)
 
 #### New Environment Variables
+
+It is preferred to set the environment variables with "YES" or "NO" now. 
+
+> Usually you rather undefined an environment variable, then set it to "NO"
 
 Variable                          | Description
 ----------------------------------|-----------------------
 `MULLE_OBJC_TRACE_LOADINFO`       | more detailed output of the loadinfo
 `MULLE_OBJC_TRACE_CATEGORY_ADDS`  | trace runtime category additions
 `MULLE_OBJC_TRACE_PROTOCOL_ADDS`  | trace runtime protocol additions
+`MULLE_OBJC_WARN_STUCK_LOADABLES` | replaces ..._WARN_NOTLOADED_CLASSES and .._CATEGORIES
 
 
 ## 0.3.1
