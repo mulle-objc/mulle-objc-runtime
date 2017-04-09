@@ -66,6 +66,11 @@ struct _mulle_objc_fastmethodtable
 void _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *table);
 
 
+static inline void   _mulle_objc_fastmethodtable_done(  struct _mulle_objc_fastmethodtable *table)
+{
+}
+
+
 MULLE_C_ALWAYS_INLINE
 static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
                                                           mulle_objc_methodid_t methodid,

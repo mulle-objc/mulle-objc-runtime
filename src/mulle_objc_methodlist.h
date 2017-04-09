@@ -47,6 +47,7 @@
 
 struct _mulle_objc_class;
 struct _mulle_objc_callqueue;
+struct _mulle_objc_metaclass;
 
 //
 // methods have to be sorted by methodid
@@ -90,11 +91,11 @@ static inline struct _mulle_objc_method  *_mulle_objc_methodlist_search( struct 
 # pragma mark - +load
 
 int   mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
-                                                   struct _mulle_objc_class *cls,
+                                                   struct _mulle_objc_metaclass *cls,
                                                    struct _mulle_objc_callqueue *loads);
 
 void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
-                                                              struct _mulle_objc_class *cls,
+                                                              struct _mulle_objc_metaclass *cls,
                                                               struct _mulle_objc_callqueue *loads);
 
 

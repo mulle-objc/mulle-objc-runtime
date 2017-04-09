@@ -137,14 +137,14 @@ static inline struct _mulle_objc_runtime   *_mulle_objc_object_get_runtime( void
 # pragma mark - get_class
 
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_class   *_mulle_objc_object_get_class( void *obj)
+static inline struct _mulle_objc_infraclass   *_mulle_objc_object_get_infraclass( void *obj)
 {
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   if( _mulle_objc_class_is_metaclass( cls))
-      return( _mulle_objc_class_get_infraclass( cls));
-   return( cls);
+   if( cls->infraclass)
+      return( cls->infraclass);
+   return( (struct _mulle_objc_infraclass *) cls);
 }
 
 
@@ -184,9 +184,9 @@ static inline struct _mulle_objc_class   *mulle_objc_object_get_isa( void *obj)
 }
 
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_class   *mulle_objc_object_get_class( void *obj)
+static inline struct _mulle_objc_infraclass   *mulle_objc_object_get_infraclass( void *obj)
 {
-   return( obj ? _mulle_objc_object_get_class( obj) : NULL);
+   return( obj ? _mulle_objc_object_get_infraclass( obj) : NULL);
 }
 
 // convenience for object

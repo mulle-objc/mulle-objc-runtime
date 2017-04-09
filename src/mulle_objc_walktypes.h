@@ -1,10 +1,10 @@
 //
-//  mulle_objc_runtime_dump_html.h
+//  mulle_objc_walktypes.h
 //  mulle-objc
 //
-//  Created by Nat! on 10.05.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
+//  Created by Nat! on 17/04/08.
+//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,21 +33,61 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_runtime_dump_html_h__
-#define mulle_objc_runtime_dump_html_h__
+
+#ifndef mulle_objc_walktypes_h__
+#define mulle_objc_walktypes_h__
+
+
+typedef enum
+{
+   mulle_objc_walk_error        = -1,
+
+   mulle_objc_walk_ok           = 0,
+   mulle_objc_walk_dont_descend = 1,  // skip descent
+   mulle_objc_walk_done         = 2,
+   mulle_objc_walk_cancel       = 3
+} mulle_objc_walkcommand_t;
+
+
+// rename this
+enum mulle_objc_walkpointertype_t
+{
+   mulle_objc_walkpointer_is_runtime,
+   mulle_objc_walkpointer_is_classpair,
+   mulle_objc_walkpointer_is_infraclass,
+   mulle_objc_walkpointer_is_metaclass,
+   mulle_objc_walkpointer_is_category,
+   mulle_objc_walkpointer_is_protocol,
+   mulle_objc_walkpointer_is_method,
+   mulle_objc_walkpointer_is_property,
+   mulle_objc_walkpointer_is_ivar
+};
+
 
 struct _mulle_objc_runtime;
-struct _mulle_objc_classpair;
 
-void   mulle_objc_runtime_dump_as_html_to_directory( struct _mulle_objc_runtime *runtime, char *directory);
-void   mulle_objc_dump_runtime_as_html_to_directory( char *directory);
-void   mulle_objc_dump_runtime_as_html_to_tmp( void);
+typedef mulle_objc_walkcommand_t
+      (*mulle_objc_walkcallback_t)( struct _mulle_objc_runtime *runtime,
+                                    void *p,
+                                    enum mulle_objc_walkpointertype_t type,
+                                    char *key,
+                                    void *parent,
+                                    void *userinfo);
 
 
-void   mulle_objc_classpair_dump_as_html_to_directory( struct _mulle_objc_classpair *pair,
-                                                       char *directory);
-void   mulle_objc_dump_classpair_as_html_to_directory( char *classname,
-                                                       char *directory);
-void   mulle_objc_dump_classpair_as_html_to_tmp( char *classname);
+static inline int   mulle_objc_walkcommand_is_stopper( mulle_objc_walkcommand_t cmd)
+{
+   switch( cmd)
+   {
+   case mulle_objc_walk_error  :
+   case mulle_objc_walk_done   :
+   case mulle_objc_walk_cancel :
+      return( 1);
 
-#endif
+   default :
+      return( 0);
+   }
+}
+
+
+#endif /* mulle_objc_walktypes_h */

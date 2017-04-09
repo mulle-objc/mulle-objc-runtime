@@ -40,6 +40,7 @@
 #include "mulle_objc_methodlist.h"
 
 #include "mulle_objc_class.h"
+#include "mulle_objc_metaclass.h"
 #include "mulle_objc_runtime.h"
 #include "mulle_objc_callqueue.h"
 
@@ -104,14 +105,13 @@ void   mulle_objc_methodlist_sort( struct _mulle_objc_methodlist *list)
 
 
 int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
-                                                  struct _mulle_objc_class *cls,
+                                                  struct _mulle_objc_metaclass *meta,
                                                   struct _mulle_objc_callqueue *loads)
 {
    struct _mulle_objc_method            *method;
    mulle_objc_methodimplementation_t    imp;
 
    assert( loads);
-   assert( _mulle_objc_class_is_metaclass( cls));
 
    // that's ok here, but not for _mulle_objc_methodlist_search_method
    if( ! list)
@@ -121,18 +121,18 @@ int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist 
    if( method)
    {
       imp   = _mulle_objc_method_get_implementation( method);
-      _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_LOAD_SCHEDULED);  // super floua
+      _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_META_LOAD_SCHEDULED);  // debugging help
 
-      if( mulle_objc_callqueue_add( loads, (struct _mulle_objc_object *) cls, MULLE_OBJC_LOAD_METHODID, imp))
+      if( mulle_objc_callqueue_add( loads, (struct _mulle_objc_object *) meta, MULLE_OBJC_LOAD_METHODID, imp))
          return( -1);
    }
    return( 0);
 }
 
 
-void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list, struct _mulle_objc_class *cls, struct _mulle_objc_callqueue *loads)
+void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list, struct _mulle_objc_metaclass *meta, struct _mulle_objc_callqueue *loads)
 {
-   if( mulle_objc_methodlist_add_load_to_callqueue( list, cls, loads))
-      _mulle_objc_runtime_raise_fail_errno_exception( _mulle_objc_class_get_runtime( cls));
+   if( mulle_objc_methodlist_add_load_to_callqueue( list, meta, loads))
+      _mulle_objc_runtime_raise_fail_errno_exception( _mulle_objc_metaclass_get_runtime( meta));
 }
 

@@ -34,7 +34,7 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 #ifndef mulle_objc_html_h__
-# define mulle_objc_html_h__
+#define mulle_objc_html_h__
 
 
 struct _mulle_objc_runtime;

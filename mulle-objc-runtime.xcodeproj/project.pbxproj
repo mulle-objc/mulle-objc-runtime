@@ -35,6 +35,14 @@
 		411E65531BA83230006A3902 /* mulle_objc_cache.c in Sources */ = {isa = PBXBuildFile; fileRef = 411E65511BA8322F006A3902 /* mulle_objc_cache.c */; };
 		411E65541BA83230006A3902 /* mulle_objc_cache.h in Headers */ = {isa = PBXBuildFile; fileRef = 411E65521BA83230006A3902 /* mulle_objc_cache.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		412002B71C5FBB0200ADFFE9 /* mulle_objc_fastclasstable.h in Headers */ = {isa = PBXBuildFile; fileRef = 412002941C5FA7DF00ADFFE9 /* mulle_objc_fastclasstable.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		41212A0F1E97BE3A0089F711 /* mulle_objc_classpair.c in Sources */ = {isa = PBXBuildFile; fileRef = 41212A0D1E97BE3A0089F711 /* mulle_objc_classpair.c */; };
+		41212A101E97BE3A0089F711 /* mulle_objc_classpair.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A0E1E97BE3A0089F711 /* mulle_objc_classpair.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		41212A131E97BF3C0089F711 /* mulle_objc_infraclass.c in Sources */ = {isa = PBXBuildFile; fileRef = 41212A111E97BF3C0089F711 /* mulle_objc_infraclass.c */; };
+		41212A141E97BF3C0089F711 /* mulle_objc_infraclass.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A121E97BF3C0089F711 /* mulle_objc_infraclass.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		41212A171E97BF4B0089F711 /* mulle_objc_metaclass.c in Sources */ = {isa = PBXBuildFile; fileRef = 41212A151E97BF4B0089F711 /* mulle_objc_metaclass.c */; };
+		41212A181E97BF4B0089F711 /* mulle_objc_metaclass.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A161E97BF4B0089F711 /* mulle_objc_metaclass.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		41212A221E97DAAA0089F711 /* mulle_objc_class_struct.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A211E97DAAA0089F711 /* mulle_objc_class_struct.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		41212A241E97DC6A0089F711 /* mulle_objc_walktypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A231E97DC6A0089F711 /* mulle_objc_walktypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4124009E1AB0652A00D56278 /* mulle_objc_method.h in Headers */ = {isa = PBXBuildFile; fileRef = 416BA7801A1908B8002F603A /* mulle_objc_method.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4124009F1AB0653200D56278 /* mulle_objc_load.h in Headers */ = {isa = PBXBuildFile; fileRef = 4147BDCA1A1CA4ED00AE8831 /* mulle_objc_load.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		412400A01AB0654400D56278 /* mulle_objc_callqueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 41978C351A1DF8C300DAFA51 /* mulle_objc_callqueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -43,8 +51,8 @@
 		4138D0E31CC6704B00940B7B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4138D0E21CC6704B00940B7B /* main.c */; };
 		4138D0F01CC6716A00940B7B /* mulle_objc_fnv1.c in Sources */ = {isa = PBXBuildFile; fileRef = 41E8B0591CC6324700D1F169 /* mulle_objc_fnv1.c */; };
 		4138D0F11CC6727B00940B7B /* mulle_objc_uniqueid.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A2882E1C65597A00BBA54E /* mulle_objc_uniqueid.c */; };
-		4145BDFD1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.c in Sources */ = {isa = PBXBuildFile; fileRef = 4145BDFB1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.c */; };
-		4145BDFE1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.h in Headers */ = {isa = PBXBuildFile; fileRef = 4145BDFC1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		4145BDFD1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.c in Sources */ = {isa = PBXBuildFile; fileRef = 4145BDFB1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.c */; };
+		4145BDFE1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.h in Headers */ = {isa = PBXBuildFile; fileRef = 4145BDFC1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4147BDC91A1CA4E100AE8831 /* mulle_objc_load.c in Sources */ = {isa = PBXBuildFile; fileRef = 4147BDC81A1CA4E100AE8831 /* mulle_objc_load.c */; };
 		4154F1651AA20D9B004B7259 /* mulle_objc_signature.c in Sources */ = {isa = PBXBuildFile; fileRef = 4154F1631AA20D9B004B7259 /* mulle_objc_signature.c */; };
 		4154F1661AA20D9B004B7259 /* mulle_objc_signature.h in Headers */ = {isa = PBXBuildFile; fileRef = 4154F1641AA20D9B004B7259 /* mulle_objc_signature.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -77,8 +85,8 @@
 		41A2882F1C65597A00BBA54E /* mulle_objc_uniqueid.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A2882E1C65597A00BBA54E /* mulle_objc_uniqueid.c */; };
 		41A41E431AB0908000A92452 /* mulle_objc_object_convenience.h in Headers */ = {isa = PBXBuildFile; fileRef = 41A41E421AB0908000A92452 /* mulle_objc_object_convenience.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		41A827681AADAE490017BE29 /* mulle_objc_runtime.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A827671AADAE490017BE29 /* mulle_objc_runtime.c */; };
-		41A963BB1CE2368E00412367 /* mulle_objc_runtime_dump_html.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A963B91CE2368E00412367 /* mulle_objc_runtime_dump_html.c */; };
-		41A963BC1CE2368E00412367 /* mulle_objc_runtime_dump_html.h in Headers */ = {isa = PBXBuildFile; fileRef = 41A963BA1CE2368E00412367 /* mulle_objc_runtime_dump_html.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		41A963BB1CE2368E00412367 /* mulle_objc_runtime_htmldump.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A963B91CE2368E00412367 /* mulle_objc_runtime_htmldump.c */; };
+		41A963BC1CE2368E00412367 /* mulle_objc_runtime_htmldump.h in Headers */ = {isa = PBXBuildFile; fileRef = 41A963BA1CE2368E00412367 /* mulle_objc_runtime_htmldump.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		41A963C11CE2484100412367 /* mulle_objc_html.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A963BF1CE237AF00412367 /* mulle_objc_html.c */; };
 		41B2CC691C512BCF006CA7BB /* libmulle_objc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4158AC8A1A1A0180007F2A2D /* libmulle_objc.a */; };
 		41B2CC6A1C512BD6006CA7BB /* libmulle_aba.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4170B7031BDD2E35008614DC /* libmulle_aba.a */; };
@@ -145,12 +153,20 @@
 		411E65511BA8322F006A3902 /* mulle_objc_cache.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_cache.c; sourceTree = "<group>"; };
 		411E65521BA83230006A3902 /* mulle_objc_cache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_cache.h; sourceTree = "<group>"; };
 		412002941C5FA7DF00ADFFE9 /* mulle_objc_fastclasstable.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_fastclasstable.h; sourceTree = "<group>"; };
+		41212A0D1E97BE3A0089F711 /* mulle_objc_classpair.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_classpair.c; sourceTree = "<group>"; };
+		41212A0E1E97BE3A0089F711 /* mulle_objc_classpair.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_classpair.h; sourceTree = "<group>"; };
+		41212A111E97BF3C0089F711 /* mulle_objc_infraclass.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_infraclass.c; sourceTree = "<group>"; };
+		41212A121E97BF3C0089F711 /* mulle_objc_infraclass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_infraclass.h; sourceTree = "<group>"; };
+		41212A151E97BF4B0089F711 /* mulle_objc_metaclass.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_metaclass.c; sourceTree = "<group>"; };
+		41212A161E97BF4B0089F711 /* mulle_objc_metaclass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_metaclass.h; sourceTree = "<group>"; };
+		41212A211E97DAAA0089F711 /* mulle_objc_class_struct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_class_struct.h; sourceTree = "<group>"; };
+		41212A231E97DC6A0089F711 /* mulle_objc_walktypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_walktypes.h; sourceTree = "<group>"; };
 		4137D83F1C724E6C00102D35 /* mulle_objc_fastenumeration.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_fastenumeration.c; sourceTree = "<group>"; };
 		4137D8401C724E6C00102D35 /* mulle_objc_fastenumeration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_fastenumeration.h; sourceTree = "<group>"; };
 		4138D0E01CC6704B00940B7B /* mulle-objc-uniqueid */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mulle-objc-uniqueid"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4138D0E21CC6704B00940B7B /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		4145BDFB1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_runtime_dump_graphviz.c; sourceTree = "<group>"; };
-		4145BDFC1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_runtime_dump_graphviz.h; sourceTree = "<group>"; };
+		4145BDFB1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_runtime_dotdump.c; sourceTree = "<group>"; };
+		4145BDFC1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_runtime_dotdump.h; sourceTree = "<group>"; };
 		4147BDC81A1CA4E100AE8831 /* mulle_objc_load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_load.c; sourceTree = "<group>"; };
 		4147BDCA1A1CA4ED00AE8831 /* mulle_objc_load.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_load.h; sourceTree = "<group>"; };
 		4154F1631AA20D9B004B7259 /* mulle_objc_signature.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_signature.c; sourceTree = "<group>"; };
@@ -198,8 +214,8 @@
 		41A2882E1C65597A00BBA54E /* mulle_objc_uniqueid.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_uniqueid.c; sourceTree = "<group>"; };
 		41A41E421AB0908000A92452 /* mulle_objc_object_convenience.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_object_convenience.h; sourceTree = "<group>"; };
 		41A827671AADAE490017BE29 /* mulle_objc_runtime.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_runtime.c; sourceTree = "<group>"; };
-		41A963B91CE2368E00412367 /* mulle_objc_runtime_dump_html.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_runtime_dump_html.c; sourceTree = "<group>"; };
-		41A963BA1CE2368E00412367 /* mulle_objc_runtime_dump_html.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_runtime_dump_html.h; sourceTree = "<group>"; };
+		41A963B91CE2368E00412367 /* mulle_objc_runtime_htmldump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_runtime_htmldump.c; sourceTree = "<group>"; };
+		41A963BA1CE2368E00412367 /* mulle_objc_runtime_htmldump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_runtime_htmldump.h; sourceTree = "<group>"; };
 		41A963BD1CE2373800412367 /* c_set.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = c_set.inc; sourceTree = "<group>"; };
 		41A963BF1CE237AF00412367 /* mulle_objc_html.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mulle_objc_html.c; sourceTree = "<group>"; };
 		41A963C01CE2384600412367 /* mulle_objc_html.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_html.h; sourceTree = "<group>"; };
@@ -298,7 +314,14 @@
 				41978C351A1DF8C300DAFA51 /* mulle_objc_callqueue.h */,
 				41978C331A1DF39600DAFA51 /* mulle_objc_callqueue.c */,
 				416BA7791A19028F002F603A /* mulle_objc_class.h */,
+				41212A211E97DAAA0089F711 /* mulle_objc_class_struct.h */,
 				416BA77A1A1902AE002F603A /* mulle_objc_class.c */,
+				41212A121E97BF3C0089F711 /* mulle_objc_infraclass.h */,
+				41212A111E97BF3C0089F711 /* mulle_objc_infraclass.c */,
+				41212A161E97BF4B0089F711 /* mulle_objc_metaclass.h */,
+				41212A151E97BF4B0089F711 /* mulle_objc_metaclass.c */,
+				41212A0E1E97BE3A0089F711 /* mulle_objc_classpair.h */,
+				41212A0D1E97BE3A0089F711 /* mulle_objc_classpair.c */,
 				4177A9661D325C93007DC3D8 /* mulle_objc_class_convenience.h */,
 				4177A9691D325DA6007DC3D8 /* mulle_objc_class_runtime.h */,
 				4177A9681D325DA6007DC3D8 /* mulle_objc_class_runtime.c */,
@@ -336,6 +359,7 @@
 				4154F1641AA20D9B004B7259 /* mulle_objc_signature.h */,
 				4154F1631AA20D9B004B7259 /* mulle_objc_signature.c */,
 				4188ADDE1D37B7E900926C82 /* mulle_objc_taggedpointer.h */,
+				41212A231E97DC6A0089F711 /* mulle_objc_walktypes.h */,
 				4170296A1C528A64001B2693 /* mulle_objc_try_catch_finally.h */,
 				417029691C528A64001B2693 /* mulle_objc_try_catch_finally.c */,
 				411E654F1BA82F33006A3902 /* mulle_objc_uniqueid.h */,
@@ -351,10 +375,10 @@
 				41A963BD1CE2373800412367 /* c_set.inc */,
 				41A963C01CE2384600412367 /* mulle_objc_html.h */,
 				41A963BF1CE237AF00412367 /* mulle_objc_html.c */,
-				4145BDFC1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.h */,
-				4145BDFB1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.c */,
-				41A963BA1CE2368E00412367 /* mulle_objc_runtime_dump_html.h */,
-				41A963B91CE2368E00412367 /* mulle_objc_runtime_dump_html.c */,
+				4145BDFC1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.h */,
+				4145BDFB1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.c */,
+				41A963BA1CE2368E00412367 /* mulle_objc_runtime_htmldump.h */,
+				41A963B91CE2368E00412367 /* mulle_objc_runtime_htmldump.c */,
 			);
 			path = debug;
 			sourceTree = "<group>";
@@ -406,19 +430,26 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4177A9631D3252C6007DC3D8 /* mulle_objc.h in Headers */,
+				4177A96F1D326129007DC3D8 /* mulle_objc_atomicpointer.h in Headers */,
 				41B427B71C5A869500CCEB37 /* mulle_objc_builtin.h in Headers */,
 				411E65541BA83230006A3902 /* mulle_objc_cache.h in Headers */,
+				4158AC971A1A01BD007F2A2D /* mulle_objc_call.h in Headers */,
 				412400A01AB0654400D56278 /* mulle_objc_callqueue.h in Headers */,
-				412002B71C5FBB0200ADFFE9 /* mulle_objc_fastclasstable.h in Headers */,
-				410E85141BDE798F00FF7BF2 /* mulle_objc_fastmethodtable.h in Headers */,
+				41212A101E97BE3A0089F711 /* mulle_objc_classpair.h in Headers */,
 				4158AC941A1A01BD007F2A2D /* mulle_objc_class.h in Headers */,
+				4177A96B1D325DA6007DC3D8 /* mulle_objc_class_runtime.h in Headers */,
+				41212A221E97DAAA0089F711 /* mulle_objc_class_struct.h in Headers */,
 				41D52A001B7AA4EF00F53814 /* mulle_objc_ivar.h in Headers */,
 				411727E11B7CC3420031BEB9 /* mulle_objc_ivarlist.h in Headers */,
-				4124009F1AB0653200D56278 /* mulle_objc_load.h in Headers */,
 				4137D8421C724E6C00102D35 /* mulle_objc_fastenumeration.h in Headers */,
+				412002B71C5FBB0200ADFFE9 /* mulle_objc_fastclasstable.h in Headers */,
+				410E85141BDE798F00FF7BF2 /* mulle_objc_fastmethodtable.h in Headers */,
 				41E8B05C1CC6324700D1F169 /* mulle_objc_fnv1.h in Headers */,
-				4158AC971A1A01BD007F2A2D /* mulle_objc_call.h in Headers */,
+				41212A141E97BF3C0089F711 /* mulle_objc_infraclass.h in Headers */,
 				41013C2B1D3D08340033CD4A /* mulle_objc_kvccache.h in Headers */,
+				4124009F1AB0653200D56278 /* mulle_objc_load.h in Headers */,
+				41212A181E97BF4B0089F711 /* mulle_objc_metaclass.h in Headers */,
 				4124009E1AB0652A00D56278 /* mulle_objc_method.h in Headers */,
 				416A75311AAFA1A400A5F511 /* mulle_objc_methodlist.h in Headers */,
 				4158AC961A1A01BD007F2A2D /* mulle_objc_object.h in Headers */,
@@ -428,19 +459,17 @@
 				4111AFDB1D8049C100DFB901 /* mulle_objc_runtime_global.h in Headers */,
 				4111AFDC1D8049C100DFB901 /* mulle_objc_runtime_struct.h in Headers */,
 				4158AC991A1A01BD007F2A2D /* mulle_objc_retain_release.h in Headers */,
-				4177A96B1D325DA6007DC3D8 /* mulle_objc_class_runtime.h in Headers */,
 				4177A96D1D325E77007DC3D8 /* mulle_objc_version.h in Headers */,
 				4177A9671D325C93007DC3D8 /* mulle_objc_class_convenience.h in Headers */,
-				4177A96F1D326129007DC3D8 /* mulle_objc_atomicpointer.h in Headers */,
 				4177A9651D325AAE007DC3D8 /* mulle_objc_objectheader.h in Headers */,
 				4188ADDF1D37B7E900926C82 /* mulle_objc_taggedpointer.h in Headers */,
-				4177A9631D3252C6007DC3D8 /* mulle_objc.h in Headers */,
 				4158AC931A1A01BD007F2A2D /* mulle_objc_runtime.h in Headers */,
 				4154F1661AA20D9B004B7259 /* mulle_objc_signature.h in Headers */,
 				411E65501BA82FDA006A3902 /* mulle_objc_uniqueid.h in Headers */,
-				41A963BC1CE2368E00412367 /* mulle_objc_runtime_dump_html.h in Headers */,
-				4145BDFE1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.h in Headers */,
+				41A963BC1CE2368E00412367 /* mulle_objc_runtime_htmldump.h in Headers */,
+				4145BDFE1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.h in Headers */,
 				4170296C1C528A64001B2693 /* mulle_objc_try_catch_finally.h in Headers */,
+				41212A241E97DC6A0089F711 /* mulle_objc_walktypes.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -564,6 +593,7 @@
 				41E8B05B1CC6324700D1F169 /* mulle_objc_fnv1.c in Sources */,
 				411E65531BA83230006A3902 /* mulle_objc_cache.c in Sources */,
 				4158AC901A1A01AB007F2A2D /* mulle_objc_call.c in Sources */,
+				41212A171E97BF4B0089F711 /* mulle_objc_metaclass.c in Sources */,
 				41978C341A1DF39600DAFA51 /* mulle_objc_callqueue.c in Sources */,
 				4158AC8E1A1A01AB007F2A2D /* mulle_objc_class.c in Sources */,
 				410E85131BDE798F00FF7BF2 /* mulle_objc_fastmethodtable.c in Sources */,
@@ -575,12 +605,14 @@
 				416A75301AAFA1A400A5F511 /* mulle_objc_methodlist.c in Sources */,
 				41F6ADC91AA8658600CAA0B5 /* mulle_objc_property.c in Sources */,
 				4158AC921A1A01AB007F2A2D /* mulle_objc_retain_release.c in Sources */,
+				41212A0F1E97BE3A0089F711 /* mulle_objc_classpair.c in Sources */,
 				41A827681AADAE490017BE29 /* mulle_objc_runtime.c in Sources */,
 				41A2882F1C65597A00BBA54E /* mulle_objc_uniqueid.c in Sources */,
 				41A963C11CE2484100412367 /* mulle_objc_html.c in Sources */,
 				41013C2A1D3D08340033CD4A /* mulle_objc_kvccache.c in Sources */,
-				41A963BB1CE2368E00412367 /* mulle_objc_runtime_dump_html.c in Sources */,
-				4145BDFD1BDCDFED00C42630 /* mulle_objc_runtime_dump_graphviz.c in Sources */,
+				41A963BB1CE2368E00412367 /* mulle_objc_runtime_htmldump.c in Sources */,
+				4145BDFD1BDCDFED00C42630 /* mulle_objc_runtime_dotdump.c in Sources */,
+				41212A131E97BF3C0089F711 /* mulle_objc_infraclass.c in Sources */,
 				4177A96A1D325DA6007DC3D8 /* mulle_objc_class_runtime.c in Sources */,
 				4154F1651AA20D9B004B7259 /* mulle_objc_signature.c in Sources */,
 				416688C41C53E285005F4E3E /* mulle_objc_propertylist.c in Sources */,
@@ -695,6 +727,13 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A0B1C4E6E9A00290E05 /* StaticLibraryOSX.xcconfig */;
 			buildSettings = {
+				OTHER_CFLAGS = (
+					"-H",
+					"$(inherited)",
+					"-D_C11_SOURCE",
+					"-D_XOPEN_SOURCE=500",
+					"-D_C99_SOURCE",
+				);
 			};
 			name = Debug;
 		};

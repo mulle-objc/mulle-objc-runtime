@@ -44,9 +44,9 @@
 
 
 int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                    int (*f)( struct _mulle_objc_property *, struct _mulle_objc_class *, void *),
-                                   struct _mulle_objc_class *cls,
-                                   void *userinfo)
+                                    int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
+                                    struct _mulle_objc_infraclass *infra,
+                                    void *userinfo)
 {
    struct _mulle_objc_property   *sentinel;
    struct _mulle_objc_property   *p;
@@ -59,7 +59,7 @@ int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
 
    while( p < sentinel)
    {
-      if( rval = (*f)( p, cls, userinfo))
+      if( rval = (*f)( p, infra, userinfo))
          return( rval);
       ++p;
    }

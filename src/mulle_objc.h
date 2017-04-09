@@ -50,14 +50,18 @@
 #include "mulle_objc_builtin.h"
 #include "mulle_objc_call.h"
 #include "mulle_objc_class.h"
+#include "mulle_objc_classpair.h"
 #include "mulle_objc_class_convenience.h"
+#include "mulle_objc_class_struct.h"
 #include "mulle_objc_fastclasstable.h"
 #include "mulle_objc_fastmethodtable.h"
 #include "mulle_objc_fnv1.h"
+#include "mulle_objc_infraclass.h"
 #include "mulle_objc_ivar.h"
 #include "mulle_objc_ivarlist.h"
 #include "mulle_objc_kvccache.h"
 #include "mulle_objc_load.h"
+#include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
 #include "mulle_objc_methodlist.h"
 #include "mulle_objc_object.h"
@@ -73,6 +77,7 @@
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_try_catch_finally.h"
 #include "mulle_objc_version.h"
+#include "mulle_objc_walktypes.h"
 
 #include "mulle_objc_class_runtime.h"
 
@@ -101,7 +106,7 @@
 #if MULLE_ALLOCATOR_VERSION < ((2 << 20) | (1 << 8) | 0)
 # error "mulle_allocator is too old"
 #endif
-#if MULLE_CONCURRENT_VERSION < ((1 << 20) | (1 << 8) | 0)
+#if MULLE_CONCURRENT_VERSION < ((1 << 20) | (3 << 8) | 0)
 # error "mulle_concurrent is too old"
 #endif
 #if MULLE_THREAD_VERSION < ((3 << 20) | (2 << 8) | 0)

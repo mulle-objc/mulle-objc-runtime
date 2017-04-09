@@ -45,6 +45,7 @@
 #include "mulle_objc_methodlist.h"
 #include "mulle_objc_propertylist.h"
 #include "mulle_objc_load.h"
+#include "mulle_objc_walktypes.h"
 
 #include <mulle_allocator/mulle_allocator.h>
 #include <mulle_concurrent/mulle_concurrent.h>
@@ -171,7 +172,7 @@ void   _mulle_objc_runtime_set_loadbit( struct _mulle_objc_runtime *runtime,
 // returns 1 if index is out of bounds for this cpu
 //
 int  _mulle_objc_runtime_set_taggedpointerclass_at_index( struct _mulle_objc_runtime  *runtime,
-                                                          struct _mulle_objc_class *cls,
+                                                          struct _mulle_objc_infraclass *infra,
                                                           unsigned int index);
 
 //
@@ -475,40 +476,37 @@ struct _mulle_objc_classpair   *mulle_objc_runtime_new_classpair( struct _mulle_
                                                                   mulle_objc_classid_t  classid,
                                                                   char *name,
                                                                   size_t instancesize,
-                                                                  struct _mulle_objc_class *superclass);
+                                                                  struct _mulle_objc_infraclass *superclass);
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
 struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_classid_t  classid,
                                                                     char *name,
                                                                     size_t instancesize,
-                                                                    struct _mulle_objc_class *superclass);
+                                                                    struct _mulle_objc_infraclass *superclass);
 #endif
 
 // classes
 
-int   mulle_objc_runtime_add_class( struct _mulle_objc_runtime *runtime, struct _mulle_objc_class *cls);
-
-void  _mulle_objc_runtime_set_fastclass( struct _mulle_objc_runtime *runtime,
-                                         struct _mulle_objc_class *cls,
-                                         unsigned int index);
+int   mulle_objc_runtime_add_infraclass( struct _mulle_objc_runtime *runtime,
+                                         struct _mulle_objc_infraclass *infra);
 
 
-void   mulle_objc_runtime_unfailing_add_class( struct _mulle_objc_runtime *runtime,
-                                               struct _mulle_objc_class *cls);
+void   mulle_objc_runtime_unfailing_add_infraclass( struct _mulle_objc_runtime *runtime,
+                                                    struct _mulle_objc_infraclass *infra);
 
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
-
-void   mulle_objc_unfailing_add_class( struct _mulle_objc_class *cls);
-
+void   mulle_objc_unfailing_add_infraclass( struct _mulle_objc_infraclass *pair);
 #endif
 
-
+void  _mulle_objc_runtime_set_fastclass( struct _mulle_objc_runtime *runtime,
+                                         struct _mulle_objc_infraclass *infra,
+                                         unsigned int index);
 
 #pragma mark - method cache
 
-static inline unsigned int   _mulle_objc_runtime_number_of_preload_methods( struct _mulle_objc_runtime *runtime)
+static inline unsigned int   _mulle_objc_runtime_number_of_preloadmethods( struct _mulle_objc_runtime *runtime)
 {
    return( runtime->methodidstopreload.n);
 }
@@ -583,7 +581,7 @@ void   _mulle_objc_runtime_add_staticstring( struct _mulle_objc_runtime *runtime
 void   _mulle_objc_runtime_staticstringclass_did_change( struct _mulle_objc_runtime *runtime);
 
 void  _mulle_objc_runtime_set_staticstringclass( struct _mulle_objc_runtime *runtime,
-                                                 struct _mulle_objc_class *cls);
+                                                 struct _mulle_objc_infraclass *infra);
 
 #pragma mark - hashnames (debug output only)
 
@@ -673,53 +671,20 @@ void   mulle_objc_free_methodlist( struct _mulle_objc_methodlist *list);
 
 /* debug support */
 
-// rename this
-enum mulle_objc_runtime_type_t
-{
-   mulle_objc_runtime_is_runtime    = 0,
-   mulle_objc_runtime_is_class      = 1,
-   mulle_objc_runtime_is_meta_class = 2,
-   mulle_objc_runtime_is_category   = 3,
-   mulle_objc_runtime_is_protocol   = 4,
-   mulle_objc_runtime_is_method     = 5,
-   mulle_objc_runtime_is_property   = 6,
-   mulle_objc_runtime_is_ivar       = 7
-};
 
-
-typedef enum
-{
-   mulle_objc_runtime_walk_error        = -1,
-
-   mulle_objc_runtime_walk_ok           = 0,
-   mulle_objc_runtime_walk_dont_descend = 1,  // skip descent
-   mulle_objc_runtime_walk_done         = 2,
-   mulle_objc_runtime_walk_cancel       = 3
-} mulle_objc_runtime_walkcommand_t;
-
-
-struct _mulle_objc_runtime;
-
-typedef mulle_objc_runtime_walkcommand_t
-   (*mulle_objc_runtime_walkcallback)( struct _mulle_objc_runtime *runtime,
-                                       void *p,
-                                       enum mulle_objc_runtime_type_t type,
-                                       char *key,
-                                       void *parent,
-                                       void *userinfo);
 
 // this walks recursively through the whole runtime
-mulle_objc_runtime_walkcommand_t   mulle_objc_runtime_walk( struct _mulle_objc_runtime *runtime,
-                                                            mulle_objc_runtime_walkcallback   callback,
-                                                            void *userinfo);
+mulle_objc_walkcommand_t   mulle_objc_runtime_walk( struct _mulle_objc_runtime *runtime,
+                                                    mulle_objc_walkcallback_t   callback,
+                                                   void *userinfo);
 
 // this just walks over the classes
-mulle_objc_runtime_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mulle_objc_runtime  *runtime,
-                                                                    mulle_objc_runtime_walkcallback callback,
-                                                                    void *userinfo);
+mulle_objc_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mulle_objc_runtime  *runtime,
+                                                            mulle_objc_walkcallback_t callback,
+                                                            void *userinfo);
 
 // for lldb ?
-void   mulle_objc_walk_classes( mulle_objc_runtime_walkcallback callback,
+void   mulle_objc_walk_classes( mulle_objc_walkcallback_t callback,
                                 void *userinfo);
 
 # pragma mark - API

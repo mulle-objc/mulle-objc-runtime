@@ -134,7 +134,7 @@ static void   Foo_setA_b_( struct Foo *self, mulle_objc_methodid_t _cmd, void *_
 
 static void   *Foo_a( struct Foo *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   return( (void *) self->a);
+   return( (void *) (intptr_t) self->a);
 }
 
 // @end
@@ -325,14 +325,15 @@ char   *keys[ 32] =
 
 int   main( int argc, const char * argv[])
 {
-   struct _mulle_objc_class    *cls;
-   struct _mulle_objc_object   *obj;
-   struct _mulle_objc_kvcinfo  *p;
-   struct mulle_allocator      *allocator;
-   unsigned int                n_sets;
-   unsigned int                n_gets;
-   unsigned int                i;
-   int                         rval;
+   struct _mulle_objc_infraclass    *infra;
+   struct _mulle_objc_class         *cls;
+   struct _mulle_objc_object        *obj;
+   struct _mulle_objc_kvcinfo       *p;
+   struct mulle_allocator           *allocator;
+   unsigned int                     n_sets;
+   unsigned int                     n_gets;
+   unsigned int                     i;
+   int                              rval;
 
    // windows...
 #if ! defined( __clang__) && ! defined( __GNUC__)
@@ -341,10 +342,11 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Foo alloc] init];
 
-   cls = mulle_objc_unfailing_lookup_class( ___Foo_classid);
-   obj = mulle_objc_class_alloc_instance( cls, NULL);
+   infra = mulle_objc_unfailing_lookup_infraclass( ___Foo_classid);
+   obj = mulle_objc_infraclass_alloc_instance( infra, NULL);
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 
+   cls       = _mulle_objc_infraclass_as_class( infra);
    allocator = _mulle_objc_class_get_kvcinfo_allocator( cls);
 
    n_sets = 32;

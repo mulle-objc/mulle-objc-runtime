@@ -13,13 +13,13 @@
 
 struct abc_classes
 {
-   struct _mulle_objc_class   *A_cls;
-   struct _mulle_objc_class   *B_cls;
-   struct _mulle_objc_class   *C_cls;
+   struct _mulle_objc_infraclass   *A_infra;
+   struct _mulle_objc_infraclass   *B_infra;
+   struct _mulle_objc_infraclass   *C_infra;
 
-   struct _mulle_objc_class   *A_meta_cls;
-   struct _mulle_objc_class   *B_meta_cls;
-   struct _mulle_objc_class   *C_meta_cls;
+   struct _mulle_objc_metaclass   *A_meta;
+   struct _mulle_objc_metaclass   *B_meta;
+   struct _mulle_objc_metaclass   *C_meta;
 };
 
 

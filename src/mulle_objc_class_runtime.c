@@ -36,6 +36,7 @@
 #include "mulle_objc_class_runtime.h"
 
 #include "mulle_objc_class.h"
+#include "mulle_objc_infraclass.h"
 #include "mulle_objc_runtime.h"
 #include <mulle_aba/mulle_aba.h>
 
@@ -63,37 +64,40 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 #pragma mark - class lookup
 
 MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_class   *mulle_objc_unfailing_get_or_lookup_class( mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass   *mulle_objc_unfailing_get_or_lookup_infraclass( mulle_objc_classid_t classid)
 {
    struct _mulle_objc_runtime   *runtime;
 
    runtime = mulle_objc_inlined_get_runtime();
-   return( _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid));
+   return( _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid));
 }
 
 
-struct _mulle_objc_class   *_mulle_objc_runtime_lookup_uncached_class( struct _mulle_objc_runtime *runtime,
-                                                                       mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass   *
+    _mulle_objc_runtime_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+                                                    mulle_objc_classid_t classid)
 {
    return( _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid));
 }
 
 
-struct _mulle_objc_class   *_mulle_objc_runtime_unfailing_lookup_uncached_class( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass   *
+   _mulle_objc_runtime_unfailing_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+                                                             mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_class   *cls;
-   int                        retry;
+   struct _mulle_objc_infraclass   *infra;
+   int                              retry;
 
    assert( classid != MULLE_OBJC_INVALID_CLASSID && classid != MULLE_OBJC_NO_CLASSID);
 
    retry = 1;
    for(;;)
    {
-      cls = _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid);
-      if( cls)
+      infra = _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid);
+      if( infra)
       {
-         assert( cls->classid == classid);
-         return( cls);
+         assert( _mulle_objc_infraclass_get_classid( infra) == classid);
+         return( infra);
       }
 
       if( retry)
@@ -129,6 +133,8 @@ static struct _mulle_objc_cacheentry
 
    if( _mulle_objc_cachepivot_atomic_set_entries( &runtime->cachepivot, cache->entries, old_cache->entries))
    {
+      // trace future!
+
       _mulle_objc_cache_free( cache, &cls->runtime->memory.allocator);
       return( NULL);
    }
@@ -140,12 +146,14 @@ static struct _mulle_objc_cacheentry
 }
 
 
-static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache_with_class( struct _mulle_objc_runtime *runtime, struct _mulle_objc_class *cls)
+static struct _mulle_objc_cacheentry   *
+   _mulle_objc_runtime_fill_classcache_with_infraclass( struct _mulle_objc_runtime *runtime,
+                                                        struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entry;
 
-   assert( cls && ! _mulle_objc_class_is_metaclass( cls));
+   assert( infra);
    assert( runtime);
 
    //
@@ -156,13 +164,13 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache_with
       cache = _mulle_objc_cachepivot_atomic_get_cache( &runtime->cachepivot);
       if( (size_t) _mulle_atomic_pointer_read( &cache->n) >= (cache->size >> 2))  // 25% fill rate is nicer
       {
-         entry = _mulle_objc_runtime_add_classcacheentry_by_swapping_caches( runtime, cache, cls);
+         entry = _mulle_objc_runtime_add_classcacheentry_by_swapping_caches( runtime, cache, _mulle_objc_infraclass_as_class( infra));
          if( entry)
             return( entry);
          continue;
       }
 
-      entry = _mulle_objc_cache_add_pointer_entry( cache, cls, cls->classid);
+      entry = _mulle_objc_cache_add_pointer_entry( cache, infra, _mulle_objc_infraclass_get_classid( infra));
       if( entry)
          return( entry);
    }
@@ -171,14 +179,14 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache_with
 
 static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   cls = _mulle_objc_runtime_lookup_uncached_class( runtime, classid);
-   if( ! cls)
+   infra = _mulle_objc_runtime_lookup_uncached_infraclass( runtime, classid);
+   if( ! infra)
       return( NULL);
 
-   entry = _mulle_objc_runtime_fill_classcache_with_class( runtime, cls);
+   entry = _mulle_objc_runtime_fill_classcache_with_infraclass( runtime, infra);
    assert( entry);
    return( entry);
 }
@@ -186,13 +194,13 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache( str
 
 static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_unfailing_fill_classcache( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   cls   = _mulle_objc_runtime_unfailing_lookup_uncached_class( runtime, classid);
-   assert( mulle_objc_class_is_current_thread_registered( cls));
+   infra   = _mulle_objc_runtime_unfailing_lookup_uncached_infraclass( runtime, classid);
+   assert( mulle_objc_class_is_current_thread_registered( (void *)  infra));
 
-   entry = _mulle_objc_runtime_fill_classcache_with_class( runtime, cls);
+   entry = _mulle_objc_runtime_fill_classcache_with_infraclass( runtime, infra);
    return( entry);
 }
 
@@ -200,7 +208,7 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_unfailing_fill_class
 #pragma mark - class lookup
 
 MULLE_C_CONST_RETURN
-struct _mulle_objc_class  *_mulle_objc_runtime_lookup_class( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass  *_mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
@@ -235,8 +243,9 @@ struct _mulle_objc_class  *_mulle_objc_runtime_lookup_class( struct _mulle_objc_
 
 
 MULLE_C_CONST_NON_NULL_RETURN
-struct _mulle_objc_class  *_mulle_objc_runtime_unfailing_lookup_class( struct _mulle_objc_runtime *runtime,
-                                                                       mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass  *
+    _mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                                     mulle_objc_classid_t classid)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
