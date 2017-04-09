@@ -1,5 +1,5 @@
 //
-//  mulle_objc_runtime_dump_html.c
+//  mulle_objc_runtime_htmlhtmldump.c
 //  mulle-objc
 //
 //  Created by Nat! on 10.05.16.
@@ -33,11 +33,12 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle_objc_runtime_dump_html.h"
+#include "mulle_objc_runtime_htmldump.h"
 
 #include "mulle_objc_html.h"
 #include "mulle_objc.h"
 #include "mulle_objc_class.h"
+#include "mulle_objc_infraclass.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -45,6 +46,7 @@
 #include <stdlib.h>
 #include <mulle_thread/mulle_thread.h>
 #include <mulle_allocator/mulle_allocator.h>
+#include <mulle_concurrent/mulle_concurrent.h>
 
 #include "c_set.inc"
 
@@ -200,9 +202,10 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
    char                                             *label;
    struct _mulle_objc_cache                         *cache;
    struct _mulle_objc_class                         *superclass;
-   struct _mulle_objc_class                         *metaclass;
-   struct _mulle_objc_class                         *infraclass;
-   struct _mulle_objc_class                         *propertyclass;
+   struct _mulle_objc_metaclass                     *meta;
+   struct _mulle_objc_infraclass                    *infra;
+   struct _mulle_objc_classpair                     *pair;
+   struct _mulle_objc_infraclass                    *prop_cls;
    struct _mulle_objc_ivarlist                      *ivarlist;
    struct _mulle_objc_methodlist                    *methodlist;
    struct _mulle_objc_propertylist                  *propertylist;
@@ -217,18 +220,18 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
       free( label);
    }
 
-   infraclass = _mulle_objc_class_get_infraclass( cls);
-   if( infraclass)
+   infra = _mulle_objc_class_get_infraclass( cls);
+   if( infra)
    {
-      label = mulle_objc_class_short_html_description( infraclass);
+      label = mulle_objc_class_short_html_description( _mulle_objc_infraclass_as_class( infra));
       print_to_body( "Infraclass", label, fp);
       free( label);
    }
 
-   metaclass = _mulle_objc_class_get_metaclass( cls);
-   if( metaclass)
+   meta = _mulle_objc_class_get_metaclass( cls);
+   if( meta)
    {
-      label = mulle_objc_class_short_html_description( metaclass);
+      label = mulle_objc_class_short_html_description( _mulle_objc_metaclass_as_class( meta));
       print_to_body( "Metaclass", label, fp);
       free( label);
    }
@@ -237,12 +240,12 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
    print_to_body( "Values", label, fp);
    free( label);
 
-   if( mulle_concurrent_pointerarray_get_count( &cls->ivarlists))
+   if( infra && mulle_concurrent_pointerarray_get_count( &infra->ivarlists))
    {
       print_to_body( "Instance Variables", NULL, fp);
       fprintf( fp, "<ol>\n");
-      
-      rover = mulle_concurrent_pointerarray_enumerate( &cls->ivarlists);
+
+      rover = mulle_concurrent_pointerarray_enumerate( &infra->ivarlists);
       while( ivarlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
       {
          label = mulle_objc_ivarlist_html_hor_description( ivarlist);
@@ -253,13 +256,13 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
 
       fprintf( fp, "</ol>\n");
    }
-   
-   if( mulle_concurrent_pointerarray_get_count( &cls->propertylists))
+
+   if( infra && mulle_concurrent_pointerarray_get_count( &infra->propertylists))
    {
       print_to_body( "Properties", NULL, fp);
       fprintf( fp, "<ol>\n");
-      
-      rover = mulle_concurrent_pointerarray_enumerate( &cls->propertylists);
+
+      rover = mulle_concurrent_pointerarray_enumerate( &infra->propertylists);
       while( propertylist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
       {
          label = mulle_objc_propertylist_html_description( propertylist);
@@ -270,12 +273,12 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
 
       fprintf( fp, "</ol>\n");
    }
-   
+
    if( mulle_concurrent_pointerarray_get_count( &cls->methodlists))
    {
       print_to_body( "Method Lists", NULL, fp);
       fprintf( fp, "<ol>\n");
-      
+
       rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
       while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
       {
@@ -288,16 +291,17 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
       fprintf( fp, "</ol>\n");
    }
 
+   pair = _mulle_objc_class_get_classpair( cls);
    if( ! (_mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS) &&
-         mulle_concurrent_pointerarray_get_count( &cls->protocolids))
+         mulle_concurrent_pointerarray_get_count( &pair->protocolids))
    {
       print_to_body( "Inherited Protocol Classes", NULL, fp);
       fprintf( fp, "<ol>\n");
-      
-      prover = _mulle_objc_class_enumerate_protocolclasses( cls);
-      while( propertyclass = _mulle_objc_protocolclassenumerator_next( &prover))
+
+      prover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
+      while( prop_cls = _mulle_objc_protocolclassenumerator_next( &prover))
       {
-         label = mulle_objc_class_short_html_description( propertyclass);
+         label = mulle_objc_class_short_html_description( _mulle_objc_infraclass_as_class( prop_cls));
          fprintf( fp, "<li>%s\n", label);
          free( label);
       }
@@ -306,16 +310,16 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
       fprintf( fp, "</ol>\n");
    }
 
-   if( mulle_concurrent_pointerarray_get_count( &cls->protocolids))
+   if( mulle_concurrent_pointerarray_get_count( &pair->protocolids))
    {
-      label = mulle_concurrent_pointerarray_html_description( &cls->protocolids);
+      label = mulle_concurrent_pointerarray_html_description( &pair->protocolids);
       print_to_body( "Conforming to Protocols", label, fp);
       free( label);
    }
 
-   if( mulle_concurrent_pointerarray_get_count( &cls->categoryids))
+   if( mulle_concurrent_pointerarray_get_count( &pair->categoryids))
    {
-      label = mulle_concurrent_pointerarray_html_description( &cls->categoryids);
+      label = mulle_concurrent_pointerarray_html_description( &pair->categoryids);
       print_to_body( "Categories", label, fp);
       free( label);
    }
@@ -344,7 +348,7 @@ static void   print_class( struct _mulle_objc_class *cls, char *directory, int i
 
 static int   callback( struct _mulle_objc_runtime *runtime,
                        void *p,
-                       enum mulle_objc_runtime_type_t type,
+                       enum mulle_objc_walkpointertype_t type,
                        char *key,
                        void *parent,
                        void *userinfo)
@@ -356,49 +360,51 @@ static int   callback( struct _mulle_objc_runtime *runtime,
    assert( p);
 
    if( key)
-      return( mulle_objc_runtime_walk_ok);
+      return( mulle_objc_walk_ok);
 
    info      = userinfo;
    directory = info->directory;
 
    if( c_set_member( &info->set, p))
-      return( mulle_objc_runtime_walk_dont_descend);
+      return( mulle_objc_walk_dont_descend);
    c_set_add( &info->set, p);
 
    switch( type)
    {
-   case mulle_objc_runtime_is_category :
-   case mulle_objc_runtime_is_protocol :
+   case mulle_objc_walkpointer_is_category :
+   case mulle_objc_walkpointer_is_protocol :
+   case mulle_objc_walkpointer_is_classpair :
       break;
 
-   case mulle_objc_runtime_is_runtime  :
+   case mulle_objc_walkpointer_is_runtime  :
       runtime = p;
       print_runtime( runtime, directory);
       break;
 
-   case mulle_objc_runtime_is_class :
+   case mulle_objc_walkpointer_is_infraclass :
       cls = p;
       print_class( cls, directory, 0);
       break;
 
-   case mulle_objc_runtime_is_meta_class :
+   case mulle_objc_walkpointer_is_metaclass :
       cls = p;
       print_class( cls, directory, 1);
       break;
 
-   case mulle_objc_runtime_is_method :
-   case mulle_objc_runtime_is_property :
-   case mulle_objc_runtime_is_ivar :
+   case mulle_objc_walkpointer_is_method :
+   case mulle_objc_walkpointer_is_property :
+   case mulle_objc_walkpointer_is_ivar :
       break;
    }
 
-   return( mulle_objc_runtime_walk_ok);
+   return( mulle_objc_walk_ok);
 }
 
 
 # pragma mark - runtime dump
 
-void   mulle_objc_runtime_dump_as_html_to_directory( struct _mulle_objc_runtime *runtime, char *directory)
+void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *runtime,
+                                                 char *directory)
 {
    struct dump_info  info;
 
@@ -413,14 +419,14 @@ void   mulle_objc_runtime_dump_as_html_to_directory( struct _mulle_objc_runtime 
 }
 
 
-void   mulle_objc_dump_runtime_as_html_to_directory( char *directory)
+void   mulle_objc_htmldump_runtime_to_directory( char *directory)
 {
    struct _mulle_objc_runtime   *runtime;
 
    runtime = mulle_objc_get_runtime();
    if( ! _mulle_objc_runtime_trylock( runtime))
    {
-      mulle_objc_runtime_dump_as_html_to_directory( runtime, directory);
+      mulle_objc_runtime_htmldump_to_directory( runtime, directory);
 
       _mulle_objc_runtime_unlock( runtime);
    }
@@ -432,36 +438,37 @@ void   mulle_objc_dump_runtime_as_html_to_directory( char *directory)
 
 
 // we have no mkdir, chdir getcwd just
-void   mulle_objc_dump_runtime_as_html_to_tmp( void)
+void   mulle_objc_htmldump_runtime_to_tmp( void)
 {
-   mulle_objc_dump_runtime_as_html_to_directory( "/tmp");
+   mulle_objc_htmldump_runtime_to_directory( "/tmp");
 }
 
 
 #pragma mark - class dump
 
-void   mulle_objc_classpair_dump_as_html_to_directory( struct _mulle_objc_classpair *pair,
-                                                      char *directory)
+void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
+                                               char *directory)
 {
-   struct dump_info  info;
-   
+   struct dump_info               info;
+   struct _mulle_objc_classpair   *pair;
+
    c_set_init( &info.set);
    info.directory = directory;
-   
+
+   pair = _mulle_objc_class_get_classpair( cls);
    mulle_objc_classpair_walk( pair, callback, &info);
-   
+
    c_set_done( &info.set);
 }
 
 
-void   mulle_objc_dump_classpair_as_html_to_directory( char *classname,
-                                                       char *directory)
+void   mulle_objc_htmldump_class_to_directory( char *classname,
+                                               char *directory)
 {
    struct _mulle_objc_runtime     *runtime;
-   struct _mulle_objc_class       *cls;
-   struct _mulle_objc_classpair   *pair;
+   struct _mulle_objc_infraclass  *infra;
    mulle_objc_classid_t           classid;
-   
+
    if( ! classname)
    {
       fprintf( stderr, "empty classname\n");
@@ -470,21 +477,19 @@ void   mulle_objc_dump_classpair_as_html_to_directory( char *classname,
 
    runtime = mulle_objc_get_runtime();
    classid = mulle_objc_classid_from_string( classname);
-   cls     = _mulle_objc_runtime_lookup_class( runtime, classid);
-   if( ! cls)
+   infra   = _mulle_objc_runtime_lookup_infraclass( runtime, classid);
+   if( ! infra)
    {
       fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
       return;
    }
-   
+
    if( ! _mulle_objc_runtime_trylock( runtime))
    {
       do
-      {
-         pair = _mulle_objc_class_get_classpair( cls);
-         mulle_objc_classpair_dump_as_html_to_directory( pair, directory);
-      }
-      while( cls = _mulle_objc_class_get_superclass( cls));
+         mulle_objc_class_htmldump_to_directory( _mulle_objc_infraclass_as_class( infra),
+                                                 directory);
+      while( infra = _mulle_objc_infraclass_get_superclass( infra));
 
       _mulle_objc_runtime_unlock( runtime);
    }
@@ -495,8 +500,8 @@ void   mulle_objc_dump_classpair_as_html_to_directory( char *classname,
 }
 
 
-void   mulle_objc_dump_classpair_as_html_to_tmp( char *classname)
+void   mulle_objc_htmldump_class_to_tmp( char *classname)
 {
-   mulle_objc_dump_classpair_as_html_to_directory( classname, "/tmp");
+   mulle_objc_htmldump_class_to_directory( classname, "/tmp");
 }
 

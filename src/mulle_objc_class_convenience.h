@@ -37,9 +37,14 @@
 #define mulle_objc_class_convenience_h__
 
 #include "mulle_objc_class.h"
+#include "mulle_objc_classpair.h"
 #include "mulle_objc_runtime.h"
 #include <mulle_allocator/mulle_allocator.h>
 
+
+// code not used in the runtime, but useful for MulleObjC
+
+#pragma mark - instance creation
 
 MULLE_C_NON_NULL_RETURN
 static inline struct mulle_allocator   *_mulle_objc_class_get_allocator( struct _mulle_objc_class *cls)
@@ -50,6 +55,93 @@ static inline struct mulle_allocator   *_mulle_objc_class_get_allocator( struct 
    runtime    = _mulle_objc_class_get_runtime( cls);
    foundation = _mulle_objc_runtime_get_foundation( runtime);
    return( _mulle_objc_foundation_get_allocator( foundation));
+}
+
+
+MULLE_C_NON_NULL_RETURN
+static inline struct mulle_allocator   *_mulle_objc_infraclass_get_allocator( struct _mulle_objc_infraclass *infra)
+{
+   return( _mulle_objc_class_get_allocator( _mulle_objc_infraclass_as_class( infra)));
+}
+
+
+
+static inline struct _mulle_objc_object   *_mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra, struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_objectheader  *header;
+   struct _mulle_objc_object        *obj;
+
+   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_infraclass_get_allocationsize( infra));
+   obj    = _mulle_objc_objectheader_get_object( header);
+   _mulle_objc_object_set_isa( obj, _mulle_objc_infraclass_as_class( infra));
+   return( obj);
+}
+
+
+static inline struct _mulle_objc_object   *_mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra, size_t extra, struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_objectheader  *header;
+   struct _mulle_objc_object        *obj;
+
+   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_infraclass_get_allocationsize( infra) + extra);
+   if( ! header)
+      return( NULL);
+
+   obj = _mulle_objc_objectheader_get_object( header);
+   _mulle_objc_object_set_isa( obj, _mulle_objc_infraclass_as_class( infra));
+   return( obj);
+}
+
+static inline struct _mulle_objc_object   *mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra, struct mulle_allocator *allocator)
+{
+   if( ! infra)
+      abort();
+   if( ! allocator)
+      allocator = &mulle_default_allocator;
+   return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0, allocator));
+}
+
+
+static inline struct _mulle_objc_object   *mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra, size_t extra, struct mulle_allocator *allocator)
+{
+   if( ! infra)
+      abort();
+   if( ! allocator)
+      allocator = &mulle_default_allocator;
+   return( _mulle_objc_infraclass_alloc_instance_extra( infra, extra, allocator));
+}
+
+
+#pragma mark - instance deletion
+
+static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj, struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_objectheader  *header;
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   mulle_allocator_free( allocator, header);
+}
+
+
+static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj, struct mulle_allocator *allocator)
+{
+   if( ! obj)
+      return;
+   if( ! allocator)
+      allocator = &mulle_default_allocator;
+   _mulle_objc_object_free( obj, allocator);
+}
+
+
+#pragma mark - classpair conveniences
+
+static inline int   _mulle_objc_infraclass_conformsto_protocol( struct _mulle_objc_infraclass *infra,
+   mulle_objc_protocolid_t protocolid)
+{
+   struct _mulle_objc_classpair   *pair;
+
+   pair = _mulle_objc_infraclass_get_classpair( infra);
+   return( _mulle_objc_classpair_conformsto_protocol( pair, protocolid));
 }
 
 #endif /* mulle_objc_class_runtime_h */

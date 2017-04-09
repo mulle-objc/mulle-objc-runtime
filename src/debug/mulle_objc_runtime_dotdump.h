@@ -1,8 +1,8 @@
 //
-//  mulle_objc_ivarlist.c
+//  mulle_objc_runtime_dotdump.h
 //  mulle-objc
 //
-//  Created by Nat! on 13.08.15.
+//  Created by Nat! on 25.10.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2015 Codeon GmbH.
 //  All rights reserved.
@@ -32,65 +32,45 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
+
 //
+
 //
 
-#include "mulle_objc_ivarlist.h"
+#ifndef mulle_objc_runtime_dotdump_h__
+#define mulle_objc_runtime_dotdump_h__
 
-#include <stdlib.h>
-#include <assert.h>
+#include <stdio.h>
 
+struct _mulle_objc_class;
+struct _mulle_objc_runtime;
+struct _mulle_objc_methodlist;
 
-struct _mulle_objc_ivar  *_mulle_objc_ivarlist_linear_search( struct _mulle_objc_ivarlist *list,
-                                                              mulle_objc_ivarid_t ivarid)
-{
-   struct _mulle_objc_ivar   *sentinel;
-   struct _mulle_objc_ivar   *p;
+//
+// dumping to graphviz is nice, if you are dealing with the mulle-objc
+// by itself. But soon it gets too complex for graphviz
+//
 
-   assert( list);
-   assert( ivarid != MULLE_OBJC_NO_IVARID && ivarid != MULLE_OBJC_INVALID_IVARID);
+void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *fp);
 
-   p        = &list->ivars[ 0];
-   sentinel = &p[ list->n_ivars];
+void   mulle_objc_dotdump_runtime( void);
 
-   while( p < sentinel)
-   {
-      if( p->descriptor.ivarid == ivarid)
-         return( p);
-      ++p;
-   }
-
-   return( 0);
-}
+void   mulle_objc_dotdump_runtime_to_file( char *filename);
+void   mulle_objc_dotdump_runtime_to_tmp( void);
 
 
-int   _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
-                                 int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *),
-                                 struct _mulle_objc_infraclass *infra,
-                                 void *userinfo)
-{
-   struct _mulle_objc_ivar   *sentinel;
-   struct _mulle_objc_ivar   *p;
-   int                       rval;
+// dumps the class pairs, but pass in any class meta or infra
+// for convenience
 
-   assert( list);
-
-   p        = &list->ivars[ 0];
-   sentinel = &p[ list->n_ivars];
-
-   while( p < sentinel)
-   {
-      if( rval = (*f)( p, infra, userinfo))
-         return( rval);
-      ++p;
-   }
-
-   return( 0);
-}
+void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
+void   _mulle_objc_class_dotdump( struct _mulle_objc_class *cls, FILE *fp);
+void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls, char *filename);
+void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
 
 
-void    mulle_objc_ivarlist_sort( struct _mulle_objc_ivarlist *list)
-{
-   if( list)
-      mulle_objc_ivar_sort( list->ivars, list->n_ivars);
-}
+# pragma mark - -
+#pragma mark stuff for the debugger
+
+void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list);
+
+#endif

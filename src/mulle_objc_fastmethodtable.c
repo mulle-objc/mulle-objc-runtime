@@ -59,7 +59,7 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
    {
       method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, _mulle_objc_class_get_inheritance( cls));
       if( ! method)
-         method = _mulle_objc_class_unfailing_get_or_search_forwardmethod( cls, methodid);
+         method = _mulle_objc_class_unfailing_getorsearch_forwardmethod( cls, methodid);
 
       imp = _mulle_objc_method_get_implementation( method);
       if( runtime->debug.trace.method_calls)
@@ -138,4 +138,3 @@ void   _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *tab
    _mulle_atomic_pointer_write( &table->methods[22].pointer, _mulle_objc_fastmethodtablefaulthandler_22);
    _mulle_atomic_pointer_write( &table->methods[23].pointer, _mulle_objc_fastmethodtablefaulthandler_23);
 }
-

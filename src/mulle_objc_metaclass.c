@@ -1,10 +1,10 @@
 //
-//  mulle_objc_propertylist.c
+//  mulle_objc_metaclass.c
 //  mulle-objc
 //
-//  Created by Nat! on 23.01.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
+//  Created by Nat! on 17/04/07
+//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,59 +33,43 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle_objc_propertylist.h"
+
+#include "mulle_objc_metaclass.h"
 
 #include "mulle_objc_class.h"
-#include "mulle_objc_runtime.h"
-#include "mulle_objc_callqueue.h"
 
-#include <assert.h>
-#include <stdlib.h>
+#include <mulle_concurrent/mulle_concurrent.h>
+#include <mulle_allocator/mulle_allocator.h>
 
 
-int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                    int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
-                                    struct _mulle_objc_infraclass *infra,
-                                    void *userinfo)
+
+
+# pragma mark - sanity check
+
+int   mulle_objc_metaclass_is_sane( struct _mulle_objc_metaclass *meta)
 {
-   struct _mulle_objc_property   *sentinel;
-   struct _mulle_objc_property   *p;
-   int                           rval;
-
-   assert( list);
-
-   p        = &list->properties[ 0];
-   sentinel = &p[ list->n_properties];
-
-   while( p < sentinel)
+   if( ! meta)
    {
-      if( rval = (*f)( p, infra, userinfo))
-         return( rval);
-      ++p;
+      errno = EINVAL;
+      return( 0);
    }
 
-   return( 0);
+   return( _mulle_objc_class_is_sane( &meta->base));
 }
 
 
-struct _mulle_objc_property  *_mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
-                                                                   mulle_objc_propertyid_t propertyid)
+#pragma mark - walker
+
+mulle_objc_walkcommand_t
+   mulle_objc_metaclass_walk( struct _mulle_objc_metaclass   *meta,
+                               enum mulle_objc_walkpointertype_t  type,
+                               mulle_objc_walkcallback_t   callback,
+                               void *parent,
+                               void *userinfo)
 {
-   struct _mulle_objc_property   *sentinel;
-   struct _mulle_objc_property   *p;
+   mulle_objc_walkcommand_t     cmd;
 
-   assert( list);
-   assert( propertyid != MULLE_OBJC_NO_PROPERTYID && propertyid != MULLE_OBJC_INVALID_PROPERTYID);
-
-   p        = &list->properties[ 0];
-   sentinel = &p[ list->n_properties];
-
-   while( p < sentinel)
-   {
-      if( p->propertyid == propertyid)
-         return( p);
-      ++p;
-   }
-
-   return( 0);
+   cmd = mulle_objc_class_walk( _mulle_objc_metaclass_as_class( meta), type, callback, parent, userinfo);
+   return( cmd);
 }
+

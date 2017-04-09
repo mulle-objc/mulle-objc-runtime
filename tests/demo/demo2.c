@@ -105,7 +105,7 @@ static int   Object_conforms_to_protocol( struct Object *self, mulle_objc_method
    mulle_objc_protocolid_t   protocolid;
 
    protocolid = ((struct { mulle_objc_protocolid_t  protocolid; } *) _params)->protocolid;
-   return( _mulle_objc_class_conformsto_protocol( _mulle_objc_object_get_class( (void *) self),  protocolid));
+   return( _mulle_objc_infraclass_conformsto_protocol( _mulle_objc_object_get_infraclass( (void *) self),  protocolid));
 }
 
 
@@ -235,8 +235,8 @@ struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
 
 int   main( int argc, const char * argv[])
 {
-   struct _mulle_objc_class    *cls;
-   struct _mulle_objc_object   *obj;
+   struct _mulle_objc_infraclass    *cls;
+   struct _mulle_objc_object        *obj;
 
    // windows...
 #if ! defined( __clang__) && ! defined( __GNUC__)
@@ -245,8 +245,8 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Object alloc] init];
 
-   cls = mulle_objc_unfailing_lookup_class( ___Object_classid);
-   obj = mulle_objc_class_alloc_instance( cls, NULL);
+   cls = mulle_objc_unfailing_lookup_infraclass( ___Object_classid);
+   obj = mulle_objc_infraclass_alloc_instance( cls, NULL);
    obj = mulle_objc_object_call( obj, ___init__methodid, NULL);
 
    // if( [obj conformsToProtocol:@protocol( A)])

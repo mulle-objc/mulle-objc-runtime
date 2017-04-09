@@ -47,6 +47,7 @@
 struct _mulle_objc_category;
 struct _mulle_objc_callqueue;
 struct _mulle_objc_class;
+struct _mulle_objc_infraclass;
 struct _mulle_objc_ivarlist;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_propertylist;
@@ -81,7 +82,7 @@ struct _mulle_objc_loadclass
 
    mulle_objc_protocolid_t           *protocolids;
    mulle_objc_classid_t              *protocolclassids;
-   
+
    char                              *origin;
 };
 
@@ -254,7 +255,7 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
 //
 mulle_objc_classid_t   mulle_objc_loadclass_missingclassid( struct _mulle_objc_loadclass *info,
                                                             struct _mulle_objc_runtime *runtime,
-                                                            struct _mulle_objc_class  **p_superclass);
+                                                            struct _mulle_objc_infraclass  **p_superclass);
 
 void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
                                                struct _mulle_objc_callqueue *loads);
@@ -264,13 +265,13 @@ void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *inf
 
 // same for categories
 int   mulle_objc_loadcategory_is_categorycomplete( struct _mulle_objc_loadcategory *info,
-                                                   struct _mulle_objc_class *cls);
+                                                   struct _mulle_objc_infraclass *infra);
 
 mulle_objc_categoryid_t   mulle_objc_loadcategory_missingcategoryid( struct _mulle_objc_loadcategory *info,
-                                                                     struct _mulle_objc_class *cls);
+                                                                     struct _mulle_objc_infraclass *infra);
 mulle_objc_classid_t   mulle_objc_loadcategory_missingclassid( struct _mulle_objc_loadcategory *info,
                                                                struct _mulle_objc_runtime *runtime,
-                                                               struct _mulle_objc_class **p_cls);
+                                                               struct _mulle_objc_infraclass **p_cls);
 
 int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info,
                                         struct _mulle_objc_callqueue *loads);

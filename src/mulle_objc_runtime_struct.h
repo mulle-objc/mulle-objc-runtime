@@ -93,21 +93,21 @@ struct _mulle_objc_runtimedebug
    {
       unsigned   method_searches;      // keep this in an int
 
+      unsigned   method_caches        : 1;
       unsigned   category_adds        : 1;
       unsigned   class_adds           : 1;
       unsigned   class_frees          : 1;
-      unsigned   fastclass_adds       : 1;
-      unsigned   method_calls         : 1;
-      unsigned   delayed_class_adds   : 1;
       unsigned   delayed_category_adds: 1;
-      unsigned   string_adds          : 1;
-      unsigned   tagged_pointers      : 1;
-      unsigned   runtime_config       : 1;
+      unsigned   delayed_class_adds   : 1;
+      unsigned   fastclass_adds       : 1;
       unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
-      unsigned   protocol_adds        : 1;
+      unsigned   loadinfo             : 1;
+      unsigned   method_calls         : 1;
       unsigned   print_origin         : 1; // set by default
-      unsigned   loadinfo             : 1; 
-   } trace;
+      unsigned   protocol_adds        : 1;
+      unsigned   runtime_config       : 1;
+      unsigned   string_adds          : 1;
+      unsigned   tagged_pointers      : 1;   } trace;
 
    struct
    {
@@ -215,7 +215,7 @@ typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_runtime *,
 struct _mulle_objc_foundation
 {
    struct _mulle_objc_runtimefriend    runtimefriend;
-   struct _mulle_objc_class            *staticstringclass;
+   struct _mulle_objc_infraclass       *staticstringclass;
    struct mulle_allocator              allocator;  // allocator for objects
 };
 
@@ -267,9 +267,9 @@ struct _mulle_objc_runtime
    struct mulle_concurrent_pointerarray     staticstrings;
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
-   
+
    struct _mulle_objc_waitqueues            waitqueues;
-   
+
    struct _mulle_objc_fastclasstable        fastclasstable;
    struct _mulle_objc_taggedpointers        taggedpointers;
 
@@ -299,13 +299,18 @@ struct _mulle_objc_runtime
    struct _mulle_objc_runtimeconfig         config;
    struct _mulle_objc_runtimedebug          debug;
 
-   // duplicate zeros, but it dumps nicer
-   struct _mulle_objc_cache                 empty_cache;
-   struct _mulle_objc_methodlist            empty_methodlist;
-   struct _mulle_objc_ivarlist              empty_ivarlist;
-   struct _mulle_objc_propertylist          empty_propertylist;
-
+   // It's all zeroes, so save some space with a union.
+   // it would be "nicer" to have these in a const global
+   // but due to windows, it's nicer to have a few globals
+   // as possible
    //
+   union
+   {
+      struct _mulle_objc_cache           empty_cache;
+      struct _mulle_objc_methodlist      empty_methodlist;
+      struct _mulle_objc_ivarlist        empty_ivarlist;
+      struct _mulle_objc_propertylist    empty_propertylist;
+   };   //
    // this allows the foundation to come up during load without having to do
    // a malloc
    //

@@ -23,14 +23,14 @@ src
 )
 
 set(DEBUG_HEADERS
-src/debug/mulle_objc_runtime_dump_graphviz.h
-src/debug/mulle_objc_runtime_dump_html.h
+src/debug/mulle_objc_runtime_dotdump.h
+src/debug/mulle_objc_runtime_htmldump.h
 )
 
 set(DEBUG_SOURCES
 src/debug/mulle_objc_html.c
-src/debug/mulle_objc_runtime_dump_html.c
-src/debug/mulle_objc_runtime_dump_graphviz.c
+src/debug/mulle_objc_runtime_htmldump.c
+src/debug/mulle_objc_runtime_dotdump.c
 )
 
 
@@ -42,16 +42,20 @@ src/mulle_objc_cache.h
 src/mulle_objc_call.h
 src/mulle_objc_callqueue.h
 src/mulle_objc_class.h
+src/mulle_objc_classpair.h
 src/mulle_objc_class_convenience.h
 src/mulle_objc_class_runtime.h
+src/mulle_objc_class_struct.h
 src/mulle_objc_fastclasstable.h
 src/mulle_objc_fastenumeration.h
 src/mulle_objc_fastmethodtable.h
+src/mulle_objc_infraclass.h
 src/mulle_objc_ivar.h
 src/mulle_objc_ivarlist.h
 src/mulle_objc_kvccache.h
 src/mulle_objc_load.h
 src/mulle_objc_fnv1.h
+src/mulle_objc_metaclass.h
 src/mulle_objc_method.h
 src/mulle_objc_methodlist.h
 src/mulle_objc_object.h
@@ -67,6 +71,7 @@ src/mulle_objc_signature.h
 src/mulle_objc_taggedpointer.h
 src/mulle_objc_try_catch_finally.h
 src/mulle_objc_uniqueid.h
+src/mulle_objc_walktypes.h
 src/mulle_objc_version.h
 ${DEBUG_HEADERS}
 )
@@ -77,14 +82,17 @@ src/mulle_objc_cache.c
 src/mulle_objc_call.c
 src/mulle_objc_callqueue.c
 src/mulle_objc_class.c
+src/mulle_objc_classpair.c
 src/mulle_objc_class_runtime.c
 src/mulle_objc_fastenumeration.c
 src/mulle_objc_fastmethodtable.c
+src/mulle_objc_infraclass.c
 src/mulle_objc_ivar.c
 src/mulle_objc_ivarlist.c
 src/mulle_objc_load.c
 src/mulle_objc_fnv1.c
 src/mulle_objc_kvccache.c
+src/mulle_objc_metaclass.c
 src/mulle_objc_method.c
 src/mulle_objc_methodlist.c
 src/mulle_objc_property.c

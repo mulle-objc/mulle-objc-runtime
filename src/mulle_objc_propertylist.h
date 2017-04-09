@@ -42,7 +42,7 @@
 #include <assert.h>
 
 
-struct _mulle_objc_class;
+struct _mulle_objc_infraclass;
 
 
 struct _mulle_objc_propertylist
@@ -53,12 +53,12 @@ struct _mulle_objc_propertylist
 
 
 int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                   int (*f)( struct _mulle_objc_property *, struct _mulle_objc_class *, void *),
-                                   struct _mulle_objc_class *cls,
+                                   int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
+                                   struct _mulle_objc_infraclass *infra,
                                    void *userinfo);
 
 struct _mulle_objc_property  *_mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
-                                                                   mulle_objc_propertyid_t propertyid);
+                                                                      mulle_objc_propertyid_t propertyid);
 
 static inline struct _mulle_objc_property  *_mulle_objc_propertylist_binary_search( struct _mulle_objc_propertylist *list,
                                                                    mulle_objc_propertyid_t propertyid)
@@ -121,13 +121,13 @@ static inline void  _mulle_objc_propertylistenumerator_done( struct _mulle_objc_
 # pragma mark - API
 
 static inline int   mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                               int (*f)( struct _mulle_objc_property *, struct _mulle_objc_class *, void *),
-                                               struct _mulle_objc_class *cls,
+                                               int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
+                                               struct _mulle_objc_infraclass *infra,
                                                void *userinfo)
 {
    if( ! list || ! f)
       return( -1);
-   return( _mulle_objc_propertylist_walk( list, f, cls, userinfo));
+   return( _mulle_objc_propertylist_walk( list, f, infra, userinfo));
 }
 
 

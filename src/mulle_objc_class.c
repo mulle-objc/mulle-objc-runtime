@@ -8,11 +8,14 @@
 //
 #include "mulle_objc_class.h"
 
+#include "mulle_objc_classpair.h"
+#include "mulle_objc_infraclass.h"
 #include "mulle_objc_ivar.h"
 #include "mulle_objc_ivarlist.h"
 #include "mulle_objc_call.h"
 #include "mulle_objc_callqueue.h"
 #include "mulle_objc_kvccache.h"
+#include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
 #include "mulle_objc_methodlist.h"
 #include "mulle_objc_runtime.h"
@@ -33,6 +36,7 @@ void   *mulle_objc_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid,
 
 # pragma mark - accessor
 
+
 int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned int bit)
 {
    void   *state;
@@ -50,42 +54,6 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned i
    while( ! _mulle_atomic_pointer_compare_and_swap( &cls->state, state, old));
 
    return( 1);
-}
-
-
-int  _mulle_objc_class_set_placeholder( struct _mulle_objc_class *cls,
-                                        struct _mulle_objc_object *obj)
-{
-   assert( _mulle_objc_class_is_infraclass( cls));
-   return( _mulle_atomic_pointer_compare_and_swap( &cls->placeholder.pointer, obj, NULL));
-}
-
-
-int  _mulle_objc_class_set_auxplaceholder( struct _mulle_objc_class *cls,
-                                           struct _mulle_objc_object *obj)
-{
-   struct _mulle_objc_class   *meta;
-
-   assert( _mulle_objc_class_is_infraclass( cls));
-   meta = _mulle_objc_class_get_metaclass( cls);
-   return( _mulle_atomic_pointer_compare_and_swap( &meta->placeholder.pointer, obj, NULL));
-}
-
-
-int  _mulle_objc_class_set_coderversion( struct _mulle_objc_class *cls,
-                                         uintptr_t value)
-{
-   assert( _mulle_objc_class_is_infraclass( cls));
-   return( _mulle_atomic_pointer_compare_and_swap( &cls->coderversion, (void *) value, NULL));
-}
-
-
-// 1: it has worked, 0: someone else was faster
-int   _mulle_objc_class_set_taggedpointerindex( struct _mulle_objc_class *cls,
-                                               unsigned int value)
-{
-   assert( _mulle_objc_class_is_infraclass( cls));
-   return( _mulle_atomic_pointer_compare_and_swap( &cls->taggedpointerindex, (void *) (uintptr_t) value, NULL));
 }
 
 
@@ -109,10 +77,11 @@ static void   *_mulle_objc_call_class_waiting_for_cache( void *obj, mulle_objc_m
 
 void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_class    *meta;
-   struct _mulle_objc_cache    *cache;
-   struct _mulle_objc_method   *initialize;
-   mulle_objc_cache_uint_t     n_entries;
+   struct _mulle_objc_infraclass    *infra;
+   struct _mulle_objc_metaclass     *meta;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_method        *initialize;
+   mulle_objc_cache_uint_t          n_entries;
 
    assert( mulle_objc_class_is_current_thread_registered( cls));
 
@@ -127,7 +96,7 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
    // If it isn't it waits for MULLE_OBJC_CACHE_INITIALIZED to go up.
    //
    // what is tricky is, that cls and metaclass are executing this
-   // singlethreaded, but still cls and metacalss could be in different threads
+   // singlethreaded, but still cls and metaclass could be in different threads
    //
 
    if( ! _mulle_atomic_pointer_compare_and_swap( &cls->thread, (void *) mulle_thread_self(), NULL))
@@ -135,24 +104,35 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
 
    // Singlethreaded block with respect to cls, not meta though!
    {
+      struct _mulle_objc_runtime   *runtime;
+
+      runtime = _mulle_objc_class_get_runtime( cls);
+
       //
       // first do +initialize,  uncached execution
       // track state only in "meta" class
       //
-      meta = _mulle_objc_class_is_metaclass( cls) ? cls : _mulle_objc_class_get_metaclass( cls);
-      if( _mulle_objc_class_set_state_bit( meta, MULLE_OBJC_INITIALIZE_DONE))
+      if( _mulle_objc_class_is_infraclass( cls))
+      {
+         infra = (struct _mulle_objc_infraclass *) cls;
+         meta  = _mulle_objc_infraclass_get_metaclass( infra);
+      }
+      else
+      {
+         meta  = (struct _mulle_objc_metaclass *) cls;
+         infra = _mulle_objc_metaclass_get_infraclass( meta);
+      }
+
+      if( _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
       {
          // this stays "flat", don't grab code from superclass
-         initialize = _mulle_objc_class_search_method( meta, MULLE_OBJC_INITIALIZE_METHODID, NULL, MULLE_OBJC_ANY_OWNER, MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS);
+         initialize = _mulle_objc_class_search_method( &meta->base, MULLE_OBJC_INITIALIZE_METHODID, NULL, MULLE_OBJC_ANY_OWNER, MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS);
          if( initialize)
          {
-            struct _mulle_objc_runtime   *runtime;
-
-            runtime = _mulle_objc_class_get_runtime( cls);
             if( runtime->debug.trace.load_calls)
                fprintf( stderr, "mulle_objc_runtime %p trace: call +[%s initialize]\n", runtime, cls->name);
 
-            (*_mulle_objc_method_get_implementation( initialize))( (struct _mulle_objc_object *) _mulle_objc_class_get_infraclass( meta), MULLE_OBJC_INITIALIZE_METHODID, NULL);
+            (*_mulle_objc_method_get_implementation( initialize))( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
          }
       }
 
@@ -168,17 +148,35 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
          _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
          cls->cachepivot.call2 = mulle_objc_object_call2;
          cls->call             = mulle_objc_object_call_class;
+
+         if( runtime->debug.trace.method_caches)
+            fprintf( stderr, "mulle_objc_runtime %p trace: added cache to %s %08x \"%s\" (%p) with %u entries\n",
+                  runtime,
+                     _mulle_objc_class_get_classtypename( cls),
+                     _mulle_objc_class_get_classid( cls),
+                     _mulle_objc_class_get_name( cls),
+                     cls,
+                     cache->size);
       }
       else
       {
          cls->cachepivot.call2 = mulle_objc_object_call2_empty_cache;
          cls->call             = mulle_objc_object_call_class_empty_cache;
-      }
-   }
 
-   // finally unfreze
-   // threads waiting_for_cache will run now
-   _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED);
+         if( runtime->debug.trace.method_caches)
+            fprintf( stderr, "mulle_objc_runtime %p trace: using always empty cache on %s %08x \"%s\" (%p)\n",
+                  runtime,
+                     _mulle_objc_class_get_classtypename( cls),
+                     _mulle_objc_class_get_classid( cls),
+                     _mulle_objc_class_get_name( cls),
+                     cls);
+      }
+
+      // finally unfreze
+      // threads waiting_for_cache will run now
+
+      _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED);
+   }
 
    //
    // count #caches, if there are zero caches yet, the runtime can be much
@@ -196,44 +194,6 @@ void   *mulle_objc_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid,
 
    cls = _mulle_objc_object_get_isa( (struct _mulle_objc_object *) obj);
    return( _mulle_objc_call_class_needs_cache( obj, methodid, parameter, cls));
-}
-
-# pragma mark - consistency
-
-int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls);
-
-int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
-{
-   //
-   // just check for some glaring errors
-   //
-   if( ! cls || (cls->classid == MULLE_OBJC_NO_CLASSID) || (cls->classid == MULLE_OBJC_INVALID_CLASSID))
-   {
-      errno = EINVAL;
-      return( 0);
-   }
-
-   if( ! cls->name || ! strlen( cls->name))
-   {
-      errno = EINVAL;
-      return( 0);
-   }
-
-   //
-   // make sure the alignment is not off, so it might be treated as a
-   // tagged pointer
-   //
-   if( mulle_objc_taggedpointer_get_index( cls))
-   {
-      errno = EACCES;
-      return( 0);
-   }
-
-   assert( cls->call);
-   assert( cls->cachepivot.call2);
-   assert( mulle_objc_classid_from_string( cls->name) == cls->classid);
-
-   return( 1);
 }
 
 
@@ -266,79 +226,29 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, runtime->empty_cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, runtime->empty_cache.entries);
 
+   _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &runtime->memory.allocator);
+
    _mulle_objc_fastmethodtable_init( &cls->vtab);
 }
 
 
-void    _mulle_objc_class_setup_pointerarrays( struct _mulle_objc_class *cls,
-                                            struct _mulle_objc_runtime *runtime)
-{
-   extern void   *mulle_objc_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
-
-   // initially room for 1 ivars list
-   _mulle_concurrent_pointerarray_init( &cls->ivarlists, 1, &runtime->memory.allocator);
-
-   // initially room for 16 categories
-   _mulle_concurrent_pointerarray_init( &cls->methodlists, 16, &runtime->memory.allocator);
-
-   // initially room for 8 protocols
-   _mulle_concurrent_pointerarray_init( &cls->protocolids, 8, &runtime->memory.allocator);
-
-   // initially room for 2 categories
-   _mulle_concurrent_pointerarray_init( &cls->categoryids, 2, &runtime->memory.allocator);
-
-   // initially room for 2 categories with properties
-   _mulle_concurrent_pointerarray_init( &cls->propertylists, 2, &runtime->memory.allocator);
-}
-
-
-static void   _mulle_objc_class_done( struct _mulle_objc_class *class, struct mulle_allocator *allocator)
+void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
+                               struct mulle_allocator *allocator)
 {
    struct _mulle_objc_cache      *cache;
 
-   assert( class);
+   assert( cls);
    assert( allocator);
 
-   cache = _mulle_objc_cachepivot_atomic_get_cache( &class->cachepivot.pivot);
-   if( cache != &class->runtime->empty_cache)
+   _mulle_objc_fastmethodtable_done( &cls->vtab);
+
+   _mulle_concurrent_pointerarray_done( &cls->methodlists);
+
+   _mulle_objc_class_invalidate_all_kvcinfos( cls);
+
+   cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
+   if( cache != &cls->runtime->empty_cache)
       _mulle_objc_cache_free( cache, allocator);
-
-   _mulle_objc_class_invalidate_all_kvcinfos( class);
-
-   _mulle_concurrent_pointerarray_done( &class->ivarlists);
-   _mulle_concurrent_pointerarray_done( &class->methodlists);
-   _mulle_concurrent_pointerarray_done( &class->protocolids);
-   _mulle_concurrent_pointerarray_done( &class->categoryids);
-   _mulle_concurrent_pointerarray_done( &class->propertylists);
-}
-
-
-void   _mulle_objc_classpair_destroy( struct _mulle_objc_classpair *pair, struct mulle_allocator *allocator)
-{
-   assert( pair);
-   assert( allocator);
-
-   _mulle_concurrent_hashmap_done( &pair->infraclass.cvars);
-
-   _mulle_objc_class_done( &pair->infraclass, allocator);
-   _mulle_objc_class_done( &pair->metaclass, allocator);
-
-   _mulle_allocator_free( allocator, pair);
-}
-
-
-void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair, struct mulle_allocator *allocator)
-{
-   if( ! pair)
-      return;
-
-   if( ! allocator)
-   {
-      errno = EINVAL;
-      _mulle_objc_runtime_raise_fail_errno_exception( __get_or_create_objc_runtime());
-   }
-
-   _mulle_objc_classpair_destroy( pair, allocator);
 }
 
 
@@ -356,7 +266,7 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_search_forwardmetho
 }
 
 
-struct _mulle_objc_method    *_mulle_objc_class_get_or_search_forwardmethod( struct _mulle_objc_class *cls)
+struct _mulle_objc_method    *_mulle_objc_class_getorsearch_forwardmethod( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
 
@@ -396,12 +306,12 @@ static void  _mulle_objc_class_raise_method_not_found( struct _mulle_objc_class 
 
 
 MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_method    *_mulle_objc_class_unfailing_get_or_search_forwardmethod( struct _mulle_objc_class *cls,
+struct _mulle_objc_method    *_mulle_objc_class_unfailing_getorsearch_forwardmethod( struct _mulle_objc_class *cls,
                                                                                mulle_objc_methodid_t   missing_method)
 {
    struct _mulle_objc_method   *method;
 
-   method = _mulle_objc_class_get_or_search_forwardmethod( cls);
+   method = _mulle_objc_class_getorsearch_forwardmethod( cls);
    if( method)
       return( method);
 
@@ -411,17 +321,7 @@ struct _mulle_objc_method    *_mulle_objc_class_unfailing_get_or_search_forwardm
 
 # pragma mark - consistency check
 
-static void   _mulle_objc_class_raise_einval_exception( void)
-{
-   struct _mulle_objc_runtime   *runtime;
-
-   runtime = __get_or_create_objc_runtime();
-   errno = EINVAL;
-   _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-}
-
-
-static int  mulle_objc_classlists_are_sane( struct _mulle_objc_class *cls)
+static int  _mulle_objc_class_methodlists_are_sane( struct _mulle_objc_class *cls)
 {
    void   *storage;
 
@@ -436,39 +336,51 @@ static int  mulle_objc_classlists_are_sane( struct _mulle_objc_class *cls)
    return( 1);
 }
 
+# pragma mark - consistency
 
-static int  mulle_objc_instanceclasslists_are_sane( struct _mulle_objc_class *cls)
+int   __mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
 {
-   void   *storage;
-
-   // need at least one possibly empty ivar list
-   storage = _mulle_atomic_pointer_nonatomic_read( &cls->ivarlists.storage.pointer);
-   if( ! storage || ! mulle_concurrent_pointerarray_get_count( &cls->ivarlists))
+   //
+   // just check for some glaring errors
+   //
+   if( ! cls || (cls->classid == MULLE_OBJC_NO_CLASSID) || (cls->classid == MULLE_OBJC_INVALID_CLASSID))
    {
-      errno = ECHILD;
+      errno = EINVAL;
       return( 0);
    }
 
-   // need at least one possibly empty property list
-   storage = _mulle_atomic_pointer_nonatomic_read( &cls->propertylists.storage.pointer);
-   if( ! storage || ! mulle_concurrent_pointerarray_get_count( &cls->propertylists))
+   if( ! cls->name || ! strlen( cls->name))
    {
-      errno = ECHILD;
+      errno = EINVAL;
       return( 0);
    }
 
-   return( mulle_objc_classlists_are_sane( cls));
+   //
+   // make sure the alignment is not off, so it might be treated as a
+   // tagged pointer
+   //
+   if( mulle_objc_taggedpointer_get_index( cls))
+   {
+      errno = EACCES;
+      return( 0);
+   }
+
+   assert( cls->call);
+   assert( cls->cachepivot.call2);
+   assert( mulle_objc_classid_from_string( cls->name) == cls->classid);
+
+   return( 1);
 }
 
 
-int   mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
+int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_class   *meta;
+   struct _mulle_objc_metaclass   *meta;
 
-   if( ! _mulle_objc_class_is_sane( cls))
+   if( ! __mulle_objc_class_is_sane( cls))
       return( 0);
 
-   if( ! mulle_objc_instanceclasslists_are_sane( cls))
+   if( ! _mulle_objc_class_methodlists_are_sane( cls))
       return( 0);
 
    meta = _mulle_objc_class_get_metaclass( cls);
@@ -478,178 +390,7 @@ int   mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
       return( 0);
    }
 
-   if( ! mulle_objc_classlists_are_sane( meta))
-      return( 0);
-
-   return( meta != cls ? _mulle_objc_class_is_sane( meta) : 1);
-}
-
-
-# pragma mark - ivar lists
-
-int   mulle_objc_class_add_ivarlist( struct _mulle_objc_class *cls,
-                                      struct _mulle_objc_ivarlist *list)
-{
-   if( ! cls)
-   {
-      errno = EINVAL;
-      return( -1);
-   }
-
-   if( ! list)
-      list = &cls->runtime->empty_ivarlist;
-
-   assert( ! _mulle_objc_class_is_metaclass( cls));
-   _mulle_concurrent_pointerarray_add( &cls->ivarlists, list);
-   return( 0);
-}
-
-
-void   mulle_objc_class_unfailing_add_ivarlist( struct _mulle_objc_class *cls,
-                                                 struct _mulle_objc_ivarlist *list)
-{
-   if( mulle_objc_class_add_ivarlist( cls, list))
-      _mulle_objc_runtime_raise_fail_errno_exception( cls->runtime);
-}
-
-# pragma mark - ivars
-
-//
-// doesn't check for duplicates
-//
-struct _mulle_objc_ivar   *_mulle_objc_class_search_ivar( struct _mulle_objc_class *cls,
-                                                          mulle_objc_ivarid_t ivarid)
-{
-   struct _mulle_objc_ivar                            *ivar;
-   struct _mulle_objc_ivarlist                        *list;
-   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
-   unsigned int                                       n;
-
-   n     = mulle_concurrent_pointerarray_get_count( &cls->ivarlists);
-   rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->ivarlists, n);
-
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-   {
-      ivar = _mulle_objc_ivarlist_search( list, ivarid);
-      if( ivar)
-         return( ivar);
-   }
-   mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
-
-   if( ! cls->superclass)
-      return( NULL);
-   return( _mulle_objc_class_search_ivar( cls->superclass, ivarid));
-}
-
-
-struct _mulle_objc_ivar  *mulle_objc_class_search_ivar( struct _mulle_objc_class *cls,
-                                                        mulle_objc_ivarid_t ivarid)
-{
-   assert( ivarid != MULLE_OBJC_NO_IVARID && ivarid != MULLE_OBJC_INVALID_IVARID);
-
-   if( ! cls)
-   {
-      errno = EINVAL;
-      return( NULL);
-   }
-
-   return( _mulle_objc_class_search_ivar( cls, ivarid));
-}
-
-
-# pragma mark - properties
-//
-// doesn't check for duplicates
-//
-struct _mulle_objc_property   *_mulle_objc_class_search_property( struct _mulle_objc_class *cls,
-                                                                  mulle_objc_propertyid_t propertyid)
-{
-   struct _mulle_objc_property                        *property;
-   struct _mulle_objc_propertylist                    *list;
-   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
-   unsigned int                                       n;
-
-   n     = mulle_concurrent_pointerarray_get_count( &cls->propertylists);
-   rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->propertylists, n);
-
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-   {
-      property = _mulle_objc_propertylist_search( list, propertyid);
-      if( property)
-         return( property);
-   }
-   mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
-
-   if( ! cls->superclass)
-      return( NULL);
-   return( _mulle_objc_class_search_property( cls->superclass, propertyid));
-}
-
-
-struct _mulle_objc_property  *mulle_objc_class_search_property( struct _mulle_objc_class *cls,
-                                                             mulle_objc_propertyid_t propertyid)
-{
-   assert( propertyid != MULLE_OBJC_NO_PROPERTYID && propertyid != MULLE_OBJC_INVALID_PROPERTYID);
-
-   if( ! cls)
-   {
-      errno = EINVAL;
-      return( NULL);
-   }
-
-   return( _mulle_objc_class_search_property( cls, propertyid));
-}
-
-
-
-int   mulle_objc_class_add_propertylist( struct _mulle_objc_class *cls,
-                                         struct _mulle_objc_propertylist *list)
-{
-   struct _mulle_objc_propertylistenumerator   rover;
-   struct _mulle_objc_property                 *property;
-   mulle_objc_propertyid_t                     last;
-
-   if( ! cls)
-   {
-      errno = EINVAL;
-      return( -1);
-   }
-
-   assert( ! _mulle_objc_class_is_metaclass( cls));
-
-   if( ! list)
-      list = &cls->runtime->empty_propertylist;
-
-   /* register instance methods */
-   last  = MULLE_OBJC_MIN_UNIQUEID - 1;
-   rover = _mulle_objc_propertylist_enumerate( list);
-   while( property = _mulle_objc_propertylistenumerator_next( &rover))
-   {
-      assert( property->propertyid != MULLE_OBJC_NO_PROPERTYID && property->propertyid != MULLE_OBJC_INVALID_PROPERTYID);
-      //
-      // properties must be sorted by propertyid, so we can binary search them
-      // (in the future)
-      //
-      if( last > property->propertyid)
-      {
-         errno = EDOM;
-         return( -1);
-      }
-      last = property->propertyid;
-   }
-
-   _mulle_objc_propertylistenumerator_done( &rover);
-
-   _mulle_concurrent_pointerarray_add( &cls->propertylists, list);
-   return( 0);
-}
-
-
-void   mulle_objc_class_unfailing_add_propertylist( struct _mulle_objc_class *cls,
-                                                    struct _mulle_objc_propertylist *list)
-{
-   if( mulle_objc_class_add_propertylist( cls, list))
-      _mulle_objc_runtime_raise_fail_errno_exception( cls->runtime);
+   return( 1);
 }
 
 
@@ -661,6 +402,7 @@ static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class 
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
    struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_runtime      *runtime;
 
    assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
 
@@ -679,23 +421,32 @@ static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class 
    // just swap out the current cache, place a fresh cache in there
    //
    _mulle_objc_class_add_entry_by_swapping_caches( cls, cache, NULL, MULLE_OBJC_NO_UNIQUEID);
+
+   runtime = _mulle_objc_class_get_runtime( cls);
+   if( runtime->debug.trace.method_caches)
+      fprintf( stderr, "mulle_objc_runtime %p trace: invalidate cache of %s %08x \"%s\" (%p)\n",
+                  runtime,
+                     _mulle_objc_class_get_classtypename( cls),
+                     _mulle_objc_class_get_classid( cls),
+                     _mulle_objc_class_get_name( cls),
+                     cls);
    return( 0x1);
 }
 
 
 static int  invalidate_caches( struct _mulle_objc_runtime *runtime,
                                struct _mulle_objc_class *cls,
-                               enum mulle_objc_runtime_type_t type,
+                               enum mulle_objc_walkpointertype_t type,
                                char *key,
                                void *parent,
-                              struct _mulle_objc_methodlist *list)
+                               struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;
    struct _mulle_objc_method                 *method;
 
    // preferably nothing there yet
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED))
-      return( mulle_objc_runtime_walk_ok);
+      return( mulle_objc_walk_ok);
 
    _mulle_objc_class_invalidate_all_kvcinfos( cls);
 
@@ -706,7 +457,7 @@ static int  invalidate_caches( struct _mulle_objc_runtime *runtime,
          break;
    _mulle_objc_methodlistenumerator_done( &rover);
 
-   return( mulle_objc_runtime_walk_ok);
+   return( mulle_objc_walk_ok);
 }
 
 
@@ -803,305 +554,6 @@ void   mulle_objc_class_unfailing_add_methodlist( struct _mulle_objc_class *cls,
 }
 
 
-# pragma mark - categories
-
-static int  print_category( mulle_objc_protocolid_t categoryid,
-                            struct _mulle_objc_class *cls,
-                            void *userinfo)
-{
-   fprintf( stderr, "\t%08x \"%s\"\n", categoryid, mulle_objc_string_for_categoryid( categoryid));
-   return( 0);
-}
-
-
-void   mulle_objc_class_unfailing_add_category( struct _mulle_objc_class *cls,
-                                                mulle_objc_categoryid_t categoryid)
-{
-   struct _mulle_objc_runtime   *runtime;
-   
-   if( ! cls)
-      _mulle_objc_class_raise_einval_exception();
-
-   if( categoryid == MULLE_OBJC_NO_CATEGORYID || categoryid == MULLE_OBJC_INVALID_CATEGORYID)
-      _mulle_objc_class_raise_einval_exception();
-
-   // adding a category is very bad
-   if( _mulle_objc_class_has_category( cls, categoryid))
-      _mulle_objc_class_raise_einval_exception();
-
-   runtime = _mulle_objc_class_get_runtime( cls);
-   if( runtime->debug.trace.category_adds)
-      fprintf( stderr, "mulle_objc_runtime %p trace: add category %08x \"%s\" to %sclass %08x \"%s\"\n",
-               runtime,
-               categoryid,
-                mulle_objc_string_for_categoryid( categoryid),
-               _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
-               _mulle_objc_class_get_classid( cls),
-               _mulle_objc_class_get_name( cls));
-
-   _mulle_objc_class_add_category( cls, categoryid);
-}
-
-
-int   _mulle_objc_class_walk_categoryids( struct _mulle_objc_class *cls,
-                                          int (*f)( mulle_objc_categoryid_t, struct _mulle_objc_class *, void *),
-                                          void *userinfo)
-{
-   int                                         rval;
-   mulle_objc_categoryid_t                     categoryid;
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   void                                        *value;
-
-   rover = mulle_concurrent_pointerarray_enumerate( &cls->protocolids);
-   while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover))
-   {
-      categoryid = (mulle_objc_categoryid_t) (uintptr_t) value; // fing warning
-      if( rval = (*f)( categoryid, cls, userinfo))
-      {
-         if( rval < 0)
-            errno = ENOENT;
-         return( rval);
-      }
-   }
-   return( 0);
-}
-
-
-# pragma mark - protocols
-
-static char  footer[] = "(so it is not used as protocol class)\n";
-
-static int  print_protocol( mulle_objc_protocolid_t protocolid,
-                            struct _mulle_objc_class *cls,
-                            void *userinfo)
-{
-   fprintf( stderr, "\t%08x \"%s\"\n", protocolid, mulle_objc_string_for_protocolid( protocolid));
-   return( 0);
-}
-
-
-//
-// must be root, must conform to own protocol, must not have ivars
-// must not conform to other protocols (it's tempting to conform to NSObject)
-// If you conform to NSObject, NSObject methods will override your superclass(!)
-//
-int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_runtime   *runtime;
-   int                          is_NSObject;
-   int                          has_categories;
-   int                          has_more_protocols;
-   
-   if( ! cls)
-      return( 0);
-
-   runtime = _mulle_objc_class_get_runtime( cls);
-
-   if( _mulle_objc_class_get_superclass( cls))
-   {
-      if( runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol of same name, but it is not a root class %s",
-                    runtime,
-                    _mulle_objc_class_get_classtypename( cls),
-                    cls->name,
-                    footer);
-      }
-      return( 0);
-   }
-
-   if( cls->allocationsize > sizeof( struct _mulle_objc_objectheader))
-   {
-      if( runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol of the same name"
-                 ", but implements instance variables %s",
-                   runtime,
-                   _mulle_objc_class_get_classtypename( cls),
-                   cls->name,
-                   footer);
-      }
-      return( 0);
-   }
-
-   if( ! _mulle_objc_class_conformsto_protocol( cls, cls->classid))
-   {
-      if( runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" matches a protocol but does not conform to it %s",
-                    runtime,
-                    _mulle_objc_class_get_classtypename( cls),
-                    cls->name,
-                    footer);
-      }
-      return( 0);
-   }
-
-   has_categories     = mulle_concurrent_pointerarray_get_count( &cls->categoryids) != 0;
-   has_more_protocols = mulle_concurrent_pointerarray_get_count( &cls->protocolids) != 1;
-
-   // quick check before going into more detail
-   if( ! has_categories && ! has_more_protocols)
-      return( 1);
-
-
-   is_NSObject = ! strcmp( cls->name, "NSObject");
-
-   if( has_more_protocols)
-   {
-      if( is_NSObject || runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-         {
-            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\" conforms to a protocol but also conforms to other protocols %s",
-                    runtime,
-                    _mulle_objc_class_get_classid( cls),
-                    _mulle_objc_class_get_name( cls),
-                    footer);
-
-            fprintf( stderr, "Protocols:\n");
-            _mulle_objc_class_walk_protocolids( cls, print_protocol, NULL);
-         }
-         if( is_NSObject)
-            _mulle_objc_runtime_raise_inconsistency_exception( runtime, "multiple protocols on NSObject is fatal for #mulle_objc");
-      }
-      return( 0);
-   }
-
-   if( is_NSObject || ! runtime->debug.warn.protocol_class)
-      return( 1);
-   
-   //
-   // check if someone bolted on categories to the protocol. In theory
-   // it's OK, but them not being picked up might be a point of
-   // confusion (On NSObject though it's OK)
-   //
-   if( _mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
-   {
-      if( _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_WARN_PROTOCOL))
-      {
-         fprintf( stderr, "mulle_objc_runtime %p warning: %s \"%s\" conforms to a protocol but has gained some categories, which will be ignored.\n",
-                 runtime,
-                 _mulle_objc_class_get_classtypename( cls),
-                 cls->name);
-         
-         fprintf( stderr, "Categories:\n");
-         _mulle_objc_class_walk_categoryids( cls, print_category, NULL);
-      }
-   }
-
-   return( 1);
-}
-
-
-void   _mulle_objc_class_add_protocol( struct _mulle_objc_class *cls,
-                                       mulle_objc_protocolid_t protocolid)
-{
-   assert( cls);
-   assert( protocolid != MULLE_OBJC_NO_PROTOCOLID);
-   assert( protocolid != MULLE_OBJC_INVALID_PROTOCOLID);
-
-   // adding the same protocol again is harmless and ignored
-   // but don't search class hierarchy, so don't use conformsto
-
-   if( ! _mulle_objc_class_has_protocol( cls, protocolid))
-      _mulle_concurrent_pointerarray_add( &cls->protocolids, (void *) (uintptr_t) protocolid);
-}
-
-
-void   mulle_objc_class_unfailing_add_protocols( struct _mulle_objc_class *cls,
-                                                 mulle_objc_protocolid_t *protocolids)
-{
-   mulle_objc_protocolid_t      protocolid;
-   struct _mulle_objc_runtime   *runtime;
-   
-   if( ! cls)
-      _mulle_objc_class_raise_einval_exception();
-
-   if( ! protocolids)
-      return;
-
-   runtime = _mulle_objc_class_get_runtime( cls);
-
-   while( protocolid = *protocolids++)
-   {
-      if( protocolid == MULLE_OBJC_NO_PROTOCOLID || protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
-         _mulle_objc_class_raise_einval_exception();
-
-      if( _mulle_objc_class_has_protocol( cls, protocolid))
-         continue;
-
-      if( runtime->debug.trace.protocol_adds)
-         fprintf( stderr, "mulle_objc_runtime %p trace: add protocol %08x \"%s\" to %sclass %08x \"%s\"\n",
-                 runtime,
-                 protocolid,
-                 mulle_objc_string_for_protocolid( protocolid),
-                 _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
-                 _mulle_objc_class_get_classid( cls),
-                 _mulle_objc_class_get_name( cls));
-
-      _mulle_objc_class_add_protocol( cls, protocolid);
-   }
-}
-
-
-int   _mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid)
-{
-   int   rval;
-
-   rval = _mulle_objc_class_has_protocol( cls, protocolid);
-   if( rval)
-      return( rval);
-
-   if( ! (cls->inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
-   {
-      if( cls->superclass && cls->superclass != cls)
-      {
-         rval = _mulle_objc_class_conformsto_protocol( cls->superclass, protocolid);
-         if( rval)
-            return( rval);
-      }
-   }
-
-   /* should query protocols too ? */
-
-   return( rval);
-}
-
-
-struct _mulle_objc_class  *_mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
-{
-   struct _mulle_objc_class     *cls;
-   struct _mulle_objc_class     *proto_cls;
-   struct _mulle_objc_runtime   *runtime;
-   mulle_objc_protocolid_t      uniqueid;
-   void                         *value;
-
-   proto_cls  = NULL;
-
-   cls     = _mulle_objc_protocolclassenumerator_get_class( rover);
-   runtime = _mulle_objc_class_get_runtime( cls);
-
-   while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover->list_rover))
-   {
-      uniqueid = (mulle_objc_protocolid_t) (uintptr_t) value;
-      if( rover->cls->classid == uniqueid)  // don't recurse into self
-         continue;
-
-      proto_cls = _mulle_objc_runtime_lookup_class( runtime, uniqueid);
-      if( ! mulle_objc_class_is_protocol_class( proto_cls))
-         continue;
-
-      if( _mulle_objc_class_is_metaclass( cls))
-         proto_cls = _mulle_objc_class_get_metaclass( proto_cls);
-      break;
-   }
-   return( proto_cls);
-}
-
 
 static int   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *cls,
                                                       unsigned int inheritance,
@@ -1109,17 +561,29 @@ static int   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *
                                                       void *userinfo)
 {
    int                                          rval;
-   struct _mulle_objc_class                     *proto_cls;
+   struct _mulle_objc_class                     *walk_cls;
+   struct _mulle_objc_infraclass                *infra;
+   struct _mulle_objc_infraclass                *proto_cls;
+   struct _mulle_objc_classpair                 *pair;
    struct _mulle_objc_protocolclassenumerator   rover;
+   int                                          is_meta;
 
-   rval  = 0;
-   rover = _mulle_objc_class_enumerate_protocolclasses( cls);
+   rval    = 0;
+   pair    = _mulle_objc_class_get_classpair( cls);
+   infra   = _mulle_objc_classpair_get_infraclass( pair);
+   is_meta = _mulle_objc_class_is_metaclass( cls);
+
+   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
    while( proto_cls = _mulle_objc_protocolclassenumerator_next( &rover))
    {
-      if( proto_cls == cls)
+      if( proto_cls == infra)
          continue;
 
-      if( rval = _mulle_objc_class_walk_methods( proto_cls, inheritance | proto_cls->inheritance, f, userinfo))
+      walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
+      if( is_meta)
+         walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
+
+      if( rval = _mulle_objc_class_walk_methods( walk_cls, inheritance | walk_cls->inheritance, f, userinfo))
          break;
    }
    _mulle_objc_protocolclassenumerator_done( &rover);
@@ -1132,22 +596,33 @@ static struct _mulle_objc_method  *_mulle_objc_class_protocol_search_method( str
                                                                              mulle_objc_methodid_t methodid,
                                                                              struct _mulle_objc_method *previous,
                                                                              void *owner,
-                                                                            unsigned int inheritance)
+                                                                             unsigned int inheritance)
 {
-   struct _mulle_objc_class                     *proto_cls;
+   struct _mulle_objc_classpair                 *pair;
+   struct _mulle_objc_infraclass                *infra;
+   struct _mulle_objc_class                     *walk_cls;
+   struct _mulle_objc_infraclass                *proto_cls;
    struct _mulle_objc_protocolclassenumerator   rover;
    struct _mulle_objc_method                    *found;
    struct _mulle_objc_method                    *method;
+   int                                          is_meta;
 
-   found = NULL;
+   pair   = _mulle_objc_class_get_classpair( cls);
+   infra  = _mulle_objc_classpair_get_infraclass( pair);
+   found  = NULL;
+   is_meta = _mulle_objc_class_is_metaclass( cls);
 
-   rover = _mulle_objc_class_enumerate_protocolclasses( cls);
+   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
    while( proto_cls = _mulle_objc_protocolclassenumerator_next( &rover))
    {
-      if( proto_cls == cls)
+      if( proto_cls == infra)
          continue;
 
-      method = _mulle_objc_class_search_method( proto_cls, methodid, previous, owner, inheritance | proto_cls->inheritance);
+      walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
+      if( is_meta)
+         walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
+
+      method = _mulle_objc_class_search_method( walk_cls, methodid, previous, owner, inheritance | walk_cls->inheritance);
       if( method)
       {
          if( found)
@@ -1171,20 +646,33 @@ static struct _mulle_objc_method  *_mulle_objc_class_protocol_search_method( str
 }
 
 
-static unsigned int   _mulle_objc_class_protocols_count_preload_methods( struct _mulle_objc_class *cls)
+static unsigned int   _mulle_objc_class_count_protocolspreloadinstancemethods( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_class                     *proto_cls;
+   struct _mulle_objc_class                     *walk_cls;
+   struct _mulle_objc_classpair                 *pair;
+   struct _mulle_objc_infraclass                *proto_cls;
+   struct _mulle_objc_infraclass                *infra;
    struct _mulle_objc_protocolclassenumerator   rover;
    unsigned int                                 preloads;
+   int                                          is_meta;
 
    preloads = 0;
 
-   rover = _mulle_objc_class_enumerate_protocolclasses( cls);
+   pair    = _mulle_objc_class_get_classpair( cls);
+   infra   = _mulle_objc_classpair_get_infraclass( pair);
+   rover   = _mulle_objc_classpair_enumerate_protocolclasses( pair);
+   is_meta = _mulle_objc_class_is_metaclass( cls);
+
    while( proto_cls = _mulle_objc_protocolclassenumerator_next( &rover))
    {
-      if( proto_cls == cls)
+      if( proto_cls == infra)
          continue;
-      preloads += _mulle_objc_class_count_preload_methods( proto_cls);
+
+      walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
+      if( is_meta)
+         walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
+
+      preloads += _mulle_objc_class_count_preloadmethods( walk_cls);
    }
    _mulle_objc_protocolclassenumerator_done( &rover);
 
@@ -1194,7 +682,7 @@ static unsigned int   _mulle_objc_class_protocols_count_preload_methods( struct 
 
 # pragma mark - methods
 
-unsigned int   _mulle_objc_class_count_preload_methods( struct _mulle_objc_class *cls)
+unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_class   *dad;
    unsigned int               preloads;
@@ -1204,11 +692,11 @@ unsigned int   _mulle_objc_class_count_preload_methods( struct _mulle_objc_class
    {
       dad = cls;
       while( dad = dad->superclass)
-         preloads += _mulle_objc_class_count_preload_methods( dad);
+         preloads += _mulle_objc_class_count_preloadmethods( dad);
    }
 
    if( ! (cls->inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
-      preloads += _mulle_objc_class_protocols_count_preload_methods( cls);
+      preloads += _mulle_objc_class_count_protocolspreloadinstancemethods( cls);
 
    return( preloads);
 }
@@ -1268,111 +756,6 @@ int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned in
          return( _mulle_objc_class_walk_methods( cls->superclass, inheritance, f, userinfo));
    }
 
-   return( 0);
-}
-
-
-typedef   int (*mulle_objc_walk_ivars_callback)( struct _mulle_objc_ivar *, struct _mulle_objc_class *, void *);
-
-int   _mulle_objc_class_walk_ivars( struct _mulle_objc_class *cls, unsigned int inheritance , mulle_objc_walk_ivars_callback f, void *userinfo)
-{
-   int                                               rval;
-   struct _mulle_objc_ivarlist                       *list;
-   struct mulle_concurrent_pointerarrayreverseenumerator  rover;
-   unsigned int                                      n;
-
-   // todo: need to lock class
-
-   // only enable first (@implementation of class) on demand
-   //  ->[0]    : implementation
-   //  ->[1]    : category
-   //  ->[n -1] : last category
-
-   n = mulle_concurrent_pointerarray_get_count( &cls->ivarlists);
-   assert( n);
-   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
-      n = 1;
-
-   rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->ivarlists, n);
-
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-   {
-      if( rval = _mulle_objc_ivarlist_walk( list, f, cls, userinfo))
-      {
-         if( rval < 0)
-            errno = ENOENT;
-         return( rval);
-      }
-   }
-
-   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
-   {
-      if( cls->superclass && cls->superclass != cls)
-         return( _mulle_objc_class_walk_ivars( cls->superclass, inheritance, f, userinfo));
-   }
-
-   return( 0);
-}
-
-
-typedef   int (*mulle_objc_walk_properties_callback)( struct _mulle_objc_property *, struct _mulle_objc_class *, void *);
-
-int   _mulle_objc_class_walk_properties( struct _mulle_objc_class *cls, unsigned int inheritance , mulle_objc_walk_properties_callback f, void *userinfo)
-{
-   int                                                rval;
-   struct _mulle_objc_propertylist                    *list;
-   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
-   unsigned int                                       n;
-
-   // todo: need to lock class
-
-   // only enable first (@implementation of class) on demand
-   //  ->[0]    : implementation
-   //  ->[1]    : category
-   //  ->[n -1] : last category
-
-   n = mulle_concurrent_pointerarray_get_count( &cls->propertylists);
-   assert( n);
-   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
-      n = 1;
-
-   rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->propertylists, n);
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-   {
-      if( rval = _mulle_objc_propertylist_walk( list, f, cls, userinfo))
-         return( rval);
-   }
-
-   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
-   {
-      if( cls->superclass && cls->superclass != cls)
-         return( _mulle_objc_class_walk_properties( cls->superclass, inheritance, f, userinfo));
-   }
-
-   return( 0);
-}
-
-
-int   _mulle_objc_class_walk_protocolids( struct _mulle_objc_class *cls,
-                                          int (*f)( mulle_objc_protocolid_t, struct _mulle_objc_class *, void *),
-                                          void *userinfo)
-{
-   int                                         rval;
-   mulle_objc_propertyid_t                     propertyid;
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   void                                        *value;
-
-   rover = mulle_concurrent_pointerarray_enumerate( &cls->protocolids);
-   while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover))
-   {
-      propertyid = (mulle_objc_propertyid_t) (uintptr_t) value; // fing warning
-      if( rval = (*f)( propertyid, cls, userinfo))
-      {
-         if( rval < 0)
-            errno = ENOENT;
-         return( rval);
-      }
-   }
    return( 0);
 }
 
@@ -1588,123 +971,53 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
 #pragma mark - debug supprt
 
 
-static inline int   is_stopper_command( mulle_objc_runtime_walkcommand_t cmd)
-{
-   switch( cmd)
-   {
-      case mulle_objc_runtime_walk_error  :
-      case mulle_objc_runtime_walk_done   :
-      case mulle_objc_runtime_walk_cancel :
-         return( 1);
-         
-      default :
-         return( 0);
-   }
-}
-
-
 
 struct bouncy_info
 {
-   void                               *userinfo;
-   struct _mulle_objc_runtime         *runtime;
-   void                               *parent;
-   mulle_objc_runtime_walkcallback    callback;
-   mulle_objc_runtime_walkcommand_t   rval;
+   void                          *userinfo;
+   struct _mulle_objc_runtime    *runtime;
+   void                          *parent;
+   mulle_objc_walkcallback_t     callback;
+   mulle_objc_walkcommand_t      rval;
 };
 
 
-static int   bouncy_method( struct _mulle_objc_method *method, struct _mulle_objc_class *cls, void *userinfo)
+static int   bouncy_method( struct _mulle_objc_method *method,
+                            struct _mulle_objc_class *cls,
+                            void *userinfo)
 {
    struct bouncy_info   *info;
-   
+
    info       = userinfo;
-   info->rval = (info->callback)( info->runtime, method, mulle_objc_runtime_is_method, NULL, cls, info->userinfo);
-   return( is_stopper_command( info->rval));
-}
-
-
-static int   bouncy_property( struct _mulle_objc_property *property, struct _mulle_objc_class *cls, void *userinfo)
-{
-   struct bouncy_info   *info;
-   
-   info       = userinfo;
-   info->rval = (info->callback)( info->runtime, property, mulle_objc_runtime_is_property, NULL, cls, info->userinfo);
-   return( is_stopper_command( info->rval));
-}
-
-
-static int   bouncy_ivar( struct _mulle_objc_ivar *ivar, struct _mulle_objc_class *cls, void *userinfo)
-{
-   struct bouncy_info   *info;
-   
-   info       = userinfo;
-   info->rval = (info->callback)( info->runtime, ivar, mulle_objc_runtime_is_ivar, NULL, cls, info->userinfo);
-   return( is_stopper_command( info->rval));
+   info->rval = (info->callback)( info->runtime, method, mulle_objc_walkpointer_is_method, NULL, cls, info->userinfo);
+   return( mulle_objc_walkcommand_is_stopper( info->rval));
 }
 
 
 // don't expose, because it's bit too weird
 
-mulle_objc_runtime_walkcommand_t
-mulle_objc_class_walk( struct _mulle_objc_class   *cls,
-                      enum mulle_objc_runtime_type_t  type,
-                      mulle_objc_runtime_walkcallback   callback,
-                      void *parent,
-                      void *userinfo);
-
-mulle_objc_runtime_walkcommand_t
-mulle_objc_class_walk( struct _mulle_objc_class   *cls,
-                      enum mulle_objc_runtime_type_t  type,
-                      mulle_objc_runtime_walkcallback   callback,
-                      void *parent,
-                      void *userinfo)
+mulle_objc_walkcommand_t
+   mulle_objc_class_walk( struct _mulle_objc_class   *cls,
+                          enum mulle_objc_walkpointertype_t  type,
+                          mulle_objc_walkcallback_t   callback,
+                          void *parent,
+                          void *userinfo)
 {
-   struct _mulle_objc_runtime         *runtime;
-   mulle_objc_runtime_walkcommand_t   cmd;
-   struct bouncy_info                 info;
-   
+   struct _mulle_objc_runtime   *runtime;
+   mulle_objc_walkcommand_t     cmd;
+   struct bouncy_info           info;
+
    runtime = _mulle_objc_class_get_runtime( cls);
    cmd     = (*callback)( runtime, cls, type, NULL, parent, userinfo);
-   if( cmd != mulle_objc_runtime_walk_ok)
+   if( cmd != mulle_objc_walk_ok)
       return( cmd);
-   
+
    info.callback = callback;
    info.parent   = parent;
    info.userinfo = userinfo;
    info.runtime  = runtime;
-   
+
    cmd = _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), bouncy_method, &info);
-   if( cmd != mulle_objc_runtime_walk_ok)
-      return( cmd);
-   
-   cmd = _mulle_objc_class_walk_properties( cls, _mulle_objc_class_get_inheritance( cls), bouncy_property, &info);
-   if( cmd != mulle_objc_runtime_walk_ok)
-      return( cmd);
-   
-   cmd = _mulle_objc_class_walk_ivars( cls, _mulle_objc_class_get_inheritance( cls), bouncy_ivar, &info);
-   return( cmd);
-}
-
-
-mulle_objc_runtime_walkcommand_t
-    mulle_objc_classpair_walk( struct _mulle_objc_classpair *pair,
-                               mulle_objc_runtime_walkcallback callback,
-                               void *userinfo)
-{
-   mulle_objc_runtime_walkcommand_t   cmd;
-   struct _mulle_objc_class           *infra;
-   struct _mulle_objc_class           *meta;
-   struct _mulle_objc_runtime         *runtime;
-   
-   infra   = _mulle_objc_classpair_get_infraclass( pair);
-   runtime = _mulle_objc_class_get_runtime( infra);
-   cmd = mulle_objc_class_walk( infra, mulle_objc_runtime_is_class, callback, runtime, userinfo);
-   if( is_stopper_command( cmd))
-      return( cmd);
-   
-   meta = _mulle_objc_classpair_get_metaclass( pair);
-   cmd = mulle_objc_class_walk( meta, mulle_objc_runtime_is_meta_class, callback, infra, userinfo);
    return( cmd);
 }
 

@@ -42,6 +42,9 @@
 #include <mulle_c11/mulle_c11.h>
 
 
+struct _mulle_objc_infraclass   *infra;
+
+
 #define MULLE_OBJC_S_FASTCLASSES    32
 
 //
@@ -60,16 +63,16 @@ struct _mulle_objc_fastclasstable
 
 
 MULLE_C_NON_NULL_RETURN
-static inline struct _mulle_objc_class   *mulle_objc_fastclasstable_unfailing_get( struct _mulle_objc_fastclasstable *table, unsigned int i)
+static inline struct _mulle_objc_infraclass   *mulle_objc_fastclasstable_unfailing_get_infraclass( struct _mulle_objc_fastclasstable *table, unsigned int i)
 {
    extern int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
-   struct _mulle_objc_class   *cls;
+   struct _mulle_objc_infraclass   *infra;
 
-   cls = (struct _mulle_objc_class *) _mulle_atomic_pointer_read( &table->classes[ i].pointer);
+   infra = (struct _mulle_objc_infraclass *) _mulle_atomic_pointer_read( &table->classes[ i].pointer);
 
-   assert( cls);
-   assert( mulle_objc_class_is_current_thread_registered( cls));
-   return( cls);
+   assert( infra);
+   assert( mulle_objc_class_is_current_thread_registered( (void *) infra));
+   return( infra);
 }
 
 

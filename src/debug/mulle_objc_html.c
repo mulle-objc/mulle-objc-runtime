@@ -47,7 +47,7 @@ static char   *html_escape( char *s)
 {
    if( ! strchr( s, '&'))
       return( s);
-   
+
    return( "*bad HTML*");
 }
 
@@ -212,37 +212,46 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *c
    size_t         len;
    char           *s;
    char           *tmp[ 7];
-   unsigned int   i;
+   unsigned int   i, n;
 
+   i = 0;
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
+   asprintf( &tmp[ i++],
             "<TABLE>\n<TR><TD COLSPAN=\"2\" BGCOLOR=\"%s\"><FONT COLOR=\"white\">%s</FONT></TD></TR>\n",
             color, cls->name);
-   asprintf( &tmp[ 1],
+   asprintf( &tmp[ i++],
             "<TR><TD>allocationsize</TD><TD>%lu</TD></TR>\n",
             cls->allocationsize);
 
    s = inheritance_description( _mulle_objc_class_get_inheritance( cls));
-   asprintf( &tmp[ 2],
+   asprintf( &tmp[ i++],
             "<TR><TD>inheritance</TD><TD>%s</TD></TR>\n",
             s);
    free( s);
 
-   asprintf( &tmp[ 3],
+   asprintf( &tmp[ i++],
             "<TR><TD>state</TD><TD>0x%lx</TD></TR>\n",
             (long) _mulle_atomic_pointer_nonatomic_read( &cls->state));
-   asprintf( &tmp[ 4],
-            "<TR><TD>ivarhash</TD><TD>0x%lx</TD></TR>\n",
-            (long) cls->ivarhash);
 
-   asprintf( &tmp[ 5],
+   if ( _mulle_objc_class_is_infraclass( cls))
+   {
+      struct _mulle_objc_infraclass   *infra;
+
+      infra = _mulle_objc_class_as_infraclass( cls);
+      asprintf( &tmp[ i++],
+               "<TR><TD>ivarhash</TD><TD>0x%lx</TD></TR>\n",
+               (long) infra->ivarhash);
+   }
+
+   asprintf( &tmp[ i++],
             "<TR><TD>preloads</TD><TD>0x%x</TD></TR>\n",
             cls->preloads);
-   asprintf( &tmp[ 6],
+   asprintf( &tmp[ i++],
             "</TABLE>");
 
    len = 0;
-   for( i = 0; i < sizeof( tmp) / sizeof( char *); i++)
+   n   = i;
+   for( i = 0; i < n; i++)
       len += strlen( tmp[ i]);
 
    // concatenate all strings
@@ -250,7 +259,7 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *c
    s = malloc( len + 1);
    s[ 0] = 0;
 
-   for( i = 0; i < sizeof( tmp) / sizeof( char *); i++)
+   for( i = 0; i < n; i++)
    {
       strcat( s, tmp[ i]);
       free( tmp[ i]);
@@ -258,6 +267,7 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *c
 
    return( s);
 }
+
 
 
 char  *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list)

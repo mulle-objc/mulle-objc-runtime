@@ -39,7 +39,10 @@
 #define mulle_objc_call_h__
 
 #include "mulle_objc_class.h"
+#include "mulle_objc_classpair.h"
 #include "mulle_objc_cache.h"
+#include "mulle_objc_infraclass.h"
+#include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
 #include "mulle_objc_object.h"
 
@@ -217,7 +220,7 @@ static inline void   *_mulle_objc_class_call_classid( struct _mulle_objc_class *
    struct _mulle_objc_runtime *runtime;
 
    runtime  = _mulle_objc_class_get_runtime( cls);
-   call_cls = _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
+   call_cls = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid);
    // need to call cls->call to prepare caches
    return( (*call_cls->call)( cls, methodid, parameter, call_cls));
 }
@@ -244,40 +247,42 @@ static inline void   *mulle_objc_class_call_classid( struct _mulle_objc_class *c
 // this is used for calling super on class methods, the classid is determined by
 // the compiler since it is a super call, self is known to be non-nil.
 //
-static inline void   *_mulle_objc_class_inline_metacall_classid( struct _mulle_objc_class *cls,
-                                                                 mulle_objc_methodid_t methodid,
-                                                                 void *parameter,
-                                                                 mulle_objc_classid_t classid)
+static inline void   *_mulle_objc_infraclass_inline_metacall_classid( struct _mulle_objc_infraclass *infra,
+                                                                      mulle_objc_methodid_t methodid,
+                                                                      void *parameter,
+                                                                      mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_class     *call_cls;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_infraclass   *call_infra;
+   struct _mulle_objc_metaclass    *call_meta;
+   struct _mulle_objc_runtime      *runtime;
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   call_cls = (cls->superclassid == classid)
-               ? cls->superclass
-               : _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
-   call_cls = _mulle_objc_class_get_metaclass( call_cls);
+   runtime    = _mulle_objc_infraclass_get_runtime( infra);
+   call_infra = (struct _mulle_objc_infraclass *) infra->base.superclass;
+   if( infra->base.superclassid != classid)
+      call_infra = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid);
+
+   call_meta = _mulle_objc_infraclass_get_metaclass( call_infra);
    // need to call cls->call to prepare caches
-   return( (*call_cls->call)( cls, methodid, parameter, call_cls));
+   return( (*call_meta->base.call)( &infra->base, methodid, parameter, &call_meta->base));
 }
 
 
-static inline void   *mulle_objc_class_inline_metacall_classid( struct _mulle_objc_class *cls,
-                                                                mulle_objc_methodid_t methodid,
-                                                                void *parameter,
-                                                                mulle_objc_classid_t classid)
+static inline void   *mulle_objc_infraclass_inline_metacall_classid( struct _mulle_objc_infraclass *infra,
+                                                                     mulle_objc_methodid_t methodid,
+                                                                     void *parameter,
+                                                                     mulle_objc_classid_t classid)
 {
 
-   if( ! cls)
-      return( cls);
-   return( _mulle_objc_class_inline_metacall_classid( cls, methodid, parameter, classid));
+   if( ! infra)
+      return( infra);
+   return( _mulle_objc_infraclass_inline_metacall_classid( infra, methodid, parameter, classid));
 }
 
 
-void   *mulle_objc_class_metacall_classid( struct _mulle_objc_class *cls,
-                                           mulle_objc_methodid_t methodid,
-                                           void *parameter,
-                                           mulle_objc_classid_t classid);
+void   *mulle_objc_infraclass_metacall_classid( struct _mulle_objc_infraclass *infra,
+                                                mulle_objc_methodid_t methodid,
+                                                void *parameter,
+                                                 mulle_objc_classid_t classid);
 
 
 //
@@ -289,15 +294,19 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
                                                               void *parameter,
                                                               mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_class     *call_cls;
-   struct _mulle_objc_class     *cls;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_class        *call_cls;
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *call_infra;
+   struct _mulle_objc_runtime      *runtime;
 
    cls      = _mulle_objc_object_get_isa( obj);
-   runtime  = _mulle_objc_class_get_runtime( cls);
-   call_cls = (cls->superclassid == classid)
-               ? cls->superclass
-               : _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, classid);
+   call_cls = cls->superclass;
+   if( cls->superclassid != classid)
+   {
+      runtime    = _mulle_objc_class_get_runtime( cls);
+      call_infra = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid);
+      call_cls   = _mulle_objc_infraclass_as_class( call_infra);
+   }
    // need to call cls->call to prepare caches
    return( (*call_cls->call)( obj, methodid, parameter, call_cls));
 }
@@ -309,7 +318,7 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
 
 unsigned int  _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_class *cls);
 unsigned int  _mulle_objc_class_convenient_methodcache_size( struct _mulle_objc_class *cls);
-void          _mulle_objc_class_fill_inactivecache_with_preload_methods( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache);
+void          _mulle_objc_class_fill_inactivecache_with_preloadmethods( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache);
 void          _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache, mulle_objc_methodid_t *methodids, unsigned int n);
 
 // internal, call

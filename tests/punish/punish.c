@@ -450,10 +450,14 @@ struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
 }
 
 
+// punish is supposed to punish the runtime a system a bit
+// with something, this test doesn't do really much though
+// it seems ? Probably an aborted attempt...
+
 int   main( int argc, const char * argv[])
 {
-   struct _mulle_objc_class    *cls;
-   struct _mulle_objc_object   *obj;
+   struct _mulle_objc_infraclass    *cls;
+   struct _mulle_objc_object        *obj;
 
    // windows...
 #if ! defined( __clang__) && ! defined( __GNUC__)
@@ -461,8 +465,8 @@ int   main( int argc, const char * argv[])
 #endif
    // obj = [[Foo alloc] init];
 
-   cls = mulle_objc_unfailing_lookup_class( ___Foo_classid);
-   obj = mulle_objc_class_alloc_instance( cls, NULL);
+   cls = mulle_objc_unfailing_lookup_infraclass( ___Foo_classid);
+   obj = mulle_objc_infraclass_alloc_instance( cls, NULL);
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 
    // [obj setA:18 b:48];

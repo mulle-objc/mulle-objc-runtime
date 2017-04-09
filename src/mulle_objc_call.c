@@ -77,7 +77,7 @@ mulle_objc_cache_uint_t  _mulle_objc_class_convenient_methodcache_size( struct _
    mulle_objc_cache_uint_t    preloads;
 
    // these are definitely in the cache
-   preloads = _mulle_objc_class_count_preload_methods( cls) + _mulle_objc_runtime_number_of_preload_methods( cls->runtime);
+   preloads = _mulle_objc_class_count_preloadmethods( cls) + _mulle_objc_runtime_number_of_preloadmethods( cls->runtime);
 
    // just a heuristic
    total  = 0;
@@ -145,9 +145,9 @@ struct _mulle_objc_cacheentry  *_mulle_objc_class_add_entry_by_swapping_caches( 
    // fill it up with preload messages and place our method there too
    // now for good measure
 
-   if( _mulle_objc_class_count_preload_methods( cls))
-      _mulle_objc_class_fill_inactivecache_with_preload_methods( cls, cache);
-   if( _mulle_objc_runtime_number_of_preload_methods( cls->runtime))
+   if( _mulle_objc_class_count_preloadmethods( cls))
+      _mulle_objc_class_fill_inactivecache_with_preloadmethods( cls, cache);
+   if( _mulle_objc_runtime_number_of_preloadmethods( cls->runtime))
       _mulle_objc_class_preload_inactivecache( cls, cache);
 
    entry = NULL;
@@ -159,9 +159,19 @@ struct _mulle_objc_cacheentry  *_mulle_objc_class_add_entry_by_swapping_caches( 
    //
    assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) != mulle_objc_get_runtime()->empty_cache.entries);
 
-   // if the seap fails, then someone else was faster
+   // if the set fails, then someone else was faster
    if( _mulle_objc_cachepivot_atomic_set_entries( &cls->cachepivot.pivot, cache->entries, old_cache->entries))
    {
+      struct _mulle_objc_runtime   *runtime;
+
+      runtime = _mulle_objc_class_get_runtime( cls);
+      if( runtime->debug.trace.method_caches)
+         fprintf( stderr, "mulle_objc_runtime %p trace: increased cache of %s %08x \"%s\" to %u entries\n",
+                 runtime,
+                 _mulle_objc_class_get_classtypename( cls),
+                 _mulle_objc_class_get_classid( cls),
+                 _mulle_objc_class_get_name( cls),
+                 cache->size);
       _mulle_objc_cache_free( cache, &cls->runtime->memory.allocator); // sic, can be unsafe deleted now
       return( NULL);
    }
@@ -174,7 +184,10 @@ struct _mulle_objc_cacheentry  *_mulle_objc_class_add_entry_by_swapping_caches( 
 
 
 MULLE_C_NEVER_INLINE
-static struct _mulle_objc_cacheentry   *_mulle_objc_class_fill_cache_with_method( struct _mulle_objc_class *cls, struct _mulle_objc_method *method, mulle_objc_methodid_t methodid)
+static struct _mulle_objc_cacheentry   *
+    _mulle_objc_class_fill_cache_with_method( struct _mulle_objc_class *cls,
+                                              struct _mulle_objc_method *method,
+                                              mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entry;
@@ -241,14 +254,14 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
    if( desc)
       fprintf( stderr, "[::] %c[%s %s] (%s@%p)\n",
             _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-            _mulle_objc_class_get_name( _mulle_objc_object_get_class( obj)),
+            _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)),
             desc->name,
             _mulle_objc_class_get_name( cls),
             imp);
    else
       fprintf( stderr, "[::] %c[%s #%08x] (%s@%p)\n",
             _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-            _mulle_objc_class_get_name( _mulle_objc_object_get_class( obj)),
+            _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)),
             methodid,
             _mulle_objc_class_get_name( cls),
             imp);
@@ -262,9 +275,9 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
 //
 MULLE_C_NEVER_INLINE
 static void   *_mulle_objc_object_unfailing_call_methodid( void *obj,
-                                                          mulle_objc_methodid_t methodid,
-                                                          void *parameter,
-                                                          struct  _mulle_objc_class *cls)
+                                                           mulle_objc_methodid_t methodid,
+                                                           void *parameter,
+                                                           struct  _mulle_objc_class *cls)
 {
    mulle_objc_methodimplementation_t   imp;
    struct _mulle_objc_runtime          *runtime;
@@ -307,7 +320,7 @@ static int  preload( struct _mulle_objc_method *method, struct _mulle_objc_class
 
 
 
-void   _mulle_objc_class_fill_inactivecache_with_preload_methods( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache)
+void   _mulle_objc_class_fill_inactivecache_with_preloadmethods( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache)
 {
    _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), (int(*)()) preload, cache);
 }
@@ -447,7 +460,7 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_or_search_methodimp
    method = mulle_objc_class_search_method( cls, methodid);
    if( ! method)
    {
-      method = _mulle_objc_class_get_or_search_forwardmethod( cls);
+      method = _mulle_objc_class_getorsearch_forwardmethod( cls);
       if( ! method)
          return( NULL);
    }
@@ -477,7 +490,7 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementatio
 
    method = mulle_objc_class_search_method( cls, methodid);
    if( ! method)
-      method = _mulle_objc_class_get_or_search_forwardmethod( cls);
+      method = _mulle_objc_class_getorsearch_forwardmethod( cls);
 
    if( method)
    {
@@ -515,26 +528,35 @@ mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation(
                                                                                  int debug)
 {
    struct _mulle_objc_class            *cls;
-   struct _mulle_objc_class            *meta;
+   struct _mulle_objc_metaclass        *meta;
    struct _mulle_objc_runtime          *runtime;
+   struct _mulle_objc_infraclass       *found;
    struct _mulle_objc_class            *call_cls;
    mulle_objc_methodimplementation_t   imp;
 
    if( debug)
       fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, cls_or_classid, is_classid);
 
+   if( ! obj || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
+      return( 0);
+
    // ensure class init
    cls  = is_meta ? obj : _mulle_objc_object_get_isa( obj);
-   meta = _mulle_objc_class_is_metaclass( cls) ? cls : _mulle_objc_class_get_metaclass( cls);
-   if( ! _mulle_objc_class_get_state_bit( meta, MULLE_OBJC_INITIALIZE_DONE))
+   meta = _mulle_objc_class_is_metaclass( cls)
+               ? (struct _mulle_objc_metaclass *) cls
+               : _mulle_objc_class_get_metaclass( cls);
+   if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
       mulle_objc_object_call( cls, MULLE_OBJC_CLASS_METHODID, NULL);
 
    if( is_classid)
    {
       runtime  = _mulle_objc_class_get_runtime( cls);
-      call_cls = _mulle_objc_runtime_unfailing_get_or_lookup_class( runtime, (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
+      found    = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime,
+                                (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
       if( is_meta)
-         call_cls = _mulle_objc_class_get_metaclass( call_cls);
+         call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));
+      else
+         call_cls = _mulle_objc_infraclass_as_class( found);
    }
    else
       call_cls = cls_or_classid;
@@ -633,7 +655,7 @@ void   *mulle_objc_object_call_uncached_class( void *obj,  mulle_objc_methodid_t
 
    method = mulle_objc_class_search_method( cls, methodid);
    if( ! method)
-      method = _mulle_objc_class_unfailing_get_or_search_forwardmethod( cls, methodid);
+      method = _mulle_objc_class_unfailing_getorsearch_forwardmethod( cls, methodid);
    return( (*_mulle_objc_method_get_implementation( method))( obj, methodid, parameter));
 }
 
@@ -723,14 +745,14 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
 }
 
 
-void   *mulle_objc_class_metacall_classid( struct _mulle_objc_class *cls,
-                                           mulle_objc_methodid_t methodid,
-                                           void *parameter,
-                                           mulle_objc_classid_t classid)
+void   *mulle_objc_infraclass_metacall_classid( struct _mulle_objc_infraclass *infra,
+                                                mulle_objc_methodid_t methodid,
+                                                void *parameter,
+                                                mulle_objc_classid_t classid)
 {
-   if( ! cls)
-      return( cls);
-   return( _mulle_objc_class_inline_metacall_classid( cls, methodid, parameter, classid));
+   if( ! infra)
+      return( infra);
+   return( _mulle_objc_infraclass_inline_metacall_classid( infra, methodid, parameter, classid));
 }
 
 
