@@ -7,14 +7,15 @@ very similiar, it makes sense to read this introduction to classes:
 
 Nevertheless here are some definitions:
 
-class      : A class is one of a classpair
-classpair  : A classpair consists of an infraclass and a metaclass.
-infraclass : Often just synonym with class, this holds the methods for instances (like -dealloc)
-metaclass  : This holds the methods for classes (+alloc)
-superclass : The class a class inherits from (`@interface Foo : Bar  // Bar is the superclass`)
-protocol   : A protocol is a unique id, that tags a classpair. You can ask a class
-             if it conforms to a protocol (has this tag)
-category   : An extension of a classpair, that adds methods to it
+Term       | Definition
+-----------|-------------------------------------------
+class      | A class is one of a classpair
+classpair  | A classpair consists of an infraclass and a metaclass.
+infraclass | Often just synonym with class, this holds the methods for instances (like -dealloc)
+metaclass  | This holds the methods for classes (+alloc)
+superclass | The class a class inherits from (`@interface Foo : Bar  // Bar is the superclass`)
+protocol   | A protocol is a unique id, that tags a classpair. You can ask a class if it conforms to a protocol (has this tag)
+category   | An extension of a classpair, that adds methods to it
 
 
 ## Functions
