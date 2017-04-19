@@ -107,7 +107,9 @@ struct _mulle_objc_runtimedebug
       unsigned   protocol_adds        : 1;
       unsigned   runtime_config       : 1;
       unsigned   string_adds          : 1;
-      unsigned   tagged_pointers      : 1;   } trace;
+      unsigned   tagged_pointers      : 1;
+      unsigned   dump_runtime         : 1;  // hefty, set manually
+   } trace;
 
    struct
    {
@@ -238,9 +240,9 @@ struct _mulle_objc_taggedpointers
 
 struct _mulle_objc_waitqueues
 {
-   mulle_thread_mutex_t                     lock;  // used for
-   struct mulle_concurrent_hashmap          classestoload;
-   struct mulle_concurrent_hashmap          categoriestoload;
+   mulle_thread_mutex_t              lock;  // used for
+   struct mulle_concurrent_hashmap   classestoload;
+   struct mulle_concurrent_hashmap   categoriestoload;
 };
 
 #define S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE   1024
@@ -314,10 +316,10 @@ struct _mulle_objc_runtime
    // this allows the foundation to come up during load without having to do
    // a malloc
    //
-   struct _mulle_objc_runtimefriend         userinfo;    // for user programs
-   struct _mulle_objc_foundation            foundation;  // for foundation
+   struct _mulle_objc_runtimefriend      userinfo;    // for user programs
+   struct _mulle_objc_foundation         foundation;  // for foundation
 
-   intptr_t                                 foundationspace[ S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE / sizeof( intptr_t)];
+   intptr_t                              foundationspace[ S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE / sizeof( intptr_t)];
 };
 
 

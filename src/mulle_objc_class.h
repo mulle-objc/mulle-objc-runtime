@@ -32,7 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
+//
 
 #ifndef mulle_objc_class_h__
 #define mulle_objc_class_h__
@@ -354,19 +354,6 @@ static inline struct _mulle_objc_metaclass   *mulle_objc_class_get_metaclass( st
 {
    return( cls ? _mulle_objc_class_get_metaclass( cls) : 0);
 }
-
-
-
-# pragma mark - API properties
-
-struct _mulle_objc_property  *mulle_objc_class_search_property( struct _mulle_objc_class *cls,
-                                                                mulle_objc_propertyid_t propertyid);
-
-
-# pragma mark - API ivars
-
-struct _mulle_objc_ivar  *mulle_objc_class_search_ivar( struct _mulle_objc_class *cls,
-                                                        mulle_objc_ivarid_t ivarid);
 
 
 

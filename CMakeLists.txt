@@ -19,7 +19,8 @@ endif()
 
 
 include_directories(
-src
+   src
+   src/debug
 )
 
 set(DEBUG_HEADERS

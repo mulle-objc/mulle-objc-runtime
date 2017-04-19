@@ -134,6 +134,12 @@ static inline struct _mulle_objc_infraclass   *_mulle_objc_infraclass_get_superc
 }
 
 
+static inline struct _mulle_objc_infraclass   *mulle_objc_infraclass_get_superclass( struct _mulle_objc_infraclass *infra)
+{
+   return( infra ?  (struct _mulle_objc_infraclass *) infra->base.superclass : NULL);
+}
+
+
 static inline unsigned int   _mulle_objc_infraclass_get_inheritance( struct _mulle_objc_infraclass *infra)
 {
    return( infra->base.inheritance);
