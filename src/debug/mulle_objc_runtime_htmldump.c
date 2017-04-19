@@ -121,6 +121,22 @@ static void  print_end_and_close( FILE *fp)
 
 # pragma mark - walker runtime callback
 
+static struct _mulle_objc_colored_string    classtable_title =
+{
+   "classes",
+   "black",
+   "white"
+};
+
+
+static struct _mulle_objc_colored_string    descriptortable_title =
+{
+   "classes",
+   "black",
+   "white"
+};
+
+
 static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
 {
    char                                             *label;
@@ -133,11 +149,13 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    print_to_body( "Values", label, fp);
    free( label);
 
-   label = mulle_concurrent_hashmap_html_description( &runtime->classtable, (char *(*)()) mulle_objc_class_short_html_description);
+   label = mulle_concurrent_hashmap_html_description( &runtime->classtable,
+                                                      mulle_objc_class_html_row_description,
+                                                      &classtable_title);
    print_to_body( "Classes", label, fp);
    free( label);
 
-
+ 
    print_to_body( "Fast Classes", NULL, fp);
    fprintf( fp, "<ol>\n");
    for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
@@ -151,7 +169,9 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    fprintf( fp, "</ol>\n");
 
 
-   label = mulle_concurrent_hashmap_html_description( &runtime->descriptortable, (char *(*)()) mulle_objc_methoddescriptor_html_hor_description);
+   label = mulle_concurrent_hashmap_html_description( &runtime->descriptortable,
+                                                      mulle_objc_methoddescriptor_html_row_description,
+                                                      &descriptortable_title);
    print_to_body( "Descriptor Table", label, fp);
    free( label);
 
@@ -192,6 +212,22 @@ struct dump_info
 {
    c_set  set;
    char   *directory;
+};
+
+
+static struct _mulle_objc_colored_string    categorytable_title =
+{
+   "categories",
+   "black",
+   "white"
+};
+
+
+static struct _mulle_objc_colored_string    protocoltable_title =
+{
+   "protocols",
+   "black",
+   "white"
 };
 
 
@@ -312,14 +348,17 @@ static void   _print_class( struct _mulle_objc_class *cls, FILE *fp, int is_meta
 
    if( mulle_concurrent_pointerarray_get_count( &pair->protocolids))
    {
-      label = mulle_concurrent_pointerarray_html_description( &pair->protocolids);
-      print_to_body( "Conforming to Protocols", label, fp);
+      label = mulle_objc_protocols_html_description( &pair->protocolids,
+                                                     &protocoltable_title);
+      print_to_body( "Protocols", label, fp);
       free( label);
    }
 
    if( mulle_concurrent_pointerarray_get_count( &pair->categoryids))
    {
-      label = mulle_concurrent_pointerarray_html_description( &pair->categoryids);
+      label = mulle_objc_categories_html_description( &pair->protocolids,
+                                                     &categorytable_title);
+      
       print_to_body( "Categories", label, fp);
       free( label);
    }
