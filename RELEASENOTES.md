@@ -17,6 +17,8 @@ now resides in MulleObjC.
 * With mulle_objc_check_runtimewaitqueues you can see if clases or categories are "stuck" waiting for dependencies
 * `mulle_objc_object_get_retaincount` now returns a human readable number. 
 Ask the header for the raw value (if its not a tagged pointer)
+* significantly improved the graphviz dumper to be more useable for bigger
+runtime environments. The code is still too messy though.
 
 #### New Environment Variables
 

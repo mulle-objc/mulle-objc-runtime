@@ -247,6 +247,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
    }
 
    runtime->debug.trace.runtime_config     = getenv_yes_no( "MULLE_OBJC_TRACE_RUNTIME_CONFIG");
+   runtime->debug.trace.dump_runtime       = getenv_yes_no( "MULLE_OBJC_TRACE_DUMP_RUNTIME");
    runtime->debug.trace.category_adds      = getenv_yes_no( "MULLE_OBJC_TRACE_CATEGORY_ADDS");
    runtime->debug.trace.class_adds         = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_ADDS");
    runtime->debug.trace.class_frees        = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_FREES");
@@ -265,6 +266,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
    runtime->debug.trace.delayed_category_adds = getenv_yes_no( "MULLE_OBJC_TRACE_DELAYED_CLASS_ADDS");
 
    // don't trace method search and calls, per default... too expensive
+   // also don't dump, per default
    if( getenv_yes_no( "MULLE_OBJC_TRACE_ENABLED"))
    {
       runtime->debug.trace.category_adds         = 1;

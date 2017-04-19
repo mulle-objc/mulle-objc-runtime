@@ -44,6 +44,7 @@
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_runtime.h"
+#include "mulle_objc_runtime_dotdump.h"
 
 
 #include <mulle_concurrent/mulle_concurrent.h>
@@ -382,6 +383,9 @@ void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *inf
    if( mulle_objc_runtime_add_infraclass( runtime, infra))
       _mulle_objc_runtime_raise_fail_exception( runtime, "error in mulle_objc_runtime %p: duplicate class %08x \"%s\".\n", runtime, infra->base.classid, infra->base.name);
 
+   if( runtime->debug.trace.dump_runtime)
+      mulle_objc_dotdump_runtime_to_tmp();
+   
    //
    // check if categories or classes are waiting for us ?
    //
@@ -789,6 +793,9 @@ void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategor
    // this queues things up
    mulle_objc_methodlist_unfailing_add_load_to_callqueue( info->classmethods, meta, loads);
 
+   if( runtime->debug.trace.dump_runtime)
+      mulle_objc_dotdump_runtime_to_tmp();
+
    //
    // retrigger "special" categories, that are waiting for their dependencies
    //
@@ -1049,6 +1056,7 @@ static void   call_load( struct _mulle_objc_metaclass *meta,
 //
 // this is function called per .o file
 //
+
 void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
 {
    struct _mulle_objc_runtime         *runtime;
@@ -1057,7 +1065,6 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    int                                load_tps;
    int                                mismatch;
    uintptr_t                          bits;
-
    assert( info);
 
    runtime = __get_or_create_objc_runtime();
@@ -1170,8 +1177,13 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    // load strings in first, can be done unlocked
    if( info->loadstringlist)
       mulle_objc_loadstringlist_unfailing_enqueue( info->loadstringlist);
+   if( runtime->debug.trace.dump_runtime)
+      mulle_objc_dotdump_runtime_to_tmp();
+   
    if( info->loadhashedstringlist)
       mulle_objc_loadhashedstringlist_unfailing_enqueue( info->loadhashedstringlist, need_sort);
+   if( runtime->debug.trace.dump_runtime)
+      mulle_objc_dotdump_runtime_to_tmp();
 
    _mulle_objc_runtime_waitqueues_lock( runtime);
    {
