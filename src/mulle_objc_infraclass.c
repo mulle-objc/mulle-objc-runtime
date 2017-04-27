@@ -378,9 +378,7 @@ int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *inf
 }
 
 
-
-
-# pragma mark - protocol class check
+# pragma mark - infraclass walking
 
 static int  print_category( mulle_objc_protocolid_t categoryid,
                             struct _mulle_objc_classpair *pair,
@@ -400,138 +398,6 @@ static int  print_protocol( mulle_objc_protocolid_t protocolid,
 {
    fprintf( stderr, "\t%08x \"%s\"\n", protocolid, mulle_objc_string_for_protocolid( protocolid));
    return( 0);
-}
-
-
-
-//
-// must be root, must conform to own protocol, must not have ivars
-// must not conform to other protocols (it's tempting to conform to NSObject)
-// If you conform to NSObject, NSObject methods will override your superclass(!)
-//
-int    mulle_objc_infraclass_is_protocol_class( struct _mulle_objc_infraclass *infra)
-{
-   struct _mulle_objc_runtime    *runtime;
-   struct _mulle_objc_classpair  *pair;
-   int                           is_NSObject;
-   int                           has_categories;
-   int                           has_more_protocols;
-   unsigned int                  inheritance;
-
-   if( ! infra)
-      return( 0);
-
-   runtime = _mulle_objc_infraclass_get_runtime( infra);
-
-   if( _mulle_objc_infraclass_get_superclass( infra))
-   {
-      if( runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" "
-                             "matches a protocol of same name, but it is "
-                             "not a root class %s",
-                    runtime,
-                    _mulle_objc_infraclass_get_name( infra),
-                    footer);
-      }
-      return( 0);
-   }
-
-   if( infra->base.allocationsize > sizeof( struct _mulle_objc_objectheader))
-   {
-      if( runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol of the same name"
-                 ", but implements instance variables %s",
-                   runtime,
-                    _mulle_objc_infraclass_get_name( infra),
-                   footer);
-      }
-      return( 0);
-   }
-
-   pair = _mulle_objc_infraclass_get_classpair( infra);
-
-   if( ! _mulle_objc_classpair_conformsto_protocol( pair,
-                                                    _mulle_objc_infraclass_get_classid( infra)))
-   {
-      if( runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol but does not conform to it %s",
-                    runtime,
-                    _mulle_objc_infraclass_get_name( infra),
-                    footer);
-      }
-      return( 0);
-   }
-
-   has_categories     = mulle_concurrent_pointerarray_get_count( &pair->categoryids) != 0;
-   has_more_protocols = mulle_concurrent_pointerarray_get_count( &pair->protocolids) != 1;
-
-   // quick check before going into more detail
-   if( ! has_categories && ! has_more_protocols)
-      return( 1);
-
-
-   is_NSObject = ! strcmp( _mulle_objc_infraclass_get_name( infra), "NSObject");
-
-   if( has_more_protocols)
-   {
-      if( is_NSObject || runtime->debug.warn.protocol_class)
-      {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-         {
-            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\" "
-                             "conforms to a protocol but also conforms to other "
-                             "protocols %s",
-                    runtime,
-                    _mulle_objc_infraclass_get_classid( infra),
-                    _mulle_objc_infraclass_get_name( infra),
-                    footer);
-
-            fprintf( stderr, "Protocols:\n");
-            _mulle_objc_classpair_walk_protocolids( pair,
-                                                    print_protocol,
-                                                    NULL);
-         }
-
-         if( is_NSObject)
-            _mulle_objc_runtime_raise_inconsistency_exception( runtime,
-                 "multiple protocols on NSObject is fatal for #mulle_objc");
-      }
-      return( 0);
-   }
-
-   if( is_NSObject || ! runtime->debug.warn.protocol_class)
-      return( 1);
-
-   //
-   // check if someone bolted on categories to the protocol. In theory
-   // it's OK, but them not being picked up might be a point of
-   // confusion (On NSObject though it's OK)
-   //
-   inheritance = _mulle_objc_class_get_inheritance( _mulle_objc_infraclass_as_class( infra));
-   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
-   {
-      if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-      {
-         fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" conforms "
-                          "to a protocol but has gained some categories, which "
-                          "will be ignored.\n",
-                 runtime,
-                 _mulle_objc_infraclass_get_name( infra));
-
-         fprintf( stderr, "Categories:\n");
-         _mulle_objc_classpair_walk_categoryids( pair,
-                                                 print_category,
-                                                 NULL);
-      }
-   }
-
-   return( 1);
 }
 
 
@@ -605,6 +471,140 @@ mulle_objc_walkcommand_t
    cmd = _mulle_objc_infraclass_walk_ivars( infra, _mulle_objc_infraclass_get_inheritance( infra), bouncy_ivar, &info);
    return( cmd);
 }
+
+
+# pragma mark - protocolclass check
+
+//
+// must be root, must conform to own protocol, must not have ivars
+// must not conform to other protocols (it's tempting to conform to NSObject)
+// If you conform to NSObject, NSObject methods will override your superclass(!)
+//
+int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_classpair  *pair;
+   int                           is_NSObject;
+   int                           has_categories;
+   int                           has_more_protocols;
+   unsigned int                  inheritance;
+
+   if( ! infra)
+      return( 0);
+
+   runtime = _mulle_objc_infraclass_get_runtime( infra);
+
+   if( _mulle_objc_infraclass_get_superclass( infra))
+   {
+      if( runtime->debug.warn.protocolclass)
+      {
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" "
+                             "matches a protocol of same name, but it is "
+                             "not a root class %s",
+                    runtime,
+                    _mulle_objc_infraclass_get_name( infra),
+                    footer);
+      }
+      return( 0);
+   }
+
+   if( infra->base.allocationsize > sizeof( struct _mulle_objc_objectheader))
+   {
+      if( runtime->debug.warn.protocolclass)
+      {
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol of the same name"
+                 ", but implements instance variables %s",
+                   runtime,
+                    _mulle_objc_infraclass_get_name( infra),
+                   footer);
+      }
+      return( 0);
+   }
+
+   pair = _mulle_objc_infraclass_get_classpair( infra);
+
+   if( ! _mulle_objc_classpair_conformsto_protocol( pair,
+                                                    _mulle_objc_infraclass_get_classid( infra)))
+   {
+      if( runtime->debug.warn.protocolclass)
+      {
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol but does not conform to it %s",
+                    runtime,
+                    _mulle_objc_infraclass_get_name( infra),
+                    footer);
+      }
+      return( 0);
+   }
+
+   has_categories     = mulle_concurrent_pointerarray_get_count( &pair->categoryids) != 0;
+   has_more_protocols = mulle_concurrent_pointerarray_get_count( &pair->protocolids) != 1;
+
+   // quick check before going into more detail
+   if( ! has_categories && ! has_more_protocols)
+      return( 1);
+
+   is_NSObject = _mulle_objc_infraclass_get_classid( infra) ==
+                 _mulle_objc_runtime_get_rootclassid( runtime);
+
+   if( has_more_protocols)
+   {
+      if( is_NSObject || runtime->debug.warn.protocolclass)
+      {
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+         {
+            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\" "
+                             "conforms to a protocol but also conforms to other "
+                             "protocols %s",
+                    runtime,
+                    _mulle_objc_infraclass_get_classid( infra),
+                    _mulle_objc_infraclass_get_name( infra),
+                    footer);
+
+            fprintf( stderr, "Protocols:\n");
+            _mulle_objc_classpair_walk_protocolids( pair,
+                                                    print_protocol,
+                                                    NULL);
+         }
+
+         if( is_NSObject)
+            _mulle_objc_runtime_raise_inconsistency_exception( runtime,
+                 "multiple protocols on foundation root class is fatal for #mulle_objc");
+      }
+      return( 0);
+   }
+
+   if( is_NSObject || ! runtime->debug.warn.protocolclass)
+      return( 1);
+
+   //
+   // check if someone bolted on categories to the protocol. In theory
+   // it's OK, but them not being picked up might be a point of
+   // confusion (On NSObject though it's OK)
+   //
+   inheritance = _mulle_objc_class_get_inheritance( _mulle_objc_infraclass_as_class( infra));
+   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
+   {
+      if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+      {
+         fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" conforms "
+                          "to a protocol but has gained some categories, which "
+                          "will be ignored.\n",
+                 runtime,
+                 _mulle_objc_infraclass_get_name( infra));
+
+         fprintf( stderr, "Categories:\n");
+         _mulle_objc_classpair_walk_categoryids( pair,
+                                                 print_category,
+                                                 NULL);
+      }
+   }
+
+   return( 1);
+}
+
 
 
 
