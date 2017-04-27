@@ -58,7 +58,7 @@ struct _mulle_objc_runtime;
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   5
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   6
 
 
 struct _mulle_objc_loadclass
@@ -246,6 +246,9 @@ struct _mulle_objc_loadinfo
 //
 void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info);
 
+// checks that loadinfo is compatibly compiled
+void    mulle_objc_runtime_assert_loadinfo( struct _mulle_objc_runtime *runtime,
+                                           struct _mulle_objc_loadinfo *info);
 
 # pragma mark - class
 

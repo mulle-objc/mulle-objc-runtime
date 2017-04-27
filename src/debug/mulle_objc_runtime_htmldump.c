@@ -191,7 +191,8 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
 }
 
 
-static void   print_runtime( struct _mulle_objc_runtime *runtime, char *directory)
+static void   print_runtime( struct _mulle_objc_runtime *runtime,
+                             char *directory)
 {
    char   *path;
    FILE   *fp;
@@ -454,7 +455,7 @@ void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *run
 
    c_set_done( &info.set);
 
-   fprintf( stderr, "Dumped to \"%s\"\n", directory);
+   fprintf( stderr, "Dumped HTML to \"%s\"\n", directory);
 }
 
 
@@ -463,16 +464,7 @@ void   mulle_objc_htmldump_runtime_to_directory( char *directory)
    struct _mulle_objc_runtime   *runtime;
 
    runtime = mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_trylock( runtime))
-   {
-      mulle_objc_runtime_htmldump_to_directory( runtime, directory);
-
-      _mulle_objc_runtime_unlock( runtime);
-   }
-   else
-      fprintf( stderr, "runtime locked\n");
-
-   fprintf( stderr, "Dumped to \"%s\"\n", directory);
+   mulle_objc_runtime_htmldump_to_directory( runtime, directory);
 }
 
 
@@ -485,32 +477,47 @@ void   mulle_objc_htmldump_runtime_to_tmp( void)
 
 #pragma mark - class dump
 
-void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
-                                               char *directory)
+void   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
+                                                   char *directory)
 {
    struct dump_info               info;
-   struct _mulle_objc_classpair   *pair;
 
    c_set_init( &info.set);
    info.directory = directory;
 
-   pair = _mulle_objc_class_get_classpair( cls);
    mulle_objc_classpair_walk( pair, callback, &info);
 
    c_set_done( &info.set);
 }
 
 
-void   mulle_objc_htmldump_class_to_directory( char *classname,
+void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
                                                char *directory)
 {
+   struct _mulle_objc_classpair   *pair;
+
+   do
+   {
+      pair = _mulle_objc_class_get_classpair( cls);
+      mulle_objc_classpair_htmldump_to_directory( pair, "/tmp");
+   }
+   while( cls = _mulle_objc_class_get_superclass( cls));
+   
+   fprintf( stderr, "Dumped HTML to \"/%s\"\n", directory);
+}
+
+
+
+void   mulle_objc_htmldump_classname_to_directory( char *classname, char *directory)
+{
    struct _mulle_objc_runtime     *runtime;
+   struct _mulle_objc_class       *cls;
    struct _mulle_objc_infraclass  *infra;
    mulle_objc_classid_t           classid;
 
-   if( ! classname)
+   if( ! classname || ! *classname)
    {
-      fprintf( stderr, "empty classname\n");
+      fprintf( stderr, "Invalid classname\n");
       return;
    }
 
@@ -522,25 +529,20 @@ void   mulle_objc_htmldump_class_to_directory( char *classname,
       fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
       return;
    }
-
-   if( ! _mulle_objc_runtime_trylock( runtime))
-   {
-      do
-         mulle_objc_class_htmldump_to_directory( _mulle_objc_infraclass_as_class( infra),
-                                                 directory);
-      while( infra = _mulle_objc_infraclass_get_superclass( infra));
-
-      _mulle_objc_runtime_unlock( runtime);
-   }
-   else
-      fprintf( stderr, "runtime locked\n");
-
-   fprintf( stderr, "Dumped to \"%s\"\n", directory);
+   
+   cls = _mulle_objc_infraclass_as_class( infra);
+   mulle_objc_class_htmldump_to_directory( cls, directory);
 }
 
 
-void   mulle_objc_htmldump_class_to_tmp( char *classname)
+void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls)
 {
-   mulle_objc_htmldump_class_to_directory( classname, "/tmp");
+   mulle_objc_class_htmldump_to_directory( cls, "/tmp");
+}
+
+
+void   mulle_objc_htmldump_classname_to_tmp( char *classname)
+{
+   mulle_objc_htmldump_classname_to_directory( classname, "/tmp");
 }
 

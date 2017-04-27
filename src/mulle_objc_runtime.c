@@ -128,10 +128,13 @@ void   _mulle_objc_runtime_raise_fail_exception( struct _mulle_objc_runtime *run
 
 
 MULLE_C_NO_RETURN
-static void   _mulle_objc_class_not_found_abort( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t missing_class)
+static void   _mulle_objc_class_not_found_abort( struct _mulle_objc_runtime *runtime,
+                                                 mulle_objc_classid_t missing_classid)
 {
-   _mulle_objc_printf_abort( "mulle_objc_runtime %p fatal: missing class with id %08x",
-                                 runtime, missing_class);
+   _mulle_objc_printf_abort( "mulle_objc_runtime %p fatal: missing class %08x \"%s\"",
+                                 runtime,
+                                 missing_classid,
+                                 mulle_objc_string_for_classid( missing_classid));
 }
 
 
@@ -235,7 +238,7 @@ static int  getenv_yes_no( char *name)
 static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _mulle_objc_runtime  *runtime)
 {
    runtime->debug.warn.methodid_types  = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPES");
-   runtime->debug.warn.protocol_class  = getenv_yes_no( "MULLE_OBJC_INFRA_WARN_PROTOCOL_CLASS");
+   runtime->debug.warn.protocolclass  = getenv_yes_no( "MULLE_OBJC_INFRA_WARN_PROTOCOLCLASS");
    runtime->debug.warn.stuck_loadables = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLES", 1);
 
 #if ! DEBUG
@@ -243,7 +246,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
 #endif
    {
       runtime->debug.warn.methodid_types  = 1;
-      runtime->debug.warn.protocol_class  = 1;
+      runtime->debug.warn.protocolclass  = 1;
    }
 
    runtime->debug.trace.runtime_config     = getenv_yes_no( "MULLE_OBJC_TRACE_RUNTIME_CONFIG");
@@ -253,6 +256,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
    runtime->debug.trace.class_frees        = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_FREES");
    runtime->debug.trace.delayed_class_adds = getenv_yes_no( "MULLE_OBJC_TRACE_DELAYED_CLASS_ADDS");
    runtime->debug.trace.fastclass_adds     = getenv_yes_no( "MULLE_OBJC_TRACE_FASTCLASS_ADDS");
+   runtime->debug.trace.initialize         = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");
    runtime->debug.trace.method_caches      = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHES");
    runtime->debug.trace.method_calls       = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALLS");  // totally excessive!
    runtime->debug.trace.method_searches    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCHES");  // fairly excessive!
@@ -280,6 +284,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.trace.string_adds           = 1;
       runtime->debug.trace.tagged_pointers       = 1;
       runtime->debug.trace.runtime_config        = 1;
+      runtime->debug.trace.initialize            = 1;
       runtime->debug.trace.load_calls            = 1;
       runtime->debug.trace.loadinfo              = 1;
    }
@@ -341,7 +346,7 @@ static void   _mulle_objc_runtime_set_defaults( struct _mulle_objc_runtime  *run
    assert( allocator->free);
    assert( allocator->realloc);
 
-   assert( ! _mulle_objc_runtime_is_initalized( runtime)); // != 0!
+   assert( ! _mulle_objc_runtime_is_initialized( runtime)); // != 0!
    runtime->version = MULLE_OBJC_RUNTIME_VERSION;
    _mulle_atomic_pointer_nonatomic_write( &runtime->cachepivot.entries, runtime->empty_cache.entries);
 
@@ -428,6 +433,22 @@ struct _mulle_objc_runtime  *__mulle_objc_get_runtime( void)
 #else
    runtime = __mulle_objc_get_global_runtime();
 #endif
+   return( runtime);
+}
+
+
+struct _mulle_objc_runtime  *mulle_objc_get_or_create_runtime( void)
+{
+   struct _mulle_objc_runtime  *runtime;
+   extern MULLE_C_CONST_RETURN
+   struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void);
+   
+   runtime = __get_or_create_objc_runtime();  // the external function
+   if( ! runtime)
+   {
+      fprintf( stderr, "__get_or_create_objc_runtime returned NULL\n");
+      abort();
+   }
    return( runtime);
 }
 
@@ -693,40 +714,59 @@ static void  free_gift( void *p, struct mulle_allocator *allocator)
 }
 
 
-static void  _mulle_objc_runtime_check_waitqueues( struct _mulle_objc_runtime *runtime)
+enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mulle_objc_runtime *runtime)
 {
+   unsigned int  n;
+   int           rval;
+   
+   rval = mulle_objc_runtime_is_ok;
    /*
     * free various stuff
     */
-   if( _mulle_objc_runtime_waitqueues_trylock( runtime))
+   n = mulle_concurrent_hashmap_count( &runtime->waitqueues.classestoload);
+   if( n)
    {
-      fprintf( stderr, "mulle_objc_runtime %p error: the waitqueues are still locked!\n", runtime);
-      return;
-   }
+      rval = mulle_objc_runtime_is_incomplete;
+      fprintf( stderr, "mulle_objc_runtime %p warning: the following %u classes failed to load:\n",
+                  runtime, n);
+      if( _mulle_objc_runtime_waitqueues_trylock( runtime))
+      {
+         fprintf( stderr, "mulle_objc_runtime %p error: the waitqueues are still locked!\n", runtime);
+         return( mulle_objc_runtime_is_locked);
+      }
 
-   if( mulle_concurrent_hashmap_count( &runtime->waitqueues.classestoload))
-   {
-      fprintf( stderr, "mulle_objc_runtime %p warning: the following classes failed to load:\n", runtime);
       pointerarray_in_hashmap_map( runtime, &runtime->waitqueues.classestoload, (void (*)()) loadclass_print_missingclassid);
+      _mulle_objc_runtime_waitqueues_unlock( runtime);
    }
 
-   if( mulle_concurrent_hashmap_count( &runtime->waitqueues.categoriestoload))
+   n = mulle_concurrent_hashmap_count( &runtime->waitqueues.categoriestoload);
+   if( n)
    {
-      fprintf( stderr, "mulle_objc_runtime %p warning: the following categories failed to load:\n", runtime);
-      pointerarray_in_hashmap_map( runtime, &runtime->waitqueues.categoriestoload, (void (*)()) loadcategory_print_missingclassid);
-   }
+      rval = mulle_objc_runtime_is_incomplete;
+      fprintf( stderr, "mulle_objc_runtime %p warning: the following %u categories failed to load:\n", runtime, n);
+      if( _mulle_objc_runtime_waitqueues_trylock( runtime))
+      {
+         fprintf( stderr, "mulle_objc_runtime %p error: the waitqueues are still locked!\n",
+                     runtime);
+         return( mulle_objc_runtime_is_locked);
+      }
 
-   _mulle_objc_runtime_waitqueues_unlock( runtime);
+      pointerarray_in_hashmap_map( runtime, &runtime->waitqueues.categoriestoload, (void (*)()) loadcategory_print_missingclassid);
+      _mulle_objc_runtime_waitqueues_unlock( runtime);
+   }
+   return( rval);
 }
 
 
-void   mulle_objc_check_runtimewaitqueues( void)
+enum mulle_objc_runtime_status   mulle_objc_check_runtime( void)
 {
    struct _mulle_objc_runtime   *runtime;
 
    runtime = mulle_objc_get_runtime();
-   if( runtime)
-      _mulle_objc_runtime_check_waitqueues( runtime);
+   if( ! runtime)
+      return( mulle_objc_runtime_is_missing);
+   
+   return( _mulle_objc_runtime_check_waitqueues( runtime));
 }
 
 
@@ -752,7 +792,7 @@ static void   _mulle_objc_runtime_free_classgraph( struct _mulle_objc_runtime *r
 }
 
 
-static inline void  _mulle_objc_runtime_uninitalize( struct _mulle_objc_runtime *runtime)
+static inline void  _mulle_objc_runtime_uninitialize( struct _mulle_objc_runtime *runtime)
 {
    runtime->version = -1;
 }
@@ -785,7 +825,7 @@ void   _mulle_objc_runtime_dealloc( struct _mulle_objc_runtime *runtime)
 
    mulle_objc_delete_runtimekey();
 
-   _mulle_objc_runtime_uninitalize( runtime);
+   _mulle_objc_runtime_uninitialize( runtime);
 
    if( _mulle_objc_is_global_runtime( runtime))
       return;
@@ -801,14 +841,14 @@ void  mulle_objc_release_runtime( void)
    struct _mulle_objc_runtime *runtime;
 
    runtime = __mulle_objc_get_runtime();
-   if( runtime && _mulle_objc_runtime_is_initalized( runtime))
+   if( runtime && _mulle_objc_runtime_is_initialized( runtime))
       _mulle_objc_runtime_release( runtime);
 }
 
 
 struct _mulle_objc_garbagecollection  *_mulle_objc_runtime_get_garbagecollection( struct _mulle_objc_runtime *runtime)
 {
-   assert( _mulle_objc_runtime_is_initalized( runtime));
+   assert( _mulle_objc_runtime_is_initialized( runtime));
 
    if( ! _mulle_aba_is_setup( &runtime->garbage.aba))
    {
@@ -870,33 +910,6 @@ void   _mulle_objc_runtime_checkin_current_thread( struct _mulle_objc_runtime *r
       _mulle_objc_perror_abort( "_mulle_aba_checkin_current_thread");
 }
 
-
-#ifndef MULLE_OBJC_NO_CONVENIENCES
-
-/* conveniences, need runtime already setup to work */
-
-MULLE_C_NON_NULL_RETURN
-void   *mulle_objc_calloc( size_t n, size_t size)
-{
-   return( _mulle_allocator_calloc( &mulle_objc_inlined_get_runtime()->memory.allocator, n, size));
-}
-
-
-MULLE_C_NON_NULL_RETURN
-void   *mulle_objc_realloc( void *block, size_t size)
-{
-   return( _mulle_allocator_realloc( &mulle_objc_inlined_get_runtime()->memory.allocator, block, size));
-}
-
-
-void   mulle_objc_free( void *block)
-{
-   _mulle_allocator_free( &mulle_objc_inlined_get_runtime()->memory.allocator, block);
-}
-
-#endif
-
-
 //
 // admittedly its fairly tricky, to set mulle_objc_globals before any of the
 // class loads hit...
@@ -909,7 +922,7 @@ long   __mulle_objc_personality_v0 = 1848;  // no idea what this is used for
 MULLE_C_NO_RETURN
 void   _mulle_objc_runtime_raise_fail_errno_exception( struct _mulle_objc_runtime *runtime)
 {
-   _mulle_objc_runtime_raise_fail_exception( runtime, "%s", strerror( errno));
+   _mulle_objc_runtime_raise_fail_exception( runtime, "errno: %s (%d)", strerror( errno), errno);
 }
 
 
@@ -919,6 +932,16 @@ void   _mulle_objc_runtime_raise_inconsistency_exception( struct _mulle_objc_run
    va_list   args;
 
    va_start( args, format);
+   
+   //
+   // inconsistency ? even runtime might not be setup properly. This is the only
+   // exception doing this check
+   //
+   if( ! runtime || ! runtime->failures.inconsistency)
+   {
+      vfprintf( stderr, format, args);
+      abort();;
+   }
    (*runtime->failures.inconsistency)( format, args);
    va_end( args);
 }
@@ -1067,14 +1090,14 @@ void   mulle_objc_raise_fail_exception( char *format, ...)
    va_list   args;
 
    va_start( args, format);
-   _mulle_objc_runtime_raise_fail_exception( __get_or_create_objc_runtime(), format, args);
+   _mulle_objc_runtime_raise_fail_exception( mulle_objc_get_or_create_runtime(), format, args);
    va_end( args);
 }
 
 
 void   mulle_objc_raise_fail_errno_exception( void)
 {
-   _mulle_objc_runtime_raise_fail_errno_exception( __get_or_create_objc_runtime());
+   _mulle_objc_runtime_raise_fail_errno_exception( mulle_objc_get_or_create_runtime());
 }
 
 
@@ -1083,7 +1106,7 @@ void   mulle_objc_raise_inconsistency_exception( char *format, ...)
    va_list   args;
 
    va_start( args, format);
-   _mulle_objc_runtime_raise_inconsistency_exception( __get_or_create_objc_runtime(), format, args);
+   _mulle_objc_runtime_raise_inconsistency_exception( mulle_objc_get_or_create_runtime(), format, args);
    va_end( args);
 }
 #endif
@@ -1091,7 +1114,7 @@ void   mulle_objc_raise_inconsistency_exception( char *format, ...)
 
 void   mulle_objc_raise_taggedpointer_exception( void *obj)
 {
-   _mulle_objc_runtime_raise_inconsistency_exception( __get_or_create_objc_runtime(), "%p is a tagged pointer", obj);
+   _mulle_objc_runtime_raise_inconsistency_exception( mulle_objc_get_or_create_runtime(), "%p is a tagged pointer", obj);
 }
 
 
@@ -1121,7 +1144,8 @@ void  mulle_objc_set_thread_runtime( struct _mulle_objc_runtime *runtime)
       return;
    }
 
-   config = _mulle_objc_runtime_calloc( runtime, 1, sizeof( struct _mulle_objc_threadconfig));
+   // don't use gifting calloc, will be cleaned separately
+   config = _mulle_allocator_calloc( _mulle_objc_runtime_get_allocator( runtime), 1, sizeof( struct _mulle_objc_threadconfig));
 
    config->runtime = runtime;
    mulle_thread_tss_set( mulle_objc_unfailing_get_or_create_runtimekey(), config);
@@ -1175,7 +1199,8 @@ struct _mulle_objc_classpair
    struct _mulle_objc_classpair       *pair;
    struct _mulle_objc_metaclass       *super_meta;
    struct _mulle_objc_metaclass       *super_meta_isa;
-
+   size_t                             size;
+   
    if( ! runtime || ! runtime->memory.allocator.calloc)
    {
       errno = EINVAL;
@@ -1205,7 +1230,10 @@ struct _mulle_objc_classpair
       assert( super_meta_isa);
    }
 
-   pair = (struct _mulle_objc_classpair *)  _mulle_objc_runtime_calloc( runtime, 1, sizeof( struct _mulle_objc_classpair) + sizeof( uint32_t));
+   // classes are freed by hand so don't use gifting calloc
+   // TODO: is the sizeof( uint32_t) a code remnant ?
+   size = sizeof( struct _mulle_objc_classpair) + sizeof( uint32_t);
+   pair = _mulle_allocator_calloc( _mulle_objc_runtime_get_allocator( runtime), 1, size);
 
    _mulle_objc_objectheader_init( &pair->metaclassheader,
                                   super_meta_isa ? &super_meta_isa->base : &pair->infraclass.base);
@@ -1243,24 +1271,11 @@ struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_c
    struct _mulle_objc_classpair     *pair;
    struct _mulle_objc_runtime       *runtime;
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    pair     = mulle_objc_runtime_new_classpair( runtime, classid, name, instancesize, superclass);
    if( ! pair)
       _mulle_objc_runtime_raise_fail_errno_exception( runtime);  // unfailing vectors through there
    return( pair);
-}
-
-
-struct _mulle_objc_infraclass   *mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
-                                                                       mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_infraclass   *infra;
-
-   infra = _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid);
-   if( ! infra)
-      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-   assert( mulle_objc_class_is_current_thread_registered( (void *) infra));
-   return( infra);
 }
 
 
@@ -1283,8 +1298,11 @@ int   mulle_objc_runtime_add_infraclass( struct _mulle_objc_runtime *runtime,
 
    if( ! mulle_objc_infraclass_is_sane( infra) ||
        ! mulle_objc_metaclass_is_sane( meta))
+   {
+      errno = EINVAL;
       return( -1);
-
+   }
+   
    if( _mulle_concurrent_hashmap_lookup( &runtime->classtable, infra->base.classid))
    {
       errno = EEXIST;
@@ -1365,14 +1383,14 @@ struct _mulle_objc_infraclass   *mulle_objc_unfailing_lookup_infraclass( mulle_o
 {
    struct _mulle_objc_infraclass   *infra;
 
-   infra = mulle_objc_runtime_unfailing_lookup_infraclass( mulle_objc_inlined_get_runtime(), classid);
+   infra = _mulle_objc_runtime_unfailing_lookup_infraclass( mulle_objc_inlined_get_runtime(), classid);
    return( infra);
 }
 
 
 void   mulle_objc_unfailing_add_infraclass( struct _mulle_objc_infraclass *infra)
 {
-   mulle_objc_runtime_unfailing_add_infraclass( __get_or_create_objc_runtime(), infra);
+   mulle_objc_runtime_unfailing_add_infraclass( mulle_objc_get_or_create_runtime(), infra);
 }
 #endif
 
@@ -1392,7 +1410,7 @@ int   _mulle_objc_runtime_add_methoddescriptor( struct _mulle_objc_runtime *runt
    if( ! mulle_objc_methoddescriptor_is_sane( p))
       return( -1);
 
-   dup   = _mulle_concurrent_hashmap_lookup( &runtime->descriptortable, p->methodid);
+   dup = _mulle_concurrent_hashmap_lookup( &runtime->descriptortable, p->methodid);
    if( ! dup)
       return( _mulle_concurrent_hashmap_insert( &runtime->descriptortable, p->methodid, p));
 
@@ -1430,7 +1448,7 @@ char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid)
    struct _mulle_objc_runtime            *runtime;
    struct _mulle_objc_methoddescriptor   *desc;
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    desc    = _mulle_objc_runtime_lookup_methoddescriptor( runtime, methodid);
    return( desc ? desc->name : NULL);
 }
@@ -1440,7 +1458,7 @@ char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_runtime            *runtime;
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    return( _mulle_objc_runtime_search_debughashname( runtime, uniqueid));
 }
 
@@ -1451,14 +1469,9 @@ char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid)
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 struct _mulle_objc_methodlist  *mulle_objc_alloc_methodlist( unsigned int count_methods)
 {
-   return( mulle_objc_runtime_calloc( __get_or_create_objc_runtime(),
+   return( mulle_objc_runtime_calloc( mulle_objc_get_or_create_runtime(),
                                       1,
                                       mulle_objc_size_of_methodlist( count_methods)));
-}
-
-void   mulle_objc_free_methodlist( struct _mulle_objc_methodlist *list)
-{
-   _mulle_objc_runtime_free( __get_or_create_objc_runtime(), list);
 }
 
 #endif
@@ -1585,20 +1598,10 @@ char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t classid)
    char   *s;
    struct _mulle_objc_runtime   *runtime;
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    s       = _mulle_objc_runtime_search_debughashname( runtime, classid);
    return( s ? s : "???");
 }
-
-
-# pragma mark - gifts (externally allocated memory)
-
-void  _mulle_objc_runtime_unfailing_add_gift( struct _mulle_objc_runtime *runtime,
-                                              void *gift)
-{
-   _mulle_concurrent_pointerarray_add( &runtime->gifts, gift);
-}
-
 
 # pragma mark - debug support
 

@@ -61,6 +61,7 @@ enum _mulle_objc_infraclass_state
    MULLE_OBJC_INFRA_ALWAYS_EMPTY_CACHE = MULLE_OBJC_ALWAYS_EMPTY_CACHE,
 
    MULLE_OBJC_INFRA_WARN_PROTOCOL      = 0x4,
+   MULLE_OBJC_INFRA_IS_PROTOCOLCLASS   = 0x8,
 
    MULLE_OBJC_INFRA_FOUNDATION_BIT0    = 0x00100,
    MULLE_OBJC_INFRA_FOUNDATION_BIT15   = 0x08000,
@@ -390,6 +391,6 @@ mulle_objc_walkcommand_t
                                void *userinfo);
 #pragma mark - some other methods, that are only defined on infraclass
 
-int    mulle_objc_infraclass_is_protocol_class( struct _mulle_objc_infraclass *infra);
+int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra);
 
 #endif /* mulle_objc_infraclass_h */

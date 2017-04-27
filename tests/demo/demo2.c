@@ -5,8 +5,8 @@
 //  Created by Nat! on 04.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_NO_TPS__   1
+#define __MULLE_OBJC_NO_TRT__   1
 
 #include <mulle_objc/mulle_objc.h>
 
@@ -224,7 +224,7 @@ struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
    struct _mulle_objc_runtime    *runtime;
 
    runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initalized( runtime))
+   if( ! _mulle_objc_runtime_is_initialized( runtime))
    {
       __mulle_objc_runtime_setup( runtime, NULL);
       runtime->config.ignore_ivarhash_mismatch = 1;
@@ -252,7 +252,7 @@ int   main( int argc, const char * argv[])
    // if( [obj conformsToProtocol:@protocol( A)])
    //    printf( "A\n");
 
-   mulle_objc_runtime_dump_graphviz_tmp();
+   mulle_objc_dotdump_runtime_to_tmp();
 
    if( mulle_objc_object_call( obj, ___conforms_to_protocol__methodid, &(struct { mulle_objc_protocolid_t a;  }){ .a = ___A__protocolid } ))
       printf( "A\n");

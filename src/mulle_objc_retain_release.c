@@ -42,7 +42,7 @@
 
 
 
-uintptr_t  _mulle_objc_object_get_retaincount( void *obj)
+uintptr_t  __mulle_objc_object_get_retaincount( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
    intptr_t                            retaincount_1;
@@ -114,7 +114,6 @@ void  _mulle_objc_object_perform_finalize( void *obj)
    do
    {
       retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
-
       if( retaincount_1 < 0)
          return;     // already finalized
 
@@ -138,7 +137,7 @@ void   _mulle_objc_objects_call_retain( void **objects, size_t n)
    {
       p = *objects++;
       if( p)
-         _mulle_objc_object_retain( *objects++);
+         _mulle_objc_object_retain( p);
    }
 }
 
@@ -155,7 +154,7 @@ void   _mulle_objc_objects_call_release( void **objects, size_t n)
    {
       p = *objects++;
       if( p)
-         _mulle_objc_object_release( *objects++);
+         _mulle_objc_object_release( p);
    }
 }
 
@@ -170,13 +169,12 @@ void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n)
 
    while( objects < sentinel)
    {
-      p = *objects;
+      p = *objects++;
       if( p)
       {
-         *objects = 0;
+         objects[ -1] = 0;
          _mulle_objc_object_release( p);
       }
-      ++objects;
    }
 }
 

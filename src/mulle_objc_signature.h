@@ -108,6 +108,7 @@ struct mulle_objc_typeinfo
    uint16_t   n_members;        // 0, for scalar, n: for union (members), array(len), bitfield(len), struct( members)
    char       *type;            // not a copy(!) keep your passed in in "types" around, will be past "const"
    char       *pure_type_end;   // if you have "{?=QQ}16", will point just after '}'
+   char       *name;            // @"NSString", @<X>  will be "NSString" in quotes! or <X> in lozenges otherwise NULL
 };
 
 
@@ -140,20 +141,29 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *type, unsigned int
 
 unsigned int    mulle_objc_signature_count_typeinfos( char *types);
 
+
+enum mulle_objc_metaabiparamtype
+{
+   mulle_objc_metaabiparamtype_error         = -1,
+   mulle_objc_metaabiparamtype_void          = 0,
+   mulle_objc_metaabiparamtype_void_pointer  = 1,
+   mulle_objc_metaabiparamtype_param         = 2
+};
+
 //
 // -1: error, 0: void, 1: void *, 2: _param
 //
 // mulle_objc_signature_get_metaabiparamtype will deduce _param correctly from
 // the return type also. It needs the complete signature.
 //
-int   mulle_objc_signature_get_metaabiparamtype( char *types);
+enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabiparamtype( char *types);
 
 // this method does not inspect the complete signature! only the return type
-int   mulle_objc_signature_get_metaabireturntype( char *type);
+enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabireturntype( char *type);
 
 
 // this method does not inspect the complete signature! only the type
-static inline int   _mulle_objc_signature_get_metaabiparamtype( char *type)
+static inline enum mulle_objc_metaabiparamtype   _mulle_objc_signature_get_metaabiparamtype( char *type)
 {
    return( mulle_objc_signature_get_metaabireturntype( type)); // sic(!)
 }

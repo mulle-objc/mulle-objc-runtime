@@ -25,7 +25,7 @@ static void   _test_method( struct abc_classes  *classes)
    struct _mulle_objc_methoddescriptor   clone;
    struct _mulle_objc_runtime             *runtime;
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    assert( runtime);
 
    create_ABC_classes( classes);

@@ -124,11 +124,6 @@ struct _mulle_objc_infraclass   *
                                                               mulle_objc_classid_t classid);
 
 
-MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_infraclass  *mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
-                                                                                mulle_objc_classid_t classid);
-
-
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
 MULLE_C_NON_NULL_RETURN

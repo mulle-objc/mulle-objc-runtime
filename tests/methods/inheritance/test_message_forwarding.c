@@ -73,7 +73,7 @@ void   test_message_forwarding1()
    mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
    mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    runtime->classdefaults.forwardmethod = &forward_list.methods[ 0];
 
    mulle_objc_unfailing_add_infraclass( A_infra);
@@ -115,7 +115,7 @@ void   test_message_forwarding2()
 
    mulle_objc_unfailing_add_infraclass( A_infra);
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    assert( runtime->classdefaults.forwardmethod == NULL);
 
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);

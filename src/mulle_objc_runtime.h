@@ -59,9 +59,6 @@
  * this will be declared by the Foundation (or the test program)
  *
  */
-extern struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void);
-
-
 mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_runtimekey( void);
 void   mulle_objc_delete_runtimekey( void);
 
@@ -138,7 +135,7 @@ static inline struct _mulle_objc_runtime  *mulle_objc_get_thread_runtime( void)
    assert( config && "thread not configure for mulle_objc");
 
    runtime = config->runtime;
-   assert( _mulle_objc_runtime_is_initalized( runtime) && "runtime not initialized yet");
+   assert( _mulle_objc_runtime_is_initialized( runtime) && "runtime not initialized yet");
 
    return( runtime);
 }
@@ -150,6 +147,7 @@ static inline void   *_mulle_objc_threadconfig_get_foundationspace( struct _mull
 {
    return( config->foundationspace);
 }
+
 
 static inline void   *_mulle_objc_threadconfig_get_userspace( struct _mulle_objc_threadconfig  *config)
 {
@@ -201,30 +199,67 @@ static inline struct _mulle_objc_runtime  *mulle_objc_inlined_get_runtime( void)
 }
 
 
-// use this only during __get_or_create_objc_runtime
+// use this only during mulle_objc_get_or_create_runtime
 // always returns same value (in same thread)
-MULLE_C_NON_NULL_RETURN  // always returns same value (in same thread)
+MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_runtime  *__mulle_objc_get_runtime( void);
 
 
 //
 // this call creates a global runtime, if there is no thread or global runtime
-// present yet. Unless we compile a standalone runtime (for testing)
+// present yet.
+//
 // This method is used in the runtime for loading and compositing classes
 // manually. Others preferably use mulle_objc_inlined_get_runtime().
 //
-MULLE_C_NON_NULL_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void);
-
-struct mulle_concurrent_hashmap  *_mulle_objc_runtime_get_hashnames( struct _mulle_objc_runtime *runtime);
-struct _mulle_concurrent_pointerarray  *_mulle_objc_runtime_get_staticstrings( struct _mulle_objc_runtime *runtime);
-
-
+MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
+struct _mulle_objc_runtime  *mulle_objc_get_or_create_runtime( void);
 //
 // "convenience" use this in test cases to tear down all objects
 // and check for leaks
 //
 void  mulle_objc_release_runtime( void);
+
+
+#pragma mark - string tables
+
+struct mulle_concurrent_hashmap  *_mulle_objc_runtime_get_hashnames( struct _mulle_objc_runtime *runtime);
+struct _mulle_concurrent_pointerarray  *_mulle_objc_runtime_get_staticstrings( struct _mulle_objc_runtime *runtime);
+
+
+#pragma mark - exceptions
+
+/* the default implementation for handling exceptions */
+mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_exceptionstack_key( void);
+
+MULLE_C_NO_RETURN
+void   mulle_objc_allocator_fail( void *block, size_t size);
+
+MULLE_C_NO_RETURN
+void   _mulle_objc_runtime_throw( struct _mulle_objc_runtime *runtime, void *exception);
+void   _mulle_objc_runtime_try_enter( struct _mulle_objc_runtime *runtime,
+                                     void *data);
+void   _mulle_objc_runtime_try_exit( struct _mulle_objc_runtime *runtime,
+                                    void *data);
+void   *_mulle_objc_runtime_extract_exception( struct _mulle_objc_runtime *runtime,
+                                              void *data);
+int  _mulle_objc_runtime_match_exception( struct _mulle_objc_runtime *runtime,
+                                         mulle_objc_classid_t classId,
+                                         void *exception);
+
+void   _mulle_objc_runtime_raise_fail_exception( struct _mulle_objc_runtime *runtime, char *format, ...)           MULLE_C_NO_RETURN;
+void   _mulle_objc_runtime_raise_fail_errno_exception( struct _mulle_objc_runtime *runtime)                        MULLE_C_NO_RETURN;
+void   _mulle_objc_runtime_raise_inconsistency_exception( struct _mulle_objc_runtime *runtime, char *format, ...)  MULLE_C_NO_RETURN;
+void   _mulle_objc_runtime_raise_class_not_found_exception( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)  MULLE_C_NO_RETURN;
+void   _mulle_objc_class_raise_method_not_found_exception( struct _mulle_objc_class *class, mulle_objc_methodid_t methodid)  MULLE_C_NO_RETURN;
+
+// exceptions
+
+void   mulle_objc_raise_fail_exception( char *format, ...)           MULLE_C_NO_RETURN;
+void   mulle_objc_raise_fail_errno_exception( void)                  MULLE_C_NO_RETURN;
+void   mulle_objc_raise_inconsistency_exception( char *format, ...)  MULLE_C_NO_RETURN;
+
+void   mulle_objc_raise_taggedpointer_exception( void *obj);
 
 
 #pragma mark - non concurrent memory allocation
@@ -243,25 +278,68 @@ static inline struct mulle_allocator   *_mulle_objc_runtime_get_allocator( struc
 }
 
 
+// memory routines ot allocate memory, that should belong to the runtime
+// you never free it yourself
+
+//
+// a gift must have been allocated with the runtime->memory.allocator
+//
+# pragma mark - gifts (externally allocated memory)
+
+static inline void  _mulle_objc_runtime_add_gift( struct _mulle_objc_runtime *runtime,
+                                                 void *gift)
+{
+   _mulle_concurrent_pointerarray_add( &runtime->gifts, gift);
+}
+
+
+static inline void   mulle_objc_runtime_unfailing_add_gift( struct _mulle_objc_runtime *runtime,
+                                                           void *gift)
+{
+   if( ! runtime || ! gift)
+      return;
+   
+   _mulle_objc_runtime_add_gift( runtime, gift);
+}
+
+
+#pragma mark - memory allocation with "gifting"
+void   mulle_objc_raise_fail_errno_exception( void) MULLE_C_NO_RETURN;
+
+
+static inline void   *_mulle_objc_runtime_strdup( struct _mulle_objc_runtime *runtime, char  *s)
+{
+   char  *p;
+   
+   p = _mulle_allocator_strdup( _mulle_objc_runtime_get_allocator( runtime), s);
+   if( p)
+      _mulle_objc_runtime_add_gift( runtime, p);
+   return( p);
+}
+
+
+MULLE_C_NON_NULL_RETURN
 static inline void   *_mulle_objc_runtime_calloc( struct _mulle_objc_runtime *runtime, size_t n, size_t size)
 {
-   return( _mulle_allocator_calloc( _mulle_objc_runtime_get_allocator( runtime), n, size));
+   void  *p;
+   
+   p = _mulle_allocator_calloc( _mulle_objc_runtime_get_allocator( runtime), n, size);
+   _mulle_objc_runtime_add_gift( runtime, p);
+   return( p);
 }
 
 
-static inline void   *_mulle_objc_runtime_realloc( struct _mulle_objc_runtime *runtime, void *block, size_t size)
+MULLE_C_NON_NULL_RETURN
+static inline void   *mulle_objc_runtime_strdup( struct _mulle_objc_runtime *runtime, char *s)
 {
-   return( _mulle_allocator_realloc( _mulle_objc_runtime_get_allocator( runtime), block, size));
+   if( ! runtime || ! s)
+   {
+      errno = EINVAL;
+      mulle_objc_raise_fail_errno_exception();
+   }
+   return( _mulle_objc_runtime_strdup( runtime, s));
 }
 
-
-static inline void   _mulle_objc_runtime_free( struct _mulle_objc_runtime *runtime, void *block)
-{
-   _mulle_allocator_free( _mulle_objc_runtime_get_allocator( runtime), block);
-}
-
-
-void   mulle_objc_raise_fail_errno_exception( void) MULLE_C_NO_RETURN;
 
 static inline void   *mulle_objc_runtime_calloc( struct _mulle_objc_runtime *runtime, size_t n, size_t size)
 {
@@ -270,50 +348,8 @@ static inline void   *mulle_objc_runtime_calloc( struct _mulle_objc_runtime *run
       errno = EINVAL;
       mulle_objc_raise_fail_errno_exception();
    }
-   return( _mulle_allocator_calloc( &runtime->memory.allocator, n, size));
+   return( _mulle_objc_runtime_calloc( runtime, n, size));
 }
-
-
-static inline void   *mulle_objc_runtime_realloc( struct _mulle_objc_runtime *runtime, void *block, size_t size)
-{
-   if( ! runtime)
-   {
-      errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
-   }
-   return( _mulle_allocator_realloc( &runtime->memory.allocator, block, size));
-}
-
-
-static inline void   mulle_objc_runtime_free( struct _mulle_objc_runtime *runtime, void *block)
-{
-   if( ! block)
-      return;
-
-   if( ! runtime)
-   {
-      errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
-   }
-
-   _mulle_allocator_free( &runtime->memory.allocator, block);
-}
-
-
-//
-// conveniences that call the runtime functions with the current runtime
-//
-#ifndef MULLE_OBJC_NO_CONVENIENCES
-
-MULLE_C_NON_NULL_RETURN
-void   *mulle_objc_calloc( size_t n, size_t size);
-
-MULLE_C_NON_NULL_RETURN
-void   *mulle_objc_realloc( void *p, size_t size);
-
-void   mulle_objc_free( void *p);
-
-#endif
 
 
 #pragma mark - load lock
@@ -359,42 +395,6 @@ static inline int   _mulle_objc_runtime_unlock( struct _mulle_objc_runtime  *run
 {
    return( mulle_thread_mutex_unlock( &runtime->lock));
 }
-
-
-#pragma mark - exceptions
-
-/* the default implementation for handling exceptions */
-mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_exceptionstack_key( void);
-
-MULLE_C_NO_RETURN
-void   mulle_objc_allocator_fail( void *block, size_t size);
-
-MULLE_C_NO_RETURN
-void   _mulle_objc_runtime_throw( struct _mulle_objc_runtime *runtime, void *exception);
-void   _mulle_objc_runtime_try_enter( struct _mulle_objc_runtime *runtime,
-                                      void *data);
-void   _mulle_objc_runtime_try_exit( struct _mulle_objc_runtime *runtime,
-                                     void *data);
-void   *_mulle_objc_runtime_extract_exception( struct _mulle_objc_runtime *runtime,
-                                     void *data);
-int  _mulle_objc_runtime_match_exception( struct _mulle_objc_runtime *runtime,
-                                          mulle_objc_classid_t classId,
-                                          void *exception);
-
-void   _mulle_objc_runtime_raise_fail_exception( struct _mulle_objc_runtime *runtime, char *format, ...)           MULLE_C_NO_RETURN;
-void   _mulle_objc_runtime_raise_fail_errno_exception( struct _mulle_objc_runtime *runtime)                        MULLE_C_NO_RETURN;
-void   _mulle_objc_runtime_raise_inconsistency_exception( struct _mulle_objc_runtime *runtime, char *format, ...)  MULLE_C_NO_RETURN;
-void   _mulle_objc_runtime_raise_class_not_found_exception( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)  MULLE_C_NO_RETURN;
-void   _mulle_objc_class_raise_method_not_found_exception( struct _mulle_objc_class *class, mulle_objc_methodid_t methodid)  MULLE_C_NO_RETURN;
-
-// exceptions
-
-void   mulle_objc_raise_fail_exception( char *format, ...)           MULLE_C_NO_RETURN;
-void   mulle_objc_raise_fail_errno_exception( void)                  MULLE_C_NO_RETURN;
-void   mulle_objc_raise_inconsistency_exception( char *format, ...)  MULLE_C_NO_RETURN;
-
-void   mulle_objc_raise_taggedpointer_exception( void *obj);
-
 
 
 #pragma mark - memory garbage collection
@@ -533,15 +533,12 @@ void   mulle_objc_runtime_unfailing_add_methoddescriptor( struct _mulle_objc_run
 struct _mulle_objc_methoddescriptor   *_mulle_objc_runtime_lookup_methoddescriptor( struct _mulle_objc_runtime *runtime, mulle_objc_methodid_t methodid);
 
 
+// this function automatically gifts the methodlist to the
+// runtime, do not free it yourself!
+
 static inline struct _mulle_objc_method  *mulle_objc_runtime_alloc_array_of_methods( struct _mulle_objc_runtime *runtime, unsigned int count_methods)
 {
    return( _mulle_objc_runtime_calloc( runtime, count_methods, sizeof( struct _mulle_objc_method)));
-}
-
-
-static inline void   mulle_objc_runtime_free_array_of_methods( struct _mulle_objc_runtime *runtime, struct _mulle_objc_method *array)
-{
-   _mulle_objc_runtime_free( runtime, array);
 }
 
 
@@ -554,17 +551,24 @@ char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid);
 // method lists
 // these methods are here, because they use the runtime allocer
 //
-
+// Do not free the returned methodlist, it has been gifted to the
+// runtime already
+//
 static inline struct _mulle_objc_methodlist  *mulle_objc_runtime_alloc_methodlist( struct _mulle_objc_runtime *runtime, unsigned int count_methods)
 {
    return( _mulle_objc_runtime_calloc( runtime, 1, mulle_objc_size_of_methodlist( count_methods)));
 }
 
-static inline void   mulle_objc_runtime_free_methodlist( struct _mulle_objc_runtime *runtime, struct _mulle_objc_methodlist *list)
-{
-   mulle_objc_runtime_free( runtime, list);
-}
+#pragma mark - static strings
 
+
+static inline mulle_objc_classid_t   _mulle_objc_runtime_get_rootclassid( struct _mulle_objc_runtime *runtime)
+{
+   struct _mulle_objc_foundation  *foundation;
+   
+   foundation = _mulle_objc_runtime_get_foundation( runtime);
+   return( foundation ->rootclassid);
+}
 
 #pragma mark - static strings
 
@@ -639,30 +643,29 @@ static inline char   *mulle_objc_string_for_propertyid( mulle_objc_categoryid_t 
 
 # pragma mark - debug waitqueues
 
-void   mulle_objc_check_runtimewaitqueues( void);
-
-
-# pragma mark - gifts (externally allocated memory)
-
-//
-// a gift must have been allocated with the runtime->memory.allocator
-//
-void   _mulle_objc_runtime_unfailing_add_gift( struct _mulle_objc_runtime *runtime,
-                                               void *gift);
-
-static inline void   mulle_objc_runtime_unfailing_add_gift( struct _mulle_objc_runtime *runtime,
-                                              void *gift)
+enum mulle_objc_runtime_status
 {
-   if( ! runtime || ! gift)
-      return;
-   _mulle_objc_runtime_unfailing_add_gift( runtime, gift);
-}
+   mulle_objc_runtime_is_ok         = 0,
+   mulle_objc_runtime_is_missing    = -1,
+   mulle_objc_runtime_is_incomplete = -2,
+   mulle_objc_runtime_is_locked     = -3,
+};
+
+
+enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mulle_objc_runtime *runtime);
+
+// as above just a bit more convenient
+enum mulle_objc_runtime_status   mulle_objc_check_runtime( void);
 
 
 // conveniences
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
+//
+// the resulting methodlist is already gifted to the runtime
+// don't free it yourself
+//
 struct _mulle_objc_methodlist  *mulle_objc_alloc_methodlist( unsigned int count_methods);
 void   mulle_objc_free_methodlist( struct _mulle_objc_methodlist *list);
 #endif

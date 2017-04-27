@@ -47,14 +47,14 @@
 #endif
 
 
-#if __MULLE_OBJC_NO_TRT__
+#ifdef __MULLE_OBJC_NO_TRT__
 
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
 static inline struct _mulle_objc_runtime  *mulle_objc_get_global_runtime( void)
 {
    MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime;
 
-   assert( _mulle_objc_runtime_is_initalized( &mulle_objc_global_runtime) && "runtime not initialized yet");
+   assert( _mulle_objc_runtime_is_initialized( &mulle_objc_global_runtime) && "runtime not initialized yet");
    return( &mulle_objc_global_runtime);
 }
 

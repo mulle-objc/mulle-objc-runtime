@@ -167,7 +167,7 @@ void   add_simple_methods( struct abc_classes  *classes)
    int   rval;
    struct _mulle_objc_runtime   *runtime;
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
 
    mulle_objc_infraclass_unfailing_add_methodlist( classes->A_infra, &A_i_list);
    mulle_objc_metaclass_unfailing_add_methodlist( classes->A_meta, &runtime->empty_methodlist);
