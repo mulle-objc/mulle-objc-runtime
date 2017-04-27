@@ -100,6 +100,7 @@ struct _mulle_objc_runtimedebug
       unsigned   delayed_category_adds: 1;
       unsigned   delayed_class_adds   : 1;
       unsigned   fastclass_adds       : 1;
+      unsigned   initialize           : 1;
       unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
       unsigned   loadinfo             : 1;
       unsigned   method_calls         : 1;
@@ -114,7 +115,7 @@ struct _mulle_objc_runtimedebug
    struct
    {
       unsigned   methodid_types        : 1;
-      unsigned   protocol_class        : 1;
+      unsigned   protocolclass         : 1;
       unsigned   stuck_loadables       : 1;  // set by default
    } warn;
 };
@@ -176,6 +177,11 @@ struct _mulle_objc_classdefaults
 };
 
 
+struct _mulle_objc_loadcallbacks
+{
+   int   (*should_load_loadinfo)(  struct _mulle_objc_runtime *, struct _mulle_objc_loadinfo *);
+};
+
 //
 // Garbage collection for the various caches
 struct _mulle_objc_garbagecollection
@@ -218,7 +224,8 @@ struct _mulle_objc_foundation
 {
    struct _mulle_objc_runtimefriend    runtimefriend;
    struct _mulle_objc_infraclass       *staticstringclass;
-   struct mulle_allocator              allocator;  // allocator for objects
+   struct mulle_allocator              allocator;   // allocator for objects
+   mulle_objc_classid_t                rootclassid; // NSObject = e9e78cbd
 };
 
 
@@ -263,6 +270,8 @@ struct _mulle_objc_runtime
    //
    struct _mulle_objc_cachepivot            cachepivot;
 
+   // try to keep this region stable for loadcallbacks
+
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
 
@@ -270,6 +279,10 @@ struct _mulle_objc_runtime
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
 
+   struct _mulle_objc_loadcallbacks         loadcallbacks;
+   
+   // unstable region, edit at will
+   
    struct _mulle_objc_waitqueues            waitqueues;
 
    struct _mulle_objc_fastclasstable        fastclasstable;
@@ -323,9 +336,8 @@ struct _mulle_objc_runtime
 };
 
 
-static inline int   _mulle_objc_runtime_is_initalized( struct _mulle_objc_runtime *runtime)
+static inline int   _mulle_objc_runtime_is_initialized( struct _mulle_objc_runtime *runtime)
 {
-   assert( runtime);
    return( runtime->version != (uint32_t) -1);
 }
 

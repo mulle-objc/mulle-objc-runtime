@@ -87,7 +87,10 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned i
 # pragma mark - calls
 
 
-static void   *_mulle_objc_call_class_waiting_for_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
+static void   *_mulle_objc_call_class_waiting_for_cache( void *obj,
+                                                         mulle_objc_methodid_t methodid,
+                                                         void *parameter,
+                                                         struct _mulle_objc_class *cls)
 {
    /* same thread ? we are single threaded! */
    if( _mulle_atomic_pointer_read( &cls->thread) != (void *) mulle_thread_self())
@@ -113,7 +116,7 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
    assert( mulle_objc_class_is_current_thread_registered( cls));
 
    //
-   // An uninitalized class has the empty_cache as the cache. It also has
+   // An uninitialized class has the empty_cache as the cache. It also has
    // `cls->thread` NULL. This methods is therefore usually called twice
    // once for the meta class and once for the instance. Regardless in both
    // cases, it is checked if +initialize needs to run. But this is only
@@ -152,15 +155,19 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
 
       if( _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
       {
-         // this stays "flat", don't grab code from superclass
-         initialize = _mulle_objc_class_search_method( &meta->base, MULLE_OBJC_INITIALIZE_METHODID, NULL, MULLE_OBJC_ANY_OWNER, MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS);
+         // grab code from superclass
+         // this is useful for MulleObjCSingleton
+         initialize = _mulle_objc_class_search_method( &meta->base, MULLE_OBJC_INITIALIZE_METHODID, NULL, MULLE_OBJC_ANY_OWNER, meta->base.inheritance);
          if( initialize)
          {
-            if( runtime->debug.trace.load_calls)
+            if( runtime->debug.trace.initialize)
                fprintf( stderr, "mulle_objc_runtime %p trace: call +[%s initialize]\n", runtime, cls->name);
 
             (*_mulle_objc_method_get_implementation( initialize))( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
          }
+         else
+            if( runtime->debug.trace.initialize)
+               fprintf( stderr, "mulle_objc_runtime %p trace: no +[%s initialize] found\n", runtime, cls->name);
       }
 
       // now setup the cache and let it rip, except when we don't ever want one
@@ -539,6 +546,7 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
       if( _mulle_objc_runtime_add_methoddescriptor( cls->runtime, &method->descriptor))
       {
          _mulle_objc_methodlistenumerator_done( &rover);
+         errno = EEXIST;
          return( -1);
       }
 

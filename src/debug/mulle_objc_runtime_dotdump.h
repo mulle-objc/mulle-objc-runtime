@@ -43,6 +43,7 @@
 #include <stdio.h>
 
 struct _mulle_objc_class;
+struct _mulle_objc_classpair;
 struct _mulle_objc_runtime;
 struct _mulle_objc_methodlist;
 
@@ -62,9 +63,13 @@ void   mulle_objc_dotdump_runtime_to_tmp( void);
 // dumps the class pairs, but pass in any class meta or infra
 // for convenience
 
-void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
-void   _mulle_objc_class_dotdump( struct _mulle_objc_class *cls, FILE *fp);
-void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls, char *filename);
+void   mulle_objc_classpair_dotdump( struct _mulle_objc_classpair *pair,
+                                     FILE *fp);
+void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
+                                         char *filename);
+void   mulle_objc_dotdump_classname_to_file( char *classname,
+                                             char *filename);
+void   mulle_objc_dotdump_classname_to_tmp( char *classname);
 void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
 
 

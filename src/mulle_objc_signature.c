@@ -153,15 +153,17 @@ static char  *_mulle_objc_signature_supply_bitfield_info( char *type, int level,
    if( (uint16_t) len != len)
       abort();
 
-   info->n_members = (uint16_t) len;
    while( *type >= '0' && *type <= '9')
       ++type;
 
-   info->bits_size             = info->n_members;
-   info->natural_size          = (((info->n_members + 7) / 8) + sizeof( int) - 1) / sizeof( int);
-   info->natural_alignment     = 0;    // they have none
-   info->bits_struct_alignment = 1;
-
+   if( info)
+   {
+      info->n_members             = (uint16_t) len;
+      info->bits_size             = info->n_members;
+      info->natural_size          = (((info->n_members + 7) / 8) + sizeof( int) - 1) / sizeof( int);
+      info->natural_alignment     = 0;    // they have none
+      info->bits_struct_alignment = 1;
+   }
    return( type);
 }
 
@@ -390,7 +392,9 @@ static char    *__mulle_objc_signature_supply_next_typeinfo( char *type,
                                                              struct mulle_objc_typeinfo *info)
 {
    int   isComplex;
-
+   
+   assert( type);
+   
    ++level;
    type = _mulle_objc_signature_skip_type_qualifier( type);
 
@@ -403,12 +407,30 @@ static char    *__mulle_objc_signature_supply_next_typeinfo( char *type,
    else
       isComplex = is_multi_character_type( *type);
 
+   // this shouldn't really happen!
+   // passing in "" ??
+   if( ! *type)
+      return( NULL);
+
+   // in the non-complex case the parsing of the single character is done
    if( ! isComplex)
    {
-      if( ! *type)
-         return( NULL);
+      ++type;  // skip that single char
 
-      ++type;
+      //
+      // parse extended class info
+      // @"<NSCopying>" or @"NSString"
+      //
+      switch( *type)
+      {
+      case '"' :  // name
+         if( info)
+            info->name = type;
+         
+         while( *++type != '"');
+         ++type;  // skip terminator
+      }
+      
       return( type);
    }
 
@@ -478,16 +500,24 @@ char    *_mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_o
 }
 
 
-char    *_mulle_objc_signature_next_typeinfo( char *types)
+//
+// "types" must be correct
+// this does not error checking (we don't have the time)
+//
+char   *_mulle_objc_signature_next_typeinfo( char *types)
 {
    char   *next;
-
+   
    next = __mulle_objc_signature_supply_next_typeinfo( types, -1, NULL);
    if( ! next)
       return( next);
 
-   if( *next == '-' || *next == '+')
+   switch( *next)
+   {
+   case '-' :
+   case '+' :
       ++next;
+   }
 
    while( *next >= '0' && *next <= '9')
       ++next;
@@ -499,7 +529,7 @@ char    *_mulle_objc_signature_next_typeinfo( char *types)
 
 #define type_fits_voidptr( x)  ((sizeof( x) <= sizeof( void *)) && (alignof( x) <= alignof( void *)))
 
-int   mulle_objc_signature_get_metaabiparamtype( char *types)
+enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabiparamtype( char *types)
 {
    int   p_type;
    int   r_type;
@@ -507,12 +537,12 @@ int   mulle_objc_signature_get_metaabiparamtype( char *types)
    if( ! types)
    {
       errno = EINVAL;
-      return( -1);
+      return( mulle_objc_metaabiparamtype_error);
    }
 
    // return value overrides
    r_type = mulle_objc_signature_get_metaabireturntype( types);
-   if( r_type == 2)
+   if( r_type == mulle_objc_metaabiparamtype_param)
       return( r_type);
 
    types = mulle_objc_signature_next_type( types);
@@ -524,7 +554,7 @@ int   mulle_objc_signature_get_metaabiparamtype( char *types)
    types = mulle_objc_signature_next_type( types);
 
    p_type = mulle_objc_signature_get_metaabireturntype( types);
-   if( p_type == 1)
+   if( p_type == mulle_objc_metaabiparamtype_void_pointer)
    {
       // skip current
       types = mulle_objc_signature_next_type( types);
@@ -532,25 +562,25 @@ int   mulle_objc_signature_get_metaabiparamtype( char *types)
       // get next, if available
       types = mulle_objc_signature_next_type( types);
       if( types)
-         p_type = 2;
+         p_type = mulle_objc_metaabiparamtype_param;
    }
    return( p_type);
 }
 
 
-int   mulle_objc_signature_get_metaabireturntype( char *type)
+enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabireturntype( char *type)
 {
    if( ! type)
    {
       errno = EINVAL;
-      return( -1);
+      return( mulle_objc_metaabiparamtype_error);
    }
 
    type = _mulle_objc_signature_skip_type_qualifier( type);
    switch( *type)
    {
    case 0            :
-   case _C_VOID      : return( 0);
+   case _C_VOID      : return( mulle_objc_metaabiparamtype_void);
 
 #ifdef _C_BOOL
    case _C_BOOL      :
@@ -573,13 +603,14 @@ int   mulle_objc_signature_get_metaabireturntype( char *type)
    case _C_SHT       :
    case _C_USHT      :
    case _C_INT       :
-   case _C_UINT      : return( 1);
+   case _C_UINT      : return( mulle_objc_metaabiparamtype_void_pointer);
+         
    case _C_LNG       : return( type_fits_voidptr( long) ? 1 : 2);
    case _C_ULNG      : return( type_fits_voidptr( unsigned long) ? 1 : 2);
    case _C_LNG_LNG   : return( type_fits_voidptr( long long) ? 1 : 2);
    case _C_ULNG_LNG  : return( type_fits_voidptr( unsigned long long) ? 1 : 2);
    }
-   return( 2);
+   return( mulle_objc_metaabiparamtype_param);
 }
 
 
@@ -609,7 +640,7 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *types, unsigned in
 }
 
 
-unsigned int    mulle_objc_signature_count_typeinfos( char *types)
+unsigned int   mulle_objc_signature_count_typeinfos( char *types)
 {
    unsigned int   n;
 

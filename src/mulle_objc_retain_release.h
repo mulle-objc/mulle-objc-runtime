@@ -64,17 +64,20 @@ static inline void   mulle_objc_object_perform_finalize( void *obj)
 
 // this function will create an "adjusted" always positive value
 // if you want the raw number, check the header function retaincount_1
-uintptr_t  _mulle_objc_object_get_retaincount( void *obj);
+uintptr_t  __mulle_objc_object_get_retaincount( void *obj);
+
+
+static inline intptr_t   _mulle_objc_object_get_retaincount( void *obj)
+{
+   if( mulle_objc_taggedpointer_get_index( obj))
+      return( MULLE_OBJC_NEVER_RELEASE);
+   return( __mulle_objc_object_get_retaincount( obj));
+}
 
 
 static inline intptr_t   mulle_objc_object_get_retaincount( void *obj)
 {
-   if( mulle_objc_taggedpointer_get_index( obj))
-      return( MULLE_OBJC_NEVER_RELEASE);
-
-   if( obj)
-      return( _mulle_objc_object_get_retaincount( obj));
-   return( 0);
+   return( obj ? _mulle_objc_object_get_retaincount( obj) : 0);
 }
 
 

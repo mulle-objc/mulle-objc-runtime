@@ -98,6 +98,7 @@ enum
    _mulle_objc_method_preload                   = 0x02,
    _mulle_objc_method_aam                       = 0x04,
    _mulle_objc_method_variadic                  = 0x08,
+   _mulle_objc_method_guessed_signature         = 0x10,
 
 // this is from clang ObjCMethodFamilyAttr
 //  enum FamilyKind {

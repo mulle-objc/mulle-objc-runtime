@@ -60,7 +60,7 @@ struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
    int                             is_pedantic;
 
    runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initalized( runtime))
+   if( ! _mulle_objc_runtime_is_initialized( runtime))
    {
       allocator = NULL;
       is_test = getenv( "MULLE_OBJC_TEST_ALLOCATOR") != NULL;

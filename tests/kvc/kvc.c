@@ -5,8 +5,8 @@
 //  Created by Nat! on 19/11/14.
 //  Copyright (c) 2014 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_NO_TPS__  1
+#define __MULLE_OBJC_NO_TRT__  1
 
 #include <mulle_objc/mulle_objc.h>
 
@@ -271,7 +271,7 @@ struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
    struct _mulle_objc_runtime    *runtime;
 
    runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initalized( runtime))
+   if( ! _mulle_objc_runtime_is_initialized( runtime))
    {
       __mulle_objc_runtime_setup( runtime, NULL);
       runtime->config.ignore_ivarhash_mismatch = 1;

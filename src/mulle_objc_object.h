@@ -57,7 +57,7 @@ struct _mulle_objc_method;
 
 static inline int  mulle_objc_object_get_taggedpointer_index( struct _mulle_objc_object *obj)
 {
-#if __MULLE_OBJC_TPS__
+#ifdef __MULLE_OBJC_TPS__
    return( mulle_objc_taggedpointer_get_index( obj));
 #else
    return( 0);

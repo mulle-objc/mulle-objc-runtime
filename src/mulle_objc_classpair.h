@@ -49,8 +49,7 @@
 //
 // Put all the common information like
 // protocolids, categoryids and the like into the classpair
-// structure. I should also have a separate space for infraclasspair,
-// that just pertains to the infraclass.
+// structure.
 //
 struct _mulle_objc_classpair
 {
@@ -62,6 +61,7 @@ struct _mulle_objc_classpair
 
    // common stuff
    struct mulle_concurrent_pointerarray    protocolids;
+   struct mulle_concurrent_pointerarray    protocolclasses;
    struct mulle_concurrent_pointerarray    categoryids;
 
    char                                    *origin;      // a start of shared info
@@ -234,11 +234,34 @@ void   mulle_objc_classpair_unfailing_add_category( struct _mulle_objc_classpair
 
 
 
+#pragma mark - protocolclasses
+
+
+static inline int   _mulle_objc_classpair_has_protocolclass( struct _mulle_objc_classpair *pair,
+                                                             struct _mulle_objc_infraclass *proto_cls)
+{
+   return( _mulle_concurrent_pointerarray_find( &pair->protocolclasses, proto_cls));
+}
+
+
+int   _mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
+                                                  int (*f)( struct _mulle_objc_infraclass *proto_cls,
+                                                            struct _mulle_objc_classpair *,
+                                                            void *),
+                                                   void *userinfo);
+
+
+void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pair,
+                                                struct _mulle_objc_infraclass *proto_clsd);
+
+void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_classpair *pair,
+                                                            mulle_objc_protocolid_t *protocolids);
 
 #pragma mark - protocols
 
+// does not search deep!
 static inline int   _mulle_objc_classpair_has_protocol( struct _mulle_objc_classpair *pair,
-                                                       mulle_objc_protocolid_t protocolid)
+                                                        mulle_objc_protocolid_t protocolid)
 {
    return( _mulle_concurrent_pointerarray_find( &pair->protocolids, (void *) (uintptr_t) protocolid));
 }
@@ -265,15 +288,15 @@ static inline int   mulle_objc_classpair_conformsto_protocol( struct _mulle_objc
 void   _mulle_objc_classpair_add_protocol( struct _mulle_objc_classpair *pair,
                                            mulle_objc_protocolid_t protocolid);
 
-void   mulle_objc_classpair_unfailing_add_protocols( struct _mulle_objc_classpair *pair,
-                                                    mulle_objc_protocolid_t *protocolids);
+void   mulle_objc_classpair_unfailing_add_protocolids( struct _mulle_objc_classpair *pair,
+                                                       mulle_objc_protocolid_t *protocolids);
 
 # pragma mark - protocol class enumerator
 
 struct _mulle_objc_protocolclassenumerator
 {
    struct mulle_concurrent_pointerarrayenumerator   list_rover;
-   struct _mulle_objc_classpair                     *pair;
+   struct _mulle_objc_infraclass                    *infra;
 };
 
 
@@ -282,8 +305,8 @@ _mulle_objc_classpair_enumerate_protocolclasses( struct _mulle_objc_classpair *p
 {
    struct _mulle_objc_protocolclassenumerator  rover;
 
-   rover.list_rover = mulle_concurrent_pointerarray_enumerate( &pair->protocolids);
-   rover.pair       = pair;
+   rover.list_rover = mulle_concurrent_pointerarray_enumerate( &pair->protocolclasses);
+   rover.infra      = _mulle_objc_classpair_get_infraclass( pair);
    return( rover);
 }
 
@@ -294,9 +317,9 @@ static inline void  _mulle_objc_protocolclassenumerator_done( struct _mulle_objc
 }
 
 
-static inline struct _mulle_objc_classpair  *_mulle_objc_protocolclassenumerator_get_classpair( struct _mulle_objc_protocolclassenumerator *rover)
+static inline struct _mulle_objc_infraclass  *_mulle_objc_protocolclassenumerator_get_infraclass( struct _mulle_objc_protocolclassenumerator *rover)
 {
-   return( rover->pair);
+   return( rover->infra);
 }
 
 

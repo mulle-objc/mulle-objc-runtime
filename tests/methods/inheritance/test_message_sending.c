@@ -45,7 +45,7 @@ void   test_message_sending()
    unsigned int                           i;
    void                                   *rval;
 
-   runtime    = __get_or_create_objc_runtime();
+   runtime    = mulle_objc_get_or_create_runtime();
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
@@ -55,7 +55,7 @@ void   test_message_sending()
    // now fix up classes with empty method lists, so they are OK to be added
    mulle_objc_metaclass_unfailing_add_methodlist( A_meta, NULL);
 
-   storage = mulle_objc_calloc( 1, sizeof( struct _1000_8_chars));
+   storage = mulle_objc_runtime_calloc( runtime, 1, sizeof( struct _1000_8_chars));
 
    srand( 0x1848);
 

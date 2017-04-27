@@ -251,8 +251,11 @@ char   *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls)
    
    name   = html_escape( cls->name);
    prefix = _mulle_objc_class_is_metaclass( cls) ? "+" : "";
-   asprintf( &s, "<a href=\"%s%s.html\">%s (%08x)</a>\n", prefix,
-            name, name, cls->classid);
+   asprintf( &s, "<a href=\"%s%s.html\">%s (%08x)</a>\n",
+            prefix,
+            name,
+            name,
+            _mulle_objc_class_get_classid( cls));
    return( s);
 }
 
@@ -261,9 +264,16 @@ char   *mulle_objc_class_html_row_description( intptr_t  classid,
                                                      void *cls)
 {
    char   *s;
-   asprintf( &s, "<TR><TD>%08x</TD><TD>%s</TD></TR>\n",
+   char   *name;
+   char   *prefix;
+   
+   name   = html_escape( _mulle_objc_class_get_name( cls));
+   prefix = _mulle_objc_class_is_metaclass( cls) ? "+" : "";
+   asprintf( &s, "<TR><TD>%08x</TD><TD><A HREF=\"%s%s.html\">%s</A></TD></TR>\n",
             _mulle_objc_class_get_classid( cls),
-            _mulle_objc_class_get_name( cls));
+            prefix,
+            name,
+            name);
    return( s);
 }
 
@@ -349,9 +359,7 @@ char   *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list)
       return(NULL);
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
-             "<TABLE>\n<TR><TD BGCOLOR=\"gray\">n_ivars</TD><TD>%u</TD></TR>\n",
-             list->n_ivars);
+   asprintf( &tmp[ 0], "<TABLE>\n");
    len = strlen( tmp[ 0]);
 
    for( i = 0; i < list->n_ivars; i++)
@@ -403,9 +411,7 @@ char   *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *l
       return(NULL);
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
-             "<TABLE>\n<TR><TD BGCOLOR=\"gray\">n_ivars</TD><TD>%u</TD></TR>\n",
-             list->n_ivars);
+   asprintf( &tmp[ 0], "<TABLE>\n");
    len = strlen( tmp[ 0]);
 
    for( i = 0; i < list->n_ivars; i++)
@@ -522,9 +528,7 @@ char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylis
       return( NULL);
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
-             "<TABLE>\n<TR><TD BGCOLOR=\"gray\">n_properties</TD><TD>%u</TD></TR>\n",
-             list->n_properties);
+   asprintf( &tmp[ 0], "<TABLE>\n");
    len = strlen( tmp[ 0]);
 
    for( i = 0; i < list->n_properties; i++)
@@ -632,9 +636,7 @@ char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *l
       return(NULL);
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
-             "<TABLE>\n<TR><TD BGCOLOR=\"gray\">n_methods</TD><TD>%u</TD></TR>\n",
-             list->n_methods);
+   asprintf( &tmp[ 0], "<TABLE>\n");
    len = strlen( tmp[ 0]);
 
    for( i = 0; i < list->n_methods; i++)
@@ -690,7 +692,7 @@ char   *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlis
    // create single lines for each method and two for head/tail
    j = 0;
    asprintf( &tmp[ j],
-             "<TABLE>\n<TR><TD BGCOLOR=\"gray\">n_methods</TD><TD>%u</TD></TR>\n",
+             "<TABLE>\n<TR>\n",
              list->n_methods);
    len = strlen( tmp[ j]);
 
@@ -825,12 +827,10 @@ char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurren
    {
       asprintf( &tmp[ i],
                "<TABLE>\n"
-               "<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n"
-               "<TR><TD BGCOLOR=\"gray\">count</TD><TD>%lu</TD></TR>\n",
+               "<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n",
                title->backgroundColor,
                title->color,
-               title->text,
-               count);
+               title->text);
       len += strlen( tmp[ i]);
       ++i;
    }
@@ -840,6 +840,8 @@ char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurren
    rover = mulle_concurrent_pointerarray_enumerate( list);
    while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover))
    {
+      if( ! value)
+         value = null_description;
       tmp[ i] = row_description( value);
       len    += strlen( tmp[ i]);
       ++i;
@@ -900,12 +902,10 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
    {
       asprintf( &tmp[ i],
                "<TABLE>\n"
-               "<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n"
-               "<TR><TD BGCOLOR=\"gray\">count</TD><TD>%lu</TD></TR>\n",
+               "<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n",
                title->backgroundColor,
                title->color,
-               title->text,
-               count);
+               title->text);
       
       len += strlen( tmp[ i]);
       ++i;
@@ -916,6 +916,8 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
    rover = mulle_concurrent_hashmap_enumerate( map);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &uniqueid, &value))
    {
+      if( ! value)
+         value = null_description;
       tmp[ i] = row_description( uniqueid, value);
       len    += strlen( tmp[ i]);
       ++i;

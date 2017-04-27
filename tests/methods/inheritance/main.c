@@ -57,7 +57,7 @@ static void   reset_runtime()
    struct _mulle_objc_runtime   *runtime;
 
    mulle_objc_release_runtime();
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
 
    // tests were written at an earlier time...
    runtime->classdefaults.inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;

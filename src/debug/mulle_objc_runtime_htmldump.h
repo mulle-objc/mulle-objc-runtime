@@ -38,6 +38,7 @@
 
 struct _mulle_objc_runtime;
 struct _mulle_objc_class;
+struct _mulle_objc_classpair;
 
 void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *runtime,
                                                  char *directory);
@@ -45,10 +46,15 @@ void   mulle_objc_htmldump_runtime_to_directory( char *directory);
 void   mulle_objc_htmldump_runtime_to_tmp( void);
 
 
-void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *infra,
+void   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
+                                                  char *directory);
+
+void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
                                                char *directory);
-void   mulle_objc_htmldump_class_to_directory( char *classname,
-                                               char *directory);
-void   mulle_objc_htmldump_class_to_tmp( char *classname);
+
+void   mulle_objc_htmldump_classname_to_directory( char *classname,
+                                                   char *directory);
+void   mulle_objc_htmldump_classname_to_tmp( char *classname);
+void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls);
 
 #endif
