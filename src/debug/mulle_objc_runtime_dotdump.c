@@ -78,58 +78,127 @@ void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
 
 # pragma mark - "styling"
 
-static struct _mulle_objc_colored_string    descriptortable_title =
+static struct _mulle_objc_htmltablestyle    infraclass_style =
 {
-   "descriptors",
-   "black",
+   "infraclass",
+   NULL,
+   "white",
+   "blue"
+};
+
+
+static struct _mulle_objc_htmltablestyle    metaclass_style =
+{
+   "metaclass",
+   NULL,
+   "white",
+   "goldenrod"
+};
+
+
+
+static struct _mulle_objc_htmltablestyle    methodlist_style =
+{
+   "methodlist",
+   NULL,
+   "white",
+   "black"
+};
+
+
+static struct _mulle_objc_htmltablestyle    cachetable_style =
+{
+   "cache",
+   NULL,
+   "white",
+   "black"
+};
+
+
+static struct _mulle_objc_htmltablestyle    ivarlist_style =
+{
+   "ivarlist",
+   NULL,
+   "white",
+   "black"
+};
+
+
+static struct _mulle_objc_htmltablestyle    propertylist_style =
+{
+   "propertylist",
+   NULL,
+   "white",
+   "black"
+};
+
+
+static struct _mulle_objc_htmltablestyle    selectortable_style =
+{
+   "selectors",
+   NULL,
+   "purple",
    "white"
 };
 
 
-static struct _mulle_objc_colored_string    staticstringtable_title =
+static struct _mulle_objc_htmltablestyle    staticstringtable_title =
 {
-   "static strings",
+   "strings",
+   NULL,
    "black",
-   "white"
+   "lightgreen"
 };
 
 
-static struct _mulle_objc_colored_string    categorytable_title =
+static struct _mulle_objc_htmltablestyle    categorytable_style =
 {
    "categories",
-   "black",
-   "white"
+   NULL,
+   "white",
+   "darkgray"
 };
 
 
-static struct _mulle_objc_colored_string    protocoltable_title =
+static struct _mulle_objc_htmltablestyle    protocoltable_style =
 {
    "protocols",
-   "black",
-   "white"
+   NULL,
+   "white",
+   "darkgray"
 };
 
 
-static struct _mulle_objc_colored_string    classestoload_title =
+static struct _mulle_objc_htmltablestyle    classestoload_style =
 {
    "classes to load",
-   "black",
-   "white"
+   NULL,
+   "white",
+   "indigo"
 };
 
 
-static struct _mulle_objc_colored_string    categoriestoload_title =
+static struct _mulle_objc_htmltablestyle    categoriestoload_style =
 {
    "categories to load",
-   "black",
-   "white"
+   NULL,
+   "white",
+   "indigo"
 };
 
+
+static struct _mulle_objc_htmltablestyle    runtime_style =
+{
+   "runtime",
+   NULL,
+   "white",
+   "red"
+};
 
 
 # pragma mark - walker runtime callback
 
-static char  *mulle_objc_loadclasslist_html_row_description( intptr_t  classid, void *value)
+static char  *mulle_objc_loadclasslist_html_row_description( intptr_t  classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_pointerarray   *array = value;
 
@@ -139,7 +208,7 @@ static char  *mulle_objc_loadclasslist_html_row_description( intptr_t  classid, 
 }
 
 
-static char  *mulle_objc_loadcategorylist_html_row_description( intptr_t  classid, void *value)
+static char  *mulle_objc_loadcategorylist_html_row_description( intptr_t  classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_pointerarray   *array = value;
    
@@ -164,7 +233,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
    char   *label;
    int    i;
    
-   label = mulle_objc_runtime_html_description( runtime);
+   label = mulle_objc_runtime_html_description( runtime, &runtime_style);
    fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n", runtime, label, "component");
    free( label);
 
@@ -175,7 +244,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
       
       label = mulle_concurrent_hashmap_html_description( &runtime->descriptortable,
                                                          mulle_objc_methoddescriptor_html_row_description,
-                                                         &descriptortable_title);
+                                                         &selectortable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
               &runtime->descriptortable, label, "box");
       free( label);
@@ -206,7 +275,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
       
       label = mulle_concurrent_hashmap_html_description( &runtime->waitqueues.classestoload,
                                                          mulle_objc_loadclasslist_html_row_description,
-                                                         &classestoload_title);
+                                                         &classestoload_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
                &runtime->waitqueues.classestoload, label, "box");
       free( label);
@@ -219,7 +288,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
       
       label = mulle_concurrent_hashmap_html_description( &runtime->waitqueues.categoriestoload,
                                                          mulle_objc_loadcategorylist_html_row_description,
-                                                         &categoriestoload_title);
+                                                         &categoriestoload_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
               &runtime->waitqueues.categoriestoload, label, "box");
       free( label);
@@ -237,6 +306,9 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra,
 static void   print_metaclass( struct _mulle_objc_metaclass *meta,
                               struct dump_info *info);
 
+
+extern char   *_mulle_objc_grapviz_html_header_description( char *name, int is_meta);
+
 static void   print_class( struct _mulle_objc_class *cls,
                            struct dump_info *info,
                            int is_meta)
@@ -251,8 +323,12 @@ static void   print_class( struct _mulle_objc_class *cls,
    struct _mulle_objc_methodlist                    *methodlist;
    struct _mulle_objc_runtime                       *runtime;
    unsigned int                                     i;
-
-   label = mulle_objc_class_html_description( cls, is_meta ? "goldenrod" : "blue");
+   struct _mulle_objc_htmltablestyle                style;
+   
+   style = is_meta ? metaclass_style : infraclass_style;
+   style.title = cls->name;
+   
+   label = mulle_objc_class_html_description( cls, &style);
    fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n", cls, label, is_meta ? "component" : "box");
    free( label);
 
@@ -310,7 +386,7 @@ static void   print_class( struct _mulle_objc_class *cls,
             fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"methodlist #%d\" ];\n",
                     cls, methodlist, i++);
             
-            label = mulle_objc_methodlist_html_description( methodlist);
+            label = mulle_objc_methodlist_html_description( methodlist, &methodlist_style);
             fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", methodlist, label);
             free( label);
          }
@@ -323,7 +399,7 @@ static void   print_class( struct _mulle_objc_class *cls,
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
                  cls, cache);
          
-         label = mulle_objc_cache_html_description( cache);
+         label = mulle_objc_cache_html_description( cache, &cachetable_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", cache, label);
          free( label);
       }
@@ -343,7 +419,7 @@ static void   print_classpair( struct _mulle_objc_classpair *pair,
               cls, &pair->protocolids);
 
       label = mulle_objc_protocols_html_description( &pair->protocolids,
-                                                     &protocoltable_title);
+                                                     &protocoltable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", &pair->protocolids, label);
       free( label);
    }
@@ -354,7 +430,7 @@ static void   print_classpair( struct _mulle_objc_classpair *pair,
               cls, &pair->categoryids);
 
       label = mulle_objc_categories_html_description( &pair->categoryids,
-                                                      &categorytable_title);
+                                                      &categorytable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", &pair->categoryids, label);
       free( label);
    }
@@ -381,7 +457,7 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra,
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"ivarlist #%d\" ];\n",
                  infra, ivarlist, i++);
          
-         label = mulle_objc_ivarlist_html_description( ivarlist);
+         label = mulle_objc_ivarlist_html_description( ivarlist, &ivarlist_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", ivarlist, label);
          free( label);
       }
@@ -397,7 +473,7 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra,
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"propertylist #%d\" ];\n",
                  infra, propertylist, i++);
          
-         label = mulle_objc_propertylist_html_description( propertylist);
+         label = mulle_objc_propertylist_html_description( propertylist, &propertylist_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", propertylist, label);
          free( label);
       }
