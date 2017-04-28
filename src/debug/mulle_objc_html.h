@@ -52,55 +52,81 @@ struct _mulle_objc_methoddescriptor;
 struct mulle_concurrent_pointerarray;
 struct mulle_concurrent_hashmap;
 
-struct _mulle_objc_colored_string
+struct _mulle_objc_htmltablestyle
 {
-   char  *text;
-   char  *color;
-   char  *backgroundColor;
+   char  *title;
+   char  *classprefix;  // no class prefix means no css emission
+   char  *color;        // used if classprefix is not set
+   char  *bgcolor;      // used if classprefix is not set
 };
 
-char  *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime);
+char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime,
+                                             struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring *string);
-char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticstring *string);
-char  *mulle_objc_staticstring_html_row_description( void *value);
+char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring *string,
+                                                struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticstring *string,
+                                                     struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_staticstring_html_row_description( void *value,
+                                                     struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_classestoload_row_description( intptr_t classid, void *cls);
-char  *mulle_objc_categoriestoload_row_description( intptr_t classid, void *cls);
+char  *mulle_objc_classestoload_row_description( intptr_t classid,
+                                                 void *cls,
+                                                 struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_categoriestoload_row_description( intptr_t classid,
+                                                    void *cls,
+                                                    struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *color);
-char  *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls);
-char  *mulle_objc_class_html_row_description( intptr_t classid, void *cls);
+char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls,
+                                          struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls,
+                                                struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_class_html_row_description( intptr_t classid,
+                                              void *cls,
+                                              struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list);
-char  *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *list);
+char   *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list,
+                                              struct _mulle_objc_htmltablestyle *styling);
+                                              
+char  *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *list,
+                                                 struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list);
+char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list,
+                                                 struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache);
+char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
+                                           struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_methoddescriptor_html_description( intptr_t methodid, struct _mulle_objc_methoddescriptor *desc);
+char   *mulle_objc_methoddescriptor_html_description( intptr_t methodid,
+                                                      struct _mulle_objc_methoddescriptor *desc,
+                                                      struct _mulle_objc_htmltablestyle *styling);
 char  *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_methoddescriptor *desc);
 char  *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
-                                                         void *descriptor);
+                                                         void *descriptor,
+                                                         struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list);
-char  *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list);
+char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list,
+                                                struct _mulle_objc_htmltablestyle *styling);
+                                                
+char  *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list,
+                                                   struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_protocols_html_description( struct   mulle_concurrent_pointerarray *list,
-                                               struct _mulle_objc_colored_string *title);
+                                               struct _mulle_objc_htmltablestyle *styling);
 char   *mulle_objc_categories_html_description( struct   mulle_concurrent_pointerarray *list,
-                                                struct _mulle_objc_colored_string *title);
+                                                struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_loadclass_html_row_description( void *value);
-char   *mulle_objc_loadcategory_html_row_description( void *value);
+char   *mulle_objc_loadclass_html_row_description( void *value,
+                                                   struct _mulle_objc_htmltablestyle *styling);
+char   *mulle_objc_loadcategory_html_row_description( void *value,
+                                                      struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurrent_pointerarray *list,
-                                                       char *(row_description)( void *),
-                                                       struct _mulle_objc_colored_string *title);
+                                                        char *(row_description)( void *,                struct _mulle_objc_htmltablestyle *),
+                                                        struct _mulle_objc_htmltablestyle *styling);
 char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashmap *map,
-                                                  char *(row_description)( intptr_t, void *),
-                                                  struct _mulle_objc_colored_string *title);
+                                                   char *(row_description)( intptr_t, void *, struct _mulle_objc_htmltablestyle *),
+                                                   struct _mulle_objc_htmltablestyle *styling);
 
 
 int   mulle_objc_vasprintf( char **output, char *format, va_list args);

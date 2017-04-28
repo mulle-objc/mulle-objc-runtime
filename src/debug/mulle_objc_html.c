@@ -42,12 +42,14 @@
 #include <stdio.h>
 
 
+#pragma - printing support
+// lazy copout
 static char   *html_escape( char *s)
 {
    if( ! strchr( s, '&') && ! strchr( s, '<'))
       return( s);
 
-   return( "*bad HTML*");
+   return( "bad-html");
 }
 
 //
@@ -122,7 +124,7 @@ static char  *inheritance_description( unsigned int inheritance)
 }
 
 
-static char  *uniqueid_html_row_description( void *value)
+static char  *uniqueid_html_row_description( void *value, struct _mulle_objc_htmltablestyle *styling)
 {
    mulle_objc_uniqueid_t        uniqueid;
    char                         *s;
@@ -131,46 +133,105 @@ static char  *uniqueid_html_row_description( void *value)
    uniqueid = (mulle_objc_uniqueid_t) (intptr_t) value;
    s        = mulle_objc_string_for_uniqueid( uniqueid);
    
-   mulle_objc_asprintf( &result, "<TR><TD>%08x</TD><TD>\"%s\"</TD></TR>\n", uniqueid, s);
+   mulle_objc_asprintf( &result, "<TR><TD>%08x</TD><TD>\"%s\"</TD></TR>\n",
+         uniqueid, s);
    return( result);
 }
 
 
 #pragma mark - runtime
 
-
-char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime)
+static void   asprintf_table_header_colspan( char **s,
+                                             struct _mulle_objc_htmltablestyle *styling,
+                                             unsigned int colspan)
 {
-   size_t         len;
-   char           *s;
-   char           *tmp[ 3];
-   unsigned int   i;
+   if( styling->classprefix)
+      asprintf( s,
+               "<TABLE CLASS=\"%s_table\">\n<TR CLASS=\"%s_table_header\"><TH COLSPAN=\"%u\">%s</TH></TR>\n",
+               styling->classprefix,
+               styling->classprefix,
+               colspan,
+               styling->title);
+   else // graphviz don't like CLASS, can't deal with TH
+      asprintf( s,
+               "<TABLE>\n<TR><TD BGCOLOR=\"%s\" COLSPAN=\"%u\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n",
+               styling->bgcolor,
+               colspan,
+               styling->color,
+               styling->title);
+}
 
-   // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
-            "<TABLE>\n<TR><TD BGCOLOR=\"red\" COLSPAN=\"2\"><FONT COLOR=\"white\">runtime</FONT></TD></TR>\n");
-   asprintf( &tmp[ 1],
-            "<TR><TD>version</TD><TD>0x%x</TD></TR>\n",
-               runtime->version);
-   asprintf( &tmp[ 2],
-            "</TABLE>");
 
-   len = 0;
-   for( i = 0; i < 3; i++)
-      len += strlen( tmp[ i]);
+static void   asprintf_table_header( char **s, struct _mulle_objc_htmltablestyle *styling)
+{
+   asprintf_table_header_colspan( s, styling, 2);
+}
 
-   // concatenate all strings
 
-   s = malloc( len + 1);
-   s[ 0] = 0;
-
-   for( i = 0; i < 3; i++)
+static char  *final_concat_malloced_tmp_known_len( char **tmp, unsigned int n, size_t len)
+{
+   unsigned int  i;
+   char          *s;
+   
+   s = realloc( tmp[ 0], len + 1);
+   for( i = 1; i < n; i++)
    {
       strcat( s, tmp[ i]);
       free( tmp[ i]);
    }
 
+   free( tmp);
+
    return( s);
+}
+
+
+static char  *final_concat_auto_tmp_known_len( char **tmp, unsigned int n, size_t len)
+{
+   unsigned int  i;
+   char          *s;
+   
+   s = malloc( len + 1);
+   s[ 0] = 0;
+   
+   for( i = 0; i < n; i++)
+   {
+      strcat( s, tmp[ i]);
+      free( tmp[ i]);
+   }
+   
+   return( s);
+}
+
+
+static char  *final_concat_auto_tmp( char **tmp, unsigned int n)
+{
+   unsigned int  i;
+   size_t        len;
+   
+   len = 0;
+   for( i = 0; i < n; i++)
+      len += strlen( tmp[ i]);
+
+   return( final_concat_auto_tmp_known_len( tmp, n, len));
+}
+
+
+char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime,
+                                             struct _mulle_objc_htmltablestyle *styling)
+{
+   char           *tmp[ 3];
+
+   // create single lines for each method and two for head/tail
+   asprintf_table_header( &tmp[ 0], styling);
+   
+   asprintf( &tmp[ 1],
+            "<TR><TD>version</TD><TD>0x%x</TD></TR>\n",
+            runtime->version);
+   asprintf( &tmp[ 2],
+            "</TABLE>");
+
+   return( final_concat_auto_tmp( tmp, 3));
 }
 
 
@@ -178,63 +239,52 @@ char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime
 #pragma mark - static strings
 
 
-char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring *string)
+char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring *string,
+                                                 struct _mulle_objc_htmltablestyle *styling)
 {
-   size_t         len;
-   char           *s;
-   char           *tmp[ 4];
-   unsigned int   i;
-
+   char   *tmp[ 4];
+   char   *th;
+   
+   th = styling->classprefix ? "TH" : "TD";
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
-            "<TABLE>\n<TR><TD BGCOLOR=\"green\" COLSPAN=\"2\"><FONT COLOR=\"white\">string</FONT></TD></TR>\n");
+   asprintf_table_header( &tmp[ 0], styling);
+   
    asprintf( &tmp[ 1],
-            "<TR><TD>_s</TD><TD>%s</TD></TR>\n",
+            "<TR><%s>_s</%s><TD>%s</TD></TR>\n",
+               th, th,
                html_escape( string->_s ? string->_s : "*null*"));
    asprintf( &tmp[ 2],
-            "<TR><TD>_len</TD><TD>%d</TD></TR>\n",
+            "<TR><%s>_len</%s><TD>%d</TD></TR>\n",
+               th, th,
                string->_len);
    asprintf( &tmp[ 3],
             "</TABLE>");
 
-   len = 0;
-   for( i = 0; i < 4; i++)
-      len += strlen( tmp[ i]);
-
-   // concatenate all strings
-
-   s = malloc( len + 1);
-   s[ 0] = 0;
-
-   for( i = 0; i < 4; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   return( s);
+   return( final_concat_auto_tmp( tmp, 4));
 }
 
 
-char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticstring *string)
+char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticstring *string,
+                                                     struct _mulle_objc_htmltablestyle *styling)
 {
-   char           *s;
+   char *s;
    
-   asprintf( &s,
-            "%s",
-            html_escape( string->_s ? string->_s : "*null*"));
+   asprintf( &s, "%s", html_escape( string->_s ? string->_s : "*null*"));
   
    return( s);
 }
 
 
-char  *mulle_objc_staticstring_html_row_description( void *value)
+char  *mulle_objc_staticstring_html_row_description( void *value,
+                                                     struct _mulle_objc_htmltablestyle *styling)
 {
    struct _mulle_objc_staticstring *string = value;
    char   *s;
    
    asprintf( &s,
-            "<TR><TD COLSPAN=\"2\">%s</TD></TR>\n",
+            "<TR>"
+            "<TD COLSPAN=\"2\">%s</TD>"
+            "</TR>\n",
             html_escape( string->_s ? string->_s : "*null*"));
    
    return( s);
@@ -243,25 +293,23 @@ char  *mulle_objc_staticstring_html_row_description( void *value)
 
 #pragma mark - classes
 
-char   *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls)
+char   *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls,
+                                                 struct _mulle_objc_htmltablestyle *styling)
 {
-   char   *s;
-   char   *prefix;
-   char   *name;
+   char  *s;
+   char  *name;
    
    name   = html_escape( cls->name);
-   prefix = _mulle_objc_class_is_metaclass( cls) ? "+" : "";
-   asprintf( &s, "<a href=\"%s%s.html\">%s (%08x)</a>\n",
-            prefix,
+   asprintf( &s, "<a href=\"%s.html\">%s</a>\n",
             name,
-            name,
-            _mulle_objc_class_get_classid( cls));
+            name);
    return( s);
 }
 
 
 char   *mulle_objc_class_html_row_description( intptr_t  classid,
-                                                     void *cls)
+                                               void *cls,
+                                               struct _mulle_objc_htmltablestyle *styling)
 {
    char   *s;
    char   *name;
@@ -269,6 +317,7 @@ char   *mulle_objc_class_html_row_description( intptr_t  classid,
    
    name   = html_escape( _mulle_objc_class_get_name( cls));
    prefix = _mulle_objc_class_is_metaclass( cls) ? "+" : "";
+   
    asprintf( &s, "<TR><TD>%08x</TD><TD><A HREF=\"%s%s.html\">%s</A></TD></TR>\n",
             _mulle_objc_class_get_classid( cls),
             prefix,
@@ -278,21 +327,22 @@ char   *mulle_objc_class_html_row_description( intptr_t  classid,
 }
 
 
-char   *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *color)
+char   *mulle_objc_class_html_description( struct _mulle_objc_class *cls,
+                                           struct _mulle_objc_htmltablestyle *styling)
 {
-   size_t         len;
    char           *s;
    char           *tmp[ 7];
-   unsigned int   i, n;
    char           *name;
+   unsigned int   i;
    
    name = html_escape( cls->name);
 
    i = 0;
+   
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ i++],
-            "<TABLE>\n<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"white\">%s</FONT></TD></TR>\n",
-            color, name);
+   // fummel for graphviz
+   asprintf_table_header( &tmp[ i++], styling);
+
    asprintf( &tmp[ i++],
             "<TR><TD>allocationsize</TD><TD>%lu</TD></TR>\n",
             cls->allocationsize);
@@ -301,12 +351,13 @@ char   *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *
    asprintf( &tmp[ i++],
             "<TR><TD>inheritance</TD><TD>%s</TD></TR>\n",
             s);
+   
    free( s);
 
    asprintf( &tmp[ i++],
             "<TR><TD>state</TD><TD>0x%lx</TD></TR>\n",
             (long) _mulle_atomic_pointer_nonatomic_read( &cls->state));
-
+   
    if ( _mulle_objc_class_is_infraclass( cls))
    {
       struct _mulle_objc_infraclass   *infra;
@@ -320,153 +371,141 @@ char   *mulle_objc_class_html_description( struct _mulle_objc_class *cls, char *
    asprintf( &tmp[ i++],
             "<TR><TD>preloads</TD><TD>0x%x</TD></TR>\n",
             cls->preloads);
+   
    asprintf( &tmp[ i++],
             "</TABLE>");
 
-   len = 0;
-   n   = i;
-   for( i = 0; i < n; i++)
-      len += strlen( tmp[ i]);
+   assert( i <= 7);
 
-   // concatenate all strings
-
-   s = malloc( len + 1);
-   s[ 0] = 0;
-
-   for( i = 0; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   return( s);
+   return( final_concat_auto_tmp( tmp, i));
 }
 
 
 #pragma mark - ivarlist
 
-char   *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list)
+char   *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list,
+                                              struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
    char           **tmp;
-   char           *s;
    unsigned int   i;
+   unsigned int   j;
    unsigned int   n;
    
    n    = list->n_ivars + 2;
-   tmp  = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return(NULL);
+   tmp  = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0], "<TABLE>\n");
-   len = strlen( tmp[ 0]);
+   i = 0;
+   asprintf_table_header( &tmp[ i], styling);
+   len = strlen( tmp[ i]);
+   ++i;
 
-   for( i = 0; i < list->n_ivars; i++)
+   for( j = 0; j < list->n_ivars; j++)
    {
-      asprintf( &tmp[ i + 1], "<TR><TD>%s</TD>"
-               "<TD><TABLE>"
-               "<TR><TD>signature</TD><TD>%s</TD></TR>"
-               "<TR><TD>methodid</TD><TD>0x%lx</TD></TR>"
-               "<TR><TD>offset</TD><TD>%d</TD></TR>"
-               "</TABLE></TD>"
+      asprintf( &tmp[ i], "<TR>"
+               "<TD>%s</TD>"
+               "<TD>"
+                 "<TABLE>"
+                   "<TR><TD>signature</TD><TD>%s</TD></TR>"
+                   "<TR><TD>methodid</TD><TD>0x%lx</TD></TR>"
+                   "<TR><TD>offset</TD><TD>%d</TD></TR>"
+                 "</TABLE>"
+               "</TD>"
                "</TR>\n",
-               html_escape( list->ivars[ i].descriptor.name),
-               html_escape( list->ivars[ i].descriptor.signature),
-               (long) list->ivars[ i].descriptor.ivarid,
-               list->ivars[ i].offset);
-      len += strlen( tmp[ i + 1]);
+               html_escape( list->ivars[ j].descriptor.name),
+               html_escape( list->ivars[ j].descriptor.signature),
+               (long) list->ivars[ j].descriptor.ivarid,
+               list->ivars[ j].offset);
+      
+      len += strlen( tmp[ i]);
+      ++i;
    }
 
-   asprintf( &tmp[ i + 1], "</TABLE>");
-   len += strlen( tmp[ i + 1]);
+   asprintf( &tmp[ i], "</TABLE>");
+   len += strlen( tmp[ i]);
+   ++i;
 
+   assert( i <= n);
 
-   // concatenate all strings
-
-   s = realloc( tmp[ 0], len + 1);
-   for( i = 1; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
 
-char   *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *list)
+char   *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *list,
+                                                  struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
    char           **tmp;
-   char           *s;
    unsigned int   i;
+   unsigned int   j;
    unsigned int   n;
 
    n   = list->n_ivars + 2;
-   tmp = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return(NULL);
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0], "<TABLE>\n");
-   len = strlen( tmp[ 0]);
+   i = 0;
+   asprintf_table_header_colspan( &tmp[ i], styling, 4);
+   len = strlen( tmp[ i]);
+   ++i;
 
-   for( i = 0; i < list->n_ivars; i++)
+   for( j = 0; j < list->n_ivars; j++)
    {
-      asprintf( &tmp[ i + 1], "<TR><TD>%s</TD>"
-               "<TD>%s</TD>"
-               "<TD>%08x</TD>"
-               "<TD>%d</TD>"
+      asprintf( &tmp[ i],
+               "<TR>"
+                 "<TD>%s</TD>"
+                 "<TD>%s</TD>"
+                 "<TD>%08x</TD>"
+                 "<TD>%d</TD>"
                "</TR>\n",
-               html_escape( list->ivars[ i].descriptor.name),
-               html_escape( list->ivars[ i].descriptor.signature),
-               list->ivars[ i].descriptor.ivarid,
-               list->ivars[ i].offset);
-      len += strlen( tmp[ i + 1]);
+               html_escape( list->ivars[ j].descriptor.name),
+               html_escape( list->ivars[ j].descriptor.signature),
+               list->ivars[ j].descriptor.ivarid,
+               list->ivars[ j].offset);
+      len += strlen( tmp[ i]);
+      ++i;
    }
 
-   asprintf( &tmp[ i + 1], "</TABLE>");
-   len += strlen( tmp[ i + 1]);
+   asprintf( &tmp[ i], "</TABLE>");
+   len += strlen( tmp[ i]);
+   ++i;
 
+   assert( i <= n);
 
-   // concatenate all strings
-
-   s = realloc( tmp[ 0], len + 1);
-   for( i = 1; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
 
 #pragma mark - methoddescriptor
 
 
-char   *mulle_objc_methoddescriptor_html_description( intptr_t methodid, struct _mulle_objc_methoddescriptor *desc)
+char   *mulle_objc_methoddescriptor_html_description( intptr_t methodid,
+                                                      struct _mulle_objc_methoddescriptor *desc,
+                                                      struct _mulle_objc_htmltablestyle *styling)
 {
-   char   *s;
-
-   asprintf( &s,
-            "<TABLE>"
-            "<TR><TD>name</TD><TD>%s</TD></TR>"
-            "<TR><TD>signature</TD><TD>%s</TD></TR>"
-            "<TR><TD>methodid</TD><TD>%08x</TD></TR>"
-            "<TR><TD>bits</TD><TD>0x%x</TD></TR>"
+   char   *tmp[ 2];
+   char   *th;
+   
+   th = styling->classprefix ? "TH" : "TD";
+   
+   asprintf_table_header( &tmp[ 0], styling);
+   asprintf( &tmp[ 1],
+            "<TR><%s>name</%s><TD>%s</TD></TR>"
+            "<TR><%s>signature</%s><TD>%s</TD></TR>"
+            "<TR><%s>methodid</%s><TD>%08x</TD></TR>"
+            "<TR><%s>bits</%s><TD>0x%x</TD></TR>"
             "</TABLE>",
+            th, th,
             html_escape( desc->name),
+            th, th,
             html_escape( desc->signature),
+            th, th,
             desc->methodid,
+            th, th,
             desc->bits);
 
-   return( s);
+   return( final_concat_auto_tmp( tmp, 2));
 }
 
 
@@ -491,7 +530,8 @@ char   *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_met
 
 
 char   *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
-                                                          void *value)
+                                                          void *value,
+                                                          struct _mulle_objc_htmltablestyle *styling)
 {
    struct _mulle_objc_methoddescriptor *desc = value;
    char   *s;
@@ -514,243 +554,249 @@ char   *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
 
 #pragma mark - propertylist
 
-char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list)
+char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list,
+                                                  struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
    char           **tmp;
-   char           *s;
    unsigned int   i;
+   unsigned int   j;
    unsigned int   n;
 
    n   = list->n_properties + 2;
-   tmp = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return( NULL);
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
+   
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0], "<TABLE>\n");
-   len = strlen( tmp[ 0]);
+   i = 0;
+   asprintf_table_header( &tmp[ i], styling);
+   len = strlen( tmp[ i]);
+   ++i;
 
-   for( i = 0; i < list->n_properties; i++)
+   for( j = 0; j < list->n_properties; j++)
    {
-      asprintf( &tmp[ i + 1], "<TR><TD>%s</TD>"
-               "<TD><TABLE>"
-               "<TR><TD>signature</TD><TD>%s</TD></TR>"
-               "<TR><TD>propertyid</TD><TD>%08x</TD></TR>"
-               "<TR><TD>getter</TD><TD>%08x</TD></TR>"
-               "<TR><TD>setter</TD><TD>%08x</TD></TR>"
-               "<TR><TD>clearer</TD><TD>%08x</TD></TR>"
-               "</TABLE></TD>"
+      asprintf( &tmp[ i],
+               "<TR><TD>%s</TD>"
+               "<TD>"
+                 "<TABLE>"
+                   "<TR><TD>signature</TD><TD>%s</TD></TR>"
+                   "<TR><TD>propertyid</TD><TD>%08x</TD></TR>"
+                   "<TR><TD>getter</TD><TD>%08x</TD></TR>"
+                   "<TR><TD>setter</TD><TD>%08x</TD></TR>"
+                   "<TR><TD>clearer</TD><TD>%08x</TD></TR>"
+                 "</TABLE>"
+               "</TD>"
                "</TR>\n",
-               html_escape( list->properties[ i].name),
-               html_escape( list->properties[ i].signature),
-               list->properties[ i].propertyid,
-               list->properties[ i].getter,
-               list->properties[ i].setter,
-               list->properties[ i].clearer);
-
-      len += strlen( tmp[ i + 1]);
+               html_escape( list->properties[ j].name),
+               html_escape( list->properties[ j].signature),
+               list->properties[ j].propertyid,
+               list->properties[ j].getter,
+               list->properties[ j].setter,
+               list->properties[ j].clearer);
+      
+      len += strlen( tmp[ i]);
+      ++i;
    }
 
-   asprintf( &tmp[ i + 1], "</TABLE>");
-   len += strlen( tmp[ i + 1]);
+   asprintf( &tmp[ i], "</TABLE>");
+   len += strlen( tmp[ i]);
+   ++i;
+   
+   assert( i <= n);
 
-   // concatenate all strings
-
-   s = realloc( tmp[ 0], len + 1);
-   for( i = 1; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
 
 #pragma mark - cache
 
-char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache)
+char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
+                                           struct _mulle_objc_htmltablestyle *styling)
 {
    size_t          len;
    char            **tmp;
-   char            *s;
-   unsigned long   i;
-   unsigned long   n;
+   unsigned int    i;
+   unsigned int    j;
+   unsigned int    n;
 
-   n   = cache->size + 2;
-   tmp = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return(NULL);
+   n   = cache->size + 2 + 2;
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
-   // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0],
-             "<TABLE>\n<TR><TD BGCOLOR=\"gray\" COLSPAN=\"2\">size</TD><TD>%lu</TD></TR>\n",
-             (long) cache->size);
-   len = strlen( tmp[ 0]);
+   i = 0;
+   asprintf_table_header_colspan( &tmp[ i], styling, 3);
+   len = strlen( tmp[ i]);
+   ++i;
 
-   for( i = 0; i < cache->size; i++)
+   asprintf( &tmp[ i],
+               "<TR><TD COLSPAN=\"2\">size</TD><TD>%lu</TD></TR>\n",
+               (long) cache->size);
+   len += strlen( tmp[ i]);
+   ++i;
+
+   asprintf( &tmp[ i],
+            "<TR><TD COLSPAN=\"2\">n</TD><TD>%lu</TD></TR>\n",
+            (long) _mulle_atomic_pointer_nonatomic_read( &cache->n));
+   len += strlen( tmp[ i]);
+   ++i;
+   
+
+   for( j = 0; j < cache->size; j++)
    {
-      asprintf( &tmp[ i + 1],
+      asprintf( &tmp[ i],
                "<TR><TD>#%ld</TD><TD>0x%lx</TD><TD>%p</TD></TR>\n",
                i,
-               (long) cache->entries[ i].key.uniqueid,
-               cache->entries[ i].value.functionpointer);
-      len += strlen( tmp[ i + 1]);
+               (long) cache->entries[ j].key.uniqueid,
+               cache->entries[ j].value.functionpointer);
+      
+      len += strlen( tmp[ i]);
+      ++i;
    }
 
-   asprintf( &tmp[ i + 1], "</TABLE>");
-   len += strlen( tmp[ i + 1]);
+   asprintf( &tmp[ i], "</TABLE>");
+   len += strlen( tmp[ i]);
+   ++i;
+   
+   assert( i <= n);
 
-   // concatenate all strings
-
-   s = realloc( tmp[ 0], len + 1);
-   for( i = 1; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
 
 #pragma mark - methodlist
 
-
-char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list)
+char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list,
+                                                struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
    char           **tmp;
-   char           *s;
    unsigned int   i;
+   unsigned int   j;
    unsigned int   n;
 
    n   = list->n_methods + 2;
-   tmp = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return(NULL);
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    // create single lines for each method and two for head/tail
-   asprintf( &tmp[ 0], "<TABLE>\n");
-   len = strlen( tmp[ 0]);
+   i = 0;
+   asprintf_table_header( &tmp[ i], styling);
+   len = strlen( tmp[ i]);
+   ++i;
 
-   for( i = 0; i < list->n_methods; i++)
+   for( j = 0; j < list->n_methods; j++)
    {
-      asprintf( &tmp[ i + 1], "<TR><TD>%s</TD>"
-               "<TD><TABLE>"
-               "<TR><TD>signature</TD><TD>%s</TD></TR>"
-               "<TR><TD>methodid</TD><TD>0x%lx</TD></TR>"
-               "<TR><TD>bits</TD><TD>0x%x</TD></TR>"
-               "<TR><TD>implementation</TD><TD>%p</TD></TR>"
-               "</TABLE></TD>"
+      asprintf( &tmp[ i],
+               "<TR>"
+               "<TD>%s</TD>"
+               "<TD>"
+                 "<TABLE>"
+                   "<TR><TD>signature</TD><TD>%s</TD></TR>"
+                   "<TR><TD>methodid</TD><TD>0x%lx</TD></TR>"
+                   "<TR><TD>bits</TD><TD>0x%x</TD></TR>"
+                   "<TR><TD>implementation</TD><TD>%p</TD></TR>"
+                 "</TABLE>"
+               "</TD>"
                "</TR>\n",
-               html_escape( list->methods[ i].descriptor.name),
-               html_escape( list->methods[ i].descriptor.signature),
-               (long) list->methods[ i].descriptor.methodid,
-               list->methods[ i].descriptor.bits,
-               list->methods[ i].implementation);
-      len += strlen( tmp[ i + 1]);
+               html_escape( list->methods[ j].descriptor.name),
+               html_escape( list->methods[ j].descriptor.signature),
+               (long) list->methods[ j].descriptor.methodid,
+               list->methods[ j].descriptor.bits,
+               list->methods[ j].implementation);
+      
+      len += strlen( tmp[ i]);
+      ++i;
    }
 
-   asprintf( &tmp[ i + 1], "</TABLE>");
-   len += strlen( tmp[ i + 1]);
+   asprintf( &tmp[ i], "</TABLE>");
+   len += strlen( tmp[ i]);
+   ++i;
 
-   // concatenate all strings
+   assert( i <= n);
 
-   s = realloc( tmp[ 0], len + 1);
-   for( i = 1; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
 
-char   *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list)
+char   *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list,
+                                                    struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
    char           **tmp;
-   char           *s;
    unsigned int   i;
    unsigned int   j;
    unsigned int   n;
 
    n   = list->n_methods + 3;
-   tmp = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return( NULL);
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    // create single lines for each method and two for head/tail
-   j = 0;
-   asprintf( &tmp[ j],
-             "<TABLE>\n<TR>\n",
-             list->n_methods);
-   len = strlen( tmp[ j]);
+   i = 0;
+   asprintf_table_header_colspan( &tmp[ i], styling, 5);
+   len = strlen( tmp[ i]);
+   ++i;
 
    if( list->n_methods)
    {
-      ++j;
-      asprintf( &tmp[ j], "<TR><TH>name</TH>"
-                          "<TH>signature</TH>"
-                          "<TH>methodid</TH>"
-                          "<TH>bits</TH>"
-                          "<TH>implementation</TH>"
-                           "</TR>\n");
-      len += strlen( tmp[ j]);
+      if( styling->classprefix)
+         asprintf( &tmp[ i],
+                   "<TR>"
+                     "<TH>name</TH>"
+                     "<TH>signature</TH>"
+                     "<TH>methodid</TH>"
+                     "<TH>bits</TH>"
+                     "<TH>implementation</TH>"
+                   "</TR>\n");
+      else
+         asprintf( &tmp[ i],
+                   "<TR>"
+                     "<TD>name</TD>"
+                     "<TD>signature</TD>"
+                     "<TD>methodid</TD>"
+                     "<TD>bits</TD>"
+                     "<TD>implementation</TD>"
+                   "</TR>\n");
+      
+      len += strlen( tmp[ i]);
+      ++i;
    }
 
-   for( i = 0; i < list->n_methods; i++)
+   for( j = 0; j < list->n_methods; j++)
    {
-      ++j;
-      asprintf( &tmp[ j], "<TR><TD>%s</TD>"
-               "<TD>%s</TD>"
-               "<TD>%08x</TD>"
-               "<TD>0x%x</TD>"
-               "<TD>%p</TD>"
+      asprintf( &tmp[ i],
+               "<TR>"
+                 "<TD>%s</TD>"
+                 "<TD>%s</TD>"
+                 "<TD>%08x</TD>"
+                 "<TD>0x%x</TD>"
+                 "<TD>%p</TD>"
                "</TR>\n",
-               html_escape( list->methods[ i].descriptor.name),
-               html_escape( list->methods[ i].descriptor.signature),
-               list->methods[ i].descriptor.methodid,
-               list->methods[ i].descriptor.bits,
-               list->methods[ i].implementation);
-      len += strlen( tmp[ j]);
+               html_escape( list->methods[ j].descriptor.name),
+               html_escape( list->methods[ j].descriptor.signature),
+               list->methods[ j].descriptor.methodid,
+               list->methods[ j].descriptor.bits,
+               list->methods[ j].implementation);
+      len += strlen( tmp[ i]);
+      ++i;
    }
 
-   ++j;
-   asprintf( &tmp[ j], "</TABLE>");
-   len += strlen( tmp[ j]);
+   asprintf( &tmp[ i], "</TABLE>");
+   len += strlen( tmp[ i]);
+   ++i;
 
-   // concatenate all strings
-
-   s = realloc( tmp[ 0], len + 1);
-   for( i = 1; i <= j; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   assert( i <= n);
+   
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
+
 
 #pragma mark - loadclass
 
-char   *mulle_objc_loadclass_html_row_description( void *value)
+char   *mulle_objc_loadclass_html_row_description( void *value,
+                                                   struct _mulle_objc_htmltablestyle *styling)
 {
    struct _mulle_objc_loadclass   *loadcls = value;
-   
    char   *s;
-   asprintf( &s, "<TR><TD BGCOLOR=\"indigo\"><FONT COLOR=\"white\">%08x</FONT></TD><TD>%s</TD></TR>\n",
+
+   asprintf( &s, "<TR><TD>%08x</TD><TD>%s</TD></TR>\n",
             loadcls->classid,
             loadcls->classname);
    return( s);
@@ -759,12 +805,13 @@ char   *mulle_objc_loadclass_html_row_description( void *value)
 
 #pragma mark - loadcategory
 
-char   *mulle_objc_loadcategory_html_row_description( void *value)
+char   *mulle_objc_loadcategory_html_row_description( void *value,
+                                                      struct _mulle_objc_htmltablestyle *styling)
 {
    struct _mulle_objc_loadcategory   *loadcat = value;
-   
    char   *s;
-   asprintf( &s, "<TR><TD BGCOLOR=\"darkslateblue\"><FONT COLOR=\"white\">%08x</FONT></TD><TD>%s( %s)</TD></TR>\n",
+   
+   asprintf( &s, "<TR><TD>%08x</TD><TD>%s( %s)</TD></TR>\n",
             loadcat->categoryid,
             loadcat->classname,
             loadcat->categoryname);
@@ -776,37 +823,36 @@ char   *mulle_objc_loadcategory_html_row_description( void *value)
 #pragma mark - protocols
 
 char   *mulle_objc_protocols_html_description( struct   mulle_concurrent_pointerarray *array,
-                                               struct _mulle_objc_colored_string *title)
+                                               struct _mulle_objc_htmltablestyle *styling)
 {
    return( mulle_concurrent_pointerarray_html_description( array,
                                                            uniqueid_html_row_description,
-                                                           title));
+                                                           styling));
 }
 
 
 #pragma mark - categories
 
 char   *mulle_objc_categories_html_description( struct   mulle_concurrent_pointerarray *array,
-                                                     struct _mulle_objc_colored_string *title)
+                                                struct _mulle_objc_htmltablestyle *styling)
 {
    return( mulle_concurrent_pointerarray_html_description( array,
                                                            uniqueid_html_row_description,
-                                                           title));
+                                                           styling));
 }
 
 
 #pragma mark - pointerarray
 
 char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurrent_pointerarray *list,
-                                                       char *(row_description)( void *),
-                                                       struct _mulle_objc_colored_string *title)
+                                                       char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
+                                                       struct _mulle_objc_htmltablestyle *styling)
 
 {
    struct mulle_concurrent_pointerarrayenumerator   rover;
    size_t                  count;
    size_t                  len;
    char                    **tmp;
-   char                    *s;
    unsigned int            i;
    unsigned int            n;
    void                    *value;
@@ -815,22 +861,16 @@ char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurren
    count = mulle_concurrent_pointerarray_get_count( list);
 
    n   = (unsigned int) count + 2;
-   tmp = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return( NULL);
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    tmp[ 0] = NULL;
    
    i   = 0;
    len = 0;
-   if( title)
+
+   if( styling)
    {
-      asprintf( &tmp[ i],
-               "<TABLE>\n"
-               "<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n",
-               title->backgroundColor,
-               title->color,
-               title->text);
+      asprintf_table_header( &tmp[ i], styling);
       len += strlen( tmp[ i]);
       ++i;
    }
@@ -842,40 +882,27 @@ char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurren
    {
       if( ! value)
          value = null_description;
-      tmp[ i] = row_description( value);
+      tmp[ i] = (*row_description)( value, styling);
       len    += strlen( tmp[ i]);
       ++i;
    }
 
-   if( title)
+   if( styling)
    {
       asprintf( &tmp[ i], "</TABLE>");
       len += strlen( tmp[ i]);
       ++i;
    }
    
-   n = i;
+   assert( i <= n);
    
-   // concatenate all strings
-
-   s = realloc( tmp[ 0], len + 1);
-   s[ len] = 0; // for i == 0 case
-   
-   for( i = 1; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
 #pragma mark - hashmap
 char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashmap *map,
-                                                   char *(row_description)( intptr_t, void *),
-                                                   struct _mulle_objc_colored_string *title)
+                                                   char *(row_description)( intptr_t, void *, struct _mulle_objc_htmltablestyle *),
+                                                   struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_hashmapenumerator   rover;
    char                    *null_description;
@@ -883,30 +910,22 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
    size_t                  count;
    size_t                  len;
    char                    **tmp;
-   char                    *s;
    unsigned int            i;
    unsigned int            n;
    void                    *value;
 
-
    count = mulle_concurrent_hashmap_count( map);
 
    n   = (unsigned int) count + 2;
-   tmp = calloc( n, sizeof( char *));
-   if( ! tmp)
-      return(NULL);
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
+   
    i   = 0;
    len = 0;
-   if( title)
+   
+   if( styling)
    {
-      asprintf( &tmp[ i],
-               "<TABLE>\n"
-               "<TR><TD BGCOLOR=\"%s\" COLSPAN=\"2\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n",
-               title->backgroundColor,
-               title->color,
-               title->text);
-      
+      asprintf_table_header( &tmp[ i], styling);
       len += strlen( tmp[ i]);
       ++i;
    }
@@ -918,33 +937,21 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
    {
       if( ! value)
          value = null_description;
-      tmp[ i] = row_description( uniqueid, value);
+      tmp[ i] = (*row_description)( uniqueid, value, styling);
       len    += strlen( tmp[ i]);
       ++i;
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
 
-   if( title)
+   if( styling)
    {
       asprintf( &tmp[ i], "</TABLE>");
       len += strlen( tmp[ i]);
       ++i;
    }
    
-   n = i;
-
-   // concatenate all strings
-
-   s = realloc( tmp[ 0], len + 1);
-   s[ len] = 0; // for i == 0 case
-   for( i = 1; i < n; i++)
-   {
-      strcat( s, tmp[ i]);
-      free( tmp[ i]);
-   }
-
-   free( tmp);
-
-   return( s);
+   assert( i <= n);
+   
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
