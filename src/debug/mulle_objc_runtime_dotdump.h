@@ -48,9 +48,13 @@ struct _mulle_objc_runtime;
 struct _mulle_objc_methodlist;
 
 //
-// dumping to graphviz is nice, if you are dealing with the mulle-objc
-// by itself. But soon it gets too complex for graphviz
+// this is what you want: it dumps the runtime and all
+// classes and the classes are linked from the runtime
+// .dot file
 //
+
+void   mulle_objc_dotdump_to_tmp( void);
+
 
 void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *fp);
 
@@ -71,6 +75,13 @@ void   mulle_objc_dotdump_classname_to_file( char *classname,
                                              char *filename);
 void   mulle_objc_dotdump_classname_to_tmp( char *classname);
 void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
+
+//
+// dumps all classes into .dot files
+// convert them easily into .svgs
+// TODO: place hyperlinks into dot
+//
+void   mulle_objc_dotdump_classes_to_tmp( void);
 
 
 # pragma mark - -

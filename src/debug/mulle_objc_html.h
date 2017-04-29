@@ -58,6 +58,7 @@ struct _mulle_objc_htmltablestyle
    char  *classprefix;  // no class prefix means no css emission
    char  *color;        // used if classprefix is not set
    char  *bgcolor;      // used if classprefix is not set
+   int   colspan;       // optional
 };
 
 char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime,
@@ -81,6 +82,9 @@ char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls,
                                           struct _mulle_objc_htmltablestyle *styling);
 char  *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls,
                                                 struct _mulle_objc_htmltablestyle *styling);
+char   *mulle_objc_class_html_tiny_description( struct _mulle_objc_class *cls,
+                                               struct _mulle_objc_htmltablestyle *styling);
+
 char  *mulle_objc_class_html_row_description( intptr_t classid,
                                               void *cls,
                                               struct _mulle_objc_htmltablestyle *styling);

@@ -1335,5 +1335,3 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    _mulle_objc_runtime_waitqueues_unlock( runtime);
 }
 
-
-

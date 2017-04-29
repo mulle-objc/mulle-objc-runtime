@@ -150,13 +150,13 @@ static void   asprintf_table_header_colspan( char **s,
                "<TABLE CLASS=\"%s_table\">\n<TR CLASS=\"%s_table_header\"><TH COLSPAN=\"%u\">%s</TH></TR>\n",
                styling->classprefix,
                styling->classprefix,
-               colspan,
+               colspan ? colspan : 2,
                styling->title);
    else // graphviz don't like CLASS, can't deal with TH
       asprintf( s,
                "<TABLE>\n<TR><TD BGCOLOR=\"%s\" COLSPAN=\"%u\"><FONT COLOR=\"%s\">%s</FONT></TD></TR>\n",
                styling->bgcolor,
-               colspan,
+               colspan ? colspan : 2,
                styling->color,
                styling->title);
 }
@@ -164,7 +164,7 @@ static void   asprintf_table_header_colspan( char **s,
 
 static void   asprintf_table_header( char **s, struct _mulle_objc_htmltablestyle *styling)
 {
-   asprintf_table_header_colspan( s, styling, 2);
+   asprintf_table_header_colspan( s, styling, styling->colspan);
 }
 
 
@@ -324,6 +324,22 @@ char   *mulle_objc_class_html_row_description( intptr_t  classid,
             name,
             name);
    return( s);
+}
+
+
+char   *mulle_objc_class_html_tiny_description( struct _mulle_objc_class *cls,
+                                                struct _mulle_objc_htmltablestyle *styling)
+{
+   char          *tmp[ 2];
+   unsigned int  i;
+
+   i = 0;
+   asprintf_table_header( &tmp[ i++], styling);
+   asprintf( &tmp[ i++], "</TABLE>");
+   
+   assert( i <= 2);
+   
+   return( final_concat_auto_tmp( tmp, i));
 }
 
 

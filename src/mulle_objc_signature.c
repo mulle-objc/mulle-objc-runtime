@@ -332,8 +332,8 @@ static char  *_mulle_objc_signature_supply_union_typeinfo( char *type, int level
 {
    struct mulle_objc_typeinfo   _tmp;
    struct mulle_objc_typeinfo   *tmp;
-   char                                    c;
-   unsigned int                            n;
+   char                         c;
+   unsigned int                 n;
 
    tmp = NULL;
    if( info)
