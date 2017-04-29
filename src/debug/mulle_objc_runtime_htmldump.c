@@ -51,6 +51,117 @@
 #include "c_set.inc"
 
 
+static struct _mulle_objc_htmltablestyle    categorytable_style =
+{
+   "categories",
+   "category",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle    protocoltable_style =
+{
+   "protocols",
+   "protocol",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle    infraclass_style =
+{
+   "infraclass",
+   "infra",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle    cachetable_style =
+{
+   "cache",
+   "cache",
+   NULL,
+   NULL,
+   0
+};
+
+
+
+static struct _mulle_objc_htmltablestyle    ivartable_style =
+{
+   "ivars",
+   "ivar",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle    propertytable_style =
+{
+   "properties",
+   "property",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle  classtable_style =
+{
+   "classes",
+   "class",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle  descriptortable_style =
+{
+   "selectors",
+   "selector",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle  runtime_style =
+{
+   "runtime",
+   "runtime",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle  stringtable_style =
+{
+   "strings",
+   "string",
+   NULL,
+   NULL,
+   0
+};
+
+
+static struct _mulle_objc_htmltablestyle  methodlisttable_style =
+{
+   "methods",
+   "method",
+   NULL,
+   NULL,
+   0
+};
+
+
 # pragma mark - small routines to output the html
 
 static char   *html_escape( char *s)
@@ -62,7 +173,7 @@ static char   *html_escape( char *s)
 }
 
 
-static char   *filename_for_classname( char *name, char *directory)
+static char   *html_filename_for_classname( char *name, char *directory)
 {
    char     *buf;
    size_t   len;
@@ -143,53 +254,6 @@ static void  print_end_and_close( FILE *fp)
 
 
 # pragma mark - walker runtime callback
-
-static struct _mulle_objc_htmltablestyle  classtable_style =
-{
-   "classes",
-   "class",
-   NULL,
-   NULL
-
-};
-
-
-static struct _mulle_objc_htmltablestyle  descriptortable_style =
-{
-   "selectors",
-   "selector",
-   NULL,
-   NULL
-};
-
-
-static struct _mulle_objc_htmltablestyle  runtime_style =
-{
-   "runtime",
-   "runtime",
-   NULL,
-   NULL
-};
-
-
-static struct _mulle_objc_htmltablestyle  stringtable_style =
-{
-   "strings",
-   "string",
-   NULL,
-   NULL
-};
-
-
-static struct _mulle_objc_htmltablestyle  methodlisttable_style =
-{
-   "methods",
-   "method",
-   NULL,
-   NULL
-};
-
-
 
 static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
 {
@@ -303,64 +367,6 @@ struct dump_info
    c_set  set;
    char   *directory;
 };
-
-
-static struct _mulle_objc_htmltablestyle    categorytable_style =
-{
-   "categories",
-   "category",
-   NULL,
-   NULL
-};
-
-
-static struct _mulle_objc_htmltablestyle    protocoltable_style =
-{
-   "protocols",
-   "protocol",
-   NULL,
-   NULL
-
-};
-
-
-static struct _mulle_objc_htmltablestyle    infraclass_style =
-{
-   "infraclass",
-   "infra",
-   NULL,
-   NULL
-};
-
-
-static struct _mulle_objc_htmltablestyle    cachetable_style =
-{
-   "cache",
-   "cache",
-   NULL,
-   NULL
-};
-
-
-
-static struct _mulle_objc_htmltablestyle    ivartable_style =
-{
-   "ivars",
-   "ivar",
-   NULL,
-   NULL
-};
-
-
-static struct _mulle_objc_htmltablestyle    propertytable_style =
-{
-   "properties",
-   "property",
-   NULL,
-   NULL
-};
-
-
 
 
 static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
@@ -560,7 +566,7 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra, char *dire
    char   *path;
    FILE   *fp;
 
-   path = filename_for_classname( infra->base.name, directory);
+   path = html_filename_for_classname( infra->base.name, directory);
 
    fp = open_and_print_start( path, infra->base.name);
    _print_infraclass( infra, fp);

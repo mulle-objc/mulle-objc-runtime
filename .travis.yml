@@ -16,11 +16,8 @@ before_install:
    - sudo chown "$USER" /home/linuxbrew
    - git clone https://github.com/Linuxbrew/brew.git /home/linuxbrew/.linuxbrew
    - PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
-   - brew update
-   - brew tap mulle-kybernetik/software
-   - brew install mulle-build
-
+   - brew install mulle-kybernetik/alpha/mulle-build
 
 script:
    - mulle-build
-   - mulle-test
+   - mulle-test -vvv -V

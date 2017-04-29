@@ -78,28 +78,11 @@ static void   _mulle_objc_vprintf_abort( char *format, va_list args)
 }
 
 
-void   mulle_objc_dump_runtime_to_tmp( void);
-
-void   mulle_objc_dump_runtime_to_tmp( void)
-{
-   void   mulle_objc_htmldump_runtime_to_tmp( void);
-   void   mulle_objc_dotdump_runtime_to_tmp( void);
-
-   struct _mulle_objc_runtime   *runtime;
-   size_t                       count;
-
-   runtime = mulle_objc_get_runtime();
-   count   = mulle_concurrent_hashmap_count( &runtime->classtable);
-   if( count > 5)
-      mulle_objc_htmldump_runtime_to_tmp();
-   else
-      mulle_objc_dotdump_runtime_to_tmp();
-}
-
-
 MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE
 static void   _mulle_objc_printf_abort( char *format, ...)
 {
+   extern void   mulle_objc_dotdump_to_tmp( void);
+
    va_list   args;
 
    va_start( args, format);
@@ -110,7 +93,7 @@ static void   _mulle_objc_printf_abort( char *format, ...)
    va_end( args);
 
 #if DEBUG
-   mulle_objc_dump_runtime_to_tmp();
+   mulle_objc_dotdump_to_tmp();
 #endif
    abort();
 }
