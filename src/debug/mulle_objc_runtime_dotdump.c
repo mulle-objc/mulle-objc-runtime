@@ -468,7 +468,7 @@ static void   print_class( struct _mulle_objc_class *cls,
 
    {
       cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
-      if( cache->n)
+      if( _mulle_atomic_pointer_nonatomic_read( &cache->n))
       {
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
                  cls, cache);
