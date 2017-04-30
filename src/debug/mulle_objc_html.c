@@ -703,7 +703,7 @@ char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *l
    for( j = 0; j < list->n_methods; j++)
    {
       mulle_objc_sprintf_functionpointer( buf,
-            (mulle_functionpointer_t) list->methods[ j].implementation);
+         _mulle_atomic_functionpointer_nonatomic_read( &list->methods[ j].implementation));
 
       asprintf( &tmp[ i],
                "<TR>"
@@ -783,7 +783,8 @@ char   *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlis
 
    for( j = 0; j < list->n_methods; j++)
    {
-      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) list->methods[ j].implementation);
+      mulle_objc_sprintf_functionpointer( buf,
+         _mulle_atomic_functionpointer_nonatomic_read( &list->methods[ j].implementation));
 
       asprintf( &tmp[ i],
                "<TR>"
