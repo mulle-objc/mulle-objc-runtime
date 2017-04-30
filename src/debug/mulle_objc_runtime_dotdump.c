@@ -84,7 +84,8 @@ void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
 
    for( i = 0; i < list->n_methods; i++)
    {
-      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) list->methods[ i].implementation);
+      mulle_objc_sprintf_functionpointer( buf,
+         _mulle_atomic_functionpointer_nonatomic_read( &list->methods[ i].implementation));
 
       printf( "{ "
               "name = \"%s\""

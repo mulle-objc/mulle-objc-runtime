@@ -42,7 +42,7 @@
 // up the minor for added features
 // up the patch for bugfixes
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (5 << 8) | 3)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (5 << 8) | 5)
 
 //
 // these three values are read by the compiler(!)
