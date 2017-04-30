@@ -92,13 +92,13 @@ void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
               "signature = \"%s\""
               "methodid = %08x"
               "bits = 0x%x"
-              "implementation = %p"
+              "implementation = %s"
               " }",
                list->methods[ i].descriptor.name,
                list->methods[ i].descriptor.signature,
                list->methods[ i].descriptor.methodid,
                list->methods[ i].descriptor.bits,
-               list->methods[ i].implementation);
+               buf);
    }
 }
 
