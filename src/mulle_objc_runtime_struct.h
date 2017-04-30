@@ -280,9 +280,9 @@ struct _mulle_objc_runtime
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
 
    struct _mulle_objc_loadcallbacks         loadcallbacks;
-   
+
    // unstable region, edit at will
-   
+
    struct _mulle_objc_waitqueues            waitqueues;
 
    struct _mulle_objc_fastclasstable        fastclasstable;

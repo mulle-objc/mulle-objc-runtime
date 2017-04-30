@@ -168,7 +168,7 @@ static char   *html_escape( char *s)
 {
    if( ! strchr( s, '&') && ! strchr( s, '<'))
       return( s);
-   
+
    return( "bad-html");
 }
 
@@ -201,7 +201,7 @@ static FILE  *open_and_print_start( char *name, char *title)
 {
    FILE  *fp;
    char  *cssurl;
-   
+
    fp = fopen( name, "w");
    if( ! fp)
    {
@@ -281,7 +281,7 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
       mulle_allocator_free( &mulle_stdlib_allocator, label);
    }
    fprintf( fp, "</DIV>\n");
- 
+
    fprintf( fp, "\n<DIV CLASS=\"runtime_fastclasses\">\n");
    {
       for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
@@ -291,9 +291,9 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
       if( i < MULLE_OBJC_S_FASTCLASSES)
       {
          print_to_body( "Fast Classes", NULL, fp);
-         
+
          fprintf( fp, "<TABLE CLASS=\"runtime_fastclass_table\">\n");
-         
+
          for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
             if( _mulle_atomic_pointer_nonatomic_read( &runtime->fastclasstable.classes[ i].pointer))
             {
@@ -327,7 +327,7 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
       if( mulle_concurrent_pointerarray_get_count( &runtime->staticstrings))
       {
          print_to_body( "Strings", NULL, fp);
-         
+
          fprintf( fp, "<TABLE CLASS=\"runtime_string_table\">\n");
          rover = mulle_concurrent_pointerarray_enumerate( &runtime->staticstrings);
          while( string = _mulle_concurrent_pointerarrayenumerator_next( &rover))
@@ -384,7 +384,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    struct _mulle_objc_methodlist                    *methodlist;
    struct _mulle_objc_propertylist                  *propertylist;
    struct _mulle_objc_htmltablestyle                style;
-   
+
    cls = _mulle_objc_infraclass_as_class( infra);
 
    print_to_body_with_level( cls->name, NULL, 1, fp);
@@ -411,7 +411,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       print_to_body( NULL, "</DIV>\n", fp);
    }
    print_to_body( NULL, "</DIV>\n", fp);
-   
+
    fprintf( fp, "\n<DIV CLASS=\"class_protocolclass_links\">\n");
    {
       pair = _mulle_objc_infraclass_get_classpair( infra);
@@ -420,7 +420,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       {
          print_to_body( "Inherited Protocol Classes", NULL, fp);
          fprintf( fp, "<OL>\n");
-         
+
          prover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
          while( prop_cls = _mulle_objc_protocolclassenumerator_next( &prover))
          {
@@ -430,7 +430,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
          mulle_concurrent_pointerarrayenumerator_done( &rover);
-         
+
          fprintf( fp, "</OL>\n");
       }
    }
@@ -446,13 +446,13 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       mulle_allocator_free( &mulle_stdlib_allocator, label);
    }
    fprintf( fp, "</DIV>\n");
-   
+
    fprintf( fp, "\n<DIV CLASS=\"class_properties\">\n");
    {
       if( infra && mulle_concurrent_pointerarray_get_count( &infra->propertylists))
       {
          print_to_body( "Property Lists", NULL, fp);
-         
+
          rover = mulle_concurrent_pointerarray_enumerate( &infra->propertylists);
          while( propertylist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
@@ -464,14 +464,14 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       }
    }
    fprintf( fp, "</DIV>\n");
-  
-   
+
+
    fprintf( fp, "\n<DIV CLASS=\"class_ivars\">\n");
    {
       if( infra && mulle_concurrent_pointerarray_get_count( &infra->ivarlists))
       {
          print_to_body( "Instance Variable Lists", NULL, fp);
-         
+
          rover = mulle_concurrent_pointerarray_enumerate( &infra->ivarlists);
          while( ivarlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
@@ -490,7 +490,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       if( mulle_concurrent_pointerarray_get_count( &meta->base.methodlists))
       {
          print_to_body( "+ Method Lists", NULL, fp);
-         
+
          rover = mulle_concurrent_pointerarray_enumerate( &meta->base.methodlists);
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
@@ -510,7 +510,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       if( mulle_concurrent_pointerarray_get_count( &infra->base.methodlists))
       {
          print_to_body( "- Method Lists", NULL, fp);
-         
+
          rover = mulle_concurrent_pointerarray_enumerate( &infra->base.methodlists);
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
@@ -536,14 +536,14 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       }
    }
    fprintf( fp, "</DIV>\n");
-   
+
    fprintf( fp, "\n<DIV CLASS=\"class_categories\">\n");
    {
       if( mulle_concurrent_pointerarray_get_count( &pair->categoryids))
       {
          label = mulle_objc_categories_html_description( &pair->protocolids,
                                                         &categorytable_style);
-         
+
          print_to_body( "Categories", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);
       }
@@ -688,7 +688,7 @@ void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
       mulle_objc_classpair_htmldump_to_directory( pair, "/tmp");
    }
    while( cls = _mulle_objc_class_get_superclass( cls));
-   
+
    fprintf( stderr, "Dumped HTML to \"/%s\"\n", directory);
 }
 
@@ -715,7 +715,7 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname, char *direct
       fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
       return;
    }
-   
+
    cls = _mulle_objc_infraclass_as_class( infra);
    mulle_objc_class_htmldump_to_directory( cls, directory);
 }

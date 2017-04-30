@@ -39,6 +39,7 @@
 
 #include <mulle_thread/mulle_thread.h>
 
+#include <stdio.h>
 
 struct _mulle_objc_class;
 struct _mulle_objc_object;
@@ -56,5 +57,28 @@ union _mulle_objc_atomicobjectpointer_t
    struct _mulle_objc_object    *object;      // dont read, except when debugging
    mulle_atomic_pointer_t       pointer;
 };
+
+
+// inline coz I am lazy
+// https://stackoverflow.com/questions/2741683/how-to-format-a-function-pointer
+// buf must be s_mulle_objc_sprintf_functionpointer_buffer
+
+#define s_mulle_objc_sprintf_functionpointer_buffer (2 + sizeof( mulle_functionpointer_t) * 2 + 1)
+
+static inline void   mulle_objc_sprintf_functionpointer( char *buf, mulle_functionpointer_t fp)
+{
+    uint8_t   *p;
+    uint8_t   *sentinel;
+
+    p        = (uint8_t *) &fp;
+    sentinel = &p[ sizeof( fp)];
+
+    sprintf( buf, "0x");
+    while( p < sentinel)
+    {
+        buf = &buf[ 2];
+        fprintf( stderr, "%02x", *p++);
+    }
+}
 
 #endif

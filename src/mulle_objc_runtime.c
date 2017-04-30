@@ -425,7 +425,7 @@ struct _mulle_objc_runtime  *mulle_objc_get_or_create_runtime( void)
    struct _mulle_objc_runtime  *runtime;
    extern MULLE_C_CONST_RETURN
    struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void);
-   
+
    runtime = __get_or_create_objc_runtime();  // the external function
    if( ! runtime)
    {
@@ -701,7 +701,7 @@ enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mu
 {
    unsigned int  n;
    int           rval;
-   
+
    rval = mulle_objc_runtime_is_ok;
    /*
     * free various stuff
@@ -748,7 +748,7 @@ enum mulle_objc_runtime_status   mulle_objc_check_runtime( void)
    runtime = mulle_objc_get_runtime();
    if( ! runtime)
       return( mulle_objc_runtime_is_missing);
-   
+
    return( _mulle_objc_runtime_check_waitqueues( runtime));
 }
 
@@ -915,7 +915,7 @@ void   _mulle_objc_runtime_raise_inconsistency_exception( struct _mulle_objc_run
    va_list   args;
 
    va_start( args, format);
-   
+
    //
    // inconsistency ? even runtime might not be setup properly. This is the only
    // exception doing this check
@@ -1183,7 +1183,7 @@ struct _mulle_objc_classpair
    struct _mulle_objc_metaclass       *super_meta;
    struct _mulle_objc_metaclass       *super_meta_isa;
    size_t                             size;
-   
+
    if( ! runtime || ! runtime->memory.allocator.calloc)
    {
       errno = EINVAL;
@@ -1285,7 +1285,7 @@ int   mulle_objc_runtime_add_infraclass( struct _mulle_objc_runtime *runtime,
       errno = EINVAL;
       return( -1);
    }
-   
+
    if( _mulle_concurrent_hashmap_lookup( &runtime->classtable, infra->base.classid))
    {
       errno = EEXIST;
