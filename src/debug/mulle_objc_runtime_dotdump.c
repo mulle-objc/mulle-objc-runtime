@@ -56,7 +56,7 @@ static char   *html_escape( char *s)
 {
    if( ! strchr( s, '&') && ! strchr( s, '<'))
       return( s);
-   
+
    return( "bad-html");
 }
 
@@ -65,7 +65,7 @@ static char   *dot_filename_for_classname( char *name, char *directory)
 {
    char     *buf;
    size_t   len;
-   
+
    len = strlen( name) + strlen( directory) + 16;
    buf = mulle_allocator_malloc( &mulle_stdlib_allocator, len);
    sprintf( buf, "%s/%s.dot", directory, html_escape( name));
@@ -80,8 +80,12 @@ static char   *dot_filename_for_classname( char *name, char *directory)
 void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
 {
    unsigned int   i;
+   char           buf[ s_mulle_objc_sprintf_functionpointer_buffer];
 
    for( i = 0; i < list->n_methods; i++)
+   {
+      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) list->methods[ i].implementation);
+
       printf( "{ "
               "name = \"%s\""
               "signature = \"%s\""
@@ -94,6 +98,7 @@ void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
                list->methods[ i].descriptor.methodid,
                list->methods[ i].descriptor.bits,
                list->methods[ i].implementation);
+   }
 }
 
 
@@ -248,7 +253,7 @@ static char  *mulle_objc_loadclasslist_html_row_description( intptr_t  classid, 
 static char  *mulle_objc_loadcategorylist_html_row_description( intptr_t  classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_pointerarray   *array = value;
-   
+
    return( mulle_concurrent_pointerarray_html_description( array,
                                                            mulle_objc_loadcategory_html_row_description,
                                                            NULL));
@@ -272,7 +277,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
 {
    char   *label;
    int    i;
-   
+
    label = mulle_objc_runtime_html_description( runtime, &runtime_style);
    fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n", runtime, label, "component");
    free( label);
@@ -282,7 +287,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
       {
          fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"descriptortable\" ];\n",
                  runtime, &runtime->descriptortable);
-         
+
          label = mulle_concurrent_hashmap_html_description( &runtime->descriptortable,
                                                            mulle_objc_methoddescriptor_html_row_description,
                                                            &selectortable_style);
@@ -290,7 +295,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
                  &runtime->descriptortable, label, "box");
          free( label);
       }
-   
+
    for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
       if( _mulle_atomic_pointer_nonatomic_read( &runtime->fastclasstable.classes[ i].pointer))
          fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"fastclass #%d\" ];\n",
@@ -302,7 +307,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
          label = mulle_concurrent_pointerarray_html_description( &runtime->staticstrings,
                                                                 mulle_objc_staticstring_html_row_description,
                                                                 &staticstringtable_title);
-         
+
          fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"staticstrings\" ];\n",
                  runtime, &runtime->staticstrings);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
@@ -314,7 +319,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
    {
       fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"classestoload\" ];\n",
                runtime, &runtime->waitqueues.classestoload);
-      
+
       label = mulle_concurrent_hashmap_html_description( &runtime->waitqueues.classestoload,
                                                          mulle_objc_loadclasslist_html_row_description,
                                                          &classestoload_style);
@@ -327,7 +332,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
    {
       fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"categoriestoload\" ];\n",
                runtime, &runtime->waitqueues.categoriestoload);
-      
+
       label = mulle_concurrent_hashmap_html_description( &runtime->waitqueues.categoriestoload,
                                                          mulle_objc_loadcategorylist_html_row_description,
                                                          &categoriestoload_style);
@@ -335,7 +340,7 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
               &runtime->waitqueues.categoriestoload, label, "box");
       free( label);
    }
-   
+
    fprintf( info->fp, "\n\n");
 }
 
@@ -365,14 +370,14 @@ static void   print_class( struct _mulle_objc_class *cls,
    struct _mulle_objc_methodlist                    *methodlist;
    unsigned int                                     i;
    struct _mulle_objc_htmltablestyle                style;
-   
+
    style       = is_meta ? metaclass_style : infraclass_style;
    style.title = cls->name;
-   
+
    label = mulle_objc_class_html_description( cls, &style);
    fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\"", cls, label, is_meta ? "component" : "box");
    free( label);
-   
+
    // always create this, what's the harm
    {
       //
@@ -390,7 +395,7 @@ static void   print_class( struct _mulle_objc_class *cls,
       fprintf( info->fp, " URL=\"file:///tmp/%s.dot\"", html_escape( cls->name));
    }
    fprintf( info->fp, " ];\n");
-   
+
    if( info->draw_runtime)
       if( _mulle_objc_class_get_runtime( cls))
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"runtime\" ];\n", cls,  _mulle_objc_class_get_runtime( cls));
@@ -402,13 +407,13 @@ static void   print_class( struct _mulle_objc_class *cls,
                  _mulle_objc_class_is_infraclass( cls)
                  ? 3 : 1);
    }
-   
+
    {
       meta = _mulle_objc_class_get_metaclass( cls);
       if( meta)
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"meta\"; color=\"goldenrod\"; fontcolor=\"goldenrod\" ];\n", cls, meta);
    }
-   
+
    {
       infra = _mulle_objc_class_get_infraclass( cls);
       if( infra)
@@ -420,7 +425,7 @@ static void   print_class( struct _mulle_objc_class *cls,
       {
          struct _mulle_objc_protocolclassenumerator  rover;
          struct _mulle_objc_infraclass               *prop_cls;
-         
+
          i = 0;
          pair  = _mulle_objc_class_get_classpair( cls);
          rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
@@ -428,7 +433,7 @@ static void   print_class( struct _mulle_objc_class *cls,
          {
             fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"protocol class #%u\" ];\n",
                     cls, prop_cls, i++);
-            
+
             if( ! c_set_member( &info->set, prop_cls))
             {
                c_set_add( &info->set, prop_cls);
@@ -451,7 +456,7 @@ static void   print_class( struct _mulle_objc_class *cls,
          {
             fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"methodlist #%d\" ];\n",
                     cls, methodlist, i++);
-            
+
             label = mulle_objc_methodlist_html_description( methodlist, &methodlist_style);
             fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", methodlist, label);
             free( label);
@@ -459,14 +464,14 @@ static void   print_class( struct _mulle_objc_class *cls,
       }
       mulle_concurrent_pointerarrayenumerator_done( &rover);
    }
-   
+
    {
       cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
       if( cache->n)
       {
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
                  cls, cache);
-         
+
          label = mulle_objc_cache_html_description( cache, &cachetable_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", cache, label);
          free( label);
@@ -524,7 +529,7 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra,
       {
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"ivarlist #%d\" ];\n",
                  infra, ivarlist, i++);
-         
+
          label = mulle_objc_ivarlist_html_description( ivarlist, &ivarlist_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", ivarlist, label);
          free( label);
@@ -540,7 +545,7 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra,
       {
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"propertylist #%d\" ];\n",
                  infra, propertylist, i++);
-         
+
          label = mulle_objc_propertylist_html_description( propertylist, &propertylist_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", propertylist, label);
          free( label);
@@ -560,13 +565,13 @@ static void   print_hyper_infraclass( struct _mulle_objc_infraclass *infra,
    struct _mulle_objc_htmltablestyle   style;
    char                                *label;
    struct _mulle_objc_infraclass *superclass;
-   
+
 
    style       = infraclass_style;
    style.title = html_escape( infra->base.name);
-   
+
    label = mulle_objc_class_html_tiny_description( _mulle_objc_infraclass_as_class( infra), &style);
-   
+
    fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"box\", URL=\"file:///tmp/%s.dot\" ];\n", infra, label, style.title);
    free( label);
 
@@ -698,7 +703,7 @@ void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
       mulle_objc_classpair_dotdump( pair, fp);
    }
    while( cls = _mulle_objc_class_get_superclass( cls));
-   
+
    fprintf( fp, "}\n");
    fclose( fp);
 
@@ -712,13 +717,13 @@ void   mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
    struct _mulle_objc_class       *cls;
    struct _mulle_objc_infraclass  *infra;
    mulle_objc_classid_t           classid;
-   
+
    if( ! classname || ! *classname)
    {
       fprintf( stderr, "Invalid classname\n");
       return;
    }
-   
+
    runtime = mulle_objc_get_runtime();
    classid = mulle_objc_classid_from_string( classname);
    infra   = _mulle_objc_runtime_lookup_infraclass( runtime, classid);
@@ -727,7 +732,7 @@ void   mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
       fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
       return;
    }
-   
+
    cls = _mulle_objc_infraclass_as_class( infra);
    mulle_objc_class_dotdump_to_file( cls, filename);
 }
@@ -752,7 +757,7 @@ void   mulle_objc_dotdump_classes_to_tmp( void)
    struct _mulle_objc_infraclass               *infra;
    struct _mulle_objc_runtime                  *runtime;
    struct mulle_concurrent_hashmapenumerator   rover;
-   
+
    runtime = mulle_objc_get_runtime();
    rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
@@ -772,21 +777,21 @@ void   mulle_objc_dotdump_classes_to_tmp( void)
 void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *fp)
 {
    struct dump_info   info;
-   
+
    c_set_init( &info.set);
-   
+
    memset( &info, 0, sizeof( info));
-   
+
    info.fp               = fp;
    info.draw_runtime     = 1;
    info.create_hyperlink = 1;
    info.draw_strings     = getenv( "MULLE_OBJC_NO_STRING_TABLE") ? 0 : 1;
    info.draw_selectors   = getenv( "MULLE_OBJC_NO_SELECTOR_TABLE") ? 0 : 1;
-   
+
    fprintf( fp, "digraph mulle_objc_runtime\n{\n");
    mulle_objc_runtime_walk( runtime, callback, &info);
    fprintf( fp, "}\n");
-   
+
    c_set_done( &info.set);
 }
 
@@ -794,11 +799,11 @@ void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *f
 void   mulle_objc_dotdump_runtime( void)
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    if( ! runtime)
       return;
-   
+
    _mulle_objc_runtime_dotdump( runtime, stdout);
 }
 
@@ -807,24 +812,24 @@ void   mulle_objc_dotdump_runtime_to_file( char *filename)
 {
    struct _mulle_objc_runtime   *runtime;
    FILE                         *fp;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    if( ! runtime)
    {
       fprintf( stderr, "No runtime found!\n");
       return;
    }
-   
+
    fp = fopen( filename, "w");
    if( ! fp)
    {
       perror( "fopen:");
       return;
    }
-   
+
    _mulle_objc_runtime_dotdump( runtime, fp);
    fclose( fp);
-   
+
    fprintf( stderr, "Written dot file \"%s\"\n", filename);
 }
 
@@ -840,7 +845,7 @@ void   mulle_objc_dotdump_runtime_to_tmp( void)
    int                             nr;
    int                             max;
    char                            *s;
-   
+
    nr = (int) (intptr_t) _mulle_atomic_pointer_increment( &counter);
    s = getenv( "MULLE_OBJC_DOTDUMP_MAX");
    if( s)
@@ -849,7 +854,7 @@ void   mulle_objc_dotdump_runtime_to_tmp( void)
       if( max && nr >= max)
          return;
    }
-   
+
    sprintf( buf, "/tmp/runtime_%06d.dot", nr);
    mulle_objc_dotdump_runtime_to_file( buf);
 }
