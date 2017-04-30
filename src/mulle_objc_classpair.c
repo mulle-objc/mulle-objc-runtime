@@ -178,19 +178,22 @@ void   mulle_objc_classpair_unfailing_add_category( struct _mulle_objc_classpair
    // adding a category twice is very bad
    if( _mulle_objc_classpair_has_category( pair, categoryid))
    {
-      fprintf( stderr, "mulle_objc_runtime %p error: category %08x for class %08x \"%s\" is already loaded\n",
+      fprintf( stderr, "mulle_objc_runtime %p error: category %08x for"
+                       " class %08x \"%s\" is already loaded\n",
               runtime,
               categoryid,
               _mulle_objc_classpair_get_classid( pair),
               _mulle_objc_classpair_get_name( pair));
       _mulle_objc_class_raise_einval_exception();
    }
-   
+
    if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRA_IS_PROTOCOLCLASS))
    {
       if( runtime->debug.warn.protocolclass)
          if( runtime->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\" is a protocolclass and gains a category %08x \"%s( %s)\"\n",
+            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\""
+                             " is a protocolclass and gains a"
+                             " category %08x \"%s( %s)\"\n",
                     runtime,
                     _mulle_objc_classpair_get_classid( pair),
                     _mulle_objc_classpair_get_name( pair),
@@ -200,7 +203,8 @@ void   mulle_objc_classpair_unfailing_add_category( struct _mulle_objc_classpair
    }
 
    if( runtime->debug.trace.category_adds)
-      fprintf( stderr, "mulle_objc_runtime %p trace: add category %08x \"%s\" to class %08x \"%s\"\n",
+      fprintf( stderr, "mulle_objc_runtime %p trace: add category %08x \"%s\""
+                       " to class %08x \"%s\"\n",
               runtime,
               categoryid,
               mulle_objc_string_for_categoryid( categoryid),
@@ -258,7 +262,7 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
    struct _mulle_objc_infraclass    *proto_cls;
    struct _mulle_objc_runtime       *runtime;
    mulle_objc_classid_t             classid;
-   
+
    if( ! pair)
       _mulle_objc_class_raise_einval_exception();
 
@@ -267,12 +271,12 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
 
    runtime = _mulle_objc_classpair_get_runtime( pair);
    classid = _mulle_objc_classpair_get_classid( pair);
-   
+
    while( protocolclassid = *protocolclassids++)
    {
       if( protocolclassid == MULLE_OBJC_NO_PROTOCOLID || protocolclassid == MULLE_OBJC_INVALID_PROTOCOLID)
          _mulle_objc_class_raise_einval_exception();
-      
+
       // if same as myself, no point in adding the protocolclass
       if( protocolclassid == classid)
          continue;
@@ -280,24 +284,26 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
       proto_cls = _mulle_objc_runtime_lookup_infraclass( runtime, protocolclassid);
       if( ! proto_cls)
          _mulle_objc_class_raise_einval_exception();
-   
+
       if( ! mulle_objc_infraclass_is_protocolclass( proto_cls))
          _mulle_objc_class_raise_einval_exception();
-      
+
       if( _mulle_objc_classpair_has_protocolclass( pair, proto_cls))
          continue;
 
       if( _mulle_objc_infraclass_set_state_bit( proto_cls, MULLE_OBJC_INFRA_IS_PROTOCOLCLASS))
       {
          if( runtime->debug.trace.protocol_adds)
-            fprintf( stderr, "mulle_objc_runtime %p trace: class %08x \"%s\" has become a protocolclass\n",
+            fprintf( stderr, "mulle_objc_runtime %p trace: class %08x \"%s\""
+                             " has become a protocolclass\n",
                  runtime,
                  _mulle_objc_infraclass_get_classid( proto_cls),
                  _mulle_objc_infraclass_get_name( proto_cls));
       }
-      
+
       if( runtime->debug.trace.protocol_adds)
-         fprintf( stderr, "mulle_objc_runtime %p trace: add protocolclass %08x \"%s\" to class %08x \"%s\"\n",
+         fprintf( stderr, "mulle_objc_runtime %p trace: add protocolclass %08x"
+                          " \"%s\" to class %08x \"%s\"\n",
                  runtime,
                  protocolclassid,
                  _mulle_objc_infraclass_get_name( proto_cls),

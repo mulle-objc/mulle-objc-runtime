@@ -392,9 +392,9 @@ static char    *__mulle_objc_signature_supply_next_typeinfo( char *type,
                                                              struct mulle_objc_typeinfo *info)
 {
    int   isComplex;
-   
+
    assert( type);
-   
+
    ++level;
    type = _mulle_objc_signature_skip_type_qualifier( type);
 
@@ -426,11 +426,11 @@ static char    *__mulle_objc_signature_supply_next_typeinfo( char *type,
       case '"' :  // name
          if( info)
             info->name = type;
-         
+
          while( *++type != '"');
          ++type;  // skip terminator
       }
-      
+
       return( type);
    }
 
@@ -507,7 +507,7 @@ char    *_mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_o
 char   *_mulle_objc_signature_next_typeinfo( char *types)
 {
    char   *next;
-   
+
    next = __mulle_objc_signature_supply_next_typeinfo( types, -1, NULL);
    if( ! next)
       return( next);
@@ -604,7 +604,7 @@ enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabireturntype( c
    case _C_USHT      :
    case _C_INT       :
    case _C_UINT      : return( mulle_objc_metaabiparamtype_void_pointer);
-         
+
    case _C_LNG       : return( type_fits_voidptr( long) ? 1 : 2);
    case _C_ULNG      : return( type_fits_voidptr( unsigned long) ? 1 : 2);
    case _C_LNG_LNG   : return( type_fits_voidptr( long long) ? 1 : 2);

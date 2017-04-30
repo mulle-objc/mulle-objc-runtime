@@ -298,7 +298,7 @@ static inline void   mulle_objc_runtime_unfailing_add_gift( struct _mulle_objc_r
 {
    if( ! runtime || ! gift)
       return;
-   
+
    _mulle_objc_runtime_add_gift( runtime, gift);
 }
 
@@ -310,7 +310,7 @@ void   mulle_objc_raise_fail_errno_exception( void) MULLE_C_NO_RETURN;
 static inline void   *_mulle_objc_runtime_strdup( struct _mulle_objc_runtime *runtime, char  *s)
 {
    char  *p;
-   
+
    p = _mulle_allocator_strdup( _mulle_objc_runtime_get_allocator( runtime), s);
    if( p)
       _mulle_objc_runtime_add_gift( runtime, p);
@@ -322,7 +322,7 @@ MULLE_C_NON_NULL_RETURN
 static inline void   *_mulle_objc_runtime_calloc( struct _mulle_objc_runtime *runtime, size_t n, size_t size)
 {
    void  *p;
-   
+
    p = _mulle_allocator_calloc( _mulle_objc_runtime_get_allocator( runtime), n, size);
    _mulle_objc_runtime_add_gift( runtime, p);
    return( p);
@@ -565,7 +565,7 @@ static inline struct _mulle_objc_methodlist  *mulle_objc_runtime_alloc_methodlis
 static inline mulle_objc_classid_t   _mulle_objc_runtime_get_rootclassid( struct _mulle_objc_runtime *runtime)
 {
    struct _mulle_objc_foundation  *foundation;
-   
+
    foundation = _mulle_objc_runtime_get_foundation( runtime);
    return( foundation ->rootclassid);
 }

@@ -412,11 +412,11 @@ static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassid
 {
    mulle_objc_protocolid_t    protoid;
    char                       *s;
-   
+
    for(; *protocolclassids; ++protocolclassids)
    {
       protoid = *protocolclassids;
-      
+
       s = NULL;
       if( strings)
          s = mulle_objc_loadhashedstringlist_bsearch( strings, protoid);
@@ -465,7 +465,7 @@ static void   loadmethod_dump( struct _mulle_objc_method *method, char *prefix, 
             method->descriptor.methodid,
             method->descriptor.signature,
             method->descriptor.bits);
-   
+
 }
 
 
@@ -476,7 +476,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
 {
    struct _mulle_objc_method   *method;
    struct _mulle_objc_method   *sentinel;
-   
+
    if( p->protocolclassids)
       loadprotocolclasses_dump( p->protocolclassids, prefix, strings);
 
@@ -491,7 +491,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
       fprintf( stderr, " // %s", p->origin);
 
    fprintf( stderr, "\n");
-   
+
    if( p->classmethods)
    {
       method = p->classmethods->methods;
@@ -513,7 +513,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
          ++method;
       }
    }
-   
+
    fprintf( stderr, "%s@end\n", prefix);
 }
 
@@ -1258,7 +1258,7 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
 
    if( ! runtime->memory.allocator.calloc)
       _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: Has no allocator installed.", runtime);
-   
+
    if( ! mulle_objc_class_is_current_thread_registered( NULL))
    {
       loadinfo_dump( info, "loadinfo:   ");

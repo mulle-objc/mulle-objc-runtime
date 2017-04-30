@@ -869,23 +869,25 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
          {
             if( runtime->debug.trace.method_searches)
             {
+               char   buf[ s_mulle_objc_sprintf_functionpointer_buffer];
+
                // one more ? it's a category
                if( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s category %s( %p) implementation %p for methodid %08x ( \"%s\")\"\n",
+                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s category %s( %p) implementation ",
                         runtime,
                         _mulle_objc_class_get_classtypename( cls),
                         cls->name,
-                        list->owner,
-                        _mulle_objc_method_get_implementation( method),
-                        method->descriptor.methodid,
-                        method->descriptor.name);
+                        list->owner);
                else
-                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s %s implementation %p for methodid %08x ( \"%s\")\"\n", runtime,
+                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s %s implementation", runtime,
                         _mulle_objc_class_get_classtypename( cls),
-                        cls->name,
-                        _mulle_objc_method_get_implementation( method),
-                        method->descriptor.methodid,
-                        method->descriptor.name);
+                        cls->name);
+               mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
+
+               fprintf( stderr, "%s for methodid %08x ( \"%s\")\"\n",
+                       buf,
+                       method->descriptor.methodid,
+                       method->descriptor.name);
             }
 
             mulle_concurrent_pointerarrayreverseenumerator_done( &rover);

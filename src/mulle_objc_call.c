@@ -519,7 +519,6 @@ mulle_objc_methodimplementation_t   mulle_objc_class_unfailing_lookup_methodimpl
 
 
 # pragma mark - lldb support
-
 mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation( void *obj,
                                                                                  mulle_objc_methodid_t methodid,
                                                                                  void *cls_or_classid,
@@ -564,7 +563,11 @@ mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation(
 
    imp = _mulle_objc_class_lookup_or_search_methodimplementation( call_cls, methodid);
    if( debug)
-      fprintf( stderr, "resolved to %p -> %p\n", call_cls, imp);
+   {
+      char   buf[ s_mulle_objc_sprintf_functionpointer_buffer];
+      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) imp);
+      fprintf( stderr, "resolved to %p -> %s\n", call_cls, buf);
+   }
    return( imp);
 }
 
