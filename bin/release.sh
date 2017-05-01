@@ -18,7 +18,7 @@ NAME="mulle-objc-runtime"
 PUBLISHER="mulle-nat"
 PUBLISHER_TAP="mulle-kybernetik/software/"
 DEPENDENCY_TAP="mulle-kybernetik/software/"
-BOOTSTRAP_TAP="software/alpha/"
+BOOTSTRAP_TAP="mulle-kybernetik/alpha/"
 
 
 MULLE_BOOTSTRAP_FAIL_PREFIX="release.sh"
