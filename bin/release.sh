@@ -16,8 +16,8 @@ NAME="mulle-objc-runtime"
 # source mulle-homebrew.sh (clumsily)
 
 PUBLISHER="mulle-nat"
-PUBLISHER_TAP="mulle-nat/software/"
-DEPENDENCY_TAP="mulle-nat/software/"
+PUBLISHER_TAP="mulle-kybernetik/software/"
+DEPENDENCY_TAP="mulle-kybernetik/software/"
 BOOTSTRAP_TAP="software/alpha/"
 
 
