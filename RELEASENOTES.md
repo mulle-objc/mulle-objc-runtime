@@ -1,3 +1,15 @@
+## 0.6.1
+
+* +classDependencies and +categoryDependencies don't exist anymore. They are
+replaced by +dependencies, which combines them. To specify a dependency on
+a class do `{ @selector( Class), 0 }`, on a category do 
+`{ @selector( Class), @selector( Category) }`
+
+```
++ (struct _mulle_objc_dependency *) dependencies
+```
+
+
 ## 0.5.1
 
 * this runtime needs the mulle-clang compiler, based on clang 4.0.0

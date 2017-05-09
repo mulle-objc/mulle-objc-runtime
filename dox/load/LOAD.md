@@ -59,40 +59,88 @@ GNUStep basically guarantees nothing. `+load`s are performed as they are coming 
 
 <p style="page-break-before:always;"></p>
 
+## Call `+load` before or after addition to runtime ?
+
+One question is, if `+load` should be called before the class or category 
+is added to the runtime system or after. If the `+load` is called before 
+the addition, the following functionality is unavailable in `+load`:
+
+#### For classes
+
+* you can't message the metaclass. If your class is called "Foo" you can't call `+[Foo ...]`. Obviously your class is not discoverable by other classes.
+
+#### For categories
+
+* you can't message any instance or class-methods, that are part of your category.
+
+This is not desirable and expected by the user (class programmer). Is it avoidable ?
+
+
 ## +load in mulle-objc-runtime
 
-The **mulle-objc-runtime** supports classes, that depend on a superclass and
-protocol classes and it supports categories, that additionally depend on other categories of the same class.
+The **mulle-objc-runtime** allows classes and categories to specify arbitrary dependencies on other classes and categories for `+load` calls. It is the 
+burden of the `+load` author to ensure, that there are no cycles.
+ 
+The **mulle-objc-runtime** automatically detects dependencies on superclasses and
+protocolclasses for classes. It detects dependencies on its base class and protocolclasses for categories.
+
+The user specified dependencies are given by `+dependencies` which returns an array of `struct _mulle_objc_dependency`.
+
+Each dependency either specifies the missing classid for a class, or the missing classid/categoryid pait for a category.
+
+
+### Rules of `+load`
+
+1. A `+load` method is only executed once per class or category
+2. The `+load` method of a class is executed before `+initialize` of the class.
+3. At `+load` time a class can be sure that:
+
+    3.1 It's superclass is present and has run `+load`
+
+    3.2 All protocolclasses are present and have run `+load`
+
+    3.3 All +dependencies are present and have run `+load`
+
+4. At `+load` time a category can be sure that:
+
+   4.1 It's class is present and has run `+load`
+
+   4.2 All protocolclasses are present and have run `+load`
+
+   4.3 All +dependencies are present and have run `+load`
+5. A class or category who's dependencies are not satisfied, is not added to
+   the runtime system immediately. Instead its addition is postponed, until
+   the requirements are met.
+   
+### Other consequence of this design
+
+Other C `__attribute__(constructor)` code and C++ initializers are unsequenced in relationship to `+load`. Shared libraries do not impose a sequencing order nor do they imply `+load` execution guarantees for contained loadable.
+
+In general it is bad style to trigger `+initialize` in your or another classes `+load`, since a category may wish to override it with it's own code.
+
+If a category does override `+initialize`, it should query the state bit with `_mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED)` during it's `+ load` and `abort()`, if the bit is set already.
+
+The MulleObjCFoundation for example guarantees, that its classes or categories
+do not trigger `+initialize` during `+load`.
+
+   
+## How classes and categories are loaded in mulle-objc-runtime
+
 
 > A **class** is created with the information of a **loadclass**, a **category**
 > is added with the information of a **loadcategory**. A loadclass or loadcategory
 > is called a loadable for short.
 
+
 If we assume, that the executable is composed of a complete set of loadcategories and loadclasses without missing dependencies, then all classes and categories will be installed ahead of `main`. They get installed via `__attribute__((constructor))` function calls to `mulle_objc_loadinfo_unfailing_enqueue`, the **mulle-clang** compiler emits:
 
 ![Excecutable](executable.svg)
 
-This following diagram charts the loading process of classes and categories, that could be implemented in `mulle_objc_loadinfo_unfailing_enqueue`, if the load-order of `.o` files in an executable was perfectly sorted according to dependencies:
+### Naivety doesn't cut it
+
+This following diagram charts the loading process of classes and categories, that could be implemented, **if the load-order** of `.o` files in an executable **is perfectly sorted** according to dependencies:
 
 ![Naive loading](load_loop.svg)
-
-
-> #### `+load` before or after addition ?
->
-> One question is, if `+load` should be called before the class or category is added
-> to
-> the runtime system or after. If the `+load` is called before the addition, the
-> following functionality is unavailable in `+load`:
->
-> **Classes**
->
-> * you can't message the metaclass. If your class is called "Foo" you can't call `+[Foo ...]`. Obviously your class is not discoverable by other classes.
->
-> **Categories**
->
-> * you can't message any instance or class-methods, that are part of your category.
->
-> This is not desirable and expected by the user (class programmer). Is it avoidable ?
 
 
 #### Necessity of a wait-queue
@@ -100,7 +148,7 @@ This following diagram charts the loading process of classes and categories, tha
 The order in which loadables appear in a statically linked
 executable is pretty much willy-nilly though.  So it is necessary for the runtime to be able to "wait" for a  loadable, that is required for the loading of a dependent loadable. A simple example is: `@interface Foo : Bar`, but `Foo.o` is linked ahead of `Bar.o`.
 
-This is solved by adding a **wait-queue** where loadables add themselves to wait for one or more specific classes. When a class finally appears in the runtime, the **wait-queue** gets executed and the queued loadables recheck their dependencies.
+This is solved by adding a **wait-queue** where loadables add themselves to wait for one or more specific classes or categories. When a class or category finally appears in the runtime, the **wait-queue** gets executed and the queued loadables recheck their dependencies.
 
 This works nicely in the single-threaded case and if the executable does not contain circular or missing dependencies.
 
@@ -138,9 +186,14 @@ If 'B' doesn't block until 'A' makes 'Foo' available, it would run into a missin
 
 > This is independent of `+load` being called before or after adding the class/category.
 
-
 As we need a lock for the load-queue anyway, we can expand thes scope to the waitqueues too. This effectively means that loadables force the participating threads into serial execution for the loading. I think I am OK with that.
 
+A consequence of the lock is, that if you are doing something costly in `+load`,
+you are effectively starving other threads from adding loadables.
+
+
+----
+## Historical Text
 
 #### Other Options
 
@@ -164,38 +217,5 @@ been emptied (different thread)
 
 
 
-#### Other Aspects
-
-Other C `__attribute__(constructor)` code and C++ initializers are unsequenced in relationship to `+load`. Shared libraries do not impose a sequencing order nor do they imply `+load` execution guarantees for contained loadable.
-
-In general it is bad style to trigger `+initialize` in your or another classes `+load`, since a category may wish to override it with it's own code.
-
-If a category does override `+initialize`, it should query the state bit with `_mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED)` during it's `+ load` and `abort()`, if the bit is set already.
-
-The MulleObjCFoundation for example guarantees, that its classes or categories
-do not trigger `+initialize` during `+load`.
-
-A consequence of the lock is, that if you are doing something costly in +load,
-you are effectively starving other threads from adding loadables.
 
 
-### Expected Ruleset
-
-1. A `+load` method is only executed once per class or category
-2. The `+load` method of a class is executed before `+initialize` of the class.
-3. At `+load` time a class can be sure that:
-
-    3.1 It's superclass is present and has run `+load`
-
-    3.2 All protocolclasses are present and have run `+load`
-
-4. At `+load` time a category can be sure that:
-
-   4.1 It's class is present and has run `+load`
-
-   4.2 All protocolclasses are present and have run `+load`
-
-   4.3 All +categoryDependencies are present and have run `+load`
-5. A class or category who's dependencies are not satisfied, is not added to
-   the runtime system immediately. Instead its addition is postponed, until
-   the requirements are met.

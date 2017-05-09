@@ -571,44 +571,6 @@ static void   _mulle_objc_runtime_free_friend( struct _mulle_objc_runtime *runti
    (*pfriend->destructor)( runtime, pfriend->data);
 }
 
-static void   loadclass_print_missingclassid( struct _mulle_objc_loadclass *info,
-                                               struct _mulle_objc_runtime *runtime)
-{
-   mulle_objc_classid_t   missingclassid;
-
-   missingclassid = mulle_objc_loadclass_missingclassid( info, runtime, 0);
-
-   fprintf( stderr, "\t%08x \"%s\" waiting for class %08x \"%s\"\n",
-      info->classid, info->classname,
-      missingclassid, mulle_objc_string_for_classid( missingclassid));
-
-}
-
-
-static void   loadcategory_print_missingclassid( struct _mulle_objc_loadcategory *info,
-                                                 struct _mulle_objc_runtime *runtime)
-{
-   mulle_objc_classid_t            missingclassid;
-   mulle_objc_categoryid_t         missingcategoryid;
-   struct _mulle_objc_infraclass   *infra;
-
-   missingclassid = mulle_objc_loadcategory_missingclassid( info,
-                                                            runtime,
-                                                            &infra);
-   if( missingclassid)
-   {
-      fprintf( stderr, "\t%08x \"%s( %s)\" waiting for class %08x \"%s\"\n",
-         info->categoryid, info->classname, info->categoryname,
-         missingclassid, mulle_objc_string_for_classid( missingclassid));
-      return;
-   }
-
-   missingcategoryid = mulle_objc_loadcategory_missingcategoryid( info, infra);
-   fprintf( stderr, "\t%08x \"%s( %s)\" waiting for %08x \"%s( %s)\"\n",
-      info->categoryid, info->classname, info->categoryname,
-      missingcategoryid, info->classname, mulle_objc_string_for_categoryid( missingcategoryid));
-}
-
 
 static void   pointerarray_in_hashmap_map( struct _mulle_objc_runtime *runtime,
                                            struct mulle_concurrent_hashmap *map,
@@ -718,7 +680,7 @@ enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mu
          return( mulle_objc_runtime_is_locked);
       }
 
-      pointerarray_in_hashmap_map( runtime, &runtime->waitqueues.classestoload, (void (*)()) loadclass_print_missingclassid);
+      pointerarray_in_hashmap_map( runtime, &runtime->waitqueues.classestoload, (void (*)()) mulle_objc_loadclass_print_unfulfilled_dependency);
       _mulle_objc_runtime_waitqueues_unlock( runtime);
    }
 
@@ -734,23 +696,35 @@ enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mu
          return( mulle_objc_runtime_is_locked);
       }
 
-      pointerarray_in_hashmap_map( runtime, &runtime->waitqueues.categoriestoload, (void (*)()) loadcategory_print_missingclassid);
+      pointerarray_in_hashmap_map( runtime, &runtime->waitqueues.categoriestoload, (void (*)()) mulle_objc_loadcategory_print_unfulfilled_dependency);
       _mulle_objc_runtime_waitqueues_unlock( runtime);
    }
    return( rval);
 }
 
 
-enum mulle_objc_runtime_status   mulle_objc_check_runtime( void)
+enum mulle_objc_runtime_status   _mulle_objc_check_runtime( uint32_t version)
 {
    struct _mulle_objc_runtime   *runtime;
-
+   uint32_t                     runtime_version;
+   
    runtime = mulle_objc_get_runtime();
    if( ! runtime)
       return( mulle_objc_runtime_is_missing);
 
+   runtime_version = _mulle_objc_runtime_get_version( runtime);
+   
+   if( mulle_objc_version_get_major( version) != mulle_objc_version_get_major( runtime_version))
+      return( mulle_objc_runtime_is_wrong_version);
+
+   // during 0 development, a minor change is major
+   if( ! mulle_objc_version_get_major( version) && (mulle_objc_version_get_minor( version) != mulle_objc_version_get_minor( runtime_version)))
+      return( mulle_objc_runtime_is_wrong_version);
+   
    return( _mulle_objc_runtime_check_waitqueues( runtime));
 }
+
+
 
 
 static void   _mulle_objc_runtime_free_classgraph( struct _mulle_objc_runtime *runtime)

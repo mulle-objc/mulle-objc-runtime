@@ -336,6 +336,12 @@ struct _mulle_objc_runtime
 };
 
 
+static inline uint32_t   _mulle_objc_runtime_get_version( struct _mulle_objc_runtime *runtime)
+{
+   return( runtime->version);
+}
+
+
 static inline int   _mulle_objc_runtime_is_initialized( struct _mulle_objc_runtime *runtime)
 {
    return( runtime->version != (uint32_t) -1);
