@@ -645,17 +645,30 @@ static inline char   *mulle_objc_string_for_propertyid( mulle_objc_categoryid_t 
 
 enum mulle_objc_runtime_status
 {
-   mulle_objc_runtime_is_ok         = 0,
-   mulle_objc_runtime_is_missing    = -1,
-   mulle_objc_runtime_is_incomplete = -2,
-   mulle_objc_runtime_is_locked     = -3,
+   mulle_objc_runtime_is_ok            = 0,
+   mulle_objc_runtime_is_missing       = -1,
+   mulle_objc_runtime_is_incomplete    = -2,
+   mulle_objc_runtime_is_locked        = -3,
+   mulle_objc_runtime_is_wrong_version = -4,
 };
 
 
 enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mulle_objc_runtime *runtime);
 
-// as above just a bit more convenient
-enum mulle_objc_runtime_status   mulle_objc_check_runtime( void);
+// as above just a bit more convenient and does a version check!
+enum mulle_objc_runtime_status  _mulle_objc_check_runtime( uint32_t version);
+
+//
+// the runtime should be compiled into the user program
+// runtime mismatches should be caught by the shared library version in
+// theory, but while developing that's often not the case though.
+// this is cheap...
+//
+static inline enum mulle_objc_runtime_status  mulle_objc_check_runtime( void)
+{
+   return( _mulle_objc_check_runtime( MULLE_OBJC_RUNTIME_VERSION));
+}
+
 
 
 // conveniences

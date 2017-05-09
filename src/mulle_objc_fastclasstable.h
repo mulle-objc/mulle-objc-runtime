@@ -42,7 +42,7 @@
 #include <mulle_c11/mulle_c11.h>
 
 
-struct _mulle_objc_infraclass   *infra;
+struct _mulle_objc_infraclass;
 
 
 #define MULLE_OBJC_S_FASTCLASSES    32
