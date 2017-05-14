@@ -56,6 +56,12 @@
 #include <stdlib.h>
 
 
+static void  trace_preamble( struct _mulle_objc_runtime *runtime)
+{
+   fprintf( stderr, "mulle_objc_runtime %p trace: ", runtime);
+}
+
+
 static struct _mulle_objc_dependency  no_dependency =
 {
    MULLE_OBJC_NO_CLASSID,
@@ -121,13 +127,13 @@ static mulle_objc_methodimplementation_t
 {
    struct _mulle_objc_method            *method;
    mulle_objc_methodimplementation_t    imp;
-   
+
    method = mulle_objc_method_bsearch( methods->methods,
                                       methods->n_methods,
                                       MULLE_OBJC_DEPENDENCIES_METHODID);
    if( ! method)
       return( 0);
-   
+
    imp     = _mulle_objc_method_get_implementation( method);
    return( imp);
 }
@@ -139,40 +145,58 @@ static struct _mulle_objc_dependency
                                              struct _mulle_objc_dependency *dependencies)
 {
    struct _mulle_objc_classpair    *pair;
-   
+
    while( dependencies->classid)
    {
       if( ! infra || (_mulle_objc_infraclass_get_classid( infra) != dependencies->classid))
       {
          infra = _mulle_objc_runtime_lookup_infraclass( runtime, dependencies->classid);
          if( ! infra)
+         {
+            if( runtime->debug.trace.dependencies)
+            {
+               trace_preamble( runtime);
+               fprintf( stderr, "class %08x \"%s\" is not present yet\n",
+                       dependencies->classid,
+                       mulle_objc_string_for_classid( dependencies->classid));
+            }
             return( *dependencies);
+         }
       }
-      
-      pair = _mulle_objc_infraclass_get_classpair( infra);
-      if( ! _mulle_objc_classpair_has_category( pair, dependencies->categoryid))
-         return( *dependencies);
-      
+
+      if( dependencies->categoryid)
+      {
+         pair = _mulle_objc_infraclass_get_classpair( infra);
+         if( ! _mulle_objc_classpair_has_category( pair, dependencies->categoryid))
+         {
+            if( runtime->debug.trace.dependencies)
+            {
+               trace_preamble( runtime);
+               fprintf( stderr, "category %08x,%08x \"%s( %s)\" is not present yet\n",
+                       dependencies->classid,
+                       dependencies->categoryid,
+                       mulle_objc_string_for_classid( dependencies->classid),
+                       mulle_objc_string_for_categoryid( dependencies->categoryid));
+            }
+            return( *dependencies);
+         }
+      }
       ++dependencies;
    }
-   
+
    return( no_dependency);
 }
 
 
 #pragma mark - classes
 
-static void  trace_preamble( struct _mulle_objc_runtime *runtime)
-{
-   fprintf( stderr, "mulle_objc_runtime %p trace: ", runtime);
-}
 
 
 static void  loadclass_fprintf( FILE *fp,
                                struct _mulle_objc_loadclass *info)
 {
-   fprintf( fp, "class %08x \"%s\"",
-           info->classid, info->classname);
+   fprintf( fp, "class %08x \"%s\" (%p)",
+           info->classid, info->classname, info);
 }
 
 
@@ -196,15 +220,47 @@ static void  loadclass_trace( struct _mulle_objc_loadclass *info,
 }
 
 
+static struct mulle_concurrent_pointerarray   *
+   _mulle_objc_map_append_info( struct mulle_concurrent_hashmap *map,
+                                mulle_objc_classid_t missingclassid,
+                                void *info,
+                                struct mulle_allocator *allocator)
+{
+   struct mulle_concurrent_pointerarray   *list;
+   int                                    rval;
+   
+   for(;;)
+   {
+      list = _mulle_concurrent_hashmap_lookup( map, missingclassid);
+      if( list)
+         break;
+      list = _mulle_allocator_calloc( allocator, 1, sizeof( *list));
+      _mulle_concurrent_pointerarray_init( list, 1, allocator);
+      
+      rval = _mulle_concurrent_hashmap_insert( map, missingclassid, list);
+      if( ! rval)
+         break;
+      
+      // this can't really happen anymore can it ?
+      assert( 0);
+      
+      _mulle_concurrent_pointerarray_done( list);
+      _mulle_allocator_free( allocator, list);  // assume it was never
+      if( rval != EEXIST)
+         return( NULL);
+   }
+
+   _mulle_concurrent_pointerarray_add( list, info);
+   return( list);
+}
+
+
 
 static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info,
                                               mulle_objc_classid_t missingclassid,
                                               struct _mulle_objc_runtime *runtime)
 {
    struct mulle_concurrent_pointerarray   *list;
-   int                                    rval;
-
-   // possibly get or create runtime..
 
    if( ! info)
    {
@@ -214,36 +270,28 @@ static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info
 
    assert( info->classid != missingclassid);
 
-   for(;;)
-   {
-      list = _mulle_concurrent_hashmap_lookup( &runtime->waitqueues.classestoload, missingclassid);
-      if( ! list)
-      {
-         list = _mulle_allocator_calloc( &runtime->memory.allocator, 1, sizeof( *list));
-         _mulle_concurrent_pointerarray_init( list, 1, &runtime->memory.allocator);
+   list = _mulle_objc_map_append_info( &runtime->waitqueues.classestoload,
+                                       missingclassid,
+                                       info,
+                                       &runtime->memory.allocator);
+   if( ! list)
+      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
 
-         rval = _mulle_concurrent_hashmap_insert( &runtime->waitqueues.classestoload, missingclassid, list);
-         if( ! rval)
-            break;
+   if( runtime->debug.trace.dependencies)
+      loadclass_trace( info, runtime,
+                      "waits for class %08x \"%s\" to load "
+                      "or gain more categories on list %p\n",
+                      missingclassid,
+                      mulle_objc_string_for_classid( missingclassid),
+                      list);
 
-         _mulle_concurrent_pointerarray_done( list);
-         _mulle_allocator_free( &runtime->memory.allocator, list);  // assume it was never
-         if( rval == EEXIST)
-            continue;
-
-         _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-      }
-      break;
-   }
-
-   _mulle_concurrent_pointerarray_add( list, info);
    return( 0);
 }
 
 
 static struct _mulle_objc_dependency
-    _mulle_objc_loadclass_fulfilll_user_dependencies( struct _mulle_objc_loadclass *info,
-                                                      struct _mulle_objc_runtime   *runtime)
+    _mulle_objc_loadclass_fulfill_user_dependencies( struct _mulle_objc_loadclass *info,
+                                                     struct _mulle_objc_runtime   *runtime)
 {
    struct _mulle_objc_dependency       *dependencies;
    mulle_objc_methodimplementation_t   imp;
@@ -276,27 +324,36 @@ static struct _mulle_objc_dependency
    struct _mulle_objc_infraclass    *superclass;
    mulle_objc_classid_t             *classid_p;
    struct _mulle_objc_dependency    dependency;
-   
+
    assert( info);
    assert( runtime);
    assert( p_superclass);
 
    dependency = no_dependency;
-   
+
    superclass    = NULL;
    *p_superclass = NULL;
-   
+
+   if( runtime->debug.trace.dependencies)
+   {
+      loadclass_trace( info, runtime, "dependency check ...\n",
+                       info->classid,
+                       info->classname);
+   }
+
    if( info->superclassid)
    {
       superclass    = _mulle_objc_runtime_lookup_infraclass( runtime, info->superclassid);
       *p_superclass = superclass;
-      
+
       if( ! superclass)
       {
-         if( runtime->debug.trace.delayed_class_adds)
-            loadclass_trace( info, runtime,
-                         "waits for superclass %08x \"%s\"",
-                         info->superclassid, info->superclassname);
+         if( runtime->debug.trace.dependencies)
+         {
+            loadclass_trace( info, runtime, "superclass %08x \"%s\" is not present yet\n",
+                    info->superclassid,
+                    info->superclassname);
+         }
 
          dependency.classid    = info->superclassid;
          dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
@@ -329,10 +386,12 @@ static struct _mulle_objc_dependency
          protocolclass = _mulle_objc_runtime_lookup_infraclass( runtime, *classid_p);
          if( ! protocolclass)
          {
-            if( runtime->debug.trace.delayed_class_adds)
-               loadclass_trace( info, runtime,
-                           "waits for protocol class %08x \"%s\"\n",
-                           *classid_p, mulle_objc_string_for_protocolid( *classid_p));
+            if( runtime->debug.trace.dependencies)
+            {
+               loadclass_trace( info, runtime, "protocolclass %08x \"%s\" is not present yet\n",
+                               *classid_p,
+                               mulle_objc_string_for_classid( *classid_p));
+            }
 
             dependency.classid    = *classid_p;
             dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
@@ -341,7 +400,7 @@ static struct _mulle_objc_dependency
       }
    }
 
-   return( _mulle_objc_loadclass_fulfilll_user_dependencies( info, runtime));
+   return( _mulle_objc_loadclass_fulfill_user_dependencies( info, runtime));
 }
 
 
@@ -350,18 +409,18 @@ void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loa
 {
    struct _mulle_objc_dependency   dependency;
    struct _mulle_objc_infraclass   *infra;
-   
+
    if( ! info || ! runtime)
       return;
-   
+
    dependency = _mulle_objc_loadclass_fulfill_dependencies( info, runtime, &infra);
    if( dependency.classid == MULLE_OBJC_NO_CLASSID)
       return;
-   
+
    fprintf( stderr, "\t%08x \"%s\" waiting for class %08x \"%s\"\n",
            info->classid, info->classname,
            dependency.classid, mulle_objc_string_for_classid( dependency.classid));
-   
+
 }
 
 
@@ -382,34 +441,21 @@ static int  mulle_objc_loadclass_is_sane( struct _mulle_objc_loadclass *info)
 }
 
 
-void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
-                                               struct _mulle_objc_callqueue *loads)
+static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_loadclass *info,
+                                                             struct _mulle_objc_callqueue *loads,
+                                                             struct _mulle_objc_runtime *runtime)
 {
    struct _mulle_objc_classpair   *pair;
    struct _mulle_objc_metaclass   *meta;
    struct _mulle_objc_infraclass  *infra;
    struct _mulle_objc_infraclass  *superclass;
-   struct _mulle_objc_runtime     *runtime;
    struct _mulle_objc_dependency  dependency;
-   
-   // possibly get or create runtime..
-
-   runtime = mulle_objc_get_or_create_runtime();
-   if( ! mulle_objc_loadclass_is_sane( info))
-   {
-      errno = EINVAL;
-      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-   }
 
    // root ?
    superclass = NULL;
    dependency = _mulle_objc_loadclass_fulfill_dependencies( info, runtime, &superclass);
    if( dependency.classid != MULLE_OBJC_NO_CLASSID)
-   {
-      if( mulle_objc_loadclass_delayedadd( info, dependency.classid, runtime))
-         _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-      return;
-   }
+      return( dependency.classid);
 
    //
    // for those that reverse order their .o files in a shared library
@@ -450,8 +496,38 @@ void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *inf
    //
    // check if categories or classes are waiting for us ?
    //
-   map_f( &runtime->waitqueues.categoriestoload, info->classid, (void (*)()) mulle_objc_loadcategory_unfailing_enqueue, loads);
-   map_f( &runtime->waitqueues.classestoload, info->classid, (void (*)())  mulle_objc_loadclass_unfailing_enqueue, loads);
+   map_f( &runtime->waitqueues.categoriestoload,
+         info->classid,
+         (void (*)()) mulle_objc_loadcategory_unfailing_enqueue,
+         loads);
+   map_f( &runtime->waitqueues.classestoload,
+         info->classid,
+         (void (*)()) mulle_objc_loadclass_unfailing_enqueue,
+         loads);
+   
+   return( MULLE_OBJC_NO_CLASSID);
+}
+
+
+void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
+                                              struct _mulle_objc_callqueue *loads)
+{
+   struct _mulle_objc_runtime     *runtime;
+   mulle_objc_classid_t           missingclassid;
+   
+   // possibly get or create runtime..
+   
+   runtime = mulle_objc_get_or_create_runtime();
+   if( ! mulle_objc_loadclass_is_sane( info))
+   {
+      errno = EINVAL;
+      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+   }
+
+   missingclassid = _mulle_objc_loadclass_enqueue( info, loads, runtime);
+   if( missingclassid != MULLE_OBJC_NO_CLASSID)
+      if( mulle_objc_loadclass_delayedadd( info, missingclassid, runtime))
+         _mulle_objc_runtime_raise_fail_errno_exception( runtime);
 }
 
 
@@ -519,7 +595,7 @@ static void   loadprotocols_dump( mulle_objc_protocolid_t *protocolids,
 
 static void   loadmethod_dump( struct _mulle_objc_method *method, char *prefix, char type)
 {
-   fprintf( stderr, "%s %c%s // id=%08x signature=%s bits=0x%x\n",
+   fprintf( stderr, "%s %c%s; // id=%08x signature=%s bits=0x%x\n",
             prefix,
             type,
             method->descriptor.name,
@@ -623,14 +699,16 @@ static void   loadclasslist_dump( struct _mulle_objc_loadclasslist *list,
 static void  loadcategory_fprintf( FILE *fp,
                             struct _mulle_objc_loadcategory *info)
 {
-   fprintf( fp, "category %08x \"%s( %s)\"",
-           info->categoryid, info->classname, info->categoryname);
+   fprintf( fp, "category %08x,%08x \"%s( %s)\" (%p)",
+           info->classid, info->categoryid,
+           info->classname, info->categoryname,
+           info);
 }
 
 
 static void  loadcategory_trace( struct _mulle_objc_loadcategory *info,
-                             struct _mulle_objc_runtime *runtime,
-                            char *format, ...)
+                                 struct _mulle_objc_runtime *runtime,
+                                 char *format, ...)
 {
    va_list   args;
 
@@ -661,21 +739,20 @@ static int  mulle_objc_loadcategory_delayedadd( struct _mulle_objc_loadcategory 
       return( -1);
    }
 
-   list = _mulle_concurrent_hashmap_lookup( &runtime->waitqueues.categoriestoload, missingclassid);
+   list = _mulle_objc_map_append_info( &runtime->waitqueues.categoriestoload,
+                                       missingclassid,
+                                       info,
+                                       &runtime->memory.allocator);
    if( ! list)
-   {
-      list = _mulle_allocator_calloc( &runtime->memory.allocator, 1, sizeof( *list));
-      _mulle_concurrent_pointerarray_init( list, 1, &runtime->memory.allocator);
-
-      if( _mulle_concurrent_hashmap_insert( &runtime->waitqueues.categoriestoload, missingclassid, list))
-      {
-         _mulle_concurrent_pointerarray_done( list);
-         _mulle_allocator_free( &runtime->memory.allocator, list);  // assume it was never alive
-         return( -1);
-      }
-   }
-
-   _mulle_concurrent_pointerarray_add( list, info);
+      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+   
+   if( runtime->debug.trace.dependencies)
+      loadcategory_trace( info, runtime, "waits for class %08x \"%s\" to load "
+                         "or gain more categories on list %p",
+                         missingclassid,
+                         mulle_objc_string_for_classid( missingclassid),
+                         list);
+   
    return( 0);
 }
 
@@ -693,7 +770,7 @@ static struct _mulle_objc_dependency
 
    if( ! info->classmethods)
       return( no_dependency);
-   
+
    imp = _mulle_objc_methodlist_bsearch_dependencies_imp( info->classmethods);
    if( ! imp)
       return( no_dependency);
@@ -703,7 +780,7 @@ static struct _mulle_objc_dependency
       loadcategory_trace( info, runtime, "call +[%s(%s) dependencies]\n",
               info->classname,
               info->categoryname);
-   
+
    dependencies = (*imp)( infra, MULLE_OBJC_DEPENDENCIES_METHODID, infra);
    if( ! dependencies)
       _mulle_objc_runtime_raise_fail_exception( runtime,
@@ -713,7 +790,7 @@ static struct _mulle_objc_dependency
                                                runtime,
                                                info->classname,
                                                info->categoryname);
- 
+
    return( _mulle_objc_runtime_fulfill_dependencies( runtime, infra, dependencies));
 }
 
@@ -727,26 +804,31 @@ static struct _mulle_objc_dependency
    struct _mulle_objc_infraclass   *protocolclass;
    mulle_objc_classid_t            *classid_p;
    struct _mulle_objc_dependency   dependency;
-   
+
    assert( info);
    assert( runtime);
    assert( p_class);
+
+   if( runtime->debug.trace.dependencies)
+      loadcategory_trace( info, runtime, "dependency check ...\n");
    
    // check class
    infra    = _mulle_objc_runtime_lookup_infraclass( runtime, info->classid);
    *p_class = infra;
 
+   
    if( ! infra)
    {
-      if( runtime->debug.trace.delayed_category_adds)
-         loadcategory_trace( info, runtime, "waits for its class %08x \"%s\"",
-                 info->classid, info->classname);
-
+      if( runtime->debug.trace.dependencies)
+      {
+         loadcategory_trace( info, runtime, "its class %08x \"%s\" is not present yet\n",
+                         info->classid,
+                         info->classname);
+      }
       dependency.classid    = info->classid;
       dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
       return( dependency);
    }
-
 
    // protocol classes present ?
    if( info->protocolclassids)
@@ -760,10 +842,12 @@ static struct _mulle_objc_dependency
          protocolclass = _mulle_objc_runtime_lookup_infraclass( runtime, *classid_p);
          if( ! protocolclass)
          {
-            if( runtime->debug.trace.delayed_category_adds)
-               loadcategory_trace( info, runtime, "waits for protocol class %08x \"%s\"",
-                       *classid_p, mulle_objc_string_for_protocolid( *classid_p));
-
+            if( runtime->debug.trace.dependencies)
+            {
+               loadcategory_trace( info, runtime, "protocolclass %08x \"%s\" is not present yet\n",
+                                  *classid_p,
+                                  mulle_objc_string_for_classid( *classid_p));
+            }
             dependency.classid    = *classid_p;
             dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
             return( dependency);
@@ -780,15 +864,15 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
 {
    struct _mulle_objc_dependency   dependency;
    struct _mulle_objc_infraclass   *infra;
-   
+
    if( ! info || ! runtime)
       return;
-   
+
    infra      = NULL;
    dependency = _mulle_objc_loadcategory_fulfill_dependencies( info, runtime, &infra);
    if( dependency.classid == MULLE_OBJC_NO_CLASSID)
       return;
-   
+
    if( dependency.categoryid == MULLE_OBJC_NO_CATEGORYID)
    {
       fprintf( stderr, "\t%08x \"%s( %s)\" waiting for class %08x \"%s\"\n",
@@ -796,10 +880,13 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
               dependency.classid, mulle_objc_string_for_classid( dependency.classid));
       return;
    }
-   
-   fprintf( stderr, "\t%08x \"%s( %s)\" waiting for category %08x \"%s( %s)\"\n",
+
+   fprintf( stderr, "\t%08x \"%s( %s)\" waiting for category %08x,%08x \"%s( %s)\"\n",
            info->categoryid, info->classname, info->categoryname,
-           dependency.categoryid, info->classname, mulle_objc_string_for_categoryid( dependency.categoryid));
+           dependency.classid,
+           dependency.categoryid,
+           mulle_objc_string_for_classid( dependency.classid),
+           mulle_objc_string_for_categoryid( dependency.categoryid));
 }
 
 
@@ -851,31 +938,20 @@ static void  raise_duplicate_category_exception( struct _mulle_objc_classpair *p
 }
 
 
-void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info,
-                                                  struct _mulle_objc_callqueue *loads)
+static mulle_objc_classid_t
+   _mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info,
+                                     struct _mulle_objc_callqueue *loads,
+                                     struct _mulle_objc_runtime *runtime)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_metaclass    *meta;
    struct _mulle_objc_classpair    *pair;
-   struct _mulle_objc_runtime      *runtime;
    struct _mulle_objc_dependency   dependency;
-
-   runtime = mulle_objc_get_or_create_runtime();
-
-   if( ! mulle_objc_loadcategory_is_sane( info))
-   {
-      errno = EINVAL;
-      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-   }
 
    infra      = NULL;
    dependency = _mulle_objc_loadcategory_fulfill_dependencies( info, runtime, &infra);
    if( dependency.classid != MULLE_OBJC_NO_CLASSID)
-   {
-      if( mulle_objc_loadcategory_delayedadd( info, dependency.classid, runtime))
-         _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-      return;
-   }
+      return( dependency.classid);
 
    if( strcmp( info->classname, infra->base.name))
       _mulle_objc_runtime_raise_fail_exception( runtime, "error in mulle_objc_runtime %p: hashcollision %08x for classnames \"%s\" and \"%s\"\n",
@@ -927,12 +1003,40 @@ void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategor
       mulle_objc_dotdump_runtime_to_tmp();
 
    //
-   // retrigger "special" categories, that are waiting for their dependencies
+   // retrigger  that are waiting for their dependencies
    //
    map_f( &runtime->waitqueues.categoriestoload,
           info->classid,
           (void (*)()) mulle_objc_loadcategory_unfailing_enqueue,
           loads);
+   map_f( &runtime->waitqueues.classestoload,
+          info->classid,
+          (void (*)()) mulle_objc_loadclass_unfailing_enqueue,
+          loads);
+   
+   return( MULLE_OBJC_NO_CLASSID);
+}
+
+
+
+void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info,
+                                                  struct _mulle_objc_callqueue *loads)
+{
+   mulle_objc_classid_t         missingclassid;
+   struct _mulle_objc_runtime   *runtime;
+   
+   runtime = mulle_objc_get_or_create_runtime();
+   
+   if( ! mulle_objc_loadcategory_is_sane( info))
+   {
+      errno = EINVAL;
+      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+   }
+
+   missingclassid = _mulle_objc_loadcategory_enqueue( info, loads, runtime);
+   if( missingclassid != MULLE_OBJC_NO_CLASSID)
+      if( mulle_objc_loadcategory_delayedadd( info, missingclassid, runtime))
+         _mulle_objc_runtime_raise_fail_errno_exception( runtime);
 }
 
 
@@ -1393,6 +1497,8 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
 
       //
       // the wait-queues are maintained in the runtime
+      // Because these are locked now anyway, the pointerarray is overkill
+      // and not that useful, because you can't remove entries
       //
       if( info->loadclasslist)
          mulle_objc_loadclasslist_unfailing_enqueue( info->loadclasslist, need_sort, &loads);

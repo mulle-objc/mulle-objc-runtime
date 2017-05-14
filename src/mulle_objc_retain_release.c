@@ -84,7 +84,7 @@ void  _mulle_objc_object_try_finalize_try_dealloc( void *obj)
    {
       // but potentially not anymore after that
       retaincount_1 += INTPTR_MIN + 1;
-      _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) retaincount_1);
+      _mulle_atomic_pointer_write( &header->_retaincount_1, (void *) retaincount_1);
 
       _mulle_objc_object_finalize( obj);
 
@@ -95,7 +95,7 @@ void  _mulle_objc_object_try_finalize_try_dealloc( void *obj)
    if( retaincount_1 == INTPTR_MIN)    // yes ? :: single threaded(!)
    {
       // set it back to be nice
-      _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) -1);
+      _mulle_atomic_pointer_write( &header->_retaincount_1, (void *) -1);
       _mulle_objc_object_dealloc( obj);
    }
 }

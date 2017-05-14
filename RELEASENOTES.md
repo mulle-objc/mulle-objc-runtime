@@ -1,5 +1,9 @@
 ## 0.6.1
 
+* improved protocol class detection, so now protocolclasses can conform
+to protocols (as long as they aren't protocolclasses)
+* added MULLE_OBJC_TRACE_DEPENDENCIES 
+* added MULLE_OBJC_TRACE_STATE_BITS 
 * +classDependencies and +categoryDependencies don't exist anymore. They are
 replaced by +dependencies, which combines them. To specify a dependency on
 a class do `{ @selector( Class), 0 }`, on a category do 

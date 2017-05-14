@@ -387,9 +387,9 @@ static inline int  is_multi_character_type( char c)
 }
 
 
-static char    *__mulle_objc_signature_supply_next_typeinfo( char *type,
-                                                             int level,
-                                                             struct mulle_objc_typeinfo *info)
+static char   *__mulle_objc_signature_supply_next_typeinfo( char *type,
+                                                            int level,
+                                                            struct mulle_objc_typeinfo *info)
 {
    int   isComplex;
 
@@ -416,21 +416,6 @@ static char    *__mulle_objc_signature_supply_next_typeinfo( char *type,
    if( ! isComplex)
    {
       ++type;  // skip that single char
-
-      //
-      // parse extended class info
-      // @"<NSCopying>" or @"NSString"
-      //
-      switch( *type)
-      {
-      case '"' :  // name
-         if( info)
-            info->name = type;
-
-         while( *++type != '"');
-         ++type;  // skip terminator
-      }
-
       return( type);
    }
 
@@ -481,6 +466,20 @@ char    *_mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_o
    if( ! next)
       return( next);
 
+   //
+   // parse extended class info
+   // @"<NSCopying>" or @"NSString"
+   // not considered part of pure_type_end
+   //
+   if( *next == '"')
+   {
+      if( info)
+         info->name = next;
+
+      while( *++next != '"');
+      ++next;  // skip terminator
+   }
+
    sign = +1;
    if( *next == '-')
       ++next, sign = -1;
@@ -512,6 +511,17 @@ char   *_mulle_objc_signature_next_typeinfo( char *types)
    if( ! next)
       return( next);
 
+   //
+   // parse extended class info
+   // @"<NSCopying>" or @"NSString"
+   // not considered part of pure_type_end
+   //
+   if( *next == '"')
+   {
+      while( *++next != '"');
+      ++next;  // skip terminator
+   }
+   
    switch( *next)
    {
    case '-' :
@@ -649,4 +659,49 @@ unsigned int   mulle_objc_signature_count_typeinfos( char *types)
       ++n;
 
    return( n);
+}
+
+
+int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a, struct mulle_objc_typeinfo *b)
+{
+   size_t   a_len;
+   size_t   b_len;
+   int      comparison;
+
+   a_len = a->pure_type_end - a->type;
+   b_len = b->pure_type_end - b->type;
+   comparison = strncmp( a->type, b->type, a_len < b_len ? a_len : b_len);
+   if( comparison)
+      return( comparison);
+
+   // this can't really happen
+   assert( a_len == b_len);
+
+   // probabyly superflous
+   if( a->n_members != b->n_members)
+      return( a->n_members < b->n_members ? +1 : -1);
+
+   return( 0);
+}
+
+
+int   _mulle_objc_signature_compare( char *a, char *b)
+{
+   struct mulle_objc_typeinfo  a_info;
+   struct mulle_objc_typeinfo  b_info;
+   int                         comparison;
+
+   for(;;)
+   {
+      a = _mulle_objc_signature_supply_next_typeinfo( a,  &a_info);
+      b = _mulle_objc_signature_supply_next_typeinfo( b,  &b_info);
+      if( ! a)
+         return( b ? 1 : 0);
+      if( ! b)
+         return( -1);
+
+      comparison = _mulle_objc_typeinfo_compare( &a_info, &b_info);
+      if( comparison)
+         return( comparison);
+   }
 }

@@ -56,7 +56,7 @@ struct _mulle_objc_metaclass;
 struct _mulle_objc_methodlist
 {
    unsigned int                n_methods; // must be #0 and same as struct _mulle_objc_ivarlist
-   char                        *owner;
+   void                        *owner;    // it's a void because of compiler
    struct _mulle_objc_method   methods[ 1];
 };
 

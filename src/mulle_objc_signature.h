@@ -169,5 +169,15 @@ static inline enum mulle_objc_metaabiparamtype   _mulle_objc_signature_get_metaa
 }
 
 
+static inline int  _mulle_objc_signature_pedantic_compare( char *a, char *b)
+{
+   return( strcmp( a, b));
+}
+
+int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a, struct mulle_objc_typeinfo *b);
+
+int  _mulle_objc_signature_compare( char *a, char *b);
+
+
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */

@@ -732,6 +732,12 @@ static inline void   mulle_objc_checkin_current_thread( void)
 }
 
 
+#pragma mark - getenv 
+
+int  mulle_objc_getenv_yes_no_default( char *name, int default_value);
+int  mulle_objc_getenv_yes_no( char *name);
+
+
 #endif /* mulle_objc_runtime_h__*/
 
 /* [^1] When you crash here, you have called this function before the runtime
