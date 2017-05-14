@@ -63,11 +63,28 @@ void   *mulle_objc_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid,
 
 # pragma mark - accessor
 
+static char   *lookup_bitname( unsigned int bit)
+{
+   // some "known" values
+   switch( bit)
+   {
+   case MULLE_OBJC_CACHE_INITIALIZED      : return( "CACHE_INITIALIZED");
+   case MULLE_OBJC_ALWAYS_EMPTY_CACHE     : return( "EMPTY_CACHE");
+   case 0x4                               : return( "WARN_PROTOCOL");
+   case 0x8                               : return( "IS_PROTOCOLCLASS");
+   case 0x10                              : return( "LOAD_SCHEDULED");
+   case 0x20                              : return( "INITIALIZE_DONE");
+   }
+   return( 0);
+}
+
 
 int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned int bit)
 {
    void   *state;
    void   *old;
+   struct _mulle_objc_runtime   *runtime;
+   char   *bitname;
 
    assert( bit);
 
@@ -80,6 +97,13 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned i
    }
    while( ! _mulle_atomic_pointer_compare_and_swap( &cls->state, state, old));
 
+   runtime = _mulle_objc_class_get_runtime( cls);
+   if( runtime->debug.trace.state_bits)
+   {
+      bitname = lookup_bitname( bit);
+      fprintf( stderr, "mulle_objc_runtime %p trace: %s %08x \"%s\" gained the 0x%x bit (%s)\n",
+              runtime, _mulle_objc_class_get_classtypename( cls), cls->classid, cls->name, bit, bitname ? bitname : "???");
+   }
    return( 1);
 }
 
@@ -795,6 +819,47 @@ int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned in
 }
 
 
+static void   trace_method_found( struct _mulle_objc_runtime *runtime,
+                                  struct _mulle_objc_class *cls,
+                                  struct _mulle_objc_methodlist *list,
+                                  struct _mulle_objc_method *method,
+                                  struct mulle_concurrent_pointerarrayreverseenumerator *rover)
+{
+   char                      buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
+   mulle_objc_categoryid_t   categoryid;
+   char                      *s;
+
+   fprintf( stderr, "mulle_objc_runtime %p trace: found in %s ",
+           runtime,
+           _mulle_objc_class_get_classtypename( cls));
+
+   // it's a category ?
+   if( list->owner)
+   {
+      categoryid = (mulle_objc_categoryid_t) (uintptr_t) list->owner;
+      s = _mulle_objc_runtime_search_debughashname( runtime, categoryid);
+      if( ! s)
+      {
+         sprintf( buf, "%08x", categoryid);
+         s = buf;
+      }
+
+      fprintf( stderr, "category %s( %s) implementation ",
+              cls->name,
+              s);
+   }
+   else
+      fprintf( stderr, "\"%s\" implementation ",
+              cls->name);
+   mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
+
+   fprintf( stderr, "%s for methodid %08x ( \"%s\")\"\n",
+           buf,
+           method->descriptor.methodid,
+           method->descriptor.name);
+}
+
+
 //
 // if previous is set, the search will be done for the method that previous
 // has overriden
@@ -805,13 +870,13 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
                                                               void *owner,
                                                               unsigned int inheritance)
 {
-   struct _mulle_objc_runtime                         *runtime;
-   struct _mulle_objc_method                          *found;
-   struct _mulle_objc_method                          *method;
-   struct _mulle_objc_methodlist                      *list;
+   struct _mulle_objc_runtime                              *runtime;
+   struct _mulle_objc_method                               *found;
+   struct _mulle_objc_method                               *method;
+   struct _mulle_objc_methodlist                           *list;
    struct mulle_concurrent_pointerarrayreverseenumerator   rover;
-   unsigned int                                       n;
-   unsigned int                                       tmp;
+   unsigned int                                            n;
+   unsigned int                                            tmp;
 
    assert( mulle_objc_class_is_current_thread_registered( cls));
 
@@ -868,27 +933,7 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
          if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
          {
             if( runtime->debug.trace.method_searches)
-            {
-               char   buf[ s_mulle_objc_sprintf_functionpointer_buffer];
-
-               // one more ? it's a category
-               if( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
-                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s category %s( %p) implementation ",
-                        runtime,
-                        _mulle_objc_class_get_classtypename( cls),
-                        cls->name,
-                        list->owner);
-               else
-                  fprintf( stderr, "mulle_objc_runtime %p trace: found in %s %s implementation", runtime,
-                        _mulle_objc_class_get_classtypename( cls),
-                        cls->name);
-               mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
-
-               fprintf( stderr, "%s for methodid %08x ( \"%s\")\"\n",
-                       buf,
-                       method->descriptor.methodid,
-                       method->descriptor.name);
-            }
+               trace_method_found( runtime, cls, list, method, &rover);
 
             mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
             return( method);

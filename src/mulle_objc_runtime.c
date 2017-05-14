@@ -46,6 +46,7 @@
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_object.h"
+#include "mulle_objc_signature.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -191,7 +192,7 @@ static void   _mulle_objc_runtimeconfig_dump( struct _mulle_objc_runtimeconfig  
 }
 
 
-static int  getenv_yes_no_default( char *name, int default_value)
+int   mulle_objc_getenv_yes_no_default( char *name, int default_value)
 {
    char   *s;
 
@@ -212,45 +213,56 @@ static int  getenv_yes_no_default( char *name, int default_value)
 }
 
 
-static int  getenv_yes_no( char *name)
+int  mulle_objc_getenv_yes_no( char *name)
 {
-   return( getenv_yes_no_default( name, 0));
+   return( mulle_objc_getenv_yes_no_default( name, 0));
 }
 
 
+static inline int  getenv_yes_no( char *name)
+{
+   return( mulle_objc_getenv_yes_no( name));
+}
+
+
+static inline int  getenv_yes_no_default( char *name, int default_value)
+{
+   return( mulle_objc_getenv_yes_no_default( name, default_value));
+}
+
 static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _mulle_objc_runtime  *runtime)
 {
-   runtime->debug.warn.methodid_types  = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPES");
-   runtime->debug.warn.protocolclass  = getenv_yes_no( "MULLE_OBJC_INFRA_WARN_PROTOCOLCLASS");
-   runtime->debug.warn.stuck_loadables = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLES", 1);
+   runtime->debug.warn.methodid_types          = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPES");
+   runtime->debug.warn.pedantic_methodid_types = getenv_yes_no( "MULLE_OBJC_WARN_PEDANTIC_METHODID_TYPES");
+   runtime->debug.warn.protocolclass           = getenv_yes_no( "MULLE_OBJC_INFRA_WARN_PROTOCOLCLASS");
+   runtime->debug.warn.stuck_loadables         = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLES", 1);
 
 #if ! DEBUG
    if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
 #endif
    {
-      runtime->debug.warn.methodid_types  = 1;
+      runtime->debug.warn.methodid_types = 1;
       runtime->debug.warn.protocolclass  = 1;
    }
 
-   runtime->debug.trace.runtime_config     = getenv_yes_no( "MULLE_OBJC_TRACE_RUNTIME_CONFIG");
-   runtime->debug.trace.dump_runtime       = getenv_yes_no( "MULLE_OBJC_TRACE_DUMP_RUNTIME");
    runtime->debug.trace.category_adds      = getenv_yes_no( "MULLE_OBJC_TRACE_CATEGORY_ADDS");
    runtime->debug.trace.class_adds         = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_ADDS");
    runtime->debug.trace.class_frees        = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_FREES");
-   runtime->debug.trace.delayed_class_adds = getenv_yes_no( "MULLE_OBJC_TRACE_DELAYED_CLASS_ADDS");
+   runtime->debug.trace.dependencies       = getenv_yes_no( "MULLE_OBJC_TRACE_DEPENDENCIES");
+   runtime->debug.trace.dump_runtime       = getenv_yes_no( "MULLE_OBJC_TRACE_DUMP_RUNTIME");
    runtime->debug.trace.fastclass_adds     = getenv_yes_no( "MULLE_OBJC_TRACE_FASTCLASS_ADDS");
    runtime->debug.trace.initialize         = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");
+   runtime->debug.trace.load_calls         = getenv_yes_no( "MULLE_OBJC_TRACE_LOAD_CALLS");
+   runtime->debug.trace.loadinfo           = getenv_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    runtime->debug.trace.method_caches      = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHES");
    runtime->debug.trace.method_calls       = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALLS");  // totally excessive!
    runtime->debug.trace.method_searches    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCHES");  // fairly excessive!
-   runtime->debug.trace.load_calls         = getenv_yes_no( "MULLE_OBJC_TRACE_LOAD_CALLS");
-   runtime->debug.trace.loadinfo           = getenv_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
+   runtime->debug.trace.print_origin       = getenv_yes_no_default( "MULLE_OBJC_TRACE_PRINT_ORIGIN", 1);
    runtime->debug.trace.protocol_adds      = getenv_yes_no( "MULLE_OBJC_TRACE_PROTOCOL_ADDS");
+   runtime->debug.trace.runtime_config     = getenv_yes_no( "MULLE_OBJC_TRACE_RUNTIME_CONFIG");
+   runtime->debug.trace.state_bits         = getenv_yes_no( "MULLE_OBJC_TRACE_STATE_BITS");
    runtime->debug.trace.string_adds        = getenv_yes_no( "MULLE_OBJC_TRACE_STRING_ADDS");
    runtime->debug.trace.tagged_pointers    = getenv_yes_no( "MULLE_OBJC_TRACE_TAGGED_POINTERS");
-   runtime->debug.trace.print_origin       = getenv_yes_no_default( "MULLE_OBJC_TRACE_PRINT_ORIGIN", 1);
-
-   runtime->debug.trace.delayed_category_adds = getenv_yes_no( "MULLE_OBJC_TRACE_DELAYED_CLASS_ADDS");
 
    // don't trace method search and calls, per default... too expensive
    // also don't dump, per default
@@ -259,17 +271,17 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.trace.category_adds         = 1;
       runtime->debug.trace.class_adds            = 1;
       runtime->debug.trace.class_frees           = 1;
-      runtime->debug.trace.delayed_class_adds    = 1;
-      runtime->debug.trace.delayed_category_adds = 1;
+      runtime->debug.trace.dependencies          = 1;
       runtime->debug.trace.fastclass_adds        = 1;
-      runtime->debug.trace.method_caches         = 1;
-      runtime->debug.trace.protocol_adds         = 1;
-      runtime->debug.trace.string_adds           = 1;
-      runtime->debug.trace.tagged_pointers       = 1;
-      runtime->debug.trace.runtime_config        = 1;
       runtime->debug.trace.initialize            = 1;
       runtime->debug.trace.load_calls            = 1;
       runtime->debug.trace.loadinfo              = 1;
+      runtime->debug.trace.method_caches         = 1;
+      runtime->debug.trace.protocol_adds         = 1;
+      runtime->debug.trace.runtime_config        = 1;
+      runtime->debug.trace.state_bits            = 1;
+      runtime->debug.trace.string_adds           = 1;
+      runtime->debug.trace.tagged_pointers       = 1;
    }
 
    if( runtime->debug.trace.runtime_config)
@@ -661,19 +673,17 @@ static void  free_gift( void *p, struct mulle_allocator *allocator)
 
 enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mulle_objc_runtime *runtime)
 {
-   unsigned int  n;
-   int           rval;
+   int   rval;
 
    rval = mulle_objc_runtime_is_ok;
    /*
     * free various stuff
     */
-   n = mulle_concurrent_hashmap_count( &runtime->waitqueues.classestoload);
-   if( n)
+   if( mulle_concurrent_hashmap_count( &runtime->waitqueues.classestoload))
    {
       rval = mulle_objc_runtime_is_incomplete;
-      fprintf( stderr, "mulle_objc_runtime %p warning: the following %u classes failed to load:\n",
-                  runtime, n);
+      fprintf( stderr, "mulle_objc_runtime %p warning: the following classes failed to load:\n",
+                  runtime);
       if( _mulle_objc_runtime_waitqueues_trylock( runtime))
       {
          fprintf( stderr, "mulle_objc_runtime %p error: the waitqueues are still locked!\n", runtime);
@@ -684,11 +694,10 @@ enum mulle_objc_runtime_status  _mulle_objc_runtime_check_waitqueues( struct _mu
       _mulle_objc_runtime_waitqueues_unlock( runtime);
    }
 
-   n = mulle_concurrent_hashmap_count( &runtime->waitqueues.categoriestoload);
-   if( n)
+   if( mulle_concurrent_hashmap_count( &runtime->waitqueues.categoriestoload))
    {
       rval = mulle_objc_runtime_is_incomplete;
-      fprintf( stderr, "mulle_objc_runtime %p warning: the following %u categories failed to load:\n", runtime, n);
+      fprintf( stderr, "mulle_objc_runtime %p warning: the following categories failed to load:\n", runtime);
       if( _mulle_objc_runtime_waitqueues_trylock( runtime))
       {
          fprintf( stderr, "mulle_objc_runtime %p error: the waitqueues are still locked!\n",
@@ -707,24 +716,22 @@ enum mulle_objc_runtime_status   _mulle_objc_check_runtime( uint32_t version)
 {
    struct _mulle_objc_runtime   *runtime;
    uint32_t                     runtime_version;
-   
+
    runtime = mulle_objc_get_runtime();
    if( ! runtime)
       return( mulle_objc_runtime_is_missing);
 
    runtime_version = _mulle_objc_runtime_get_version( runtime);
-   
+
    if( mulle_objc_version_get_major( version) != mulle_objc_version_get_major( runtime_version))
       return( mulle_objc_runtime_is_wrong_version);
 
    // during 0 development, a minor change is major
    if( ! mulle_objc_version_get_major( version) && (mulle_objc_version_get_minor( version) != mulle_objc_version_get_minor( runtime_version)))
       return( mulle_objc_runtime_is_wrong_version);
-   
+
    return( _mulle_objc_runtime_check_waitqueues( runtime));
 }
-
-
 
 
 static void   _mulle_objc_runtime_free_classgraph( struct _mulle_objc_runtime *runtime)
@@ -1277,7 +1284,7 @@ int   mulle_objc_runtime_add_infraclass( struct _mulle_objc_runtime *runtime,
       }
    }
 
-   if( runtime->debug.trace.class_adds)
+   if( runtime->debug.trace.class_adds || runtime->debug.trace.dependencies)
    {
       fprintf( stderr, "mulle_objc_runtime %p trace: add class %08x \"%s\"",
               runtime,
@@ -1378,10 +1385,18 @@ int   _mulle_objc_runtime_add_methoddescriptor( struct _mulle_objc_runtime *runt
    }
 
    if( runtime->debug.warn.methodid_types)
-      if( strcmp( dup->signature, p->signature))
+   {
+      int   comparison;
+
+      if( runtime->debug.warn.pedantic_methodid_types)
+         comparison = _mulle_objc_signature_pedantic_compare( dup->signature, p->signature);
+      else
+         comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
+      if( comparison)
          fprintf( stderr, "mulle_objc_runtime %p warning: varying types \"%s\" and \"%s\" for method \"%s\"\n",
                  runtime,
                  dup->signature, p->signature, p->name);
+   }
    return( 0);
 }
 
@@ -1550,13 +1565,13 @@ char  *_mulle_objc_runtime_search_debughashname( struct _mulle_objc_runtime *run
 }
 
 
-char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t classid)
+char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
 {
    char   *s;
    struct _mulle_objc_runtime   *runtime;
 
    runtime = mulle_objc_get_or_create_runtime();
-   s       = _mulle_objc_runtime_search_debughashname( runtime, classid);
+   s       = _mulle_objc_runtime_search_debughashname( runtime, uniqueid);
    return( s ? s : "???");
 }
 

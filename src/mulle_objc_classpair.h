@@ -244,6 +244,12 @@ static inline int   _mulle_objc_classpair_has_protocolclass( struct _mulle_objc_
 }
 
 
+static inline unsigned int   _mulle_objc_classpair_get_protocolclasscount( struct _mulle_objc_classpair *pair)
+{
+   return( _mulle_concurrent_pointerarray_get_count( &pair->protocolclasses));
+}
+
+
 int   _mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
                                                   int (*f)( struct _mulle_objc_infraclass *proto_cls,
                                                             struct _mulle_objc_classpair *,

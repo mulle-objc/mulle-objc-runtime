@@ -93,30 +93,31 @@ struct _mulle_objc_runtimedebug
    {
       unsigned   method_searches;      // keep this in an int
 
-      unsigned   method_caches        : 1;
       unsigned   category_adds        : 1;
       unsigned   class_adds           : 1;
       unsigned   class_frees          : 1;
-      unsigned   delayed_category_adds: 1;
-      unsigned   delayed_class_adds   : 1;
+      unsigned   dependencies         : 1;
+      unsigned   dump_runtime         : 1;  // hefty, set manually
       unsigned   fastclass_adds       : 1;
       unsigned   initialize           : 1;
       unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
       unsigned   loadinfo             : 1;
+      unsigned   method_caches        : 1;
       unsigned   method_calls         : 1;
       unsigned   print_origin         : 1; // set by default
       unsigned   protocol_adds        : 1;
       unsigned   runtime_config       : 1;
+      unsigned   state_bits           : 1;
       unsigned   string_adds          : 1;
       unsigned   tagged_pointers      : 1;
-      unsigned   dump_runtime         : 1;  // hefty, set manually
    } trace;
 
    struct
    {
-      unsigned   methodid_types        : 1;
-      unsigned   protocolclass         : 1;
-      unsigned   stuck_loadables       : 1;  // set by default
+      unsigned   methodid_types          : 1;
+      unsigned   protocolclass           : 1;
+      unsigned   stuck_loadables         : 1;  // set by default
+      unsigned   pedantic_methodid_types : 1;
    } warn;
 };
 

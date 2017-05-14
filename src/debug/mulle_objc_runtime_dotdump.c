@@ -266,7 +266,7 @@ struct dump_info
    c_set  set;
    FILE   *fp;
    char   create_hyperlink;
-   char   terse_rootclass;
+   char   protocolclasses_as_hyperlink;
    char   draw_runtime;
    char   draw_strings;
    char   draw_selectors;
@@ -353,7 +353,8 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra,
                                 struct dump_info *info);
 static void   print_metaclass( struct _mulle_objc_metaclass *meta,
                               struct dump_info *info);
-
+static void   print_hyper_infraclass( struct _mulle_objc_infraclass *infra,
+                                      struct dump_info *info);
 
 extern char   *_mulle_objc_grapviz_html_header_description( char *name, int is_meta);
 
@@ -427,7 +428,7 @@ static void   print_class( struct _mulle_objc_class *cls,
          struct _mulle_objc_protocolclassenumerator  rover;
          struct _mulle_objc_infraclass               *prop_cls;
 
-         i = 0;
+         i     = 0;
          pair  = _mulle_objc_class_get_classpair( cls);
          rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
          while( prop_cls = _mulle_objc_protocolclassenumerator_next( &rover))
@@ -438,9 +439,13 @@ static void   print_class( struct _mulle_objc_class *cls,
             if( ! c_set_member( &info->set, prop_cls))
             {
                c_set_add( &info->set, prop_cls);
-               print_infraclass( prop_cls, info);
-               c_set_add( &info->set, prop_cls);
-               print_metaclass( _mulle_objc_infraclass_get_metaclass( prop_cls), info);
+               if( info->protocolclasses_as_hyperlink)
+                  print_hyper_infraclass( prop_cls, info);
+               else
+               {
+                  print_infraclass( prop_cls, info);
+                  print_metaclass( _mulle_objc_infraclass_get_metaclass( prop_cls), info);
+               }
             }
          }
          _mulle_objc_protocolclassenumerator_done( &rover);
@@ -640,13 +645,13 @@ static int   callback( struct _mulle_objc_runtime *runtime,
       if( info->create_hyperlink)
          print_hyper_infraclass( infra, info);
       else
-         print_class( _mulle_objc_infraclass_as_class( infra), info, 0);
+         print_infraclass( infra, info);
       break;
 
    case mulle_objc_walkpointer_is_metaclass :
       meta = p;
       if( ! info->create_hyperlink)
-         print_class( _mulle_objc_metaclass_as_class( meta), info, 1);
+         print_metaclass( meta, info);
       break;
 
    case mulle_objc_walkpointer_is_method :
@@ -661,7 +666,6 @@ static int   callback( struct _mulle_objc_runtime *runtime,
 
 # pragma mark - class dump
 
-
 void   mulle_objc_classpair_dotdump( struct _mulle_objc_classpair *pair, FILE *fp)
 {
    extern mulle_objc_walkcommand_t
@@ -673,8 +677,7 @@ void   mulle_objc_classpair_dotdump( struct _mulle_objc_classpair *pair, FILE *f
    memset( &info, 0, sizeof( info));
 
    c_set_init( &info.set);
-   info.fp              = fp;
-   info.terse_rootclass = 1;
+   info.fp = fp;
 
    mulle_objc_classpair_walk( pair, callback, &info);
 
@@ -687,6 +690,9 @@ void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
 {
    FILE                          *fp;
    struct _mulle_objc_classpair  *pair;
+   struct dump_info              info;
+
+   memset( &info, 0, sizeof( info));
 
    fp = fopen( filename, "w");
    if( ! fp)
@@ -697,16 +703,25 @@ void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
 
    fprintf( fp, "digraph mulle_objc_class\n{\n");
 
+   c_set_init( &info.set);
+   info.fp = fp;
+   info.protocolclasses_as_hyperlink = 1;
+
    pair = NULL;
    do
    {
       pair = _mulle_objc_class_get_classpair( cls);
-      mulle_objc_classpair_dotdump( pair, fp);
+      mulle_objc_classpair_walk( pair, callback, &info);
+
+      info.create_hyperlink = 1;
    }
    while( cls = _mulle_objc_class_get_superclass( cls));
 
    fprintf( fp, "}\n");
    fclose( fp);
+
+
+   c_set_done( &info.set);
 
    fprintf( stderr, "Written dot file \"%s\"\n", filename);
 }

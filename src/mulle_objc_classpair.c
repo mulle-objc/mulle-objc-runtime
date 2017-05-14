@@ -202,7 +202,7 @@ void   mulle_objc_classpair_unfailing_add_category( struct _mulle_objc_classpair
                     mulle_objc_string_for_categoryid( categoryid));
    }
 
-   if( runtime->debug.trace.category_adds)
+   if( runtime->debug.trace.category_adds || runtime->debug.trace.dependencies)
       fprintf( stderr, "mulle_objc_runtime %p trace: add category %08x \"%s\""
                        " to class %08x \"%s\"\n",
               runtime,

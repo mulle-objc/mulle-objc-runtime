@@ -384,6 +384,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    struct _mulle_objc_methodlist                    *methodlist;
    struct _mulle_objc_propertylist                  *propertylist;
    struct _mulle_objc_htmltablestyle                style;
+   mulle_objc_categoryid_t                          categoryid;
 
    cls = _mulle_objc_infraclass_as_class( infra);
 
@@ -495,7 +496,11 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             style       = methodlisttable_style;
-            style.title = methodlist->owner ? methodlist->owner : "";
+            categoryid  = (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner;
+            if( categoryid)
+               style.title = mulle_objc_string_for_categoryid( categoryid);
+            else
+               style.title = "";
             label       = mulle_objc_methodlist_html_hor_description( methodlist, &methodlisttable_style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);

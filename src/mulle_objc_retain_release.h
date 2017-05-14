@@ -102,9 +102,9 @@ static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj
       return( 0);
 
    header = _mulle_objc_object_get_objectheader( obj);
-   assert( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != -1 &&
-           (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != INTPTR_MIN);
-   if( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
+   assert( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != -1 &&
+           (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != INTPTR_MIN);
+   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
    {
       if( _mulle_atomic_pointer_decrement( &header->_retaincount_1) == 0)
          return( 1);
@@ -113,6 +113,7 @@ static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj
 }
 
 // try not to use it, it obscures bugs and will disturb leak detection
+// use it when creating an object, not "on the fly"
 static inline void   _mulle_objc_object_infinite_retain( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
@@ -121,7 +122,19 @@ static inline void   _mulle_objc_object_infinite_retain( void *obj)
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
+   _mulle_atomic_pointer_write( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
+}
+
+
+static inline int   _mulle_objc_object_is_permanent( void *obj)
+{
+   struct _mulle_objc_objectheader    *header;
+
+   if( mulle_objc_taggedpointer_get_index( obj))
+      return( 1);
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   return( _mulle_atomic_pointer_read( &header->_retaincount_1) == (void *) MULLE_OBJC_NEVER_RELEASE);
 }
 
 
@@ -142,11 +155,11 @@ static inline void   _mulle_objc_object_release( void *obj)
    header = _mulle_objc_object_get_objectheader( obj);
 
    // -1 means released, INTPTR_MIN finalizing/released
-   assert( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != -1 &&
-           (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != INTPTR_MIN);
+   assert( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != -1 &&
+           (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != INTPTR_MIN);
 
    // INTPTR_MAX means dont ever free
-   if( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
+   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
    {
       if( __builtin_expect( (intptr_t) _mulle_atomic_pointer_decrement( &header->_retaincount_1) <= 0, 0)) // atomic decrement needed
          _mulle_objc_object_try_finalize_try_dealloc( obj);

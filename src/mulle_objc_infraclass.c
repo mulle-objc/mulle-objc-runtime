@@ -392,14 +392,6 @@ static int  print_category( mulle_objc_protocolid_t categoryid,
 
 static char  footer[] = "(so it is not used as protocol class)\n";
 
-static int  print_protocol( mulle_objc_protocolid_t protocolid,
-                            struct _mulle_objc_classpair *pair,
-                            void *userinfo)
-{
-   fprintf( stderr, "\t%08x \"%s\"\n", protocolid, mulle_objc_string_for_protocolid( protocolid));
-   return( 0);
-}
-
 
 struct bouncy_info
 {
@@ -486,7 +478,6 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    struct _mulle_objc_classpair  *pair;
    int                           is_NSObject;
    int                           has_categories;
-   int                           has_more_protocols;
    unsigned int                  inheritance;
 
    if( ! infra)
@@ -526,7 +517,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    pair = _mulle_objc_infraclass_get_classpair( infra);
 
    if( ! _mulle_objc_classpair_conformsto_protocol( pair,
-                                                    _mulle_objc_infraclass_get_classid( infra)))
+                                                   _mulle_objc_infraclass_get_classid( infra)))
    {
       if( runtime->debug.warn.protocolclass)
       {
@@ -539,72 +530,51 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
       return( 0);
    }
 
-   has_categories     = mulle_concurrent_pointerarray_get_count( &pair->categoryids) != 0;
-   has_more_protocols = mulle_concurrent_pointerarray_get_count( &pair->protocolids) != 1;
-
-   // quick check before going into more detail
-   if( ! has_categories && ! has_more_protocols)
-      return( 1);
-
-   is_NSObject = _mulle_objc_infraclass_get_classid( infra) ==
-                 _mulle_objc_runtime_get_rootclassid( runtime);
-
-   if( has_more_protocols)
+   if( _mulle_objc_classpair_get_protocolclasscount( pair))
    {
-      if( is_NSObject || runtime->debug.warn.protocolclass)
+      if( runtime->debug.warn.protocolclass)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-         {
-            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\" "
-                             "conforms to a protocol but also conforms to other "
-                             "protocols %s",
+            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol but also inherits from other protocolclasses %s",
                     runtime,
-                    _mulle_objc_infraclass_get_classid( infra),
                     _mulle_objc_infraclass_get_name( infra),
                     footer);
-
-            fprintf( stderr, "Protocols:\n");
-            _mulle_objc_classpair_walk_protocolids( pair,
-                                                    print_protocol,
-                                                    NULL);
-         }
-
-         if( is_NSObject)
-            _mulle_objc_runtime_raise_inconsistency_exception( runtime,
-                 "multiple protocols on foundation root class is fatal for #mulle_objc");
       }
       return( 0);
    }
 
-   if( is_NSObject || ! runtime->debug.warn.protocolclass)
-      return( 1);
-
    //
    // check if someone bolted on categories to the protocol. In theory
    // it's OK, but them not being picked up might be a point of
-   // confusion (On NSObject though it's OK)
+   // confusion (On NSObject though its not worth a warning)
    //
+   is_NSObject = _mulle_objc_infraclass_get_classid( infra) ==
+                 _mulle_objc_runtime_get_rootclassid( runtime);
+   if( is_NSObject)
+      return( 1);
+
    inheritance = _mulle_objc_class_get_inheritance( _mulle_objc_infraclass_as_class( infra));
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
    {
-      if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+      has_categories = mulle_concurrent_pointerarray_get_count( &pair->categoryids) != 0;
+      if( has_categories)
       {
-         fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" conforms "
-                          "to a protocol but has gained some categories, which "
-                          "will be ignored.\n",
-                 runtime,
-                 _mulle_objc_infraclass_get_name( infra));
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+         {
+            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" conforms "
+                    "to a protocol but has gained some categories, which "
+                    "will be ignored.\n",
+                    runtime,
+                    _mulle_objc_infraclass_get_name( infra));
 
-         fprintf( stderr, "Categories:\n");
-         _mulle_objc_classpair_walk_categoryids( pair,
-                                                 print_category,
-                                                 NULL);
+            fprintf( stderr, "Categories:\n");
+            _mulle_objc_classpair_walk_categoryids( pair,
+                                                   print_category,
+                                                   NULL);
+         }
       }
    }
 
    return( 1);
 }
-
-
-
 
