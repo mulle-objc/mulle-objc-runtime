@@ -41,10 +41,10 @@
 #include "mulle_objc_class.h"
 #include "mulle_objc_classpair.h"
 #include "mulle_objc_class_runtime.h"
+#include "mulle_objc_dotdump.h"
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_runtime.h"
-#include "mulle_objc_runtime_dotdump.h"
 
 
 #include <mulle_concurrent/mulle_concurrent.h>
@@ -150,7 +150,7 @@ static struct _mulle_objc_dependency
    {
       if( ! infra || (_mulle_objc_infraclass_get_classid( infra) != dependencies->classid))
       {
-         infra = _mulle_objc_runtime_lookup_infraclass( runtime, dependencies->classid);
+         infra = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, dependencies->classid);
          if( ! infra)
          {
             if( runtime->debug.trace.dependencies)
@@ -343,7 +343,7 @@ static struct _mulle_objc_dependency
 
    if( info->superclassid)
    {
-      superclass    = _mulle_objc_runtime_lookup_infraclass( runtime, info->superclassid);
+      superclass    = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, info->superclassid);
       *p_superclass = superclass;
 
       if( ! superclass)
@@ -383,7 +383,7 @@ static struct _mulle_objc_dependency
          if( *classid_p == info->superclassid || *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_runtime_lookup_infraclass( runtime, *classid_p);
+         protocolclass = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, *classid_p);
          if( ! protocolclass)
          {
             if( runtime->debug.trace.dependencies)
@@ -813,7 +813,7 @@ static struct _mulle_objc_dependency
       loadcategory_trace( info, runtime, "dependency check ...\n");
    
    // check class
-   infra    = _mulle_objc_runtime_lookup_infraclass( runtime, info->classid);
+   infra    = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, info->classid);
    *p_class = infra;
 
    
@@ -839,7 +839,7 @@ static struct _mulle_objc_dependency
          if( *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_runtime_lookup_infraclass( runtime, *classid_p);
+         protocolclass = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, *classid_p);
          if( ! protocolclass)
          {
             if( runtime->debug.trace.dependencies)

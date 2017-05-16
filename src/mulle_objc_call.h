@@ -364,19 +364,29 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_or_s
 
 // goes through cache returns an implementation if cached, NULL otherwise
 // will return forward:: if nothing found and (!) put it into the cache
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementation( struct _mulle_objc_class *cls,
-                                                                          mulle_objc_methodid_t methodid);
+mulle_objc_methodimplementation_t
+    _mulle_objc_class_lookup_methodimplementation( struct _mulle_objc_class *cls,
+                                                   mulle_objc_methodid_t methodid);
 
-mulle_objc_methodimplementation_t   mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
-                                                                                    mulle_objc_methodid_t methodid);
 
 // goes through cache returns an implementation if cached, NULL otherwise
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_cached_methodimplementation( struct _mulle_objc_class *cls,
-                                                                              mulle_objc_methodid_t methodid);
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_lookup_cached_methodimplementation( struct _mulle_objc_class *cls,
+                                                         mulle_objc_methodid_t methodid);
 
 // goes through cache returns an implementation if cached, trys to fill cache otherwise
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementation_no_forward( struct _mulle_objc_class *cls,
-                                                                         mulle_objc_methodid_t methodid);
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_lookup_methodimplementation_no_forward( struct _mulle_objc_class *cls,
+                                                             mulle_objc_methodid_t methodid);
+
+// knows about trace and empty cache, forwards
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+                                                          mulle_objc_methodid_t methodid);
+
+mulle_objc_methodimplementation_t
+    mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+                                                            mulle_objc_methodid_t methodid);
 
 #pragma mark - lldb support
 

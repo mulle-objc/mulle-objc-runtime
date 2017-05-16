@@ -129,13 +129,22 @@ static inline void   _mulle_objc_class_preload_inactivecache( struct _mulle_objc
 // fills the cache line with a forward: if message does not exist or
 // if it exists it fills up the entry
 //
+struct _mulle_objc_cacheentry  empty_entry;
+
 MULLE_C_NEVER_INLINE
-struct _mulle_objc_cacheentry  *_mulle_objc_class_add_entry_by_swapping_caches( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache, struct _mulle_objc_method *method, mulle_objc_methodid_t methodid)
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_class_add_entry_by_swapping_caches( struct _mulle_objc_class *cls,
+                                                   struct _mulle_objc_cache *cache,
+                                                   struct _mulle_objc_method *method,
+                                                   mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_cache        *old_cache;
    struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_cacheentry   *p;
+   struct _mulle_objc_cacheentry   *sentinel;
+   struct _mulle_objc_runtime      *runtime;
    mulle_objc_cache_uint_t         new_size;
-
+   
    old_cache = cache;
 
    // a new beginning.. let it be filled anew
@@ -150,7 +159,11 @@ struct _mulle_objc_cacheentry  *_mulle_objc_class_add_entry_by_swapping_caches( 
    if( _mulle_objc_runtime_number_of_preloadmethods( cls->runtime))
       _mulle_objc_class_preload_inactivecache( cls, cache);
 
-   entry = NULL;
+   //
+   // if someone passes in a NULL for method, empty_entry is a marker
+   // for success..
+   //
+   entry = &empty_entry;
    if( method)
       entry = _mulle_objc_cache_inactivecache_add_functionpointer_entry( cache, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method), methodid);
 
@@ -160,25 +173,55 @@ struct _mulle_objc_cacheentry  *_mulle_objc_class_add_entry_by_swapping_caches( 
    assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) != mulle_objc_get_runtime()->empty_cache.entries);
 
    // if the set fails, then someone else was faster
+   runtime = _mulle_objc_class_get_runtime( cls);
    if( _mulle_objc_cachepivot_atomic_set_entries( &cls->cachepivot.pivot, cache->entries, old_cache->entries))
    {
-      struct _mulle_objc_runtime   *runtime;
-
-      runtime = _mulle_objc_class_get_runtime( cls);
-      if( runtime->debug.trace.method_caches)
-         fprintf( stderr, "mulle_objc_runtime %p trace: increased cache of %s %08x \"%s\" to %u entries\n",
-                 runtime,
-                 _mulle_objc_class_get_classtypename( cls),
-                 _mulle_objc_class_get_classid( cls),
-                 _mulle_objc_class_get_name( cls),
-                 cache->size);
       _mulle_objc_cache_free( cache, &cls->runtime->memory.allocator); // sic, can be unsafe deleted now
       return( NULL);
    }
 
-   if( &old_cache->entries[ 0] != &cls->runtime->empty_cache.entries[ 0])
-      _mulle_objc_cache_abafree( old_cache, &cls->runtime->memory.allocator);
+   if( runtime->debug.trace.method_caches)
+      fprintf( stderr, "mulle_objc_runtime %p trace: new method cache %p for %s %08x \"%s\" with %u entries\n",
+              runtime,
+              cache,
+              _mulle_objc_class_get_classtypename( cls),
+              _mulle_objc_class_get_classid( cls),
+              _mulle_objc_class_get_name( cls),
+              cache->size);
 
+   if( &old_cache->entries[ 0] != &cls->runtime->empty_cache.entries[ 0])
+   {
+      //
+      // if we repopulate the new cache with the old cache, we can then
+      // determine, which methods have actually been used over the course
+      // of the program by just dumping the cache contents
+      //
+      if( cls->runtime->config.repopulate_caches)
+      {
+         p        = &old_cache->entries[ 0];
+         sentinel = &p[ old_cache->size];
+         while( p < sentinel)
+         {
+            methodid = (mulle_objc_methodid_t) (intptr_t) _mulle_atomic_pointer_read( &p->key.pointer);
+            ++p;
+            
+            // place it back into cache
+            if( methodid != MULLE_OBJC_NO_METHODID)
+               _mulle_objc_class_lookup_methodimplementation( cls, methodid);
+         }
+      }
+      
+      if( runtime->debug.trace.method_caches)
+         fprintf( stderr, "mulle_objc_runtime %p trace: free old method cache %p for %s %08x \"%s\" with %u entries\n",
+                 runtime,
+                 cache,
+                 _mulle_objc_class_get_classtypename( cls),
+                 _mulle_objc_class_get_classid( cls),
+                 _mulle_objc_class_get_name( cls),
+                 cache->size);
+      
+      _mulle_objc_cache_abafree( old_cache, &cls->runtime->memory.allocator);
+   }
    return( entry);
 }
 
@@ -196,7 +239,7 @@ static struct _mulle_objc_cacheentry   *
    assert( method);
 
    // need to check that we are initialized
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED))
+   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
    {
       _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "call comes to early, the %s \"%s\" hasn't been initialized yet.", _mulle_objc_class_get_classtypename( cls), cls->name);
    }
@@ -268,6 +311,7 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
 }
 
 
+
 //
 // not inlining this is better, because when inlined clang pushes too many
 // registers on the stack, what otherwise would be a slim function for the
@@ -281,34 +325,21 @@ static void   *_mulle_objc_object_unfailing_call_methodid( void *obj,
 {
    mulle_objc_methodimplementation_t   imp;
    struct _mulle_objc_runtime          *runtime;
-   struct _mulle_objc_method           *method;
-   struct _mulle_objc_cacheentry       *entry;
-
-   method  = _mulle_objc_class_unfailing_search_method( cls, methodid);
-   imp     = _mulle_objc_method_get_implementation( method);
-
+   
+   imp = _mulle_objc_class_unfailing_lookup_methodimplementation( cls, methodid);
+   
    runtime = _mulle_objc_class_get_runtime( cls);
    if( runtime->debug.trace.method_calls)
-   {
       mulle_objc_class_trace_method_call( cls, methodid, obj, parameter, imp);
-   }
-   else
-   {
-      // some special classes may choose to never cache
-      if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_ALWAYS_EMPTY_CACHE))
-      {
-         entry = _mulle_objc_class_fill_cache_with_method( cls, method, methodid);
-         if( entry)
-            entry->key.uniqueid = methodid; // overwrite in forward case
-      }
-   }
 
-/*->*/
+   /*->*/
    return( (*imp)( obj, methodid, parameter));
 }
 
 
-static int  preload( struct _mulle_objc_method *method, struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache)
+static int  preload( struct _mulle_objc_method *method,
+                     struct _mulle_objc_class *cls,
+                    struct _mulle_objc_cache *cache)
 {
    assert( cache);
 
@@ -320,7 +351,8 @@ static int  preload( struct _mulle_objc_method *method, struct _mulle_objc_class
 
 
 
-void   _mulle_objc_class_fill_inactivecache_with_preloadmethods( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache)
+void   _mulle_objc_class_fill_inactivecache_with_preloadmethods( struct _mulle_objc_class *cls,
+                                                                 struct _mulle_objc_cache *cache)
 {
    _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), (int(*)()) preload, cache);
 }
@@ -342,12 +374,12 @@ void   _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( str
    }
 }
 
+#pragma mark - method cache searches
 
-
-# pragma mark - object
-
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_cached_methodimplementation( struct _mulle_objc_class *cls,
-                                                                                         mulle_objc_methodid_t methodid)
+// only searches cache, returns what there
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_lookup_cached_methodimplementation( struct _mulle_objc_class *cls,
+                                                         mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entry;
@@ -364,8 +396,10 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_cached_methodimplem
 }
 
 
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_or_search_methodimplementation_no_forward( struct _mulle_objc_class *cls,
-                                                                                             mulle_objc_methodid_t methodid)
+// does not update the cache, no forward
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_lookup_or_search_methodimplementation_no_forward( struct _mulle_objc_class *cls,
+                                                                       mulle_objc_methodid_t methodid)
 {
    mulle_objc_methodimplementation_t   imp;
    struct _mulle_objc_cache            *cache;
@@ -399,12 +433,11 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_or_search_methodimp
 
 
 //
-// this updates the cache, if nothing is there yet
-// will not return "forward though"...
-// because it updates the cache, it's not lookup_or_search but just lookup
+// updates the cache, no forward
 //
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementation_no_forward( struct _mulle_objc_class *cls,
-                                                                                                mulle_objc_methodid_t methodid)
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_lookup_methodimplementation_no_forward( struct _mulle_objc_class *cls,
+                                                             mulle_objc_methodid_t methodid)
 {
    mulle_objc_methodimplementation_t   imp;
    struct _mulle_objc_cache            *cache;
@@ -437,8 +470,10 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementatio
 }
 
 
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_or_search_methodimplementation( struct _mulle_objc_class *cls,
-                                                                                  mulle_objc_methodid_t methodid)
+// does not fill the cache but does forward
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_lookup_or_search_methodimplementation( struct _mulle_objc_class *cls,
+                                                            mulle_objc_methodid_t methodid)
 {
    mulle_objc_cache_uint_t             offset;
    mulle_objc_methodimplementation_t   imp;
@@ -457,7 +492,12 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_or_search_methodimp
    if( imp)
       return( imp);
 
-   method = mulle_objc_class_search_method( cls, methodid);
+   method = _mulle_objc_class_search_method( cls,
+                                             methodid,
+                                             NULL,
+                                             MULLE_OBJC_ANY_OWNER,
+                                             _mulle_objc_class_get_inheritance( cls),
+                                             NULL);
    if( ! method)
    {
       method = _mulle_objc_class_getorsearch_forwardmethod( cls);
@@ -468,8 +508,10 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_or_search_methodimp
 }
 
 
-mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementation( struct _mulle_objc_class *cls,
-                                                                                     mulle_objc_methodid_t methodid)
+// fills the cache and does forward
+mulle_objc_methodimplementation_t
+    _mulle_objc_class_lookup_methodimplementation( struct _mulle_objc_class *cls,
+                                                   mulle_objc_methodid_t methodid)
 {
    mulle_objc_cache_uint_t             offset;
    mulle_objc_methodimplementation_t   imp;
@@ -488,7 +530,12 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementatio
    if( imp)
       return( imp);
 
-   method = mulle_objc_class_search_method( cls, methodid);
+   method = _mulle_objc_class_search_method( cls,
+                                            methodid,
+                                            NULL,
+                                            MULLE_OBJC_ANY_OWNER,
+                                            _mulle_objc_class_get_inheritance( cls),
+                                            NULL);
    if( ! method)
       method = _mulle_objc_class_getorsearch_forwardmethod( cls);
 
@@ -501,21 +548,56 @@ mulle_objc_methodimplementation_t   _mulle_objc_class_lookup_methodimplementatio
 }
 
 
-mulle_objc_methodimplementation_t   mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
-                                                                                     mulle_objc_methodid_t methodid)
+
+//
+// fills the cache and does forward, will raise if no method
+// it knows about traces and the empty cache bit
+//
+mulle_objc_methodimplementation_t
+   _mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+                                                          mulle_objc_methodid_t methodid)
 {
    mulle_objc_methodimplementation_t   imp;
-
-   // this is compatible with apple and doesn't really hurt
-   // does it crash with unfailing ? not really
-   if( ! cls)
-      return( 0);
-
-   imp = _mulle_objc_class_lookup_methodimplementation( cls, methodid);
-   if( ! imp)
-      _mulle_objc_runtime_raise_fail_exception( cls->runtime, "no forward: method found");
+   struct _mulle_objc_runtime          *runtime;
+   struct _mulle_objc_method           *method;
+   struct _mulle_objc_cacheentry       *entry;
+   
+   method  = _mulle_objc_class_unfailing_search_method( cls, methodid);
+   imp     = _mulle_objc_method_get_implementation( method);
+   
+   runtime = _mulle_objc_class_get_runtime( cls);
+   if( runtime->debug.trace.method_calls)
+      return( imp);
+   // some special classes may choose to never cache
+   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_ALWAYS_EMPTY_CACHE))
+      return( imp);
+   
+   entry = _mulle_objc_class_fill_cache_with_method( cls, method, methodid);
+   if( entry)
+      entry->key.uniqueid = methodid; // overwrite in forward case
+   
    return( imp);
 }
+
+
+//
+// fills the cache and does forward, will raise if no method
+// it knows about traces and the empty cache bit
+// also checks and raises on empty class and wrong methodid
+//
+mulle_objc_methodimplementation_t
+   mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+                                                           mulle_objc_methodid_t methodid)
+{
+   if( ! cls || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
+   {
+      errno = EINVAL;
+      _mulle_objc_runtime_raise_fail_errno_exception( cls->runtime);
+   }
+
+   return( _mulle_objc_class_unfailing_lookup_methodimplementation( cls, methodid));
+}
+
 
 
 # pragma mark - lldb support
@@ -544,6 +626,8 @@ mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation(
    meta = _mulle_objc_class_is_metaclass( cls)
                ? (struct _mulle_objc_metaclass *) cls
                : _mulle_objc_class_get_metaclass( cls);
+
+   // call "-class" so class initializes
    if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
       mulle_objc_object_call( cls, MULLE_OBJC_CLASS_METHODID, NULL);
 
@@ -573,6 +657,7 @@ mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation(
 
 
 # pragma mark - calls
+
 
 void   *mulle_objc_object_call_class( void *obj,
                                       mulle_objc_methodid_t methodid,
@@ -647,7 +732,7 @@ void   *mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, void
       }
 
       if( ! entry->key.uniqueid)
-      /*->*/   return( _mulle_objc_object_unfailing_call_methodid( obj, methodid, parameter, cls));
+/*->*/   return( _mulle_objc_object_unfailing_call_methodid( obj, methodid, parameter, cls));
    }
 }
 

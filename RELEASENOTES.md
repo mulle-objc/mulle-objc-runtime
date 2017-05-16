@@ -1,5 +1,12 @@
 ## 0.6.1
 
+* added _mulle_objc_searchresult to _mulle_objc_class_search_method, so one can 
+find the location a method is stored
+* shortened the names of the dump sources
+* renamed various "get_id" functions to get_<type>id" for consistency
+* added coverage csv dumpers for future optimization benefits
+* renamed ..._CACHE_INITIALIZED to ..._CACHE_READY, because it confused me
+* when doing a dotdump of everything, don't write out each class filename
 * improved protocol class detection, so now protocolclasses can conform
 to protocols (as long as they aren't protocolclasses)
 * added MULLE_OBJC_TRACE_DEPENDENCIES 

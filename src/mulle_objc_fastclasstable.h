@@ -62,8 +62,20 @@ struct _mulle_objc_fastclasstable
 };
 
 
+
+static inline struct _mulle_objc_infraclass *
+    mulle_objc_fastclasstable_get_infraclass( struct _mulle_objc_fastclasstable *table,
+                                              unsigned int i)
+{
+   return( (struct _mulle_objc_infraclass *) _mulle_atomic_pointer_read( &table->classes[ i].pointer));
+}
+
+
+
 MULLE_C_NON_NULL_RETURN
-static inline struct _mulle_objc_infraclass   *mulle_objc_fastclasstable_unfailing_get_infraclass( struct _mulle_objc_fastclasstable *table, unsigned int i)
+static inline struct _mulle_objc_infraclass  *
+     mulle_objc_fastclasstable_unfailing_get_infraclass( struct _mulle_objc_fastclasstable *table,
+                                                         unsigned int i)
 {
    extern int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
    struct _mulle_objc_infraclass   *infra;

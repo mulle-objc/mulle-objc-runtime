@@ -213,11 +213,13 @@ unsigned int  mulle_objc_cache_fill_percentage( struct _mulle_objc_cache *cache)
 }
 
 
-unsigned int   mulle_objc_cache_hit_percentage( struct _mulle_objc_cache *cache, unsigned int *percentages, unsigned int size)
+unsigned int   mulle_objc_cache_hit_percentage( struct _mulle_objc_cache *cache,
+                                                unsigned int *percentages,
+                                                unsigned int size)
 {
    unsigned int                     i, n;
    unsigned int                     total;
-   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_cacheentry   *p;
    struct _mulle_objc_cacheentry   *sentinel;
 
    if( ! percentages || size <= 1)
@@ -232,12 +234,12 @@ unsigned int   mulle_objc_cache_hit_percentage( struct _mulle_objc_cache *cache,
 
    i        = 0;
    total    = 0;
-   entry    = cache->entries;
-   sentinel = &entry[ cache->size];
+   p        = cache->entries;
+   sentinel = &p[ cache->size];
 
-   while( entry < sentinel)
+   while( p < sentinel)
    {
-      if( entry->key.uniqueid)
+      if( p->key.uniqueid)
       {
          ++percentages[ i < size ? i : size - 1];
          ++i;
@@ -245,7 +247,7 @@ unsigned int   mulle_objc_cache_hit_percentage( struct _mulle_objc_cache *cache,
       }
       else
          i = 0;
-      ++entry;
+      ++p;
    }
 
    assert( total);

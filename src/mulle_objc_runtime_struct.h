@@ -70,6 +70,7 @@ struct _mulle_objc_runtimeconfig
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
    unsigned   no_tagged_pointers       : 1;  // don't use tagged pointers
    unsigned   thread_local_rt          : 1;  // use thread local runtimes
+   unsigned   repopulate_caches        : 1;  // useful for coverage analysis
 };
 
 
@@ -95,6 +96,7 @@ struct _mulle_objc_runtimedebug
 
       unsigned   category_adds        : 1;
       unsigned   class_adds           : 1;
+      unsigned   class_cache          : 1;
       unsigned   class_frees          : 1;
       unsigned   dependencies         : 1;
       unsigned   dump_runtime         : 1;  // hefty, set manually

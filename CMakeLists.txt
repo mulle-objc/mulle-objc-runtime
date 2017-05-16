@@ -24,14 +24,16 @@ include_directories(
 )
 
 set(DEBUG_HEADERS
-src/debug/mulle_objc_runtime_dotdump.h
-src/debug/mulle_objc_runtime_htmldump.h
+src/debug/mulle_objc_dotdump.h
+src/debug/mulle_objc_htmldump.h
+src/debug/mulle_objc_csvdump.h
 )
 
 set(DEBUG_SOURCES
 src/debug/mulle_objc_html.c
-src/debug/mulle_objc_runtime_htmldump.c
-src/debug/mulle_objc_runtime_dotdump.c
+src/debug/mulle_objc_htmldump.c
+src/debug/mulle_objc_dotdump.c
+src/debug/mulle_objc_csvdump.c
 )
 
 
