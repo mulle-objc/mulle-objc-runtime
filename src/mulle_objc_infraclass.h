@@ -57,7 +57,7 @@ struct _mulle_objc_method;
 
 enum _mulle_objc_infraclass_state
 {
-   MULLE_OBJC_INFRA_CACHE_INITIALIZED  = MULLE_OBJC_CACHE_INITIALIZED,
+   MULLE_OBJC_INFRA_CACHE_READY        = MULLE_OBJC_CACHE_READY,
    MULLE_OBJC_INFRA_ALWAYS_EMPTY_CACHE = MULLE_OBJC_ALWAYS_EMPTY_CACHE,
 
    MULLE_OBJC_INFRA_WARN_PROTOCOL      = 0x4,
@@ -200,28 +200,6 @@ static inline struct _mulle_objc_method  *
 
    return( mulle_objc_class_search_method( &infra->base, methodid));
 }
-
-
-static inline struct _mulle_objc_method   *
-    _mulle_objc_infraclass_search_method( struct _mulle_objc_infraclass *infra,
-                                          mulle_objc_methodid_t methodid,
-                                          struct _mulle_objc_method *previous,
-                                          void *owner,
-                                          unsigned int inheritance)
-{
-  extern struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc_class *cls,
-                                                              mulle_objc_methodid_t methodid,
-                                                              struct _mulle_objc_method *previous,
-                                                              void *owner,
-                                                              unsigned int inheritance);
-
-   return( _mulle_objc_class_search_method( &infra->base,
-                                            methodid,
-                                            previous,
-                                            owner,
-                                            inheritance));
-}
-
 
 
 #pragma mark - petty accessors

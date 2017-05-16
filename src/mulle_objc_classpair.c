@@ -281,7 +281,7 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
       if( protocolclassid == classid)
          continue;
 
-      proto_cls = _mulle_objc_runtime_lookup_infraclass( runtime, protocolclassid);
+      proto_cls = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, protocolclassid);
       if( ! proto_cls)
          _mulle_objc_class_raise_einval_exception();
 

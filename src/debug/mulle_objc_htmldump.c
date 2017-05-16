@@ -1,5 +1,5 @@
 //
-//  mulle_objc_runtime_htmlhtmldump.c
+//  mulle_objc_htmldump.c
 //  mulle-objc
 //
 //  Created by Nat! on 10.05.16.
@@ -33,7 +33,7 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle_objc_runtime_htmldump.h"
+#include "mulle_objc_htmldump.h"
 
 #include "mulle_objc_html.h"
 #include "mulle_objc.h"
@@ -714,7 +714,7 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname, char *direct
 
    runtime = mulle_objc_get_runtime();
    classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_runtime_lookup_infraclass( runtime, classid);
+   infra   = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, classid);
    if( ! infra)
    {
       fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
