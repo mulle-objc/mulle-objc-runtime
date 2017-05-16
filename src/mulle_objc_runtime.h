@@ -63,6 +63,10 @@ mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_runtimekey( void);
 void   mulle_objc_delete_runtimekey( void);
 
 
+//
+// if it returns 1, put a teardown function (mulle_objc_release_runtime) into
+// atexit (pedantic exit)
+//
 void  __mulle_objc_runtime_setup( struct _mulle_objc_runtime *runtime,
                                   struct mulle_allocator *allocator);
 void  _mulle_objc_runtime_assert_version( struct _mulle_objc_runtime  *runtime,
@@ -497,6 +501,7 @@ void   mulle_objc_runtime_unfailing_add_infraclass( struct _mulle_objc_runtime *
 
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
+// used in some tests
 void   mulle_objc_unfailing_add_infraclass( struct _mulle_objc_infraclass *pair);
 #endif
 

@@ -52,39 +52,68 @@ struct _mulle_objc_runtime;
 int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
 
 
-#pragma mark - class lookup
-
-MULLE_C_CONST_RETURN
-struct _mulle_objc_infraclass  *_mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid);
-
-
-//
-// this goes through the cache, but ignores fastclasstable, useful if classid
-// is not a constant
-//
-MULLE_C_CONST_NON_NULL_RETURN
-struct _mulle_objc_infraclass   *_mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
-                                                                        mulle_objc_classid_t classid);
+#pragma mark - class lookup, uncached
 
 //
 // this goes through the "slow" lookup table. Only internal code should
 // use this method to not fill up the cache uselessy.
 //
-MULLE_C_CONST_RETURN
-struct _mulle_objc_infraclass   *_mulle_objc_runtime_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
-                                                                       mulle_objc_classid_t classid);
+struct _mulle_objc_infraclass   *
+    _mulle_objc_runtime_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+                                                    mulle_objc_classid_t classid);
 
-
+//
+// this looks through the uncached classtable, if nothing is found
+// a delegate may provide a class "in time"
+//
 MULLE_C_CONST_NON_NULL_RETURN
-static inline struct _mulle_objc_infraclass   *_mulle_objc_runtime_unfailing_get_or_lookup_infraclass( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass *
+   _mulle_objc_runtime_unfailing_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+                                                             mulle_objc_classid_t classid);
+
+
+#pragma mark - class lookup, cached and fastclass
+
+static inline struct _mulle_objc_infraclass  *
+    _mulle_objc_runtime_get_or_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                                  mulle_objc_classid_t classid)
 {
    int                             index;
    struct _mulle_objc_infraclass   *infra;
-
+   struct _mulle_objc_infraclass  *
+        _mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                               mulle_objc_classid_t classid);
+   
    assert( runtime);
    assert( runtime->version == MULLE_OBJC_RUNTIME_VERSION);
    assert( classid);
+   
+   index = mulle_objc_get_fastclasstable_index( classid);
+   if( index >= 0)
+   {
+      infra = mulle_objc_fastclasstable_get_infraclass( &runtime->fastclasstable, index);
+      return( infra);
+   }
+   return( _mulle_objc_runtime_lookup_infraclass( runtime, classid));
+}
 
+
+// this is the method to use for looking up classes
+MULLE_C_CONST_NON_NULL_RETURN
+static inline struct _mulle_objc_infraclass *
+   _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                                           mulle_objc_classid_t classid)
+{
+   int                             index;
+   struct _mulle_objc_infraclass   *infra;
+   MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass *
+       _mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                                        mulle_objc_classid_t classid);
+   
+   assert( runtime);
+   assert( runtime->version == MULLE_OBJC_RUNTIME_VERSION);
+   assert( classid);
+   
    index = mulle_objc_get_fastclasstable_index( classid);
    if( index >= 0)
    {
@@ -99,7 +128,7 @@ MULLE_C_NON_NULL_RETURN
 static inline struct _mulle_objc_infraclass   *mulle_objc_inline_unfailing_get_or_lookup_infraclass( mulle_objc_classid_t classid)
 {
    struct _mulle_objc_runtime   *runtime;
-
+   
    runtime = mulle_objc_inlined_get_runtime();
    return( _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid));
 }
@@ -107,38 +136,5 @@ static inline struct _mulle_objc_infraclass   *mulle_objc_inline_unfailing_get_o
 
 MULLE_C_NON_NULL_RETURN
 struct _mulle_objc_infraclass   *mulle_objc_unfailing_get_or_lookup_infraclass( mulle_objc_classid_t classid);
-
-
-//
-// This is not a way to get isa. It's an indirect way of calling
-// mulle_objc_runtime_unfailing_lookup_infraclass
-//
-MULLE_C_CONST_NON_NULL_RETURN
-struct _mulle_objc_infraclass   *_mulle_objc_object_unfailing_lookup_infraclass( void *obj,
-                                                                       mulle_objc_classid_t classid);
-
-
-MULLE_C_CONST_NON_NULL_RETURN
-struct _mulle_objc_infraclass   *
-   _mulle_objc_runtime_unfailing_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
-                                                              mulle_objc_classid_t classid);
-
-
-#ifndef MULLE_OBJC_NO_CONVENIENCES
-
-MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_infraclass   *mulle_objc_unfailing_lookup_infraclass( mulle_objc_classid_t classid);
-
-#endif
-
-
-
-#pragma mark - API
-
-MULLE_C_CONST_RETURN
-static inline struct _mulle_objc_infraclass  *mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
-{
-   return( runtime ? _mulle_objc_runtime_lookup_infraclass( runtime, classid) : NULL);
-}
 
 #endif

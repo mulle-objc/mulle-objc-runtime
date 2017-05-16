@@ -80,7 +80,7 @@ static inline char   *_mulle_objc_ivar_get_signature( struct _mulle_objc_ivar *i
 }
 
 
-static inline mulle_objc_ivarid_t  _mulle_objc_ivar_get_id( struct _mulle_objc_ivar *ivar)
+static inline mulle_objc_ivarid_t  _mulle_objc_ivar_get_ivarid( struct _mulle_objc_ivar *ivar)
 {
    return( ivar->descriptor.ivarid);
 }

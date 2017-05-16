@@ -465,7 +465,7 @@ int   main( int argc, const char * argv[])
 #endif
    // obj = [[Foo alloc] init];
 
-   cls = mulle_objc_unfailing_lookup_infraclass( ___Foo_classid);
+   cls = mulle_objc_unfailing_get_or_lookup_infraclass( ___Foo_classid);
    obj = mulle_objc_infraclass_alloc_instance( cls, NULL);
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 

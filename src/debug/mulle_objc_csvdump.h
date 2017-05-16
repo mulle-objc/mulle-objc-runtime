@@ -1,11 +1,10 @@
 //
-//  mulle_objc_runtime_htmldump.h
-//  mulle-objc
+//  mulle_objc_csvdump.h
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 10.05.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
-//  All rights reserved.
+//  Created by Nat! on 16.05.17.
+//  Copyright © 2017 Mulle kybernetiK. All rights reserved.
+//  Copyright © 2017 Codeon GmbH. All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -33,29 +32,29 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_runtime_htmldump_h__
-#define mulle_objc_runtime_htmldump_h__
+#ifndef mulle_objc_csvdump_h__
+#define mulle_objc_csvdump_h__
 
-struct _mulle_objc_runtime;
+#include <stdio.h>
+
 struct _mulle_objc_class;
-struct _mulle_objc_classpair;
-
-void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *runtime,
-                                                 char *directory);
-void   mulle_objc_htmldump_runtime_to_directory( char *directory);
-void   mulle_objc_htmldump_runtime_to_tmp( void);
+struct _mulle_objc_runtime;
 
 
-void   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
-                                                  char *directory);
+void   mulle_objc_runtime_csvdump_classcoverage( struct _mulle_objc_runtime *runtime,
+                                                FILE *fp);
 
-void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
-                                               char *directory);
+void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
+                                                FILE *fp);
+void   mulle_objc_runtime_csvdump_methodcoverage( struct _mulle_objc_runtime *runtime,
+                                                 FILE *fp);
 
-void   mulle_objc_htmldump_classname_to_directory( char *classname,
-                                                   char *directory);
-void   mulle_objc_htmldump_classname_to_tmp( char *classname);
-void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls);
+// conveniences
 
+void   mulle_objc_csvdump_methodcoverage_to_file( char *filename);
+void   mulle_objc_csvdump_classcoverage_to_file( char *filename);
 
-#endif
+void   mulle_objc_csvdump_methodcoverage_to_tmp( void);
+void   mulle_objc_csvdump_classcoverage_to_tmp( void);
+
+#endif 

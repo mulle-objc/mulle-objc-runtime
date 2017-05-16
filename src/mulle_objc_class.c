@@ -68,8 +68,8 @@ static char   *lookup_bitname( unsigned int bit)
    // some "known" values
    switch( bit)
    {
-   case MULLE_OBJC_CACHE_INITIALIZED      : return( "CACHE_INITIALIZED");
-   case MULLE_OBJC_ALWAYS_EMPTY_CACHE     : return( "EMPTY_CACHE");
+   case MULLE_OBJC_CACHE_READY            : return( "CACHE_READY");
+   case MULLE_OBJC_ALWAYS_EMPTY_CACHE     : return( "ALWAYS_EMPTY_CACHE");
    case 0x4                               : return( "WARN_PROTOCOL");
    case 0x8                               : return( "IS_PROTOCOLCLASS");
    case 0x10                              : return( "LOAD_SCHEDULED");
@@ -121,7 +121,7 @@ static void   *_mulle_objc_call_class_waiting_for_cache( void *obj,
    {
       /* wait for other thread to finish with +initialize */
       /* TODO: using yield is poor though! Use a condition to be awaken! */
-      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED))
+      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
          mulle_thread_yield();
    }
 
@@ -147,7 +147,7 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
    // flagged in the meta class.
    //
    // If another thread enters here, it will expect `cls->thread` to be NULL.
-   // If it isn't it waits for MULLE_OBJC_CACHE_INITIALIZED to go up.
+   // If it isn't it waits for MULLE_OBJC_CACHE_READY to go up.
    //
    // what is tricky is, that cls and metaclass are executing this
    // singlethreaded, but still cls and metaclass could be in different threads
@@ -181,7 +181,12 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
       {
          // grab code from superclass
          // this is useful for MulleObjCSingleton
-         initialize = _mulle_objc_class_search_method( &meta->base, MULLE_OBJC_INITIALIZE_METHODID, NULL, MULLE_OBJC_ANY_OWNER, meta->base.inheritance);
+         initialize = _mulle_objc_class_search_method( &meta->base,
+                                                       MULLE_OBJC_INITIALIZE_METHODID,
+                                                       NULL,
+                                                       MULLE_OBJC_ANY_OWNER,
+                                                       meta->base.inheritance,
+                                                       NULL);
          if( initialize)
          {
             if( runtime->debug.trace.initialize)
@@ -208,8 +213,10 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
          cls->call             = mulle_objc_object_call_class;
 
          if( runtime->debug.trace.method_caches)
-            fprintf( stderr, "mulle_objc_runtime %p trace: added cache to %s %08x \"%s\" (%p) with %u entries\n",
-                  runtime,
+            fprintf( stderr, "mulle_objc_runtime %p trace: new initial cache %p "
+                     "on %s %08x \"%s\" (%p) with %u entries\n",
+                     runtime,
+                     cache,
                      _mulle_objc_class_get_classtypename( cls),
                      _mulle_objc_class_get_classid( cls),
                      _mulle_objc_class_get_name( cls),
@@ -222,8 +229,9 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
          cls->call             = mulle_objc_object_call_class_empty_cache;
 
          if( runtime->debug.trace.method_caches)
-            fprintf( stderr, "mulle_objc_runtime %p trace: using always empty cache on %s %08x \"%s\" (%p)\n",
-                  runtime,
+            fprintf( stderr, "mulle_objc_runtime %p trace: use "
+                    "\"always empty cache\" on %s %08x \"%s\" (%p)\n",
+                      runtime,
                      _mulle_objc_class_get_classtypename( cls),
                      _mulle_objc_class_get_classid( cls),
                      _mulle_objc_class_get_name( cls),
@@ -232,8 +240,8 @@ void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t met
 
       // finally unfreze
       // threads waiting_for_cache will run now
-
-      _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED);
+      // cache initialized is also called if emty cache!
+      _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CACHE_READY);
    }
 
    //
@@ -316,7 +324,9 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_search_forwardmetho
 {
    struct _mulle_objc_method   *method;
 
-   method = _mulle_objc_class_search_method( cls, MULLE_OBJC_FORWARD_METHODID, NULL, MULLE_OBJC_ANY_OWNER, cls->inheritance);
+   method = _mulle_objc_class_search_method( cls, MULLE_OBJC_FORWARD_METHODID,
+                                             NULL, MULLE_OBJC_ANY_OWNER,
+                                             cls->inheritance, NULL);
    if( ! method)
       method = cls->runtime->classdefaults.forwardmethod;
 
@@ -460,7 +470,6 @@ static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class 
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
    struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_runtime      *runtime;
 
    assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
 
@@ -476,18 +485,16 @@ static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class 
       return( 0);
 
    //
-   // just swap out the current cache, place a fresh cache in there
+   // if we get NULL, from _mulle_objc_class_add_entry_by_swapping_caches
+   // someone else recreated the cache, fine by us!
    //
-   _mulle_objc_class_add_entry_by_swapping_caches( cls, cache, NULL, MULLE_OBJC_NO_UNIQUEID);
+   for(;;)
+   {
+      // always break regardless of return value
+      _mulle_objc_class_add_entry_by_swapping_caches( cls, cache, NULL, MULLE_OBJC_NO_UNIQUEID);
+      break;
+   }
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   if( runtime->debug.trace.method_caches)
-      fprintf( stderr, "mulle_objc_runtime %p trace: invalidate cache of %s %08x \"%s\" (%p)\n",
-                  runtime,
-                     _mulle_objc_class_get_classtypename( cls),
-                     _mulle_objc_class_get_classid( cls),
-                     _mulle_objc_class_get_name( cls),
-                     cls);
    return( 0x1);
 }
 
@@ -503,7 +510,7 @@ static int  invalidate_caches( struct _mulle_objc_runtime *runtime,
    struct _mulle_objc_method                 *method;
 
    // preferably nothing there yet
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_INITIALIZED))
+   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
       return( mulle_objc_walk_ok);
 
    _mulle_objc_class_invalidate_all_kvcinfos( cls);
@@ -651,11 +658,13 @@ static int   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *
 }
 
 
-static struct _mulle_objc_method  *_mulle_objc_class_protocol_search_method( struct _mulle_objc_class *cls,
-                                                                             mulle_objc_methodid_t methodid,
-                                                                             struct _mulle_objc_method *previous,
-                                                                             void *owner,
-                                                                             unsigned int inheritance)
+static struct _mulle_objc_method  *
+   _mulle_objc_class_protocol_search_method( struct _mulle_objc_class *cls,
+                                             mulle_objc_methodid_t methodid,
+                                             struct _mulle_objc_method *previous,
+                                             void *owner,
+                                             unsigned int inheritance,
+                                             struct _mulle_objc_searchresult *result)
 {
    struct _mulle_objc_classpair                 *pair;
    struct _mulle_objc_infraclass                *infra;
@@ -681,7 +690,10 @@ static struct _mulle_objc_method  *_mulle_objc_class_protocol_search_method( str
       if( is_meta)
          walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
 
-      method = _mulle_objc_class_search_method( walk_cls, methodid, previous, owner, inheritance | walk_cls->inheritance);
+      method = _mulle_objc_class_search_method( walk_cls, methodid,
+                                                previous, owner,
+                                                inheritance | walk_cls->inheritance,
+                                                result);
       if( method)
       {
          if( found)
@@ -864,11 +876,13 @@ static void   trace_method_found( struct _mulle_objc_runtime *runtime,
 // if previous is set, the search will be done for the method that previous
 // has overriden
 //
-struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc_class *cls,
-                                                              mulle_objc_methodid_t methodid,
-                                                              struct _mulle_objc_method *previous,
-                                                              void *owner,
-                                                              unsigned int inheritance)
+struct _mulle_objc_method   *
+    _mulle_objc_class_search_method( struct _mulle_objc_class *cls,
+                                     mulle_objc_methodid_t methodid,
+                                     struct _mulle_objc_method *previous,
+                                     void *owner,
+                                     unsigned int inheritance,
+                                     struct _mulle_objc_searchresult *result)
 {
    struct _mulle_objc_runtime                              *runtime;
    struct _mulle_objc_method                               *found;
@@ -930,6 +944,13 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
             return( NULL);
          }
 
+         if( result)
+         {
+            result->class  = cls;
+            result->list   = list;
+            result->method = method;
+         }
+
          if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
          {
             if( runtime->debug.trace.method_searches)
@@ -956,7 +977,7 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
       // Generally: MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES is not
       // enabled, so it is a non-issue.
       //
-      method = _mulle_objc_class_protocol_search_method( cls, methodid, previous, owner, tmp);
+      method = _mulle_objc_class_protocol_search_method( cls, methodid, previous, owner, tmp, result);
       if( method)
       {
          if( found)
@@ -979,7 +1000,10 @@ struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc
    {
       if( cls->superclass)
       {
-         method = _mulle_objc_class_search_method( cls->superclass, methodid, previous, owner, cls->superclass->inheritance);
+         method = _mulle_objc_class_search_method( cls->superclass, methodid,
+                                                   previous, owner,
+                                                   cls->superclass->inheritance,
+                                                   result);
          if( method)
          {
             if( found)
@@ -1021,9 +1045,13 @@ struct _mulle_objc_method  *mulle_objc_class_search_method( struct _mulle_objc_c
       return( NULL);
    }
 
-   method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, cls->inheritance);
+   method = _mulle_objc_class_search_method( cls, methodid,
+                                             NULL, MULLE_OBJC_ANY_OWNER,
+                                             _mulle_objc_class_get_inheritance( cls),
+                                             NULL);
+   // this can happen if hidden override detection is on
    if( ! method && errno == EEXIST)
-      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %llx", _mulle_objc_class_get_name( cls), methodid);
+      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %08x", _mulle_objc_class_get_name( cls), methodid);
 
    return( method);
 }
@@ -1033,7 +1061,8 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
                                                                           mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *method;
-
+   unsigned int                inheritance;
+   
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
 
    if( ! cls)
@@ -1042,15 +1071,20 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
       return( NULL);
    }
 
-   method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, cls->inheritance);
+   inheritance = _mulle_objc_class_get_inheritance( cls) | MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+   method      = _mulle_objc_class_search_method( cls, methodid,
+                                                  NULL, MULLE_OBJC_ANY_OWNER,
+                                                  inheritance,
+                                                  NULL);
+   // this can happen if hidden override detection is on
    if( ! method && errno == EEXIST)
-      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %llx", _mulle_objc_class_get_name( cls), methodid);
+      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %08x", _mulle_objc_class_get_name( cls), methodid);
 
    return( method);
 }
 
 
-#pragma mark - debug supprt
+#pragma mark - debug support
 
 
 

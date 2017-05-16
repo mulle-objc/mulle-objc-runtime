@@ -1,5 +1,5 @@
 //
-//  mulle_objc_runtime_dotdump.c
+//  mulle_objc_dotdump.c
 //  mulle-objc
 //
 //  Created by Nat! on 25.10.15.
@@ -33,14 +33,11 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 
-//
-
-//
-
-#include "mulle_objc_runtime_dotdump.h"
+#include "mulle_objc_dotdump.h"
 
 #include "mulle_objc.h"
 #include "mulle_objc_html.h"
+#include "mulle_objc_runtime.h"  // for getenv
 
 #include <assert.h>
 #include <stdio.h>
@@ -570,7 +567,7 @@ static void   print_hyper_infraclass( struct _mulle_objc_infraclass *infra,
 {
    struct _mulle_objc_htmltablestyle   style;
    char                                *label;
-   struct _mulle_objc_infraclass *superclass;
+   struct _mulle_objc_infraclass       *superclass;
 
 
    style       = infraclass_style;
@@ -685,8 +682,8 @@ void   mulle_objc_classpair_dotdump( struct _mulle_objc_classpair *pair, FILE *f
 }
 
 
-void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
-                                         char *filename)
+static void   _mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
+                                                 char *filename)
 {
    FILE                          *fp;
    struct _mulle_objc_classpair  *pair;
@@ -720,14 +717,19 @@ void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
    fprintf( fp, "}\n");
    fclose( fp);
 
-
    c_set_done( &info.set);
+}
 
+
+void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
+                                         char *filename)
+{
+   _mulle_objc_class_dotdump_to_file( cls, filename);
    fprintf( stderr, "Written dot file \"%s\"\n", filename);
 }
 
 
-void   mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
+static void   _mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
 {
    struct _mulle_objc_runtime     *runtime;
    struct _mulle_objc_class       *cls;
@@ -742,7 +744,7 @@ void   mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
 
    runtime = mulle_objc_get_runtime();
    classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_runtime_lookup_infraclass( runtime, classid);
+   infra   = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, classid);
    if( ! infra)
    {
       fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
@@ -750,7 +752,14 @@ void   mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
    }
 
    cls = _mulle_objc_infraclass_as_class( infra);
-   mulle_objc_class_dotdump_to_file( cls, filename);
+   _mulle_objc_class_dotdump_to_file( cls, filename);
+}
+
+
+void   mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
+{
+   _mulle_objc_dotdump_classname_to_file( classname, filename);
+   fprintf( stderr, "Written dot file \"%s\"\n", filename);
 }
 
 
@@ -766,7 +775,7 @@ void   mulle_objc_dotdump_classname_to_tmp( char *classname)
 }
 
 
-void   mulle_objc_dotdump_classes_to_tmp( void)
+static void   __mulle_objc_dotdump_classes_to_tmp( void (*dump)( char *, char *))
 {
    char                                        *path;
    intptr_t                                    classid;
@@ -779,11 +788,22 @@ void   mulle_objc_dotdump_classes_to_tmp( void)
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
    {
       path = dot_filename_for_classname( infra->base.name, "/tmp");
-      mulle_objc_dotdump_classname_to_file( infra->base.name,
-                                            path);
+      (*dump)( infra->base.name, path);
       mulle_allocator_free( &mulle_stdlib_allocator, path);
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
+}
+
+
+static void   _mulle_objc_dotdump_classes_to_tmp( void)
+{
+   __mulle_objc_dotdump_classes_to_tmp( _mulle_objc_dotdump_classname_to_file);
+}
+
+
+void   mulle_objc_dotdump_classes_to_tmp( void)
+{
+   __mulle_objc_dotdump_classes_to_tmp( mulle_objc_dotdump_classname_to_file);
 }
 
 
@@ -801,8 +821,8 @@ void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *f
    info.fp               = fp;
    info.draw_runtime     = 1;
    info.create_hyperlink = 1;
-   info.draw_strings     = getenv( "MULLE_OBJC_NO_STRING_TABLE") ? 0 : 1;
-   info.draw_selectors   = getenv( "MULLE_OBJC_NO_SELECTOR_TABLE") ? 0 : 1;
+   info.draw_strings     = (char) mulle_objc_getenv_yes_no( "MULLE_OBJC_NO_STRING_TABLE");
+   info.draw_selectors   = (char) mulle_objc_getenv_yes_no( "MULLE_OBJC_NO_SELECTOR_TABLE");
 
    fprintf( fp, "digraph mulle_objc_runtime\n{\n");
    mulle_objc_runtime_walk( runtime, callback, &info);
@@ -878,6 +898,6 @@ void   mulle_objc_dotdump_runtime_to_tmp( void)
 
 void   mulle_objc_dotdump_to_tmp( void)
 {
-   mulle_objc_dotdump_classes_to_tmp();
    mulle_objc_dotdump_runtime_to_tmp();
+   _mulle_objc_dotdump_classes_to_tmp();
 }

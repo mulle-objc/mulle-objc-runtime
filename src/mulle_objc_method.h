@@ -199,7 +199,7 @@ static inline char   *_mulle_objc_method_get_signature( struct _mulle_objc_metho
 }
 
 
-static inline mulle_objc_methodid_t  _mulle_objc_method_get_id( struct _mulle_objc_method *method)
+static inline mulle_objc_methodid_t  _mulle_objc_method_get_methodid( struct _mulle_objc_method *method)
 {
    return( method->descriptor.methodid);
 }
@@ -259,9 +259,9 @@ static inline char   *mulle_objc_method_get_signature( struct _mulle_objc_method
 }
 
 
-static inline mulle_objc_methodid_t  mulle_objc_method_get_id( struct _mulle_objc_method *method)
+static inline mulle_objc_methodid_t  mulle_objc_method_get_methodid( struct _mulle_objc_method *method)
 {
-   return( method ? _mulle_objc_method_get_id( method) : MULLE_OBJC_NO_METHODID);
+   return( method ? _mulle_objc_method_get_methodid( method) : MULLE_OBJC_NO_METHODID);
 }
 
 

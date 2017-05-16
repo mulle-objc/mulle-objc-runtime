@@ -205,11 +205,29 @@ unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class 
 //
 struct _mulle_objc_method  *mulle_objc_class_search_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);
 
-struct _mulle_objc_method   *_mulle_objc_class_search_method( struct _mulle_objc_class *cls,
-                                                              mulle_objc_methodid_t methodid,
-                                                              struct _mulle_objc_method *previous,
-                                                              void *owner,
-                                                              unsigned int inheritance);
+//
+// cls: class to start search
+// methodid: method to search for
+// previous: the method that overrides the searched method (usually NULL)
+// owner: search for a specific owner of the methodlist (usually MULLE_OBJC_ANY_OWNER)
+// inheritance: the inheritance scheme to use (use cls->inheritance)
+// result: returned if a method was found (otherwise unchanged!), can be NULL
+//
+struct _mulle_objc_searchresult
+{
+   struct _mulle_objc_class       *class;    // where method was found
+   struct _mulle_objc_methodlist  *list;     // list containing method
+   struct _mulle_objc_method      *method;   // method
+};
+
+
+struct _mulle_objc_method   *
+   _mulle_objc_class_search_method( struct _mulle_objc_class *cls,
+                                    mulle_objc_methodid_t methodid,
+                                    struct _mulle_objc_method *previous,
+                                    void *owner,
+                                    unsigned int inheritance,
+                                    struct _mulle_objc_searchresult *result);
 
 
 # pragma mark - forwarding
@@ -241,7 +259,10 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_unfailing_search_me
 {
    struct _mulle_objc_method   *method;
 
-   method = _mulle_objc_class_search_method( cls, methodid, NULL, MULLE_OBJC_ANY_OWNER, _mulle_objc_class_get_inheritance( cls));
+   method = _mulle_objc_class_search_method( cls, methodid,
+                                             NULL, MULLE_OBJC_ANY_OWNER,
+                                            _mulle_objc_class_get_inheritance( cls),
+                                            NULL);
    assert( ! method || method->descriptor.methodid == methodid);
    if( ! method)
       method = _mulle_objc_class_unfailing_getorsearch_forwardmethod( cls, methodid);

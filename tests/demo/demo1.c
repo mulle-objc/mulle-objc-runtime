@@ -506,8 +506,8 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Foo alloc] init];
 
-   fprintf( stderr, "-==> mulle_objc_unfailing_lookup_infraclass()\n");
-   cls = mulle_objc_unfailing_lookup_infraclass( ___Foo_classid);
+   fprintf( stderr, "-==> mulle_objc_unfailing_get_or_lookup_infraclass()\n");
+   cls = mulle_objc_unfailing_get_or_lookup_infraclass( ___Foo_classid);
 
    fprintf( stderr, "-==> mulle_objc_infraclass_alloc_instance()\n");
    obj = mulle_objc_infraclass_alloc_instance( cls, NULL);

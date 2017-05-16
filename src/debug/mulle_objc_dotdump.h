@@ -1,5 +1,5 @@
 //
-//  mulle_objc_runtime_dotdump.h
+//  mulle_objc_dotdump.h
 //  mulle-objc
 //
 //  Created by Nat! on 25.10.15.
@@ -32,13 +32,10 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
 
-//
-
-#ifndef mulle_objc_runtime_dotdump_h__
-#define mulle_objc_runtime_dotdump_h__
+#ifndef mulle_objc_dotdump_h__
+#define mulle_objc_dotdump_h__
 
 #include <stdio.h>
 

@@ -167,9 +167,10 @@ static inline struct _mulle_objc_classpair   *_mulle_objc_metaclass_get_classpai
    return( (struct _mulle_objc_classpair *) &((char *) meta)[  - offsetof( struct _mulle_objc_classpair, metaclass)]);
 }
 
+
 # pragma mark - infra/metaclass conveniences
 
-
+// code is here, because infraclass doesn't know about pair
 static inline struct _mulle_objc_metaclass   *_mulle_objc_infraclass_get_metaclass( struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair   *pair;
@@ -179,6 +180,7 @@ static inline struct _mulle_objc_metaclass   *_mulle_objc_infraclass_get_metacla
 }
 
 
+// code is here, because metaclass doesn't know about pair
 static inline struct _mulle_objc_infraclass   *_mulle_objc_metaclass_get_infraclass( struct _mulle_objc_metaclass *cls)
 {
    struct _mulle_objc_classpair   *pair;

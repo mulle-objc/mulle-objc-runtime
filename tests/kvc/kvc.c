@@ -342,7 +342,7 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Foo alloc] init];
 
-   infra = mulle_objc_unfailing_lookup_infraclass( ___Foo_classid);
+   infra = mulle_objc_unfailing_get_or_lookup_infraclass( ___Foo_classid);
    obj = mulle_objc_infraclass_alloc_instance( infra, NULL);
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 

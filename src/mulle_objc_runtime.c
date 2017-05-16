@@ -33,10 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 
-//
-
-//
-
 #include "mulle_objc_runtime.h"
 
 #include "mulle_objc_runtime_global.h"
@@ -47,7 +43,8 @@
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_object.h"
 #include "mulle_objc_signature.h"
-
+#include "mulle_objc_csvdump.h"
+#include <mulle_test_allocator/mulle_test_allocator.h>
 #include <assert.h>
 #include <errno.h>
 #include <setjmp.h>
@@ -248,6 +245,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
    runtime->debug.trace.category_adds      = getenv_yes_no( "MULLE_OBJC_TRACE_CATEGORY_ADDS");
    runtime->debug.trace.class_adds         = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_ADDS");
    runtime->debug.trace.class_frees        = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_FREES");
+   runtime->debug.trace.class_cache        = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_CACHE");
    runtime->debug.trace.dependencies       = getenv_yes_no( "MULLE_OBJC_TRACE_DEPENDENCIES");
    runtime->debug.trace.dump_runtime       = getenv_yes_no( "MULLE_OBJC_TRACE_DUMP_RUNTIME");
    runtime->debug.trace.fastclass_adds     = getenv_yes_no( "MULLE_OBJC_TRACE_FASTCLASS_ADDS");
@@ -265,6 +263,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
    runtime->debug.trace.tagged_pointers    = getenv_yes_no( "MULLE_OBJC_TRACE_TAGGED_POINTERS");
 
    // don't trace method search and calls, per default... too expensive
+   // don't trace caches either, usually that's too boring
    // also don't dump, per default
    if( getenv_yes_no( "MULLE_OBJC_TRACE_ENABLED"))
    {
@@ -276,7 +275,6 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.trace.initialize            = 1;
       runtime->debug.trace.load_calls            = 1;
       runtime->debug.trace.loadinfo              = 1;
-      runtime->debug.trace.method_caches         = 1;
       runtime->debug.trace.protocol_adds         = 1;
       runtime->debug.trace.runtime_config        = 1;
       runtime->debug.trace.state_bits            = 1;
@@ -1022,16 +1020,16 @@ void   *_mulle_objc_runtime_extract_exception( struct _mulle_objc_runtime *runti
 
 
 int  _mulle_objc_runtime_match_exception( struct _mulle_objc_runtime *runtime,
-                                          mulle_objc_classid_t classId,
+                                          mulle_objc_classid_t classid,
                                           void *exception)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_class        *exceptionCls;
 
-   assert( classId);
+   assert( classid != MULLE_OBJC_NO_CLASSID && classid != MULLE_OBJC_INVALID_CLASSID);
    assert( exception);
 
-   infra        = _mulle_objc_runtime_unfailing_lookup_infraclass( runtime, classId);
+   infra        = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid);
    exceptionCls = _mulle_objc_object_get_isa( exception);
 
    do
@@ -1287,7 +1285,7 @@ int   mulle_objc_runtime_add_infraclass( struct _mulle_objc_runtime *runtime,
    if( runtime->debug.trace.class_adds || runtime->debug.trace.dependencies)
    {
       fprintf( stderr, "mulle_objc_runtime %p trace: add class %08x \"%s\"",
-              runtime,
+                 runtime,
                  _mulle_objc_infraclass_get_classid( infra),
                  _mulle_objc_infraclass_get_name( infra));
       if( superclass)
@@ -1304,7 +1302,7 @@ int   mulle_objc_runtime_add_infraclass( struct _mulle_objc_runtime *runtime,
 
 
 void   mulle_objc_runtime_unfailing_add_infraclass( struct _mulle_objc_runtime *runtime,
-                                                     struct _mulle_objc_infraclass *infra)
+                                                    struct _mulle_objc_infraclass *infra)
 {
    if( mulle_objc_runtime_add_infraclass( runtime, infra))
       _mulle_objc_runtime_raise_fail_errno_exception( runtime);
@@ -1342,20 +1340,11 @@ void   _mulle_objc_runtime_set_fastclass( struct _mulle_objc_runtime *runtime,
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 // conveniences
 
-MULLE_C_CONST_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_infraclass   *mulle_objc_unfailing_lookup_infraclass( mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_infraclass   *infra;
-
-   infra = _mulle_objc_runtime_unfailing_lookup_infraclass( mulle_objc_inlined_get_runtime(), classid);
-   return( infra);
-}
-
-
 void   mulle_objc_unfailing_add_infraclass( struct _mulle_objc_infraclass *infra)
 {
    mulle_objc_runtime_unfailing_add_infraclass( mulle_objc_get_or_create_runtime(), infra);
 }
+
 #endif
 
 
@@ -1569,7 +1558,11 @@ char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
 {
    char   *s;
    struct _mulle_objc_runtime   *runtime;
-
+   
+   if( uniqueid == MULLE_OBJC_NO_UNIQUEID)
+      return( "NOT A ID");
+   if( uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
+      return( "INVALID ID");
    runtime = mulle_objc_get_or_create_runtime();
    s       = _mulle_objc_runtime_search_debughashname( runtime, uniqueid);
    return( s ? s : "???");

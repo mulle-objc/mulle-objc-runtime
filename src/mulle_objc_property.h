@@ -73,7 +73,7 @@ static inline char   *_mulle_objc_property_get_signature( struct _mulle_objc_pro
 }
 
 
-static inline mulle_objc_propertyid_t  _mulle_objc_property_get_id( struct _mulle_objc_property *property)
+static inline mulle_objc_propertyid_t  _mulle_objc_property_get_propertyid( struct _mulle_objc_property *property)
 {
    return( property->propertyid);
 }
@@ -135,9 +135,9 @@ static inline char   *mulle_objc_property_get_signature( struct _mulle_objc_prop
 }
 
 
-static inline mulle_objc_propertyid_t  mulle_objc_property_get_id( struct _mulle_objc_property *property)
+static inline mulle_objc_propertyid_t  mulle_objc_property_get_propertyid( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_id( property) : MULLE_OBJC_NO_PROPERTYID);
+   return( property ? _mulle_objc_property_get_propertyid( property) : MULLE_OBJC_NO_PROPERTYID);
 }
 
 

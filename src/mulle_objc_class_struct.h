@@ -89,7 +89,7 @@ enum
 
 enum
 {
-   MULLE_OBJC_CACHE_INITIALIZED  = 0x1,
+   MULLE_OBJC_CACHE_READY        = 0x1,
    MULLE_OBJC_ALWAYS_EMPTY_CACHE = 0x2
 };
 

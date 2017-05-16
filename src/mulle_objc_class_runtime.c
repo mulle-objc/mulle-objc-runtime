@@ -41,6 +41,15 @@
 #include <mulle_aba/mulle_aba.h>
 
 
+MULLE_C_CONST_NON_NULL_RETURN  struct _mulle_objc_infraclass  *
+   _mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                                    mulle_objc_classid_t classid);
+
+struct _mulle_objc_infraclass  *
+    _mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                           mulle_objc_classid_t classid);
+
+
 //
 // only NSAutoreleasePool 0x5b791fc6 and 0xNSThread are allowed to be called
 // in a global runtime configuration, so they can set up a proper NSThread
@@ -61,65 +70,19 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 }
 
 
-#pragma mark - class lookup
-
-MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_infraclass   *mulle_objc_unfailing_get_or_lookup_infraclass( mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_runtime   *runtime;
-
-   runtime = mulle_objc_inlined_get_runtime();
-   return( _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid));
-}
-
-
-struct _mulle_objc_infraclass   *
-    _mulle_objc_runtime_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
-                                                    mulle_objc_classid_t classid)
-{
-   return( _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid));
-}
-
-
-struct _mulle_objc_infraclass   *
-   _mulle_objc_runtime_unfailing_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
-                                                             mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_infraclass   *infra;
-   int                              retry;
-
-   assert( classid != MULLE_OBJC_INVALID_CLASSID && classid != MULLE_OBJC_NO_CLASSID);
-
-   retry = 1;
-   for(;;)
-   {
-      infra = _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid);
-      if( infra)
-      {
-         assert( _mulle_objc_infraclass_get_classid( infra) == classid);
-         return( infra);
-      }
-
-      if( retry)
-      {
-         retry = 0;
-         (*runtime->classdefaults.class_is_missing)( runtime, classid);
-         continue;
-      }
-
-      _mulle_objc_runtime_raise_class_not_found_exception( runtime, classid);
-   }
-}
-
-
 #pragma mark - class cache
 
 static struct _mulle_objc_cacheentry
-   *_mulle_objc_runtime_add_classcacheentry_by_swapping_caches( struct _mulle_objc_runtime *runtime, struct _mulle_objc_cache *cache, struct _mulle_objc_class *cls)
+   *_mulle_objc_runtime_add_classcacheentry_by_swapping_caches( struct _mulle_objc_runtime *runtime,
+                                                                struct _mulle_objc_cache *cache,
+                                                                struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_cache        *old_cache;
    struct _mulle_objc_cacheentry   *entry;
-   mulle_objc_cache_uint_t          new_size;
+   struct _mulle_objc_cacheentry   *p;
+   mulle_objc_cache_uint_t         new_size;
+   struct _mulle_objc_cacheentry   *sentinel;
+   mulle_objc_classid_t            classid;
 
    old_cache = cache;
 
@@ -130,7 +93,7 @@ static struct _mulle_objc_cacheentry
       return( NULL);
 
    entry = _mulle_objc_cache_inactivecache_add_pointer_entry( cache, cls, cls->classid);
-
+   
    if( _mulle_objc_cachepivot_atomic_set_entries( &runtime->cachepivot, cache->entries, old_cache->entries))
    {
       // trace future!
@@ -139,13 +102,58 @@ static struct _mulle_objc_cacheentry
       return( NULL);
    }
 
+   if( runtime->debug.trace.class_cache)
+   {
+      fprintf( stderr, "mulle_objc_runtime %p trace: set new class cache %p with %u entries\n",
+              runtime,
+              cache,
+              cache->size);
+      fprintf( stderr, "mulle_objc_runtime %p trace: added class %08x \"%s\" to class cache %p\n",
+              runtime,
+              _mulle_objc_class_get_classid( cls),
+              _mulle_objc_class_get_name( cls),
+              cache);
+   }
+   
    if( &old_cache->entries[ 0] != &runtime->empty_cache.entries[ 0])
+   {
+      //
+      // if we repopulate the new cache with the old cache, we can then
+      // determine, which classes have actually been used over the course
+      // of the program by just dumping the cache contents
+      //
+      if( runtime->config.repopulate_caches)
+      {
+         p        = &old_cache->entries[ 0];
+         sentinel = &p[ old_cache->size];
+         while( p < sentinel)
+         {
+            classid = (mulle_objc_classid_t)(intptr_t) _mulle_atomic_pointer_read( &p->key.pointer);
+            ++p;
+
+            // place it into cache
+            if( classid != MULLE_OBJC_NO_CLASSID)
+               (void) _mulle_objc_runtime_unfailing_lookup_infraclass( runtime, classid);
+         }
+         
+         // entry is still valid, even if the cache has been blown away in the
+         // meantime (aba)
+      }
+
+      if( runtime->debug.trace.class_cache)
+         fprintf( stderr, "mulle_objc_runtime %p trace: frees class cache %p with %u entries\n",
+                 runtime,
+                 old_cache,
+                 old_cache->size);
+      
       _mulle_objc_cache_abafree( old_cache, &cls->runtime->memory.allocator);
+   }
 
    return( entry);
 }
 
 
+MULLE_C_NON_NULL_RETURN
 static struct _mulle_objc_cacheentry   *
    _mulle_objc_runtime_fill_classcache_with_infraclass( struct _mulle_objc_runtime *runtime,
                                                         struct _mulle_objc_infraclass *infra)
@@ -165,19 +173,32 @@ static struct _mulle_objc_cacheentry   *
       if( (size_t) _mulle_atomic_pointer_read( &cache->n) >= (cache->size >> 2))  // 25% fill rate is nicer
       {
          entry = _mulle_objc_runtime_add_classcacheentry_by_swapping_caches( runtime, cache, _mulle_objc_infraclass_as_class( infra));
-         if( entry)
-            return( entry);
-         continue;
+         if( ! entry)
+            continue;
+         break;
       }
 
       entry = _mulle_objc_cache_add_pointer_entry( cache, infra, _mulle_objc_infraclass_get_classid( infra));
       if( entry)
-         return( entry);
+      {
+         // trace here so we output the proper cache
+         if( runtime->debug.trace.class_cache)
+            fprintf( stderr, "mulle_objc_runtime %p trace: added class %08x \"%s\" to class cache %p\n",
+                    runtime,
+                    _mulle_objc_infraclass_get_classid( infra),
+                    _mulle_objc_infraclass_get_name( infra),
+                    cache);
+         break;
+      }
    }
+
+   return( entry);
 }
 
 
-static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
+static struct _mulle_objc_cacheentry   *
+   _mulle_objc_runtime_fill_classcache( struct _mulle_objc_runtime *runtime,
+                                        mulle_objc_classid_t classid)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
@@ -192,7 +213,9 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_fill_classcache( str
 }
 
 
-static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_unfailing_fill_classcache( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
+static struct _mulle_objc_cacheentry   *
+    _mulle_objc_runtime_unfailing_fill_classcache( struct _mulle_objc_runtime *runtime,
+                                                   mulle_objc_classid_t classid)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
@@ -205,10 +228,58 @@ static struct _mulle_objc_cacheentry   *_mulle_objc_runtime_unfailing_fill_class
 }
 
 
-#pragma mark - class lookup
+#pragma mark - class lookup, uncached
 
-MULLE_C_CONST_RETURN
-struct _mulle_objc_infraclass  *_mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass   *
+_mulle_objc_runtime_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+                                               mulle_objc_classid_t classid)
+{
+   return( _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid));
+}
+
+
+struct _mulle_objc_infraclass   *
+_mulle_objc_runtime_unfailing_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+                                                         mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_infraclass   *infra;
+   int                              retry;
+   
+   assert( classid != MULLE_OBJC_INVALID_CLASSID && classid != MULLE_OBJC_NO_CLASSID);
+   
+   retry = 1;
+   for(;;)
+   {
+      infra = _mulle_concurrent_hashmap_lookup( &runtime->classtable, classid);
+      if( infra)
+      {
+         assert( _mulle_objc_infraclass_get_classid( infra) == classid);
+         return( infra);
+      }
+      
+      if( retry)
+      {
+         retry = 0;
+         (*runtime->classdefaults.class_is_missing)( runtime, classid);
+         continue;
+      }
+      
+      _mulle_objc_runtime_raise_class_not_found_exception( runtime, classid);
+   }
+}
+
+
+//
+// try to hide those uglies as much as possible :)
+//
+#pragma mark - class lookup, cached but no fastclass
+
+//
+// will place class into cache, will not check for fastclass
+//
+struct _mulle_objc_infraclass  *
+    _mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+                                           mulle_objc_classid_t classid)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
@@ -242,6 +313,10 @@ struct _mulle_objc_infraclass  *_mulle_objc_runtime_lookup_infraclass( struct _m
 }
 
 
+//
+// class must exist, otherwise pain
+// will place class into cache, will not check for fastclass
+//
 MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_infraclass  *
     _mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
@@ -274,3 +349,16 @@ struct _mulle_objc_infraclass  *
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
 }
+
+
+#pragma mark - class lookup, cached and fastclass
+
+MULLE_C_NON_NULL_RETURN
+struct _mulle_objc_infraclass   *mulle_objc_unfailing_get_or_lookup_infraclass( mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_runtime   *runtime;
+   
+   runtime = mulle_objc_inlined_get_runtime();
+   return( _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid));
+}
+
