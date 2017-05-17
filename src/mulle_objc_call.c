@@ -592,7 +592,7 @@ mulle_objc_methodimplementation_t
    if( ! cls || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
    {
       errno = EINVAL;
-      _mulle_objc_runtime_raise_fail_errno_exception( cls->runtime);
+      mulle_objc_raise_fail_errno_exception();
    }
 
    return( _mulle_objc_class_unfailing_lookup_methodimplementation( cls, methodid));

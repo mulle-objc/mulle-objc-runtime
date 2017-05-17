@@ -40,6 +40,7 @@
 #include "mulle_objc_class_struct.h"
 #include "mulle_objc_classpair.h"
 #include "mulle_objc_infraclass.h"
+#include "mulle_objc_load.h"
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
 #include "mulle_objc_runtime.h"
@@ -196,7 +197,7 @@ void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
    struct _mulle_objc_runtime   *runtime;
    FILE                         *fp;
 
-   fp = fopen( filename, "w");
+   fp = fopen( filename, "a");
    if( ! fp)
    {
       perror( "fopen:");
@@ -207,6 +208,8 @@ void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
    mulle_objc_runtime_csvdump_methodcoverage( runtime, fp);
    
    fclose( fp);
+
+   fprintf( stderr, "Dumped method coverage to \"/%s\"\n", filename);
 }
 
 
@@ -215,7 +218,7 @@ void   mulle_objc_csvdump_classcoverage_to_file( char *filename)
    struct _mulle_objc_runtime   *runtime;
    FILE                         *fp;
    
-   fp = fopen( filename, "w");
+   fp = fopen( filename, "a");
    if( ! fp)
    {
       perror( "fopen:");
@@ -226,8 +229,38 @@ void   mulle_objc_csvdump_classcoverage_to_file( char *filename)
    mulle_objc_runtime_csvdump_classcoverage( runtime, fp);
 
    fclose( fp);
+
+   fprintf( stderr, "Dumped class coverage to \"/%s\"\n", filename);
 }
 
+
+static void   _fprint_csv_version( FILE *fp, uint32_t version)
+{
+   fprintf( fp, "%u.%u.%u;",
+            mulle_objc_version_get_major( version),
+            mulle_objc_version_get_minor( version),
+            mulle_objc_version_get_patch( version));
+}
+
+
+void   mulle_objc_loadinfo_csvdump_terse( struct _mulle_objc_loadinfo *info, FILE *fp)
+{
+   if( ! fp)
+   {
+      errno = EINVAL;
+      mulle_objc_raise_fail_errno_exception();
+   }
+   fprintf( fp, "%s;", mulle_objc_loadinfo_get_originator( info));
+   _fprint_csv_version( fp, info->version.runtime);
+   _fprint_csv_version( fp, info->version.foundation);
+   _fprint_csv_version( fp, info->version.user);
+   fprintf( fp, "%d;",  (info->version.bits >> 8) & 0x7);
+   fprintf( fp, "0x%x", info->version.bits);
+   fprintf( fp, "\n");
+}
+
+
+#pragma mark - dump to /tmp
 
 void   mulle_objc_csvdump_methodcoverage_to_tmp( void)
 {
@@ -241,13 +274,26 @@ void   mulle_objc_csvdump_classcoverage_to_tmp( void)
 }
 
 
+#pragma mark - dump to working directory (or user defined)
+
 void   mulle_objc_csvdump_methodcoverage( void)
 {
-   mulle_objc_csvdump_methodcoverage_to_file( "method-coverage.csv");
+   char   *filename;
+   
+   filename = getenv( "MULLE_OBJC_METHOD_COVERAGE_FILENAME");
+   if( ! filename)
+      filename = "method-coverage.csv";
+   mulle_objc_csvdump_methodcoverage_to_file( filename);
 }
 
 
 void   mulle_objc_csvdump_classcoverage( void)
 {
-   mulle_objc_csvdump_classcoverage_to_file( "class-coverage.csv");
+   char   *filename;
+   
+   filename = getenv( "MULLE_OBJC_CLASS_COVERAGE_FILENAME");
+   if( ! filename)
+      filename = "class-coverage.csv";
+
+   mulle_objc_csvdump_classcoverage_to_file( filename);
 }
