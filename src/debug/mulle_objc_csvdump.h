@@ -57,4 +57,8 @@ void   mulle_objc_csvdump_classcoverage_to_file( char *filename);
 void   mulle_objc_csvdump_methodcoverage_to_tmp( void);
 void   mulle_objc_csvdump_classcoverage_to_tmp( void);
 
+// dump to working directory
+void   mulle_objc_csvdump_methodcoverage( void);
+void   mulle_objc_csvdump_classcoverage( void);
+
 #endif 
