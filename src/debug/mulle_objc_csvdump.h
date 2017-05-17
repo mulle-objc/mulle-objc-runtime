@@ -39,6 +39,7 @@
 
 struct _mulle_objc_class;
 struct _mulle_objc_runtime;
+struct _mulle_objc_loadinfo;
 
 
 void   mulle_objc_runtime_csvdump_classcoverage( struct _mulle_objc_runtime *runtime,
@@ -49,15 +50,22 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
 void   mulle_objc_runtime_csvdump_methodcoverage( struct _mulle_objc_runtime *runtime,
                                                  FILE *fp);
 
-// conveniences
+void   mulle_objc_loadinfo_csvdump_terse( struct _mulle_objc_loadinfo *info, FILE *fp);
 
+// conveniences, appends to existing files
 void   mulle_objc_csvdump_methodcoverage_to_file( char *filename);
 void   mulle_objc_csvdump_classcoverage_to_file( char *filename);
+
+// dump to /tmp, appends to existing files
 
 void   mulle_objc_csvdump_methodcoverage_to_tmp( void);
 void   mulle_objc_csvdump_classcoverage_to_tmp( void);
 
-// dump to working directory
+//
+// dump to working directory, appends to existing files
+// specify files to dump to with MULLE_OBJC_METHOD_COVERAGE_FILENAME
+// and MULLE_OBJC_METHOD_CLASS_FILENAME environment variables
+//
 void   mulle_objc_csvdump_methodcoverage( void);
 void   mulle_objc_csvdump_classcoverage( void);
 

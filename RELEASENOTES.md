@@ -1,5 +1,11 @@
+## 0.7.1
+
+* moved version and new "path" up for easier debugging and easier version
+checks its kinda useful if version is at a fixed offset
+
 ## 0.6.1
 
+* coverage file "append" to existing coverage files (seems more useful)
 * added short-name dump routines to dump to working directory
 * added _mulle_objc_searchresult to _mulle_objc_class_search_method, so one can 
 find the location a method is stored

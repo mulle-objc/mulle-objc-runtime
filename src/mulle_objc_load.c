@@ -1285,7 +1285,6 @@ static void   print_version( char *prefix, uint32_t version)
 
 static void   loadinfo_dump( struct _mulle_objc_loadinfo *info, char *prefix)
 {
-   fprintf( stderr, "%sversion: ", prefix);
    print_version( "runtime", info->version.runtime);
    print_version( ", foundation", info->version.foundation);
    print_version( ", user", info->version.user);
@@ -1333,8 +1332,17 @@ void    mulle_objc_runtime_assert_loadinfo( struct _mulle_objc_runtime *runtime,
    if( info->version.load != MULLE_OBJC_RUNTIME_LOAD_VERSION)
    {
       loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: the loaded binary was produced for load version %d, but this runtime supports %d only",
-            runtime, info->version.load, MULLE_OBJC_RUNTIME_LOAD_VERSION);
+      //
+      // if you reach this, and you go huh ? it may mean, that an older
+      // shared library version of the Foundation was loaded.
+      //
+      _mulle_objc_runtime_raise_inconsistency_exception( runtime, "mulle_objc_runtime %p: the loaded binary was produced for load version %d, but this runtime %u.%u.%u (%s) supports load version %d only",
+            runtime, info->version.load,
+            mulle_objc_version_get_major( runtime->version),
+            mulle_objc_version_get_minor( runtime->version),
+            mulle_objc_version_get_patch( runtime->version),
+            _mulle_objc_runtime_get_path( runtime) ? _mulle_objc_runtime_get_path( runtime) : "???",
+            MULLE_OBJC_RUNTIME_LOAD_VERSION);
    }
 
    if( info->version.foundation)
@@ -1417,6 +1425,26 @@ void    mulle_objc_runtime_assert_loadinfo( struct _mulle_objc_runtime *runtime,
                                                         runtime->config.min_optlevel,
                                                         runtime->config.max_optlevel);
    }
+}
+
+
+char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
+{
+   char  *s;
+   
+   if( ! info)
+   {
+      errno = EINVAL;
+      mulle_objc_raise_fail_errno_exception();
+   }
+
+   s = NULL;
+   if( info->loadclasslist && info->loadclasslist->n_loadclasses)
+      s = info->loadclasslist->loadclasses[ 0]->origin;
+   if( ! s)
+      if( info->loadcategorylist && info->loadcategorylist->n_loadcategories)
+         s = info->loadcategorylist->loadcategories[ 0]->origin;
+   return( s ? s : "???");
 }
 
 

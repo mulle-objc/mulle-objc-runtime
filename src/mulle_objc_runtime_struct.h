@@ -273,6 +273,11 @@ struct _mulle_objc_runtime
    //
    struct _mulle_objc_cachepivot            cachepivot;
 
+   // try to keep this region stable for version checks
+
+   uint32_t                                 version;
+   char                                     *path;    
+
    // try to keep this region stable for loadcallbacks
 
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
@@ -303,8 +308,6 @@ struct _mulle_objc_runtime
    char                                     compilation[ 128];   // debugging
 
    mulle_thread_t                           thread;  // init-done thread
-
-   uint32_t                                 version;
 
    struct _mulle_objc_memorymanagement      memory;
 
@@ -342,6 +345,12 @@ struct _mulle_objc_runtime
 static inline uint32_t   _mulle_objc_runtime_get_version( struct _mulle_objc_runtime *runtime)
 {
    return( runtime->version);
+}
+
+
+static inline char   *_mulle_objc_runtime_get_path( struct _mulle_objc_runtime *runtime)
+{
+   return( runtime->path);
 }
 
 

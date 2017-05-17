@@ -356,6 +356,21 @@ static inline void   *mulle_objc_runtime_calloc( struct _mulle_objc_runtime *run
 }
 
 
+static inline void   mulle_objc_runtime_set_path( struct _mulle_objc_runtime *runtime, char *s)
+{
+   if( ! runtime || ! s)
+   {
+      errno = EINVAL;
+      mulle_objc_raise_fail_errno_exception();
+   }
+
+   // can only set once
+   if( runtime->path)
+      _mulle_objc_runtime_raise_inconsistency_exception( runtime, "path already set");
+   
+   runtime->path = mulle_objc_runtime_strdup( runtime, s);
+}
+
 #pragma mark - load lock
 
 static inline int   _mulle_objc_runtime_waitqueues_lock( struct _mulle_objc_runtime  *runtime)

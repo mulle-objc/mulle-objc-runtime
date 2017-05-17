@@ -449,22 +449,27 @@ struct _mulle_objc_runtime  *mulle_objc_get_or_create_runtime( void)
 void  _mulle_objc_runtime_assert_version( struct _mulle_objc_runtime  *runtime,
                                           struct mulle_objc_loadversion *version)
 {
-   if( mulle_objc_version_get_major( version->runtime) !=
-       mulle_objc_version_get_major( runtime->version))
-   {
-      errno = ENOEXEC;
-      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
-   }
-
-   //
-   // during 0 versions, any minor jump is incompatible
-   //
-   if( ! mulle_objc_version_get_major( version->runtime) &&
+   if( (mulle_objc_version_get_major( version->runtime) !=
+        mulle_objc_version_get_major( runtime->version)) ||
+       //
+       // during 0 versions, any minor jump is incompatible
+       //
+       ( ! mulle_objc_version_get_major( version->runtime) &&
          (mulle_objc_version_get_minor( version->runtime) !=
-          mulle_objc_version_get_minor( runtime->version)))
+          mulle_objc_version_get_minor( runtime->version))))
+      
    {
-      errno = ENOEXEC;
-      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+      _mulle_objc_runtime_raise_fail_exception( runtime,
+         "mulle_objc_runtime %p fatal: runtime version %u.%u.%u (%s) is incompatible with "
+         "compiled version %u.%u.%u\n",
+            runtime,
+            mulle_objc_version_get_major( runtime->version),
+            mulle_objc_version_get_minor( runtime->version),
+            mulle_objc_version_get_patch( runtime->version),
+            _mulle_objc_runtime_get_path( runtime) ? _mulle_objc_runtime_get_path( runtime) : "???",
+            mulle_objc_version_get_major( version->runtime),
+            mulle_objc_version_get_minor( version->runtime),
+            mulle_objc_version_get_patch( version->runtime));
    }
 }
 
