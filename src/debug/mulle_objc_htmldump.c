@@ -178,6 +178,9 @@ static char   *html_filename_for_classname( char *name, char *directory)
    char     *buf;
    size_t   len;
 
+   assert( name);
+   assert( directory);
+
    len = strlen( name) + strlen( directory) + 16;
    buf = mulle_allocator_malloc( &mulle_stdlib_allocator, len);
    sprintf( buf, "%s/%s.html", directory, html_escape( name));
@@ -185,11 +188,14 @@ static char   *html_filename_for_classname( char *name, char *directory)
 }
 
 
-static char   *filename_for_runtime( struct _mulle_objc_runtime  *runtime, char *directory)
+static char   *filename_for_runtime( struct _mulle_objc_runtime  *runtime,
+                                     char *directory)
 {
    char     *buf;
    size_t   len;
 
+   assert( directory);
+   
    len = strlen( directory) + 16;
    buf = mulle_allocator_malloc( &mulle_stdlib_allocator, len);
    sprintf( buf, "%s/index.html", directory);
@@ -659,13 +665,6 @@ void   mulle_objc_htmldump_runtime_to_directory( char *directory)
 }
 
 
-// we have no mkdir, chdir getcwd just
-void   mulle_objc_htmldump_runtime_to_tmp( void)
-{
-   mulle_objc_htmldump_runtime_to_directory( "/tmp");
-}
-
-
 #pragma mark - class dump
 
 void   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
@@ -690,13 +689,12 @@ void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
    do
    {
       pair = _mulle_objc_class_get_classpair( cls);
-      mulle_objc_classpair_htmldump_to_directory( pair, "/tmp");
+      mulle_objc_classpair_htmldump_to_directory( pair, directory);
    }
    while( cls = _mulle_objc_class_get_superclass( cls));
 
    fprintf( stderr, "Dumped HTML to \"/%s\"\n", directory);
 }
-
 
 
 void   mulle_objc_htmldump_classname_to_directory( char *classname, char *directory)
@@ -725,6 +723,7 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname, char *direct
    mulle_objc_class_htmldump_to_directory( cls, directory);
 }
 
+#pragma mark - dump to /tmp
 
 void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls)
 {
@@ -737,3 +736,29 @@ void   mulle_objc_htmldump_classname_to_tmp( char *classname)
    mulle_objc_htmldump_classname_to_directory( classname, "/tmp");
 }
 
+
+// we have no mkdir, chdir getcwd just
+void   mulle_objc_htmldump_runtime_to_tmp( void)
+{
+   mulle_objc_htmldump_runtime_to_directory( "/tmp");
+}
+
+
+#pragma mark - dump to working directory
+
+void   mulle_objc_htmldump_runtime( void)
+{
+   mulle_objc_htmldump_runtime_to_directory( ".");
+}
+
+
+void   mulle_objc_class_htmldump( struct _mulle_objc_class *cls)
+{
+   mulle_objc_class_htmldump_to_directory( cls, ".");
+}
+
+
+void   mulle_objc_htmldump_classname( char *classname)
+{
+   mulle_objc_htmldump_classname_to_directory( classname, ".");
+}

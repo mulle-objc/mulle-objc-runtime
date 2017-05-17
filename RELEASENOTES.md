@@ -1,5 +1,6 @@
 ## 0.6.1
 
+* added short-name dump routines to dump to working directory
 * added _mulle_objc_searchresult to _mulle_objc_class_search_method, so one can 
 find the location a method is stored
 * shortened the names of the dump sources

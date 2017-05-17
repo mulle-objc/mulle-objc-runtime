@@ -44,21 +44,9 @@ struct _mulle_objc_classpair;
 struct _mulle_objc_runtime;
 struct _mulle_objc_methodlist;
 
-//
-// this is what you want: it dumps the runtime and all
-// classes and the classes are linked from the runtime
-// .dot file
-//
-
-void   mulle_objc_dotdump_to_tmp( void);
-
 
 void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *fp);
-
-void   mulle_objc_dotdump_runtime( void);
-
 void   mulle_objc_dotdump_runtime_to_file( char *filename);
-void   mulle_objc_dotdump_runtime_to_tmp( void);
 
 
 // dumps the class pairs, but pass in any class meta or infra
@@ -70,20 +58,33 @@ void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
                                          char *filename);
 void   mulle_objc_dotdump_classname_to_file( char *classname,
                                              char *filename);
-void   mulle_objc_dotdump_classname_to_tmp( char *classname);
+
+#pragma mark - dump to /tmp
+
+void   mulle_objc_dotdump_runtime_to_tmp( void);
 void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
-
-//
-// dumps all classes into .dot files
-// convert them easily into .svgs
-// TODO: place hyperlinks into dot
-//
+void   mulle_objc_dotdump_classname_to_tmp( char *classname);
 void   mulle_objc_dotdump_classes_to_tmp( void);
+void   mulle_objc_dotdump_to_tmp( void);
 
 
-# pragma mark - -
-#pragma mark stuff for the debugger
+#pragma mark - dump to working directory
+
+void   mulle_objc_dotdump_runtime( void);
+void   mulle_objc_class_dotdump( struct _mulle_objc_class *cls);
+void   mulle_objc_dotdump_classname( char *classname);
+void   mulle_objc_dotdump_classes( void);
+
+//
+// this is what you want: it dumps the runtime and all
+// classes and the classes are linked from the runtime
+// .dot file
+//
+void   mulle_objc_dotdump( void);
+
+#pragma mark - stuff for the debugger
 
 void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list);
+
 
 #endif

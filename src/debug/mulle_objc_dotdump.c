@@ -763,19 +763,8 @@ void   mulle_objc_dotdump_classname_to_file( char *classname, char *filename)
 }
 
 
-void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls)
-{
-   mulle_objc_class_dotdump_to_file( cls, "/tmp/mulle_objc_class.dot");
-}
-
-
-void   mulle_objc_dotdump_classname_to_tmp( char *classname)
-{
-   mulle_objc_dotdump_classname_to_file( classname, "/tmp/mulle_objc_class.dot");
-}
-
-
-static void   __mulle_objc_dotdump_classes_to_tmp( void (*dump)( char *, char *))
+static void   __mulle_objc_dotdump_classes( void (*dump)( char *, char *),
+                                            char *directory)
 {
    char                                        *path;
    intptr_t                                    classid;
@@ -787,7 +776,7 @@ static void   __mulle_objc_dotdump_classes_to_tmp( void (*dump)( char *, char *)
    rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
    {
-      path = dot_filename_for_classname( infra->base.name, "/tmp");
+      path = dot_filename_for_classname( infra->base.name, directory);
       (*dump)( infra->base.name, path);
       mulle_allocator_free( &mulle_stdlib_allocator, path);
    }
@@ -795,20 +784,7 @@ static void   __mulle_objc_dotdump_classes_to_tmp( void (*dump)( char *, char *)
 }
 
 
-static void   _mulle_objc_dotdump_classes_to_tmp( void)
-{
-   __mulle_objc_dotdump_classes_to_tmp( _mulle_objc_dotdump_classname_to_file);
-}
-
-
-void   mulle_objc_dotdump_classes_to_tmp( void)
-{
-   __mulle_objc_dotdump_classes_to_tmp( mulle_objc_dotdump_classname_to_file);
-}
-
-
 # pragma mark - runtime dump
-
 
 void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *fp)
 {
@@ -829,18 +805,6 @@ void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *f
    fprintf( fp, "}\n");
 
    c_set_done( &info.set);
-}
-
-
-void   mulle_objc_dotdump_runtime( void)
-{
-   struct _mulle_objc_runtime   *runtime;
-
-   runtime = mulle_objc_inlined_get_runtime();
-   if( ! runtime)
-      return;
-
-   _mulle_objc_runtime_dotdump( runtime, stdout);
 }
 
 
@@ -874,7 +838,7 @@ void   mulle_objc_dotdump_runtime_to_file( char *filename)
 // create successive number of dumps
 // for conversion into a movie
 //
-void   mulle_objc_dotdump_runtime_to_tmp( void)
+static void   _mulle_objc_dotdump_runtime( char *directory)
 {
    static mulle_atomic_pointer_t   counter;
    auto char                       buf[ 32];
@@ -891,8 +855,40 @@ void   mulle_objc_dotdump_runtime_to_tmp( void)
          return;
    }
 
-   sprintf( buf, "/tmp/runtime_%06d.dot", nr);
+   sprintf( buf, "%s/runtime_%06d.dot", directory, nr);
    mulle_objc_dotdump_runtime_to_file( buf);
+}
+
+
+#pragma mark - dump to /tmp
+
+void   mulle_objc_dotdump_runtime_to_tmp()
+{
+   _mulle_objc_dotdump_runtime( "/tmp");
+}
+
+
+void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls)
+{
+   mulle_objc_class_dotdump_to_file( cls, "/tmp/mulle_objc_class.dot");
+}
+
+
+void   mulle_objc_dotdump_classname_to_tmp( char *classname)
+{
+   mulle_objc_dotdump_classname_to_file( classname, "/tmp/mulle_objc_class.dot");
+}
+
+
+static void   _mulle_objc_dotdump_classes_to_tmp( void)
+{
+   __mulle_objc_dotdump_classes( _mulle_objc_dotdump_classname_to_file, "/tmp");
+}
+
+
+void   mulle_objc_dotdump_classes_to_tmp( void)
+{
+   __mulle_objc_dotdump_classes( mulle_objc_dotdump_classname_to_file, "/tmp");
 }
 
 
@@ -900,4 +896,43 @@ void   mulle_objc_dotdump_to_tmp( void)
 {
    mulle_objc_dotdump_runtime_to_tmp();
    _mulle_objc_dotdump_classes_to_tmp();
+}
+
+
+#pragma mark - dump to working directory
+
+void   mulle_objc_dotdump_runtime()
+{
+   _mulle_objc_dotdump_runtime( ".");
+}
+
+
+void   mulle_objc_class_dotdump( struct _mulle_objc_class *cls)
+{
+   mulle_objc_class_dotdump_to_file( cls, "mulle_objc_class.dot");
+}
+
+
+void   mulle_objc_dotdump_classname( char *classname)
+{
+   mulle_objc_dotdump_classname_to_file( classname, "mulle_objc_class.dot");
+}
+
+
+static void   _mulle_objc_dotdump_classes( void)
+{
+   __mulle_objc_dotdump_classes( _mulle_objc_dotdump_classname_to_file, ".");
+}
+
+
+void   mulle_objc_dotdump_classes( void)
+{
+   __mulle_objc_dotdump_classes( mulle_objc_dotdump_classname_to_file, ".");
+}
+
+
+void   mulle_objc_dotdump( void)
+{
+   mulle_objc_dotdump_runtime();
+   _mulle_objc_dotdump_classes();
 }

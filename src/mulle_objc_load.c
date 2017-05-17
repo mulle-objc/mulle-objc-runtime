@@ -436,6 +436,12 @@ static int  mulle_objc_loadclass_is_sane( struct _mulle_objc_loadclass *info)
 
    if( ! info->classname)
       return( 0);
+   
+   // class method lists should have no owner
+   if( info->classmethods && info->classmethods->owner)
+      return( 0);
+   if( info->instancemethods && info->instancemethods->owner)
+      return( 0);
 
    return( 1);
 }

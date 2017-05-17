@@ -105,7 +105,7 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
               _mulle_objc_class_get_name( cls));
       
       categoryid = (mulle_objc_categoryid_t) (intptr_t) result.list->owner;
-      classname    = _mulle_objc_class_get_name( result.class);
+      classname  = _mulle_objc_class_get_name( result.class);
       if( categoryid)
       {
          categoryname = mulle_objc_string_for_categoryid( categoryid);
@@ -240,3 +240,14 @@ void   mulle_objc_csvdump_classcoverage_to_tmp( void)
    mulle_objc_csvdump_classcoverage_to_file( "/tmp/class-coverage.csv");
 }
 
+
+void   mulle_objc_csvdump_methodcoverage( void)
+{
+   mulle_objc_csvdump_methodcoverage_to_file( "method-coverage.csv");
+}
+
+
+void   mulle_objc_csvdump_classcoverage( void)
+{
+   mulle_objc_csvdump_classcoverage_to_file( "class-coverage.csv");
+}
