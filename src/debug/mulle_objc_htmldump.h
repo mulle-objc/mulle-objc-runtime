@@ -57,5 +57,11 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname,
 void   mulle_objc_htmldump_classname_to_tmp( char *classname);
 void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls);
 
+//
+// dump to working directory (often preferable)
+//
+void   mulle_objc_class_htmldump( struct _mulle_objc_class *cls);
+void   mulle_objc_htmldump_classname( char *classname);
+void   mulle_objc_htmldump_runtime( void);
 
 #endif
