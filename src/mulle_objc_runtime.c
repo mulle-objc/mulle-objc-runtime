@@ -434,12 +434,12 @@ struct _mulle_objc_runtime  *mulle_objc_get_or_create_runtime( void)
 {
    struct _mulle_objc_runtime  *runtime;
    extern MULLE_C_CONST_RETURN
-   struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void);
+   struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void);
 
-   runtime = __get_or_create_objc_runtime();  // the external function
+   runtime = __get_or_create_mulle_objc_runtime();  // the external function
    if( ! runtime)
    {
-      fprintf( stderr, "__get_or_create_objc_runtime returned NULL\n");
+      fprintf( stderr, "__get_or_create_mulle_objc_runtime returned NULL\n");
       abort();
    }
    return( runtime);
@@ -1608,9 +1608,11 @@ mulle_objc_walkcommand_t
 }
 
 
-mulle_objc_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mulle_objc_runtime  *runtime,
-                                                            mulle_objc_walkcallback_t callback,
-                                                            void *userinfo)
+mulle_objc_walkcommand_t
+   _mulle_objc_runtime_walk_classes( struct _mulle_objc_runtime  *runtime,
+                                     int with_meta,
+                                     mulle_objc_walkcallback_t callback,
+                                     void *userinfo)
 {
    mulle_objc_walkcommand_t                    cmd;
    struct _mulle_objc_infraclass               *cls;
@@ -1628,12 +1630,15 @@ mulle_objc_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mulle_objc_r
       if( mulle_objc_walkcommand_is_stopper( cmd))
          return( cmd);
 
-      meta = _mulle_objc_infraclass_get_metaclass( cls);
-      if( meta)
+      if( with_meta)
       {
-         cmd = (*callback)( runtime, meta, mulle_objc_walkpointer_is_metaclass, NULL, NULL, userinfo);
-         if( mulle_objc_walkcommand_is_stopper( cmd))
-            return( cmd);
+         meta = _mulle_objc_infraclass_get_metaclass( cls);
+         if( meta)
+         {
+            cmd = (*callback)( runtime, meta, mulle_objc_walkpointer_is_metaclass, NULL, NULL, userinfo);
+            if( mulle_objc_walkcommand_is_stopper( cmd))
+               return( cmd);
+         }
       }
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
@@ -1641,12 +1646,3 @@ mulle_objc_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mulle_objc_r
    return( cmd);
 }
 
-
-void   mulle_objc_walk_classes( mulle_objc_walkcallback_t callback,
-                                void *userinfo)
-{
-   struct _mulle_objc_runtime   *runtime;
-
-   runtime = mulle_objc_get_runtime();
-   mulle_objc_runtime_walk_classes( runtime, callback, userinfo);
-}

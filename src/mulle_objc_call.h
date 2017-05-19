@@ -210,38 +210,6 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
 
 #pragma mark - calls for super
 
-#if 0 // unused apparently
-static inline void   *_mulle_objc_class_call_classid( struct _mulle_objc_class *cls,
-                                                      mulle_objc_methodid_t methodid,
-                                                      void *parameter,
-                                                      mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_class   *call_cls;
-   struct _mulle_objc_runtime *runtime;
-
-   runtime  = _mulle_objc_class_get_runtime( cls);
-   call_cls = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid);
-   // need to call cls->call to prepare caches
-   return( (*call_cls->call)( cls, methodid, parameter, call_cls));
-}
-
-
-// this is used for calling super on classes, the classid is determined by
-// the compiler since it is a super call, self is known to be non-nil.
-//
-static inline void   *mulle_objc_class_call_classid( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t methodid,
-                                                     void *parameter,
-                                                     mulle_objc_classid_t classid)
-{
-
-   if( ! cls)
-      return( cls);
-   return( _mulle_objc_class_call_classid( cls, methodid, parameter, classid));
-}
-
-#endif
-
 
 //
 // this is used for calling super on class methods, the classid is determined by
@@ -311,6 +279,13 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
    return( (*call_cls->call)( obj, methodid, parameter, call_cls));
 }
 
+
+
+# pragma mark - special initial setup calls
+
+void   *_mulle_objc_object_call_class_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
+
+void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
 
 
 # pragma mark  -
@@ -388,14 +363,6 @@ mulle_objc_methodimplementation_t
     mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
                                                             mulle_objc_methodid_t methodid);
 
-#pragma mark - lldb support
-
-mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation( void *object,
-                                                                                 mulle_objc_methodid_t sel,
-                                                                                 void *cls_or_classid,
-                                                                                 int is_classid,
-                                                                                 int is_meta,
-                                                                                 int debug);
 
 #pragma mark - low level support
 

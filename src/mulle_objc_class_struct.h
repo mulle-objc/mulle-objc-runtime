@@ -110,20 +110,24 @@ struct _mulle_objc_class
    // keep name here for debugging
 
    char                                    *name;            // offset (void **)[ 3]
-   struct _mulle_objc_runtime              *runtime;
+   struct _mulle_objc_runtime              *runtime;         // keep here for debugger (void **)[ 4]
 
-   struct _mulle_objc_class                *superclass;
-   struct _mulle_objc_infraclass           *infraclass;      // meta calls (+) use this
+   struct _mulle_objc_class                *superclass;      // keep here for debugger (void **)[ 5]
 
-   uintptr_t                               allocationsize;   // instancesize + header
+
+   struct _mulle_objc_infraclass           *infraclass;      // meta calls (+) use this (void **)[ 6]
+   struct _mulle_objc_method               *forwardmethod;   //                         (void **)[ 7]
+   
+   uintptr_t                               allocationsize;   // instancesize + header   (void **)[ 8]
+   // vvv - from here on the debugger doesn't care
+
    uintptr_t                               extensionoffset;  // 4 later #1#
+
    mulle_objc_classid_t                    classid;
    mulle_objc_classid_t                    superclassid;
 
    mulle_atomic_pointer_t                  thread;          // protects the empty cache
    mulle_atomic_pointer_t                  state;
-
-   struct _mulle_objc_method               *forwardmethod;
 
    // general storage mechanism for class variable, only in the infraclass
    struct _mulle_objc_kvccachepivot        kvc;   // ? needed in meta
@@ -221,6 +225,7 @@ static inline void   _mulle_objc_class_set_forwardmethod( struct _mulle_objc_cla
 
    cls->forwardmethod = method;
 }
+
 
 //
 // if we are a metaclass, the infraclass is the "actual" ''infraclass''

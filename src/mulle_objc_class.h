@@ -239,6 +239,13 @@ static inline int   _mulle_objc_class_is_forwardmethodimplementation( struct _mu
    return( _mulle_objc_method_get_implementation( cls->forwardmethod) == imp);
 }
 
+//
+// this should be used by the debugger, but the debugger is really fixed to
+// use __forward_mulle_objc_object_call
+//
+mulle_objc_methodimplementation_t
+   mulle_objc_class_get_forwardmethodimplementation( struct _mulle_objc_class *cls);
+
 
 //
 // this caches the forward method as a side effect

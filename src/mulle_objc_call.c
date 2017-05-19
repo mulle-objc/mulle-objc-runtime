@@ -50,6 +50,7 @@
 #include <errno.h>
 
 
+
 # pragma mark - class cache
 
 unsigned int   _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_class *cls)
@@ -419,7 +420,7 @@ mulle_objc_methodimplementation_t
    if( imp)
    {
       if( _mulle_objc_class_is_forwardmethodimplementation( cls, imp))
-         imp = NULL;
+         return( 0);
    }
    else
    {
@@ -502,9 +503,11 @@ mulle_objc_methodimplementation_t
    {
       method = _mulle_objc_class_getorsearch_forwardmethod( cls);
       if( ! method)
-         return( NULL);
+         return( imp);
    }
-   return( _mulle_objc_method_get_implementation( method));
+
+   imp = _mulle_objc_method_get_implementation( method);
+   return( imp);
 }
 
 
@@ -599,65 +602,7 @@ mulle_objc_methodimplementation_t
 }
 
 
-
-# pragma mark - lldb support
-mulle_objc_methodimplementation_t   mulle_objc_lldb_lookup_methodimplementation( void *obj,
-                                                                                 mulle_objc_methodid_t methodid,
-                                                                                 void *cls_or_classid,
-                                                                                 int is_classid,
-                                                                                 int is_meta,
-                                                                                 int debug)
-{
-   struct _mulle_objc_class            *cls;
-   struct _mulle_objc_metaclass        *meta;
-   struct _mulle_objc_runtime          *runtime;
-   struct _mulle_objc_infraclass       *found;
-   struct _mulle_objc_class            *call_cls;
-   mulle_objc_methodimplementation_t   imp;
-
-   if( debug)
-      fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, cls_or_classid, is_classid);
-
-   if( ! obj || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
-      return( 0);
-
-   // ensure class init
-   cls  = is_meta ? obj : _mulle_objc_object_get_isa( obj);
-   meta = _mulle_objc_class_is_metaclass( cls)
-               ? (struct _mulle_objc_metaclass *) cls
-               : _mulle_objc_class_get_metaclass( cls);
-
-   // call "-class" so class initializes
-   if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
-      mulle_objc_object_call( cls, MULLE_OBJC_CLASS_METHODID, NULL);
-
-   if( is_classid)
-   {
-      runtime  = _mulle_objc_class_get_runtime( cls);
-      found    = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime,
-                                (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
-      if( is_meta)
-         call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));
-      else
-         call_cls = _mulle_objc_infraclass_as_class( found);
-   }
-   else
-      call_cls = cls_or_classid;
-
-
-   imp = _mulle_objc_class_lookup_or_search_methodimplementation( call_cls, methodid);
-   if( debug)
-   {
-      char   buf[ s_mulle_objc_sprintf_functionpointer_buffer];
-      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) imp);
-      fprintf( stderr, "resolved to %p -> %s\n", call_cls, buf);
-   }
-   return( imp);
-}
-
-
 # pragma mark - calls
-
 
 void   *mulle_objc_object_call_class( void *obj,
                                       mulle_objc_methodid_t methodid,
@@ -737,7 +682,7 @@ void   *mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, void
 }
 
 
-void   *mulle_objc_object_call_uncached_class( void *obj,  mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
+void   *mulle_objc_object_call_uncached_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
 
@@ -747,7 +692,189 @@ void   *mulle_objc_object_call_uncached_class( void *obj,  mulle_objc_methodid_t
    return( (*_mulle_objc_method_get_implementation( method))( obj, methodid, parameter));
 }
 
+# pragma mark - calls
 
+
+static void   *_mulle_objc_call_class_waiting_for_cache( void *obj,
+                                                        mulle_objc_methodid_t methodid,
+                                                        void *parameter,
+                                                        struct _mulle_objc_class *cls)
+{
+   /* same thread ? we are single threaded! */
+   if( _mulle_atomic_pointer_read( &cls->thread) != (void *) mulle_thread_self())
+   {
+      /* wait for other thread to finish with +initialize */
+      /* TODO: using yield is poor though! Use a condition to be awaken! */
+      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
+         mulle_thread_yield();
+   }
+   
+   return( mulle_objc_object_call_uncached_class( obj, methodid, parameter, cls));
+}
+
+
+static void   mulle_objc_metaclass_initialize_if_needed( struct _mulle_objc_metaclass *meta)
+{
+   struct _mulle_objc_method           *initialize;
+   struct _mulle_objc_runtime          *runtime;
+   struct _mulle_objc_infraclass       *infra;
+   mulle_objc_methodimplementation_t   imp;
+   
+   if( ! _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
+      return;
+   
+   // grab code from superclass
+   // this is useful for MulleObjCSingleton
+   runtime    = _mulle_objc_metaclass_get_runtime( meta);
+   initialize = _mulle_objc_class_search_method( &meta->base,
+                                                MULLE_OBJC_INITIALIZE_METHODID,
+                                                NULL,
+                                                MULLE_OBJC_ANY_OWNER,
+                                                meta->base.inheritance,
+                                                NULL);
+   if( ! initialize)
+   {
+      if( runtime->debug.trace.initialize)
+         fprintf( stderr, "mulle_objc_runtime %p trace: "
+                          "no +[%s initialize] found\n",
+                 runtime, _mulle_objc_metaclass_get_name( meta));
+      return;
+   }
+   
+   if( runtime->debug.trace.initialize)
+      fprintf( stderr, "mulle_objc_runtime %p trace: call +[%s initialize]\n",
+              runtime, _mulle_objc_metaclass_get_name( meta));
+   
+   infra = _mulle_objc_metaclass_get_infraclass( meta);
+   imp   = _mulle_objc_method_get_implementation( initialize);
+   (*imp)( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
+}
+
+
+static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_runtime       *runtime;
+   struct _mulle_objc_cache         *cache;
+   mulle_objc_cache_uint_t          n_entries;
+   
+   // now setup the cache and let it rip, except when we don't ever want one
+   runtime = _mulle_objc_class_get_runtime( cls);
+   
+   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_ALWAYS_EMPTY_CACHE))
+   {
+      n_entries = _mulle_objc_class_convenient_methodcache_size( cls);
+      cache     = mulle_objc_cache_new( n_entries, &cls->runtime->memory.allocator);
+      
+      assert( cache);
+      assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) == mulle_objc_get_runtime()->empty_cache.entries);
+      
+      _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
+      cls->cachepivot.call2 = mulle_objc_object_call2;
+      cls->call             = mulle_objc_object_call_class;
+      
+      if( runtime->debug.trace.method_caches)
+         fprintf( stderr, "mulle_objc_runtime %p trace: new initial cache %p "
+                 "on %s %08x \"%s\" (%p) with %u entries\n",
+                 runtime,
+                 cache,
+                 _mulle_objc_class_get_classtypename( cls),
+                 _mulle_objc_class_get_classid( cls),
+                 _mulle_objc_class_get_name( cls),
+                 cls,
+                 cache->size);
+   }
+   else
+   {
+      cls->cachepivot.call2 = mulle_objc_object_call2_empty_cache;
+      cls->call             = mulle_objc_object_call_class_empty_cache;
+      
+      if( runtime->debug.trace.method_caches)
+         fprintf( stderr, "mulle_objc_runtime %p trace: use "
+                 "\"always empty cache\" on %s %08x \"%s\" (%p)\n",
+                 runtime,
+                 _mulle_objc_class_get_classtypename( cls),
+                 _mulle_objc_class_get_classid( cls),
+                 _mulle_objc_class_get_name( cls),
+                 cls);
+   }
+   
+   // finally unfreze
+   // threads waiting_for_cache will run now
+   // cache initialized is also called if emty cache!
+   _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CACHE_READY);
+}
+
+
+void   *_mulle_objc_object_call_class_needs_cache( void *obj,
+                                                   mulle_objc_methodid_t methodid,
+                                                   void *parameter,
+                                                   struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_infraclass    *infra;
+   struct _mulle_objc_metaclass     *meta;
+   
+   assert( mulle_objc_class_is_current_thread_registered( cls));
+   
+   //
+   // An uninitialized class has the empty_cache as the cache. It also has
+   // `cls->thread` NULL. This methods is therefore usually called twice
+   // once for the meta class and once for the instance. Regardless in both
+   // cases, it is checked if +initialize needs to run. But this is only
+   // flagged in the meta class.
+   //
+   // If another thread enters here, it will expect `cls->thread` to be NULL.
+   // If it isn't it waits for MULLE_OBJC_CACHE_READY to go up.
+   //
+   // what is tricky is, that cls and metaclass are executing this
+   // singlethreaded, but still cls and metaclass could be in different threads
+   //
+   
+   if( ! _mulle_atomic_pointer_compare_and_swap( &cls->thread, (void *) mulle_thread_self(), NULL))
+      return( _mulle_objc_call_class_waiting_for_cache( obj, methodid, parameter, cls));
+   
+   // Singlethreaded block with respect to cls, not meta though!
+   {
+      //
+      // first do +initialize,  uncached execution
+      // track state only in "meta" class
+      //
+      if( _mulle_objc_class_is_infraclass( cls))
+      {
+         infra = _mulle_objc_class_as_infraclass( cls);
+         meta  = _mulle_objc_infraclass_get_metaclass( infra);
+      }
+      else
+         meta = _mulle_objc_class_as_metaclass( cls);
+      
+      mulle_objc_metaclass_initialize_if_needed( meta);
+      
+      //
+      // will replace cls->call, +initialize runs uncached intentionally
+      // so that the cache isn't "polluted" with one-time methods
+      //
+      mulle_objc_class_setup_initial_cache( cls);
+   }
+   
+   //
+   // count #caches, if there are zero caches yet, the runtime can be much
+   // faster adding methods.
+   //
+   _mulle_atomic_pointer_increment( &cls->runtime->cachecount_1);
+   
+   return( (*cls->call)( obj, methodid, parameter, cls));
+}
+
+
+void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter)
+{
+   struct _mulle_objc_class   *cls;
+   
+   cls = _mulle_objc_object_get_isa( (struct _mulle_objc_object *) obj);
+   return( _mulle_objc_object_call_class_needs_cache( obj, methodid, parameter, cls));
+}
+
+
+#pragma mark - empty cache calls
 //
 // specialized function when cache is empty
 //
@@ -788,6 +915,8 @@ void   *mulle_objc_object_call( void *obj,
    return( (*cls->call)( obj, methodid, parameter, cls));
 }
 
+
+#pragma mark - multiple objects call
 
 void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_methodid_t methodid, void *params)
 {
@@ -832,7 +961,7 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
    }
 }
 
-
+# pragma mark - class super call
 void   *mulle_objc_infraclass_metacall_classid( struct _mulle_objc_infraclass *infra,
                                                 mulle_objc_methodid_t methodid,
                                                 void *parameter,
@@ -844,6 +973,7 @@ void   *mulle_objc_infraclass_metacall_classid( struct _mulle_objc_infraclass *i
 }
 
 
+#pragma mark - instance super call
 void   *mulle_objc_object_call_classid( void *obj,
                                         mulle_objc_methodid_t methodid,
                                         void *parameter,

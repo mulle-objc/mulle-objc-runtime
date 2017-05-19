@@ -57,7 +57,7 @@ struct _mulle_objc_classpair   *mulle_objc_runtime_new_classpair(
 				mulle_objc_classid_t  classid,
 				char *name,
 				size_t instance_size,
-				struct _mulle_objc_class *superclass);
+				struct _mulle_objc_infraclass *superclass);
 ```
 
 Create a new `_mulle_objc_classpair`, the class pair is not yet added to the
@@ -75,11 +75,11 @@ Parametername       |  Description
 Returns NULL on error. Check `errno` for error codes.
 
 
-### `mulle_objc_runtime_add_class`
+### `mulle_objc_runtime_add_infraclass`
 
 ```
-int   mulle_objc_runtime_add_class( struct _mulle_objc_runtime *runtime,
-                                    struct _mulle_objc_class *cls);
+int   mulle_objc_runtime_add_infraclass( struct _mulle_objc_runtime *runtime,
+                                         struct _mulle_objc_infraclass *cls);
 ```
 
 Add a class `cls` to `runtime`. Returns 0 on success, otherwise check `errno`
@@ -106,30 +106,15 @@ cls     = mulle_objc_classpair_get_infraclass( pair);
 mulle_objc_runtime_add_class( runtime, cls);
 ```
 
-### `mulle_objc_runtime_lookup_class`
+### `mulle_objc_runtime_get_or_lookup_infraclass`
 
 ```
-struct _mulle_objc_class  *mulle_objc_runtime_lookup_class(
+struct _mulle_objc_class  *mulle_objc_runtime_get_or_lookup_class(
                     struct _mulle_objc_runtime *runtime,
                     mulle_objc_classid_t classid)
 ```
 
 Retrieve class with `classid` from `runtime`. Returns NULL if not found.
-
-
-### `mulle_objc_runtime_add_gift`
-
-```
-void  mulle_objc_runtime_add_gift( struct _mulle_objc_runtime *runtime,
-                                   void *gift)
-```
-
-Give the runtime a memory block `gift` allocated with
-`mulle_objc_runtime_calloc` or `mulle_objc_runtime_malloc`. Gift will be
-deallocated on deallocation of the runtime.
-
-The intention of gifts is to provide a reclaiming mechanism for classes,
-classnames, methodlist et.c. to avoid leaks.
 
 
 ### `mulle_objc_runtime_calloc`
@@ -138,9 +123,7 @@ classnames, methodlist et.c. to avoid leaks.
 void   *mulle_objc_runtime_calloc( struct _mulle_objc_runtime *runtime, size_t n, size_t size)
 ```
 
-`calloc` some memory using the memory allocator of the runtime. Use this for
-creating "gifts" (-> `mulle_objc_runtime_add_gift`)
-
+`calloc` some memory using the memory allocator of the runtime. This automatically gifts the memory to the runtime!
 
 ### `mulle_objc_runtime_realloc`
 
@@ -148,16 +131,5 @@ creating "gifts" (-> `mulle_objc_runtime_add_gift`)
 void   *mulle_objc_runtime_realloc( struct _mulle_objc_runtime *runtime, void *block, size_t size)
 ```
 
-`realloc` some memory using the memory allocator of the runtime. Use this for
-creating "gifts" (-> `mulle_objc_runtime_add_gift`)
+`realloc` some memory using the memory allocator of the runtime.This automatically gifts the memory to the runtime!
 
-
-### `mulle_objc_runtime_free`
-
-```
-void   mulle_objc_runtime_free( struct _mulle_objc_runtime *runtime, void *block)
-```
-
-Free memory that was created by `mulle_objc_runtime_calloc` or
-`mulle_objc_runtime_realloc`. Don't free memory you have "gifted" to the
-runtime.

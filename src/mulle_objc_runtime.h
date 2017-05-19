@@ -282,9 +282,6 @@ static inline struct mulle_allocator   *_mulle_objc_runtime_get_allocator( struc
 }
 
 
-// memory routines ot allocate memory, that should belong to the runtime
-// you never free it yourself
-
 //
 // a gift must have been allocated with the runtime->memory.allocator
 //
@@ -715,13 +712,41 @@ mulle_objc_walkcommand_t   mulle_objc_runtime_walk( struct _mulle_objc_runtime *
                                                    void *userinfo);
 
 // this just walks over the classes
-mulle_objc_walkcommand_t   mulle_objc_runtime_walk_classes( struct _mulle_objc_runtime  *runtime,
-                                                            mulle_objc_walkcallback_t callback,
-                                                            void *userinfo);
+mulle_objc_walkcommand_t   _mulle_objc_runtime_walk_classes( struct _mulle_objc_runtime  *runtime,
+                                                             int with_meta,
+                                                             mulle_objc_walkcallback_t callback,
+                                                             void *userinfo);
 
-// for lldb ?
-void   mulle_objc_walk_classes( mulle_objc_walkcallback_t callback,
-                                void *userinfo);
+// compatible
+static inline mulle_objc_walkcommand_t
+   mulle_objc_runtime_walk_classes( struct _mulle_objc_runtime  *runtime,
+                                    mulle_objc_walkcallback_t callback,
+                                    void *userinfo)
+{
+   return( _mulle_objc_runtime_walk_classes( runtime, 1, callback, userinfo));
+}
+
+
+static inline mulle_objc_walkcommand_t
+   mulle_objc_runtime_walk_infraclasses( struct _mulle_objc_runtime  *runtime,
+                                         mulle_objc_walkcallback_t callback,
+                                         void *userinfo)
+{
+   return( _mulle_objc_runtime_walk_classes( runtime, 0, callback, userinfo));
+}
+
+
+static inline mulle_objc_walkcommand_t
+   mulle_objc_walk_classes( mulle_objc_walkcallback_t callback,
+                            void *userinfo)
+{
+   struct _mulle_objc_runtime  *runtime;
+   
+   runtime = mulle_objc_get_runtime();
+   return( _mulle_objc_runtime_walk_classes( runtime, 1, callback, userinfo));
+}
+
+
 
 # pragma mark - API
 

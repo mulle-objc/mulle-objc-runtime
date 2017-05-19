@@ -57,9 +57,6 @@
 
 // public but not publizied
 
-void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
-void   *mulle_objc_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
-
 
 # pragma mark - accessor
 
@@ -108,162 +105,11 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned i
 }
 
 
-# pragma mark - calls
-
-
-static void   *_mulle_objc_call_class_waiting_for_cache( void *obj,
-                                                         mulle_objc_methodid_t methodid,
-                                                         void *parameter,
-                                                         struct _mulle_objc_class *cls)
-{
-   /* same thread ? we are single threaded! */
-   if( _mulle_atomic_pointer_read( &cls->thread) != (void *) mulle_thread_self())
-   {
-      /* wait for other thread to finish with +initialize */
-      /* TODO: using yield is poor though! Use a condition to be awaken! */
-      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
-         mulle_thread_yield();
-   }
-
-   return( mulle_objc_object_call_uncached_class( obj, methodid, parameter, cls));
-}
-
-
-void   *_mulle_objc_call_class_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_infraclass    *infra;
-   struct _mulle_objc_metaclass     *meta;
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_method        *initialize;
-   mulle_objc_cache_uint_t          n_entries;
-
-   assert( mulle_objc_class_is_current_thread_registered( cls));
-
-   //
-   // An uninitialized class has the empty_cache as the cache. It also has
-   // `cls->thread` NULL. This methods is therefore usually called twice
-   // once for the meta class and once for the instance. Regardless in both
-   // cases, it is checked if +initialize needs to run. But this is only
-   // flagged in the meta class.
-   //
-   // If another thread enters here, it will expect `cls->thread` to be NULL.
-   // If it isn't it waits for MULLE_OBJC_CACHE_READY to go up.
-   //
-   // what is tricky is, that cls and metaclass are executing this
-   // singlethreaded, but still cls and metaclass could be in different threads
-   //
-
-   if( ! _mulle_atomic_pointer_compare_and_swap( &cls->thread, (void *) mulle_thread_self(), NULL))
-      return( _mulle_objc_call_class_waiting_for_cache( obj, methodid, parameter, cls));
-
-   // Singlethreaded block with respect to cls, not meta though!
-   {
-      struct _mulle_objc_runtime   *runtime;
-
-      runtime = _mulle_objc_class_get_runtime( cls);
-
-      //
-      // first do +initialize,  uncached execution
-      // track state only in "meta" class
-      //
-      if( _mulle_objc_class_is_infraclass( cls))
-      {
-         infra = (struct _mulle_objc_infraclass *) cls;
-         meta  = _mulle_objc_infraclass_get_metaclass( infra);
-      }
-      else
-      {
-         meta  = (struct _mulle_objc_metaclass *) cls;
-         infra = _mulle_objc_metaclass_get_infraclass( meta);
-      }
-
-      if( _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
-      {
-         // grab code from superclass
-         // this is useful for MulleObjCSingleton
-         initialize = _mulle_objc_class_search_method( &meta->base,
-                                                       MULLE_OBJC_INITIALIZE_METHODID,
-                                                       NULL,
-                                                       MULLE_OBJC_ANY_OWNER,
-                                                       meta->base.inheritance,
-                                                       NULL);
-         if( initialize)
-         {
-            if( runtime->debug.trace.initialize)
-               fprintf( stderr, "mulle_objc_runtime %p trace: call +[%s initialize]\n", runtime, cls->name);
-
-            (*_mulle_objc_method_get_implementation( initialize))( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
-         }
-         else
-            if( runtime->debug.trace.initialize)
-               fprintf( stderr, "mulle_objc_runtime %p trace: no +[%s initialize] found\n", runtime, cls->name);
-      }
-
-      // now setup the cache and let it rip, except when we don't ever want one
-      if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_ALWAYS_EMPTY_CACHE))
-      {
-         n_entries = _mulle_objc_class_convenient_methodcache_size( cls);
-         cache     = mulle_objc_cache_new( n_entries, &cls->runtime->memory.allocator);
-
-         assert( cache);
-         assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) == mulle_objc_get_runtime()->empty_cache.entries);
-
-         _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
-         cls->cachepivot.call2 = mulle_objc_object_call2;
-         cls->call             = mulle_objc_object_call_class;
-
-         if( runtime->debug.trace.method_caches)
-            fprintf( stderr, "mulle_objc_runtime %p trace: new initial cache %p "
-                     "on %s %08x \"%s\" (%p) with %u entries\n",
-                     runtime,
-                     cache,
-                     _mulle_objc_class_get_classtypename( cls),
-                     _mulle_objc_class_get_classid( cls),
-                     _mulle_objc_class_get_name( cls),
-                     cls,
-                     cache->size);
-      }
-      else
-      {
-         cls->cachepivot.call2 = mulle_objc_object_call2_empty_cache;
-         cls->call             = mulle_objc_object_call_class_empty_cache;
-
-         if( runtime->debug.trace.method_caches)
-            fprintf( stderr, "mulle_objc_runtime %p trace: use "
-                    "\"always empty cache\" on %s %08x \"%s\" (%p)\n",
-                      runtime,
-                     _mulle_objc_class_get_classtypename( cls),
-                     _mulle_objc_class_get_classid( cls),
-                     _mulle_objc_class_get_name( cls),
-                     cls);
-      }
-
-      // finally unfreze
-      // threads waiting_for_cache will run now
-      // cache initialized is also called if emty cache!
-      _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CACHE_READY);
-   }
-
-   //
-   // count #caches, if there are zero caches yet, the runtime can be much
-   // faster adding methods.
-   //
-   _mulle_atomic_pointer_increment( &cls->runtime->cachecount_1);
-
-   return( (*cls->call)( obj, methodid, parameter, cls));
-}
-
-
-void   *mulle_objc_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter)
-{
-   struct _mulle_objc_class   *cls;
-
-   cls = _mulle_objc_object_get_isa( (struct _mulle_objc_object *) obj);
-   return( _mulle_objc_call_class_needs_cache( obj, methodid, parameter, cls));
-}
-
-
 # pragma mark - initialization / deallocation
+
+void   *_mulle_objc_object_call_class_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
+void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
+
 
 void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
                                char *name,
@@ -272,7 +118,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
                                struct _mulle_objc_class *superclass,
                                struct _mulle_objc_runtime *runtime)
 {
-   extern void   *mulle_objc_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
+   extern void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
 
    assert( runtime);
 
@@ -283,11 +129,11 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->classid                  = classid;
 
    cls->allocationsize           = sizeof( struct _mulle_objc_objectheader) + instancesize;
-   cls->call                     = _mulle_objc_call_class_needs_cache;
+   cls->call                     = _mulle_objc_object_call_class_needs_cache;
    cls->runtime                  = runtime;
    cls->inheritance              = runtime->classdefaults.inheritance;
 
-   cls->cachepivot.call2         = mulle_objc_call_needs_cache2;
+   cls->cachepivot.call2         = mulle_objc_object_call_needs_cache2;
 
    _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, runtime->empty_cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, runtime->empty_cache.entries);
@@ -384,6 +230,21 @@ struct _mulle_objc_method    *_mulle_objc_class_unfailing_getorsearch_forwardmet
       return( method);
 
    _mulle_objc_class_raise_method_not_found( cls, missing_method);
+}
+
+
+// used by the debugger
+mulle_objc_methodimplementation_t
+   mulle_objc_class_get_forwardmethodimplementation( struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_method   *method;
+   
+   if( ! cls)
+      return( 0);
+   method = _mulle_objc_class_search_forwardmethod( cls);
+   if( method)
+      return( _mulle_objc_method_get_implementation( method));
+   return( 0);
 }
 
 

@@ -1,7 +1,20 @@
 ## 0.7.1
 
+> This version has changes mostly to the benefit of the mulle-lldb debugger
+
+* moved some more call functions into "call" (duh) added a shadow call to make 
+the stacktrace easier for the debugger to step out of
 * moved version and new "path" up for easier debugging and easier version
 checks its kinda useful if version is at a fixed offset
+* `__get_or_create_objc_runtime` has been renamed to `__get_or_create_mulle_objc_runtime`
+for clarity in the debugger and multi runtime code.
+* moved forward into a fixed position in the class structure for a future 
+debugger
+* the forward function is now fixed to be names as 
+`__forward_mulle_objc_object_call` as a benefit to the debugger. Let's put it
+this way, you can still forward on a per class basis, but the debugger won't
+pick up on it. Which isn't a problem just not as gainly looking in the 
+stacktrace'
 
 ## 0.6.1
 

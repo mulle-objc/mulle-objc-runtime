@@ -477,11 +477,11 @@ static void  __load()
 }
 
 
-struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
+struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
 {
    struct _mulle_objc_runtime    *runtime;
 
-   fprintf( stderr, "--> __get_or_create_objc_runtime\n");
+   fprintf( stderr, "--> __get_or_create_mulle_objc_runtime\n");
    runtime = __mulle_objc_get_runtime();
    if( ! _mulle_objc_runtime_is_initialized( runtime))
    {

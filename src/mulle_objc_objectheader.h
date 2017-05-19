@@ -50,7 +50,6 @@ struct _mulle_objc_object;
 // isa must be underscored
 // It is important, that on 64 bit it's 16 byte size, because then a following
 // class can provide an isa pointer with 4 zero ls bits
-//
 #define MULLE_OBJC_NEVER_RELEASE   INTPTR_MAX
 
 // retaincount_1

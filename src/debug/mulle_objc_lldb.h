@@ -1,11 +1,10 @@
 //
-//  mulle_standalone_objc_runtime.c
-//  mulle-objc
+//  mulle_objc_lldb.h
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 21.01.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
-//  All rights reserved.
+//  Created by Nat! on 16.05.17.
+//  Copyright © 2017 Mulle kybernetiK. All rights reserved.
+//  Copyright © 2017 Codeon GmbH. All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -33,53 +32,30 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle_objc.h"
 
-#include <mulle_test_allocator/mulle_test_allocator.h>
+#ifndef mulle_objc_lldb_h__
+#define mulle_objc_lldb_h__
 
-
-
-static void  tear_down()
-{
-   // no autoreleasepools here
-
-   mulle_objc_release_runtime();
-
-   if( getenv( "MULLE_OBJC_TEST_ALLOCATOR"))
-      mulle_test_allocator_reset();
-}
+#include "mulle_objc_uniqueid.h"
+#include "mulle_objc_method.h"
 
 
+// for test only, don't use this if you aren't a debugger
 
-MULLE_C_CONST_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
-{
-   struct _mulle_objc_runtime      *runtime;
-   struct mulle_allocator          *allocator;
-   int                             is_test;
-   int                             is_pedantic;
+void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel);
 
-   runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initialized( runtime))
-   {
-      allocator = NULL;
-      is_test = getenv( "MULLE_OBJC_TEST_ALLOCATOR") != NULL;
-      if( is_test)
-      {
-         // call this because we are probably also in +load here
-         mulle_test_allocator_initialize();
-         allocator = &mulle_test_allocator;
-#if DEBUG
-         fprintf( stderr, "mulle_objc_runtime uses \"mulle_test_allocator\" to detect leaks.\n");
-#endif
-      }
-      __mulle_objc_runtime_setup( runtime, allocator);
+struct _mulle_objc_methoddescriptor  *
+   mulle_objc_lldb_lookup_methoddescriptor_by_name( char *name);
 
-      is_pedantic = getenv( "MULLE_OBJC_PEDANTIC_EXIT") != NULL;
-      if( is_test || is_pedantic)
-         if( atexit( tear_down))
-            perror( "atexit:");
-   }
-   return( runtime);
-}
+mulle_objc_methodimplementation_t
+   mulle_objc_lldb_lookup_methodimplementation( void *object,
+                                            mulle_objc_methodid_t sel,
+                                            void *cls_or_classid,
+                                            int is_classid,
+                                            int is_meta,
+                                            int debug);
 
+void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void);
+
+
+#endif /* mulle_objc_lldb_h */
