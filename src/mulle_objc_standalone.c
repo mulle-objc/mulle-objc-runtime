@@ -52,7 +52,7 @@ static void  tear_down()
 
 
 MULLE_C_CONST_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
+struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
 {
    struct _mulle_objc_runtime      *runtime;
    struct mulle_allocator          *allocator;

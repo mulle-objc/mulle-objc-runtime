@@ -76,6 +76,7 @@ src/mulle_objc_try_catch_finally.h
 src/mulle_objc_uniqueid.h
 src/mulle_objc_walktypes.h
 src/mulle_objc_version.h
+src/debug/mulle_objc_lldb.h  # kinda private
 ${DEBUG_HEADERS}
 )
 
@@ -106,6 +107,7 @@ src/mulle_objc_runtime.c
 src/mulle_objc_runtime_global.c
 src/mulle_objc_signature.c
 src/mulle_objc_uniqueid.c
+src/debug/mulle_objc_lldb.c  # always add
 )
 
 

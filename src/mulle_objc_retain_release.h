@@ -89,7 +89,7 @@ static inline void   _mulle_objc_object_increment_retaincount( void *obj)
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   if( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
+   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
       _mulle_atomic_pointer_increment( &header->_retaincount_1); // atomic increment needed
 }
 
@@ -112,9 +112,12 @@ static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj
    return( 0);
 }
 
-// try not to use it, it obscures bugs and will disturb leak detection
-// use it when creating an object, not "on the fly"
-static inline void   _mulle_objc_object_infinite_retain( void *obj)
+//
+// Try not to use it, it obscures bugs and will disturb leak detection
+// You should only use it when creating an object, not "on the fly"
+// therefore it's nonatomic
+//
+static inline void   _mulle_objc_object_nonatomic_infinite_retain( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
@@ -122,11 +125,11 @@ static inline void   _mulle_objc_object_infinite_retain( void *obj)
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   _mulle_atomic_pointer_write( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
+   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
 }
 
 
-static inline int   _mulle_objc_object_is_permanent( void *obj)
+static inline int   _mulle_objc_object_is_constant( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
