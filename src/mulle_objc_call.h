@@ -52,19 +52,6 @@
 #include <mulle_c11/mulle_c11.h>
 #include <assert.h>
 
-//
-// all stuff concerned with "calling" methods
-//
-# pragma mark  -
-# pragma mark internal calls
-
-void   *mulle_objc_object_call_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
-void   *mulle_objc_object_call_uncached_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
-void   *mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
-
-void   *mulle_objc_object_call2_empty_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter);
-void   *mulle_objc_object_call_class_empty_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
-
 
 //// on x86_64 this should optimize into 30 bytes tops w/o tagged pointers
 //
@@ -144,8 +131,7 @@ static inline void   *mulle_objc_object_constant_methodid_call( void *obj,
 
 
 //
-// this is the default method to use, when you used to call objc_msgSend
-// and he selector is variable
+// this is the method to use, when the selector is variable
 //
 MULLE_C_ALWAYS_INLINE
 static inline void  *mulle_objc_object_inline_variable_methodid_call( void *obj,
@@ -182,8 +168,8 @@ static inline void  *mulle_objc_object_inline_variable_methodid_call( void *obj,
 
 
 //
-// use this when you know methodid is not a constant and you want to keep it
-// down
+// use this when you know methodid is not a constant and you want to keep
+// the call size down
 //
 MULLE_C_ALWAYS_INLINE
 static inline void   *mulle_objc_object_variable_methodid_call( void *obj,
@@ -202,18 +188,19 @@ static inline void   *mulle_objc_object_variable_methodid_call( void *obj,
 
 //
 // this is useful for calling a list of objects efficiently, it is assumed that
-// class method implementations do not change during its run
+// class/methods do not change during its run
 //
-void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_methodid_t sel, void *params);
-
+void   mulle_objc_objects_call( void **objects,
+                                unsigned int n,
+                                mulle_objc_methodid_t sel,
+                                void *params);
 
 
 #pragma mark - calls for super
 
-
 //
 // this is used for calling super on class methods, the classid is determined by
-// the compiler since it is a super call, self is known to be non-nil.
+// the compiler since it is a super call, infra is known to be non-nil.
 //
 static inline void   *_mulle_objc_infraclass_inline_metacall_classid( struct _mulle_objc_infraclass *infra,
                                                                       mulle_objc_methodid_t methodid,
@@ -250,12 +237,12 @@ static inline void   *mulle_objc_infraclass_inline_metacall_classid( struct _mul
 void   *mulle_objc_infraclass_metacall_classid( struct _mulle_objc_infraclass *infra,
                                                 mulle_objc_methodid_t methodid,
                                                 void *parameter,
-                                                 mulle_objc_classid_t classid);
+                                                mulle_objc_classid_t classid);
 
 
 //
 // this is used for calling super on instances, the classid is determined by
-// the compiler since it is a super call, self is known to be non-nil.
+// the compiler since it is a super call, obj is known to be non-nil.
 //
 static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
                                                               mulle_objc_methodid_t methodid,
@@ -280,21 +267,42 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
 }
 
 
+# pragma mark - API Calls
+
+// compiler uses this for -O0, -Os, it does no fast calls
+void   *mulle_objc_object_call( void *obj,
+                               mulle_objc_methodid_t methodid,
+                               void *parameter);
+
+
+
+// this is used for calling super on classes, the classid is determined by
+// the compiler since it is a super call, self is known to be non-nil.
+//
+static inline void   *mulle_objc_object_inline_call_classid( void *obj,
+                                                             mulle_objc_methodid_t methodid,
+                                                             void *parameter,
+                                                             mulle_objc_classid_t classid)
+{
+   if( ! obj)
+      return( obj);
+   return( _mulle_objc_object_inline_call_classid( obj, methodid, parameter, classid));
+}
+
+
+void   *mulle_objc_object_call_classid( void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter,
+                                        mulle_objc_classid_t classid);
+
 
 # pragma mark - special initial setup calls
 
 void   *_mulle_objc_object_call_class_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
 
-void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
-
 
 # pragma mark  -
 # pragma mark cache support
-
-unsigned int  _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_class *cls);
-unsigned int  _mulle_objc_class_convenient_methodcache_size( struct _mulle_objc_class *cls);
-void          _mulle_objc_class_fill_inactivecache_with_preloadmethods( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache);
-void          _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache, mulle_objc_methodid_t *methodids, unsigned int n);
 
 // internal, call
 struct _mulle_objc_cacheentry
@@ -434,33 +442,5 @@ static inline void   mulle_objc_object_dealloc( void *obj)
 }
 
 
-# pragma mark  -
-# pragma mark API Calls
-
-// compiler uses this for -O0, -Os, it does no fast calls
-void   *mulle_objc_object_call( void *obj,
-                               mulle_objc_methodid_t methodid,
-                               void *parameter);
-
-
-
-// this is used for calling super on classes, the classid is determined by
-// the compiler since it is a super call, self is known to be non-nil.
-//
-static inline void   *mulle_objc_object_inline_call_classid( void *obj,
-                                                             mulle_objc_methodid_t methodid,
-                                                             void *parameter,
-                                                             mulle_objc_classid_t classid)
-{
-   if( ! obj)
-      return( obj);
-   return( _mulle_objc_object_inline_call_classid( obj, methodid, parameter, classid));
-}
-
-
-void   *mulle_objc_object_call_classid( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        void *parameter,
-                                        mulle_objc_classid_t classid);
 
 #endif
