@@ -108,7 +108,6 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned i
 # pragma mark - initialization / deallocation
 
 void   *_mulle_objc_object_call_class_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);
-void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
 
 
 void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
@@ -118,7 +117,9 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
                                struct _mulle_objc_class *superclass,
                                struct _mulle_objc_runtime *runtime)
 {
-   extern void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter);
+   extern void   *_mulle_objc_object_call2_needs_cache( void *obj,
+                                                        mulle_objc_methodid_t methodid,
+                                                        void *parameter);
 
    assert( runtime);
 
@@ -133,7 +134,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->runtime                  = runtime;
    cls->inheritance              = runtime->classdefaults.inheritance;
 
-   cls->cachepivot.call2         = mulle_objc_object_call_needs_cache2;
+   cls->cachepivot.call2         = _mulle_objc_object_call2_needs_cache;
 
    _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, runtime->empty_cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, runtime->empty_cache.entries);

@@ -51,9 +51,31 @@
 
 
 
+static void   *_mulle_objc_object_call_uncached_class( void *obj,
+                                                       mulle_objc_methodid_t methodid,
+                                                       void *parameter,
+                                                       struct _mulle_objc_class *cls);
+
+static void   *_mulle_objc_object_call2_empty_cache( void *obj,
+                                                     mulle_objc_methodid_t methodid,
+                                                     void *parameter);
+static void   *_mulle_objc_object_call2( void *obj,
+                                         mulle_objc_methodid_t methodid,
+                                         void *parameter);
+
+static void   *_mulle_objc_object_call_class( void *obj,
+                                              mulle_objc_methodid_t methodid,
+                                              void *parameter,
+                                              struct _mulle_objc_class *cls);
+
+static void   *_mulle_objc_object_unfailing_call_methodid( void *obj,
+                                                           mulle_objc_methodid_t methodid,
+                                                           void *parameter,
+                                                           struct  _mulle_objc_class *cls);
+
 # pragma mark - class cache
 
-unsigned int   _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_class *cls)
+static unsigned int   _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_class *cls)
 {
    struct mulle_concurrent_pointerarrayenumerator   rover;
    struct _mulle_objc_methodlist                    *list;
@@ -69,7 +91,7 @@ unsigned int   _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_c
 }
 
 
-mulle_objc_cache_uint_t  _mulle_objc_class_convenient_methodcache_size( struct _mulle_objc_class *cls)
+static mulle_objc_cache_uint_t  _mulle_objc_class_convenient_methodcache_size( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_class   *next;
    mulle_objc_cache_uint_t    count;
@@ -113,6 +135,43 @@ mulle_objc_cache_uint_t  _mulle_objc_class_convenient_methodcache_size( struct _
       pow2 += pow2;
 
    return( pow2);
+}
+
+
+static void   _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache, mulle_objc_methodid_t *methodids, unsigned int n)
+{
+   mulle_objc_methodid_t      *p;
+   mulle_objc_methodid_t      *sentinel;
+   struct _mulle_objc_method   *method;
+
+   p        = methodids;
+   sentinel = &p[ n];
+   while( p < sentinel)
+   {
+      method = mulle_objc_class_search_method( cls, *p++);
+      if( method)
+         _mulle_objc_cache_inactivecache_add_pointer_entry( cache, _mulle_objc_method_get_implementation( method), method->descriptor.methodid);
+   }
+}
+
+
+static int  preload( struct _mulle_objc_method *method,
+                     struct _mulle_objc_class *cls,
+                    struct _mulle_objc_cache *cache)
+{
+   assert( cache);
+
+   if( _mulle_objc_methoddescriptor_is_preload_method( &method->descriptor))
+      _mulle_objc_cache_inactivecache_add_pointer_entry( cache, _mulle_objc_method_get_implementation( method), method->descriptor.methodid);
+
+   return( 0);
+}
+
+
+static void   _mulle_objc_class_fill_inactivecache_with_preloadmethods( struct _mulle_objc_class *cls,
+                                                                 struct _mulle_objc_cache *cache)
+{
+   _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), (int(*)()) preload, cache);
 }
 
 
@@ -338,42 +397,6 @@ static void   *_mulle_objc_object_unfailing_call_methodid( void *obj,
 }
 
 
-static int  preload( struct _mulle_objc_method *method,
-                     struct _mulle_objc_class *cls,
-                    struct _mulle_objc_cache *cache)
-{
-   assert( cache);
-
-   if( _mulle_objc_methoddescriptor_is_preload_method( &method->descriptor))
-      _mulle_objc_cache_inactivecache_add_pointer_entry( cache, _mulle_objc_method_get_implementation( method), method->descriptor.methodid);
-
-   return( 0);
-}
-
-
-
-void   _mulle_objc_class_fill_inactivecache_with_preloadmethods( struct _mulle_objc_class *cls,
-                                                                 struct _mulle_objc_cache *cache)
-{
-   _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), (int(*)()) preload, cache);
-}
-
-
-void   _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache, mulle_objc_methodid_t *methodids, unsigned int n)
-{
-   mulle_objc_methodid_t      *p;
-   mulle_objc_methodid_t      *sentinel;
-   struct _mulle_objc_method   *method;
-
-   p        = methodids;
-   sentinel = &p[ n];
-   while( p < sentinel)
-   {
-      method = mulle_objc_class_search_method( cls, *p++);
-      if( method)
-         _mulle_objc_cache_inactivecache_add_pointer_entry( cache, _mulle_objc_method_get_implementation( method), method->descriptor.methodid);
-   }
-}
 
 #pragma mark - method cache searches
 
@@ -604,7 +627,7 @@ mulle_objc_methodimplementation_t
 
 # pragma mark - calls
 
-void   *mulle_objc_object_call_class( void *obj,
+void   *_mulle_objc_object_call_class( void *obj,
                                       mulle_objc_methodid_t methodid,
                                       void *parameter,
                                       struct _mulle_objc_class *cls)
@@ -647,7 +670,7 @@ void   *mulle_objc_object_call_class( void *obj,
 // this function is called, when the first inline cache check gave a
 // collision
 //
-void   *mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, void *parameter)
+void   *_mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, void *parameter)
 {
    mulle_objc_methodimplementation_t   imp;
    struct _mulle_objc_cache            *cache;
@@ -682,7 +705,7 @@ void   *mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, void
 }
 
 
-void   *mulle_objc_object_call_uncached_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
+static void   *_mulle_objc_object_call_uncached_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
 
@@ -709,7 +732,7 @@ static void   *_mulle_objc_call_class_waiting_for_cache( void *obj,
          mulle_thread_yield();
    }
    
-   return( mulle_objc_object_call_uncached_class( obj, methodid, parameter, cls));
+   return( _mulle_objc_object_call_uncached_class( obj, methodid, parameter, cls));
 }
 
 
@@ -769,8 +792,8 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
       assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) == mulle_objc_get_runtime()->empty_cache.entries);
       
       _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
-      cls->cachepivot.call2 = mulle_objc_object_call2;
-      cls->call             = mulle_objc_object_call_class;
+      cls->cachepivot.call2 = _mulle_objc_object_call2;
+      cls->call             = _mulle_objc_object_call_class;
       
       if( runtime->debug.trace.method_caches)
          fprintf( stderr, "mulle_objc_runtime %p trace: new initial cache %p "
@@ -785,8 +808,8 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
    }
    else
    {
-      cls->cachepivot.call2 = mulle_objc_object_call2_empty_cache;
-      cls->call             = mulle_objc_object_call_class_empty_cache;
+      cls->cachepivot.call2 = _mulle_objc_object_call2_empty_cache;
+      cls->call             = _mulle_objc_object_call_uncached_class;
       
       if( runtime->debug.trace.method_caches)
          fprintf( stderr, "mulle_objc_runtime %p trace: use "
@@ -865,7 +888,11 @@ void   *_mulle_objc_object_call_class_needs_cache( void *obj,
 }
 
 
-void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t methodid, void *parameter)
+void   *_mulle_objc_object_call2_needs_cache( void *obj,
+                                              mulle_objc_methodid_t methodid,
+                                              void *parameter);
+
+void   *_mulle_objc_object_call2_needs_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter)
 {
    struct _mulle_objc_class   *cls;
    
@@ -875,22 +902,8 @@ void   *mulle_objc_object_call_needs_cache2( void *obj, mulle_objc_methodid_t me
 
 
 #pragma mark - empty cache calls
-//
-// specialized function when cache is empty
-//
-void   *mulle_objc_object_call_class_empty_cache( void *obj,
-                                                  mulle_objc_methodid_t methodid,
-                                                  void *parameter,
-                                                  struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_method   *method;
 
-   method = _mulle_objc_class_unfailing_search_method( cls, methodid);
-   return( (*_mulle_objc_method_get_implementation( method))( obj, methodid, parameter));
-}
-
-
-void   *mulle_objc_object_call2_empty_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter)
+static void   *_mulle_objc_object_call2_empty_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter)
 {
    struct _mulle_objc_class    *cls;
    struct _mulle_objc_method   *method;
