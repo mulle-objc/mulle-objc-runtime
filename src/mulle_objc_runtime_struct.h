@@ -46,6 +46,7 @@
 #include "mulle_objc_propertylist.h"
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_uniqueid.h"
+#include "mulle_objc_uniqueidarray.h"
 #include "mulle_objc_version.h"
 
 #include <mulle_aba/mulle_aba.h>
@@ -331,6 +332,7 @@ struct _mulle_objc_runtime
       struct _mulle_objc_methodlist      empty_methodlist;
       struct _mulle_objc_ivarlist        empty_ivarlist;
       struct _mulle_objc_propertylist    empty_propertylist;
+      struct _mulle_objc_uniqueidarray   empty_uniqueidarray;
    };   //
    // this allows the foundation to come up during load without having to do
    // a malloc

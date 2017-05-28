@@ -1,10 +1,10 @@
 //
-//  mulle_objc_version.h
-//  mulle-objc
+//  mulle_objc_uniqueidarray.c
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 10.07.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
+//  Created by Nat! on 28.05.17
+//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,41 +33,41 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_version_h__
-#define mulle_objc_version_h__
+
+#include "mulle_objc_uniqueidarray.h"
+
+#include <stdlib.h>
 
 
-//
-// up the major if the compiler output is incompatible
-// up the minor for added features
-// up the patch for bugfixes
-//
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (7 << 8) | 3)
-
-//
-// these three values are read by the compiler(!)
-// only use integers and no expressions
-//
-#define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0  // max 1023
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  7  // max 1023
-#define MULLE_OBJC_RUNTIME_VERSION_PATCH  3  // max 255
-
-
-static inline uint32_t  mulle_objc_version_get_major( uint32_t version)
+static inline void
+   _mulle_objc_uniqueidarray_sort( struct _mulle_objc_uniqueidarray  *p)
 {
-   return( (uint32_t) (version >> 20));
+   qsort( p->entries,
+          p->n,
+          sizeof( mulle_objc_uniqueid_t),
+          (int (*)()) _mulle_objc_uniqueid_qsortcompare);
 }
 
 
-static inline uint32_t  mulle_objc_version_get_minor( uint32_t version)
+struct _mulle_objc_uniqueidarray
+   *_mulle_objc_uniqueidarray_by_adding_ids( struct _mulle_objc_uniqueidarray  *p,
+                                             unsigned int m,
+                                             mulle_objc_uniqueid_t *uniqueids,
+                                             struct mulle_allocator *allocator)
 {
-   return( (uint32_t) (version >> 8) & (1024 - 1));
+   struct _mulle_objc_uniqueidarray  *copy;
+   unsigned int   n;
+   
+   n = p->n + m;
+
+   copy = mulle_objc_alloc_uniqueidarray( n, allocator);
+
+   memcpy( copy->entries, p->entries, sizeof( mulle_objc_uniqueid_t) * p->n);
+   memcpy( &copy->entries[ p->n], uniqueids, sizeof( mulle_objc_uniqueid_t) * m);
+
+   copy->n = n;
+
+   _mulle_objc_uniqueidarray_sort( copy);
+
+   return( copy);
 }
-
-
-static inline uint32_t  mulle_objc_version_get_patch( uint32_t version)
-{
-   return( (uint32_t) (version & 255));
-}
-
-#endif

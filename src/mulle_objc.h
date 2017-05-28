@@ -83,6 +83,8 @@
 #include "mulle_objc_signature.h"
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_try_catch_finally.h"
+#include "mulle_objc_uniqueid.h"
+#include "mulle_objc_uniqueidarray.h"
 #include "mulle_objc_version.h"
 #include "mulle_objc_walktypes.h"
 

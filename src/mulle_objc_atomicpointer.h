@@ -43,6 +43,7 @@
 
 struct _mulle_objc_class;
 struct _mulle_objc_object;
+struct _mulle_objc_uniqueidarray;
 
 
 union _mulle_objc_atomicclasspointer_t
@@ -56,6 +57,13 @@ union _mulle_objc_atomicobjectpointer_t
 {
    struct _mulle_objc_object    *object;      // dont read, except when debugging
    mulle_atomic_pointer_t       pointer;
+};
+
+
+union _mulle_objc_uniqueidarraypointer_t
+{
+   struct _mulle_objc_uniqueidarray  *array;      // dont read, except when debugging
+   mulle_atomic_pointer_t            pointer;
 };
 
 

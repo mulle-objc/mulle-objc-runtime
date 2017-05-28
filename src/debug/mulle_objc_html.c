@@ -847,41 +847,41 @@ char   *mulle_objc_loadcategory_html_row_description( void *value,
 
 #pragma mark - protocols
 
-char   *mulle_objc_protocols_html_description( struct   mulle_concurrent_pointerarray *array,
+char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray *array,
                                                struct _mulle_objc_htmltablestyle *styling)
 {
-   return( mulle_concurrent_pointerarray_html_description( array,
-                                                           uniqueid_html_row_description,
-                                                           styling));
+   return( mulle_objc_uniqueidarray_html_description( array,
+                                                      uniqueid_html_row_description,
+                                                      styling));
 }
 
 
 #pragma mark - categories
 
-char   *mulle_objc_categories_html_description( struct   mulle_concurrent_pointerarray *array,
+char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray *array,
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
-   return( mulle_concurrent_pointerarray_html_description( array,
-                                                           uniqueid_html_row_description,
-                                                           styling));
+   return( mulle_objc_uniqueidarray_html_description( array,
+                                                      uniqueid_html_row_description,
+                                                      styling));
 }
 
 
 #pragma mark - pointerarray
 
-char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurrent_pointerarray *list,
-                                                       char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
-                                                       struct _mulle_objc_htmltablestyle *styling)
+char   *mulle_concurrent_pointerarray_html_description( struct mulle_concurrent_pointerarray *list,
+                                                        char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
+                                                        struct _mulle_objc_htmltablestyle *styling)
 
 {
    struct mulle_concurrent_pointerarrayenumerator   rover;
-   size_t                  count;
-   size_t                  len;
-   char                    **tmp;
-   unsigned int            i;
-   unsigned int            n;
-   void                    *value;
-   char                    *null_description;
+   size_t                                           count;
+   size_t                                           len;
+   char                                             **tmp;
+   unsigned int                                     i;
+   unsigned int                                     n;
+   void                                             *value;
+   char                                             *null_description;
 
    count = mulle_concurrent_pointerarray_get_count( list);
 
@@ -924,20 +924,22 @@ char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurren
    return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
+
 #pragma mark - hashmap
+
 char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashmap *map,
                                                    char *(row_description)( intptr_t, void *, struct _mulle_objc_htmltablestyle *),
                                                    struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_hashmapenumerator   rover;
-   char                    *null_description;
-   intptr_t                uniqueid;
-   size_t                  count;
-   size_t                  len;
-   char                    **tmp;
-   unsigned int            i;
-   unsigned int            n;
-   void                    *value;
+   char                                        *null_description;
+   intptr_t                                    uniqueid;
+   size_t                                      count;
+   size_t                                      len;
+   char                                        **tmp;
+   unsigned int                                i;
+   unsigned int                                n;
+   void                                        *value;
 
    count = mulle_concurrent_hashmap_count( map);
 
@@ -967,6 +969,64 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
       ++i;
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
+
+   if( styling)
+   {
+      asprintf( &tmp[ i], "</TABLE>");
+      len += strlen( tmp[ i]);
+      ++i;
+   }
+
+   assert( i <= n);
+
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
+}
+
+
+#pragma mark - uniqueidarray
+
+char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidarray *array,
+                                                   char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
+                                                   struct _mulle_objc_htmltablestyle *styling)
+
+{
+   unsigned int            count;
+   size_t                  len;
+   char                    **tmp;
+   unsigned int            i;
+   unsigned int            n;
+   char                    *null_description;
+   mulle_objc_uniqueid_t   *p;
+   mulle_objc_uniqueid_t   *sentinel;
+   
+   count = array->n;
+
+   n   = count + 2;
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
+
+   tmp[ 0] = NULL;
+
+   i   = 0;
+   len = 0;
+
+   if( styling)
+   {
+      asprintf_table_header( &tmp[ i], styling);
+      len += strlen( tmp[ i]);
+      ++i;
+   }
+
+   null_description = "*null*";
+
+   p        = array->entries;
+   sentinel = &p[ count];
+   
+   while( p < sentinel)
+   {
+      tmp[ i] = (*row_description)( (void *) (uintptr_t) *p++, styling);
+      len    += strlen( tmp[ i]);
+      ++i;
+   }
 
    if( styling)
    {

@@ -37,9 +37,13 @@
 #ifndef mulle_objc_classpair_h__
 #define mulle_objc_classpair_h__
 
+#include <mulle_thread/mulle_thread.h>
+
+#include "mulle_objc_atomicpointer.h"
 #include "mulle_objc_objectheader.h"
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_metaclass.h"
+#include "mulle_objc_uniqueidarray.h"
 #include "mulle_objc_walktypes.h"
 #include <mulle_concurrent/mulle_concurrent.h>
 
@@ -53,18 +57,18 @@
 //
 struct _mulle_objc_classpair
 {
-   struct _mulle_objc_objectheader         infraclassheader;
-   struct _mulle_objc_infraclass           infraclass;
-   unsigned char                           _padding[ _MULLE_OBJC_CLASSPAIR_PADDING];
-   struct _mulle_objc_objectheader         metaclassheader;
-   struct _mulle_objc_metaclass            metaclass;
+   struct _mulle_objc_objectheader           infraclassheader;
+   struct _mulle_objc_infraclass             infraclass;
+   unsigned char                             _padding[ _MULLE_OBJC_CLASSPAIR_PADDING];
+   struct _mulle_objc_objectheader           metaclassheader;
+   struct _mulle_objc_metaclass              metaclass;
 
    // common stuff
-   struct mulle_concurrent_pointerarray    protocolids;
-   struct mulle_concurrent_pointerarray    protocolclasses;
-   struct mulle_concurrent_pointerarray    categoryids;
+   struct mulle_concurrent_pointerarray      protocolclasses;
+   union _mulle_objc_uniqueidarraypointer_t  p_protocolids;
+   union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
-   char                                    *origin;      // a start of shared info
+   char                                      *origin;      // a start of shared info
 };
 
 
@@ -73,7 +77,8 @@ struct _mulle_objc_classpair
 void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
                                               struct mulle_allocator *allocator);
 
-void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair);
+void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
+                                        struct mulle_allocator *allocator);
 
 void    _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
                                     struct mulle_allocator *allocator);
@@ -206,21 +211,15 @@ static inline struct _mulle_objc_classpair   *_mulle_objc_class_get_classpair( s
 
 static inline int   _mulle_objc_classpair_has_category( struct _mulle_objc_classpair *pair, mulle_objc_categoryid_t categoryid)
 {
-   return( _mulle_concurrent_pointerarray_find( &pair->categoryids, (void *) (uintptr_t) categoryid));
+   struct _mulle_objc_uniqueidarray   *array;
+   
+   array = _mulle_atomic_pointer_read( &pair->p_categoryids.pointer);
+   return( _mulle_objc_uniqueidarray_search( array, categoryid));
 }
 
 
-
-static inline void   _mulle_objc_classpair_add_category( struct _mulle_objc_classpair *pair,
-                                                        mulle_objc_categoryid_t categoryid)
-{
-   assert( pair);
-   assert( categoryid != MULLE_OBJC_NO_CATEGORYID);
-   assert( categoryid != MULLE_OBJC_INVALID_CATEGORYID);
-   assert( ! _mulle_objc_classpair_has_category( pair, categoryid));
-
-   _mulle_concurrent_pointerarray_add( &pair->categoryids, (void *) (uintptr_t) categoryid);
-}
+void   _mulle_objc_classpair_add_category( struct _mulle_objc_classpair *pair,
+                                           mulle_objc_categoryid_t categoryid);
 
 
 int   _mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
@@ -271,7 +270,10 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
 static inline int   _mulle_objc_classpair_has_protocol( struct _mulle_objc_classpair *pair,
                                                         mulle_objc_protocolid_t protocolid)
 {
-   return( _mulle_concurrent_pointerarray_find( &pair->protocolids, (void *) (uintptr_t) protocolid));
+   struct _mulle_objc_uniqueidarray   *array;
+   
+   array = _mulle_atomic_pointer_read( &pair->p_protocolids.pointer);
+   return( _mulle_objc_uniqueidarray_search( array, protocolid));
 }
 
 
@@ -292,9 +294,6 @@ static inline int   mulle_objc_classpair_conformsto_protocol( struct _mulle_objc
       return( 0);
    return( _mulle_objc_classpair_conformsto_protocol( pair, protocolid));
 }
-
-void   _mulle_objc_classpair_add_protocol( struct _mulle_objc_classpair *pair,
-                                           mulle_objc_protocolid_t protocolid);
 
 void   mulle_objc_classpair_unfailing_add_protocolids( struct _mulle_objc_classpair *pair,
                                                        mulle_objc_protocolid_t *protocolids);

@@ -48,6 +48,7 @@ struct _mulle_objc_propertylist;
 struct _mulle_objc_cache;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_methoddescriptor;
+struct _mulle_objc_uniqueidarray;
 
 struct mulle_concurrent_pointerarray;
 struct mulle_concurrent_hashmap;
@@ -115,9 +116,9 @@ char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *l
 char  *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list,
                                                    struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_protocols_html_description( struct   mulle_concurrent_pointerarray *list,
+char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray *array,
                                                struct _mulle_objc_htmltablestyle *styling);
-char   *mulle_objc_categories_html_description( struct   mulle_concurrent_pointerarray *list,
+char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray *array,
                                                 struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_loadclass_html_row_description( void *value,
@@ -130,6 +131,10 @@ char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurren
                                                         struct _mulle_objc_htmltablestyle *styling);
 char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashmap *map,
                                                    char *(row_description)( intptr_t, void *, struct _mulle_objc_htmltablestyle *),
+                                                   struct _mulle_objc_htmltablestyle *styling);
+
+char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidarray *array,
+                                                   char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
                                                    struct _mulle_objc_htmltablestyle *styling);
 
 

@@ -390,8 +390,9 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    struct _mulle_objc_methodlist                    *methodlist;
    struct _mulle_objc_propertylist                  *propertylist;
    struct _mulle_objc_htmltablestyle                style;
+   struct _mulle_objc_uniqueidarray                 *array;
    mulle_objc_categoryid_t                          categoryid;
-
+   
    cls = _mulle_objc_infraclass_as_class( infra);
 
    print_to_body_with_level( cls->name, NULL, 1, fp);
@@ -538,10 +539,11 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
 
    fprintf( fp, "\n<DIV CLASS=\"class_protocols\">\n");
    {
-      if( mulle_concurrent_pointerarray_get_count( &pair->protocolids))
+      array = _mulle_atomic_pointer_read( &pair->p_protocolids.pointer);
+      if( array->n)
       {
-         label = mulle_objc_protocols_html_description( &pair->protocolids,
-                                                       &protocoltable_style);
+         label = mulle_objc_protocols_html_description( array,
+                                                        &protocoltable_style);
          print_to_body( "Protocols", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);
       }
@@ -550,10 +552,11 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
 
    fprintf( fp, "\n<DIV CLASS=\"class_categories\">\n");
    {
-      if( mulle_concurrent_pointerarray_get_count( &pair->categoryids))
+      array = _mulle_atomic_pointer_read( &pair->p_categoryids.pointer);
+      if( array->n)
       {
-         label = mulle_objc_categories_html_description( &pair->protocolids,
-                                                        &categorytable_style);
+         label = mulle_objc_categories_html_description( array,
+                                                         &categorytable_style);
 
          print_to_body( "Categories", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);

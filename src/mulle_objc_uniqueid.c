@@ -67,6 +67,29 @@ mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
 }
 
 
+unsigned int   _mulle_objc_uniqueid_arraycount( mulle_objc_uniqueid_t *ids)
+{
+   unsigned int   n;
+
+   n = 0;
+   if( ids)
+      while( *ids++)
+         ++n;
+   return( n);
+}
+
+
+int  _mulle_objc_uniqueid_qsortcompare( mulle_objc_uniqueid_t *a, mulle_objc_uniqueid_t *b)
+{
+   intptr_t   diff;
+
+   diff = (intptr_t) *a - (intptr_t) *b;
+   if( diff < 0)
+      return( -1);
+   return( ! ! diff);
+}
+
+
 #if 0
 mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
 {
