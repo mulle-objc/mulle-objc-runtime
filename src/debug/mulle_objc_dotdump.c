@@ -487,27 +487,30 @@ static void   print_classpair( struct _mulle_objc_classpair *pair,
                                struct _mulle_objc_class *cls,
                                struct dump_info *info)
 {
-   char   *label;
+   struct _mulle_objc_uniqueidarray   *array;
+   char                               *label;
 
-   if( mulle_concurrent_pointerarray_get_count( &pair->protocolids))
+   array = _mulle_atomic_pointer_read( &pair->p_protocolids.pointer);
+   if( array->n)
    {
       fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"protocolids\" ];\n",
-              cls, &pair->protocolids);
+              cls, array);
 
-      label = mulle_objc_protocols_html_description( &pair->protocolids,
+      label = mulle_objc_protocols_html_description( array,
                                                      &protocoltable_style);
-      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", &pair->protocolids, label);
+      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", array, label);
       free( label);
    }
 
-   if( mulle_concurrent_pointerarray_get_count( &pair->categoryids))
+   array = _mulle_atomic_pointer_read( &pair->p_categoryids.pointer);
+   if( array->n)
    {
       fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"categoryids\" ];\n",
-              cls, &pair->categoryids);
+              cls, array);
 
-      label = mulle_objc_categories_html_description( &pair->categoryids,
+      label = mulle_objc_categories_html_description( array,
                                                       &categorytable_style);
-      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", &pair->categoryids, label);
+      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", array, label);
       free( label);
    }
 }

@@ -43,6 +43,8 @@
 		41212A181E97BF4B0089F711 /* mulle_objc_metaclass.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A161E97BF4B0089F711 /* mulle_objc_metaclass.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		41212A221E97DAAA0089F711 /* mulle_objc_class_struct.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A211E97DAAA0089F711 /* mulle_objc_class_struct.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		41212A241E97DC6A0089F711 /* mulle_objc_walktypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 41212A231E97DC6A0089F711 /* mulle_objc_walktypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		4122BEB71EDB2B52008E6599 /* mulle_objc_uniqueidarray.c in Sources */ = {isa = PBXBuildFile; fileRef = 4122BEB51EDB2B52008E6599 /* mulle_objc_uniqueidarray.c */; };
+		4122BEB81EDB2B52008E6599 /* mulle_objc_uniqueidarray.h in Headers */ = {isa = PBXBuildFile; fileRef = 4122BEB61EDB2B52008E6599 /* mulle_objc_uniqueidarray.h */; };
 		4124009E1AB0652A00D56278 /* mulle_objc_method.h in Headers */ = {isa = PBXBuildFile; fileRef = 416BA7801A1908B8002F603A /* mulle_objc_method.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4124009F1AB0653200D56278 /* mulle_objc_load.h in Headers */ = {isa = PBXBuildFile; fileRef = 4147BDCA1A1CA4ED00AE8831 /* mulle_objc_load.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		412400A01AB0654400D56278 /* mulle_objc_callqueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 41978C351A1DF8C300DAFA51 /* mulle_objc_callqueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -164,6 +166,8 @@
 		41212A161E97BF4B0089F711 /* mulle_objc_metaclass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_metaclass.h; sourceTree = "<group>"; };
 		41212A211E97DAAA0089F711 /* mulle_objc_class_struct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_class_struct.h; sourceTree = "<group>"; };
 		41212A231E97DC6A0089F711 /* mulle_objc_walktypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_walktypes.h; sourceTree = "<group>"; };
+		4122BEB51EDB2B52008E6599 /* mulle_objc_uniqueidarray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_uniqueidarray.c; sourceTree = "<group>"; };
+		4122BEB61EDB2B52008E6599 /* mulle_objc_uniqueidarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_uniqueidarray.h; sourceTree = "<group>"; };
 		4137D83F1C724E6C00102D35 /* mulle_objc_fastenumeration.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_fastenumeration.c; sourceTree = "<group>"; };
 		4137D8401C724E6C00102D35 /* mulle_objc_fastenumeration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_fastenumeration.h; sourceTree = "<group>"; };
 		4138D0E01CC6704B00940B7B /* mulle-objc-uniqueid */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mulle-objc-uniqueid"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -371,6 +375,8 @@
 				417029691C528A64001B2693 /* mulle_objc_try_catch_finally.c */,
 				411E654F1BA82F33006A3902 /* mulle_objc_uniqueid.h */,
 				41A2882E1C65597A00BBA54E /* mulle_objc_uniqueid.c */,
+				4122BEB61EDB2B52008E6599 /* mulle_objc_uniqueidarray.h */,
+				4122BEB51EDB2B52008E6599 /* mulle_objc_uniqueidarray.c */,
 				4177A96C1D325E77007DC3D8 /* mulle_objc_version.h */,
 			);
 			path = src;
@@ -449,6 +455,7 @@
 				412400A01AB0654400D56278 /* mulle_objc_callqueue.h in Headers */,
 				41212A101E97BE3A0089F711 /* mulle_objc_classpair.h in Headers */,
 				4158AC941A1A01BD007F2A2D /* mulle_objc_class.h in Headers */,
+				4122BEB81EDB2B52008E6599 /* mulle_objc_uniqueidarray.h in Headers */,
 				4177A96B1D325DA6007DC3D8 /* mulle_objc_class_runtime.h in Headers */,
 				41212A221E97DAAA0089F711 /* mulle_objc_class_struct.h in Headers */,
 				41D52A001B7AA4EF00F53814 /* mulle_objc_ivar.h in Headers */,
@@ -610,6 +617,7 @@
 				4158AC8E1A1A01AB007F2A2D /* mulle_objc_class.c in Sources */,
 				410E85131BDE798F00FF7BF2 /* mulle_objc_fastmethodtable.c in Sources */,
 				4170296B1C528A64001B2693 /* mulle_objc_try_catch_finally.c in Sources */,
+				4122BEB71EDB2B52008E6599 /* mulle_objc_uniqueidarray.c in Sources */,
 				41D529FF1B7AA4EF00F53814 /* mulle_objc_ivar.c in Sources */,
 				411727E01B7CC3420031BEB9 /* mulle_objc_ivarlist.c in Sources */,
 				4147BDC91A1CA4E100AE8831 /* mulle_objc_load.c in Sources */,

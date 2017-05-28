@@ -42,20 +42,45 @@
 #include "mulle_objc_runtime.h"
 
 
+
+static void  _mulle_objc_classpair_add_protocolids( struct _mulle_objc_classpair *pair,
+                                                    unsigned int n,
+                                                    mulle_objc_protocolid_t *protocolids);
+
+
 void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
-                                               struct mulle_allocator *allocator)
+                                        struct mulle_allocator *allocator)
 {
-   _mulle_concurrent_pointerarray_init( &pair->protocolids, 0, allocator);
+   struct _mulle_objc_runtime   *runtime;
+   
+   runtime = _mulle_objc_classpair_get_runtime( pair);
+   assert( runtime);
+   
    _mulle_concurrent_pointerarray_init( &pair->protocolclasses, 0, allocator);
-   _mulle_concurrent_pointerarray_init( &pair->categoryids, 0, allocator);
+
+   _mulle_atomic_pointer_nonatomic_write( &pair->p_protocolids.pointer, &runtime->empty_uniqueidarray);
+   _mulle_atomic_pointer_nonatomic_write( &pair->p_categoryids.pointer, &runtime->empty_uniqueidarray);
 }
 
 
-void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair)
+void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
+                                        struct mulle_allocator *allocator)
 {
-   _mulle_concurrent_pointerarray_done( &pair->protocolids);
+   struct _mulle_objc_uniqueidarray    *array;
+   struct _mulle_objc_runtime   *runtime;
+   
+   runtime = _mulle_objc_classpair_get_runtime( pair);
+   assert( runtime);
+   
+   array = _mulle_atomic_pointer_nonatomic_read( &pair->p_protocolids.pointer);
+   if( array != &runtime->empty_uniqueidarray)
+      mulle_objc_uniqueidarray_abafree( array, allocator);
+
+   array = _mulle_atomic_pointer_nonatomic_read( &pair->p_categoryids.pointer);
+   if( array != &runtime->empty_uniqueidarray)
+      mulle_objc_uniqueidarray_abafree( array, allocator);
+
    _mulle_concurrent_pointerarray_done( &pair->protocolclasses);
-   _mulle_concurrent_pointerarray_done( &pair->categoryids);
 }
 
 
@@ -70,7 +95,7 @@ void   _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
    _mulle_objc_metaclass_plusdone( &pair->metaclass);
    _mulle_objc_class_done( _mulle_objc_metaclass_as_class( &pair->metaclass), allocator);
 
-   _mulle_objc_classpair_plusdone( pair);
+   _mulle_objc_classpair_plusdone( pair, allocator);
 
    _mulle_allocator_free( allocator, pair);
 }
@@ -121,7 +146,59 @@ mulle_objc_walkcommand_t
 }
 
 
+#pragma mark - protocolids, categories common
+
+static void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
+                                                          mulle_atomic_pointer_t *pointer,
+                                                          unsigned int n,
+                                                          mulle_objc_uniqueid_t *uniqueids)
+{
+   struct _mulle_objc_uniqueidarray   *array;
+   struct _mulle_objc_uniqueidarray   *copy;
+   struct mulle_allocator             *allocator;
+   struct _mulle_objc_runtime         *runtime;
+   
+   runtime   = _mulle_objc_classpair_get_runtime( pair);
+   allocator = _mulle_objc_runtime_get_allocator( runtime);
+   
+   copy = NULL;
+   // emit what we have collected
+   do
+   {
+      if( copy)
+         mulle_objc_uniqueidarray_free( copy, allocator);
+      
+      array = _mulle_atomic_pointer_read( pointer);
+      copy  = _mulle_objc_uniqueidarray_by_adding_ids( array, n, uniqueids, allocator);
+   }
+   while( ! _mulle_atomic_pointer_compare_and_swap( pointer, copy, array));
+   
+   if( array != &runtime->empty_uniqueidarray)
+      mulle_objc_uniqueidarray_abafree( array, allocator);
+}
+
+
 #pragma mark - categories
+
+static inline void  _mulle_objc_classpair_add_categoryids( struct _mulle_objc_classpair *pair,
+                                                           unsigned int n,
+                                                           mulle_objc_protocolid_t *categoryids)
+{
+   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_categoryids.pointer, n, categoryids);
+}
+
+
+void   _mulle_objc_classpair_add_category( struct _mulle_objc_classpair *pair,
+                                           mulle_objc_categoryid_t categoryid)
+{
+   assert( pair);
+   assert( categoryid != MULLE_OBJC_NO_CATEGORYID);
+   assert( categoryid != MULLE_OBJC_INVALID_CATEGORYID);
+   assert( ! _mulle_objc_classpair_has_category( pair, categoryid));
+
+   _mulle_objc_classpair_add_categoryids( pair, 1, &categoryid);
+}
+
 
 static void   _mulle_objc_class_raise_einval_exception( void)
 {
@@ -139,16 +216,17 @@ int   _mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair
                                                         void *),
                                               void *userinfo)
 {
-   int                                              rval;
-   mulle_objc_categoryid_t                          categoryid;
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   void                                             *value;
-
-   rover = mulle_concurrent_pointerarray_enumerate( &pair->categoryids);
-   while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   int                                rval;
+   mulle_objc_categoryid_t            *p;
+   mulle_objc_categoryid_t            *sentinel;
+   struct _mulle_objc_uniqueidarray   *array;
+   
+   array    = _mulle_atomic_pointer_read( &pair->p_categoryids.pointer);
+   p        = array->entries;
+   sentinel = &p[ array->n];
+   while( p < sentinel)
    {
-      categoryid = (mulle_objc_categoryid_t) (uintptr_t) value; // fing warning
-      if( rval = (*f)( categoryid, pair, userinfo))
+      if( rval = (*f)( *p++, pair, userinfo))
       {
          if( rval < 0)
             errno = ENOENT;
@@ -312,7 +390,7 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
 
       _mulle_concurrent_pointerarray_add( &pair->protocolclasses, proto_cls);
 
-      _mulle_objc_classpair_add_protocol( pair, protocolclassid);
+      _mulle_objc_classpair_add_protocolids( pair, 1, &protocolclassid);
    }
 }
 
@@ -332,37 +410,33 @@ struct _mulle_objc_infraclass  *_mulle_objc_protocolclassenumerator_next( struct
 
 #pragma mark - protocols
 
-void   _mulle_objc_classpair_add_protocol( struct _mulle_objc_classpair *pair,
-                                           mulle_objc_protocolid_t protocolid)
+
+static inline void  _mulle_objc_classpair_add_protocolids( struct _mulle_objc_classpair *pair,
+                                                           unsigned int n,
+                                                           mulle_objc_protocolid_t *protocolids)
 {
-   assert( pair);
-   assert( protocolid != MULLE_OBJC_NO_PROTOCOLID);
-   assert( protocolid != MULLE_OBJC_INVALID_PROTOCOLID);
-
-   // adding the same protocol again is harmless and ignored
-   // but don't search class hierarchy, so don't use conformsto
-
-   if( ! _mulle_objc_classpair_has_protocol( pair, protocolid))
-      _mulle_concurrent_pointerarray_add( &pair->protocolids, (void *) (uintptr_t) protocolid);
+   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_protocolids.pointer, n, protocolids);
 }
+
 
 
 int   _mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
                                               int (*f)( mulle_objc_protocolid_t,
                                                         struct _mulle_objc_classpair *,
-                                                        void *) ,
+                                                        void *),
                                               void *userinfo)
 {
-   int                                         rval;
-   mulle_objc_propertyid_t                     propertyid;
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   void                                        *value;
-
-   rover = mulle_concurrent_pointerarray_enumerate( &pair->protocolids);
-   while( value = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   int                                rval;
+   mulle_objc_categoryid_t            *p;
+   mulle_objc_categoryid_t            *sentinel;
+   struct _mulle_objc_uniqueidarray   *array;
+   
+   array    = _mulle_atomic_pointer_read( &pair->p_protocolids.pointer);
+   p        = array->entries;
+   sentinel = &p[ array->n];
+   while( p < sentinel)
    {
-      propertyid = (mulle_objc_propertyid_t) (uintptr_t) value; // fing warning
-      if( rval = (*f)( propertyid, pair, userinfo))
+      if( rval = (*f)( *p++, pair, userinfo))
       {
          if( rval < 0)
             errno = ENOENT;
@@ -374,11 +448,13 @@ int   _mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair
 
 
 void   mulle_objc_classpair_unfailing_add_protocolids( struct _mulle_objc_classpair *pair,
-                                                      mulle_objc_protocolid_t *protocolids)
+                                                       mulle_objc_protocolid_t *protocolids)
 {
-   mulle_objc_protocolid_t        protocolid;
-   struct _mulle_objc_runtime     *runtime;
-
+   mulle_objc_protocolid_t      *q;
+   mulle_objc_protocolid_t      *memo;
+   mulle_objc_protocolid_t      protocolid;
+   struct _mulle_objc_runtime   *runtime;
+   
    if( ! pair)
       _mulle_objc_class_raise_einval_exception();
 
@@ -387,23 +463,38 @@ void   mulle_objc_classpair_unfailing_add_protocolids( struct _mulle_objc_classp
 
    runtime = _mulle_objc_classpair_get_runtime( pair);
 
-   while( protocolid = *protocolids++)
+   q    = protocolids;
+   memo = q;
+   for(;;)
    {
-      if( protocolid == MULLE_OBJC_NO_PROTOCOLID || protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
-         _mulle_objc_class_raise_einval_exception();
+      protocolid = *q++;
+      if( ! protocolid)
+      {
+         --q;
+         if( q == memo) // done and nothing to do
+            break;
+      }
+      else
+      {
+         if( protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
+            _mulle_objc_class_raise_einval_exception();
 
-      if( _mulle_objc_classpair_has_protocol( pair, protocolid))
-         continue;
-
-      if( runtime->debug.trace.protocol_adds)
-         fprintf( stderr, "mulle_objc_runtime %p trace: add protocol %08x \"%s\" to class %08x \"%s\"\n",
-                 runtime,
-                 protocolid,
-                 mulle_objc_string_for_protocolid( protocolid),
-                 _mulle_objc_classpair_get_classid( pair),
-                 _mulle_objc_classpair_get_name( pair));
-
-      _mulle_concurrent_pointerarray_add( &pair->protocolids, (void *) (uintptr_t) protocolid);
+         if( ! _mulle_objc_classpair_has_protocol( pair, protocolid))
+         {
+            // keep collecting
+            if( runtime->debug.trace.protocol_adds)
+               fprintf( stderr, "mulle_objc_runtime %p trace: add protocol %08x \"%s\" to class %08x \"%s\"\n",
+                    runtime,
+                    protocolid,
+                    mulle_objc_string_for_protocolid( protocolid),
+                    _mulle_objc_classpair_get_classid( pair),
+                    _mulle_objc_classpair_get_name( pair));
+            continue;
+         }
+      }
+      
+      _mulle_objc_classpair_add_protocolids( pair, (unsigned int) (q - memo), memo);
+      memo = q;
    }
 }
 
