@@ -474,11 +474,12 @@ mulle_objc_walkcommand_t
 //
 int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_runtime    *runtime;
-   struct _mulle_objc_classpair  *pair;
-   int                           is_NSObject;
-   int                           has_categories;
-   unsigned int                  inheritance;
+   struct _mulle_objc_runtime         *runtime;
+   struct _mulle_objc_classpair       *pair;
+   struct _mulle_objc_uniqueidarray   *array;
+   int                                is_NSObject;
+   int                                has_categories;
+   unsigned int                       inheritance;
 
    if( ! infra)
       return( 0);
@@ -556,7 +557,8 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    inheritance = _mulle_objc_class_get_inheritance( _mulle_objc_infraclass_as_class( infra));
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
    {
-      has_categories = mulle_concurrent_pointerarray_get_count( &pair->categoryids) != 0;
+      array = _mulle_atomic_pointer_read( &pair->p_categoryids.pointer);
+      has_categories = array->n != 0;
       if( has_categories)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))

@@ -32,7 +32,6 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
 
 //
@@ -168,5 +167,9 @@ static inline mulle_objc_protocolid_t   mulle_objc_protocolid_from_string( char 
    return( mulle_objc_uniqueid_from_string( s));
 }
 
+
+unsigned int   _mulle_objc_uniqueid_arraycount( mulle_objc_uniqueid_t *ids);
+
+int  _mulle_objc_uniqueid_qsortcompare( mulle_objc_uniqueid_t *a, mulle_objc_uniqueid_t *b);
 
 #endif

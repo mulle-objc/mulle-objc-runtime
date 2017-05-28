@@ -69,29 +69,6 @@ static struct _mulle_objc_dependency  no_dependency =
 };
 
 
-static size_t   mulle_objc_count_protocolids( mulle_objc_protocolid_t *ids)
-{
-   size_t   n;
-
-   n = 0;
-   if( ids)
-      while( *ids++)
-         ++n;
-   return( n);
-}
-
-
-static int  _mulle_objc_protocolid_compare( mulle_objc_protocolid_t *a, mulle_objc_protocolid_t *b)
-{
-   intptr_t   diff;
-
-   diff = (intptr_t) *a - (intptr_t) *b;
-   if( diff < 0)
-      return( -1);
-   return( ! ! diff);
-}
-
-
 static void    map_f( struct mulle_concurrent_hashmap *table,
                       mulle_objc_uniqueid_t uniqueid,
                       void (*f)( void *,
@@ -537,10 +514,12 @@ void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *inf
 }
 
 
-static void   mulle_objc_loadclass_listssort( struct _mulle_objc_loadclass *lcls)
+static void   _mulle_objc_loadclass_listssort( struct _mulle_objc_loadclass *lcls)
 {
-   qsort( lcls->protocolids, mulle_objc_count_protocolids( lcls->protocolids), sizeof( mulle_objc_protocolid_t), (int (*)()) _mulle_objc_protocolid_compare);
-
+   qsort( lcls->protocolids,
+          _mulle_objc_uniqueid_arraycount( lcls->protocolids),
+          sizeof( mulle_objc_protocolid_t),
+          (int (*)()) _mulle_objc_uniqueid_qsortcompare);
    mulle_objc_ivarlist_sort( lcls->instancevariables);
    mulle_objc_methodlist_sort( lcls->instancemethods);
    mulle_objc_methodlist_sort( lcls->classmethods);
@@ -670,12 +649,15 @@ static void   mulle_objc_loadclasslist_unfailing_enqueue( struct _mulle_objc_loa
    struct _mulle_objc_loadclass   **p_class;
    struct _mulle_objc_loadclass   **sentinel;
 
+   if( ! list)
+      return;
+   
    p_class = list->loadclasses;
    sentinel = &p_class[ list->n_loadclasses];
    while( p_class < sentinel)
    {
       if( need_sort)
-         mulle_objc_loadclass_listssort( *p_class);
+         _mulle_objc_loadclass_listssort( *p_class);
 
       mulle_objc_loadclass_unfailing_enqueue( *p_class, loads);
       p_class++;
@@ -1094,9 +1076,12 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
 # pragma mark - categorylists
 
 
-static void   mulle_objc_loadcategory_listssort( struct _mulle_objc_loadcategory *lcat)
+static void   _mulle_objc_loadcategory_listssort( struct _mulle_objc_loadcategory *lcat)
 {
-   qsort( lcat->protocolids, mulle_objc_count_protocolids( lcat->protocolids), sizeof( mulle_objc_protocolid_t), (int (*)()) _mulle_objc_protocolid_compare);
+   qsort( lcat->protocolids,
+          _mulle_objc_uniqueid_arraycount( lcat->protocolids),
+          sizeof( mulle_objc_protocolid_t),
+          (int (*)()) _mulle_objc_uniqueid_qsortcompare);
 
    mulle_objc_methodlist_sort( lcat->instancemethods);
    mulle_objc_methodlist_sort( lcat->classmethods);
@@ -1111,12 +1096,15 @@ static void   mulle_objc_loadcategorylist_unfailing_enqueue( struct _mulle_objc_
    struct _mulle_objc_loadcategory   **p_category;
    struct _mulle_objc_loadcategory   **sentinel;
 
+   if( ! list)
+      return;
+   
    p_category = list->loadcategories;
    sentinel   = &p_category[ list->n_loadcategories];
    while( p_category < sentinel)
    {
       if( need_sort)
-         mulle_objc_loadcategory_listssort( *p_category);
+         _mulle_objc_loadcategory_listssort( *p_category);
 
       mulle_objc_loadcategory_unfailing_enqueue( *p_category, loads);
       p_category++;
@@ -1149,6 +1137,9 @@ static void   mulle_objc_loadstringlist_unfailing_enqueue( struct _mulle_objc_lo
    struct _mulle_objc_object    **sentinel;
    struct _mulle_objc_runtime   *runtime;
 
+   if( ! list)
+      return;
+   
    runtime = mulle_objc_get_or_create_runtime();
 
    p_string = list->loadstrings;
@@ -1231,6 +1222,9 @@ static void   mulle_objc_loadhashedstringlist_unfailing_enqueue( struct _mulle_o
 {
    struct _mulle_objc_runtime   *runtime;
 
+   if( ! map)
+      return;
+   
    if( need_sort)
       mulle_objc_loadhashedstringlist_sort( map);
 
@@ -1500,16 +1494,14 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    }
 
    // load strings in first, can be done unlocked
-   if( info->loadstringlist)
-      mulle_objc_loadstringlist_unfailing_enqueue( info->loadstringlist);
+   mulle_objc_loadstringlist_unfailing_enqueue( info->loadstringlist);
    if( runtime->debug.trace.dump_runtime)
       mulle_objc_dotdump_runtime_to_tmp();
 
    // pass runtime thru...
    need_sort = info->version.bits & _mulle_objc_loadinfo_unsorted;
 
-   if( info->loadhashedstringlist)
-      mulle_objc_loadhashedstringlist_unfailing_enqueue( info->loadhashedstringlist, need_sort);
+   mulle_objc_loadhashedstringlist_unfailing_enqueue( info->loadhashedstringlist, need_sort);
    if( runtime->debug.trace.dump_runtime)
       mulle_objc_dotdump_runtime_to_tmp();
 
@@ -1534,10 +1526,8 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
       // Because these are locked now anyway, the pointerarray is overkill
       // and not that useful, because you can't remove entries
       //
-      if( info->loadclasslist)
-         mulle_objc_loadclasslist_unfailing_enqueue( info->loadclasslist, need_sort, &loads);
-      if( info->loadcategorylist)
-         mulle_objc_loadcategorylist_unfailing_enqueue( info->loadcategorylist, need_sort, &loads);
+      mulle_objc_loadclasslist_unfailing_enqueue( info->loadclasslist, need_sort, &loads);
+      mulle_objc_loadcategorylist_unfailing_enqueue( info->loadcategorylist, need_sort, &loads);
 
       mulle_objc_callqueue_walk( &loads, (void (*)()) call_load, runtime);
       mulle_objc_callqueue_done( &loads);
