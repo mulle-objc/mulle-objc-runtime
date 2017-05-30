@@ -43,6 +43,8 @@
 struct _mulle_objc_runtime;
 struct _mulle_objc_staticstring;
 struct _mulle_objc_class;
+struct _mulle_objc_fastclasstable;
+struct _mulle_objc_infraclass;
 struct _mulle_objc_ivarlist;
 struct _mulle_objc_propertylist;
 struct _mulle_objc_cache;
@@ -71,6 +73,13 @@ char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticst
                                                      struct _mulle_objc_htmltablestyle *styling);
 char  *mulle_objc_staticstring_html_row_description( void *value,
                                                      struct _mulle_objc_htmltablestyle *styling);
+
+char   *mulle_objc_infraclass_html_row_description( intptr_t  classid,
+                                                    void *cls,
+                                                    struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_fastclassentry_html_row_description( unsigned int i,
+                                                       struct _mulle_objc_infraclass *infra,
+                                                       struct _mulle_objc_htmltablestyle *styling);
 
 char  *mulle_objc_classestoload_row_description( intptr_t classid,
                                                  void *cls,
@@ -131,6 +140,12 @@ char   *mulle_objc_loadclass_html_row_description( void *value,
                                                    struct _mulle_objc_htmltablestyle *styling);
 char   *mulle_objc_loadcategory_html_row_description( void *value,
                                                       struct _mulle_objc_htmltablestyle *styling);
+
+char   *mulle_objc_fastclasstable_html_description( struct _mulle_objc_fastclasstable *fastclasstable,
+                                                     char *(row_description)( unsigned int i,
+                                                        struct _mulle_objc_infraclass *,
+                                                        struct _mulle_objc_htmltablestyle *),
+                                                     struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurrent_pointerarray *list,
                                                         char *(row_description)( void *,                struct _mulle_objc_htmltablestyle *),

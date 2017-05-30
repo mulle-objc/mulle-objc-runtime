@@ -474,10 +474,10 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
       _mulle_objc_runtime_set_fastclass( runtime, infra, info->fastclassindex);
 
    if( mulle_objc_runtime_add_infraclass( runtime, infra))
-      _mulle_objc_runtime_raise_fail_exception( runtime, "error in mulle_objc_runtime %p: duplicate class %08x \"%s\".\n", runtime, infra->base.classid, infra->base.name);
-
-   if( runtime->debug.trace.dump_runtime)
-      mulle_objc_dotdump_runtime_to_tmp();
+      _mulle_objc_runtime_raise_fail_exception( runtime,
+            "error in mulle_objc_runtime %p: "
+            "duplicate class %08x \"%s\".\n",
+             runtime, infra->base.classid, infra->base.name);
 
    //
    // check if categories or classes are waiting for us ?
@@ -514,6 +514,9 @@ void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *inf
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
       if( mulle_objc_loadclass_delayedadd( info, missingclassid, runtime))
          _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+
+   if( runtime->debug.trace.dump_runtime)
+      mulle_objc_dotdump_runtime_frame_to_tmp();
 }
 
 
@@ -533,21 +536,21 @@ static void   _mulle_objc_loadclass_listssort( struct _mulle_objc_loadclass *lcl
 
 static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassids,
                                         char *prefix,
-                                        struct _mulle_objc_loadhashedstringlist *strings)
+                                        struct _mulle_objc_protocollist *protocols)
 
 {
-   mulle_objc_protocolid_t    protoid;
-   char                       *s;
-
+   mulle_objc_protocolid_t      protoid;
+   struct _mulle_objc_protocol  *protocol;
+   
    for(; *protocolclassids; ++protocolclassids)
    {
       protoid = *protocolclassids;
-
-      s = NULL;
-      if( strings)
-         s = mulle_objc_loadhashedstringlist_bsearch( strings, protoid);
-      if( s)
-         fprintf( stderr, "%s@class %s;\n%s@protocol %s;\n", prefix, s, prefix, s);
+   
+      protocol = NULL;
+      if( protocols)
+         protocol = _mulle_objc_protocollist_search( protocols, protoid);
+      if( protocol)
+         fprintf( stderr, "%s@class %s;\n%s@protocol %s;\n", prefix, protocol->name, prefix, protocol->name);
       else
          fprintf( stderr, "%s@class %08x;\n%s@protocol #%08x;\n", prefix, protoid, prefix, protoid);
    }
@@ -597,7 +600,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
    struct _mulle_objc_method   *sentinel;
 
    if( p->protocolclassids)
-      loadprotocolclasses_dump( p->protocolclassids, prefix, strings);
+      loadprotocolclasses_dump( p->protocolclassids, prefix, p->protocols);
 
    fprintf( stderr, "%s@implementation %s", prefix, p->classname);
    if( p->superclassname)
@@ -991,9 +994,6 @@ static mulle_objc_classid_t
    // this queues things up
    mulle_objc_methodlist_unfailing_add_load_to_callqueue( info->classmethods, meta, loads);
 
-   if( runtime->debug.trace.dump_runtime)
-      mulle_objc_dotdump_runtime_to_tmp();
-
    //
    // retrigger those who are waiting for their dependencies
    //
@@ -1029,6 +1029,9 @@ void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategor
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
       if( mulle_objc_loadcategory_delayedadd( info, missingclassid, runtime))
          _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+
+   if( runtime->debug.trace.dump_runtime)
+      mulle_objc_dotdump_runtime_frame_to_tmp();
 }
 
 
@@ -1040,7 +1043,7 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
    struct _mulle_objc_method   *sentinel;
 
    if( p->protocolclassids)
-      loadprotocolclasses_dump( p->protocolclassids, prefix, strings);
+      loadprotocolclasses_dump( p->protocolclassids, prefix, p->protocols);
 
    fprintf( stderr, "%s@implementation %s( %s)", prefix, p->classname, p->categoryname);
 
@@ -1497,17 +1500,16 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
       loadinfo_dump( info, "   ");
    }
 
+   if( runtime->debug.trace.dump_runtime)
+      mulle_objc_dotdump_runtime_frame_to_tmp();
+
    // load strings in first, can be done unlocked
    mulle_objc_loadstringlist_unfailing_enqueue( info->loadstringlist);
-   if( runtime->debug.trace.dump_runtime)
-      mulle_objc_dotdump_runtime_to_tmp();
 
    // pass runtime thru...
    need_sort = info->version.bits & _mulle_objc_loadinfo_unsorted;
 
    mulle_objc_loadhashedstringlist_unfailing_enqueue( info->loadhashedstringlist, need_sort);
-   if( runtime->debug.trace.dump_runtime)
-      mulle_objc_dotdump_runtime_to_tmp();
 
    _mulle_objc_runtime_waitqueues_lock( runtime);
    {

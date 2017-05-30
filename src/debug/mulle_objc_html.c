@@ -124,17 +124,32 @@ static char  *inheritance_description( unsigned int inheritance)
 }
 
 
-static char  *uniqueid_html_row_description( void *value, struct _mulle_objc_htmltablestyle *styling)
+static char  *categoryid_html_row_description( void *value, struct _mulle_objc_htmltablestyle *styling)
 {
-   mulle_objc_uniqueid_t        uniqueid;
-   char                         *s;
-   char                         *result;
+   mulle_objc_categoryid_t   categoryid;
+   char                      *s;
+   char                      *result;
 
-   uniqueid = (mulle_objc_uniqueid_t) (intptr_t) value;
-   s        = mulle_objc_string_for_uniqueid( uniqueid);
+   categoryid = (mulle_objc_categoryid_t) (intptr_t) value;
+   s          = mulle_objc_string_for_categoryid( categoryid);
 
-   mulle_objc_asprintf( &result, "<TR><TD>%08x</TD><TD>\"%s\"</TD></TR>\n",
-         uniqueid, s);
+   mulle_objc_asprintf( &result, "<TR><TD>\"%s\"</TD><TD>%08x</TD></TR>\n",
+         s, categoryid);
+   return( result);
+}
+
+
+static char  *protocolid_html_row_description( void *value, struct _mulle_objc_htmltablestyle *styling)
+{
+   mulle_objc_protocolid_t   protocolid;
+   char                      *s;
+   char                      *result;
+
+   protocolid = (mulle_objc_protocolid_t) (intptr_t) value;
+   s          = mulle_objc_string_for_protocolid( protocolid);
+
+   mulle_objc_asprintf( &result, "<TR><TD>\"%s\"</TD><TD>%08x</TD></TR>\n",
+         s, protocolid);
    return( result);
 }
 
@@ -291,6 +306,23 @@ char  *mulle_objc_staticstring_html_row_description( void *value,
 }
 
 
+char  *mulle_objc_fastclassentry_html_row_description( unsigned int i,
+                                                       struct _mulle_objc_infraclass *infra,
+                                                       struct _mulle_objc_htmltablestyle *styling)
+{
+   char   *s;
+
+   asprintf( &s,
+            "<TR>"
+            "<TD>%u</TD>"
+            "<TD>%s</TD>"
+            "</TR>\n",
+            i,
+            html_escape( infra ? _mulle_objc_infraclass_get_name( infra) : "*null*"));
+
+   return( s);
+}
+
 #pragma mark - classes
 
 char   *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls,
@@ -318,11 +350,26 @@ char   *mulle_objc_class_html_row_description( intptr_t  classid,
    name   = html_escape( _mulle_objc_class_get_name( cls));
    prefix = _mulle_objc_class_is_metaclass( cls) ? "+" : "";
 
-   asprintf( &s, "<TR><TD>%08x</TD><TD><A HREF=\"%s%s.html\">%s</A></TD></TR>\n",
-            _mulle_objc_class_get_classid( cls),
+   asprintf( &s, "<TR><TD><A HREF=\"%s%s.html\">%s</A></TD><TD>%08x</TD></TR>\n",
             prefix,
             name,
-            name);
+            name,
+            _mulle_objc_class_get_classid( cls));
+   return( s);
+}
+
+
+char   *mulle_objc_infraclass_html_row_description( intptr_t  classid,
+                                                    void *cls,
+                                                    struct _mulle_objc_htmltablestyle *styling)
+{
+   char   *s;
+   char   *name;
+
+   name   = html_escape( _mulle_objc_infraclass_get_name( cls));
+   asprintf( &s, "<TR><TD>%s</TD><TD>%08x</TD></TR>\n",
+            name,
+            _mulle_objc_infraclass_get_classid( cls));
    return( s);
 }
 
@@ -546,44 +593,6 @@ char   *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_met
 }
 
 
-char   *mulle_objc_category_html_row_description( intptr_t  categoryid,
-                                                  void *value,
-                                                  struct _mulle_objc_htmltablestyle *styling)
-{
-   char  *name = value;
-   char  *s;
-
-   asprintf( &s,
-            "<TR>"
-            "<TD>%08x</TD>"
-            "<TD>%s</TD>"
-            "</TR>\n",
-            categoryid,
-            html_escape( name));
-
-   return( s);
-}
-
-
-char   *mulle_objc_protocol_html_row_description( intptr_t  methodid,
-                                                  void *value,
-                                                  struct _mulle_objc_htmltablestyle *styling)
-{
-   char  *name = value;
-   char  *s;
-
-   asprintf( &s,
-            "<TR>"
-            "<TD>%08x</TD>"
-            "<TD>%s</TD>"
-            "</TR>\n",
-            methodid,
-            html_escape( name));
-
-   return( s);
-}
-
-
 char   *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
                                                           void *value,
                                                           struct _mulle_objc_htmltablestyle *styling)
@@ -607,6 +616,48 @@ char   *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
 }
 
 
+#pragma mark - categories
+
+char   *mulle_objc_category_html_row_description( intptr_t  categoryid,
+                                                  void *value,
+                                                  struct _mulle_objc_htmltablestyle *styling)
+{
+   char  *s;
+
+   asprintf( &s,
+            "<TR>"
+            "<TD>%s</TD>"
+            "<TD>%08x</TD>"
+            "</TR>\n",
+            html_escape( value),
+            categoryid);
+
+   return( s);
+}
+
+
+#pragma mark - protocols
+
+char   *mulle_objc_protocol_html_row_description( intptr_t  protocolid,
+                                                  void *value,
+                                                  struct _mulle_objc_htmltablestyle *styling)
+{
+   struct _mulle_objc_protocol  *protocol = value;
+   char  *s;
+
+   asprintf( &s,
+            "<TR>"
+            "<TD>%s</TD>"
+            "<TD>%08x</TD>"
+            "</TR>\n",
+            html_escape( _mulle_objc_protocol_get_name( protocol)),
+            protocolid);
+
+   return( s);
+}
+
+
+
 #pragma mark - propertylist
 
 char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list,
@@ -620,7 +671,6 @@ char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylis
 
    n   = list->n_properties + 2;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
-
 
    // create single lines for each method and two for head/tail
    i = 0;
@@ -859,9 +909,9 @@ char   *mulle_objc_loadclass_html_row_description( void *value,
    struct _mulle_objc_loadclass   *loadcls = value;
    char   *s;
 
-   asprintf( &s, "<TR><TD>%08x</TD><TD>%s</TD></TR>\n",
-            loadcls->classid,
-            loadcls->classname);
+   asprintf( &s, "<TR><TD>%s</TD><TD>%08x</TD></TR>\n",
+            loadcls->classname,
+            loadcls->classid);
    return( s);
 }
 
@@ -874,10 +924,10 @@ char   *mulle_objc_loadcategory_html_row_description( void *value,
    struct _mulle_objc_loadcategory   *loadcat = value;
    char   *s;
 
-   asprintf( &s, "<TR><TD>%08x</TD><TD>%s( %s)</TD></TR>\n",
-            loadcat->categoryid,
+   asprintf( &s, "<TR><TD>%s( %s)</TD><TD>%08x</TD></TR>\n",
             loadcat->classname,
-            loadcat->categoryname);
+            loadcat->categoryname,
+            loadcat->categoryid);
    return( s);
 }
 
@@ -889,7 +939,7 @@ char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray 
                                                struct _mulle_objc_htmltablestyle *styling)
 {
    return( mulle_objc_uniqueidarray_html_description( array,
-                                                      uniqueid_html_row_description,
+                                                      protocolid_html_row_description,
                                                       styling));
 }
 
@@ -900,8 +950,63 @@ char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
    return( mulle_objc_uniqueidarray_html_description( array,
-                                                      uniqueid_html_row_description,
+                                                      categoryid_html_row_description,
                                                       styling));
+}
+
+
+#pragma mark - fastclasses
+
+char   *mulle_objc_fastclasstable_html_description( struct _mulle_objc_fastclasstable *fastclasstable,
+                                                     char *(row_description)( unsigned int i,
+                                                        struct _mulle_objc_infraclass *,
+                                                        struct _mulle_objc_htmltablestyle *),
+                                                     struct _mulle_objc_htmltablestyle *styling)
+
+{
+   size_t         count;
+   size_t         len;
+   char           **tmp;
+   unsigned int   i;
+   unsigned int   j;
+   unsigned int   n;
+   void           *value;
+
+   count = MULLE_OBJC_S_FASTCLASSES;
+
+   n   = (unsigned int) count + 2;
+   tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
+
+   tmp[ 0] = NULL;
+
+   i   = 0;
+   len = 0;
+
+   if( styling)
+   {
+      asprintf_table_header( &tmp[ i], styling);
+      len += strlen( tmp[ i]);
+      ++i;
+   }
+
+   for( j = 0; j < MULLE_OBJC_S_FASTCLASSES; j++)
+   {
+      value = _mulle_atomic_pointer_nonatomic_read( &fastclasstable->classes[ j].pointer);
+      tmp[ i] = (*row_description)( j, value, styling);
+      len    += strlen( tmp[ i]);
+      ++i;
+   }
+
+   if( styling)
+   {
+      asprintf( &tmp[ i], "</TABLE>");
+      len += strlen( tmp[ i]);
+      ++i;
+   }
+
+   assert( i <= n);
+
+   return( final_concat_malloced_tmp_known_len( tmp, i, len));
 }
 
 
@@ -1033,7 +1138,6 @@ char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidar
    char                    **tmp;
    unsigned int            i;
    unsigned int            n;
-   char                    *null_description;
    mulle_objc_uniqueid_t   *p;
    mulle_objc_uniqueid_t   *sentinel;
    
@@ -1053,8 +1157,6 @@ char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidar
       len += strlen( tmp[ i]);
       ++i;
    }
-
-   null_description = "*null*";
 
    p        = array->entries;
    sentinel = &p[ count];

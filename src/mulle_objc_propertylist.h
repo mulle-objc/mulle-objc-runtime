@@ -68,7 +68,7 @@ static inline struct _mulle_objc_property  *_mulle_objc_propertylist_binary_sear
 
 
 static inline struct _mulle_objc_property  *_mulle_objc_propertylist_search( struct _mulle_objc_propertylist *list,
-                                                                    mulle_objc_propertyid_t propertyid)
+                                                                             mulle_objc_propertyid_t propertyid)
 
 {
    if( list->n_properties >= 14) // 14 is a resarched value for i7
