@@ -385,6 +385,8 @@ void   __mulle_objc_runtime_setup( struct _mulle_objc_runtime *runtime,
 
    _mulle_concurrent_hashmap_init( &runtime->classtable, 128, &runtime->memory.allocator);
    _mulle_concurrent_hashmap_init( &runtime->descriptortable, 2048, &runtime->memory.allocator);
+   _mulle_concurrent_hashmap_init( &runtime->protocoltable, 64, &runtime->memory.allocator);
+   _mulle_concurrent_hashmap_init( &runtime->categorytable, 128, &runtime->memory.allocator);
 
    mulle_thread_mutex_init( &runtime->waitqueues.lock);
    _mulle_concurrent_hashmap_init( &runtime->waitqueues.classestoload, 64, &runtime->memory.allocator);
@@ -748,6 +750,8 @@ static void   _mulle_objc_runtime_free_classgraph( struct _mulle_objc_runtime *r
    _mulle_concurrent_hashmap_done( &runtime->waitqueues.categoriestoload);
    _mulle_concurrent_hashmap_done( &runtime->waitqueues.classestoload);
    _mulle_concurrent_hashmap_done( &runtime->descriptortable);
+   _mulle_concurrent_hashmap_done( &runtime->protocoltable);
+   _mulle_concurrent_hashmap_done( &runtime->categorytable);
    _mulle_concurrent_hashmap_done( &runtime->classtable);
 
    _mulle_concurrent_pointerarray_done( &runtime->staticstrings);
@@ -1433,14 +1437,137 @@ char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid)
 
 // cheap conveniences
 #ifndef MULLE_OBJC_NO_CONVENIENCES
-struct _mulle_objc_methodlist  *mulle_objc_alloc_methodlist( unsigned int count_methods)
+struct _mulle_objc_methodlist  *mulle_objc_alloc_methodlist( unsigned int n)
 {
    return( mulle_objc_runtime_calloc( mulle_objc_get_or_create_runtime(),
                                       1,
-                                      mulle_objc_size_of_methodlist( count_methods)));
+                                      mulle_objc_sizeof_methodlist( n)));
 }
 
 #endif
+
+
+# pragma mark - protocols
+
+struct _mulle_objc_protocol   *_mulle_objc_runtime_lookup_protocol( struct _mulle_objc_runtime *runtime,
+                                                                    mulle_objc_protocolid_t protocolid)
+{
+   return( _mulle_concurrent_hashmap_lookup( &runtime->protocoltable, protocolid));
+}
+
+
+int   _mulle_objc_runtime_add_protocol( struct _mulle_objc_runtime *runtime,
+                                        struct _mulle_objc_protocol *protocol)
+
+{
+   struct _mulle_objc_methoddescriptor   *dup;
+
+   if( protocol->protocolid == MULLE_OBJC_NO_PROTOCOLID || protocol->protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
+      return( -1);
+
+   dup = _mulle_concurrent_hashmap_lookup( &runtime->protocoltable, protocol->protocolid);
+   if( ! dup)
+      return( _mulle_concurrent_hashmap_insert( &runtime->protocoltable, protocol->protocolid, protocol->name));
+
+   if( strcmp( dup->name, protocol->name))
+   {
+      errno = EEXIST;
+      return( -1);
+   }
+
+   return( 0);
+}
+
+
+void    mulle_objc_runtime_unfailing_add_protocol( struct _mulle_objc_runtime *runtime,
+                                                   struct _mulle_objc_protocol *protocol)
+{
+   struct _mulle_objc_protocol  *dup;
+
+   assert( runtime);
+
+   if( _mulle_objc_runtime_add_protocol( runtime, protocol))
+   {
+      dup = _mulle_objc_runtime_lookup_protocol( runtime, protocol->protocolid);
+      _mulle_objc_runtime_raise_fail_exception( runtime, "mulle_objc_runtime %p error: duplicate protocols \"%s\" and \"%s\" with same id %08x\n", runtime, dup->name, protocol->name, protocol->protocolid);
+   }
+}
+
+
+struct _mulle_objc_protocol  *mulle_objc_lookup_protocol( mulle_objc_protocolid_t protocolid)
+{
+   struct _mulle_objc_runtime   *runtime;
+
+   runtime = mulle_objc_get_or_create_runtime();
+   return( _mulle_objc_runtime_lookup_protocol( runtime, protocolid));
+}
+
+#ifndef MULLE_OBJC_NO_CONVENIENCES
+struct _mulle_objc_protocollist  *mulle_objc_alloc_protocollist( unsigned int n)
+{
+   return( mulle_objc_runtime_calloc( mulle_objc_get_or_create_runtime(),
+                                      1,
+                                      mulle_objc_sizeof_protocollist( n)));
+}
+#endif
+
+
+# pragma mark - categories
+
+char   *_mulle_objc_runtime_lookup_category( struct _mulle_objc_runtime *runtime,
+                                             mulle_objc_categoryid_t categoryid)
+{
+   return( _mulle_concurrent_hashmap_lookup( &runtime->categorytable, categoryid));
+}
+
+
+int   _mulle_objc_runtime_add_category( struct _mulle_objc_runtime *runtime,
+                                        mulle_objc_categoryid_t categoryid,
+                                        char *name)
+
+{
+   char   *dup;
+
+   if( categoryid == MULLE_OBJC_NO_CATEGORYID || categoryid == MULLE_OBJC_INVALID_CATEGORYID)
+      return( -1);
+
+   dup = _mulle_concurrent_hashmap_lookup( &runtime->protocoltable, categoryid);
+   if( ! dup)
+      return( _mulle_concurrent_hashmap_insert( &runtime->protocoltable, categoryid, name));
+
+   if( strcmp( dup, name))
+   {
+      errno = EEXIST;
+      return( -1);
+   }
+
+   return( 0);
+}
+
+
+void    mulle_objc_runtime_unfailing_add_category( struct _mulle_objc_runtime *runtime,
+                                                   mulle_objc_categoryid_t categoryid,
+                                                   char *name)
+{
+   char  *dup;
+
+   assert( runtime);
+
+   if( _mulle_objc_runtime_add_category( runtime, categoryid, name))
+   {
+      dup = _mulle_objc_runtime_lookup_category( runtime, categoryid);
+      _mulle_objc_runtime_raise_fail_exception( runtime, "mulle_objc_runtime %p error: duplicate categories \"%s\" and \"%s\" with same id %08x\n", runtime, dup, name, categoryid);
+   }
+}
+
+
+char   *mulle_objc_lookup_category( mulle_objc_categoryid_t categoryid)
+{
+   struct _mulle_objc_runtime   *runtime;
+
+   runtime = mulle_objc_get_or_create_runtime();
+   return( _mulle_objc_runtime_lookup_category( runtime, categoryid));
+}
 
 
 # pragma mark - string cache
@@ -1572,6 +1699,59 @@ char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
    s       = _mulle_objc_runtime_search_debughashname( runtime, uniqueid);
    return( s ? s : "???");
 }
+
+
+char   *mulle_objc_string_for_classid( mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_runtime      *runtime;
+   struct _mulle_objc_infraclass   *infra;
+   
+   runtime = mulle_objc_get_or_create_runtime();
+   infra   = _mulle_objc_runtime_lookup_uncached_infraclass( runtime, classid);
+   if( infra)
+      return( _mulle_objc_infraclass_get_name( infra));
+   return( mulle_objc_string_for_uniqueid( classid));
+}
+
+
+char   *mulle_objc_string_for_methodid( mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_runtime            *runtime;
+   struct _mulle_objc_methoddescriptor   *desc;
+   
+   runtime = mulle_objc_get_or_create_runtime();
+   desc   = _mulle_objc_runtime_lookup_methoddescriptor( runtime, methodid);
+   if( desc)
+      return( _mulle_objc_methoddescriptor_get_name( desc));
+   return( mulle_objc_string_for_uniqueid( methodid));
+}
+
+
+char   *mulle_objc_string_for_protocolid( mulle_objc_protocolid_t protocolid)
+{
+   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_protocol   *protocol;
+   
+   runtime  = mulle_objc_get_or_create_runtime();
+   protocol = _mulle_objc_runtime_lookup_protocol( runtime, protocolid);
+   if( protocol)
+      return( _mulle_objc_protocol_get_name( protocol));
+   return( mulle_objc_string_for_uniqueid( protocolid));
+}
+
+
+char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid)
+{
+   struct _mulle_objc_runtime    *runtime;
+   char                          *name;
+   
+   runtime  = mulle_objc_get_or_create_runtime();
+   name = _mulle_objc_runtime_lookup_category( runtime, categoryid);
+   if( name)
+      return( name);
+   return( mulle_objc_string_for_uniqueid( categoryid));
+}
+
 
 # pragma mark - debug support
 

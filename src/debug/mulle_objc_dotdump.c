@@ -267,6 +267,8 @@ struct dump_info
    char   draw_runtime;
    char   draw_strings;
    char   draw_selectors;
+   char   draw_protocols;
+   char   draw_categories;
 };
 
 
@@ -291,6 +293,34 @@ static void   print_runtime( struct _mulle_objc_runtime *runtime,
                                                            &selectortable_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
                  &runtime->descriptortable, label, "box");
+         free( label);
+      }
+
+   if( info->draw_protocols)
+      if( mulle_concurrent_hashmap_count( &runtime->protocoltable))
+      {
+         fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"protocoltable\" ];\n",
+                 runtime, &runtime->protocoltable);
+
+         label = mulle_concurrent_hashmap_html_description( &runtime->protocoltable,
+                                                            mulle_objc_protocol_html_row_description,
+                                                            &protocoltable_style);
+         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
+                 &runtime->protocoltable, label, "box");
+         free( label);
+      }
+
+   if( info->draw_categories)
+      if( mulle_concurrent_hashmap_count( &runtime->categorytable))
+      {
+         fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"categorytable\" ];\n",
+                 runtime, &runtime->categorytable);
+
+         label = mulle_concurrent_hashmap_html_description( &runtime->categorytable,
+                                                            mulle_objc_category_html_row_description,
+                                                            &categorytable_style);
+         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
+                 &runtime->protocoltable, label, "box");
          free( label);
       }
 
@@ -802,6 +832,8 @@ void   _mulle_objc_runtime_dotdump( struct _mulle_objc_runtime *runtime, FILE *f
    info.create_hyperlink = 1;
    info.draw_strings     = (char) mulle_objc_getenv_yes_no( "MULLE_OBJC_NO_STRING_TABLE");
    info.draw_selectors   = (char) mulle_objc_getenv_yes_no( "MULLE_OBJC_NO_SELECTOR_TABLE");
+   info.draw_protocols   = (char) mulle_objc_getenv_yes_no( "MULLE_OBJC_NO_PROTOCOL_TABLE");
+   info.draw_categories  = (char) mulle_objc_getenv_yes_no( "MULLE_OBJC_NO_CATEGORY_TABLE");
 
    fprintf( fp, "digraph mulle_objc_runtime\n{\n");
    mulle_objc_runtime_walk( runtime, callback, &info);

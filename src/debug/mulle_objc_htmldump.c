@@ -328,6 +328,37 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    }
    fprintf( fp, "</DIV>\n");
 
+
+   fprintf( fp, "\n<DIV CLASS=\"runtime_protocols\">\n");
+   {
+      if( mulle_concurrent_hashmap_count( &runtime->protocoltable))
+      {
+         fprintf( fp, "<TABLE CLASS=\"runtime_protocol_table\">\n");
+         label = mulle_concurrent_hashmap_html_description( &runtime->protocoltable,
+                                                           mulle_objc_protocol_html_row_description,
+                                                           &protocoltable_style);
+         print_to_body( "Protocols", label, fp);
+         mulle_allocator_free( &mulle_stdlib_allocator, label);
+         fprintf( fp, "</TABLE>\n");
+      }
+   }
+   fprintf( fp, "</DIV>\n");
+
+   fprintf( fp, "\n<DIV CLASS=\"runtime_categories\">\n");
+   {
+      if( mulle_concurrent_hashmap_count( &runtime->categorytable))
+      {
+         fprintf( fp, "<TABLE CLASS=\"runtime_category_table\">\n");
+         label = mulle_concurrent_hashmap_html_description( &runtime->categorytable,
+                                                           mulle_objc_category_html_row_description,
+                                                           &categorytable_style);
+         print_to_body( "Categories", label, fp);
+         mulle_allocator_free( &mulle_stdlib_allocator, label);
+         fprintf( fp, "</TABLE>\n");
+      }
+   }
+   fprintf( fp, "</DIV>\n");
+
    fprintf( fp, "\n<DIV CLASS=\"runtime_strings\">\n");
    {
       if( mulle_concurrent_pointerarray_get_count( &runtime->staticstrings))

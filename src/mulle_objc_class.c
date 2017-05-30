@@ -439,7 +439,7 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
       if( _mulle_objc_runtime_add_methoddescriptor( cls->runtime, &method->descriptor))
       {
          _mulle_objc_methodlistenumerator_done( &rover);
-         errno = EEXIST;
+         // errno = EEXIST; // errno set by _add_...
          return( -1);
       }
 

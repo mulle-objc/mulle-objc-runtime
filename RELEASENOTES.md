@@ -1,3 +1,18 @@
+## 0.8.1
+
+* introduced the _mulle_objc_protocol structure, which is now emitted by the
+compiler. It's sole use is to detect hash collisions on protocolids, as unlikely
+they maybe
+* also there is now a central table for categories, also just to check for
+collisions
+* improved the search speed of conformsToProtocol:
+* upped the LOAD version to 8
+* renamed _size_of_ functions to _sizeof_ as its more c like
+* renamed has_category/has_protocol and related functions to has_categoryid/has_protocolid,
+because it is less confusing
+* removed misleading mulle_objc_string_for_ivarid and friends (use class to get
+the names)
+
 ## 0.7.1
 
 > This version has changes mostly to the benefit of the mulle-lldb debugger

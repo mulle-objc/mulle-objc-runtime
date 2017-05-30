@@ -380,9 +380,9 @@ int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *inf
 
 # pragma mark - infraclass walking
 
-static int  print_category( mulle_objc_protocolid_t categoryid,
-                            struct _mulle_objc_classpair *pair,
-                            void *userinfo)
+static int  print_categoryid( mulle_objc_protocolid_t categoryid,
+                              struct _mulle_objc_classpair *pair,
+                              void *userinfo)
 {
    fprintf( stderr, "\t%08x \"%s\"\n", categoryid, mulle_objc_string_for_categoryid( categoryid));
    return( 0);
@@ -517,8 +517,8 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
 
    pair = _mulle_objc_infraclass_get_classpair( infra);
 
-   if( ! _mulle_objc_classpair_conformsto_protocol( pair,
-                                                   _mulle_objc_infraclass_get_classid( infra)))
+   if( ! _mulle_objc_classpair_conformsto_protocolid( pair,
+                                                     _mulle_objc_infraclass_get_classid( infra)))
    {
       if( runtime->debug.warn.protocolclass)
       {
@@ -571,7 +571,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
 
             fprintf( stderr, "Categories:\n");
             _mulle_objc_classpair_walk_categoryids( pair,
-                                                   print_category,
+                                                   print_categoryid,
                                                    NULL);
          }
       }

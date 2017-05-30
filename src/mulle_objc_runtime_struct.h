@@ -283,6 +283,8 @@ struct _mulle_objc_runtime
 
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
+   struct mulle_concurrent_hashmap          protocoltable;
+   struct mulle_concurrent_hashmap          categorytable;
 
    struct mulle_concurrent_pointerarray     staticstrings;
    struct mulle_concurrent_pointerarray     hashnames;

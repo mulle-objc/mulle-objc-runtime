@@ -43,6 +43,7 @@
 #include "mulle_objc_fastclasstable.h"
 #include "mulle_objc_ivarlist.h"
 #include "mulle_objc_methodlist.h"
+#include "mulle_objc_protocollist.h"
 #include "mulle_objc_propertylist.h"
 #include "mulle_objc_load.h"
 #include "mulle_objc_walktypes.h"
@@ -562,6 +563,59 @@ static inline struct _mulle_objc_method  *mulle_objc_runtime_alloc_array_of_meth
 char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid);
 
 
+# pragma mark - protocols
+
+struct _mulle_objc_protocol  *_mulle_objc_runtime_lookup_protocol( struct _mulle_objc_runtime *runtime,
+                                                mulle_objc_protocolid_t protocolid);
+int   _mulle_objc_runtime_add_protocol( struct _mulle_objc_runtime *runtime,
+                                        struct _mulle_objc_protocol *protocol);
+
+static inline int   mulle_objc_runtime_add_protocol( struct _mulle_objc_runtime *runtime,
+                                                     struct _mulle_objc_protocol *protocol)
+{
+   if( ! runtime)
+   {
+      errno = EINVAL;
+      return( -1);
+   }
+   return( _mulle_objc_runtime_add_protocol( runtime, protocol));
+}
+
+
+void    mulle_objc_runtime_unfailing_add_protocol( struct _mulle_objc_runtime *runtime,
+                                                   struct _mulle_objc_protocol *protocol);
+
+struct _mulle_objc_protocol  *mulle_objc_lookup_protocol( mulle_objc_protocolid_t protocolid);
+
+
+#pragma mark - protocol lists
+
+//
+// method lists
+// these methods are here, because they use the runtime allocer
+//
+// Do not free the returned methodlist, it has been gifted to the
+// runtime already
+//
+static inline struct _mulle_objc_protocollist  *mulle_objc_runtime_alloc_protocollist( struct _mulle_objc_runtime *runtime, unsigned int n)
+{
+   return( _mulle_objc_runtime_calloc( runtime, 1, mulle_objc_sizeof_protocollist( n)));
+}
+
+
+# pragma mark - categories
+
+char   *_mulle_objc_runtime_lookup_category( struct _mulle_objc_runtime *runtime,
+                                             mulle_objc_categoryid_t categoryid);
+int   _mulle_objc_runtime_add_category( struct _mulle_objc_runtime *runtime,
+                                        mulle_objc_categoryid_t categoryid,
+                                        char *name);
+void    mulle_objc_runtime_unfailing_add_category( struct _mulle_objc_runtime *runtime,
+                                                   mulle_objc_categoryid_t categoryid,
+                                                   char *name);
+char   *mulle_objc_lookup_category( mulle_objc_categoryid_t categoryid);
+
+
 #pragma mark - method lists
 
 //
@@ -573,8 +627,9 @@ char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid);
 //
 static inline struct _mulle_objc_methodlist  *mulle_objc_runtime_alloc_methodlist( struct _mulle_objc_runtime *runtime, unsigned int count_methods)
 {
-   return( _mulle_objc_runtime_calloc( runtime, 1, mulle_objc_size_of_methodlist( count_methods)));
+   return( _mulle_objc_runtime_calloc( runtime, 1, mulle_objc_sizeof_methodlist( count_methods)));
 }
+
 
 #pragma mark - static strings
 
@@ -621,41 +676,10 @@ char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid);
 // never returns NULL
 char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t classid);
 
-
-static inline char   *mulle_objc_string_for_classid( mulle_objc_classid_t classid)
-{
-   return( mulle_objc_string_for_uniqueid( classid));
-}
-
-
-static inline char   *mulle_objc_string_for_ivarid( mulle_objc_ivarid_t ivarid)
-{
-   return( mulle_objc_string_for_uniqueid( ivarid));
-}
-
-
-static inline char   *mulle_objc_string_for_methodid( mulle_objc_methodid_t methodid)
-{
-   return( mulle_objc_string_for_uniqueid( methodid));
-}
-
-
-static inline char   *mulle_objc_string_for_protocolid( mulle_objc_methodid_t protocolid)
-{
-   return( mulle_objc_string_for_uniqueid( protocolid));
-}
-
-
-static inline char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid)
-{
-   return( mulle_objc_string_for_uniqueid( categoryid));
-}
-
-
-static inline char   *mulle_objc_string_for_propertyid( mulle_objc_categoryid_t propertyid)
-{
-   return( mulle_objc_string_for_uniqueid( propertyid));
-}
+char   *mulle_objc_string_for_classid( mulle_objc_classid_t classid);
+char   *mulle_objc_string_for_methodid( mulle_objc_methodid_t methodid);
+char   *mulle_objc_string_for_protocolid( mulle_objc_protocolid_t protocolid);
+char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid);
 
 
 # pragma mark - debug waitqueues
@@ -686,8 +710,6 @@ static inline enum mulle_objc_runtime_status  mulle_objc_check_runtime( void)
    return( _mulle_objc_check_runtime( MULLE_OBJC_RUNTIME_VERSION));
 }
 
-
-
 // conveniences
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
@@ -696,15 +718,13 @@ static inline enum mulle_objc_runtime_status  mulle_objc_check_runtime( void)
 // the resulting methodlist is already gifted to the runtime
 // don't free it yourself
 //
-struct _mulle_objc_methodlist  *mulle_objc_alloc_methodlist( unsigned int count_methods);
-void   mulle_objc_free_methodlist( struct _mulle_objc_methodlist *list);
+struct _mulle_objc_methodlist    *mulle_objc_alloc_methodlist( unsigned int n);
+struct _mulle_objc_protocollist  *mulle_objc_alloc_protocollist( unsigned int n);
+
 #endif
 
 
-
 /* debug support */
-
-
 
 // this walks recursively through the whole runtime
 mulle_objc_walkcommand_t   mulle_objc_runtime_walk( struct _mulle_objc_runtime *runtime,

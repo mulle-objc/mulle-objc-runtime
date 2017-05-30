@@ -105,7 +105,7 @@ static int   Object_conforms_to_protocol( struct Object *self, mulle_objc_method
    mulle_objc_protocolid_t   protocolid;
 
    protocolid = ((struct { mulle_objc_protocolid_t  protocolid; } *) _params)->protocolid;
-   return( _mulle_objc_infraclass_conformsto_protocol( _mulle_objc_object_get_infraclass( (void *) self),  protocolid));
+   return( _mulle_objc_infraclass_conformsto_protocolid( _mulle_objc_object_get_infraclass( (void *) self),  protocolid));
 }
 
 
@@ -155,8 +155,23 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
 
 // enum is wrong if sizeof( int) ! sizeof( mulle_objc_protocolid_t)
 
+struct _gnu_mulle_objc_protcollist
+{
+   unsigned int                  n_protocols;
+   struct _mulle_objc_protocol   protocols[];
+};
 
-static mulle_objc_protocolid_t   protocolids[] = { ___A__protocolid, ___B__protocolid, ___C__protocolid, ___D__protocolid, ___E__protocolid, 0 };
+static struct _gnu_mulle_objc_protcollist   Object_protocollist =
+{
+   5,
+   {
+      { ___A__protocolid, "A" },
+      { ___B__protocolid, "B" },
+      { ___C__protocolid, "C" },
+      { ___D__protocolid, "D" },
+      { ___E__protocolid, "E" }
+   }
+};
 
 
 static struct _mulle_objc_loadclass  Object_loadclass =
@@ -176,7 +191,7 @@ static struct _mulle_objc_loadclass  Object_loadclass =
    &Object_class_methodlist,
    (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
    NULL,
-   protocolids
+   (struct _mulle_objc_protcollist *) &Object_protocollist
 };
 
 
