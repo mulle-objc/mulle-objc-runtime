@@ -1467,7 +1467,7 @@ int   _mulle_objc_runtime_add_protocol( struct _mulle_objc_runtime *runtime,
 
    dup = _mulle_concurrent_hashmap_lookup( &runtime->protocoltable, protocol->protocolid);
    if( ! dup)
-      return( _mulle_concurrent_hashmap_insert( &runtime->protocoltable, protocol->protocolid, protocol->name));
+      return( _mulle_concurrent_hashmap_insert( &runtime->protocoltable, protocol->protocolid, protocol));
 
    if( strcmp( dup->name, protocol->name))
    {
@@ -1531,9 +1531,9 @@ int   _mulle_objc_runtime_add_category( struct _mulle_objc_runtime *runtime,
    if( categoryid == MULLE_OBJC_NO_CATEGORYID || categoryid == MULLE_OBJC_INVALID_CATEGORYID)
       return( -1);
 
-   dup = _mulle_concurrent_hashmap_lookup( &runtime->protocoltable, categoryid);
+   dup = _mulle_concurrent_hashmap_lookup( &runtime->categorytable, categoryid);
    if( ! dup)
-      return( _mulle_concurrent_hashmap_insert( &runtime->protocoltable, categoryid, name));
+      return( _mulle_concurrent_hashmap_insert( &runtime->categorytable, categoryid, name));
 
    if( strcmp( dup, name))
    {
@@ -1746,7 +1746,7 @@ char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid)
    char                          *name;
    
    runtime  = mulle_objc_get_or_create_runtime();
-   name = _mulle_objc_runtime_lookup_category( runtime, categoryid);
+   name    = _mulle_objc_runtime_lookup_category( runtime, categoryid);
    if( name)
       return( name);
    return( mulle_objc_string_for_uniqueid( categoryid));

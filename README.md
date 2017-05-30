@@ -31,9 +31,11 @@ makes them a lot faster.
 
 * `isa` is not part of the instance, but instead prefixed to the instance.
 
-* `Protocol` as a type and an object does not exist anymore.
+* `Protocol` as a type and an object does not exist anymore. Instead there is
+PROTOCOL which is basically the same as SEL and has compiler support.
 
-* No global lock. The runtime only locks during `+initialize` on a per class basis
+* No global lock, except when loading code. The runtime in normal operation
+only locks during `+initialize` on a per class basis.
 
 * Protections against the fragile base class problem
 
