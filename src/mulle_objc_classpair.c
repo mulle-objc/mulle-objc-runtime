@@ -444,6 +444,39 @@ int   _mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair
 }
 
 
+int   _mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
+                                                   mulle_objc_protocolid_t protocolid)
+{
+   int                             rval;
+   struct _mulle_objc_classpair    *superpair;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_infraclass   *superclass;
+
+   rval = _mulle_objc_classpair_has_protocolid( pair, protocolid);
+   if( rval)
+      return( rval);
+
+   infra = _mulle_objc_classpair_get_infraclass( pair);
+   if( ! (_mulle_objc_infraclass_get_inheritance( infra) & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   {
+      superclass = _mulle_objc_infraclass_get_superclass( infra);
+      if( superclass && superclass != infra)
+      {
+         superpair = _mulle_objc_infraclass_get_classpair( superclass);
+         rval = _mulle_objc_classpair_conformsto_protocolid( superpair, protocolid);
+         if( rval)
+            return( rval);
+      }
+   }
+
+   /* should query protocols too ? */
+
+   return( rval);
+}
+
+
+#pragma mark - protocollist
+
 void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_classpair *pair,
                                                         struct _mulle_objc_protocollist *protocols)
 {
@@ -475,7 +508,8 @@ void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_class
          if( _mulle_objc_classpair_has_protocolid( pair, p->protocolid))
             continue;
          
-         // keep collecting
+         mulle_objc_runtime_unfailing_add_protocol( runtime, p);
+         
          if( runtime->debug.trace.protocol_adds)
             fprintf( stderr, "mulle_objc_runtime %p trace: add protocol %08x \"%s\" to class %08x \"%s\"\n",
                     runtime,
@@ -488,36 +522,5 @@ void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_class
       
       _mulle_objc_classpair_add_protocolids( pair, (unsigned int) (q - protocolids), protocolids);
    }
-}
-
-
-int   _mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
-                                                   mulle_objc_protocolid_t protocolid)
-{
-   int                             rval;
-   struct _mulle_objc_classpair    *superpair;
-   struct _mulle_objc_infraclass   *infra;
-   struct _mulle_objc_infraclass   *superclass;
-
-   rval = _mulle_objc_classpair_has_protocolid( pair, protocolid);
-   if( rval)
-      return( rval);
-
-   infra = _mulle_objc_classpair_get_infraclass( pair);
-   if( ! (_mulle_objc_infraclass_get_inheritance( infra) & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
-   {
-      superclass = _mulle_objc_infraclass_get_superclass( infra);
-      if( superclass && superclass != infra)
-      {
-         superpair = _mulle_objc_infraclass_get_classpair( superclass);
-         rval = _mulle_objc_classpair_conformsto_protocolid( superpair, protocolid);
-         if( rval)
-            return( rval);
-      }
-   }
-
-   /* should query protocols too ? */
-
-   return( rval);
 }
 

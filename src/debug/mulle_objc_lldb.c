@@ -54,7 +54,6 @@ mulle_objc_methodimplementation_t
                                                 int debug)
 {
    struct _mulle_objc_class            *cls;
-   struct _mulle_objc_metaclass        *meta;
    struct _mulle_objc_runtime          *runtime;
    struct _mulle_objc_infraclass       *found;
    struct _mulle_objc_class            *call_cls;
@@ -68,9 +67,6 @@ mulle_objc_methodimplementation_t
    
    // ensure class init
    cls  = is_meta ? obj : _mulle_objc_object_get_isa( obj);
-   meta = _mulle_objc_class_is_metaclass( cls)
-            ? (struct _mulle_objc_metaclass *) cls
-            : _mulle_objc_class_get_metaclass( cls);
    
    // call "-class" so class initializes.. But WHY ??
    // if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
