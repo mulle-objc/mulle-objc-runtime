@@ -31,6 +31,10 @@
 		4111AFDC1D8049C100DFB901 /* mulle_objc_runtime_struct.h in Headers */ = {isa = PBXBuildFile; fileRef = 4111AFD91D8049C100DFB901 /* mulle_objc_runtime_struct.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		411727E01B7CC3420031BEB9 /* mulle_objc_ivarlist.c in Sources */ = {isa = PBXBuildFile; fileRef = 411727DE1B7CC3420031BEB9 /* mulle_objc_ivarlist.c */; };
 		411727E11B7CC3420031BEB9 /* mulle_objc_ivarlist.h in Headers */ = {isa = PBXBuildFile; fileRef = 411727DF1B7CC3420031BEB9 /* mulle_objc_ivarlist.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		41189F291EDD6EF500386DFB /* mulle_objc_protocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 41189F281EDD6EF500386DFB /* mulle_objc_protocol.h */; };
+		41189F2B1EDD718000386DFB /* mulle_objc_protocollist.h in Headers */ = {isa = PBXBuildFile; fileRef = 41189F2A1EDD718000386DFB /* mulle_objc_protocollist.h */; };
+		41189F2D1EDD726700386DFB /* mulle_objc_protocollist.c in Sources */ = {isa = PBXBuildFile; fileRef = 41189F2C1EDD726700386DFB /* mulle_objc_protocollist.c */; };
+		41189F2F1EDD72ED00386DFB /* mulle_objc_protocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 41189F2E1EDD72ED00386DFB /* mulle_objc_protocol.c */; };
 		411E65501BA82FDA006A3902 /* mulle_objc_uniqueid.h in Headers */ = {isa = PBXBuildFile; fileRef = 411E654F1BA82F33006A3902 /* mulle_objc_uniqueid.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		411E65531BA83230006A3902 /* mulle_objc_cache.c in Sources */ = {isa = PBXBuildFile; fileRef = 411E65511BA8322F006A3902 /* mulle_objc_cache.c */; };
 		411E65541BA83230006A3902 /* mulle_objc_cache.h in Headers */ = {isa = PBXBuildFile; fileRef = 411E65521BA83230006A3902 /* mulle_objc_cache.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -152,6 +156,10 @@
 		4111AFD91D8049C100DFB901 /* mulle_objc_runtime_struct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_runtime_struct.h; sourceTree = "<group>"; };
 		411727DE1B7CC3420031BEB9 /* mulle_objc_ivarlist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_ivarlist.c; sourceTree = "<group>"; };
 		411727DF1B7CC3420031BEB9 /* mulle_objc_ivarlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_ivarlist.h; sourceTree = "<group>"; };
+		41189F281EDD6EF500386DFB /* mulle_objc_protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_protocol.h; sourceTree = "<group>"; };
+		41189F2A1EDD718000386DFB /* mulle_objc_protocollist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_protocollist.h; sourceTree = "<group>"; };
+		41189F2C1EDD726700386DFB /* mulle_objc_protocollist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_protocollist.c; sourceTree = "<group>"; };
+		41189F2E1EDD72ED00386DFB /* mulle_objc_protocol.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_protocol.c; sourceTree = "<group>"; };
 		411BF65D1AA7813900DB63AB /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		411BF65F1AA781AE00DB63AB /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		411E654F1BA82F33006A3902 /* mulle_objc_uniqueid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_uniqueid.h; sourceTree = "<group>"; };
@@ -360,6 +368,10 @@
 				41F6ADC71AA8658600CAA0B5 /* mulle_objc_property.c */,
 				416688C31C53E285005F4E3E /* mulle_objc_propertylist.h */,
 				416688C21C53E285005F4E3E /* mulle_objc_propertylist.c */,
+				41189F281EDD6EF500386DFB /* mulle_objc_protocol.h */,
+				41189F2E1EDD72ED00386DFB /* mulle_objc_protocol.c */,
+				41189F2A1EDD718000386DFB /* mulle_objc_protocollist.h */,
+				41189F2C1EDD726700386DFB /* mulle_objc_protocollist.c */,
 				416BA7751A19017C002F603A /* mulle_objc_retain_release.h */,
 				416BA7761A19018D002F603A /* mulle_objc_retain_release.c */,
 				416BA7741A190089002F603A /* mulle_objc_runtime.h */,
@@ -451,6 +463,7 @@
 				4177A96F1D326129007DC3D8 /* mulle_objc_atomicpointer.h in Headers */,
 				41B427B71C5A869500CCEB37 /* mulle_objc_builtin.h in Headers */,
 				411E65541BA83230006A3902 /* mulle_objc_cache.h in Headers */,
+				41189F2B1EDD718000386DFB /* mulle_objc_protocollist.h in Headers */,
 				4158AC971A1A01BD007F2A2D /* mulle_objc_call.h in Headers */,
 				412400A01AB0654400D56278 /* mulle_objc_callqueue.h in Headers */,
 				41212A101E97BE3A0089F711 /* mulle_objc_classpair.h in Headers */,
@@ -468,6 +481,7 @@
 				41212A141E97BF3C0089F711 /* mulle_objc_infraclass.h in Headers */,
 				41013C2B1D3D08340033CD4A /* mulle_objc_kvccache.h in Headers */,
 				4124009F1AB0653200D56278 /* mulle_objc_load.h in Headers */,
+				41189F291EDD6EF500386DFB /* mulle_objc_protocol.h in Headers */,
 				41212A181E97BF4B0089F711 /* mulle_objc_metaclass.h in Headers */,
 				4124009E1AB0652A00D56278 /* mulle_objc_method.h in Headers */,
 				416A75311AAFA1A400A5F511 /* mulle_objc_methodlist.h in Headers */,
@@ -612,6 +626,7 @@
 				41E8B05B1CC6324700D1F169 /* mulle_objc_fnv1.c in Sources */,
 				411E65531BA83230006A3902 /* mulle_objc_cache.c in Sources */,
 				4158AC901A1A01AB007F2A2D /* mulle_objc_call.c in Sources */,
+				41189F2F1EDD72ED00386DFB /* mulle_objc_protocol.c in Sources */,
 				41212A171E97BF4B0089F711 /* mulle_objc_metaclass.c in Sources */,
 				41978C341A1DF39600DAFA51 /* mulle_objc_callqueue.c in Sources */,
 				4158AC8E1A1A01AB007F2A2D /* mulle_objc_class.c in Sources */,
@@ -628,6 +643,7 @@
 				41212A0F1E97BE3A0089F711 /* mulle_objc_classpair.c in Sources */,
 				41A827681AADAE490017BE29 /* mulle_objc_runtime.c in Sources */,
 				41A2882F1C65597A00BBA54E /* mulle_objc_uniqueid.c in Sources */,
+				41189F2D1EDD726700386DFB /* mulle_objc_protocollist.c in Sources */,
 				41A963C11CE2484100412367 /* mulle_objc_html.c in Sources */,
 				41013C2A1D3D08340033CD4A /* mulle_objc_kvccache.c in Sources */,
 				41A963BB1CE2368E00412367 /* mulle_objc_htmldump.c in Sources */,

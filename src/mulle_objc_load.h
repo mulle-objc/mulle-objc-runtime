@@ -52,6 +52,7 @@ struct _mulle_objc_infraclass;
 struct _mulle_objc_ivarlist;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_propertylist;
+struct _mulle_objc_protocollist;
 struct _mulle_objc_runtime;
 
 struct _mulle_objc_dependency
@@ -61,11 +62,12 @@ struct _mulle_objc_dependency
 };
 
 
+
 //
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   7
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   8
 
 
 struct _mulle_objc_loadclass
@@ -87,7 +89,7 @@ struct _mulle_objc_loadclass
    struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
 
-   mulle_objc_protocolid_t           *protocolids;
+   struct _mulle_objc_protocollist   *protocols;
    mulle_objc_classid_t              *protocolclassids;
 
    char                              *origin;
@@ -107,7 +109,7 @@ struct _mulle_objc_loadcategory
    struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
 
-   mulle_objc_protocolid_t           *protocolids;
+   struct _mulle_objc_protocollist   *protocols;
    mulle_objc_classid_t              *protocolclassids;
 
    char                              *origin;
@@ -121,7 +123,7 @@ struct _mulle_objc_loadclasslist
 };
 
 
-static inline size_t  mulle_objc_size_of_loadclasslist( unsigned int n_loadclasses)
+static inline size_t  mulle_objc_sizeof_loadclasslist( unsigned int n_loadclasses)
 {
    return( sizeof( struct _mulle_objc_loadclasslist) + (n_loadclasses - 1) * sizeof( struct _mulle_objc_loadclass *));
 }
@@ -134,7 +136,7 @@ struct _mulle_objc_loadcategorylist
 };
 
 
-static inline size_t  mulle_objc_size_of_loadcategorylist( unsigned int n_load_categories)
+static inline size_t  mulle_objc_sizeof_loadcategorylist( unsigned int n_load_categories)
 {
    return( sizeof( struct _mulle_objc_loadcategorylist) + (n_load_categories - 1) * sizeof( struct _mulle_objc_loadcategory *));
 }

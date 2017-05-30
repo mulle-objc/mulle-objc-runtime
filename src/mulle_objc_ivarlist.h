@@ -56,7 +56,7 @@ struct _mulle_objc_ivarlist
 };
 
 
-static inline size_t   mulle_objc_size_of_ivarlist( unsigned int n_ivars)
+static inline size_t   mulle_objc_sizeof_ivarlist( unsigned int n_ivars)
 {
    return( sizeof( struct _mulle_objc_ivarlist) + (n_ivars - 1) * sizeof( struct _mulle_objc_ivar));
 }

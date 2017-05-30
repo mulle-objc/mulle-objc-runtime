@@ -61,7 +61,7 @@ struct _mulle_objc_methodlist
 };
 
 
-static inline size_t   mulle_objc_size_of_methodlist( unsigned int n_methods)
+static inline size_t   mulle_objc_sizeof_methodlist( unsigned int n_methods)
 {
    return( sizeof( struct _mulle_objc_methodlist) + (n_methods - 1) * sizeof( struct _mulle_objc_method));
 }

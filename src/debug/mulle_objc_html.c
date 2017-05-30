@@ -546,6 +546,44 @@ char   *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_met
 }
 
 
+char   *mulle_objc_category_html_row_description( intptr_t  categoryid,
+                                                  void *value,
+                                                  struct _mulle_objc_htmltablestyle *styling)
+{
+   char  *name = value;
+   char  *s;
+
+   asprintf( &s,
+            "<TR>"
+            "<TD>%08x</TD>"
+            "<TD>%s</TD>"
+            "</TR>\n",
+            categoryid,
+            html_escape( name));
+
+   return( s);
+}
+
+
+char   *mulle_objc_protocol_html_row_description( intptr_t  methodid,
+                                                  void *value,
+                                                  struct _mulle_objc_htmltablestyle *styling)
+{
+   char  *name = value;
+   char  *s;
+
+   asprintf( &s,
+            "<TR>"
+            "<TD>%08x</TD>"
+            "<TD>%s</TD>"
+            "</TR>\n",
+            methodid,
+            html_escape( name));
+
+   return( s);
+}
+
+
 char   *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
                                                           void *value,
                                                           struct _mulle_objc_htmltablestyle *styling)

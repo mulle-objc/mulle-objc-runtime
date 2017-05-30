@@ -66,6 +66,8 @@ src/mulle_objc_object_convenience.h
 src/mulle_objc_objectheader.h
 src/mulle_objc_property.h
 src/mulle_objc_propertylist.h
+src/mulle_objc_protocol.h
+src/mulle_objc_protocollist.h
 src/mulle_objc_retain_release.h
 src/mulle_objc_runtime.h
 src/mulle_objc_runtime_struct.h
@@ -102,6 +104,8 @@ src/mulle_objc_method.c
 src/mulle_objc_methodlist.c
 src/mulle_objc_property.c
 src/mulle_objc_propertylist.c
+src/mulle_objc_protocol.c
+src/mulle_objc_protocollist.c
 src/mulle_objc_retain_release.c
 src/mulle_objc_try_catch_finally.c
 src/mulle_objc_runtime.c

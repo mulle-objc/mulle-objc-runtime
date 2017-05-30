@@ -44,6 +44,9 @@
 #include "mulle_objc_dotdump.h"
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_metaclass.h"
+#include "mulle_objc_methodlist.h"
+#include "mulle_objc_propertylist.h"
+#include "mulle_objc_protocollist.h"
 #include "mulle_objc_runtime.h"
 
 
@@ -144,7 +147,7 @@ static struct _mulle_objc_dependency
       if( dependencies->categoryid)
       {
          pair = _mulle_objc_infraclass_get_classpair( infra);
-         if( ! _mulle_objc_classpair_has_category( pair, dependencies->categoryid))
+         if( ! _mulle_objc_classpair_has_categoryid( pair, dependencies->categoryid))
          {
             if( runtime->debug.trace.dependencies)
             {
@@ -450,7 +453,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    pair = mulle_objc_unfailing_new_classpair( info->classid, info->classname, info->instancesize, superclass);
 
    _mulle_objc_classpair_set_origin( pair, info->origin);
-   mulle_objc_classpair_unfailing_add_protocolids( pair, info->protocolids);
+   mulle_objc_classpair_unfailing_add_protocollist( pair, info->protocols);
    mulle_objc_classpair_unfailing_add_protocolclassids( pair, info->protocolclassids);
 
    meta   = _mulle_objc_classpair_get_metaclass( pair);
@@ -516,14 +519,15 @@ void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *inf
 
 static void   _mulle_objc_loadclass_listssort( struct _mulle_objc_loadclass *lcls)
 {
-   qsort( lcls->protocolids,
-          _mulle_objc_uniqueid_arraycount( lcls->protocolids),
+   qsort( lcls->protocolclassids,
+          _mulle_objc_uniqueid_arraycount( lcls->protocolclassids),
           sizeof( mulle_objc_protocolid_t),
           (int (*)()) _mulle_objc_uniqueid_qsortcompare);
    mulle_objc_ivarlist_sort( lcls->instancevariables);
    mulle_objc_methodlist_sort( lcls->instancemethods);
    mulle_objc_methodlist_sort( lcls->classmethods);
    mulle_objc_propertylist_sort( lcls->properties);
+   mulle_objc_protocollist_sort( lcls->protocols);
 }
 
 
@@ -550,27 +554,20 @@ static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassid
 }
 
 
-static void   loadprotocols_dump( mulle_objc_protocolid_t *protocolids,
-                                  struct _mulle_objc_loadhashedstringlist *strings)
+static void   loadprotocols_dump( struct _mulle_objc_protocollist *protocols)
 
 {
-   mulle_objc_protocolid_t    protoid;
-   char                       *sep;
-   char                       *s;
+   struct _mulle_objc_protocol   *p;
+   struct _mulle_objc_protocol   *sentinel;
+   char                          *sep;
 
    fprintf( stderr, " <");
    sep = " ";
-   for(; *protocolids; ++protocolids)
+   p        = protocols->protocols;
+   sentinel = &p[ protocols->n_protocols];
+   for(; p < sentinel; ++p)
    {
-      protoid = *protocolids;
-
-      s = NULL;
-      if( strings)
-         s = mulle_objc_loadhashedstringlist_bsearch( strings, protoid);
-      if( s)
-         fprintf( stderr, "%s%s", sep, s);
-      else
-         fprintf( stderr, "%s%08x", sep, protoid);
+      fprintf( stderr, "%s%s", sep, p->name);
       sep = ", ";
    }
    fprintf( stderr, ">");
@@ -606,8 +603,8 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
    if( p->superclassname)
       fprintf( stderr, " : %s", p->superclassname);
 
-   if( p->protocolids)
-      loadprotocols_dump( p->protocolids, strings);
+   if( p->protocols)
+      loadprotocols_dump( p->protocols);
 
    if( p->origin)
       fprintf( stderr, " // %s", p->origin);
@@ -616,7 +613,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
 
    if( p->classmethods)
    {
-      method = p->classmethods->methods;
+      method   = p->classmethods->methods;
       sentinel = &method[ p->classmethods->n_methods];
       while( method < sentinel)
       {
@@ -957,9 +954,11 @@ static mulle_objc_classid_t
    pair = _mulle_objc_infraclass_get_classpair( infra);
    meta = _mulle_objc_classpair_get_metaclass( pair);
 
-   if( info->categoryid && _mulle_objc_classpair_has_category( pair, info->categoryid))
+   if( info->categoryid && _mulle_objc_classpair_has_categoryid( pair, info->categoryid))
       raise_duplicate_category_exception( pair, info);
 
+   // checks for hash collisions
+   mulle_objc_runtime_unfailing_add_category( runtime, info->categoryid, info->categoryname);
 
    // the loader sets the categoryid as owner
    if( info->instancemethods && info->instancemethods->n_methods)
@@ -979,10 +978,15 @@ static mulle_objc_classid_t
       if( mulle_objc_infraclass_add_propertylist( infra, info->properties))
          _mulle_objc_runtime_raise_fail_errno_exception( runtime);
 
-   mulle_objc_classpair_unfailing_add_protocolids( pair, info->protocolids);
+   //
+   // TODO need to check that protocolids name are actually correct
+   // emit protocolnames together with ids. Keep central directory in
+   // runtime
+   //
+   mulle_objc_classpair_unfailing_add_protocollist( pair, info->protocols);
    mulle_objc_classpair_unfailing_add_protocolclassids( pair, info->protocolclassids);
    if( info->categoryid)
-      mulle_objc_classpair_unfailing_add_category( pair, info->categoryid);
+      mulle_objc_classpair_unfailing_add_categoryid( pair, info->categoryid);
 
    // this queues things up
    mulle_objc_methodlist_unfailing_add_load_to_callqueue( info->classmethods, meta, loads);
@@ -991,7 +995,7 @@ static mulle_objc_classid_t
       mulle_objc_dotdump_runtime_to_tmp();
 
    //
-   // retrigger  that are waiting for their dependencies
+   // retrigger those who are waiting for their dependencies
    //
    map_f( &runtime->waitqueues.categoriestoload,
           info->classid,
@@ -1040,8 +1044,8 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
 
    fprintf( stderr, "%s@implementation %s( %s)", prefix, p->classname, p->categoryname);
 
-   if( p->protocolids)
-      loadprotocols_dump( p->protocolids, strings);
+   if( p->protocols)
+      loadprotocols_dump( p->protocols);
 
    if( p->origin)
       fprintf( stderr, " // %s", p->origin);
@@ -1075,17 +1079,17 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
 
 # pragma mark - categorylists
 
-
 static void   _mulle_objc_loadcategory_listssort( struct _mulle_objc_loadcategory *lcat)
 {
-   qsort( lcat->protocolids,
-          _mulle_objc_uniqueid_arraycount( lcat->protocolids),
+   qsort( lcat->protocolclassids,
+          _mulle_objc_uniqueid_arraycount( lcat->protocolclassids),
           sizeof( mulle_objc_protocolid_t),
           (int (*)()) _mulle_objc_uniqueid_qsortcompare);
 
    mulle_objc_methodlist_sort( lcat->instancemethods);
    mulle_objc_methodlist_sort( lcat->classmethods);
    mulle_objc_propertylist_sort( lcat->properties);
+   mulle_objc_protocollist_sort( lcat->protocols);
 }
 
 

@@ -23,7 +23,9 @@
 
 static void  create_ABC_PROTO_classes( struct abc_classes *classes)
 {
-   struct _mulle_objc_classpair   *pair;
+   struct _mulle_objc_classpair       *pair;
+   struct _mulle_objc_protocollist    *protocollist;
+   struct _mulle_objc_runtime         *runtime;
 
    pair = mulle_objc_unfailing_new_classpair( C_classid, "C", 0, NULL);
    assert( pair);
@@ -32,7 +34,11 @@ static void  create_ABC_PROTO_classes( struct abc_classes *classes)
    assert( classes->C_meta);
 
    // must conform to own protocol
-   _mulle_objc_classpair_add_protocol( _mulle_objc_infraclass_get_classpair( classes->C_infra), C_classid);
+   protocollist  = mulle_objc_alloc_protocollist( 1);
+   protocollist->n_protocols = 1;
+   protocollist->protocols[ 0].protocolid = C_classid;
+   protocollist->protocols[ 0].name       = "C";
+   mulle_objc_classpair_unfailing_add_protocollist( pair, protocollist);
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
@@ -41,7 +47,7 @@ static void  create_ABC_PROTO_classes( struct abc_classes *classes)
    assert( classes->A_meta);
    assert( classes->A_meta == _mulle_objc_class_get_metaclass( _mulle_objc_infraclass_as_class( classes->A_infra)));
 
-   _mulle_objc_classpair_add_protocol( pair, C_classid);
+   mulle_objc_classpair_unfailing_add_protocollist( pair, protocollist);
 
    pair = mulle_objc_unfailing_new_classpair( B_classid, "B", 0, classes->A_infra);
    assert( pair);
