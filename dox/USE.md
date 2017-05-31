@@ -5,16 +5,16 @@ up a complex class system by hand is extremely tedious and error-prone.
 (See the few examples in `tests/`).
 
 
-## The missing function `__get_or_create_objc_runtime`
+## The missing function `__get_or_create_mulle_objc_runtime`
 
 The runtime needs an external function to work. This initializer function 
-is called `__get_or_create_objc_runtime`. 
+is called `__get_or_create_mulle_objc_runtime`. 
 
 Here is a minimal implementation:
 
 ```
 MULLE_C_CONST_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
+struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
 {
    struct _mulle_objc_runtime  *runtime;
 

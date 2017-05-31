@@ -30,6 +30,7 @@ This is set in the CMakeFile of the project. Define `__MULLE_TPS__` to enable TP
 The mulle-clang compiler uses `-fobjc-tps` by default. Turn it off with
 `-fno-objc-tps`. Use `-fobjc-trt` to enable thread local runtime mode.
 
+> The thread local runtime mode *could* work, but it hasn't been tested recently.
 
 
 ### Compatibility

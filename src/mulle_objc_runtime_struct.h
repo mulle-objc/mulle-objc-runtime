@@ -107,9 +107,7 @@ struct _mulle_objc_runtimedebug
       unsigned   loadinfo             : 1;
       unsigned   method_caches        : 1;
       unsigned   method_calls         : 1;
-      unsigned   print_origin         : 1; // set by default
       unsigned   protocol_adds        : 1;
-      unsigned   runtime_config       : 1;
       unsigned   state_bits           : 1;
       unsigned   string_adds          : 1;
       unsigned   tagged_pointers      : 1;
@@ -122,6 +120,12 @@ struct _mulle_objc_runtimedebug
       unsigned   stuck_loadables         : 1;  // set by default
       unsigned   pedantic_methodid_types : 1;
    } warn;
+
+   struct
+   {
+      unsigned   runtime_config          : 1;
+      unsigned   print_origin            : 1; // set by default
+   } print;
 };
 
 
