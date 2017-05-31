@@ -194,7 +194,7 @@ static void  loadclass_trace( struct _mulle_objc_loadclass *info,
    vfprintf( stderr, format, args);
    va_end( args);
 
-   if( info->origin && runtime->debug.trace.print_origin)
+   if( info->origin && runtime->debug.print.print_origin)
       fprintf( stderr, " (%s)", info->origin);
    fputc( '\n', stderr);
 }
@@ -708,7 +708,7 @@ static void  loadcategory_trace( struct _mulle_objc_loadcategory *info,
    vfprintf( stderr, format, args);
    va_end( args);
 
-   if( info->origin && runtime->debug.trace.print_origin)
+   if( info->origin && runtime->debug.print.print_origin)
       fprintf( stderr, " (%s)", info->origin);
    fputc( '\n', stderr);
 }

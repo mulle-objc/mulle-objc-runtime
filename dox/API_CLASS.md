@@ -7,14 +7,15 @@ very similiar, it makes sense to read this introduction to classes:
 
 Nevertheless here are some definitions:
 
-class      : A class is one of a classpair
-classpair  : A classpair consists of an infraclass and a metaclass.
-infraclass : Often just synonym with class, this holds the methods for instances (like -dealloc)
-metaclass  : This holds the methods for classes (+alloc)
-superclass : The class a class inherits from (`@interface Foo : Bar  // Bar is the superclass`)
-protocol   : A protocol is a unique id, that tags a classpair. You can ask a class
-             if it conforms to a protocol (has this tag)
-category   : An extension of a classpair, that adds methods to it
+Name         | Definition
+-------------|-------------------------------------------
+class        | A class is one of a classpair
+classpair    | A classpair consists of an infraclass and a metaclass.
+infraclass   | Often just synonym with class, this holds the methods for instances (like -dealloc)
+metaclass    | This holds the methods for classes (like +alloc)
+superclass   | The class a class inherits from (`@interface Foo : Bar  // Bar is the superclass`)
+protocol     | A protocol is a unique id, that tags a classpair. You can ask a class if it conforms to a protocol (has this tag)
+category     | An extension of a classpair, that adds methods to it
 
 
 ## Functions
@@ -33,10 +34,10 @@ int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
 Add methodlist `list` to `cls`. The methodlist isn't copied, so be sure that is sticks around for the lifetime of the runtime. (Check out `mulle_objc_runtime_unfailing_add_gift`)
 
 
-### `mulle_objc_class_add_protocol`
+### `mulle_objc_classpair_add_protocolid`
 
 ```
-void   mulle_objc_class_add_protocol( struct _mulle_objc_class *cls,
+void   mulle_objc_classpair_add_protocolid( struct _mulle_objc_class *cls,
 mulle_objc_protocolid_t protocolid)
 ```
 
@@ -44,10 +45,10 @@ Add `protocolid` to class `cls`. The protocolid should be added to the infraclas
 
 
 
-### `mulle_objc_class_is_protocol_class`
+### `mulle_objc_infraclass_is_protocol_class`
 
 ```
-int  mulle_objc_class_is_protocol_class( struct _mulle_objc_class *cls);
+int  mulle_objc_infraclass_is_protocol_class( struct _mulle_objc_infraclass *cls);
 ```
 
 A class is a protocol class if (and only if)
@@ -196,10 +197,10 @@ struct _mulle_objc_class   *mulle_objc_class_get_metaclass( struct _mulle_objc_c
 Given any class of a classpair, returns the metaclass.
 
 
-### `mulle_objc_class_conforms_to_protocol`
+### `mulle_objc_class_conformsto_protocol`
 
 ```
-int   mulle_objc_class_conforms_to_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid)
+int   mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid)
 ```
 
 Returns 1 if `cls` conforms to a protocol with `protocolid`. This can be asked

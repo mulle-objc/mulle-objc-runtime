@@ -1,7 +1,7 @@
 # Runtime
 
 The **mulle-objc** runtime is not a class, but a C struct. It is the root of
-everything classes and instances. In a well constructed mulle-objc runtime
+everything: classes and instances. In a well constructed mulle-objc runtime
 system, every object is reachable from the runtime.
 
 By default there is one global runtime per process. This is the simplest and
@@ -66,7 +66,7 @@ other.
 
 Parametername       |  Description
 --------------------|----------------------
-`runtime`           | Pointer to the runtime, must not be NULL. Use `__get_or_create_objc_runtime` (not `mulle_objc_get_runtime`) to get the proper one for your thread
+`runtime`           | Pointer to the runtime, must not be NULL. Use `__get_or_create_mulle_objc_runtime` (not `mulle_objc_get_runtime`) to get the proper one for your thread
 `classid`           | Compute the `classid` from `name` with `mulle_objc_classid_from_string`
 `name`              | The name of the class, this must be a non-empty ASCII string. This string is not copied. It must remain alive for the duration of the class's existence.
 `instance_size`     | The space needed for instance variables (don't add the header size)
@@ -98,7 +98,7 @@ struct _mulle_objc_class       *cls;
 char                           *name;
 mulle_objc_classid_t           classid;
 
-runtime =  __get_or_create_objc_runtime();
+runtime =  __get_or_create_mulle_objc_runtime();
 name    = "Foo";
 classid = mulle_objc_classid_from_string( name);
 pair    = mulle_objc_runtime_new_classpair( runtime, classid, name, 0, NULL);

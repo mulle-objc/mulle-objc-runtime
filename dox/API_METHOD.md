@@ -26,18 +26,18 @@ Returns the @encoded type of the method. This is an ASCII string, terminated
 by \0. It's lifetime is the same as that of `method`. Don't free it.
 
 
-### `mulle_objc_method_get_id`
+### `mulle_objc_method_get_methodid`
 
 ```
-mulle_objc_methodid_t  mulle_objc_method_get_id( struct _mulle_objc_method *method)
+mulle_objc_methodid_t  mulle_objc_method_get_methodid( struct _mulle_objc_method *method)
 ```
 
 {
-   return( method ? _mulle_objc_method_get_id( method) : MULLE_OBJC_NO_METHODID);
+   return( method ? _mulle_objc_method_get_methodid( method) : MULLE_OBJC_NO_METHODID);
 }
 
 
-Returns the ID od the method. This is a unique hash across all methods.
+Returns the ID of the method. This is a unique hash across all methods.
 
 ### `mulle_objc_method_get_implementation`
 

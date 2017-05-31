@@ -231,15 +231,16 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
 {
    runtime->debug.warn.methodid_types          = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPES");
    runtime->debug.warn.pedantic_methodid_types = getenv_yes_no( "MULLE_OBJC_WARN_PEDANTIC_METHODID_TYPES");
-   runtime->debug.warn.protocolclass           = getenv_yes_no( "MULLE_OBJC_INFRA_WARN_PROTOCOLCLASS");
+   runtime->debug.warn.protocolclass           = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
    runtime->debug.warn.stuck_loadables         = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLES", 1);
 
 #if ! DEBUG
    if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
 #endif
    {
-      runtime->debug.warn.methodid_types = 1;
-      runtime->debug.warn.protocolclass  = 1;
+      runtime->debug.warn.methodid_types   = 1;
+      runtime->debug.warn.protocolclass    = 1;
+      runtime->debug.warn.stuck_loadables  = 1;
    }
 
    runtime->debug.trace.category_adds      = getenv_yes_no( "MULLE_OBJC_TRACE_CATEGORY_ADDS");
@@ -255,9 +256,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
    runtime->debug.trace.method_caches      = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHES");
    runtime->debug.trace.method_calls       = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALLS");  // totally excessive!
    runtime->debug.trace.method_searches    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCHES");  // fairly excessive!
-   runtime->debug.trace.print_origin       = getenv_yes_no_default( "MULLE_OBJC_TRACE_PRINT_ORIGIN", 1);
    runtime->debug.trace.protocol_adds      = getenv_yes_no( "MULLE_OBJC_TRACE_PROTOCOL_ADDS");
-   runtime->debug.trace.runtime_config     = getenv_yes_no( "MULLE_OBJC_TRACE_RUNTIME_CONFIG");
    runtime->debug.trace.state_bits         = getenv_yes_no( "MULLE_OBJC_TRACE_STATE_BITS");
    runtime->debug.trace.string_adds        = getenv_yes_no( "MULLE_OBJC_TRACE_STRING_ADDS");
    runtime->debug.trace.tagged_pointers    = getenv_yes_no( "MULLE_OBJC_TRACE_TAGGED_POINTERS");
@@ -276,13 +275,15 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       runtime->debug.trace.load_calls            = 1;
       runtime->debug.trace.loadinfo              = 1;
       runtime->debug.trace.protocol_adds         = 1;
-      runtime->debug.trace.runtime_config        = 1;
       runtime->debug.trace.state_bits            = 1;
       runtime->debug.trace.string_adds           = 1;
       runtime->debug.trace.tagged_pointers       = 1;
    }
 
-   if( runtime->debug.trace.runtime_config)
+   runtime->debug.print.print_origin   = getenv_yes_no_default( "MULLE_OBJC_PRINT_ORIGIN", 1);
+   runtime->debug.print.runtime_config = getenv_yes_no( "MULLE_OBJC_PRINT_RUNTIME_CONFIG");
+
+   if( runtime->debug.print.runtime_config)
    {
       fprintf( stderr, "mulle-objc: v%u.%u.%u (load-version: %u) (",
          MULLE_OBJC_RUNTIME_VERSION_MAJOR,
@@ -292,6 +293,7 @@ static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _m
       _mulle_objc_runtimeconfig_dump( &runtime->config);
       fprintf( stderr, ")\n");
    }
+
 }
 
 
