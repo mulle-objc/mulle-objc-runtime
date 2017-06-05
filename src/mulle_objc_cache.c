@@ -123,7 +123,7 @@ mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle
 }
 
 
-int   _mulle_objc_cache_relative_index_of_uniqueid( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid)
+int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid)
 {
    int                             index;
    struct _mulle_objc_cacheentry   *entry;
@@ -146,6 +146,7 @@ int   _mulle_objc_cache_relative_index_of_uniqueid( struct _mulle_objc_cache *ca
       if( entry->key.uniqueid == uniqueid)
          return( index);
 
+      // prefer larger of the two for NULL check read
       if( sizeof( mulle_functionpointer_t) > sizeof( void *))
       {
          if( ! _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer))
@@ -165,7 +166,7 @@ int   _mulle_objc_cache_relative_index_of_uniqueid( struct _mulle_objc_cache *ca
 // find a slot, where either the uniqueid matches, or where the slot is free
 // (at least at the moment)
 //
-mulle_objc_cache_uint_t   _mulle_objc_cache_offset_for_uniqueid( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid)
+mulle_objc_cache_uint_t   _mulle_objc_cache_find_entryoffset( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
@@ -186,6 +187,7 @@ mulle_objc_cache_uint_t   _mulle_objc_cache_offset_for_uniqueid( struct _mulle_o
       if( entry->key.uniqueid == uniqueid)
          return( offset);
 
+      // prefer larger of the two for NULL check read
       if( sizeof( mulle_functionpointer_t) > sizeof( void *))
       {
          if( ! _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer))
@@ -201,7 +203,7 @@ mulle_objc_cache_uint_t   _mulle_objc_cache_offset_for_uniqueid( struct _mulle_o
 }
 
 
-unsigned int  mulle_objc_cache_fill_percentage( struct _mulle_objc_cache *cache)
+unsigned int  mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cache *cache)
 {
    intptr_t   n;
 
@@ -213,7 +215,7 @@ unsigned int  mulle_objc_cache_fill_percentage( struct _mulle_objc_cache *cache)
 }
 
 
-unsigned int   mulle_objc_cache_hit_percentage( struct _mulle_objc_cache *cache,
+unsigned int   mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cache *cache,
                                                 unsigned int *percentages,
                                                 unsigned int size)
 {
@@ -275,7 +277,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_ent
 
    assert( (size_t) _mulle_atomic_pointer_read( &cache->n) < (cache->size >> 2));
 
-   offset = _mulle_objc_cache_offset_for_uniqueid( cache, uniqueid);
+   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
@@ -297,7 +299,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_functionpoi
 
    assert( (size_t) _mulle_atomic_pointer_read( &cache->n) < (cache->size >> 2));
 
-   offset = _mulle_objc_cache_offset_for_uniqueid( cache, uniqueid);
+   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
@@ -327,7 +329,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mu
    //
    // entries pointer never changes in cache..
    //
-   offset = _mulle_objc_cache_offset_for_uniqueid( cache, uniqueid);
+   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    //
@@ -373,7 +375,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_functionpointer_entry( st
    //
    // entries pointer never changes in cache..
    //
-   offset = _mulle_objc_cache_offset_for_uniqueid( cache, uniqueid);
+   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    //

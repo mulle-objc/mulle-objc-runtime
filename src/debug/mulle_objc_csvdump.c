@@ -190,7 +190,57 @@ void   mulle_objc_runtime_csvdump_classcoverage( struct _mulle_objc_runtime *run
    mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
-#pragma mark - conveniences
+
+static void  dump_cachesize( struct _mulle_objc_class *cls,
+                             char prefix,
+                             FILE *fp)
+{
+   struct _mulle_objc_cache   *cache;
+
+   cache = _mulle_objc_class_get_methodcache( cls);
+   
+   fprintf( fp, "%08x;%c%s;%u;%u;%x\n",
+           _mulle_objc_class_get_classid( cls),
+           prefix,
+           _mulle_objc_class_get_name( cls),
+           _mulle_objc_cache_get_count( cache),
+           _mulle_objc_cache_get_size( cache),
+           _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE) |
+           _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_FIXED_SIZE_CACHE));
+}
+
+
+static void   mulle_objc_runtime_csvdump_cachesizes( struct _mulle_objc_runtime *runtime,
+                                                     FILE *fp)
+{
+   intptr_t                                    classid;
+   struct _mulle_objc_infraclass               *infra;
+   struct _mulle_objc_metaclass                *meta;
+   struct mulle_concurrent_hashmapenumerator   rover;
+   
+   if( ! runtime || ! fp)
+   {
+      errno = EINVAL;
+      mulle_objc_raise_fail_errno_exception();
+   }
+
+   //
+   // here we just go through all installed classes and check the state
+   // bit (this also captures fastclasses)
+   //
+   
+   runtime = mulle_objc_get_runtime();
+   rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);
+   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+   {
+      meta = _mulle_objc_infraclass_get_metaclass( infra);
+      dump_cachesize( _mulle_objc_metaclass_as_class( meta), '+', fp);
+      dump_cachesize( _mulle_objc_infraclass_as_class( infra), '-', fp);
+   }
+   mulle_concurrent_hashmapenumerator_done( &rover);
+}
+
+#pragma mark - dump starters
 
 void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
 {
@@ -234,6 +284,29 @@ void   mulle_objc_csvdump_classcoverage_to_file( char *filename)
 }
 
 
+void   mulle_objc_csvdump_cachesizes_to_file( char *filename)
+{
+   struct _mulle_objc_runtime   *runtime;
+   FILE                         *fp;
+   
+   fp = fopen( filename, "a");
+   if( ! fp)
+   {
+      perror( "fopen:");
+      return;
+   }
+
+   runtime = mulle_objc_get_runtime();
+   mulle_objc_runtime_csvdump_cachesizes( runtime, fp);
+
+   fclose( fp);
+
+   fprintf( stderr, "Dumped cache sizes to \"/%s\"\n", filename);
+}
+
+
+#pragma mark - loadinfo
+
 static void   _fprint_csv_version( FILE *fp, uint32_t version)
 {
    fprintf( fp, "%u.%u.%u;",
@@ -274,6 +347,12 @@ void   mulle_objc_csvdump_classcoverage_to_tmp( void)
 }
 
 
+void   mulle_objc_csvdump_cachesizes_to_tmp( void)
+{
+   mulle_objc_csvdump_cachesizes_to_file( "/tmp/cache-sizes.csv");
+}
+
+
 #pragma mark - dump to working directory (or user defined)
 
 void   mulle_objc_csvdump_methodcoverage( void)
@@ -296,4 +375,16 @@ void   mulle_objc_csvdump_classcoverage( void)
       filename = "class-coverage.csv";
 
    mulle_objc_csvdump_classcoverage_to_file( filename);
+}
+
+
+void   mulle_objc_csvdump_cachesizes( void)
+{
+   char   *filename;
+   
+   filename = getenv( "MULLE_OBJC_CLASS_CACHE_SIZES_FILENAME");
+   if( ! filename)
+      filename = "cache-sizes.csv";
+
+   mulle_objc_csvdump_cachesizes_to_file( filename);
 }

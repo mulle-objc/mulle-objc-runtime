@@ -65,12 +65,13 @@ static char   *lookup_bitname( unsigned int bit)
    // some "known" values
    switch( bit)
    {
-   case MULLE_OBJC_CACHE_READY            : return( "CACHE_READY");
-   case MULLE_OBJC_ALWAYS_EMPTY_CACHE     : return( "ALWAYS_EMPTY_CACHE");
-   case 0x4                               : return( "WARN_PROTOCOL");
-   case 0x8                               : return( "IS_PROTOCOLCLASS");
-   case 0x10                              : return( "LOAD_SCHEDULED");
-   case 0x20                              : return( "INITIALIZE_DONE");
+   case MULLE_OBJC_CLASS_CACHE_READY        : return( "CACHE_READY");
+   case MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE : return( "ALWAYS_EMPTY_CACHE");
+   case MULLE_OBJC_CLASS_FIXED_SIZE_CACHE   : return( "FIXED_SIZE_CACHE");
+   case _MULLE_OBJC_CLASS_WARN_PROTOCOL     : return( "WARN_PROTOCOL");
+   case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS  : return( "IS_PROTOCOLCLASS");
+   case _MULLE_OBJC_CLASS_LOAD_SCHEDULED    : return( "LOAD_SCHEDULED");
+   case _MULLE_OBJC_CLASS_INITIALIZE_DONE   : return( "INITIALIZE_DONE");
    }
    return( 0);
 }
@@ -339,7 +340,7 @@ static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class 
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return( 0);
 
-   offset = _mulle_objc_cache_offset_for_uniqueid( cache, uniqueid);
+   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    // no entry is matching, fine
@@ -372,7 +373,7 @@ static int  invalidate_caches( struct _mulle_objc_runtime *runtime,
    struct _mulle_objc_method                 *method;
 
    // preferably nothing there yet
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
+   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
       return( mulle_objc_walk_ok);
 
    _mulle_objc_class_invalidate_all_kvcinfos( cls);

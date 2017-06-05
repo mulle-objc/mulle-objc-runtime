@@ -1,3 +1,10 @@
+## 0.8.3
+
+* enlarged class state bit space for mulle-objc to 16 bits, which cramps 
+user and foundation to 8 bits each
+* added cache csv dump fo future shenanigans
+
+
 ## 0.8.1
 
 * introduced the _mulle_objc_protocol structure, which is now emitted by the
