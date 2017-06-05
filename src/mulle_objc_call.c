@@ -299,7 +299,7 @@ static struct _mulle_objc_cacheentry   *
    assert( method);
 
    // need to check that we are initialized
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
+   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
    {
       _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "call comes to early, the %s \"%s\" hasn't been initialized yet.", _mulle_objc_class_get_classtypename( cls), cls->name);
    }
@@ -413,7 +413,7 @@ mulle_objc_methodimplementation_t
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
-   offset  = _mulle_objc_cache_offset_for_uniqueid( cache, methodid);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
    entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
    entry   = (void *) &((char *) entries)[ offset];
    return( (mulle_objc_methodimplementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer));
@@ -435,7 +435,7 @@ mulle_objc_methodimplementation_t
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
-   offset  = _mulle_objc_cache_offset_for_uniqueid( cache, methodid);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
    entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
    entry   = (void *) &((char *) entries)[ offset];
 
@@ -473,7 +473,7 @@ mulle_objc_methodimplementation_t
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
-   offset  = _mulle_objc_cache_offset_for_uniqueid( cache, methodid);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
    entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
    entry   = (void *) &((char *) entries)[ offset];
    imp     = (mulle_objc_methodimplementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
@@ -510,7 +510,7 @@ mulle_objc_methodimplementation_t
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   offset  = _mulle_objc_cache_offset_for_uniqueid( cache, methodid);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
    entry   = (void *) &((char *) entries)[ offset];
    imp     = (mulle_objc_methodimplementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
    if( imp)
@@ -550,7 +550,7 @@ mulle_objc_methodimplementation_t
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   offset  = _mulle_objc_cache_offset_for_uniqueid( cache, methodid);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
    entry   = (void *) &((char *) entries)[ offset];
    imp     = (mulle_objc_methodimplementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
    if( imp)
@@ -595,7 +595,7 @@ mulle_objc_methodimplementation_t
    if( runtime->debug.trace.method_calls)
       return( imp);
    // some special classes may choose to never cache
-   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_ALWAYS_EMPTY_CACHE))
+   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return( imp);
    
    entry = _mulle_objc_class_fill_cache_with_method( cls, method, methodid);
@@ -728,7 +728,7 @@ static void   *_mulle_objc_call_class_waiting_for_cache( void *obj,
    {
       /* wait for other thread to finish with +initialize */
       /* TODO: using yield is poor though! Use a condition to be awaken! */
-      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CACHE_READY))
+      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
          mulle_thread_yield();
    }
    
@@ -783,7 +783,7 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
    // now setup the cache and let it rip, except when we don't ever want one
    runtime = _mulle_objc_class_get_runtime( cls);
    
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_ALWAYS_EMPTY_CACHE))
+   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
    {
       n_entries = _mulle_objc_class_convenient_methodcache_size( cls);
       cache     = mulle_objc_cache_new( n_entries, &cls->runtime->memory.allocator);
@@ -824,7 +824,7 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
    // finally unfreze
    // threads waiting_for_cache will run now
    // cache initialized is also called if emty cache!
-   _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CACHE_READY);
+   _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY);
 }
 
 
