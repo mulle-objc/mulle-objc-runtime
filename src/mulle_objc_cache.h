@@ -46,8 +46,7 @@
 #include <assert.h>
 
 
-# pragma mark -
-# pragma mark method cache
+# pragma mark - method cache
 
 
 #define MULLE_OBJC_MIN_CACHE_SIZE  32
@@ -94,18 +93,18 @@ struct _mulle_objc_cachepivot
 
 
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry  *_mulle_objc_cachepivot_get_entries_non_atomically( struct _mulle_objc_cachepivot *p)
+static inline struct _mulle_objc_cacheentry  *_mulle_objc_cachepivot_nonatomic_get_entries( struct _mulle_objc_cachepivot *p)
 {
    return( _mulle_atomic_pointer_nonatomic_read( &p->entries));
 }
 
 
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cache  *_mulle_objc_cachepivot_get_cache_non_atomically( struct _mulle_objc_cachepivot *p)
+static inline struct _mulle_objc_cache  *_mulle_objc_cachepivot_nonatomic_get_cache( struct _mulle_objc_cachepivot *p)
 {
    struct _mulle_objc_cacheentry  *entries;
-   
-   entries = _mulle_objc_cachepivot_get_entries_non_atomically( p);
+
+   entries = _mulle_objc_cachepivot_nonatomic_get_entries( p);
    return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
 }
 
@@ -129,42 +128,34 @@ static inline int  _mulle_objc_cachepivot_atomic_set_entries( struct _mulle_objc
 static inline struct _mulle_objc_cache  *_mulle_objc_cachepivot_atomic_get_cache( struct _mulle_objc_cachepivot *p)
 {
    struct _mulle_objc_cacheentry   *entries;
-   
+
    entries = _mulle_objc_cachepivot_atomic_get_entries( p);
    return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
 }
 
 
-# pragma mark -
-# pragma mark cache petty accessors
+# pragma mark - cache petty accessors
 
-static inline mulle_objc_cache_uint_t   _mulle_objc_cache_count( struct _mulle_objc_cache *cache)
+static inline mulle_objc_cache_uint_t   _mulle_objc_cache_get_count( struct _mulle_objc_cache *cache)
 {
    // yay double cast, how C like...
    return( (mulle_objc_cache_uint_t) (uintptr_t) _mulle_atomic_pointer_read( &cache->n));
 }
 
 
-static inline mulle_objc_uniqueid_t   _mulle_objc_cache_size( struct _mulle_objc_cache *cache)
+static inline mulle_objc_uniqueid_t   _mulle_objc_cache_get_size( struct _mulle_objc_cache *cache)
 {
    return( cache->size);
 }
 
 
-static inline mulle_objc_cache_uint_t   _mulle_objc_cache_mask( struct _mulle_objc_cache *cache)
+static inline mulle_objc_cache_uint_t   _mulle_objc_cache_get_mask( struct _mulle_objc_cache *cache)
 {
    return( cache->mask);
 }
 
 
-static inline unsigned int   _mulle_objc_cache_slots( struct _mulle_objc_cache *cache)
-{
-   return( (unsigned int) (cache->mask / sizeof( struct _mulle_objc_cacheentry)) + 1);
-}
-
-
-# pragma mark -
-# pragma mark cache allocation
+# pragma mark - cache allocation
 
 struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
                                                   struct mulle_allocator *allocator);
@@ -185,35 +176,36 @@ static inline void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
 }
 
 
-# pragma mark -
-# pragma mark cache add entry
+# pragma mark - cache add entry
 
 struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache, void *pointer, mulle_objc_uniqueid_t uniqueid);
 
 struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_functionpointer_entry( struct _mulle_objc_cache *cache, mulle_functionpointer_t pointer, mulle_objc_uniqueid_t uniqueid);
 
 // returns null if cache is full
-struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mulle_objc_cache *cache, void *pointer, mulle_objc_uniqueid_t uniqueid);
+struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mulle_objc_cache *cache,
+                                                                      void *pointer,
+                                                                      mulle_objc_uniqueid_t uniqueid);
 struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_functionpointer_entry( struct _mulle_objc_cache *cache, mulle_functionpointer_t pointer, mulle_objc_uniqueid_t uniqueid);
 
 
-# pragma mark -
-# pragma mark cache method lookup
+# pragma mark - cache method lookup
 
 void   *_mulle_objc_cache_lookup_pointer( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid);
 mulle_functionpointer_t   _mulle_objc_cache_lookup_functionpointer( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid);
 
-mulle_objc_cache_uint_t   _mulle_objc_cache_offset_for_uniqueid( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid);
+mulle_objc_cache_uint_t   _mulle_objc_cache_find_entryoffset( struct _mulle_objc_cache *cache,
+                                                            mulle_objc_uniqueid_t uniqueid);
 
 
-# pragma mark -
-# pragma mark cache utilitites
+# pragma mark - cache utilitites
 
-unsigned int   mulle_objc_cache_fill_percentage( struct _mulle_objc_cache *cache);
+unsigned int   mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cache *cache);
 
 // gives percentage of relative indexes high percentages[ 0] is good. size must be > 1
-unsigned int  mulle_objc_cache_hit_percentage( struct _mulle_objc_cache *cache, unsigned int *percentages, unsigned int size);
+unsigned int  mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cache *cache, unsigned int *percentages, unsigned int size);
 
-int   _mulle_objc_cache_relative_index_of_uniqueid( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid);
+int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache,
+                                         mulle_objc_uniqueid_t uniqueid);
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_cache__) */

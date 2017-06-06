@@ -5,6 +5,8 @@
 //  Created by Nat! on 14.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
 
 #include <mulle_objc/mulle_objc.h>
 #include <mulle_test_allocator/mulle_test_allocator.h>
@@ -43,9 +45,9 @@ struct mulle_allocator  my_allocator =
 };
 
 
-static void  *A_alloc( struct _mulle_objc_class *self, mulle_objc_methodid_t _cmd)
+static void  *A_alloc( struct _mulle_objc_infraclass *self, mulle_objc_methodid_t _cmd)
 {
-   return( mulle_objc_class_alloc_instance( self, &my_allocator));
+   return( mulle_objc_infraclass_alloc_instance( self, &my_allocator));
 }
 
 struct _mulle_objc_methodlist   A_alloc_methodlist =
@@ -67,13 +69,13 @@ struct _mulle_objc_methodlist   A_alloc_methodlist =
 
 
 
-static void   test_simple_retain_release( struct _mulle_objc_class   *A_cls)
+static void   test_simple_retain_release( struct _mulle_objc_infraclass *A_infra)
 {
    struct _mulle_objc_object   *a;
    struct _mulle_objc_object   *b;
 
    assert( instances == 0);
-   a = mulle_objc_class_alloc_instance( A_cls, &my_allocator);
+   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
    assert( instances == 1);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
@@ -89,13 +91,13 @@ static void   test_simple_retain_release( struct _mulle_objc_class   *A_cls)
 }
 
 
-static void   test_permanent_retain_release( struct _mulle_objc_class   *A_cls)
+static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_infra)
 {
    struct _mulle_objc_object   *a;
    long                        retain_count;
 
-   a = mulle_objc_class_alloc_instance( A_cls, &my_allocator);
-   _mulle_objc_object_infinite_retain( a);
+   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
+   _mulle_objc_object_nonatomic_infinite_retain( a);
 
    retain_count = mulle_objc_object_get_retaincount( a);
    mulle_objc_object_retain( a);
@@ -166,15 +168,15 @@ static struct _gnu_mulle_objc_methodlist   finalize_dealloc_methodlist =
 };
 
 
-static void   test_dealloc_finalize( struct _mulle_objc_class  *A_cls)
+static void   test_dealloc_finalize( struct _mulle_objc_infraclass  *A_infra)
 {
    struct _mulle_objc_object   *a;
 
    assert( dealloced == 0);
 
-   mulle_objc_class_unfailing_add_instancemethodlist( A_cls, (void *) &finalize_dealloc_methodlist);
+   mulle_objc_infraclass_unfailing_add_methodlist( A_infra, (void *) &finalize_dealloc_methodlist);
 
-   a = mulle_objc_class_alloc_instance( A_cls, &my_allocator);
+   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
 
    mulle_objc_object_release( a);
    assert( finalized == 1);
@@ -188,13 +190,13 @@ static void   test_dealloc_finalize( struct _mulle_objc_class  *A_cls)
 
 
 
-static void   test_perform_finalize( struct _mulle_objc_class  *A_cls)
+static void   test_perform_finalize( struct _mulle_objc_infraclass  *A_infra)
 {
    struct _mulle_objc_object   *a;
 
    assert( dealloced == 0);
 
-   a = mulle_objc_class_alloc_instance( A_cls, &my_allocator);
+   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
    mulle_objc_object_perform_finalize( a);
@@ -211,25 +213,26 @@ static void   test_perform_finalize( struct _mulle_objc_class  *A_cls)
 }
 
 
-
 void   test_retain_release( void)
 {
    struct _mulle_objc_classpair    *pair;
-   struct _mulle_objc_class        *A_cls;
+   struct _mulle_objc_infraclass   *A_infra;
+   struct _mulle_objc_metaclass    *A_meta;
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
-   A_cls = _mulle_objc_classpair_get_infraclass( pair);
+   A_infra = _mulle_objc_classpair_get_infraclass( pair);
+   A_meta = _mulle_objc_classpair_get_metaclass( pair);
 
-   mulle_objc_class_unfailing_add_instancemethodlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_classmethodlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_ivarlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_propertylist( A_cls, NULL);
+   mulle_objc_infraclass_unfailing_add_methodlist( A_infra, NULL);
+   mulle_objc_metaclass_unfailing_add_methodlist( A_meta, NULL);
+   mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
+   mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
 
-   mulle_objc_unfailing_add_class( A_cls);
+   mulle_objc_unfailing_add_infraclass( A_infra);
 
-   test_simple_retain_release( A_cls);
-   test_permanent_retain_release( A_cls);
-   test_dealloc_finalize( A_cls);
-   test_perform_finalize( A_cls);
+   test_simple_retain_release( A_infra);
+   test_permanent_retain_release( A_infra);
+   test_dealloc_finalize( A_infra);
+   test_perform_finalize( A_infra);
 }

@@ -5,6 +5,8 @@
 //  Created by Nat! on 15/11/14.
 //  Copyright (c) 2014 Mulle kybernetiK. All rights reserved.
 //
+#define __MULLE_OBJC_NO_TPS__  1
+#define __MULLE_OBJC_NO_TRT__  1
 
 #include <mulle_objc/mulle_objc.h>
 #include <stdio.h>

@@ -44,7 +44,7 @@
 static void   objc_exception_throw( void *exception)  // familar name
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    runtime->exceptionvectors.throw( runtime, exception);
 }
@@ -59,7 +59,7 @@ void   mulle_objc_exception_throw( void *exception)
 void   mulle_objc_exception_try_enter( void *localExceptionData)
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    runtime->exceptionvectors.try_enter( runtime, localExceptionData);
 }
@@ -68,7 +68,7 @@ void   mulle_objc_exception_try_enter( void *localExceptionData)
 void   mulle_objc_exception_try_exit( void *localExceptionData)
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    runtime->exceptionvectors.try_exit( runtime, localExceptionData);
 }
@@ -77,7 +77,7 @@ void   mulle_objc_exception_try_exit( void *localExceptionData)
 void   *mulle_objc_exception_extract( void *localExceptionData)
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    return( runtime->exceptionvectors.extract( runtime, localExceptionData));
 }
@@ -86,7 +86,7 @@ void   *mulle_objc_exception_extract( void *localExceptionData)
 int   _mulle_objc_exception_match( mulle_objc_classid_t classid, void *exception)
 {
    struct _mulle_objc_runtime   *runtime;
-   
+
    runtime = mulle_objc_inlined_get_runtime();
    return( runtime->exceptionvectors.match( runtime, classid, exception));
 }

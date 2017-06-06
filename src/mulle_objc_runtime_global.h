@@ -47,13 +47,14 @@
 #endif
 
 
-#if ! MULLE_OBJC_THREAD_LOCAL_RUNTIME
+#ifdef __MULLE_OBJC_NO_TRT__
+
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
 static inline struct _mulle_objc_runtime  *mulle_objc_get_global_runtime( void)
 {
    MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime;
 
-   assert( _mulle_objc_runtime_is_initalized( &mulle_objc_global_runtime) && "runtime not initialized yet");
+   assert( _mulle_objc_runtime_is_initialized( &mulle_objc_global_runtime) && "runtime not initialized yet");
    return( &mulle_objc_global_runtime);
 }
 
@@ -74,7 +75,9 @@ static inline int _mulle_objc_is_global_runtime( struct _mulle_objc_runtime *run
    return( runtime == &mulle_objc_global_runtime);
 }
 
+
 #else
+
 
 static inline int _mulle_objc_is_global_runtime( struct _mulle_objc_runtime *runtime)
 {
@@ -82,6 +85,7 @@ static inline int _mulle_objc_is_global_runtime( struct _mulle_objc_runtime *run
 }
 
 #endif
+
 
 //
 // this is used by NSAutoreleasePool only
@@ -94,11 +98,12 @@ static inline int   mulle_objc_runtime_thread_key_is_intitialized( void)
    return( mulle_objc_runtime_thread_key != (mulle_thread_tss_t) -1);
 }
 
+
 static inline struct _mulle_objc_threadconfig  *_mulle_objc_get_threadconfig( void)
 {
    MULLE_OBJC_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_runtime_thread_key;
    struct _mulle_objc_threadconfig  *config;
-   
+
    /* if you crash here [^1] */
    assert( mulle_objc_runtime_thread_key_is_intitialized());
    config = mulle_thread_tss_get( mulle_objc_runtime_thread_key);
@@ -111,7 +116,7 @@ static inline struct _mulle_objc_threadconfig  *mulle_objc_get_threadconfig( voi
 {
    MULLE_OBJC_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_runtime_thread_key;
    struct _mulle_objc_threadconfig  *config;
-   
+
    /* if you crash here [^1] */
    assert( mulle_objc_runtime_thread_key_is_intitialized());
    config = mulle_thread_tss_get( mulle_objc_runtime_thread_key);

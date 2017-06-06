@@ -47,6 +47,7 @@
 
 struct _mulle_objc_class;
 struct _mulle_objc_callqueue;
+struct _mulle_objc_metaclass;
 
 //
 // methods have to be sorted by methodid
@@ -55,12 +56,12 @@ struct _mulle_objc_callqueue;
 struct _mulle_objc_methodlist
 {
    unsigned int                n_methods; // must be #0 and same as struct _mulle_objc_ivarlist
-   char                        *owner;
+   void                        *owner;    // it's a void because of compiler
    struct _mulle_objc_method   methods[ 1];
 };
 
 
-static inline size_t   mulle_objc_size_of_methodlist( unsigned int n_methods)
+static inline size_t   mulle_objc_sizeof_methodlist( unsigned int n_methods)
 {
    return( sizeof( struct _mulle_objc_methodlist) + (n_methods - 1) * sizeof( struct _mulle_objc_method));
 }
@@ -87,20 +88,18 @@ static inline struct _mulle_objc_method  *_mulle_objc_methodlist_search( struct 
 }
 
 
-# pragma mark -
-# pragma mark +load
+# pragma mark - +load
 
-int   mulle_objc_methodlist_execute_load( struct _mulle_objc_methodlist *list,
-                                           struct _mulle_objc_class *cls,
-                                           struct _mulle_objc_callqueue *loads);
+int   mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
+                                                   struct _mulle_objc_metaclass *cls,
+                                                   struct _mulle_objc_callqueue *loads);
 
-void   mulle_objc_methodlist_unfailing_execute_load( struct _mulle_objc_methodlist *list,
-                                                      struct _mulle_objc_class *cls,
-                                                      struct _mulle_objc_callqueue *loads);
+void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
+                                                              struct _mulle_objc_metaclass *cls,
+                                                              struct _mulle_objc_callqueue *loads);
 
 
-# pragma mark -
-# pragma mark Enumerator
+# pragma mark - Enumerator
 
 struct _mulle_objc_methodlistenumerator
 {
@@ -112,12 +111,12 @@ struct _mulle_objc_methodlistenumerator
 static inline struct  _mulle_objc_methodlistenumerator   _mulle_objc_methodlist_enumerate( struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;
-   
+
    rover.method   = &list->methods[ 0];
    rover.sentinel = &list->methods[ list->n_methods];
-   
+
    assert( rover.sentinel >= rover.method);
-   
+
    return( rover);
 }
 
@@ -133,8 +132,7 @@ static inline void  _mulle_objc_methodlistenumerator_done( struct _mulle_objc_me
 }
 
 
-# pragma mark -
-# pragma mark Method Walker
+# pragma mark - Method Walker
 
 //
 // supply cls and userinfo for callback, the cls is kinda ugly,
@@ -145,8 +143,7 @@ int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
                                    struct _mulle_objc_class *cls,
                                    void *userinfo);
 
-# pragma mark -
-# pragma mark methodlist API
+# pragma mark - methodlist API
 
 static inline int   mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
                                                 int (*f)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *),
@@ -162,7 +159,7 @@ static inline int   mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *l
 static inline struct  _mulle_objc_methodlistenumerator   mulle_objc_methodlist_enumerate( struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;
-   
+
    if( ! list)
    {
       rover.method   = NULL;

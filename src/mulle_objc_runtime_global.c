@@ -39,7 +39,7 @@
 #include <mulle_c11/mulle_c11.h>
 
 
-#if ! MULLE_OBJC_THREAD_LOCAL_RUNTIME
+#ifdef __MULLE_OBJC_NO_TRT__
 MULLE_C_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime =
 {
    .version = -1
@@ -48,7 +48,7 @@ MULLE_C_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime =
 
 //
 // a global I can't get rid off
-// must be initalized because of windows
+// must be initialized because of windows
 //
 MULLE_C_GLOBAL mulle_thread_tss_t   mulle_objc_runtime_thread_key = -1;
 

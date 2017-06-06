@@ -1,0 +1,28 @@
+digraph executable
+{
+   rankdir="LR"
+   node [ shape="note"]
+
+   { rank = same; "executable" }
+   { rank = same; "shared library" }
+   { rank = same; "a.o"; "b.o"; "c.o"; "main.o" }
+
+   node [ shape="box"]
+
+   { rank = same; "__attribute_constructor( a.o)";
+                  "__attribute_constructor( b.o)"
+                  "__attribute_constructor( c.o)"
+   }
+
+
+   "executable"     -> "a.o"    -> "__attribute_constructor( a.o)"    -> "mulle_objc_loadinfo_unfailing_enqueue( &a.loadinfo)";
+   "executable"     -> "b.o"    -> "__attribute_constructor( b.o)"    -> "mulle_objc_loadinfo_unfailing_enqueue( &b.loadinfo)";
+   "executable"     -> "main.o" -> "__attribute_constructor( main.o)" -> "mulle_objc_loadinfo_unfailing_enqueue( &main.loadinfo)";
+   "executable"     -> "shared library"
+   "shared library" -> "c.o"    -> "__attribute_constructor( c.o)"    -> "mulle_objc_loadinfo_unfailing_enqueue( &c.loadinfo)";
+
+   { rank = same; "int main( argc, argv)" }
+
+   "main.o" -> "int main( argc, argv)"
+   "int main( argc, argv)" -> "multithreaded [NSBundle load] calls"
+}

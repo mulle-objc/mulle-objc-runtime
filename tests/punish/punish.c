@@ -5,6 +5,9 @@
 //  Created by Nat! on 19/11/14.
 //  Copyright (c) 2014 Mulle kybernetiK. All rights reserved.
 //
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
+
 #include <mulle_objc/mulle_objc.h>
 
 #include <stdio.h>
@@ -12,6 +15,7 @@
 
 #define ___Foo_classid         MULLE_OBJC_CLASSID( 0x40413ff3)
 #define ___Object_classid      MULLE_OBJC_CLASSID( 0x5bd95814)
+#define ___Print_categoryid    MULLE_OBJC_CATEGORYID( 0xcbe38fa2)
 
 #define ___setA_b___methodid   MULLE_OBJC_METHODID( 0x3c146ada)
 #define ___print__methodid     MULLE_OBJC_METHODID( 0x4bb743c2)
@@ -365,6 +369,7 @@ static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
 
 struct _mulle_objc_loadcategory   Foo_Print_category_load =
 {
+   ___Print_categoryid,
    "Print",
 
    ___Foo_classid,
@@ -400,8 +405,9 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
+      MULLE_OBJC_RUNTIME_LOAD_VERSION,
       MULLE_OBJC_RUNTIME_VERSION,
-      1848,
+      0,
       0,
       0
    },
@@ -430,12 +436,12 @@ static void  __load()
 }
 
 
-struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
+struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
 {
    struct _mulle_objc_runtime    *runtime;
 
    runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initalized( runtime))
+   if( ! _mulle_objc_runtime_is_initialized( runtime))
    {
       __mulle_objc_runtime_setup( runtime, NULL);
       runtime->config.ignore_ivarhash_mismatch = 1;
@@ -444,10 +450,14 @@ struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
 }
 
 
+// punish is supposed to punish the runtime a system a bit
+// with something, this test doesn't do really much though
+// it seems ? Probably an aborted attempt...
+
 int   main( int argc, const char * argv[])
 {
-   struct _mulle_objc_class    *cls;
-   struct _mulle_objc_object   *obj;
+   struct _mulle_objc_infraclass    *cls;
+   struct _mulle_objc_object        *obj;
 
    // windows...
 #if ! defined( __clang__) && ! defined( __GNUC__)
@@ -455,8 +465,8 @@ int   main( int argc, const char * argv[])
 #endif
    // obj = [[Foo alloc] init];
 
-   cls = mulle_objc_unfailing_lookup_class( ___Foo_classid);
-   obj = mulle_objc_class_alloc_instance( cls, NULL);
+   cls = mulle_objc_unfailing_get_or_lookup_infraclass( ___Foo_classid);
+   obj = mulle_objc_infraclass_alloc_instance( cls, NULL);
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 
    // [obj setA:18 b:48];

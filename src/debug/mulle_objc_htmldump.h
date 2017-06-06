@@ -1,10 +1,10 @@
 //
-//  mulle_objc_runtime_dump_graphviz.h
+//  mulle_objc_htmldump.h
 //  mulle-objc
 //
-//  Created by Nat! on 25.10.15.
-//  Copyright (c) 2015 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2015 Codeon GmbH.
+//  Created by Nat! on 10.05.16.
+//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2016 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -32,40 +32,36 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
+#ifndef mulle_objc_runtime_htmldump_h__
+#define mulle_objc_runtime_htmldump_h__
 
-//
-
-#ifndef mulle_objc_runtime_dump_graphviz_h__
-#define mulle_objc_runtime_dump_graphviz_h__
-
-#include <stdio.h>
-
-struct _mulle_objc_class;
 struct _mulle_objc_runtime;
-struct _mulle_objc_methodlist;
+struct _mulle_objc_class;
+struct _mulle_objc_classpair;
 
-// dumping to graphviz is nice, if you are dealing with the mulle-objc
-// by itself. But soon it gets too complex for graphviz
-
-void   _mulle_objc_runtime_dump_graphviz( struct _mulle_objc_runtime *runtime, FILE *fp);
-void   mulle_objc_runtime_locking_dump_graphviz( void);
-void   mulle_objc_runtime_dump_graphviz( void);
-
-void   mulle_objc_runtime_dump_graphviz_to_file( char *filename);
-void   mulle_objc_runtime_dump_graphviz_tmp( void);
-void   mulle_objc_class_dump_graphviz_tmp( struct _mulle_objc_class *cls);
-
-void   _mulle_objc_class_dump_graphviz( struct _mulle_objc_class *cls, FILE *fp);
-void   mulle_objc_class_dump_graphviz_to_file( struct _mulle_objc_class *cls, char *filename);
-void   mulle_objc_class_dump_graphviz_tmp( struct _mulle_objc_class *cls);
+void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *runtime,
+                                                 char *directory);
+void   mulle_objc_htmldump_runtime_to_directory( char *directory);
+void   mulle_objc_htmldump_runtime_to_tmp( void);
 
 
-#pragma mark -
-#pragma mark -
-#pragma mark stuff for the debugger
+void   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
+                                                  char *directory);
 
-void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list);
+void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
+                                               char *directory);
 
-#endif 
+void   mulle_objc_htmldump_classname_to_directory( char *classname,
+                                                   char *directory);
+void   mulle_objc_htmldump_classname_to_tmp( char *classname);
+void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls);
+
+//
+// dump to working directory (often preferable)
+//
+void   mulle_objc_class_htmldump( struct _mulle_objc_class *cls);
+void   mulle_objc_htmldump_classname( char *classname);
+void   mulle_objc_htmldump_runtime( void);
+
+#endif

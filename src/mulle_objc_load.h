@@ -38,6 +38,7 @@
 #ifndef mulle_objc_load_h__
 #define mulle_objc_load_h__
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -47,9 +48,26 @@
 struct _mulle_objc_category;
 struct _mulle_objc_callqueue;
 struct _mulle_objc_class;
+struct _mulle_objc_infraclass;
 struct _mulle_objc_ivarlist;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_propertylist;
+struct _mulle_objc_protocollist;
+struct _mulle_objc_runtime;
+
+struct _mulle_objc_dependency
+{
+   mulle_objc_classid_t      classid;
+   mulle_objc_categoryid_t   categoryid;
+};
+
+
+
+//
+// up the number if binary loads are incompatible
+// this is read and checked against by the compiler
+//
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   8
 
 
 struct _mulle_objc_loadclass
@@ -64,32 +82,37 @@ struct _mulle_objc_loadclass
 
    int                               fastclassindex;
    int                               instancesize;
-   
+
    struct _mulle_objc_ivarlist       *instancevariables;
-   
+
    struct _mulle_objc_methodlist     *classmethods;
    struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
-   
-   mulle_objc_protocolid_t           *protocolids;
+
+   struct _mulle_objc_protocollist   *protocols;
    mulle_objc_classid_t              *protocolclassids;
+
+   char                              *origin;
 };
 
 
 struct _mulle_objc_loadcategory
 {
+   mulle_objc_categoryid_t           categoryid;
    char                              *categoryname;
 
    mulle_objc_classid_t              classid;
-   char                              *classname;         // useful ??
+   char                              *classname;           // useful ??
    mulle_objc_hash_t                 classivarhash;
-   
-   struct _mulle_objc_methodlist     *classmethods;
+
+   struct _mulle_objc_methodlist     *classmethods;       // contains categoryid
    struct _mulle_objc_methodlist     *instancemethods;
    struct _mulle_objc_propertylist   *properties;
 
-   mulle_objc_protocolid_t           *protocolids;
+   struct _mulle_objc_protocollist   *protocols;
    mulle_objc_classid_t              *protocolclassids;
+
+   char                              *origin;
 };
 
 
@@ -100,7 +123,7 @@ struct _mulle_objc_loadclasslist
 };
 
 
-static inline size_t  mulle_objc_size_of_loadclasslist( unsigned int n_loadclasses)
+static inline size_t  mulle_objc_sizeof_loadclasslist( unsigned int n_loadclasses)
 {
    return( sizeof( struct _mulle_objc_loadclasslist) + (n_loadclasses - 1) * sizeof( struct _mulle_objc_loadclass *));
 }
@@ -113,7 +136,7 @@ struct _mulle_objc_loadcategorylist
 };
 
 
-static inline size_t  mulle_objc_size_of_loadcategorylist( unsigned int n_load_categories)
+static inline size_t  mulle_objc_sizeof_loadcategorylist( unsigned int n_load_categories)
 {
    return( sizeof( struct _mulle_objc_loadcategorylist) + (n_load_categories - 1) * sizeof( struct _mulle_objc_loadcategory *));
 }
@@ -185,23 +208,24 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_optlevel_s   = (7 << 8)
 
    // lower 16 bits for runtime
-   
+
    // next 12 bits free for foundation (future: somehow)
    // last  4 bits free for user       (future: somehow)
 };
 
 
 //
-// The objc_version is the MULLE_OBJC_RUNTIME_VERSION built into the compiler.
+// the load is the MULLE_OBJC_RUNTIME_LOAD_VERSION built into the compiler
+// The runtime is the MULLE_OBJC_RUNTIME_VERSION read by the compiler.
 // The foundation version is necessary for the fastcalls. Since the foundation
 // defines the fastcalls and fastclasses, the foundation must match.
 // Whenever the fastcall/fastclasses change you need to update the foundation
 // number.
 // There is no minor/major scheme with respect to foundation.
-// it's not underscored, coz it's public by design
-
+//
 struct mulle_objc_loadversion
 {
+   uint32_t   load;
    uint32_t   runtime;
    uint32_t   foundation;
    uint32_t   user;
@@ -212,16 +236,21 @@ struct mulle_objc_loadversion
 struct _mulle_objc_loadinfo
 {
    struct mulle_objc_loadversion             version;
-   
+
    struct _mulle_objc_loadclasslist          *loadclasslist;
    struct _mulle_objc_loadcategorylist       *loadcategorylist;
    struct _mulle_objc_loadstringlist         *loadstringlist;
    struct _mulle_objc_loadhashedstringlist   *loadhashedstringlist;  // optional for debugging
+
+   // v5 could have this ?
+   //    char   *originator;        // can be nil, compiler writes __FILE__ here when executing in -O0
 };
 
 
-# pragma mark  -
-# pragma mark master calls
+// should give the file that was used to compile it
+char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info);
+
+# pragma mark  - "master" load call
 
 //
 // use this if the compiler was able to sort all protocol_uniqueids
@@ -229,17 +258,35 @@ struct _mulle_objc_loadinfo
 //
 void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info);
 
+// checks that loadinfo is compatibly compiled
+void    mulle_objc_runtime_assert_loadinfo( struct _mulle_objc_runtime *runtime,
+                                           struct _mulle_objc_loadinfo *info);
 
-# pragma mark  -
-# pragma mark class
+# pragma mark - class
 
-void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info);
+//
+// use this function to determine, if the runtime is ready to load this class
+// yet. Returns the class, that's not yet loaded.
+//
+void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
+                                               struct _mulle_objc_callqueue *loads);
+
+void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loadclass *info,
+                                                          struct _mulle_objc_runtime *runtime);
 
 
-# pragma mark  -
-# pragma mark category
+# pragma mark - category
 
-int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info, struct _mulle_objc_callqueue *loads);
-void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info, struct _mulle_objc_callqueue *loads);
+// same for categories
+int   mulle_objc_loadcategory_is_categorycomplete( struct _mulle_objc_loadcategory *info,
+                                                   struct _mulle_objc_infraclass *infra);
+
+int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info,
+                                        struct _mulle_objc_callqueue *loads);
+void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info,
+                                                  struct _mulle_objc_callqueue *loads);
+
+void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_loadcategory *info,
+                                                             struct _mulle_objc_runtime *runtime);
 
 #endif

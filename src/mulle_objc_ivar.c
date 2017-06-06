@@ -52,13 +52,13 @@ struct _mulle_objc_ivar   *_mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *bu
    int                       last;
    int                       middle;
    struct _mulle_objc_ivar   *p;
-   
+
    assert( search != MULLE_OBJC_NO_IVARID && search != MULLE_OBJC_INVALID_IVARID);
-   
+
    first  = 0;
    last   = n - 1;  // unsigned not good (need extra if)
    middle = (first + last) / 2;
- 
+
    while( first <= last)
    {
       p = &buf[ middle];
@@ -71,23 +71,22 @@ struct _mulle_objc_ivar   *_mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *bu
       }
       else
          last = middle - 1;
- 
+
       middle = (first + last) / 2;
    }
-   
+
    return( NULL);
 }
 
 
 
-#pragma mark -
-#pragma mark qsort
+#pragma mark - qsort
 
 int   _mulle_objc_ivar_compare( struct _mulle_objc_ivar *a, struct _mulle_objc_ivar *b)
 {
    mulle_objc_ivarid_t   a_id;
    mulle_objc_ivarid_t   b_id;
-   
+
    a_id = a->descriptor.ivarid;
    b_id = b->descriptor.ivarid;
    if( a_id < b_id)
@@ -100,6 +99,6 @@ void   mulle_objc_ivar_sort( struct _mulle_objc_ivar *ivars, unsigned int n)
 {
    if( ! ivars)
       return;
-   
+
    qsort( ivars, n, sizeof( struct _mulle_objc_ivar), (int(*)())  _mulle_objc_ivar_compare);
 }

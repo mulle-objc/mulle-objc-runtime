@@ -44,3 +44,13 @@ tests/kvc/kvc
 tests/methods/inheritance/inheritance
 tests/punish/punish
 /research/
+
+/.bootstrap.auto
+
+/.bootstrap.local
+
+/dependencies
+
+/addictions
+
+/.repos

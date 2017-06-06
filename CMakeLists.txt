@@ -3,7 +3,10 @@ cmake_minimum_required (VERSION 3.0)
 project (mulle-objc)
 
 add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern
-                 -DMULLE_OBJC_EXTERN_GLOBAL=extern)
+                 -DMULLE_OBJC_EXTERN_GLOBAL=extern
+                 -D__MULLE_OBJC_TPS__     ## tagged pointers runtime (default: on)
+                 -D__MULLE_OBJC_NO_TRT__  ## thread local runtime (default: off)
+                )
 
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration)
 message(STATUS "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}")
@@ -16,18 +19,21 @@ endif()
 
 
 include_directories(
-src
+   src
+   src/debug
 )
 
 set(DEBUG_HEADERS
-src/debug/mulle_objc_runtime_dump_graphviz.h
-src/debug/mulle_objc_runtime_dump_html.h
+src/debug/mulle_objc_dotdump.h
+src/debug/mulle_objc_htmldump.h
+src/debug/mulle_objc_csvdump.h
 )
 
 set(DEBUG_SOURCES
 src/debug/mulle_objc_html.c
-src/debug/mulle_objc_runtime_dump_html.c
-src/debug/mulle_objc_runtime_dump_graphviz.c
+src/debug/mulle_objc_htmldump.c
+src/debug/mulle_objc_dotdump.c
+src/debug/mulle_objc_csvdump.c
 )
 
 
@@ -39,16 +45,20 @@ src/mulle_objc_cache.h
 src/mulle_objc_call.h
 src/mulle_objc_callqueue.h
 src/mulle_objc_class.h
+src/mulle_objc_classpair.h
 src/mulle_objc_class_convenience.h
 src/mulle_objc_class_runtime.h
+src/mulle_objc_class_struct.h
 src/mulle_objc_fastclasstable.h
 src/mulle_objc_fastenumeration.h
 src/mulle_objc_fastmethodtable.h
+src/mulle_objc_infraclass.h
 src/mulle_objc_ivar.h
 src/mulle_objc_ivarlist.h
 src/mulle_objc_kvccache.h
 src/mulle_objc_load.h
 src/mulle_objc_fnv1.h
+src/mulle_objc_metaclass.h
 src/mulle_objc_method.h
 src/mulle_objc_methodlist.h
 src/mulle_objc_object.h
@@ -56,6 +66,8 @@ src/mulle_objc_object_convenience.h
 src/mulle_objc_objectheader.h
 src/mulle_objc_property.h
 src/mulle_objc_propertylist.h
+src/mulle_objc_protocol.h
+src/mulle_objc_protocollist.h
 src/mulle_objc_retain_release.h
 src/mulle_objc_runtime.h
 src/mulle_objc_runtime_struct.h
@@ -64,7 +76,10 @@ src/mulle_objc_signature.h
 src/mulle_objc_taggedpointer.h
 src/mulle_objc_try_catch_finally.h
 src/mulle_objc_uniqueid.h
+src/mulle_objc_uniqueidarray.h
+src/mulle_objc_walktypes.h
 src/mulle_objc_version.h
+src/debug/mulle_objc_lldb.h  # kinda private
 ${DEBUG_HEADERS}
 )
 
@@ -74,24 +89,31 @@ src/mulle_objc_cache.c
 src/mulle_objc_call.c
 src/mulle_objc_callqueue.c
 src/mulle_objc_class.c
+src/mulle_objc_classpair.c
 src/mulle_objc_class_runtime.c
 src/mulle_objc_fastenumeration.c
 src/mulle_objc_fastmethodtable.c
+src/mulle_objc_infraclass.c
 src/mulle_objc_ivar.c
 src/mulle_objc_ivarlist.c
 src/mulle_objc_load.c
 src/mulle_objc_fnv1.c
 src/mulle_objc_kvccache.c
+src/mulle_objc_metaclass.c
 src/mulle_objc_method.c
 src/mulle_objc_methodlist.c
 src/mulle_objc_property.c
 src/mulle_objc_propertylist.c
+src/mulle_objc_protocol.c
+src/mulle_objc_protocollist.c
 src/mulle_objc_retain_release.c
 src/mulle_objc_try_catch_finally.c
 src/mulle_objc_runtime.c
 src/mulle_objc_runtime_global.c
 src/mulle_objc_signature.c
 src/mulle_objc_uniqueid.c
+src/mulle_objc_uniqueidarray.c
+src/debug/mulle_objc_lldb.c  # always add
 )
 
 

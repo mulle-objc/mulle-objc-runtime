@@ -45,6 +45,9 @@
 #include <assert.h>
 
 
+struct _mulle_objc_infraclass;
+
+
 struct _mulle_objc_ivarlist
 {
    unsigned int              n_ivars;  // must be #0 and same as struct _mulle_objc_methodlist
@@ -53,7 +56,7 @@ struct _mulle_objc_ivarlist
 };
 
 
-static inline size_t   mulle_objc_size_of_ivarlist( unsigned int n_ivars)
+static inline size_t   mulle_objc_sizeof_ivarlist( unsigned int n_ivars)
 {
    return( sizeof( struct _mulle_objc_ivarlist) + (n_ivars - 1) * sizeof( struct _mulle_objc_ivar));
 }
@@ -82,24 +85,23 @@ static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_search( struct _mul
 
 
 int   _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
-                                 int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_class *, void *),
-                                 struct _mulle_objc_class *cls,
+                                 int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *),
+                                 struct _mulle_objc_infraclass *infra,
                                  void *userinfo);
 
 void   mulle_objc_ivarlist_sort( struct _mulle_objc_ivarlist *list);
 
-#pragma mark -
-#pragma mark API
+#pragma mark - API
 
 
 static inline int   mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
-                                              int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_class *, void *),
-                                              struct _mulle_objc_class *cls,
+                                              int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *),
+                                              struct _mulle_objc_infraclass *infra,
                                               void *userinfo)
 {
    if( ! list)
       return( -1);
-   return( _mulle_objc_ivarlist_walk( list, f, cls, userinfo));
+   return( _mulle_objc_ivarlist_walk( list, f, infra, userinfo));
 }
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_ivarlist__) */

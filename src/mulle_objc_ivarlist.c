@@ -46,10 +46,10 @@ struct _mulle_objc_ivar  *_mulle_objc_ivarlist_linear_search( struct _mulle_objc
 {
    struct _mulle_objc_ivar   *sentinel;
    struct _mulle_objc_ivar   *p;
-   
+
    assert( list);
    assert( ivarid != MULLE_OBJC_NO_IVARID && ivarid != MULLE_OBJC_INVALID_IVARID);
-   
+
    p        = &list->ivars[ 0];
    sentinel = &p[ list->n_ivars];
 
@@ -65,26 +65,26 @@ struct _mulle_objc_ivar  *_mulle_objc_ivarlist_linear_search( struct _mulle_objc
 
 
 int   _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
-                                 int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_class *, void *),
-                                 struct _mulle_objc_class *cls,
+                                 int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *),
+                                 struct _mulle_objc_infraclass *infra,
                                  void *userinfo)
 {
    struct _mulle_objc_ivar   *sentinel;
    struct _mulle_objc_ivar   *p;
    int                       rval;
-   
+
    assert( list);
-   
+
    p        = &list->ivars[ 0];
    sentinel = &p[ list->n_ivars];
-   
+
    while( p < sentinel)
    {
-      if( rval = (*f)( p, cls, userinfo))
+      if( rval = (*f)( p, infra, userinfo))
          return( rval);
       ++p;
    }
-   
+
    return( 0);
 }
 

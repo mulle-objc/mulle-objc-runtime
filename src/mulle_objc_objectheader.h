@@ -50,7 +50,21 @@ struct _mulle_objc_object;
 // isa must be underscored
 // It is important, that on 64 bit it's 16 byte size, because then a following
 // class can provide an isa pointer with 4 zero ls bits
+#define MULLE_OBJC_NEVER_RELEASE   INTPTR_MAX
+
+// retaincount_1
+//    0       -> INTPTR_MAX-1 :: normal retain counting, actual retainCount is retaincount_1 + 1
+//    -1                      :: released
+//    INTPTR_MIN              :: retainCount 0, when finalizing
+//    INTPTR_MIN -> -2        :: finalizing/finalized retainCount
 //
+// you can use INTPTR_MAX to create static objects
+//
+// like f.e.
+// { INTPTR_MAX, MULLE_OBJC_METHODID( 0x423aeba60e4eb3be), "VfL Bochum 1848" }; // 0x423aeba60e4eb3be == NXConstantString
+//
+
+
 struct _mulle_objc_objectheader
 {
    mulle_atomic_pointer_t      _retaincount_1;  // negative means finalized
@@ -62,7 +76,7 @@ MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_objectheader   *_mulle_objc_object_get_objectheader( void *obj)
 {
    struct _mulle_objc_objectheader   *header;
-   
+
    assert( obj);
    assert( ! ((uintptr_t) obj & 0x3) && "tagged pointer");
    header = (void *) &((char *) obj)[ - (int) sizeof( struct _mulle_objc_objectheader)];
@@ -78,6 +92,12 @@ static inline struct _mulle_objc_object   *_mulle_objc_objectheader_get_object( 
 }
 
 
+static inline intptr_t  _mulle_objc_objectheader_get_retaincount_1( struct _mulle_objc_objectheader *header)
+{
+   return( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1));
+}
+
+
 static inline struct _mulle_objc_object   *_mulle_objc_objectheader_init( struct _mulle_objc_objectheader *header, struct _mulle_objc_class *cls)
 {
    header->_isa   = cls;
@@ -86,8 +106,7 @@ static inline struct _mulle_objc_object   *_mulle_objc_objectheader_init( struct
 }
 
 
-# pragma mark -
-# pragma mark object / header
+# pragma mark - object / header
 
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_class   *_mulle_objc_objectheader_get_isa( struct _mulle_objc_objectheader *header)

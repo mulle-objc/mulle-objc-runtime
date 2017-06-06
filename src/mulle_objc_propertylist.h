@@ -42,23 +42,23 @@
 #include <assert.h>
 
 
-struct _mulle_objc_class;
+struct _mulle_objc_infraclass;
 
 
 struct _mulle_objc_propertylist
 {
-   unsigned int                 n_properties; 
+   unsigned int                 n_properties;
    struct _mulle_objc_property  properties[ 1];
 };
 
 
 int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                   int (*f)( struct _mulle_objc_property *, struct _mulle_objc_class *, void *),
-                                   struct _mulle_objc_class *cls,
+                                   int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
+                                   struct _mulle_objc_infraclass *infra,
                                    void *userinfo);
 
 struct _mulle_objc_property  *_mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
-                                                                   mulle_objc_propertyid_t propertyid);
+                                                                      mulle_objc_propertyid_t propertyid);
 
 static inline struct _mulle_objc_property  *_mulle_objc_propertylist_binary_search( struct _mulle_objc_propertylist *list,
                                                                    mulle_objc_propertyid_t propertyid)
@@ -68,7 +68,7 @@ static inline struct _mulle_objc_property  *_mulle_objc_propertylist_binary_sear
 
 
 static inline struct _mulle_objc_property  *_mulle_objc_propertylist_search( struct _mulle_objc_propertylist *list,
-                                                                    mulle_objc_propertyid_t propertyid)
+                                                                             mulle_objc_propertyid_t propertyid)
 
 {
    if( list->n_properties >= 14) // 14 is a resarched value for i7
@@ -85,8 +85,7 @@ static inline void   mulle_objc_propertylist_sort( struct _mulle_objc_propertyli
 
 
 
-# pragma mark -
-# pragma mark Enumerator
+# pragma mark - Enumerator
 
 struct _mulle_objc_propertylistenumerator
 {
@@ -98,12 +97,12 @@ struct _mulle_objc_propertylistenumerator
 static inline struct  _mulle_objc_propertylistenumerator   _mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_propertylistenumerator   rover;
-   
+
    rover.property   = &list->properties[ 0];
    rover.sentinel = &list->properties[ list->n_properties];
-   
+
    assert( rover.sentinel >= rover.property);
-   
+
    return( rover);
 }
 
@@ -119,24 +118,23 @@ static inline void  _mulle_objc_propertylistenumerator_done( struct _mulle_objc_
 }
 
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 static inline int   mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                               int (*f)( struct _mulle_objc_property *, struct _mulle_objc_class *, void *),
-                                               struct _mulle_objc_class *cls,
+                                               int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
+                                               struct _mulle_objc_infraclass *infra,
                                                void *userinfo)
 {
    if( ! list || ! f)
       return( -1);
-   return( _mulle_objc_propertylist_walk( list, f, cls, userinfo));
+   return( _mulle_objc_propertylist_walk( list, f, infra, userinfo));
 }
 
 
 static inline struct  _mulle_objc_propertylistenumerator   mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_propertylistenumerator   rover;
-   
+
    if( ! list)
    {
       rover.property   = NULL;

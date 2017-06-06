@@ -68,7 +68,8 @@ typedef void    *(*mulle_objc_methodimplementation_t)( void *, mulle_objc_method
 #define MULLE_OBJC_RELEASE_METHODID      MULLE_OBJC_METHODID( 0x8f63473c)  // release
 #define MULLE_OBJC_RETAIN_METHODID       MULLE_OBJC_METHODID( 0xd2f2322a)  // retain
 
-#define MULLE_OBJC_FORWARD_METHODID      MULLE_OBJC_METHODID( 0x3f134576)
+#define MULLE_OBJC_FORWARD_METHODID       MULLE_OBJC_METHODID( 0x3f134576)
+#define MULLE_OBJC_DEPENDENCIES_METHODID  MULLE_OBJC_METHODID( 0xfb10562e)
 
 //
 // idea... add a bit to this _mulle_objc_methoddescriptor, that the compiler
@@ -94,9 +95,10 @@ enum
 {
    _mulle_objc_method_check_unexpected_override = 0x01,
    _mulle_objc_method_preload                   = 0x02,
-   _mulle_objc_method_aaomode                   = 0x04,
+   _mulle_objc_method_aam                       = 0x04,
    _mulle_objc_method_variadic                  = 0x08,
-   
+   _mulle_objc_method_guessed_signature         = 0x10,
+
 // this is from clang ObjCMethodFamilyAttr
 //  enum FamilyKind {
 //    OMF_None,
@@ -114,20 +116,18 @@ enum
    _mulle_objc_method_family_kind_new         = (5 << 16)
 };
 
-# pragma mark -
-# pragma mark methoddescriptor
+# pragma mark - methoddescriptor
 
 struct _mulle_objc_methoddescriptor
 {
    mulle_objc_methodid_t   methodid;
    char                    *name;
    char                    *signature;
-   unsigned int            bits;  
+   int                     bits;
 };
 
 
-# pragma mark -
-# pragma mark method descriptor petty accessors
+# pragma mark - method descriptor petty accessors
 
 static inline char   *_mulle_objc_methoddescriptor_get_name( struct _mulle_objc_methoddescriptor *desc)
 {
@@ -165,16 +165,14 @@ static inline int   _mulle_objc_methoddescriptor_is_init_method( struct _mulle_o
 }
 
 
-# pragma mark -
-# pragma mark method descriptor consistency
+# pragma mark - method descriptor consistency
 
 int  mulle_objc_methoddescriptor_is_sane( struct _mulle_objc_methoddescriptor *p);
 
 
 
 
-# pragma mark -
-# pragma mark method
+# pragma mark - method
 
 struct _mulle_objc_method
 {
@@ -187,8 +185,7 @@ struct _mulle_objc_method
 };
 
 
-# pragma mark -
-# pragma mark method petty accessors
+# pragma mark - method petty accessors
 
 static inline char   *_mulle_objc_method_get_name( struct _mulle_objc_method *method)
 {
@@ -202,7 +199,7 @@ static inline char   *_mulle_objc_method_get_signature( struct _mulle_objc_metho
 }
 
 
-static inline mulle_objc_methodid_t  _mulle_objc_method_get_id( struct _mulle_objc_method *method)
+static inline mulle_objc_methodid_t  _mulle_objc_method_get_methodid( struct _mulle_objc_method *method)
 {
    return( method->descriptor.methodid);
 }
@@ -222,8 +219,7 @@ static inline struct _mulle_objc_methoddescriptor *
 }
 
 
-#pragma mark -
-#pragma mark bsearch
+#pragma mark - bsearch
 
 struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_method *buf,
                                                          unsigned int n,
@@ -233,19 +229,15 @@ static inline struct _mulle_objc_method   *mulle_objc_method_bsearch( struct _mu
                                                                       unsigned int n,
                                                                       mulle_objc_methodid_t search)
 {
-   assert( buf);
-   if( ! buf || n > INT_MAX)
-   {
-      errno = EINVAL;
-      return( (void *) INTPTR_MIN);
-   }
-   
+   if( ! buf)
+      return( NULL);
+   if( (int) n <= 0)
+      return( NULL);
    return( _mulle_objc_method_bsearch( buf, n, search));
 }
 
 
-#pragma mark -
-#pragma mark qsort
+#pragma mark - qsort
 
 int  _mulle_objc_method_compare( struct _mulle_objc_method *a, struct _mulle_objc_method *b);
 
@@ -253,8 +245,7 @@ void   mulle_objc_method_sort( struct _mulle_objc_method *methods,
                                unsigned int n);
 
 
-# pragma mark -
-# pragma mark method API
+# pragma mark - method API
 
 static inline char   *mulle_objc_method_get_name( struct _mulle_objc_method *method)
 {
@@ -268,9 +259,9 @@ static inline char   *mulle_objc_method_get_signature( struct _mulle_objc_method
 }
 
 
-static inline mulle_objc_methodid_t  mulle_objc_method_get_id( struct _mulle_objc_method *method)
+static inline mulle_objc_methodid_t  mulle_objc_method_get_methodid( struct _mulle_objc_method *method)
 {
-   return( method ? _mulle_objc_method_get_id( method) : MULLE_OBJC_NO_METHODID);
+   return( method ? _mulle_objc_method_get_methodid( method) : MULLE_OBJC_NO_METHODID);
 }
 
 
