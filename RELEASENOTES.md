@@ -1,3 +1,8 @@
+## 0.8.4
+
+* Community release
+
+
 ## 0.8.3
 
 * enlarged class state bit space for mulle-objc to 16 bits, which cramps
@@ -96,10 +101,10 @@ It is preferred to set the environment variables with "YES" or "NO" now.
 
 Variable                          | Description
 ----------------------------------|-----------------------
-`MULLE_OBJC_TRACE_LOADINFO`       | more detailed output of the loadinfo
-`MULLE_OBJC_TRACE_CATEGORY_ADDS`  | trace runtime category additions
-`MULLE_OBJC_TRACE_PROTOCOL_ADDS`  | trace runtime protocol additions
-`MULLE_OBJC_WARN_STUCK_LOADABLES` | replaces ..._WARN_NOTLOADED_CLASSES and .._CATEGORIES
+`MULLE_OBJC_TRACE_LOADINFO`       | more detailed output of the loadinfo
+`MULLE_OBJC_TRACE_CATEGORY_ADDS`  | trace runtime category additions
+`MULLE_OBJC_TRACE_PROTOCOL_ADDS`  | trace runtime protocol additions
+`MULLE_OBJC_WARN_STUCK_LOADABLES` | replaces ..._WARN_NOTLOADED_CLASSES and .._CATEGORIES
 
 
 ## 0.3.1
@@ -125,10 +130,8 @@ matches the current default of the  mulle-clang compiler
 
 * improved super calls
 
-## 0.2.2
 
-* Community release
-
+>>>>>>> Stashed changes
 ## 0.2.1
 
 * add support for char5-encoding check
