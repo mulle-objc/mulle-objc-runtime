@@ -6,7 +6,7 @@
 ## 0.8.3
 
 * enlarged class state bit space for mulle-objc to 16 bits, which cramps user and foundation to 8 bits each
-* added cache csv dump fo future shenanigans
+* added cache csv dump for future real-time shenanigans
 
 
 ## 0.8.1
