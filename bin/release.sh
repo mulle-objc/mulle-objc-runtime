@@ -37,6 +37,12 @@
 #   ./bin/release.sh --publisher mulle-nat --publisher-tap mulle-kybernetik/alpha/
 #
 
+# Define your project and the dependencies for homebrew
+# DEPENDENCIES and BUILD_DEPENDENCIES will be evaled later!
+# Then run this as
+#   ./bin/release.sh --publisher mulle-nat --publisher-tap mulle-kybernetik/alpha/
+#
+
 PROJECT="MulleObjcRuntime"    # requires camel-case
 DESC="An Objective-C runtime, written 100% in C"
 LANGUAGE=c                    # c,cpp, objc
@@ -107,7 +113,24 @@ generate_brew_formula()
 #######
 
 MULLE_BOOTSTRAP_FAIL_PREFIX="`basename -- $0`"
-MULLE_HOMEBREW_VERSION="3.4.3"
+MULLE_HOMEBREW_VERSION="3.4.5"
+
+EXEC_DIR="`dirname -- $0`"
+
+#
+# prefer local mulle-homebrew if available
+#
+if [ -x "${EXEC_DIR}/mulle-homebrew/mulle-homebrew-env" ]
+then
+   PATH="${EXEC_DIR}/mulle-homebrew:$PATH"
+fi
+
+if [ -z "`command -v mulle-homebrew-env`" ]
+then
+   echo "mulle-homebrew-env not found in PATH" >&2
+   exit 1
+fi
+
 
 INSTALLED_MULLE_HOMEBREW_VERSION="`mulle-homebrew-env version`" || exit 1
 LIBEXEC_DIR="`mulle-homebrew-env libexec-path`" || exit 1
@@ -209,9 +232,13 @@ RBFILE="${RBFILE:-${NAME}.rb}"
 #
 if [ -z "${PUBLISHER}" ]
 then
-   fail "you need to specify a publisher with --publisher (hint: https://github.com/<publisher>)"
+   fail "You need to specify a publisher with --publisher (hint: https://github.com/<publisher>)"
 fi
 
+if [ -z "${VERSION}" ]
+then
+   fail "Could not figure out the version. (hint: check VERSIONNAME, VERSIONFILE)"
+fi
 
 # tag to tag your release
 TAG="${TAG:-${TAG_PREFIX}${VERSION}}"
