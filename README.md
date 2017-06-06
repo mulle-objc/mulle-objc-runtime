@@ -55,7 +55,7 @@ could be a good starting point.
 > It you use `.c` files that include `<mulle_objc/mulle_objc.h>` make sure
 > that you compile with `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_TRT__` as
 > they were defined when compiling the runtime. Since C-only compilations do
-> not emit runtime information, mismatched can not be checked by the runtime.
+> not emit runtime information, mismatches can not be checked by the runtime.
 > Easy fix: rename `.c` to `.m` and use **mulle-clang**
 
 
