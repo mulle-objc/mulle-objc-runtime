@@ -8,7 +8,7 @@ It is designed to be suitable for massive multi-threading.
 
 Fork      |  Build Status | Release Version
 ----------|---------------|-----------------------------------
-[Mulle kybernetiK](//github.com/mulle-nat/mulle-objc) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc)
+[Mulle kybernetiK](//github.com/mulle-nat/mulle-objc-runtime) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc-runtime) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc-runtime)
 [Community](https://github.com/mulle-objc/mulle-objc/tree/release) | [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg)](https://travis-ci.org/mulle-objc/mulle-objc) | ![Community tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-objc/mulle-objc)
 
 
@@ -117,7 +117,7 @@ brew install mulle-objc-runtime
 ```
 
 On other platforms you can use **mulle-install** from
-[mulle-build](//github.com/mulle-nat/mulle-objc)
+[mulle-build](//github.com/mulle-nat/mulle-build)
 to install the library:
 
 ```
