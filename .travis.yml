@@ -17,7 +17,7 @@ before_install:
    - git clone https://github.com/Linuxbrew/brew.git /home/linuxbrew/.linuxbrew
    - PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
    - brew update
-   - brew install mulle-kybernetik/alpha/mulle-build
+   - brew install mulle-kybernetik/software/mulle-build
 
 script:
    - mulle-build --bootstrap
