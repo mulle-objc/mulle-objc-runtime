@@ -58,8 +58,7 @@ struct _mulle_objc_kvcinfo  *_mulle_objc_kvcinfo_new( char *cKey,
 }
 
 
-#pragma mark -
-#pragma mark cache
+# pragma mark - cache
 
 static void  _mulle_objc_kvccache_abafree( struct _mulle_objc_kvccache *cache,
                                            struct mulle_allocator *allocator)
@@ -69,7 +68,7 @@ static void  _mulle_objc_kvccache_abafree( struct _mulle_objc_kvccache *cache,
    struct _mulle_objc_cacheentry      *start;
    struct _mulle_objc_cacheentry      *sentinel;
    struct _mulle_objc_kvccacheinfo    *info;
-   
+
    start    = cache->base.entries;
    sentinel = &start[ cache->base.size];
    while( start < sentinel)
@@ -78,7 +77,7 @@ static void  _mulle_objc_kvccache_abafree( struct _mulle_objc_kvccache *cache,
       mulle_allocator_abafree( allocator, info);
       ++start;
    }
-   
+
    mulle_allocator_abafree( allocator, cache);
 }
 
@@ -101,25 +100,25 @@ static struct _mulle_objc_cacheentry
    struct _mulle_objc_kvccache     *old_cache;
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_cache_uint_t         new_size;
-   
+
    old_cache = cache;
-   
+
    // a new beginning.. let it be filled anew
    new_size  = old_cache->base.size * 2;
    cache     = mulle_objc_kvccache_new( new_size, allocator);
    if( ! cache)
       return( NULL);
-   
+
    entry = _mulle_objc_kvccache_inactivecache_add_entry( cache, info, keyid);
    if( _mulle_objc_kvccachepivot_atomic_set_entries( pivot, cache->base.entries, old_cache->base.entries))
    {
       _mulle_objc_kvccache_free( cache, allocator);
       return( NULL);
    }
-   
+
    if( &old_cache->base.entries[ 0] != &empty_cache->base.entries[ 0])
       _mulle_objc_kvccache_abafree( old_cache, allocator);
-   
+
    return( entry);
 }
 
@@ -132,9 +131,9 @@ int    _mulle_objc_kvccachepivot_set_kvcinfo( struct _mulle_objc_kvccachepivot *
    struct _mulle_objc_cacheentry      *entry;
    struct _mulle_objc_kvccache        *cache;
    mulle_objc_uniqueid_t              keyid;
-   
+
    keyid = mulle_objc_uniqueid_from_string( info->cKey);
-   
+
    for(;;)
    {
       cache = _mulle_objc_kvccachepivot_atomic_get_cache( pivot);
@@ -145,7 +144,7 @@ int    _mulle_objc_kvccachepivot_set_kvcinfo( struct _mulle_objc_kvccachepivot *
             return( 0);
          continue;
       }
-      
+
       //
       // when we have a conflict, there are two possibilties
       // recreate the cache and use the new value
@@ -168,7 +167,7 @@ struct _mulle_objc_kvcinfo  *_mulle_objc_kvccache_lookup_kvcinfo( struct _mulle_
 {
    mulle_objc_uniqueid_t           keyid;
    struct _mulle_objc_kvcinfo      *info;
-   
+
    keyid = mulle_objc_uniqueid_from_string( key);
    info  = _mulle_objc_cache_lookup_pointer(  (struct _mulle_objc_cache *) cache, keyid);
    if( ! info)

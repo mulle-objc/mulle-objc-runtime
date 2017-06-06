@@ -1,0 +1,48 @@
+digraph loading
+{
+   node [ shape="box"]
+
+   "queue of loadclasses and loadcategories" -> "next loadclass"     [ label=" has classes"]
+   "queue of loadclasses and loadcategories" -> "next loadcategory"  [ label=" has categories"]
+   "queue of loadclasses and loadcategories" -> "run +load queue" [ label=" empty "]
+
+   { rank = same; "next loadclass"; "next loadcategory"; "run +load queue"}
+
+   "next loadclass"        -> "superclass missing"
+   "superclass missing"    -> "add to waitqueue for missing classid"   [ label="YES"]
+   "superclass missing"    -> "protocolclass missing"          [ label="NO"]
+   "protocolclass missing" -> "add to waitqueue for missing classid"   [ label="YES"]
+   "protocolclass missing" -> "dependency missing"             [ label="NO"]
+   "dependency missing"    -> "add to waitqueue for missing classid"   [ label="YES"]
+   "dependency missing"    -> "setup class"                    [ label="NO"]
+   "setup class"           -> "queue +load"
+   "queue +load"           -> "add class"
+   "add class"             -> "run waitqueue for classid"
+   "run waitqueue for classid"    -> "queue of loadclasses and loadcategories"
+   "add to waitqueue for missing classid" -> "queue of loadclasses and loadcategories"
+
+
+   "next loadcategory"      -> ".class missing"
+   ".class missing"         -> "add to waitqueue for missing classid"   [ label="YES"]
+   ".class missing"         -> ".protocolclass missing"         [ label="NO"]
+   ".protocolclass missing" -> "add to waitqueue for missing classid"   [ label="YES"]
+   ".protocolclass missing" -> ".dependency missing"            [ label="NO"]
+   ".dependency missing"    -> "add to waitqueue for missing classid"   [ label="YES"]
+   ".dependency missing"    -> "setup category"                 [ label="NO"]
+   "setup category"         -> ".queue +load"
+   ".queue +load"           -> "add category"
+   "add category"           -> "run waitqueue for classid"
+
+   "queue +load"        [ color="red",penwidth=3]
+   ".queue +load"       [ color="red",penwidth=3]
+   "next loadclass"     [ penwidth=3]
+   "next loadcategory"  [ penwidth=3]
+   "run +load queue"    [ color="red", penwidth=3]
+
+   "queue of loadclasses and loadcategories" [ color="blue", penwidth=3]
+
+   { rank = same; "run waitqueue for classid" ; "add to waitqueue for missing classid" }
+
+   "run waitqueue for classid"               [ color="blue", penwidth=3]
+   "add to waitqueue for missing classid"    [ color="blue", penwidth=3]
+}

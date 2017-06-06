@@ -83,7 +83,7 @@ Compute the **ivarid** from ASCII string `s`. Will return
 mulle_objc_methodid_t   mulle_objc_methodid_from_string( char *s)
 ```
 
-Compute the **methodif** from ASCII string `s`. Will return
+Compute the **methodid** from ASCII string `s`. Will return
 `MULLE_OBJC_NO_METHODID` if `s` is NULL.
 
 
@@ -95,6 +95,7 @@ mulle_objc_protocolid_t   mulle_objc_protocolid_from_string( char *s)
 
 Compute the **protocolid** from ASCII string `s`. Will return
 `MULLE_OBJC_NO_PROTOCOLID` if `s` is NULL.
+
 
 ## Thread Functions
 

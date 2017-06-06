@@ -5,6 +5,9 @@
 //  Created by Nat! on 13.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
+
 #include <mulle_objc/mulle_objc.h>
 
 #include "test_runtime_ids.h"
@@ -31,9 +34,10 @@ struct _1000_8_chars
 void   test_message_sending()
 {
    struct _1000_8_chars                   *storage;
-   struct _mulle_objc_classpair           *pair;
    struct _mulle_objc_class               *A_cls;
-   struct _mulle_objc_class               *A_meta_cls;
+   struct _mulle_objc_classpair           *pair;
+   struct _mulle_objc_infraclass          *A_infra;
+   struct _mulle_objc_metaclass           *A_meta;
    struct _mulle_objc_methoddescriptor    *desc;
    struct _mulle_objc_methodlist          *methodlist;
    struct _mulle_objc_object              *A_obj;
@@ -41,17 +45,17 @@ void   test_message_sending()
    unsigned int                           i;
    void                                   *rval;
 
-   runtime    = __get_or_create_objc_runtime();
+   runtime    = mulle_objc_get_or_create_runtime();
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
-   A_cls = _mulle_objc_classpair_get_infraclass( pair);
-   A_meta_cls = _mulle_objc_class_get_metaclass( A_cls);
+   A_infra = _mulle_objc_classpair_get_infraclass( pair);
+   A_meta  = _mulle_objc_classpair_get_metaclass( pair);
 
    // now fix up classes with empty method lists, so they are OK to be added
-   mulle_objc_class_unfailing_add_methodlist( A_meta_cls, NULL);
+   mulle_objc_metaclass_unfailing_add_methodlist( A_meta, NULL);
 
-   storage = mulle_objc_calloc( 1, sizeof( struct _1000_8_chars));
+   storage = mulle_objc_runtime_calloc( runtime, 1, sizeof( struct _1000_8_chars));
 
    srand( 0x1848);
 
@@ -62,9 +66,11 @@ void   test_message_sending()
    {
       sprintf( storage->names[ i], "f%d", i);
 
-      methodlist->methods[ i].implementation       = f[ i];
+      _mulle_atomic_functionpointer_nonatomic_write( &methodlist->methods[ i].implementation,
+                                                     (mulle_functionpointer_t) f[ i]);
+
       methodlist->methods[ i].descriptor.name      = storage->names[ i];
-      methodlist->methods[ i].descriptor.methodid = mulle_objc_methodid_from_string( storage->names[ i]);
+      methodlist->methods[ i].descriptor.methodid  = mulle_objc_methodid_from_string( storage->names[ i]);
       methodlist->methods[ i].descriptor.signature = "@:";
 
       //printf( "#%04d: %s -> %lld\n", i, methods[ i].descriptor.name, (int64_t) methods[ i].descriptor.methodid);
@@ -80,36 +86,37 @@ void   test_message_sending()
    //   printf( "#%04d: %s -> %llx\n", i, methodlist->methods[ i]->descriptor.name, (int64_t) methodlist->methods[ i]->descriptor.methodid);
 
    methodlist->n_methods = 1000;
-   mulle_objc_class_unfailing_add_methodlist( A_cls, methodlist);
-   mulle_objc_class_unfailing_add_classmethodlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_ivarlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_propertylist( A_cls, NULL);
-   mulle_objc_unfailing_add_class( A_cls);
+   mulle_objc_infraclass_unfailing_add_methodlist( A_infra, methodlist);
+   mulle_objc_metaclass_unfailing_add_methodlist( A_meta, NULL);
+   mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
+   mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
+   mulle_objc_unfailing_add_infraclass( A_infra);
 
-   A_obj = mulle_objc_class_alloc_instance( A_cls, NULL);
-
-
+   A_obj = mulle_objc_infraclass_alloc_instance( A_infra, NULL);
+   A_cls = _mulle_objc_infraclass_as_class( A_infra);
    for( i = 0; i < 1000; i++)
    {
-      assert( i == 500 || ! _mulle_objc_class_lookup_cached_methodimplementation( A_cls, methodlist->methods[ i].descriptor.methodid));
+      assert( i == 500 || ! _mulle_objc_class_lookup_cached_methodimplementation( (void *) A_cls, methodlist->methods[ i].descriptor.methodid));
       desc = _mulle_objc_runtime_lookup_methoddescriptor( runtime, methodlist->methods[ i].descriptor.methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
       rval = mulle_objc_object_call( A_obj, methodlist->methods[ i].descriptor.methodid, NULL);
-      assert( _mulle_objc_class_lookup_cached_methodimplementation( A_cls, methodlist->methods[ i].descriptor.methodid));
+      assert( _mulle_objc_class_lookup_cached_methodimplementation( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
       assert( rval == (void *) (uintptr_t) methodlist->methods[ i].descriptor.methodid);
    }
 
-
 #if DEBUG
    {
-      size_t         old;
-      unsigned int   percentages[ 16];
-      unsigned int   i, n;
+      size_t                     old;
+      unsigned int               percentages[ 16];
+      unsigned int               i, n;
+      struct _mulle_objc_cache   *A_cache;
+
+      A_cache = _mulle_objc_class_get_methodcache( A_cls);
 
       // run it again to get cache size stable
       do
       {
-         old = _mulle_objc_cache_size( _mulle_objc_class_get_methodcache( A_cls));
+         old = _mulle_objc_cache_size( A_cache);
 
          for( i = 0; i < 1000; i++)
          {
@@ -119,17 +126,17 @@ void   test_message_sending()
       }
       while( _mulle_objc_class_get_methodcache( A_cls)->size != old);
 
-      printf( "cache size  : %d\n", (int) _mulle_objc_cache_size( _mulle_objc_class_get_methodcache( A_cls)));
-      printf( "cache mask  : 0x%llx\n", (long long) _mulle_objc_cache_mask( _mulle_objc_class_get_methodcache( A_cls)));
-      printf( "cache count : %d\n", (int) _mulle_objc_cache_count( _mulle_objc_class_get_methodcache( A_cls)));
-      printf( "cache fill  : %d%%\n", mulle_objc_cache_fill_percentage( _mulle_objc_class_get_methodcache( A_cls)));
+      printf( "cache size  : %d\n", (int) _mulle_objc_cache_size( ));
+      printf( "cache mask  : 0x%llx\n", (long long) _mulle_objc_cache_mask( A_cache));
+      printf( "cache count : %d\n", (int) _mulle_objc_cache_count( A_cache));
+      printf( "cache fill  : %d%%\n", mulle_objc_cache_fill_percentage( A_cache));
 
       /* by chance expected would be
            79%: 1
            10%: 2
             1%: 3
        */
-      n = mulle_objc_cache_hit_percentage( _mulle_objc_class_get_methodcache( A_cls), percentages, 16);
+      n = mulle_objc_cache_hit_percentage( A_cache, percentages, 16);
       for( i = 0; i < n; i++)
       {
          printf( "\t#%02d: %d%%\n", i, percentages[ i]);

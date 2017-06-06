@@ -23,10 +23,10 @@ char   *mulle_objc_property_get_signature( struct _mulle_objc_property *property
 
 Get the signature of the property. This is not the same as the signature of the instance variable. The returned string's lifetime is that of the property. Don't free it.
 
-### `mulle_objc_property_get_id`
+### `mulle_objc_property_get_propertyid`
 
 ```
-mulle_objc_propertyid_t  mulle_objc_property_get_id( struct _mulle_objc_property *property)
+mulle_objc_propertyid_t  mulle_objc_property_get_propertyid( struct _mulle_objc_property *property)
 ```
 
 Get the **propertyid** of the property.

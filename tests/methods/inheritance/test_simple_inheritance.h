@@ -5,19 +5,21 @@
 //  Created by Nat! on 10.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
 
 #include <mulle_objc/mulle_objc.h>
 
 
 struct abc_classes
 {
-   struct _mulle_objc_class   *A_cls;
-   struct _mulle_objc_class   *B_cls;
-   struct _mulle_objc_class   *C_cls;
+   struct _mulle_objc_infraclass   *A_infra;
+   struct _mulle_objc_infraclass   *B_infra;
+   struct _mulle_objc_infraclass   *C_infra;
 
-   struct _mulle_objc_class   *A_meta_cls;
-   struct _mulle_objc_class   *B_meta_cls;
-   struct _mulle_objc_class   *C_meta_cls;
+   struct _mulle_objc_metaclass   *A_meta;
+   struct _mulle_objc_metaclass   *B_meta;
+   struct _mulle_objc_metaclass   *C_meta;
 };
 
 

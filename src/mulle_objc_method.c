@@ -43,8 +43,7 @@
 #include <errno.h>
 
 
-#pragma mark -
-#pragma mark bsearch
+#pragma mark - bsearch
 
 struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_method *buf,
                                                          unsigned int n,
@@ -54,13 +53,13 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
    int   last;
    int   middle;
    struct _mulle_objc_method   *p;
-   
+
    assert( search != MULLE_OBJC_NO_METHODID && search != MULLE_OBJC_INVALID_METHODID);
-   
+
    first  = 0;
    last   = n - 1;
    middle = (first + last) / 2;
- 
+
    while( first <= last)
    {
       p = &buf[ middle];
@@ -73,22 +72,21 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
       }
       else
          last = middle - 1;
- 
+
       middle = (first + last) / 2;
    }
-   
+
    return( NULL);
 }
 
 
-#pragma mark -
-#pragma mark qsort
+#pragma mark - qsort
 
 int  _mulle_objc_method_compare( struct _mulle_objc_method *a, struct _mulle_objc_method *b)
 {
    mulle_objc_methodid_t   a_id;
    mulle_objc_methodid_t   b_id;
-   
+
    a_id = a->descriptor.methodid;
    b_id = b->descriptor.methodid;
    if( a_id < b_id)
@@ -102,13 +100,12 @@ void   mulle_objc_method_sort( struct _mulle_objc_method *methods,
 {
    if( ! methods)
       return;
-   
+
    qsort( methods, n, sizeof( struct _mulle_objc_method), (int (*)()) _mulle_objc_method_compare);
 }
 
 
-#pragma mark -
-#pragma mark methoddescriptor
+#pragma mark - methoddescriptor
 
 int  mulle_objc_methoddescriptor_is_sane( struct _mulle_objc_methoddescriptor *p)
 {
@@ -117,19 +114,19 @@ int  mulle_objc_methoddescriptor_is_sane( struct _mulle_objc_methoddescriptor *p
       errno = EINVAL;
       return( 0);
    }
-   
+
    if( p->methodid == MULLE_OBJC_NO_METHODID || p->methodid == MULLE_OBJC_INVALID_METHODID)
    {
       errno = EINVAL;
       return( 0);
    }
-   
+
    if( ! p->name || ! strlen( p->name))
    {
       errno = EINVAL;
       return( 0);
    }
-   
+
    if( ! p->signature || ! strlen( p->signature))
    {
       errno = EINVAL;

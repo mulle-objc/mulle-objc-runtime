@@ -15,10 +15,13 @@ The `@encode` types are basically compatible to Mac OS X encode.
 Macro          | Value  | Description
 ---------------+--------+-----------------
 `_C_ASSIGN_ID` |  '='   | An object with "assign" semantics (-> delegate)
-`_C_COPY_ID`   |  '~''  | An object with "-copy" semantics
-`_C_ID`        | '@'    | Still an object as it always has been. It is synonym to `_C_RETAIN_ID`
+`_C_COPY_ID`   |  '~'   | An object with "-copy" semantics
+`_C_ID`        |  '@'   | Still an object as it always has been. It is synonym to `_C_RETAIN_ID`
 `_C_RETAIN_ID` |  `_C_ID` | An object with "-retain" semantics
 
+
+> While the runtime may be aware of `_C_ASSIGN_ID` and `_C_COPY_ID` the compiler 
+> may not produce these signatures yet.
 
 The runtime has no problems with the `long double` type. So `@encode( long double)`
 should return 'D'.

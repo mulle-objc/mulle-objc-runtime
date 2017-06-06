@@ -42,9 +42,9 @@
 static void  tear_down()
 {
    // no autoreleasepools here
-   
+
    mulle_objc_release_runtime();
-   
+
    if( getenv( "MULLE_OBJC_TEST_ALLOCATOR"))
       mulle_test_allocator_reset();
 }
@@ -52,15 +52,15 @@ static void  tear_down()
 
 
 MULLE_C_CONST_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_runtime  *__get_or_create_objc_runtime( void)
+struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
 {
    struct _mulle_objc_runtime      *runtime;
    struct mulle_allocator          *allocator;
    int                             is_test;
    int                             is_pedantic;
-   
+
    runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initalized( runtime))
+   if( ! _mulle_objc_runtime_is_initialized( runtime))
    {
       allocator = NULL;
       is_test = getenv( "MULLE_OBJC_TEST_ALLOCATOR") != NULL;

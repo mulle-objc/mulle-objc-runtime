@@ -78,7 +78,7 @@ static inline int   mulle_objc_taggedpointer_is_valid_unsigned_value( uintptr_t 
 static inline int   mulle_objc_taggedpointer_is_valid_signed_value( intptr_t value)
 {
    intptr_t  bits;
-   
+
    bits = value & mulle_objc_taggedpointer_signedlostbitsmask();
    return( ! bits || bits == mulle_objc_taggedpointer_signedlostbitsmask());
 }
@@ -87,30 +87,30 @@ static inline int   mulle_objc_taggedpointer_is_valid_signed_value( intptr_t val
 static inline void   *mulle_objc_create_unsigned_taggedpointer( uintptr_t value, unsigned int index)
 {
    assert( index > 0 && index <= mulle_objc_get_taggedpointer_mask());
-   
+
    // check that all shifted out bits are either all zeroes
    // or that in the signed case, the bits are all ones like the top bit
    assert( mulle_objc_taggedpointer_is_valid_unsigned_value( value));
-   
+
    return( (void *) ((value << mulle_objc_get_taggedpointer_shift()) | index));
 }
 
 static inline void   *mulle_objc_create_signed_taggedpointer( intptr_t value, unsigned int index)
 {
    assert( index > 0 && index <= mulle_objc_get_taggedpointer_mask());
-   
+
    // check that all shifted out bits are either all zeroes
    // or that in the signed case, the bits are all ones like the top bit
    assert( mulle_objc_taggedpointer_is_valid_signed_value( value));
-   
+
    return( (void *) ((value << mulle_objc_get_taggedpointer_shift()) | index));
 }
 
-
+MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
 static inline unsigned int   mulle_objc_taggedpointer_get_index( void *pointer)
 {
    uintptr_t   value;
-   
+
    value = (uintptr_t) pointer;
    return( (unsigned int) (value & mulle_objc_get_taggedpointer_mask()));
 }
@@ -119,10 +119,10 @@ static inline unsigned int   mulle_objc_taggedpointer_get_index( void *pointer)
 static inline uintptr_t   mulle_objc_taggedpointer_get_unsigned_value( void *pointer)
 {
    uintptr_t   value;
-   
+
    value = (uintptr_t) pointer;
    assert( value & mulle_objc_get_taggedpointer_mask());
-   
+
    return( value >> mulle_objc_get_taggedpointer_shift());
 }
 
@@ -130,10 +130,10 @@ static inline uintptr_t   mulle_objc_taggedpointer_get_unsigned_value( void *poi
 static inline intptr_t   mulle_objc_taggedpointer_get_signed_value( void *pointer)
 {
    intptr_t   value;
-   
+
    value = (intptr_t) pointer;
    assert( value & mulle_objc_get_taggedpointer_mask());
-   
+
    return( value >> mulle_objc_get_taggedpointer_shift());
 }
 

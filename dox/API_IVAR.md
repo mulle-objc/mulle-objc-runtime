@@ -17,10 +17,10 @@ Get the name of this instance variable. This pointer is alive as long as
 `ivar` is alive and unmodified. Don't free it.
 
 
-### `mulle_objc_ivar_get_id`
+### `mulle_objc_ivar_get_ivarid`
 
 ```
-mulle_objc_ivarid_t   mulle_objc_ivar_get_id( struct _mulle_objc_ivar *ivar)
+mulle_objc_ivarid_t   mulle_objc_ivar_get_ivarid( struct _mulle_objc_ivar *ivar)
 ```
 
 Get the **ivarid** of this instance variable.

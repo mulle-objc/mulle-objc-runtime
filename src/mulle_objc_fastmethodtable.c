@@ -48,7 +48,6 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
 {
    struct _mulle_objc_class            *cls;
    struct _mulle_objc_runtime          *runtime;
-   struct _mulle_objc_method           *method;
    mulle_objc_methodimplementation_t   imp;
 
    // don't cache it
@@ -57,18 +56,15 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
 
    // looking up methods, should be thread safe
    {
-      method = _mulle_objc_class_search_method( cls, methodid, NULL, _mulle_objc_class_get_inheritance( cls));
-      if( ! method)
-         method = _mulle_objc_class_unfailing_get_or_search_forwardmethod( cls, methodid);
+      imp = _mulle_objc_class_lookup_or_search_methodimplementation( cls, methodid);
 
-      imp = _mulle_objc_method_get_implementation( method);
       if( runtime->debug.trace.method_calls)
          // trace but don't cache it
          mulle_objc_class_trace_method_call( cls, methodid, obj, param, imp);
       else
          _mulle_atomic_pointer_write( &cls->vtab.methods[ index].pointer, imp);
    }
-   
+
    // go through class call to hit +initialize
    return( (cls->call)( obj, methodid, param, cls));
 }
@@ -138,4 +134,3 @@ void   _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *tab
    _mulle_atomic_pointer_write( &table->methods[22].pointer, _mulle_objc_fastmethodtablefaulthandler_22);
    _mulle_atomic_pointer_write( &table->methods[23].pointer, _mulle_objc_fastmethodtablefaulthandler_23);
 }
-

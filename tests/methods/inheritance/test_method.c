@@ -5,6 +5,9 @@
 //  Created by Nat! on 16.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
+
 #include <mulle_objc/mulle_objc.h>
 
 #include "test_runtime_ids.h"
@@ -22,7 +25,7 @@ static void   _test_method( struct abc_classes  *classes)
    struct _mulle_objc_methoddescriptor   clone;
    struct _mulle_objc_runtime             *runtime;
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    assert( runtime);
 
    create_ABC_classes( classes);

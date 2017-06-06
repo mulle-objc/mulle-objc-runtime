@@ -5,6 +5,8 @@
 //  Created by Nat! on 13.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
 
 #include <mulle_objc/mulle_objc.h>
 #include "test_runtime_ids.h"
@@ -54,40 +56,39 @@ static struct _mulle_objc_methodlist  forward_list =
 
 void   test_message_forwarding1()
 {
-   struct _mulle_objc_classpair  *pair;
-   struct _mulle_objc_class      *A_cls;
-   struct _mulle_objc_class      *A_meta_cls;
-   void                          *rval;
-   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_classpair    *pair;
+   struct _mulle_objc_infraclass   *A_infra;
+   struct _mulle_objc_metaclass    *A_meta;
+   void                            *rval;
+   struct _mulle_objc_runtime      *runtime;
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
-   A_cls = _mulle_objc_classpair_get_infraclass( pair);
-
-   A_meta_cls = _mulle_objc_class_get_metaclass( A_cls);
+   A_infra      = _mulle_objc_classpair_get_infraclass( pair);
+   A_meta = _mulle_objc_class_get_metaclass( _mulle_objc_infraclass_as_class( A_infra));
 
       // now fix up classes with empty method lists, so they are OK to be added
-   mulle_objc_class_unfailing_add_methodlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_methodlist( A_meta_cls, NULL);
-   mulle_objc_class_unfailing_add_ivarlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_propertylist( A_cls, NULL);
+   mulle_objc_infraclass_unfailing_add_methodlist( A_infra, NULL);
+   mulle_objc_metaclass_unfailing_add_methodlist( A_meta, NULL);
+   mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
+   mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    runtime->classdefaults.forwardmethod = &forward_list.methods[ 0];
 
-   mulle_objc_unfailing_add_class( A_cls);
+   mulle_objc_unfailing_add_infraclass( A_infra);
 
-   assert( _mulle_objc_class_get_forwardmethod( A_cls) == NULL);
-   assert( _mulle_objc_class_get_forwardmethod( A_meta_cls) == NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) == NULL);
 
-   rval = mulle_objc_object_call( A_cls, 0x1, NULL);
+   rval = mulle_objc_object_call( A_infra, 0x1, NULL);
    assert( rval == (void *) 0x1234);
 
    // it's + here
-   assert( _mulle_objc_class_get_forwardmethod( A_cls) == NULL);
-   assert( _mulle_objc_class_get_forwardmethod( A_meta_cls) != NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) != NULL);
 
-   rval = mulle_objc_object_call( A_cls, 0x1, NULL);
+   rval = mulle_objc_object_call( A_infra, 0x1, NULL);
    assert( rval == (void *) 0x1234);
 }
 
@@ -95,38 +96,38 @@ void   test_message_forwarding1()
 
 void   test_message_forwarding2()
 {
-   struct _mulle_objc_classpair *pair;
-   struct _mulle_objc_class     *A_cls;
-   struct _mulle_objc_class     *A_meta_cls;
-   struct _mulle_objc_runtime   *runtime;
-   void                         *rval;
+   struct _mulle_objc_classpair     *pair;
+   struct _mulle_objc_infraclass    *A_infra;
+   struct _mulle_objc_metaclass     *A_meta;
+   struct _mulle_objc_runtime       *runtime;
+   void                             *rval;
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
-   A_cls = _mulle_objc_classpair_get_infraclass( pair);
-   A_meta_cls = _mulle_objc_class_get_metaclass( A_cls);
+   A_infra      = _mulle_objc_classpair_get_infraclass( pair);
+   A_meta = _mulle_objc_classpair_get_metaclass( pair);
 
    // now fix up classes with empty method lists, so they are OK to be added
-   mulle_objc_class_unfailing_add_methodlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_methodlist( A_meta_cls, &forward_list);
-   mulle_objc_class_unfailing_add_ivarlist( A_cls, NULL);
-   mulle_objc_class_unfailing_add_propertylist( A_cls, NULL);
+   mulle_objc_infraclass_unfailing_add_methodlist( A_infra, NULL);
+   mulle_objc_metaclass_unfailing_add_methodlist( A_meta, &forward_list);
+   mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
+   mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
 
-   mulle_objc_unfailing_add_class( A_cls);
+   mulle_objc_unfailing_add_infraclass( A_infra);
 
-   runtime = __get_or_create_objc_runtime();
+   runtime = mulle_objc_get_or_create_runtime();
    assert( runtime->classdefaults.forwardmethod == NULL);
 
-   assert( _mulle_objc_class_get_forwardmethod( A_cls) == NULL);
-   assert( _mulle_objc_class_get_forwardmethod( A_meta_cls) == NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) == NULL);
 
-   rval = mulle_objc_object_call( A_cls, 0x1, NULL);
+   rval = mulle_objc_object_call( A_infra, 0x1, NULL);
    assert( rval == (void *) 0x1234);
 
    // it's + here
-   assert( _mulle_objc_class_get_forwardmethod( A_cls) == NULL);
-   assert( _mulle_objc_class_get_forwardmethod( A_meta_cls) != NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
+   assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) != NULL);
 
-   rval = mulle_objc_object_call( A_cls, 0x1, NULL);
+   rval = mulle_objc_object_call( A_infra, 0x1, NULL);
    assert( rval == (void *) 0x1234);
 }

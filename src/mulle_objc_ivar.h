@@ -66,8 +66,7 @@ struct _mulle_objc_ivar
 };
 
 
-# pragma mark -
-# pragma mark ivar petty accessors
+# pragma mark - ivar petty accessors
 
 static inline char   *_mulle_objc_ivar_get_name( struct _mulle_objc_ivar *ivar)
 {
@@ -81,7 +80,7 @@ static inline char   *_mulle_objc_ivar_get_signature( struct _mulle_objc_ivar *i
 }
 
 
-static inline mulle_objc_ivarid_t  _mulle_objc_ivar_get_id( struct _mulle_objc_ivar *ivar)
+static inline mulle_objc_ivarid_t  _mulle_objc_ivar_get_ivarid( struct _mulle_objc_ivar *ivar)
 {
    return( ivar->descriptor.ivarid);
 }
@@ -93,8 +92,7 @@ static inline int    _mulle_objc_ivar_get_offset( struct _mulle_objc_ivar *ivar)
 }
 
 
-# pragma mark -
-# pragma mark bsearch
+# pragma mark - bsearch
 
 struct _mulle_objc_ivar   *_mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *buf,
                                                      unsigned int n,
@@ -104,26 +102,21 @@ static inline struct _mulle_objc_ivar   *mulle_objc_ivar_bsearch( struct _mulle_
                                                                   unsigned int n,
                                                                   mulle_objc_ivarid_t search)
 {
-   assert( buf);
-   if( ! buf || n > INT_MAX)
-   {
-      errno = EINVAL;
-      return( (void *) INTPTR_MIN);
-   }
+   if( ! buf || (int) n <= 0)
+      return( NULL);
+
    return( _mulle_objc_ivar_bsearch( buf, n, search));
 }
 
 
-# pragma mark -
-# pragma mark qsort
+# pragma mark - qsort
 
 int   _mulle_objc_ivar_compare( struct _mulle_objc_ivar *a, struct _mulle_objc_ivar *b);
 
 void   mulle_objc_ivar_sort( struct _mulle_objc_ivar *ivars, unsigned int n);
 
 
-# pragma mark -
-# pragma mark API
+# pragma mark - API
 
 static inline char   *mulle_objc_ivar_get_name( struct _mulle_objc_ivar *ivar)
 {

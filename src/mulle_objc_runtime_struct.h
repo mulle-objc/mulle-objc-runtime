@@ -46,6 +46,7 @@
 #include "mulle_objc_propertylist.h"
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_uniqueid.h"
+#include "mulle_objc_uniqueidarray.h"
 #include "mulle_objc_version.h"
 
 #include <mulle_aba/mulle_aba.h>
@@ -70,6 +71,7 @@ struct _mulle_objc_runtimeconfig
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
    unsigned   no_tagged_pointers       : 1;  // don't use tagged pointers
    unsigned   thread_local_rt          : 1;  // use thread local runtimes
+   unsigned   repopulate_caches        : 1;  // useful for coverage analysis
 };
 
 
@@ -95,22 +97,35 @@ struct _mulle_objc_runtimedebug
 
       unsigned   category_adds        : 1;
       unsigned   class_adds           : 1;
+      unsigned   class_cache          : 1;
       unsigned   class_frees          : 1;
+      unsigned   dependencies         : 1;
+      unsigned   dump_runtime         : 1;  // hefty, set manually
       unsigned   fastclass_adds       : 1;
+      unsigned   initialize           : 1;
+      unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
+      unsigned   loadinfo             : 1;
+      unsigned   method_caches        : 1;
       unsigned   method_calls         : 1;
-      unsigned   delayed_class_adds   : 1;
-      unsigned   delayed_category_adds: 1;
+      unsigned   protocol_adds        : 1;
+      unsigned   state_bits           : 1;
       unsigned   string_adds          : 1;
       unsigned   tagged_pointers      : 1;
    } trace;
-   
+
    struct
    {
-      unsigned   methodid_types        : 1;
-      unsigned   protocol_class        : 1;
-      unsigned   not_loaded_classes    : 1;
-      unsigned   not_loaded_categories : 1;
+      unsigned   methodid_types          : 1;
+      unsigned   protocolclass           : 1;
+      unsigned   stuck_loadables         : 1;  // set by default
+      unsigned   pedantic_methodid_types : 1;
    } warn;
+
+   struct
+   {
+      unsigned   runtime_config          : 1;
+      unsigned   print_origin            : 1; // set by default
+   } print;
 };
 
 
@@ -165,10 +180,15 @@ struct _mulle_objc_classdefaults
 {
    struct _mulle_objc_method   *forwardmethod;
    void                        (*class_is_missing)( struct _mulle_objc_runtime *, mulle_objc_classid_t);
-   
+
    unsigned short              inheritance;
 };
 
+
+struct _mulle_objc_loadcallbacks
+{
+   int   (*should_load_loadinfo)(  struct _mulle_objc_runtime *, struct _mulle_objc_loadinfo *);
+};
 
 //
 // Garbage collection for the various caches
@@ -178,8 +198,10 @@ struct _mulle_objc_garbagecollection
 };
 
 
-typedef void   mulle_objc_runtimefriend_destructor_t( struct _mulle_objc_runtime *runtime, void *);
-typedef void   mulle_objc_runtimefriend_versionassert_t( struct _mulle_objc_runtime *, void *, struct mulle_objc_loadversion *);
+typedef void   mulle_objc_runtimefriend_destructor_t( struct _mulle_objc_runtime *, void *);
+typedef void   mulle_objc_runtimefriend_versionassert_t( struct _mulle_objc_runtime *,
+                                                         void *,
+                                                         struct mulle_objc_loadversion *);
 
 
 //
@@ -189,9 +211,9 @@ typedef void   mulle_objc_runtimefriend_versionassert_t( struct _mulle_objc_runt
 //
 struct _mulle_objc_runtimefriend
 {
-   void                                       *data;
-   mulle_objc_runtimefriend_destructor_t      *destructor;
-   mulle_objc_runtimefriend_versionassert_t   *versionassert;
+   void                                          *data;
+   mulle_objc_runtimefriend_destructor_t         *destructor;
+   mulle_objc_runtimefriend_versionassert_t      *versionassert;
 };
 
 //
@@ -199,18 +221,25 @@ struct _mulle_objc_runtimefriend
 // itself into the runtime during +load using
 // `_mulle_objc_runtime_add_staticstring`. The allocator should be setup during
 // the runtime initialization.
-//
+// The postponer is used to wait for staticstring (or something else)
+
+typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_runtime *,
+                                                struct _mulle_objc_loadinfo *);
+
+
+
 struct _mulle_objc_foundation
 {
    struct _mulle_objc_runtimefriend    runtimefriend;
-   struct _mulle_objc_class            *staticstringclass;
-   struct mulle_allocator              allocator;  // allocator for objects
+   struct _mulle_objc_infraclass       *staticstringclass;
+   struct mulle_allocator              allocator;   // allocator for objects
+   mulle_objc_classid_t                rootclassid; // NSObject = e9e78cbd
 };
 
 
 struct _mulle_objc_memorymanagement
 {
-   struct mulle_allocator   allocator; 
+   struct mulle_allocator   allocator;
 };
 
 
@@ -223,6 +252,14 @@ struct _mulle_objc_taggedpointers
    struct _mulle_objc_class    *pointerclass[ 8];         // only 1 ... are really used
 };
 
+
+struct _mulle_objc_waitqueues
+{
+   mulle_thread_mutex_t              lock;  // used for
+   struct mulle_concurrent_hashmap   classestoload;
+   struct mulle_concurrent_hashmap   categoriestoload;
+};
+
 #define S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE   1024
 
 /*
@@ -231,7 +268,7 @@ struct _mulle_objc_taggedpointers
  * autorelease pool, you should be able to completely remove the
  * runtime AND all created instances.
  *
- * All no, unfortunately there is one static class needed for 
+ * All no, unfortunately there is one static class needed for
  * static strings.
  */
 struct _mulle_objc_runtime
@@ -241,14 +278,27 @@ struct _mulle_objc_runtime
    //
    struct _mulle_objc_cachepivot            cachepivot;
 
+   // try to keep this region stable for version checks
+
+   uint32_t                                 version;
+   char                                     *path;    
+
+   // try to keep this region stable for loadcallbacks
+
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
-   struct mulle_concurrent_hashmap          classestoload;
-   struct mulle_concurrent_hashmap          categoriestoload;
-   
+   struct mulle_concurrent_hashmap          protocoltable;
+   struct mulle_concurrent_hashmap          categorytable;
+
    struct mulle_concurrent_pointerarray     staticstrings;
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
+
+   struct _mulle_objc_loadcallbacks         loadcallbacks;
+
+   // unstable region, edit at will
+
+   struct _mulle_objc_waitqueues            waitqueues;
 
    struct _mulle_objc_fastclasstable        fastclasstable;
    struct _mulle_objc_taggedpointers        taggedpointers;
@@ -263,42 +313,57 @@ struct _mulle_objc_runtime
    //    if you think you need to change something, use the lock
    //
    char                                     compilation[ 128];   // debugging
-   
+
    mulle_thread_t                           thread;  // init-done thread
-   
-   uint32_t                                 version;
 
    struct _mulle_objc_memorymanagement      memory;
 
    struct _mulle_objc_classdefaults         classdefaults;
    struct _mulle_objc_garbagecollection     garbage;
-   struct _mulle_objc_preloadmethodids      methodidstopreload;  
+   struct _mulle_objc_preloadmethodids      methodidstopreload;
 
    struct _mulle_objc_runtimefailures       failures;
    struct _mulle_objc_runtimeexceptionvectors   exceptionvectors;
    struct _mulle_objc_runtimeconfig         config;
    struct _mulle_objc_runtimedebug          debug;
-  
-   // duplicate zeros, but it dumps nicer
-   struct _mulle_objc_cache                 empty_cache;
-   struct _mulle_objc_methodlist            empty_methodlist;
-   struct _mulle_objc_ivarlist              empty_ivarlist;
-   struct _mulle_objc_propertylist          empty_propertylist;
 
+   // It's all zeroes, so save some space with a union.
+   // it would be "nicer" to have these in a const global
+   // but due to windows, it's nicer to have a few globals
+   // as possible
    //
+   union
+   {
+      struct _mulle_objc_cache           empty_cache;
+      struct _mulle_objc_methodlist      empty_methodlist;
+      struct _mulle_objc_ivarlist        empty_ivarlist;
+      struct _mulle_objc_propertylist    empty_propertylist;
+      struct _mulle_objc_uniqueidarray   empty_uniqueidarray;
+   };   //
    // this allows the foundation to come up during load without having to do
    // a malloc
    //
-   struct _mulle_objc_runtimefriend         userinfo;    // for user programs
-   struct _mulle_objc_foundation            foundation;  // for foundation
+   struct _mulle_objc_runtimefriend      userinfo;    // for user programs
+   struct _mulle_objc_foundation         foundation;  // for foundation
 
-   intptr_t                                 foundationspace[ S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE / sizeof( intptr_t)];
+   intptr_t                              foundationspace[ S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE / sizeof( intptr_t)];
 };
 
 
-static inline int   _mulle_objc_runtime_is_initalized( struct _mulle_objc_runtime *runtime)
+static inline uint32_t   _mulle_objc_runtime_get_version( struct _mulle_objc_runtime *runtime)
 {
-   assert( runtime);
+   return( runtime->version);
+}
+
+
+static inline char   *_mulle_objc_runtime_get_path( struct _mulle_objc_runtime *runtime)
+{
+   return( runtime->path);
+}
+
+
+static inline int   _mulle_objc_runtime_is_initialized( struct _mulle_objc_runtime *runtime)
+{
    return( runtime->version != (uint32_t) -1);
 }
 

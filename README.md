@@ -8,8 +8,8 @@ It is designed to be suitable for massive multi-threading.
 
 Fork      |  Build Status | Release Version
 ----------|---------------|-----------------------------------
-[Mulle kybernetiK](//github.com/mulle-nat/mulle-objc) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc-runtime.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc-runtime) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-objc-runtime.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc-runtime.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc-runtime)
-[Community](https://github.com/mulle-objc/mulle-objc-runtime/tree/release) | [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc-runtime.svg)](https://travis-ci.org/mulle-objc/mulle-objc-runtime) | ![Community tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc-runtime.svg?branch=release)](https://travis-ci.org/mulle-objc/mulle-objc-runtime)
+[Mulle kybernetiK](//github.com/mulle-nat/mulle-objc-runtime) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc-runtime) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-objc-runtime)
+[Community](https://github.com/mulle-objc/mulle-objc/tree/release) | [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg)](https://travis-ci.org/mulle-objc/mulle-objc) | ![Community tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-objc/mulle-objc)
 
 
 ## What's so different ?
@@ -31,9 +31,11 @@ makes them a lot faster.
 
 * `isa` is not part of the instance, but instead prefixed to the instance.
 
-* `Protocol` as a type and an object does not exist anymore.
+* `Protocol` as a type and an object does not exist anymore. Instead there is
+PROTOCOL which is basically the same as SEL and has compiler support.
 
-* No global lock. The runtime only locks during `+initialize` on a per class basis
+* No global lock, except when loading code. The runtime in normal operation
+only locks during `+initialize` on a per class basis.
 
 * Protections against the fragile base class problem
 
@@ -44,7 +46,17 @@ makes them a lot faster.
 
 If you haven't used an Objective-C runtime before, it is useful to get to know
 the much better documented "Mac OS X Objective-C 1.0" runtime first.
-[Intro to the Objective-C Runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html) could be a good starting point.
+[Intro to the Objective-C Runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html)
+could be a good starting point.
+
+
+> #### C Caveat
+>
+> It you use `.c` files that include `<mulle_objc/mulle_objc.h>` make sure
+> that you compile with `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_TRT__` as
+> they were defined when compiling the runtime. Since C-only compilations do
+> not emit runtime information, mismatches can not be checked by the runtime.
+> Easy fix: rename `.c` to `.m` and use **mulle-clang**
 
 
 ### Data structures
@@ -104,7 +116,7 @@ brew install mulle-objc/software/mulle-objc-runtime
 ```
 
 On other platforms you can use **mulle-install** from
-[mulle-build](//github.com/mulle-nat/mulle-objc)
+[mulle-build](//github.com/mulle-nat/mulle-build)
 to install the library:
 
 ```
@@ -128,5 +140,4 @@ All platforms and compilers supported by
 [Nat!](//www.mulle-kybernetik.com/weblog) for
 [Mulle kybernetiK](//www.mulle-kybernetik.com) and
 [Codeon GmbH](//www.codeon.de)
-
 

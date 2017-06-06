@@ -66,6 +66,11 @@ struct _mulle_objc_fastmethodtable
 void _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *table);
 
 
+static inline void   _mulle_objc_fastmethodtable_done(  struct _mulle_objc_fastmethodtable *table)
+{
+}
+
+
 MULLE_C_ALWAYS_INLINE
 static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
                                                           mulle_objc_methodid_t methodid,
@@ -74,16 +79,17 @@ static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
                                                           unsigned int index)
 {
    mulle_objc_methodimplementation_t   imp;
-   
+
    imp = (mulle_objc_methodimplementation_t) _mulle_atomic_pointer_read( &table->methods[ index].pointer);
    return( (*imp)( obj, methodid, param));
 }
-   
+
 
 //
 // 8 basic functions are predefined, it's not that these need
 // to be very speedy, but being fastmethods, they also reduce the generated
 // code-size a lot for the inlineable code and the compiler generated code.
+// retain/release may be a waste of space really
 //
 MULLE_C_CONST_RETURN
 static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t methodid)
@@ -92,13 +98,13 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
    {
    case MULLE_OBJC_ALLOC_METHODID       : return( 0);
    case MULLE_OBJC_INIT_METHODID        : return( 1);  // makes new faster
-   case MULLE_OBJC_FINALIZE_METHODID    : return( 2); 
+   case MULLE_OBJC_FINALIZE_METHODID    : return( 2);
    case MULLE_OBJC_DEALLOC_METHODID     : return( 3);  // in AAO mode noone can call dealloc
    case MULLE_OBJC_INSTANTIATE_METHODID : return( 4);  // alloc + autorelease
    case MULLE_OBJC_AUTORELEASE_METHODID : return( 5);  // for compiler
    case MULLE_OBJC_RETAIN_METHODID      : return( 6);  // not used in -O2 and up
    case MULLE_OBJC_RELEASE_METHODID     : return( 7);  // not used in -O2 and up
-         
+
 #ifdef MULLE_OBJC_FASTMETHODHASH_8
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_8 ) : return( 8);
 #endif
@@ -111,7 +117,7 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
 #ifdef MULLE_OBJC_FASTMETHODHASH_11
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_11) : return( 11);
 #endif
-         
+
 #ifdef MULLE_OBJC_FASTMETHODHASH_12
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_12) : return( 12);
 #endif
@@ -123,6 +129,32 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
 #endif
 #ifdef MULLE_OBJC_FASTMETHODHASH_15
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_15) : return( 15);
+#endif
+
+#ifdef MULLE_OBJC_FASTMETHODHASH_16
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_16) : return( 16);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_17
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_17) : return( 17);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_18
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_18) : return( 18);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_19
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_19) : return( 19);
+#endif
+
+#ifdef MULLE_OBJC_FASTMETHODHASH_20
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_20) : return( 20);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_21
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_21) : return( 21);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_22
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_22) : return( 22);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_23
+      case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_23) : return( 23);
 #endif
    }
    return( -1);

@@ -1,10 +1,10 @@
 //
-//  mulle_objc_runtime_dump_html.h
+//  mulle_objc_dotdump.h
 //  mulle-objc
 //
-//  Created by Nat! on 10.05.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
+//  Created by Nat! on 25.10.15.
+//  Copyright (c) 2015 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2015 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,53 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_runtime_dump_html_h__
-#define mulle_objc_runtime_dump_html_h__
 
+#ifndef mulle_objc_dotdump_h__
+#define mulle_objc_dotdump_h__
+
+#include <stdio.h>
+
+struct _mulle_objc_class;
+struct _mulle_objc_classpair;
 struct _mulle_objc_runtime;
+struct _mulle_objc_methodlist;
 
-void   mulle_objc_runtime_dump_as_html_to_directory( struct _mulle_objc_runtime *runtime, char *directory);
-void   mulle_objc_dump_runtime_as_html_to_directory( char *directory);
-void   mulle_objc_dump_runtime_as_html_to_tmp( void);
+//
+// mulle_objc_dotdump_to_tmp is what you want: it dumps the runtime and all
+// classes and the classes are linked from the runtime
+// .dot file
+//
+
+#pragma mark - dump to /tmp (simpler)
+
+void   mulle_objc_dotdump_to_tmp( void);
+
+void   mulle_objc_dotdump_runtime_to_tmp( void);
+void   mulle_objc_dotdump_overview_to_tmp( void);
+void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
+void   mulle_objc_dotdump_classname_to_tmp( char *classname);
+void   mulle_objc_dotdump_classes_to_tmp( void);
+
+
+#pragma mark - dump to working directory (safer)
+
+void   mulle_objc_dotdump( void);
+
+void   mulle_objc_dotdump_overview( void);
+void   mulle_objc_dotdump_runtime( void);
+void   mulle_objc_class_dotdump( struct _mulle_objc_class *cls);
+void   mulle_objc_dotdump_classname( char *classname);
+void   mulle_objc_dotdump_classes( void);
+
+
+#pragma mark - "movie" support
+
+void   mulle_objc_dotdump_runtime_frame_to_tmp( void);
+
+
+#pragma mark - stuff for the debugger
+
+void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list);
+
 
 #endif

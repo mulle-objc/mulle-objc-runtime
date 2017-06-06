@@ -36,18 +36,39 @@
 #ifndef mulle_objc_h__
 #define mulle_objc_h__
 
+
+// catch this early
+#if ! defined( __MULLE_OBJC_TPS__) && ! defined( __MULLE_OBJC_NO_TPS__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (or define either __MULLE_OBJC_TPS__ or __MULLE_OBJC_NO_TPS__)"
+#endif
+#if defined( __MULLE_OBJC_TPS__) && defined( __MULLE_OBJC_NO_TPS__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_TPS__ and __MULLE_OBJC_NO_TPS__)"
+#endif
+
+#if ! defined( __MULLE_OBJC_TRT__) && ! defined( __MULLE_OBJC_NO_TRT__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (or define either __MULLE_OBJC_TRT__ or __MULLE_OBJC_NO_TRT__)"
+#endif
+#if defined( __MULLE_OBJC_TRT__) && defined( __MULLE_OBJC_NO_TRT__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_TRT__ and __MULLE_OBJC_NO_TRT__)"
+#endif
+
+
 #include "mulle_objc_atomicpointer.h"
 #include "mulle_objc_builtin.h"
 #include "mulle_objc_call.h"
 #include "mulle_objc_class.h"
+#include "mulle_objc_classpair.h"
 #include "mulle_objc_class_convenience.h"
+#include "mulle_objc_class_struct.h"
 #include "mulle_objc_fastclasstable.h"
 #include "mulle_objc_fastmethodtable.h"
 #include "mulle_objc_fnv1.h"
+#include "mulle_objc_infraclass.h"
 #include "mulle_objc_ivar.h"
 #include "mulle_objc_ivarlist.h"
 #include "mulle_objc_kvccache.h"
 #include "mulle_objc_load.h"
+#include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
 #include "mulle_objc_methodlist.h"
 #include "mulle_objc_object.h"
@@ -62,7 +83,10 @@
 #include "mulle_objc_signature.h"
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_try_catch_finally.h"
+#include "mulle_objc_uniqueid.h"
+#include "mulle_objc_uniqueidarray.h"
 #include "mulle_objc_version.h"
+#include "mulle_objc_walktypes.h"
 
 #include "mulle_objc_class_runtime.h"
 
@@ -74,10 +98,16 @@
 
 // add some functions to mulle-vararg for ObjC
 
+#define mulle_vararg_count_ids( args, obj) \
+   mulle_vararg_count_pointers( (args), (obj))
 #define mulle_vararg_count_objects( args, obj) \
    mulle_vararg_count_pointers( (args), (obj))
-#define mulle_vararg_next_object( args) \
+
+#define mulle_vararg_next_id( args) \
    mulle_vararg_next_pointer( (args), id)
+#define mulle_vararg_next_object( args, type) \
+   mulle_vararg_next_pointer( (args), id)
+
 
 #if MULLE_ABA_VERSION < ((1 << 20) | (4 << 8) | 0)
 # error "mulle_aba is too old"
@@ -85,7 +115,7 @@
 #if MULLE_ALLOCATOR_VERSION < ((2 << 20) | (1 << 8) | 0)
 # error "mulle_allocator is too old"
 #endif
-#if MULLE_CONCURRENT_VERSION < ((1 << 20) | (1 << 8) | 0)
+#if MULLE_CONCURRENT_VERSION < ((1 << 20) | (3 << 8) | 0)
 # error "mulle_concurrent is too old"
 #endif
 #if MULLE_THREAD_VERSION < ((3 << 20) | (2 << 8) | 0)

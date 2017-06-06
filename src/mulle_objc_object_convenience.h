@@ -56,7 +56,7 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_cach
                                                                                                  mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    return( _mulle_objc_class_lookup_cached_methodimplementation( cls, methodid));
 }
@@ -66,7 +66,7 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_impl
                                                                                                     mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    return( _mulle_objc_class_lookup_methodimplementation( cls, methodid));
 }
@@ -76,7 +76,7 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_impl
                                                                                                               mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    return( _mulle_objc_class_lookup_methodimplementation_no_forward( cls, methodid));
 }
@@ -86,7 +86,7 @@ static inline struct _mulle_objc_method   *_mulle_objc_object_lookup_method( voi
                                                                              mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
-   
+
    cls  = _mulle_objc_object_get_isa( obj);
    return( mulle_objc_class_search_method( cls, methodid));
 }

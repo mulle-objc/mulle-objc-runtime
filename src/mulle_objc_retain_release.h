@@ -49,7 +49,7 @@
 
 //
 // Your root class MUST implement -finalize and -dealloc.
-// 
+//
 void  _mulle_objc_object_try_finalize_try_dealloc( void *obj);
 void  _mulle_objc_object_perform_finalize( void *obj);
 
@@ -61,42 +61,35 @@ static inline void   mulle_objc_object_perform_finalize( void *obj)
 }
 
 
-#define MULLE_OBJC_NEVER_RELEASE   INTPTR_MAX
 
-// retaincount_1
-//    0       -> INTPTR_MAX-1 :: normal retain counting, actual retainCount is retaincount_1 + 1
-//    -1                      :: released
-//    INTPTR_MIN              :: retainCount 0, when finalizing
-//    INTPTR_MIN -> -2        :: finalizing/finalized retainCount
-//
-// you can use INTPTR_MAX to create static objects
-//
-// like f.e.
-// { INTPTR_MAX, MULLE_OBJC_METHODID( 0x423aeba60e4eb3be), "VfL Bochum 1848" }; // 0x423aeba60e4eb3be == NXConstantString
-//
-intptr_t  _mulle_objc_object_get_retaincount( void *obj);
+// this function will create an "adjusted" always positive value
+// if you want the raw number, check the header function retaincount_1
+uintptr_t  __mulle_objc_object_get_retaincount( void *obj);
+
+
+static inline intptr_t   _mulle_objc_object_get_retaincount( void *obj)
+{
+   if( mulle_objc_taggedpointer_get_index( obj))
+      return( MULLE_OBJC_NEVER_RELEASE);
+   return( __mulle_objc_object_get_retaincount( obj));
+}
 
 
 static inline intptr_t   mulle_objc_object_get_retaincount( void *obj)
 {
-   if( mulle_objc_taggedpointer_get_index( obj))
-      return( MULLE_OBJC_NEVER_RELEASE);
-   
-   if( obj)
-      return( _mulle_objc_object_get_retaincount( obj));
-   return( 0);
+   return( obj ? _mulle_objc_object_get_retaincount( obj) : 0);
 }
 
 
 static inline void   _mulle_objc_object_increment_retaincount( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
-   
+
    header = _mulle_objc_object_get_objectheader( obj);
-   if( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
+   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
       _mulle_atomic_pointer_increment( &header->_retaincount_1); // atomic increment needed
 }
 
@@ -104,14 +97,14 @@ static inline void   _mulle_objc_object_increment_retaincount( void *obj)
 static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return( 0);
-   
+
    header = _mulle_objc_object_get_objectheader( obj);
-   assert( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != -1 &&
-           (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != INTPTR_MIN);
-   if( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
+   assert( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != -1 &&
+           (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != INTPTR_MIN);
+   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
    {
       if( _mulle_atomic_pointer_decrement( &header->_retaincount_1) == 0)
          return( 1);
@@ -119,16 +112,32 @@ static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj
    return( 0);
 }
 
-// try not to use it, it obscures bugs and will disturb leak detection
-static inline void   _mulle_objc_object_infinite_retain( void *obj)
+//
+// Try not to use it, it obscures bugs and will disturb leak detection
+// You should only use it when creating an object, not "on the fly"
+// therefore it's nonatomic
+//
+static inline void   _mulle_objc_object_nonatomic_infinite_retain( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
    _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
+}
+
+
+static inline int   _mulle_objc_object_is_constant( void *obj)
+{
+   struct _mulle_objc_objectheader    *header;
+
+   if( mulle_objc_taggedpointer_get_index( obj))
+      return( 1);
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   return( _mulle_atomic_pointer_read( &header->_retaincount_1) == (void *) MULLE_OBJC_NEVER_RELEASE);
 }
 
 
@@ -142,18 +151,18 @@ static inline void   _mulle_objc_object_infinite_retain( void *obj)
 static inline void   _mulle_objc_object_release( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
-   
+
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
 
    // -1 means released, INTPTR_MIN finalizing/released
-   assert( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != -1 &&
-           (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != INTPTR_MIN);
+   assert( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != -1 &&
+           (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != INTPTR_MIN);
 
    // INTPTR_MAX means dont ever free
-   if( (intptr_t) _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
+   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
    {
       if( __builtin_expect( (intptr_t) _mulle_atomic_pointer_decrement( &header->_retaincount_1) <= 0, 0)) // atomic decrement needed
          _mulle_objc_object_try_finalize_try_dealloc( obj);
@@ -171,8 +180,7 @@ void   _mulle_objc_objects_call_retain( void **objects, size_t n);
 void   _mulle_objc_objects_call_release( void **objects, size_t n);
 void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n);
 
-#pragma mark -
-#pragma mark API, compiler uses this code too
+# pragma mark - API, compiler uses this code too
 
 // must be void *, for compiler
 static inline void   *mulle_objc_object_retain( void *obj)
@@ -189,7 +197,7 @@ static inline void   mulle_objc_object_release( void *obj)
       return;
 #if DEBUG
    struct _mulle_objc_class  *cls;
-   
+
    cls = _mulle_objc_object_get_isa( obj);
    (*cls->call)( obj, MULLE_OBJC_RELEASE_METHODID, NULL, cls);
 #else
@@ -198,8 +206,7 @@ static inline void   mulle_objc_object_release( void *obj)
 }
 
 
-#pragma mark -
-#pragma mark API
+# pragma mark - API
 
 
 static inline void   mulle_objc_objects_call_retain( void **objects, size_t n)

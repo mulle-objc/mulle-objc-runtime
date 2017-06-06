@@ -39,9 +39,11 @@
 
 #include <mulle_thread/mulle_thread.h>
 
+#include <stdio.h>
 
 struct _mulle_objc_class;
 struct _mulle_objc_object;
+struct _mulle_objc_uniqueidarray;
 
 
 union _mulle_objc_atomicclasspointer_t
@@ -56,5 +58,64 @@ union _mulle_objc_atomicobjectpointer_t
    struct _mulle_objc_object    *object;      // dont read, except when debugging
    mulle_atomic_pointer_t       pointer;
 };
+
+
+union _mulle_objc_uniqueidarraypointer_t
+{
+   struct _mulle_objc_uniqueidarray  *array;      // dont read, except when debugging
+   mulle_atomic_pointer_t            pointer;
+};
+
+
+// inline coz I am lazy
+// https://stackoverflow.com/questions/2741683/how-to-format-a-function-pointer
+// buf must be s_mulle_objc_sprintf_functionpointer_buffer
+
+#if ! defined(__LITTLE_ENDIAN__) && ! defined(__BIG_ENDIAN__)
+# if defined( __BYTE_ORDER__) && defined( __ORDER_LITTLE_ENDIAN__) && defined( __ORDER_LITTLE_ENDIAN__)
+#  if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#   define __LITTLE_ENDIAN__  1
+#   define __BIG_ENDIAN__     0
+#  else
+#   define __LITTLE_ENDIAN__  0
+#   define __BIG_ENDIAN__     1
+#  endif
+# else
+#  if defined( __LITTE_ENDIAN__) && defined( __BIG_ENDIAN__)
+#   error Both __LITTLE_ENDIAN__ and __BIG_ENDIAN__ defined
+#  else
+#   error Neither __LITTLE_ENDIAN__ nor __BIG_ENDIAN__ defined
+#  endif
+# endif
+#endif
+
+#define s_mulle_objc_sprintf_functionpointer_buffer (2 + sizeof( mulle_functionpointer_t) * 2 + 1)
+
+// TODO: would be nice to skip empty leading zeroes
+
+static inline void   mulle_objc_sprintf_functionpointer( char *buf, mulle_functionpointer_t fp)
+{
+   uint8_t   *p;
+   uint8_t   *sentinel;
+
+   sprintf( buf, "0x");
+#if __BIG_ENDIAN__
+   p        = (uint8_t *) &fp;
+   sentinel = &p[ sizeof( fp)];
+   while( p < sentinel)
+   {
+      buf = &buf[ 2];
+      sprintf( buf, "%02x", *p++);
+   }
+#else
+   sentinel = (uint8_t *) &fp;
+   p        = &sentinel[ sizeof( fp)];
+   while( p > sentinel)
+   {
+      buf = &buf[ 2];
+      sprintf( buf, "%02x", *--p);
+   }
+#endif
+}
 
 #endif
