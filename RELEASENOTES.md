@@ -1,9 +1,13 @@
-## 0.8.4
+### 0.8.5
+
+* modernize project
+
+### 0.8.4
 
 * Community release
 
 
-## 0.8.3
+### 0.8.3
 
 * enlarged class state bit space for mulle-objc to 16 bits, which cramps
 user and foundation to 8 bits each
