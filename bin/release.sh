@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-#   Copyright (c) 2017 Nat! - Mulle kybernetiK
+#   Copyright (c) 2017 Nat! - Codeon GmbH
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -29,46 +29,29 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
-
-
-# Define your project and the dependencies for homebrew
-# DEPENDENCIES and BUILD_DEPENDENCIES will be evaled later!
-# Then run this as
-#   ./bin/release.sh --publisher mulle-nat --publisher-tap mulle-kybernetik/alpha/
+#
+# For documentation and help see:
+#    https://github.com/mulle-nat/mulle-homebrew
+#
+# Run this somewhat like this (for real: remove -n):
+#   ./bin/release.sh -v -n --publisher mulle-nat --publisher-tap mulle-kybernetik/software/
 #
 
-# Define your project and the dependencies for homebrew
-# DEPENDENCIES and BUILD_DEPENDENCIES will be evaled later!
-# Then run this as
-#   ./bin/release.sh --publisher mulle-nat --publisher-tap mulle-kybernetik/alpha/
-#
+EXE_DIR="`dirname -- $0`"
 
-PROJECT="MulleObjcRuntime"    # requires camel-case
-DESC="An Objective-C runtime, written 100% in C"
-LANGUAGE=c                    # c,cpp, objc
+# if there is a release-info.sh file read it
+if [ -f "${EXE_DIR}/release-info.sh" ]
+then
+   DO_GIT_RELEASE="YES"
+   . "${EXE_DIR}/release-info.sh"
+fi
 
-NAME="mulle-objc-runtime"
-
-
-#
-# Keep these commented out, if the automatic detection works well
-# enough for you
-#
-VERSIONFILE="src/mulle_objc_version.h"
-VERSIONNAME="MULLE_OBJC_RUNTIME_VERSION"
-
-#
-# Specify needed homebrew packages by name as you would when saying
-# `brew install`.
-#
-# Use the ${DEPENDENCY_TAP} prefix for non-official dependencies.
-#
-DEPENDENCIES='${DEPENDENCY_TAP}mulle-concurrent
-${DEPENDENCY_TAP}mulle-vararg'
-
-BUILD_DEPENDENCIES='${BOOTSTRAP_TAP}mulle-bootstrap
-${BOOTSTRAP_TAP}mulle-build
-cmake'  # cmake would be useful to, if you are cmake based!
+# if there is a formula-info.sh file read it
+if [ -f "${EXE_DIR}/formula-info.sh" ]
+then
+   DO_GENERATE_FORMULA="YES"
+   . "${EXE_DIR}/formula-info.sh"
+fi
 
 
 #######
@@ -76,7 +59,7 @@ cmake'  # cmake would be useful to, if you are cmake based!
 #######
 
 #
-# Generate your `def install` `test do` lines here to stdout.
+# Generate your `def install` `test do` lines here. echo them to stdout.
 #
 generate_brew_formula_build()
 {
@@ -113,162 +96,58 @@ generate_brew_formula()
 #######
 
 MULLE_BOOTSTRAP_FAIL_PREFIX="`basename -- $0`"
-MULLE_HOMEBREW_VERSION="3.4.5"
-
-EXEC_DIR="`dirname -- $0`"
+MULLE_HOMEBREW_VERSION="4.0.0"
 
 #
 # prefer local mulle-homebrew if available
+# Do not embed it anymore!
 #
-if [ -x "${EXEC_DIR}/mulle-homebrew/mulle-homebrew-env" ]
-then
-   PATH="${EXEC_DIR}/mulle-homebrew:$PATH"
-fi
-
 if [ -z "`command -v mulle-homebrew-env`" ]
 then
-   echo "mulle-homebrew-env not found in PATH" >&2
+   cat <<EOF >&2
+mulle-homebrew-env not found in PATH.
+Visit the homepage for installation instructions:
+   https://github.com/mulle-nat/mulle-homebrew
+EOF
    exit 1
 fi
-
 
 INSTALLED_MULLE_HOMEBREW_VERSION="`mulle-homebrew-env version`" || exit 1
 LIBEXEC_DIR="`mulle-homebrew-env libexec-path`" || exit 1
 
-. "${LIBEXEC_DIR}/mulle-homebrew.sh" || exit 1
-. "${LIBEXEC_DIR}/mulle-git.sh"      || exit 1
-
-if ! homebrew_is_compatible_version "${INSTALLED_MULLE_HOMEBREW_VERSION}" "${MULLE_HOMEBREW_VERSION}"
-then
-   fail "Installed mulle-homebrew version ${INSTALLED_MULLE_HOMEBREW_VERSION} is \
-not compatible with this script from version ${MULLE_HOMEBREW_VERSION}"
-fi
-
-# parse options
-homebrew_parse_options "$@"
-
-#
-# dial past options now as they have been parsed
-#
-while [ $# -ne 0 ]
-do
-   case "$1" in
-      -*)
-         shift
-      ;;
-
-      --*)
-         shift
-         shift
-      ;;
-
-      *)
-         break;
-      ;;
-   esac
-done
-
-# --- FORMULA GENERATION ---
-
-BOOTSTRAP_TAP="${BOOTSTRAP_TAP:-mulle-kybernetik/software/}"
-
-DEPENDENCY_TAP="${DEPENDENCY_TAP:-${PUBLISHER_TAP}}"
-
-#
-# these can usually be deduced, if you follow the conventions
-#
-if [ -z "${NAME}" ]
-then
-   NAME="`get_name_from_project "${PROJECT}" "${LANGUAGE}"`"
-fi
-
-if [ -z "${VERSIONFILE}" ]
-then
-   VERSIONFILE="`get_header_from_name "${NAME}"`"
-fi
-
-if [ -z "${VERSIONNAME}" ]
-then
-   VERSIONNAME="`get_versionname_from_project "${PROJECT}"`"
-fi
-
-if [ -f VERSION ]
-then
-   VERSION="`head -1 VERSION`"
-else
-   VERSION="`get_project_version "${VERSIONFILE}" "${VERSIONNAME}"`"
-   if [ -z "${VERSION}" ]
-   then
-      VERSION="`get_project_version "src/version.h" "${VERSIONNAME}"`"
-   fi
-fi
-
-# where homebrew grabs the archive off
-ARCHIVE_URL="${ARCHIVE_URL:-https://github.com/${PUBLISHER}/${NAME}/archive/${VERSION}.tar.gz}"
-
-# written into formula for homebrew, will be evaled
-HOMEPAGE_URL="${HOMEPAGE_URL:-https://github.com/${PUBLISHER}/${NAME}}"
-
-
-# --- HOMEBREW TAP ---
-# Specify to where and under what name to publish via your brew tap
-#
-if [ -z "${PUBLISHER_TAP}" ]
-then
-   fail "you need to specify a publisher tap with --publisher-tap (hint: <mulle-kybernetik/software/>)"
-fi
-
-TAPS_LOCATION="${TAPS_LOCATION:-..}"
-
-HOMEBREW_TAP="${HOMEBREW_TAP:-${TAPS_LOCATION}/homebrew-`basename -- ${PUBLISHER_TAP}`}"
-
-RBFILE="${RBFILE:-${NAME}.rb}"
-
-# --- GIT ---
-
-#
-# require PUBLISHER (and PUBLISHER_TAP) as command line parameter, so
-# that forks don't have to edit this constantly
-#
-if [ -z "${PUBLISHER}" ]
-then
-   fail "You need to specify a publisher with --publisher (hint: https://github.com/<publisher>)"
-fi
-
-if [ -z "${VERSION}" ]
-then
-   fail "Could not figure out the version. (hint: check VERSIONNAME, VERSIONFILE)"
-fi
-
-# tag to tag your release
-TAG="${TAG:-${TAG_PREFIX}${VERSION}}"
-
-# git remote to push to, usually origin
-ORIGIN="${ORIGIN:-origin}"
-
-# git remote to push to, usually github, can be empty
-GITHUB="${GITHUB:-github}"
-
-# git branch to release to, source is always current
-BRANCH="${BRANCH:-release}"
+. "${LIBEXEC_DIR}/mulle-homebrew.sh"    || exit 1
+. "${LIBEXEC_DIR}/mulle-git.sh"         || exit 1
+. "${LIBEXEC_DIR}/mulle-version.sh"     || exit 1
+. "${LIBEXEC_DIR}/mulle-environment.sh" || exit 1
 
 
 main()
 {
-   # do the release
-   git_main "${BRANCH}" "${ORIGIN}" "${TAG}" "${GITHUB}" || exit 1
+   if [ "${DO_GIT_RELEASE}" != "YES" -a "${DO_GENERATE_FORMULA}" != "YES" ]
+   then
+      fail "Nothing to do. release-info.sh and formula-info.sh are missing"
+   fi
 
-   # generate the formula and push it
-   homebrew_main "${PROJECT}" \
-                 "${NAME}" \
-                 "${VERSION}" \
-                 "${DEPENDENCIES}" \
-                 "${BUILD_DEPENDENCIES}" \
-                 "${HOMEPAGE_URL}" \
-                 "${DESC}" \
-                 "${ARCHIVE_URL}" \
-                 "${HOMEBREW_TAP}" \
-                 "${RBFILE}"
+   if [ "${DO_GIT_RELEASE}" = "YES" ]
+   then
+     # do the release
+      git_main "${BRANCH}" "${ORIGIN}" "${TAG}" "${GITHUB}" || exit 1
+   fi
+
+   if [ "${DO_GENERATE_FORMULA}" = "YES" ]
+   then
+      # generate the formula and push it
+      homebrew_main "${PROJECT}" \
+                    "${NAME}" \
+                    "${VERSION}" \
+                    "${DEPENDENCIES}" \
+                    "${BUILD_DEPENDENCIES}" \
+                    "${HOMEPAGE_URL}" \
+                    "${DESC}" \
+                    "${ARCHIVE_URL}" \
+                    "${HOMEBREW_TAP}" \
+                    "${RBFILE}"
+   fi
 }
 
 main "$@"
