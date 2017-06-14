@@ -1,0 +1,2 @@
+[comment]: <> ({{COMMENT}})
+{% includes TEMPLATE_FILE %}

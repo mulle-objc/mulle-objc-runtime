@@ -56,3 +56,5 @@ tests/punish/punish
 /addictions
 
 /.repos
+bin/tap-info.sh
+tap-info.sh
