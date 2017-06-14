@@ -227,6 +227,7 @@ static inline int  getenv_yes_no_default( char *name, int default_value)
    return( mulle_objc_getenv_yes_no_default( name, default_value));
 }
 
+
 static void   _mulle_objc_runtime_set_debug_defaults_from_environment( struct _mulle_objc_runtime  *runtime)
 {
    runtime->debug.warn.methodid_types          = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPES");
