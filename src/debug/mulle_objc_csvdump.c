@@ -1,6 +1,6 @@
 //
 //  mulle_objc_csvdump.c
-//  mulle-objc-runtime
+//  mulle-objc-universe
 //
 //  Created by Nat! on 16.05.17.
 //  Copyright © 2017 Mulle kybernetiK. All rights reserved.
@@ -36,14 +36,14 @@
 
 #include "mulle_objc_cache.h"
 #include "mulle_objc_class.h"
-#include "mulle_objc_class_runtime.h"
+#include "mulle_objc_class_universe.h"
 #include "mulle_objc_class_struct.h"
 #include "mulle_objc_classpair.h"
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_load.h"
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 
 #include <errno.h>
 
@@ -99,7 +99,7 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
                                                 _mulle_objc_class_get_inheritance( cls),
                                                 &result);
       if( ! method)
-         mulle_objc_raise_inconsistency_exception( "runtime information has disappeared");
+         mulle_objc_raise_inconsistency_exception( "universe information has disappeared");
       
       fprintf( fp, "%08x;%s;",
               _mulle_objc_class_get_classid( cls),
@@ -129,7 +129,7 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
 }
 
 
-void   mulle_objc_runtime_csvdump_methodcoverage( struct _mulle_objc_runtime *runtime,
+void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *universe,
                                                  FILE *fp)
 {
    intptr_t                                    classid;
@@ -137,13 +137,13 @@ void   mulle_objc_runtime_csvdump_methodcoverage( struct _mulle_objc_runtime *ru
    struct _mulle_objc_metaclass                *meta;
    struct mulle_concurrent_hashmapenumerator   rover;
 
-   if( ! runtime || ! fp)
+   if( ! universe || ! fp)
    {
       errno = EINVAL;
       mulle_objc_raise_fail_errno_exception();
    }
 
-   rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);
+   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
    {
       meta = _mulle_objc_infraclass_get_metaclass( infra);
@@ -156,7 +156,7 @@ void   mulle_objc_runtime_csvdump_methodcoverage( struct _mulle_objc_runtime *ru
 
 
 
-void   mulle_objc_runtime_csvdump_classcoverage( struct _mulle_objc_runtime *runtime,
+void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *universe,
                                                 FILE *fp)
 {
    intptr_t                                    classid;
@@ -164,7 +164,7 @@ void   mulle_objc_runtime_csvdump_classcoverage( struct _mulle_objc_runtime *run
    struct _mulle_objc_metaclass                *meta;
    struct mulle_concurrent_hashmapenumerator   rover;
    
-   if( ! runtime || ! fp)
+   if( ! universe || ! fp)
    {
       errno = EINVAL;
       mulle_objc_raise_fail_errno_exception();
@@ -175,8 +175,8 @@ void   mulle_objc_runtime_csvdump_classcoverage( struct _mulle_objc_runtime *run
    // bit (this also captures fastclasses)
    //
    
-   runtime = mulle_objc_get_runtime();
-   rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);
+   universe = mulle_objc_get_universe();
+   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
    {
       meta = _mulle_objc_infraclass_get_metaclass( infra);
@@ -210,7 +210,7 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
 }
 
 
-static void   mulle_objc_runtime_csvdump_cachesizes( struct _mulle_objc_runtime *runtime,
+static void   mulle_objc_universe_csvdump_cachesizes( struct _mulle_objc_universe *universe,
                                                      FILE *fp)
 {
    intptr_t                                    classid;
@@ -218,7 +218,7 @@ static void   mulle_objc_runtime_csvdump_cachesizes( struct _mulle_objc_runtime 
    struct _mulle_objc_metaclass                *meta;
    struct mulle_concurrent_hashmapenumerator   rover;
    
-   if( ! runtime || ! fp)
+   if( ! universe || ! fp)
    {
       errno = EINVAL;
       mulle_objc_raise_fail_errno_exception();
@@ -229,8 +229,8 @@ static void   mulle_objc_runtime_csvdump_cachesizes( struct _mulle_objc_runtime 
    // bit (this also captures fastclasses)
    //
    
-   runtime = mulle_objc_get_runtime();
-   rover = mulle_concurrent_hashmap_enumerate( &runtime->classtable);
+   universe = mulle_objc_get_universe();
+   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
    {
       meta = _mulle_objc_infraclass_get_metaclass( infra);
@@ -244,7 +244,7 @@ static void   mulle_objc_runtime_csvdump_cachesizes( struct _mulle_objc_runtime 
 
 void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    FILE                         *fp;
 
    fp = fopen( filename, "a");
@@ -254,8 +254,8 @@ void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
       return;
    }
    
-   runtime = mulle_objc_get_runtime();
-   mulle_objc_runtime_csvdump_methodcoverage( runtime, fp);
+   universe = mulle_objc_get_universe();
+   mulle_objc_universe_csvdump_methodcoverage( universe, fp);
    
    fclose( fp);
 
@@ -265,7 +265,7 @@ void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
 
 void   mulle_objc_csvdump_classcoverage_to_file( char *filename)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    FILE                         *fp;
    
    fp = fopen( filename, "a");
@@ -275,8 +275,8 @@ void   mulle_objc_csvdump_classcoverage_to_file( char *filename)
       return;
    }
 
-   runtime = mulle_objc_get_runtime();
-   mulle_objc_runtime_csvdump_classcoverage( runtime, fp);
+   universe = mulle_objc_get_universe();
+   mulle_objc_universe_csvdump_classcoverage( universe, fp);
 
    fclose( fp);
 
@@ -286,7 +286,7 @@ void   mulle_objc_csvdump_classcoverage_to_file( char *filename)
 
 void   mulle_objc_csvdump_cachesizes_to_file( char *filename)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    FILE                         *fp;
    
    fp = fopen( filename, "a");
@@ -296,8 +296,8 @@ void   mulle_objc_csvdump_cachesizes_to_file( char *filename)
       return;
    }
 
-   runtime = mulle_objc_get_runtime();
-   mulle_objc_runtime_csvdump_cachesizes( runtime, fp);
+   universe = mulle_objc_get_universe();
+   mulle_objc_universe_csvdump_cachesizes( universe, fp);
 
    fclose( fp);
 
@@ -324,7 +324,7 @@ void   mulle_objc_loadinfo_csvdump_terse( struct _mulle_objc_loadinfo *info, FIL
       mulle_objc_raise_fail_errno_exception();
    }
    fprintf( fp, "%s;", mulle_objc_loadinfo_get_originator( info));
-   _fprint_csv_version( fp, info->version.runtime);
+   _fprint_csv_version( fp, info->version.universe);
    _fprint_csv_version( fp, info->version.foundation);
    _fprint_csv_version( fp, info->version.user);
    fprintf( fp, "%d;",  (info->version.bits >> 8) & 0x7);

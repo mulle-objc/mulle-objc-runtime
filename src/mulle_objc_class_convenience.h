@@ -38,22 +38,22 @@
 
 #include "mulle_objc_class.h"
 #include "mulle_objc_classpair.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include <mulle_allocator/mulle_allocator.h>
 
 
-// code not used in the runtime, but useful for MulleObjC
+// code not used in the universe, but useful for MulleObjC
 
 #pragma mark - instance creation
 
 MULLE_C_NON_NULL_RETURN
 static inline struct mulle_allocator   *_mulle_objc_class_get_allocator( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_runtime      *runtime;
+   struct _mulle_objc_universe      *universe;
    struct _mulle_objc_foundation   *foundation;
 
-   runtime    = _mulle_objc_class_get_runtime( cls);
-   foundation = _mulle_objc_runtime_get_foundation( runtime);
+   universe    = _mulle_objc_class_get_universe( cls);
+   foundation = _mulle_objc_universe_get_foundation( universe);
    return( _mulle_objc_foundation_get_allocator( foundation));
 }
 
@@ -144,4 +144,4 @@ static inline int   _mulle_objc_infraclass_conformsto_protocolid( struct _mulle_
    return( _mulle_objc_classpair_conformsto_protocolid( pair, protocolid));
 }
 
-#endif /* mulle_objc_class_runtime_h */
+#endif /* mulle_objc_class_universe_h */

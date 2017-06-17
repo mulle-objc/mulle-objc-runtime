@@ -1,5 +1,5 @@
 //
-//  mulle_objc_runtime_struct.h
+//  mulle_objc_universe_struct.h
 //  mulle-objc
 //
 //  Created by Nat! on 16/11/14.
@@ -34,8 +34,8 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 //
-#ifndef mulle_objc_runtime_struct_h__
-#define mulle_objc_runtime_struct_h__
+#ifndef mulle_objc_universe_struct_h__
+#define mulle_objc_universe_struct_h__
 
 #include "mulle_objc_cache.h"
 #include "mulle_objc_fastclasstable.h"
@@ -56,40 +56,40 @@
 
 
 struct _mulle_objc_class;
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 struct mulle_objc_loadversion;
 
 
 //
-// Configure the runtime. Don't change after intialization
+// Configure the universe. Don't change after intialization
 //
-struct _mulle_objc_runtimeconfig
+struct _mulle_objc_universeconfig
 {
    unsigned   forget_strings           : 1;  // don't keep track of static strings
    unsigned   min_optlevel             : 3;  // min compiler optimization level: (0)
    unsigned   max_optlevel             : 3;  // max compiler optimization level: (7)
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
    unsigned   no_tagged_pointers       : 1;  // don't use tagged pointers
-   unsigned   thread_local_rt          : 1;  // use thread local runtimes
+   unsigned   thread_local_rt          : 1;  // use thread local universes
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
 };
 
 
-// loadbits check that code we add to the runtime is
+// loadbits check that code we add to the universe is
 // compatible with respect to tagged pointers
 enum
 {
-   MULLE_OBJC_RUNTIME_HAVE_NO_TPS_LOADS = 0x1,
-   MULLE_OBJC_RUNTIME_HAVE_TPS_LOADS    = 0x2,
-   MULLE_OBJC_RUNTIME_HAVE_TPS_CLASSES  = 0x4
+   MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS = 0x1,
+   MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS    = 0x2,
+   MULLE_OBJC_UNIVERSE_HAVE_TPS_CLASSES  = 0x4
 };
 
 
 //
-// Debug the runtime. Use environment variables to set these
+// Debug the universe. Use environment variables to set these
 // bits.
 //
-struct _mulle_objc_runtimedebug
+struct _mulle_objc_universedebug
 {
    struct
    {
@@ -100,7 +100,7 @@ struct _mulle_objc_runtimedebug
       unsigned   class_cache          : 1;
       unsigned   class_frees          : 1;
       unsigned   dependencies         : 1;
-      unsigned   dump_runtime         : 1;  // hefty, set manually
+      unsigned   dump_universe         : 1;  // hefty, set manually
       unsigned   fastclass_adds       : 1;
       unsigned   initialize           : 1;
       unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
@@ -123,7 +123,7 @@ struct _mulle_objc_runtimedebug
 
    struct
    {
-      unsigned   runtime_config          : 1;
+      unsigned   universe_config          : 1;
       unsigned   print_origin            : 1; // set by default
    } print;
 };
@@ -132,20 +132,20 @@ struct _mulle_objc_runtimedebug
 //
 // Objective-C exceptions and @try/@catch are vectored through here
 //
-struct _mulle_objc_runtimeexceptionvectors
+struct _mulle_objc_universeexceptionvectors
 {
-   void   (*throw)( struct _mulle_objc_runtime *runtime, void *exception);
-   void   (*try_enter)( struct _mulle_objc_runtime *runtime, void *localExceptionData);
-   void   (*try_exit)( struct _mulle_objc_runtime *runtime, void *localExceptionData);
-   void   *(*extract)( struct _mulle_objc_runtime *runtime, void *localExceptionData);
-   int    (*match)( struct _mulle_objc_runtime *runtime, mulle_objc_classid_t classid, void *exception);
+   void   (*throw)( struct _mulle_objc_universe *universe, void *exception);
+   void   (*try_enter)( struct _mulle_objc_universe *universe, void *localExceptionData);
+   void   (*try_exit)( struct _mulle_objc_universe *universe, void *localExceptionData);
+   void   *(*extract)( struct _mulle_objc_universe *universe, void *localExceptionData);
+   int    (*match)( struct _mulle_objc_universe *universe, mulle_objc_classid_t classid, void *exception);
 };
 
 
 //
-// Failures of the runtime itself are vectored though here
+// Failures of the universe itself are vectored though here
 //
-struct _mulle_objc_runtimefailures
+struct _mulle_objc_universefailures
 {
    void   (*uncaughtexception)( void *exception)         MULLE_C_NO_RETURN;
    // fails in unfailing method -> abort
@@ -153,7 +153,7 @@ struct _mulle_objc_runtimefailures
    // unexpected happening -> abort
    void   (*inconsistency)( char *format, va_list args)  MULLE_C_NO_RETURN;
    // class not found -> abort
-   void   (*class_not_found)( struct _mulle_objc_runtime *runtime,
+   void   (*class_not_found)( struct _mulle_objc_universe *universe,
                               mulle_objc_methodid_t missing_method)  MULLE_C_NO_RETURN;
    // method not found -> abort
    void   (*method_not_found)( struct _mulle_objc_class *cls,
@@ -179,7 +179,7 @@ struct _mulle_objc_preloadmethodids
 struct _mulle_objc_classdefaults
 {
    struct _mulle_objc_method   *forwardmethod;
-   void                        (*class_is_missing)( struct _mulle_objc_runtime *, mulle_objc_classid_t);
+   void                        (*class_is_missing)( struct _mulle_objc_universe *, mulle_objc_classid_t);
 
    unsigned short              inheritance;
 };
@@ -187,7 +187,7 @@ struct _mulle_objc_classdefaults
 
 struct _mulle_objc_loadcallbacks
 {
-   int   (*should_load_loadinfo)(  struct _mulle_objc_runtime *, struct _mulle_objc_loadinfo *);
+   int   (*should_load_loadinfo)(  struct _mulle_objc_universe *, struct _mulle_objc_loadinfo *);
 };
 
 //
@@ -198,39 +198,39 @@ struct _mulle_objc_garbagecollection
 };
 
 
-typedef void   mulle_objc_runtimefriend_destructor_t( struct _mulle_objc_runtime *, void *);
-typedef void   mulle_objc_runtimefriend_versionassert_t( struct _mulle_objc_runtime *,
+typedef void   mulle_objc_universefriend_destructor_t( struct _mulle_objc_universe *, void *);
+typedef void   mulle_objc_universefriend_versionassert_t( struct _mulle_objc_universe *,
                                                          void *,
                                                          struct mulle_objc_loadversion *);
 
 
 //
-// Give friends of the runtime a place to store data. The runtime will run
+// Give friends of the universe a place to store data. The universe will run
 // the destructor upon closing. With the versionassert you can ensure that
 // your friend is compatible with the currently loaded "loadinfo"
 //
-struct _mulle_objc_runtimefriend
+struct _mulle_objc_universefriend
 {
-   void                                          *data;
-   mulle_objc_runtimefriend_destructor_t         *destructor;
-   mulle_objc_runtimefriend_versionassert_t      *versionassert;
+   void                                         *data;
+   mulle_objc_universefriend_destructor_t       *destructor;
+   mulle_objc_universefriend_versionassert_t    *versionassert;
 };
 
 //
-// Foundation information that the runtime uses. The string class will place
-// itself into the runtime during +load using
-// `_mulle_objc_runtime_add_staticstring`. The allocator should be setup during
-// the runtime initialization.
+// Foundation information that the universe uses. The string class will place
+// itself into the universe during +load using
+// `_mulle_objc_universe_add_staticstring`. The allocator should be setup during
+// the universe initialization.
 // The postponer is used to wait for staticstring (or something else)
 
-typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_runtime *,
+typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_universe *,
                                                 struct _mulle_objc_loadinfo *);
 
 
 
 struct _mulle_objc_foundation
 {
-   struct _mulle_objc_runtimefriend    runtimefriend;
+   struct _mulle_objc_universefriend    universefriend;
    struct _mulle_objc_infraclass       *staticstringclass;
    struct mulle_allocator              allocator;   // allocator for objects
    mulle_objc_classid_t                rootclassid; // NSObject = e9e78cbd
@@ -260,18 +260,18 @@ struct _mulle_objc_waitqueues
    struct mulle_concurrent_hashmap   categoriestoload;
 };
 
-#define S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE   1024
+#define S_MULLE_OBJC_UNIVERSE_FOUNDATION_SPACE   1024
 
 /*
- * All (?) global variables used by the runtime are in this struct.
- * in fact if you setup the runtime properly with a root
+ * All (?) global variables used by the universe are in this struct.
+ * in fact if you setup the universe properly with a root
  * autorelease pool, you should be able to completely remove the
- * runtime AND all created instances.
+ * universe AND all created instances.
  *
  * All no, unfortunately there is one static class needed for
  * static strings.
  */
-struct _mulle_objc_runtime
+struct _mulle_objc_universe
 {
    //
    // A: these types are all designed to be concurrent, no locking needed
@@ -322,10 +322,10 @@ struct _mulle_objc_runtime
    struct _mulle_objc_garbagecollection     garbage;
    struct _mulle_objc_preloadmethodids      methodidstopreload;
 
-   struct _mulle_objc_runtimefailures       failures;
-   struct _mulle_objc_runtimeexceptionvectors   exceptionvectors;
-   struct _mulle_objc_runtimeconfig         config;
-   struct _mulle_objc_runtimedebug          debug;
+   struct _mulle_objc_universefailures       failures;
+   struct _mulle_objc_universeexceptionvectors   exceptionvectors;
+   struct _mulle_objc_universeconfig         config;
+   struct _mulle_objc_universedebug          debug;
 
    // It's all zeroes, so save some space with a union.
    // it would be "nicer" to have these in a const global
@@ -343,28 +343,28 @@ struct _mulle_objc_runtime
    // this allows the foundation to come up during load without having to do
    // a malloc
    //
-   struct _mulle_objc_runtimefriend      userinfo;    // for user programs
+   struct _mulle_objc_universefriend     userinfo;    // for user programs
    struct _mulle_objc_foundation         foundation;  // for foundation
 
-   intptr_t                              foundationspace[ S_MULLE_OBJC_RUNTIME_FOUNDATION_SPACE / sizeof( intptr_t)];
+   intptr_t                              foundationspace[ S_MULLE_OBJC_UNIVERSE_FOUNDATION_SPACE / sizeof( intptr_t)];
 };
 
 
-static inline uint32_t   _mulle_objc_runtime_get_version( struct _mulle_objc_runtime *runtime)
+static inline uint32_t   _mulle_objc_universe_get_version( struct _mulle_objc_universe *universe)
 {
-   return( runtime->version);
+   return( universe->version);
 }
 
 
-static inline char   *_mulle_objc_runtime_get_path( struct _mulle_objc_runtime *runtime)
+static inline char   *_mulle_objc_universe_get_path( struct _mulle_objc_universe *universe)
 {
-   return( runtime->path);
+   return( universe->path);
 }
 
 
-static inline int   _mulle_objc_runtime_is_initialized( struct _mulle_objc_runtime *runtime)
+static inline int   _mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe)
 {
-   return( runtime->version != (uint32_t) -1);
+   return( universe->version != (uint32_t) -1);
 }
 
 // #1#: whenever a caches contents change, this variable should be incremented

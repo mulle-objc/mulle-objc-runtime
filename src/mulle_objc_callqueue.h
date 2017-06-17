@@ -51,7 +51,7 @@ struct _mulle_objc_object;
 //
 // Should probably be rewritten to not use concurrent,
 // now that +load is locked anyway, but that's what we have here
-// in the runtime.
+// in the universe.
 //
 struct _mulle_objc_callqueue
 {

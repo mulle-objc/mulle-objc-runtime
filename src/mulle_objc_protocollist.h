@@ -1,6 +1,6 @@
 //
 //  mulle_objc_protocollist.h
-//  mulle-objc-runtime
+//  mulle-objc-universe
 //
 //  Created by Nat! on 30.05.17
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -43,7 +43,7 @@
 #include <stddef.h>
 
 
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 
 struct _mulle_objc_protocollist
 {
@@ -121,20 +121,20 @@ static inline void  _mulle_objc_protocollistenumerator_done( struct _mulle_objc_
 // but it's easier this way (no need to reorganize userinfo)
 //
 int   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
-                                     int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_runtime *, void *),
-                                     struct _mulle_objc_runtime *runtime,
+                                     int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_universe *, void *),
+                                     struct _mulle_objc_universe *universe,
                                      void *userinfo);
 
 # pragma mark - protocollist API
 
 static inline int   mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
-                                                int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_runtime *, void *),
-                                                struct _mulle_objc_runtime *runtime,
+                                                int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_universe *, void *),
+                                                struct _mulle_objc_universe *universe,
                                                 void *userinfo)
 {
    if( ! list || ! f)
       return( -1);
-   return( _mulle_objc_protocollist_walk( list, f, runtime, userinfo));
+   return( _mulle_objc_protocollist_walk( list, f, universe, userinfo));
 }
 
 

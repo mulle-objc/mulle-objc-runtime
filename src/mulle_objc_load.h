@@ -53,7 +53,7 @@ struct _mulle_objc_ivarlist;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_propertylist;
 struct _mulle_objc_protocollist;
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 
 struct _mulle_objc_dependency
 {
@@ -207,7 +207,7 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_optlevel_3   = (3 << 8),
    _mulle_objc_loadinfo_optlevel_s   = (7 << 8)
 
-   // lower 16 bits for runtime
+   // lower 16 bits for universe
 
    // next 12 bits free for foundation (future: somehow)
    // last  4 bits free for user       (future: somehow)
@@ -216,7 +216,7 @@ enum _mulle_objc_loadinfobits
 
 //
 // the load is the MULLE_OBJC_RUNTIME_LOAD_VERSION built into the compiler
-// The runtime is the MULLE_OBJC_RUNTIME_VERSION read by the compiler.
+// The universe is the MULLE_OBJC_RUNTIME_VERSION read by the compiler.
 // The foundation version is necessary for the fastcalls. Since the foundation
 // defines the fastcalls and fastclasses, the foundation must match.
 // Whenever the fastcall/fastclasses change you need to update the foundation
@@ -226,7 +226,7 @@ enum _mulle_objc_loadinfobits
 struct mulle_objc_loadversion
 {
    uint32_t   load;
-   uint32_t   runtime;
+   uint32_t   universe;
    uint32_t   foundation;
    uint32_t   user;
    uint32_t   bits;
@@ -259,20 +259,20 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info);
 void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info);
 
 // checks that loadinfo is compatibly compiled
-void    mulle_objc_runtime_assert_loadinfo( struct _mulle_objc_runtime *runtime,
+void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *universe,
                                            struct _mulle_objc_loadinfo *info);
 
 # pragma mark - class
 
 //
-// use this function to determine, if the runtime is ready to load this class
+// use this function to determine, if the universe is ready to load this class
 // yet. Returns the class, that's not yet loaded.
 //
 void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
                                                struct _mulle_objc_callqueue *loads);
 
 void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loadclass *info,
-                                                          struct _mulle_objc_runtime *runtime);
+                                                          struct _mulle_objc_universe *universe);
 
 
 # pragma mark - category
@@ -287,6 +287,6 @@ void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategor
                                                   struct _mulle_objc_callqueue *loads);
 
 void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_loadcategory *info,
-                                                             struct _mulle_objc_runtime *runtime);
+                                                             struct _mulle_objc_universe *universe);
 
 #endif

@@ -87,9 +87,9 @@ int   mulle_objc_metaclass_is_sane( struct _mulle_objc_metaclass *meta);
 
 # pragma mark - conveniences
 
-static inline struct _mulle_objc_runtime   *_mulle_objc_metaclass_get_runtime( struct _mulle_objc_metaclass *meta)
+static inline struct _mulle_objc_universe   *_mulle_objc_metaclass_get_universe( struct _mulle_objc_metaclass *meta)
 {
-   return( meta->base.runtime);
+   return( meta->base.universe);
 }
 
 

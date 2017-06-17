@@ -98,9 +98,9 @@ static inline struct _mulle_objc_infraclass   *_mulle_objc_class_as_infraclass( 
 
 # pragma mark - conveniences
 
-static inline struct _mulle_objc_runtime   *_mulle_objc_infraclass_get_runtime( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_universe   *_mulle_objc_infraclass_get_universe( struct _mulle_objc_infraclass *infra)
 {
-   return( infra->base.runtime);
+   return( infra->base.universe);
 }
 
 

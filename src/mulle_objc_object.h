@@ -43,7 +43,7 @@
 #include "mulle_objc_class.h"
 #include "mulle_objc_ivar.h"
 #include "mulle_objc_objectheader.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include "mulle_objc_taggedpointer.h"
 
 #include <assert.h>
@@ -72,14 +72,14 @@ MULLE_C_ALWAYS_INLINE_NON_NULL_CONST_RETURN
 static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void *obj)
 {
    unsigned int                 index;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
    index = mulle_objc_object_get_taggedpointer_index( obj);
    if( ! index)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   runtime = mulle_objc_inlined_get_runtime();
-   return( runtime->taggedpointers.pointerclass[ index]);
+   universe = mulle_objc_inlined_get_universe();
+   return( universe->taggedpointers.pointerclass[ index]);
 }
 
 //
@@ -89,15 +89,15 @@ MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
 static inline struct _mulle_objc_class   *_mulle_objc_object_get_isa( void *obj)
 {
    unsigned int                 index;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
    index = mulle_objc_object_get_taggedpointer_index( obj);
    if( __builtin_expect( ! index, 1))
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   runtime = mulle_objc_inlined_get_runtime();
-   assert( runtime->taggedpointers.pointerclass[ index] && "tagged pointer class not configured");
-   return( runtime->taggedpointers.pointerclass[ index]);
+   universe = mulle_objc_inlined_get_universe();
+   assert( universe->taggedpointers.pointerclass[ index] && "tagged pointer class not configured");
+   return( universe->taggedpointers.pointerclass[ index]);
 }
 
 
@@ -125,12 +125,12 @@ static inline struct _mulle_objc_object   *_mulle_objc_object_get_zone( void *ob
 # pragma mark - convenience
 
 // convenience for object
-static inline struct _mulle_objc_runtime   *_mulle_objc_object_get_runtime( void *obj)
+static inline struct _mulle_objc_universe   *_mulle_objc_object_get_universe( void *obj)
 {
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   return( _mulle_objc_class_get_runtime( cls));
+   return( _mulle_objc_class_get_universe( cls));
 }
 
 
@@ -191,9 +191,9 @@ static inline struct _mulle_objc_infraclass   *mulle_objc_object_get_infraclass(
 
 // convenience for object
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_runtime   *mulle_objc_object_get_runtime( void *obj)
+static inline struct _mulle_objc_universe   *mulle_objc_object_get_universe( void *obj)
 {
-   return( obj ? _mulle_objc_object_get_runtime( obj) : NULL);
+   return( obj ? _mulle_objc_object_get_universe( obj) : NULL);
 }
 
 

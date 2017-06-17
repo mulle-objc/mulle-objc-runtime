@@ -36,7 +36,7 @@
 //
 #include "mulle_objc_method.h"
 
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
@@ -140,7 +140,7 @@ int  mulle_objc_methoddescriptor_is_sane( struct _mulle_objc_methoddescriptor *p
 
       correct = mulle_objc_methodid_from_string( p->name);
       if( correct != p->methodid)
-         fprintf( stderr, "mulle_objc_runtime warning: \"%s\" should have methodid %08x but has methodid %08x\n", p->name, correct, p->methodid);
+         fprintf( stderr, "mulle_objc_universe warning: \"%s\" should have methodid %08x but has methodid %08x\n", p->name, correct, p->methodid);
    }
 #endif
    return( 1);

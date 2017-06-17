@@ -38,7 +38,7 @@
 #include "mulle_objc_call.h"
 #include "mulle_objc_class.h"
 #include "mulle_objc_object.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 
 
 static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
@@ -47,18 +47,18 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
                                                                unsigned int index)
 {
    struct _mulle_objc_class            *cls;
-   struct _mulle_objc_runtime          *runtime;
+   struct _mulle_objc_universe          *universe;
    mulle_objc_methodimplementation_t   imp;
 
    // don't cache it
    cls     = _mulle_objc_object_get_isa( obj);
-   runtime = _mulle_objc_class_get_runtime( cls);
+   universe = _mulle_objc_class_get_universe( cls);
 
    // looking up methods, should be thread safe
    {
       imp = _mulle_objc_class_lookup_or_search_methodimplementation( cls, methodid);
 
-      if( runtime->debug.trace.method_calls)
+      if( universe->debug.trace.method_calls)
          // trace but don't cache it
          mulle_objc_class_trace_method_call( cls, methodid, obj, param, imp);
       else

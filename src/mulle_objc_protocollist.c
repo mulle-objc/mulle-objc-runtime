@@ -1,6 +1,6 @@
 //
 //  mulle_objc_protocollist.c
-//  mulle-objc-runtime
+//  mulle-objc-universe
 //
 //  Created by Nat! on 30.05.17
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -37,7 +37,7 @@
 
 #include "mulle_objc_class.h"
 #include "mulle_objc_metaclass.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include "mulle_objc_callqueue.h"
 
 #include <assert.h>
@@ -45,8 +45,8 @@
 
 
 int   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
-                                   int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_runtime *, void *),
-                                   struct _mulle_objc_runtime *runtime,
+                                   int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_universe *, void *),
+                                   struct _mulle_objc_universe *universe,
                                    void *userinfo)
 {
    struct _mulle_objc_protocol   *sentinel;
@@ -60,7 +60,7 @@ int   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
 
    while( p < sentinel)
    {
-      if( rval = (*f)( p, runtime, userinfo))
+      if( rval = (*f)( p, universe, userinfo))
          return( rval);
       ++p;
    }

@@ -1,6 +1,19 @@
+## 0.9.1
+
+Finally got around to a renaming. The runtime library is now,
+mulle-objc-runtime and it's header is mulle-objc-runtime.h. I renamed the struct
+mulle-objc-runtime to mulle-objc-universe. Though that's confusing in the short
+term, I am not a big fan of overloaded definitions.
+
+This has the benefit of freeing up the <mulle_objc/mulle_objc.h> header, that
+should be part of MulleObjC.
+
+`__MULLE_OBJC_TRT__` will be renamed to `__MULLE_OBJC_TLU__` in 1.0
+
+
 ### 0.8.5
 
-* modernize project
+* modernize project, beautify and fix dotdump a little
 
 ### 0.8.4
 
@@ -37,7 +50,7 @@ the names)
 * moved version and new "path" up for easier debugging and easier version
 checks its kinda useful if version is at a fixed offset
 * `__get_or_create_objc_runtime` has been renamed to `__get_or_create_mulle_objc_runtime`
-for clarity in the debugger and multi-runtime code.
+for clarity in the debugger and multi-universe code.
 * moved forward into a fixed position in the class structure for a future
 debugger
 * the forward function is now fixed to be named as
@@ -73,16 +86,16 @@ a class do `{ @selector( Class), 0 }`, on a category do
 
 ## 0.5.1
 
-* this runtime needs the mulle-clang compiler, based on clang 4.0.0
+* this universe needs the mulle-clang compiler, based on clang 4.0.0
 * significantly improved the graphviz and html dumper to be more useable for bigger
-runtime environments.
+universe environments.
 
 ## 0.4.1
 
-* this runtime needs the mulle-clang compiler, based on clang 4.0.0
-* the runtime load structures now have their own independent versioning
+* this universe needs the mulle-clang compiler, based on clang 4.0.0
+* the universe load structures now have their own independent versioning
 called MULLE_OBJC_RUNTIME_LOAD_VERSION
-* the class now contains a list of categoryids, which can be queried at runtime
+* the class now contains a list of categoryids, which can be queried at universe
 * the class loader will check if a class implements +classDependencies,
 this allows proper sequenced +loads of classes. the category loader will check
 if a category implements +categoryDependencies. this allows proper sequenced
@@ -106,8 +119,8 @@ It is preferred to set the environment variables with "YES" or "NO" now.
 Variable                          | Description
 ----------------------------------|-----------------------
 `MULLE_OBJC_TRACE_LOADINFO`       | more detailed output of the loadinfo
-`MULLE_OBJC_TRACE_CATEGORY_ADDS`  | trace runtime category additions
-`MULLE_OBJC_TRACE_PROTOCOL_ADDS`  | trace runtime protocol additions
+`MULLE_OBJC_TRACE_CATEGORY_ADDS`  | trace universe category additions
+`MULLE_OBJC_TRACE_PROTOCOL_ADDS`  | trace universe protocol additions
 `MULLE_OBJC_WARN_STUCK_LOADABLES` | replaces ..._WARN_NOTLOADED_CLASSES and .._CATEGORIES
 
 
@@ -121,7 +134,7 @@ only
 * renamed `mulle_objc_object_get_taggedpointer_index` to `mulle_objc_object_get_taggedpointer_index`
 * new trace flag `MULLE_OBJC_TRACE_RUNTIME_CONFIG`
 * `CMakeLists.txt` sets `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_NO_TRT__` by
-default. Since the runtime is  built by the standard host compiler, this
+default. Since the universe is  built by the standard host compiler, this
 matches the current default of the  mulle-clang compiler
 * improved and more lenient thread local compatibility check on load
 * the pass-through for foundation code w/o version has been removed
@@ -142,7 +155,7 @@ matches the current default of the  mulle-clang compiler
 * rename some load struct fields
 * dependency check on "class" protocolids added
 * renamed MULLE_OBJC_HAVE_THREAD_LOCAL_RUNTIME to MULLE_OBJC_THREAD_LOCAL_RUNTIME
-* runtime checks for mismatch between global and thread local runtime code
+* universe checks for mismatch between global and thread local universe code
 
 ## 0.1.7
 

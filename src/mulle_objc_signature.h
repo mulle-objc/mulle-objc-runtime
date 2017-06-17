@@ -46,7 +46,7 @@
 #include <mulle_vararg/mulle_vararg.h>  // for alignment mulle_objc_vararg.hcode
 
 
-// these defines are compatible to other runtimes
+// these defines are compatible to other universes
 // but some aren't implemented in code yet
 #define _C_ARY_B        '['
 #define _C_ARY_E        ']'

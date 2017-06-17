@@ -1,6 +1,6 @@
 //
 //  mulle_objc_protocol.c
-//  mulle-objc-runtime
+//  mulle-objc-universe
 //
 //  Created by Nat! on 30.05.17
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -36,7 +36,7 @@
 
 #include "mulle_objc_protocol.h"
 
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
@@ -132,7 +132,7 @@ int  mulle_objc_protocol_is_sane( struct _mulle_objc_protocol *p)
 
       correct = mulle_objc_protocolid_from_string( p->name);
       if( correct != p->protocolid)
-         fprintf( stderr, "mulle_objc_runtime warning: \"%s\" should have protocolid %08x but has protocolid %08x\n", p->name, correct, p->protocolid);
+         fprintf( stderr, "mulle_objc_universe warning: \"%s\" should have protocolid %08x but has protocolid %08x\n", p->name, correct, p->protocolid);
    }
 #endif
    return( 1);

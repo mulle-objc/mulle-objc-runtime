@@ -267,7 +267,7 @@ unsigned int   mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cach
 
 # pragma mark - add
 
-// this only works for a cache, that isn't active in the runtime yet and that
+// this only works for a cache, that isn't active in the universe yet and that
 // has enough space (!)
 
 struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache, void *pointer, mulle_objc_uniqueid_t uniqueid)

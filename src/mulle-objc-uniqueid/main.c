@@ -33,7 +33,7 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 
 
 int   main( int argc, const char * argv[])

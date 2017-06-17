@@ -45,7 +45,7 @@
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
 #include "mulle_objc_methodlist.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include "mulle_objc_taggedpointer.h"
 
 #include <assert.h>
@@ -81,7 +81,7 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned i
 {
    void   *state;
    void   *old;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    char   *bitname;
 
    assert( bit);
@@ -95,12 +95,12 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned i
    }
    while( ! _mulle_atomic_pointer_compare_and_swap( &cls->state, state, old));
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   if( runtime->debug.trace.state_bits)
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe->debug.trace.state_bits)
    {
       bitname = lookup_bitname( bit);
-      fprintf( stderr, "mulle_objc_runtime %p trace: %s %08x \"%s\" gained the 0x%x bit (%s)\n",
-              runtime, _mulle_objc_class_get_classtypename( cls), cls->classid, cls->name, bit, bitname ? bitname : "???");
+      fprintf( stderr, "mulle_objc_universe %p trace: %s %08x \"%s\" gained the 0x%x bit (%s)\n",
+              universe, _mulle_objc_class_get_classtypename( cls), cls->classid, cls->name, bit, bitname ? bitname : "???");
    }
    return( 1);
 }
@@ -116,13 +116,13 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
                                size_t  instancesize,
                                mulle_objc_classid_t classid,
                                struct _mulle_objc_class *superclass,
-                               struct _mulle_objc_runtime *runtime)
+                               struct _mulle_objc_universe *universe)
 {
    extern void   *_mulle_objc_object_call2_needs_cache( void *obj,
                                                         mulle_objc_methodid_t methodid,
                                                         void *parameter);
 
-   assert( runtime);
+   assert( universe);
 
    cls->name                     = name;
 
@@ -132,15 +132,15 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
 
    cls->allocationsize           = sizeof( struct _mulle_objc_objectheader) + instancesize;
    cls->call                     = _mulle_objc_object_call_class_needs_cache;
-   cls->runtime                  = runtime;
-   cls->inheritance              = runtime->classdefaults.inheritance;
+   cls->universe                  = universe;
+   cls->inheritance              = universe->classdefaults.inheritance;
 
    cls->cachepivot.call2         = _mulle_objc_object_call2_needs_cache;
 
-   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, runtime->empty_cache.entries);
-   _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, runtime->empty_cache.entries);
+   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->empty_cache.entries);
+   _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 
-   _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &runtime->memory.allocator);
+   _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &universe->memory.allocator);
 
    _mulle_objc_fastmethodtable_init( &cls->vtab);
 }
@@ -161,7 +161,7 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
    _mulle_objc_class_invalidate_all_kvcinfos( cls);
 
    cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
-   if( cache != &cls->runtime->empty_cache)
+   if( cache != &cls->universe->empty_cache)
       _mulle_objc_cache_free( cache, allocator);
 }
 
@@ -176,7 +176,7 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_search_forwardmetho
                                              NULL, MULLE_OBJC_ANY_OWNER,
                                              cls->inheritance, NULL);
    if( ! method)
-      method = cls->runtime->classdefaults.forwardmethod;
+      method = cls->universe->classdefaults.forwardmethod;
 
    return( method);
 }
@@ -209,13 +209,13 @@ static void  _mulle_objc_class_raise_method_not_found( struct _mulle_objc_class 
    name   = _mulle_objc_class_get_name( cls);
 
    if( errno != ENOENT)
-      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "mulle_objc_runtime: forward:: method has wrong id in %sclass \"%s\"",
+      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "mulle_objc_universe: forward:: method has wrong id in %sclass \"%s\"",
                                                         prefix,
                                                         name);
    if( missing_method)
       _mulle_objc_class_raise_method_not_found_exception( cls, missing_method);
 
-   _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "mulle_objc_runtime: missing forward:: method in %sclass \"%s\"",
+   _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "mulle_objc_universe: missing forward:: method in %sclass \"%s\"",
                                                      prefix,
                                                      name);
 }
@@ -362,7 +362,7 @@ static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class 
 }
 
 
-static int  invalidate_caches( struct _mulle_objc_runtime *runtime,
+static int  invalidate_caches( struct _mulle_objc_universe *universe,
                                struct _mulle_objc_class *cls,
                                enum mulle_objc_walkpointertype_t type,
                                char *key,
@@ -402,8 +402,8 @@ void   mulle_objc_class_did_add_methodlist( struct _mulle_objc_class *cls,
       //
       // this optimization works as long as you are installing plain classes.
       //
-      if( _mulle_atomic_pointer_read( &cls->runtime->cachecount_1))
-         mulle_objc_runtime_walk_classes( cls->runtime, (int (*)()) invalidate_caches, list);
+      if( _mulle_atomic_pointer_read( &cls->universe->cachecount_1))
+         mulle_objc_universe_walk_classes( cls->universe, (int (*)()) invalidate_caches, list);
    }
 }
 
@@ -417,7 +417,7 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
    unsigned int                              n;
 
    if( ! list)
-      list = &cls->runtime->empty_methodlist;
+      list = &cls->universe->empty_methodlist;
 
    /* register instance methods */
    n     = 0;
@@ -437,7 +437,7 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
       }
 
       last = method->descriptor.methodid;
-      if( _mulle_objc_runtime_add_methoddescriptor( cls->runtime, &method->descriptor))
+      if( _mulle_objc_universe_add_methoddescriptor( cls->universe, &method->descriptor))
       {
          _mulle_objc_methodlistenumerator_done( &rover);
          // errno = EEXIST; // errno set by _add_...
@@ -479,7 +479,7 @@ void   mulle_objc_class_unfailing_add_methodlist( struct _mulle_objc_class *cls,
                                                   struct _mulle_objc_methodlist *list)
 {
    if( mulle_objc_class_add_methodlist( cls, list))
-      _mulle_objc_runtime_raise_fail_errno_exception( cls->runtime);
+      _mulle_objc_universe_raise_fail_errno_exception( cls->universe);
 }
 
 
@@ -694,7 +694,7 @@ int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned in
 }
 
 
-static void   trace_method_found( struct _mulle_objc_runtime *runtime,
+static void   trace_method_found( struct _mulle_objc_universe *universe,
                                   struct _mulle_objc_class *cls,
                                   struct _mulle_objc_methodlist *list,
                                   struct _mulle_objc_method *method,
@@ -704,15 +704,15 @@ static void   trace_method_found( struct _mulle_objc_runtime *runtime,
    mulle_objc_categoryid_t   categoryid;
    char                      *s;
 
-   fprintf( stderr, "mulle_objc_runtime %p trace: found in %s ",
-           runtime,
+   fprintf( stderr, "mulle_objc_universe %p trace: found in %s ",
+           universe,
            _mulle_objc_class_get_classtypename( cls));
 
    // it's a category ?
    if( list->owner)
    {
       categoryid = (mulle_objc_categoryid_t) (uintptr_t) list->owner;
-      s = _mulle_objc_runtime_search_debughashname( runtime, categoryid);
+      s = _mulle_objc_universe_search_debughashname( universe, categoryid);
       if( ! s)
       {
          sprintf( buf, "%08x", categoryid);
@@ -747,7 +747,7 @@ struct _mulle_objc_method   *
                                      unsigned int inheritance,
                                      struct _mulle_objc_searchresult *result)
 {
-   struct _mulle_objc_runtime                              *runtime;
+   struct _mulle_objc_universe                              *universe;
    struct _mulle_objc_method                               *found;
    struct _mulle_objc_method                               *method;
    struct _mulle_objc_methodlist                           *list;
@@ -767,11 +767,11 @@ struct _mulle_objc_method   *
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
       n = 1;
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   if( runtime->debug.trace.method_searches)
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe->debug.trace.method_searches)
    {
-      fprintf( stderr, "mulle_objc_runtime %p trace: search %s %s for methodid %08x \"%s\" (owner=%p, previous=%p)\n",
-            runtime,
+      fprintf( stderr, "mulle_objc_universe %p trace: search %s %s for methodid %08x \"%s\" (owner=%p, previous=%p)\n",
+            universe,
             _mulle_objc_class_get_classtypename( cls),
             cls->name,
             methodid,
@@ -816,8 +816,8 @@ struct _mulle_objc_method   *
 
          if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
          {
-            if( runtime->debug.trace.method_searches)
-               trace_method_found( runtime, cls, list, method, &rover);
+            if( universe->debug.trace.method_searches)
+               trace_method_found( universe, cls, list, method, &rover);
 
             mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
             return( method);
@@ -914,7 +914,7 @@ struct _mulle_objc_method  *mulle_objc_class_search_method( struct _mulle_objc_c
                                              NULL);
    // this can happen if hidden override detection is on
    if( ! method && errno == EEXIST)
-      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %08x", _mulle_objc_class_get_name( cls), methodid);
+      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "class \"%s\" hidden method override of %08x", _mulle_objc_class_get_name( cls), methodid);
 
    return( method);
 }
@@ -941,7 +941,7 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
                                                   NULL);
    // this can happen if hidden override detection is on
    if( ! method && errno == EEXIST)
-      _mulle_objc_runtime_raise_inconsistency_exception( cls->runtime, "class \"%s\" hidden method override of %08x", _mulle_objc_class_get_name( cls), methodid);
+      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "class \"%s\" hidden method override of %08x", _mulle_objc_class_get_name( cls), methodid);
 
    return( method);
 }
@@ -954,7 +954,7 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
 struct bouncy_info
 {
    void                          *userinfo;
-   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_universe    *universe;
    void                          *parent;
    mulle_objc_walkcallback_t     callback;
    mulle_objc_walkcommand_t      rval;
@@ -968,7 +968,7 @@ static int   bouncy_method( struct _mulle_objc_method *method,
    struct bouncy_info   *info;
 
    info       = userinfo;
-   info->rval = (info->callback)( info->runtime, method, mulle_objc_walkpointer_is_method, NULL, cls, info->userinfo);
+   info->rval = (info->callback)( info->universe, method, mulle_objc_walkpointer_is_method, NULL, cls, info->userinfo);
    return( mulle_objc_walkcommand_is_stopper( info->rval));
 }
 
@@ -982,19 +982,19 @@ mulle_objc_walkcommand_t
                           void *parent,
                           void *userinfo)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    mulle_objc_walkcommand_t     cmd;
    struct bouncy_info           info;
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   cmd     = (*callback)( runtime, cls, type, NULL, parent, userinfo);
+   universe = _mulle_objc_class_get_universe( cls);
+   cmd     = (*callback)( universe, cls, type, NULL, parent, userinfo);
    if( cmd != mulle_objc_walk_ok)
       return( cmd);
 
    info.callback = callback;
    info.parent   = parent;
    info.userinfo = userinfo;
-   info.runtime  = runtime;
+   info.universe  = universe;
 
    cmd = _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), bouncy_method, &info);
    return( cmd);

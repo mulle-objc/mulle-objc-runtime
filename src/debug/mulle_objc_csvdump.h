@@ -1,6 +1,6 @@
 //
 //  mulle_objc_csvdump.h
-//  mulle-objc-runtime
+//  mulle-objc-universe
 //
 //  Created by Nat! on 16.05.17.
 //  Copyright © 2017 Mulle kybernetiK. All rights reserved.
@@ -38,15 +38,15 @@
 #include <stdio.h>
 
 struct _mulle_objc_class;
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 struct _mulle_objc_loadinfo;
 
 
-void   mulle_objc_runtime_csvdump_classcoverage( struct _mulle_objc_runtime *runtime,
+void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *universe,
                                                 FILE *fp);
 void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
                                                 FILE *fp);
-void   mulle_objc_runtime_csvdump_methodcoverage( struct _mulle_objc_runtime *runtime,
+void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *universe,
                                                  FILE *fp);
 void   mulle_objc_class_csvdump_cachesizes( struct _mulle_objc_class *cls,
                                             FILE *fp);
