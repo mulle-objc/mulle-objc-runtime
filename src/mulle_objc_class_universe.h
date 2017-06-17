@@ -1,5 +1,5 @@
 //
-//  mulle_objc_class_runtime.h
+//  mulle_objc_class_universe.h
 //  mulle-objc
 //
 //  Created by Nat! on 10.07.16.
@@ -33,20 +33,19 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_class_runtime_h__
-#define mulle_objc_class_runtime_h__
-
+#ifndef mulle_objc_class_universe_h__
+#define mulle_objc_class_universe_h__
 
 #include "mulle_objc_uniqueid.h"
 #include "mulle_objc_fastclasstable.h"
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_object.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include "mulle_objc_version.h"
 
 
 struct _mulle_objc_class;
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 
 
 int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
@@ -59,7 +58,7 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 // use this method to not fill up the cache uselessy.
 //
 struct _mulle_objc_infraclass   *
-    _mulle_objc_runtime_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+    _mulle_objc_universe_lookup_uncached_infraclass( struct _mulle_objc_universe *universe,
                                                     mulle_objc_classid_t classid);
 
 //
@@ -68,69 +67,69 @@ struct _mulle_objc_infraclass   *
 //
 MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_infraclass *
-   _mulle_objc_runtime_unfailing_lookup_uncached_infraclass( struct _mulle_objc_runtime *runtime,
+   _mulle_objc_universe_unfailing_lookup_uncached_infraclass( struct _mulle_objc_universe *universe,
                                                              mulle_objc_classid_t classid);
 
 
 #pragma mark - class lookup, cached and fastclass
 
 static inline struct _mulle_objc_infraclass  *
-    _mulle_objc_runtime_get_or_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+    _mulle_objc_universe_get_or_lookup_infraclass( struct _mulle_objc_universe *universe,
                                                   mulle_objc_classid_t classid)
 {
    int                             index;
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_infraclass  *
-        _mulle_objc_runtime_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+        _mulle_objc_universe_lookup_infraclass( struct _mulle_objc_universe *universe,
                                                mulle_objc_classid_t classid);
    
-   assert( runtime);
-   assert( runtime->version == MULLE_OBJC_RUNTIME_VERSION);
+   assert( universe);
+   assert( universe->version == MULLE_OBJC_RUNTIME_VERSION);
    assert( classid);
    
    index = mulle_objc_get_fastclasstable_index( classid);
    if( index >= 0)
    {
-      infra = mulle_objc_fastclasstable_get_infraclass( &runtime->fastclasstable, index);
+      infra = mulle_objc_fastclasstable_get_infraclass( &universe->fastclasstable, index);
       return( infra);
    }
-   return( _mulle_objc_runtime_lookup_infraclass( runtime, classid));
+   return( _mulle_objc_universe_lookup_infraclass( universe, classid));
 }
 
 
 // this is the method to use for looking up classes
 MULLE_C_CONST_NON_NULL_RETURN
 static inline struct _mulle_objc_infraclass *
-   _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+   _mulle_objc_universe_unfailing_get_or_lookup_infraclass( struct _mulle_objc_universe *universe,
                                                            mulle_objc_classid_t classid)
 {
    int                             index;
    struct _mulle_objc_infraclass   *infra;
    MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass *
-       _mulle_objc_runtime_unfailing_lookup_infraclass( struct _mulle_objc_runtime *runtime,
+       _mulle_objc_universe_unfailing_lookup_infraclass( struct _mulle_objc_universe *universe,
                                                         mulle_objc_classid_t classid);
    
-   assert( runtime);
-   assert( runtime->version == MULLE_OBJC_RUNTIME_VERSION);
+   assert( universe);
+   assert( universe->version == MULLE_OBJC_RUNTIME_VERSION);
    assert( classid);
    
    index = mulle_objc_get_fastclasstable_index( classid);
    if( index >= 0)
    {
-      infra = mulle_objc_fastclasstable_unfailing_get_infraclass( &runtime->fastclasstable, index);
+      infra = mulle_objc_fastclasstable_unfailing_get_infraclass( &universe->fastclasstable, index);
       return( infra);
    }
-   return( _mulle_objc_runtime_unfailing_lookup_infraclass( runtime, classid));
+   return( _mulle_objc_universe_unfailing_lookup_infraclass( universe, classid));
 }
 
 
 MULLE_C_NON_NULL_RETURN
 static inline struct _mulle_objc_infraclass   *mulle_objc_inline_unfailing_get_or_lookup_infraclass( mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    
-   runtime = mulle_objc_inlined_get_runtime();
-   return( _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid));
+   universe = mulle_objc_inlined_get_universe();
+   return( _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe, classid));
 }
 
 

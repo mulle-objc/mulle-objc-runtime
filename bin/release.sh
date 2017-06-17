@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-#   Copyright (c) 2017 Nat! - Codeon GmbH
+#   Copyright (c) 2017 Nat! - Mulle kybernetiK
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,15 @@ then
    . "${EXE_DIR}/formula-info.sh"
 fi
 
+#
+# If there is a - possibly .gitignored - tap-info.sh file read it.
+# It could store PUBLISHER and PUBLISHER_TAP
+#
+if [ -f "${EXE_DIR}/tap-info.sh" ]
+then
+   . "${EXE_DIR}/tap-info.sh"
+fi
+
 
 #######
 # If you are using mulle-build, you don't hafta change anything after this
@@ -96,7 +105,7 @@ generate_brew_formula()
 #######
 
 MULLE_BOOTSTRAP_FAIL_PREFIX="`basename -- $0`"
-MULLE_HOMEBREW_VERSION="4.0.0"
+MULLE_HOMEBREW_VERSION="4.1.0"
 
 #
 # prefer local mulle-homebrew if available
@@ -136,6 +145,16 @@ main()
 
    if [ "${DO_GENERATE_FORMULA}" = "YES" ]
    then
+      if [ -z "${PUBLISHER}" ]
+      then
+         fail "You need to specify a publisher with --publisher (hint: https://github.com/<publisher>)"
+      fi
+
+      if [ -z "${PUBLISHER_TAP}" ]
+      then
+         fail "You need to specify a publisher tap with --tap (hint: <mulle-kybernetik/software>)"
+      fi
+
       # generate the formula and push it
       homebrew_main "${PROJECT}" \
                     "${NAME}" \

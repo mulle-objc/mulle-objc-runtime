@@ -39,7 +39,7 @@
 
 #include "mulle_objc_objectheader.h"
 #include "mulle_objc_class_struct.h"
-#include "mulle_objc_runtime_struct.h"
+#include "mulle_objc_universe_struct.h"
 #include "mulle_objc_walktypes.h"
 
 #include <assert.h>
@@ -60,13 +60,13 @@ void  _mulle_objc_class_init( struct _mulle_objc_class *cls,
                               size_t  instancesize,
                               mulle_objc_classid_t classid,
                               struct _mulle_objc_class *superclass,
-                              struct _mulle_objc_runtime *runtime);
+                              struct _mulle_objc_universe *universe);
 
 void   _mulle_objc_class_done( struct _mulle_objc_class *class,
                                struct mulle_allocator *allocator);
 
 void   _mulle_objc_class_setup_pointerarrays( struct _mulle_objc_class *cls,
-                                              struct _mulle_objc_runtime *runtime);
+                                              struct _mulle_objc_universe *universe);
 
 
 # pragma mark - sanity check
@@ -114,20 +114,20 @@ static inline struct _mulle_objc_kvccachepivot   *_mulle_objc_class_get_kvccache
 static inline struct mulle_allocator   *
    _mulle_objc_class_get_kvcinfo_allocator( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   return( &runtime->memory.allocator);
+   universe = _mulle_objc_class_get_universe( cls);
+   return( &universe->memory.allocator);
 }
 
 
 static inline struct _mulle_objc_kvccache   *
 _mulle_objc_class_get_empty_kvccache( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
-   runtime = _mulle_objc_class_get_runtime( cls);
-   return( (struct _mulle_objc_kvccache *) &runtime->empty_cache);
+   universe = _mulle_objc_class_get_universe( cls);
+   return( (struct _mulle_objc_kvccache *) &universe->empty_cache);
 }
 
 
@@ -328,9 +328,9 @@ static inline char   *mulle_objc_class_get_name( struct _mulle_objc_class *cls)
 }
 
 
-static inline struct _mulle_objc_runtime   *mulle_objc_class_get_runtime( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_universe   *mulle_objc_class_get_universe( struct _mulle_objc_class *cls)
 {
-   return( cls ? _mulle_objc_class_get_runtime( cls) : NULL);
+   return( cls ? _mulle_objc_class_get_universe( cls) : NULL);
 }
 
 

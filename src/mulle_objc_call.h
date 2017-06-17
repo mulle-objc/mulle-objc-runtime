@@ -46,7 +46,7 @@
 #include "mulle_objc_method.h"
 #include "mulle_objc_object.h"
 
-#include "mulle_objc_class_runtime.h"
+#include "mulle_objc_class_universe.h"
 
 #include <mulle_aba/mulle_aba.h>
 #include <mulle_c11/mulle_c11.h>
@@ -209,12 +209,12 @@ static inline void   *_mulle_objc_infraclass_inline_metacall_classid( struct _mu
 {
    struct _mulle_objc_infraclass   *call_infra;
    struct _mulle_objc_metaclass    *call_meta;
-   struct _mulle_objc_runtime      *runtime;
+   struct _mulle_objc_universe     *universe;
 
-   runtime    = _mulle_objc_infraclass_get_runtime( infra);
+   universe    = _mulle_objc_infraclass_get_universe( infra);
    call_infra = (struct _mulle_objc_infraclass *) infra->base.superclass;
    if( infra->base.superclassid != classid)
-      call_infra = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid);
+      call_infra = _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe, classid);
 
    call_meta = _mulle_objc_infraclass_get_metaclass( call_infra);
    // need to call cls->call to prepare caches
@@ -252,14 +252,14 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
    struct _mulle_objc_class        *call_cls;
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_infraclass   *call_infra;
-   struct _mulle_objc_runtime      *runtime;
+   struct _mulle_objc_universe      *universe;
 
    cls      = _mulle_objc_object_get_isa( obj);
    call_cls = cls->superclass;
    if( cls->superclassid != classid)
    {
-      runtime    = _mulle_objc_class_get_runtime( cls);
-      call_infra = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime, classid);
+      universe    = _mulle_objc_class_get_universe( cls);
+      call_infra = _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe, classid);
       call_cls   = _mulle_objc_infraclass_as_class( call_infra);
    }
    // need to call cls->call to prepare caches

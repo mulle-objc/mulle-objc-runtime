@@ -1,6 +1,6 @@
 //
 //  mulle_objc_lldb.c
-//  mulle-objc-runtime
+//  mulle-objc-universe
 //
 //  Created by Nat! on 18.05.17.
 //  Copyright © 2017 Mulle kybernetiK.
@@ -40,7 +40,7 @@
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 
 
 # pragma mark - lldb support
@@ -54,7 +54,7 @@ mulle_objc_methodimplementation_t
                                                 int debug)
 {
    struct _mulle_objc_class            *cls;
-   struct _mulle_objc_runtime          *runtime;
+   struct _mulle_objc_universe          *universe;
    struct _mulle_objc_infraclass       *found;
    struct _mulle_objc_class            *call_cls;
    mulle_objc_methodimplementation_t   imp;
@@ -74,8 +74,8 @@ mulle_objc_methodimplementation_t
    
    if( is_classid)
    {
-      runtime  = _mulle_objc_class_get_runtime( cls);
-      found    = _mulle_objc_runtime_unfailing_get_or_lookup_infraclass( runtime,
+      universe  = _mulle_objc_class_get_universe( cls);
+      found    = _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe,
                                                                         (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
       if( is_meta)
          call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));
@@ -101,11 +101,11 @@ struct _mulle_objc_methoddescriptor  *
    mulle_objc_lldb_lookup_methoddescriptor_by_name( char *name)
 {
    mulle_objc_methodid_t        methodid;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    
    methodid = mulle_objc_uniqueid_from_string( name);
-   runtime = mulle_objc_get_runtime();
-   return( _mulle_objc_runtime_lookup_methoddescriptor( runtime, methodid));
+   universe = mulle_objc_get_universe();
+   return( _mulle_objc_universe_lookup_methoddescriptor( universe, methodid));
 }
 
 
@@ -127,11 +127,11 @@ void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel)
 
 void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    struct mulle_concurrent_hashmap *map;
    
-   runtime = mulle_objc_get_runtime();
-   map     = &runtime->classtable;
+   universe = mulle_objc_get_universe();
+   map     = &universe->classtable;
    return( _mulle_atomic_pointer_read( &map->next_storage.pointer));
 }
 

@@ -52,7 +52,7 @@ typedef enum
 // rename this
 enum mulle_objc_walkpointertype_t
 {
-   mulle_objc_walkpointer_is_runtime,
+   mulle_objc_walkpointer_is_universe,
    mulle_objc_walkpointer_is_classpair,
    mulle_objc_walkpointer_is_infraclass,
    mulle_objc_walkpointer_is_metaclass,
@@ -64,10 +64,10 @@ enum mulle_objc_walkpointertype_t
 };
 
 
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 
 typedef mulle_objc_walkcommand_t
-      (*mulle_objc_walkcallback_t)( struct _mulle_objc_runtime *runtime,
+      (*mulle_objc_walkcallback_t)( struct _mulle_objc_universe *universe,
                                     void *p,
                                     enum mulle_objc_walkpointertype_t type,
                                     char *key,

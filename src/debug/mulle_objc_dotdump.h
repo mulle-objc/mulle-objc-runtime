@@ -41,12 +41,12 @@
 
 struct _mulle_objc_class;
 struct _mulle_objc_classpair;
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 struct _mulle_objc_methodlist;
 
 //
-// mulle_objc_dotdump_to_tmp is what you want: it dumps the runtime and all
-// classes and the classes are linked from the runtime
+// mulle_objc_dotdump_to_tmp is what you want: it dumps the universe and all
+// classes and the classes are linked from the universe
 // .dot file
 //
 
@@ -54,7 +54,7 @@ struct _mulle_objc_methodlist;
 
 void   mulle_objc_dotdump_to_tmp( void);
 
-void   mulle_objc_dotdump_runtime_to_tmp( void);
+void   mulle_objc_dotdump_universe_to_tmp( void);
 void   mulle_objc_dotdump_overview_to_tmp( void);
 void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
 void   mulle_objc_dotdump_classname_to_tmp( char *classname);
@@ -66,7 +66,7 @@ void   mulle_objc_dotdump_classes_to_tmp( void);
 void   mulle_objc_dotdump( void);
 
 void   mulle_objc_dotdump_overview( void);
-void   mulle_objc_dotdump_runtime( void);
+void   mulle_objc_dotdump_universe( void);
 void   mulle_objc_class_dotdump( struct _mulle_objc_class *cls);
 void   mulle_objc_dotdump_classname( char *classname);
 void   mulle_objc_dotdump_classes( void);
@@ -74,7 +74,7 @@ void   mulle_objc_dotdump_classes( void);
 
 #pragma mark - "movie" support
 
-void   mulle_objc_dotdump_runtime_frame_to_tmp( void);
+void   mulle_objc_dotdump_universe_frame_to_tmp( void);
 
 
 #pragma mark - stuff for the debugger

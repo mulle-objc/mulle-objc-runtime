@@ -2,7 +2,7 @@
 # mulle-objc-runtime
 
 A portable Objective-C runtime written in C11. No Assembler required.
-It follows the Apple "Objective-C 1 Runtime" and
+It follows the Apple "Objective-C 1 runtime" and
 [adds many features](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_present_and_absent.html)
 from "Objective-C 2.0", but the function calls are completely different.
 It is designed to be suitable for massive multi-threading.
@@ -47,13 +47,13 @@ only locks during `+initialize` on a per class basis.
 
 If you haven't used an Objective-C runtime before, it is useful to get to know
 the much better documented "Mac OS X Objective-C 1.0" runtime first.
-[Intro to the Objective-C Runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html)
+[Intro to the Objective-C runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html)
 could be a good starting point.
 
 
 > #### C Caveat
 >
-> It you use `.c` files that include `<mulle_objc/mulle_objc.h>` make sure
+> It you use `.c` files that include `<mulle_objc_runtime/mulle_objc_runtime.h>` make sure
 > that you compile with `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_TRT__` as
 > they were defined when compiling the runtime. Since C-only compilations do
 > not emit runtime information, mismatches can not be checked by the runtime.
@@ -66,11 +66,11 @@ API                                                  | Description
 -----------------------------------------------------|-----------------------------------
 [`_mulle_objc_class`](dox/API_CLASS.md)              | Deal with Classes
 [`_mulle_objc_ivar`](dox/API_IVAR.md) et al.         | Instance variables
-[`_mulle_objc_loadinfo`](dox/API_LOADINFO.md)        | Install Classes, Categories, Methods, Strings into the runtime
+[`_mulle_objc_loadinfo`](dox/API_LOADINFO.md)        | Install Classes, Categories, Methods, Strings into the universe
 [`_mulle_objc_method`](dox/API_METHOD.md)  et al.    | Deal with Methods
 [`_mulle_objc_object`](dox/API_OBJECT.md)  et al.    | Deal with Instances
 [`_mulle_objc_property`](dox/API_PROPERTY.md) et al. | Handle Properties
-[`_mulle_objc_runtime`](dox/API_RUNTIME.md)          | Work with the runtime
+[`_mulle_objc_universe`](dox/API_UNIVERSE.md)        | Work with the universe
 
 
 ### Other functions

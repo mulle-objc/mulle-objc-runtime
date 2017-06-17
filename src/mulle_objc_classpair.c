@@ -38,23 +38,23 @@
 #include <mulle_concurrent/mulle_concurrent.h>
 
 #include "mulle_objc_class.h"
-#include "mulle_objc_class_runtime.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_class_universe.h"
+#include "mulle_objc_universe.h"
 
 
 
 void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    
-   runtime = _mulle_objc_classpair_get_runtime( pair);
-   assert( runtime);
+   universe = _mulle_objc_classpair_get_universe( pair);
+   assert( universe);
    
    _mulle_concurrent_pointerarray_init( &pair->protocolclasses, 0, allocator);
 
-   _mulle_atomic_pointer_nonatomic_write( &pair->p_protocolids.pointer, &runtime->empty_uniqueidarray);
-   _mulle_atomic_pointer_nonatomic_write( &pair->p_categoryids.pointer, &runtime->empty_uniqueidarray);
+   _mulle_atomic_pointer_nonatomic_write( &pair->p_protocolids.pointer, &universe->empty_uniqueidarray);
+   _mulle_atomic_pointer_nonatomic_write( &pair->p_categoryids.pointer, &universe->empty_uniqueidarray);
 }
 
 
@@ -62,17 +62,17 @@ void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator)
 {
    struct _mulle_objc_uniqueidarray    *array;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
    
-   runtime = _mulle_objc_classpair_get_runtime( pair);
-   assert( runtime);
+   universe = _mulle_objc_classpair_get_universe( pair);
+   assert( universe);
    
    array = _mulle_atomic_pointer_nonatomic_read( &pair->p_protocolids.pointer);
-   if( array != &runtime->empty_uniqueidarray)
+   if( array != &universe->empty_uniqueidarray)
       mulle_objc_uniqueidarray_abafree( array, allocator);
 
    array = _mulle_atomic_pointer_nonatomic_read( &pair->p_categoryids.pointer);
-   if( array != &runtime->empty_uniqueidarray)
+   if( array != &universe->empty_uniqueidarray)
       mulle_objc_uniqueidarray_abafree( array, allocator);
 
    _mulle_concurrent_pointerarray_done( &pair->protocolclasses);
@@ -105,7 +105,7 @@ void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
    if( ! allocator)
    {
       errno = EINVAL;
-      _mulle_objc_runtime_raise_fail_errno_exception( mulle_objc_get_or_create_runtime());
+      _mulle_objc_universe_raise_fail_errno_exception( mulle_objc_get_or_create_universe());
    }
 
    _mulle_objc_classpair_free( pair, allocator);
@@ -120,17 +120,17 @@ mulle_objc_walkcommand_t
    mulle_objc_walkcommand_t   cmd;
    struct _mulle_objc_infraclass      *infra;
    struct _mulle_objc_metaclass       *meta;
-   struct _mulle_objc_runtime         *runtime;
+   struct _mulle_objc_universe         *universe;
 
-   runtime = _mulle_objc_classpair_get_runtime( pair);
+   universe = _mulle_objc_classpair_get_universe( pair);
 
-   cmd = (*callback)( runtime, pair, mulle_objc_walkpointer_is_classpair, NULL, NULL, userinfo);
+   cmd = (*callback)( universe, pair, mulle_objc_walkpointer_is_classpair, NULL, NULL, userinfo);
    if( mulle_objc_walkcommand_is_stopper( cmd))
       return( cmd);
 
    infra = _mulle_objc_classpair_get_infraclass( pair);
    cmd   = mulle_objc_infraclass_walk( infra, mulle_objc_walkpointer_is_infraclass,
-                                       callback, runtime, userinfo);
+                                       callback, universe, userinfo);
    if( mulle_objc_walkcommand_is_stopper( cmd))
       return( cmd);
 
@@ -151,10 +151,10 @@ static void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_cla
    struct _mulle_objc_uniqueidarray   *array;
    struct _mulle_objc_uniqueidarray   *copy;
    struct mulle_allocator             *allocator;
-   struct _mulle_objc_runtime         *runtime;
+   struct _mulle_objc_universe         *universe;
    
-   runtime   = _mulle_objc_classpair_get_runtime( pair);
-   allocator = _mulle_objc_runtime_get_allocator( runtime);
+   universe   = _mulle_objc_classpair_get_universe( pair);
+   allocator = _mulle_objc_universe_get_allocator( universe);
    
    copy = NULL;
    // emit what we have collected
@@ -168,7 +168,7 @@ static void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_cla
    }
    while( ! _mulle_atomic_pointer_compare_and_swap( pointer, copy, array));
    
-   if( array != &runtime->empty_uniqueidarray)
+   if( array != &universe->empty_uniqueidarray)
       mulle_objc_uniqueidarray_abafree( array, allocator);
 }
 
@@ -197,11 +197,11 @@ void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
 
 static void   _mulle_objc_class_raise_einval_exception( void)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
-   runtime = mulle_objc_get_or_create_runtime();
+   universe = mulle_objc_get_or_create_universe();
    errno = EINVAL;
-   _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+   _mulle_objc_universe_raise_fail_errno_exception( universe);
 }
 
 
@@ -235,7 +235,7 @@ int   _mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair
 void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpair *pair,
                                                     mulle_objc_categoryid_t categoryid)
 {
-   struct _mulle_objc_runtime     *runtime;
+   struct _mulle_objc_universe     *universe;
    struct _mulle_objc_infraclass  *infra;
 
    if( ! pair)
@@ -245,15 +245,15 @@ void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpa
       _mulle_objc_class_raise_einval_exception();
 
    infra = _mulle_objc_classpair_get_infraclass( pair);
-   runtime = _mulle_objc_classpair_get_runtime( pair);
+   universe = _mulle_objc_classpair_get_universe( pair);
 
 
    // adding a category twice is very bad
    if( _mulle_objc_classpair_has_categoryid( pair, categoryid))
    {
-      fprintf( stderr, "mulle_objc_runtime %p error: category %08x for"
+      fprintf( stderr, "mulle_objc_universe %p error: category %08x for"
                        " class %08x \"%s\" is already loaded\n",
-              runtime,
+              universe,
               categoryid,
               _mulle_objc_classpair_get_classid( pair),
               _mulle_objc_classpair_get_name( pair));
@@ -262,12 +262,12 @@ void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpa
 
    if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRA_IS_PROTOCOLCLASS))
    {
-      if( runtime->debug.warn.protocolclass)
-         if( runtime->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class %08x \"%s\""
+      if( universe->debug.warn.protocolclass)
+         if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
+            fprintf( stderr, "mulle_objc_universe %p warning: class %08x \"%s\""
                              " is a protocolclass and gains a"
                              " category %08x \"%s( %s)\"\n",
-                    runtime,
+                    universe,
                     _mulle_objc_classpair_get_classid( pair),
                     _mulle_objc_classpair_get_name( pair),
                     categoryid,
@@ -275,10 +275,10 @@ void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpa
                     mulle_objc_string_for_categoryid( categoryid));
    }
 
-   if( runtime->debug.trace.category_adds || runtime->debug.trace.dependencies)
-      fprintf( stderr, "mulle_objc_runtime %p trace: add category %08x \"%s\""
+   if( universe->debug.trace.category_adds || universe->debug.trace.dependencies)
+      fprintf( stderr, "mulle_objc_universe %p trace: add category %08x \"%s\""
                        " to class %08x \"%s\"\n",
-              runtime,
+              universe,
               categoryid,
               mulle_objc_string_for_categoryid( categoryid),
               _mulle_objc_classpair_get_classid( pair),
@@ -333,7 +333,7 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
 {
    mulle_objc_protocolid_t          protocolclassid;
    struct _mulle_objc_infraclass    *proto_cls;
-   struct _mulle_objc_runtime       *runtime;
+   struct _mulle_objc_universe       *universe;
    mulle_objc_classid_t             classid;
 
    if( ! pair)
@@ -342,7 +342,7 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
    if( ! protocolclassids)
       return;
 
-   runtime = _mulle_objc_classpair_get_runtime( pair);
+   universe = _mulle_objc_classpair_get_universe( pair);
    classid = _mulle_objc_classpair_get_classid( pair);
 
    while( protocolclassid = *protocolclassids++)
@@ -358,7 +358,7 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
       if( ! _mulle_objc_classpair_has_protocolid( pair, protocolclassid))
          _mulle_objc_class_raise_einval_exception();
 
-      proto_cls = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, protocolclassid);
+      proto_cls = _mulle_objc_universe_get_or_lookup_infraclass( universe, protocolclassid);
       if( ! proto_cls)
          _mulle_objc_class_raise_einval_exception();
 
@@ -370,18 +370,18 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
 
       if( _mulle_objc_infraclass_set_state_bit( proto_cls, MULLE_OBJC_INFRA_IS_PROTOCOLCLASS))
       {
-         if( runtime->debug.trace.protocol_adds)
-            fprintf( stderr, "mulle_objc_runtime %p trace: class %08x \"%s\""
+         if( universe->debug.trace.protocol_adds)
+            fprintf( stderr, "mulle_objc_universe %p trace: class %08x \"%s\""
                              " has become a protocolclass\n",
-                 runtime,
+                 universe,
                  _mulle_objc_infraclass_get_classid( proto_cls),
                  _mulle_objc_infraclass_get_name( proto_cls));
       }
 
-      if( runtime->debug.trace.protocol_adds)
-         fprintf( stderr, "mulle_objc_runtime %p trace: add protocolclass %08x"
+      if( universe->debug.trace.protocol_adds)
+         fprintf( stderr, "mulle_objc_universe %p trace: add protocolclass %08x"
                           " \"%s\" to class %08x \"%s\"\n",
-                 runtime,
+                 universe,
                  protocolclassid,
                  _mulle_objc_infraclass_get_name( proto_cls),
                  _mulle_objc_classpair_get_classid( pair),
@@ -481,7 +481,7 @@ void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_class
                                                         struct _mulle_objc_protocollist *protocols)
 {
    mulle_objc_protocolid_t       *q;
-   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_universe    *universe;
    struct _mulle_objc_protocol   *p;
    struct _mulle_objc_protocol   *sentinel;
    
@@ -491,7 +491,7 @@ void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_class
    if( ! protocols || ! protocols->n_protocols)
       return;
 
-   runtime = _mulle_objc_classpair_get_runtime( pair);
+   universe = _mulle_objc_classpair_get_universe( pair);
 
    {
       auto mulle_objc_protocolid_t    protocolids[ protocols->n_protocols];
@@ -508,11 +508,11 @@ void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_class
          if( _mulle_objc_classpair_has_protocolid( pair, p->protocolid))
             continue;
          
-         mulle_objc_runtime_unfailing_add_protocol( runtime, p);
+         mulle_objc_universe_unfailing_add_protocol( universe, p);
          
-         if( runtime->debug.trace.protocol_adds)
-            fprintf( stderr, "mulle_objc_runtime %p trace: add protocol %08x \"%s\" to class %08x \"%s\"\n",
-                    runtime,
+         if( universe->debug.trace.protocol_adds)
+            fprintf( stderr, "mulle_objc_universe %p trace: add protocol %08x \"%s\" to class %08x \"%s\"\n",
+                    universe,
                     p->protocolid,
                     p->name,
                     _mulle_objc_classpair_get_classid( pair),

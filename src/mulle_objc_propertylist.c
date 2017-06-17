@@ -36,7 +36,7 @@
 #include "mulle_objc_propertylist.h"
 
 #include "mulle_objc_class.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include "mulle_objc_callqueue.h"
 
 #include <assert.h>

@@ -35,7 +35,7 @@
 //
 #include "mulle_objc_html.h"
 
-#include "mulle_objc.h"
+#include "mulle_objc_runtime.h"
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
@@ -154,7 +154,7 @@ static char  *protocolid_html_row_description( void *value, struct _mulle_objc_h
 }
 
 
-#pragma mark - runtime
+#pragma mark - universe
 
 static void   asprintf_table_header_colspan( char **s,
                                              struct _mulle_objc_htmltablestyle *styling,
@@ -232,7 +232,7 @@ static char  *final_concat_auto_tmp( char **tmp, unsigned int n)
 }
 
 
-char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime,
+char   *mulle_objc_universe_html_description( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_htmltablestyle *styling)
 {
    char           *tmp[ 3];
@@ -242,7 +242,7 @@ char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime
 
    asprintf( &tmp[ 1],
             "<TR><TD>version</TD><TD>0x%x</TD></TR>\n",
-            runtime->version);
+            universe->version);
    asprintf( &tmp[ 2],
             "</TABLE>");
 
@@ -778,14 +778,19 @@ char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *l
    unsigned int   j;
    unsigned int   n;
    char           buf[ s_mulle_objc_sprintf_functionpointer_buffer];
-
-   n   = list->n_methods + 2;
+   
+   n   = list->n_methods + 3;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    // create single lines for each method and two for head/tail
    i = 0;
    asprintf_table_header( &tmp[ i], styling);
    len = strlen( tmp[ i]);
+   ++i;
+   
+   asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%s</TD></TR>",
+                        mulle_objc_string_for_categoryid( (mulle_objc_categoryid_t) (uintptr_t) list->owner));
+   len += strlen( tmp[ i]);
    ++i;
 
    for( j = 0; j < list->n_methods; j++)

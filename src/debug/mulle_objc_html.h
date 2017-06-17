@@ -40,7 +40,7 @@
 #include <stdint.h>
 
 
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 struct _mulle_objc_staticstring;
 struct _mulle_objc_class;
 struct _mulle_objc_fastclasstable;
@@ -64,7 +64,7 @@ struct _mulle_objc_htmltablestyle
    int   colspan;       // optional
 };
 
-char   *mulle_objc_runtime_html_description( struct _mulle_objc_runtime *runtime,
+char   *mulle_objc_universe_html_description( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_htmltablestyle *styling);
 
 char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring *string,

@@ -35,7 +35,7 @@
 //
 #include "mulle_objc_fastenumeration.h"
 
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 
 MULLE_C_NO_RETURN
 void   mulle_objc_enumeration_mutation( void *collection)

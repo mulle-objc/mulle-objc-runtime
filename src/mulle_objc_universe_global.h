@@ -1,5 +1,5 @@
 //
-//  mulle_objc_runtime_global.c
+//  mulle_objc_universe_global.c
 //  mulle-objc
 //
 //  Created by Nat! on 07.09.16.
@@ -34,10 +34,10 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 //
-#ifndef mulle_objc_runtime_global_h__
-#define mulle_objc_runtime_global_h__
+#ifndef mulle_objc_universe_global_h__
+#define mulle_objc_universe_global_h__
 
-#include "mulle_objc_runtime_struct.h"
+#include "mulle_objc_universe_struct.h"
 
 #include <mulle_c11/mulle_c11.h>
 
@@ -50,36 +50,36 @@
 #ifdef __MULLE_OBJC_NO_TRT__
 
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
-static inline struct _mulle_objc_runtime  *mulle_objc_get_global_runtime( void)
+static inline struct _mulle_objc_universe  *mulle_objc_get_global_universe( void)
 {
-   MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime;
+   MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_universe   mulle_objc_global_universe;
 
-   assert( _mulle_objc_runtime_is_initialized( &mulle_objc_global_runtime) && "runtime not initialized yet");
-   return( &mulle_objc_global_runtime);
+   assert( _mulle_objc_universe_is_initialized( &mulle_objc_global_universe) && "universe not initialized yet");
+   return( &mulle_objc_global_universe);
 }
 
 
-// only __mulle_objc_get_runtime should use this
-static inline struct _mulle_objc_runtime  *__mulle_objc_get_global_runtime( void)
+// only __mulle_objc_get_universe should use this
+static inline struct _mulle_objc_universe  *__mulle_objc_get_global_universe( void)
 {
-   MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime;
+   MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_universe   mulle_objc_global_universe;
 
-   return( &mulle_objc_global_runtime);
+   return( &mulle_objc_global_universe);
 }
 
 
-static inline int _mulle_objc_is_global_runtime( struct _mulle_objc_runtime *runtime)
+static inline int _mulle_objc_is_global_universe( struct _mulle_objc_universe *universe)
 {
-   MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_runtime   mulle_objc_global_runtime;
+   MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_universe   mulle_objc_global_universe;
 
-   return( runtime == &mulle_objc_global_runtime);
+   return( universe == &mulle_objc_global_universe);
 }
 
 
 #else
 
 
-static inline int _mulle_objc_is_global_runtime( struct _mulle_objc_runtime *runtime)
+static inline int _mulle_objc_is_global_universe( struct _mulle_objc_universe *universe)
 {
    return( 0);
 }
@@ -89,24 +89,24 @@ static inline int _mulle_objc_is_global_runtime( struct _mulle_objc_runtime *run
 
 //
 // this is used by NSAutoreleasePool only
-// to lazily setup a runtime thread if missing
+// to lazily setup a universe thread if missing
 //
-static inline int   mulle_objc_runtime_thread_key_is_intitialized( void)
+static inline int   mulle_objc_thread_key_is_intitialized( void)
 {
-   MULLE_C_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_runtime_thread_key;
+   MULLE_C_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_thread_key;
 
-   return( mulle_objc_runtime_thread_key != (mulle_thread_tss_t) -1);
+   return( mulle_objc_thread_key != (mulle_thread_tss_t) -1);
 }
 
 
 static inline struct _mulle_objc_threadconfig  *_mulle_objc_get_threadconfig( void)
 {
-   MULLE_OBJC_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_runtime_thread_key;
+   MULLE_OBJC_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_thread_key;
    struct _mulle_objc_threadconfig  *config;
 
    /* if you crash here [^1] */
-   assert( mulle_objc_runtime_thread_key_is_intitialized());
-   config = mulle_thread_tss_get( mulle_objc_runtime_thread_key);
+   assert( mulle_objc_thread_key_is_intitialized());
+   config = mulle_thread_tss_get( mulle_objc_thread_key);
    return( config);
 }
 
@@ -114,12 +114,12 @@ static inline struct _mulle_objc_threadconfig  *_mulle_objc_get_threadconfig( vo
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
 static inline struct _mulle_objc_threadconfig  *mulle_objc_get_threadconfig( void)
 {
-   MULLE_OBJC_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_runtime_thread_key;
+   MULLE_OBJC_EXTERN_GLOBAL mulle_thread_tss_t   mulle_objc_thread_key;
    struct _mulle_objc_threadconfig  *config;
 
    /* if you crash here [^1] */
-   assert( mulle_objc_runtime_thread_key_is_intitialized());
-   config = mulle_thread_tss_get( mulle_objc_runtime_thread_key);
+   assert( mulle_objc_thread_key_is_intitialized());
+   config = mulle_thread_tss_get( mulle_objc_thread_key);
    assert( config);
    return( config);
 }

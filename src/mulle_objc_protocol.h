@@ -42,7 +42,7 @@
 
 
 //
-// this structure is emitted by the compiler and saved in the runtime
+// this structure is emitted by the compiler and saved in the universe
 // the protocolname is there to catch possible protocolid collisions
 // otherwise struct _mulle_objc_protocol is unused
 struct _mulle_objc_protocol

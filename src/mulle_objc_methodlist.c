@@ -41,7 +41,7 @@
 
 #include "mulle_objc_class.h"
 #include "mulle_objc_metaclass.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 #include "mulle_objc_callqueue.h"
 
 #include <assert.h>
@@ -133,6 +133,6 @@ int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist 
 void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list, struct _mulle_objc_metaclass *meta, struct _mulle_objc_callqueue *loads)
 {
    if( mulle_objc_methodlist_add_load_to_callqueue( list, meta, loads))
-      _mulle_objc_runtime_raise_fail_errno_exception( _mulle_objc_metaclass_get_runtime( meta));
+      _mulle_objc_universe_raise_fail_errno_exception( _mulle_objc_metaclass_get_universe( meta));
 }
 

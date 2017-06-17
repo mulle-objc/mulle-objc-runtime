@@ -43,7 +43,7 @@
 #include "mulle_objc_ivarlist.h"
 #include "mulle_objc_property.h"
 #include "mulle_objc_propertylist.h"
-#include "mulle_objc_runtime.h"
+#include "mulle_objc_universe.h"
 
 
 void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
@@ -153,7 +153,7 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
    mulle_objc_propertyid_t                     last;
    struct _mulle_objc_property                 *property;
    struct _mulle_objc_propertylistenumerator   rover;
-   struct _mulle_objc_runtime                  *runtime;
+   struct _mulle_objc_universe                  *universe;
 
    if( ! infra)
    {
@@ -163,8 +163,8 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 
    if( ! list)
    {
-      runtime = _mulle_objc_infraclass_get_runtime( infra);
-      list    = &runtime->empty_propertylist;
+      universe = _mulle_objc_infraclass_get_universe( infra);
+      list    = &universe->empty_propertylist;
    }
 
    /* register instance methods */
@@ -198,10 +198,10 @@ void   mulle_objc_infraclass_unfailing_add_propertylist( struct _mulle_objc_infr
 {
    if( mulle_objc_infraclass_add_propertylist( infra, list))
    {
-      struct _mulle_objc_runtime   *runtime;
+      struct _mulle_objc_universe   *universe;
 
-      runtime = _mulle_objc_infraclass_get_runtime( infra);
-      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+      universe = _mulle_objc_infraclass_get_universe( infra);
+      _mulle_objc_universe_raise_fail_errno_exception( universe);
    }
 }
 
@@ -220,10 +220,10 @@ int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
 
    if( ! list)
    {
-      struct _mulle_objc_runtime   *runtime;
+      struct _mulle_objc_universe   *universe;
 
-      runtime = _mulle_objc_infraclass_get_runtime( infra);
-      list    = &runtime->empty_ivarlist;
+      universe = _mulle_objc_infraclass_get_universe( infra);
+      list    = &universe->empty_ivarlist;
    }
 
    _mulle_concurrent_pointerarray_add( &infra->ivarlists, list);
@@ -236,10 +236,10 @@ void   mulle_objc_infraclass_unfailing_add_ivarlist( struct _mulle_objc_infracla
 {
    if( mulle_objc_infraclass_add_ivarlist( infra, list))
    {
-      struct _mulle_objc_runtime   *runtime;
+      struct _mulle_objc_universe   *universe;
 
-      runtime = _mulle_objc_infraclass_get_runtime( infra);
-      _mulle_objc_runtime_raise_fail_errno_exception( runtime);
+      universe = _mulle_objc_infraclass_get_universe( infra);
+      _mulle_objc_universe_raise_fail_errno_exception( universe);
    }
 }
 
@@ -396,7 +396,7 @@ static char  footer[] = "(so it is not used as protocol class)\n";
 struct bouncy_info
 {
    void                          *userinfo;
-   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_universe    *universe;
    void                          *parent;
    mulle_objc_walkcallback_t     callback;
    mulle_objc_walkcommand_t      rval;
@@ -410,7 +410,7 @@ static int   bouncy_property( struct _mulle_objc_property *property,
    struct bouncy_info   *info;
 
    info       = userinfo;
-   info->rval = (info->callback)( info->runtime,
+   info->rval = (info->callback)( info->universe,
                                   property,
                                   mulle_objc_walkpointer_is_property,
                                   NULL,
@@ -427,7 +427,7 @@ static int   bouncy_ivar( struct _mulle_objc_ivar *ivar,
    struct bouncy_info   *info;
 
    info       = userinfo;
-   info->rval = (info->callback)( info->runtime,
+   info->rval = (info->callback)( info->universe,
                                   ivar,
                                   mulle_objc_walkpointer_is_ivar,
                                   NULL,
@@ -454,7 +454,7 @@ mulle_objc_walkcommand_t
    info.callback = callback;
    info.parent   = parent;
    info.userinfo = userinfo;
-   info.runtime  = _mulle_objc_infraclass_get_runtime( infra);
+   info.universe  = _mulle_objc_infraclass_get_universe( infra);
 
    cmd = _mulle_objc_infraclass_walk_properties( infra, _mulle_objc_infraclass_get_inheritance( infra), bouncy_property, &info);
    if( cmd != mulle_objc_walk_ok)
@@ -474,7 +474,7 @@ mulle_objc_walkcommand_t
 //
 int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_runtime         *runtime;
+   struct _mulle_objc_universe         *universe;
    struct _mulle_objc_classpair       *pair;
    struct _mulle_objc_uniqueidarray   *array;
    int                                is_NSObject;
@@ -484,17 +484,17 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    if( ! infra)
       return( 0);
 
-   runtime = _mulle_objc_infraclass_get_runtime( infra);
+   universe = _mulle_objc_infraclass_get_universe( infra);
 
    if( _mulle_objc_infraclass_get_superclass( infra))
    {
-      if( runtime->debug.warn.protocolclass)
+      if( universe->debug.warn.protocolclass)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" "
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol of same name, but it is "
                              "not a root class %s",
-                    runtime,
+                    universe,
                     _mulle_objc_infraclass_get_name( infra),
                     footer);
       }
@@ -503,12 +503,12 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
 
    if( infra->base.allocationsize > sizeof( struct _mulle_objc_objectheader))
    {
-      if( runtime->debug.warn.protocolclass)
+      if( universe->debug.warn.protocolclass)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol of the same name"
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol of the same name"
                  ", but implements instance variables %s",
-                   runtime,
+                   universe,
                     _mulle_objc_infraclass_get_name( infra),
                    footer);
       }
@@ -520,11 +520,11 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    if( ! _mulle_objc_classpair_conformsto_protocolid( pair,
                                                      _mulle_objc_infraclass_get_classid( infra)))
    {
-      if( runtime->debug.warn.protocolclass)
+      if( universe->debug.warn.protocolclass)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol but does not conform to it %s",
-                    runtime,
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol but does not conform to it %s",
+                    universe,
                     _mulle_objc_infraclass_get_name( infra),
                     footer);
       }
@@ -533,11 +533,11 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
 
    if( _mulle_objc_classpair_get_protocolclasscount( pair))
    {
-      if( runtime->debug.warn.protocolclass)
+      if( universe->debug.warn.protocolclass)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" matches a protocol but also inherits from other protocolclasses %s",
-                    runtime,
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol but also inherits from other protocolclasses %s",
+                    universe,
                     _mulle_objc_infraclass_get_name( infra),
                     footer);
       }
@@ -550,7 +550,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    // confusion (On NSObject though its not worth a warning)
    //
    is_NSObject = _mulle_objc_infraclass_get_classid( infra) ==
-                 _mulle_objc_runtime_get_rootclassid( runtime);
+                 _mulle_objc_universe_get_rootclassid( universe);
    if( is_NSObject)
       return( 1);
 
@@ -563,10 +563,10 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
          {
-            fprintf( stderr, "mulle_objc_runtime %p warning: class \"%s\" conforms "
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" conforms "
                     "to a protocol but has gained some categories, which "
                     "will be ignored.\n",
-                    runtime,
+                    universe,
                     _mulle_objc_infraclass_get_name( infra));
 
             fprintf( stderr, "Categories:\n");

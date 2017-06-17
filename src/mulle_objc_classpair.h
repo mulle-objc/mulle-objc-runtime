@@ -136,9 +136,9 @@ static inline char   *_mulle_objc_classpair_get_origin( struct _mulle_objc_class
 
 # pragma mark - conveniences
 
-static inline struct _mulle_objc_runtime   *_mulle_objc_classpair_get_runtime( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_universe   *_mulle_objc_classpair_get_universe( struct _mulle_objc_classpair *pair)
 {
-   return( _mulle_objc_infraclass_get_runtime( _mulle_objc_classpair_get_infraclass( pair)));
+   return( _mulle_objc_infraclass_get_universe( _mulle_objc_classpair_get_infraclass( pair)));
 }
 
 
