@@ -33,17 +33,18 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_runtime_htmldump_h__
-#define mulle_objc_runtime_htmldump_h__
+#ifndef mulle_objc_htmldump_h__
+#define mulle_objc_htmldump_h__
 
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 struct _mulle_objc_class;
 struct _mulle_objc_classpair;
 
-void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *runtime,
+
+void   mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *universe,
                                                  char *directory);
-void   mulle_objc_htmldump_runtime_to_directory( char *directory);
-void   mulle_objc_htmldump_runtime_to_tmp( void);
+void   mulle_objc_htmldump_universe_to_directory( char *directory);
+void   mulle_objc_htmldump_universe_to_tmp( void);
 
 
 void   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
@@ -62,6 +63,6 @@ void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls);
 //
 void   mulle_objc_class_htmldump( struct _mulle_objc_class *cls);
 void   mulle_objc_htmldump_classname( char *classname);
-void   mulle_objc_htmldump_runtime( void);
+void   mulle_objc_htmldump_universe( void);
 
 #endif

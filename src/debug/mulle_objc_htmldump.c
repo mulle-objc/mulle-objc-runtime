@@ -35,10 +35,9 @@
 //
 #include "mulle_objc_htmldump.h"
 
+#include "mulle_objc_runtime.h"
+
 #include "mulle_objc_html.h"
-#include "mulle_objc.h"
-#include "mulle_objc_class.h"
-#include "mulle_objc_infraclass.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -132,10 +131,10 @@ static struct _mulle_objc_htmltablestyle  descriptortable_style =
 };
 
 
-static struct _mulle_objc_htmltablestyle  runtime_style =
+static struct _mulle_objc_htmltablestyle  universe_style =
 {
-   "runtime",
-   "runtime",
+   "universe",
+   "universe",
    NULL,
    NULL,
    0
@@ -188,8 +187,8 @@ static char   *html_filename_for_classname( char *name, char *directory)
 }
 
 
-static char   *filename_for_runtime( struct _mulle_objc_runtime  *runtime,
-                                     char *directory)
+static char   *filename_for_universe( struct _mulle_objc_universe  *universe,
+                                      char *directory)
 {
    char     *buf;
    size_t   len;
@@ -259,9 +258,9 @@ static void  print_end_and_close( FILE *fp)
 }
 
 
-# pragma mark - walker runtime callback
+# pragma mark - walker universe callback
 
-static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
+static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
 {
    char                                             *label;
    int                                              i;
@@ -269,41 +268,41 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    struct _mulle_objc_class                         *cls;
    struct mulle_concurrent_pointerarrayenumerator   rover;
 
-   fprintf( fp, "\n<DIV CLASS=\"runtime_values\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_values\">\n");
    {
-      label = mulle_objc_runtime_html_description( runtime, &runtime_style);
+      label = mulle_objc_universe_html_description( universe, &universe_style);
       print_to_body( "Values", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
    }
    fprintf( fp, "</DIV>\n");
 
    // need to sort this in the future
-   fprintf( fp, "\n<DIV CLASS=\"runtime_classes\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_classes\">\n");
    {
-      label = mulle_concurrent_hashmap_html_description( &runtime->classtable,
+      label = mulle_concurrent_hashmap_html_description( &universe->classtable,
                                                       mulle_objc_class_html_row_description,
-                                                        &classtable_style);
+                                                          &classtable_style);
       print_to_body( "Classes", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
    }
    fprintf( fp, "</DIV>\n");
 
-   fprintf( fp, "\n<DIV CLASS=\"runtime_fastclasses\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_fastclasses\">\n");
    {
       for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
-         if( _mulle_atomic_pointer_nonatomic_read( &runtime->fastclasstable.classes[ i].pointer))
+         if( _mulle_atomic_pointer_nonatomic_read( &universe->fastclasstable.classes[ i].pointer))
             break;
 
       if( i < MULLE_OBJC_S_FASTCLASSES)
       {
          print_to_body( "Fast Classes", NULL, fp);
 
-         fprintf( fp, "<TABLE CLASS=\"runtime_fastclass_table\">\n");
+         fprintf( fp, "<TABLE CLASS=\"universe_fastclass_table\">\n");
 
          for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
-            if( _mulle_atomic_pointer_nonatomic_read( &runtime->fastclasstable.classes[ i].pointer))
+            if( _mulle_atomic_pointer_nonatomic_read( &universe->fastclasstable.classes[ i].pointer))
             {
-               cls = _mulle_atomic_pointer_nonatomic_read( &runtime->fastclasstable.classes[ i].pointer);
+               cls = _mulle_atomic_pointer_nonatomic_read( &universe->fastclasstable.classes[ i].pointer);
                label = mulle_objc_class_short_html_description( cls, &classtable_style);
                fprintf( fp, "<TR><TH>%u</TH><TD>%s</TD></TR>\n", i, label);
                mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -313,12 +312,12 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    }
    fprintf( fp, "</DIV>\n");
 
-   fprintf( fp, "\n<DIV CLASS=\"runtime_methoddescriptors\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_methoddescriptors\">\n");
    {
-      if( mulle_concurrent_hashmap_count( &runtime->descriptortable))
+      if( mulle_concurrent_hashmap_count( &universe->descriptortable))
       {
-         fprintf( fp, "<TABLE CLASS=\"runtime_methoddescriptor_table\">\n");
-         label = mulle_concurrent_hashmap_html_description( &runtime->descriptortable,
+         fprintf( fp, "<TABLE CLASS=\"universe_methoddescriptor_table\">\n");
+         label = mulle_concurrent_hashmap_html_description( &universe->descriptortable,
                                                            mulle_objc_methoddescriptor_html_row_description,
                                                            &descriptortable_style);
          print_to_body( "Method Descriptors", label, fp);
@@ -329,12 +328,12 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    fprintf( fp, "</DIV>\n");
 
 
-   fprintf( fp, "\n<DIV CLASS=\"runtime_protocols\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_protocols\">\n");
    {
-      if( mulle_concurrent_hashmap_count( &runtime->protocoltable))
+      if( mulle_concurrent_hashmap_count( &universe->protocoltable))
       {
-         fprintf( fp, "<TABLE CLASS=\"runtime_protocol_table\">\n");
-         label = mulle_concurrent_hashmap_html_description( &runtime->protocoltable,
+         fprintf( fp, "<TABLE CLASS=\"universe_protocol_table\">\n");
+         label = mulle_concurrent_hashmap_html_description( &universe->protocoltable,
                                                            mulle_objc_protocol_html_row_description,
                                                            &protocoltable_style);
          print_to_body( "Protocols", label, fp);
@@ -344,12 +343,12 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    }
    fprintf( fp, "</DIV>\n");
 
-   fprintf( fp, "\n<DIV CLASS=\"runtime_categories\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_categories\">\n");
    {
-      if( mulle_concurrent_hashmap_count( &runtime->categorytable))
+      if( mulle_concurrent_hashmap_count( &universe->categorytable))
       {
-         fprintf( fp, "<TABLE CLASS=\"runtime_category_table\">\n");
-         label = mulle_concurrent_hashmap_html_description( &runtime->categorytable,
+         fprintf( fp, "<TABLE CLASS=\"universe_category_table\">\n");
+         label = mulle_concurrent_hashmap_html_description( &universe->categorytable,
                                                            mulle_objc_category_html_row_description,
                                                            &categorytable_style);
          print_to_body( "Categories", label, fp);
@@ -359,14 +358,14 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
    }
    fprintf( fp, "</DIV>\n");
 
-   fprintf( fp, "\n<DIV CLASS=\"runtime_strings\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_strings\">\n");
    {
-      if( mulle_concurrent_pointerarray_get_count( &runtime->staticstrings))
+      if( mulle_concurrent_pointerarray_get_count( &universe->staticstrings))
       {
          print_to_body( "Strings", NULL, fp);
 
-         fprintf( fp, "<TABLE CLASS=\"runtime_string_table\">\n");
-         rover = mulle_concurrent_pointerarray_enumerate( &runtime->staticstrings);
+         fprintf( fp, "<TABLE CLASS=\"universe_string_table\">\n");
+         rover = mulle_concurrent_pointerarray_enumerate( &universe->staticstrings);
          while( string = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             label = mulle_objc_staticstring_html_description( string, &stringtable_style);
@@ -381,16 +380,16 @@ static void   _print_runtime( struct _mulle_objc_runtime *runtime, FILE *fp)
 }
 
 
-static void   print_runtime( struct _mulle_objc_runtime *runtime,
+static void   print_universe( struct _mulle_objc_universe *universe,
                              char *directory)
 {
    char   *path;
    FILE   *fp;
 
-   path = filename_for_runtime( runtime, directory);
+   path = filename_for_universe( universe, directory);
 
-   fp = open_and_print_start( path, "Runtime");
-   _print_runtime( runtime, fp);
+   fp = open_and_print_start( path, "universe");
+   _print_universe( universe, fp);
    print_end_and_close( fp);
 
    mulle_allocator_free( &mulle_stdlib_allocator, path);
@@ -430,9 +429,9 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
 
    print_to_body( NULL, "<DIV CLASS=\"class_links\">", fp);
    {
-      print_to_body( NULL, "<DIV CLASS=\"class_runtime_link\">", fp);
+      print_to_body( NULL, "<DIV CLASS=\"class_universe_link\">", fp);
       {
-         print_to_body( "Runtime","<A HREF=\"index.html\">Runtime</a>", fp);
+         print_to_body( "universe","<A HREF=\"index.html\">universe</a>", fp);
       }
       print_to_body( NULL, "</DIV>\n", fp);
 
@@ -558,7 +557,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             style = methodlisttable_style;
-            style.title = methodlist->owner ? methodlist->owner : "";
+            style.title = mulle_objc_string_for_categoryid( (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
             label = mulle_objc_methodlist_html_hor_description( methodlist, &methodlisttable_style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -621,7 +620,7 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra, char *dire
 }
 
 
-static int   callback( struct _mulle_objc_runtime *runtime,
+static int   callback( struct _mulle_objc_universe *universe,
                        void *p,
                        enum mulle_objc_walkpointertype_t type,
                        char *key,
@@ -651,9 +650,9 @@ static int   callback( struct _mulle_objc_runtime *runtime,
    case mulle_objc_walkpointer_is_classpair :
       break;
 
-   case mulle_objc_walkpointer_is_runtime  :
-      runtime = p;
-      print_runtime( runtime, directory);
+   case mulle_objc_walkpointer_is_universe  :
+      universe = p;
+      print_universe( universe, directory);
       break;
 
    case mulle_objc_walkpointer_is_infraclass :
@@ -672,9 +671,9 @@ static int   callback( struct _mulle_objc_runtime *runtime,
 }
 
 
-# pragma mark - runtime dump
+# pragma mark - universe dump
 
-void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *runtime,
+void   mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *universe,
                                                  char *directory)
 {
    struct dump_info  info;
@@ -682,7 +681,7 @@ void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *run
    c_set_init( &info.set);
    info.directory = directory;
 
-   mulle_objc_runtime_walk( runtime, callback, &info);
+   mulle_objc_universe_walk( universe, callback, &info);
 
    c_set_done( &info.set);
 
@@ -690,12 +689,12 @@ void   mulle_objc_runtime_htmldump_to_directory( struct _mulle_objc_runtime *run
 }
 
 
-void   mulle_objc_htmldump_runtime_to_directory( char *directory)
+void   mulle_objc_htmldump_universe_to_directory( char *directory)
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
-   runtime = mulle_objc_get_runtime();
-   mulle_objc_runtime_htmldump_to_directory( runtime, directory);
+   universe = mulle_objc_get_universe();
+   mulle_objc_universe_htmldump_to_directory( universe, directory);
 }
 
 
@@ -733,7 +732,7 @@ void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
 
 void   mulle_objc_htmldump_classname_to_directory( char *classname, char *directory)
 {
-   struct _mulle_objc_runtime     *runtime;
+   struct _mulle_objc_universe     *universe;
    struct _mulle_objc_class       *cls;
    struct _mulle_objc_infraclass  *infra;
    mulle_objc_classid_t           classid;
@@ -744,12 +743,12 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname, char *direct
       return;
    }
 
-   runtime = mulle_objc_get_runtime();
+   universe = mulle_objc_get_universe();
    classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_runtime_get_or_lookup_infraclass( runtime, classid);
+   infra   = _mulle_objc_universe_get_or_lookup_infraclass( universe, classid);
    if( ! infra)
    {
-      fprintf( stderr, "Class \"%s\" is unknown to the runtime\n", classname);
+      fprintf( stderr, "Class \"%s\" is unknown to the universe\n", classname);
       return;
    }
 
@@ -772,17 +771,17 @@ void   mulle_objc_htmldump_classname_to_tmp( char *classname)
 
 
 // we have no mkdir, chdir getcwd just
-void   mulle_objc_htmldump_runtime_to_tmp( void)
+void   mulle_objc_htmldump_universe_to_tmp( void)
 {
-   mulle_objc_htmldump_runtime_to_directory( "/tmp");
+   mulle_objc_htmldump_universe_to_directory( "/tmp");
 }
 
 
 #pragma mark - dump to working directory
 
-void   mulle_objc_htmldump_runtime( void)
+void   mulle_objc_htmldump_universe( void)
 {
-   mulle_objc_htmldump_runtime_to_directory( ".");
+   mulle_objc_htmldump_universe_to_directory( ".");
 }
 
 

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_class_struct.h
-//  mulle-objc-runtime
+//  mulle-objc-universe
 //
 //  Created by Nat! on 07.04.17.
 //  Copyright (c) 2017 Mulle kybernetiK. All rights reserved.
@@ -56,15 +56,15 @@ struct _mulle_objc_ivarlist;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_object;
 struct _mulle_objc_propertylist;
-struct _mulle_objc_runtime;
+struct _mulle_objc_universe;
 
 
 //
 // the order of these structure elements is architecture dependent
 // the trick is, that the mask is "behind" the buckets in malloced
-// space. the vtab is in there, because runtime and class share this
-// (why not make the runtime a first class object, because then
-// the access to classes slows. We could put the runtime into another object
+// space. the vtab is in there, because universe and class share this
+// (why not make the universe a first class object, because then
+// the access to classes slows. We could put the universe into another object
 //
 
 struct _mulle_objc_methodcachepivot
@@ -112,7 +112,7 @@ enum _mulle_objc_class_state
 
 
 //
-// this is a fairly hefty struct, and the runtime needs two for each class
+// this is a fairly hefty struct, and the universe needs two for each class
 // assume that each new class costs you 1K
 //
 struct _mulle_objc_class
@@ -123,11 +123,11 @@ struct _mulle_objc_class
 
    /* ^^^ keep above like this, or change mulle_objc_fastmethodtable fault */
 
-   // keep runtime here for easier access
+   // keep universe here for easier access
    // keep name here for debugging
 
    char                                    *name;            // offset (void **)[ 3]
-   struct _mulle_objc_runtime              *runtime;         // keep here for debugger (void **)[ 4]
+   struct _mulle_objc_universe              *universe;         // keep here for debugger (void **)[ 4]
 
    struct _mulle_objc_class                *superclass;      // keep here for debugger (void **)[ 5]
 
@@ -179,9 +179,9 @@ static inline char   *_mulle_objc_class_get_name( struct _mulle_objc_class *cls)
 }
 
 
-static inline struct _mulle_objc_runtime   *_mulle_objc_class_get_runtime( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_universe   *_mulle_objc_class_get_universe( struct _mulle_objc_class *cls)
 {
-   return( cls->runtime);
+   return( cls->universe);
 }
 
 
