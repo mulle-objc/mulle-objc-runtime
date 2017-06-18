@@ -440,10 +440,11 @@ struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void)
 {
    struct _mulle_objc_universe    *universe;
 
+   fprintf( stderr, "--> __get_or_create_mulle_objc_universe\n");
    universe = __mulle_objc_get_universe();
    if( ! _mulle_objc_universe_is_initialized( universe))
    {
-      __mulle_objc_universe_setup( universe, NULL);
+      _mulle_objc_universe_bang( universe, 0, 0, NULL);
       universe->config.ignore_ivarhash_mismatch = 1;
    }
    return( universe);
