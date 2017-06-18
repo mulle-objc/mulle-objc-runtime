@@ -38,48 +38,15 @@
 #include <mulle_test_allocator/mulle_test_allocator.h>
 
 
-
-static void  tear_down()
-{
-   // no autoreleasepools here
-
-   mulle_objc_release_universe();
-
-   if( getenv( "MULLE_OBJC_TEST_ALLOCATOR"))
-      mulle_test_allocator_reset();
-}
-
-
-
 MULLE_C_CONST_RETURN  // always returns same value (in same thread)
 struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void)
 {
-   struct _mulle_objc_universe      *universe;
-   struct mulle_allocator          *allocator;
-   int                             is_test;
-   int                             is_pedantic;
+   struct _mulle_objc_universe   *universe;
 
    universe = __mulle_objc_get_universe();
-   if( ! _mulle_objc_universe_is_initialized( universe))
-   {
-      allocator = NULL;
-      is_test = getenv( "MULLE_OBJC_TEST_ALLOCATOR") != NULL;
-      if( is_test)
-      {
-         // call this because we are probably also in +load here
-         mulle_test_allocator_initialize();
-         allocator = &mulle_test_allocator;
-#if DEBUG
-         fprintf( stderr, "mulle_objc_universe uses \"mulle_test_allocator\" to detect leaks.\n");
-#endif
-      }
-      __mulle_objc_universe_setup( universe, allocator);
-
-      is_pedantic = getenv( "MULLE_OBJC_PEDANTIC_EXIT") != NULL;
-      if( is_test || is_pedantic)
-         if( atexit( tear_down))
-            perror( "atexit:");
-   }
+   if( !_mulle_objc_universe_is_initialized( universe))
+      _mulle_objc_universe_bang( universe, 0, 0, NULL);
+   
    return( universe);
 }
 
