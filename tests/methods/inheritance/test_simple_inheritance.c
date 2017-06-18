@@ -16,30 +16,28 @@
 #pragma mark common class setup for test
 
 
-
-
 void  create_ABC_classes( struct abc_classes *classes)
 {
    struct _mulle_objc_classpair   *pair;
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
-   classes->A_infra      = _mulle_objc_classpair_get_infraclass( pair);
-   classes->A_meta = _mulle_objc_classpair_get_metaclass( pair);
+   classes->A_infra = _mulle_objc_classpair_get_infraclass( pair);
+   classes->A_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_infra);
    assert( classes->A_meta);
 
    pair = mulle_objc_unfailing_new_classpair( B_classid, "B", 0, classes->A_infra);
    assert( pair);
-   classes->B_infra      = _mulle_objc_classpair_get_infraclass( pair);
-   classes->B_meta = _mulle_objc_classpair_get_metaclass( pair);
+   classes->B_infra = _mulle_objc_classpair_get_infraclass( pair);
+   classes->B_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->B_infra);
    assert( classes->B_meta);
 
    pair = mulle_objc_unfailing_new_classpair( C_classid, "C", 0, classes->B_infra);
    assert( pair);
-   classes->C_infra      = _mulle_objc_classpair_get_infraclass( pair);
-   classes->C_meta = _mulle_objc_classpair_get_metaclass( pair);
+   classes->C_infra = _mulle_objc_classpair_get_infraclass( pair);
+   classes->C_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->C_infra);
    assert( classes->C_meta);
 }
@@ -165,12 +163,12 @@ struct _mulle_objc_method   *C_bar_method = &C_i_list.methods[ 0];
 void   add_simple_methods( struct abc_classes  *classes)
 {
    int   rval;
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
-   runtime = mulle_objc_get_or_create_runtime();
+   universe = mulle_objc_get_or_create_universe();
 
    mulle_objc_infraclass_unfailing_add_methodlist( classes->A_infra, &A_i_list);
-   mulle_objc_metaclass_unfailing_add_methodlist( classes->A_meta, &runtime->empty_methodlist);
+   mulle_objc_metaclass_unfailing_add_methodlist( classes->A_meta, &universe->empty_methodlist);
    mulle_objc_infraclass_unfailing_add_methodlist( classes->B_infra, &B_i_list);
    mulle_objc_metaclass_unfailing_add_methodlist( classes->B_meta, &B_c_list);
    mulle_objc_infraclass_unfailing_add_methodlist( classes->C_infra, &C_i_list);

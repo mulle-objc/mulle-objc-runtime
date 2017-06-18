@@ -8,10 +8,19 @@
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
 
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 #include <mulle_test_allocator/mulle_test_allocator.h>
 
 #include "test_runtime_ids.h"
+
+
+static intptr_t   get_retaincount( void *obj)
+{
+   struct _mulle_objc_objectheader    *header;
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   return( _mulle_objc_objectheader_get_retaincount_1( header));
+}
 
 
 
@@ -49,6 +58,7 @@ static void  *A_alloc( struct _mulle_objc_infraclass *self, mulle_objc_methodid_
 {
    return( mulle_objc_infraclass_alloc_instance( self, &my_allocator));
 }
+
 
 struct _mulle_objc_methodlist   A_alloc_methodlist =
 {
@@ -123,16 +133,18 @@ static unsigned int   finalized;
 
 static void    A_finalize( void *self, mulle_objc_classid_t sel)
 {
-   assert( mulle_objc_object_get_retaincount( self) < -1);
+   assert( get_retaincount( self) < -1);
    ++finalized;
 }
 
 
 static void    A_dealloc( void *self, mulle_objc_classid_t sel)
 {
-   assert( mulle_objc_object_get_retaincount( self) == 0);
+   assert( get_retaincount( self) == -1);
    ++dealloced;
+   mulle_objc_object_free( self, &my_allocator);
 }
+
 
 struct _gnu_mulle_objc_methodlist
 {
@@ -140,6 +152,7 @@ struct _gnu_mulle_objc_methodlist
    void                        *owner;
    struct _mulle_objc_method   methods[];
 };
+
 
 static struct _gnu_mulle_objc_methodlist   finalize_dealloc_methodlist =
 {
@@ -187,9 +200,6 @@ static void   test_dealloc_finalize( struct _mulle_objc_infraclass  *A_infra)
 }
 
 
-
-
-
 static void   test_perform_finalize( struct _mulle_objc_infraclass  *A_infra)
 {
    struct _mulle_objc_object   *a;
@@ -197,10 +207,10 @@ static void   test_perform_finalize( struct _mulle_objc_infraclass  *A_infra)
    assert( dealloced == 0);
 
    a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
-   assert( mulle_objc_object_get_retaincount( a) == 1);
+   assert( get_retaincount( a) == 0);
 
    mulle_objc_object_perform_finalize( a);
-   assert( mulle_objc_object_get_retaincount( a) == INTPTR_MIN + 1);
+   assert( get_retaincount( a) < -1);
    assert( finalized == 1);
    assert( dealloced == 0);
 
@@ -233,6 +243,7 @@ void   test_retain_release( void)
 
    test_simple_retain_release( A_infra);
    test_permanent_retain_release( A_infra);
+
    test_dealloc_finalize( A_infra);
    test_perform_finalize( A_infra);
 }

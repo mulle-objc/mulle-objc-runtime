@@ -8,7 +8,7 @@
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
 
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 
 #include "test_runtime_ids.h"
 #include <assert.h>
@@ -41,11 +41,11 @@ void   test_message_sending()
    struct _mulle_objc_methoddescriptor    *desc;
    struct _mulle_objc_methodlist          *methodlist;
    struct _mulle_objc_object              *A_obj;
-   struct _mulle_objc_runtime             *runtime;
+   struct _mulle_objc_universe             *universe;
    unsigned int                           i;
    void                                   *rval;
 
-   runtime    = mulle_objc_get_or_create_runtime();
+   universe    = mulle_objc_get_or_create_universe();
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
@@ -55,7 +55,7 @@ void   test_message_sending()
    // now fix up classes with empty method lists, so they are OK to be added
    mulle_objc_metaclass_unfailing_add_methodlist( A_meta, NULL);
 
-   storage = mulle_objc_runtime_calloc( runtime, 1, sizeof( struct _1000_8_chars));
+   storage = mulle_objc_universe_calloc( universe, 1, sizeof( struct _1000_8_chars));
 
    srand( 0x1848);
 
@@ -97,7 +97,7 @@ void   test_message_sending()
    for( i = 0; i < 1000; i++)
    {
       assert( i == 500 || ! _mulle_objc_class_lookup_cached_methodimplementation( (void *) A_cls, methodlist->methods[ i].descriptor.methodid));
-      desc = _mulle_objc_runtime_lookup_methoddescriptor( runtime, methodlist->methods[ i].descriptor.methodid);
+      desc = _mulle_objc_universe_lookup_methoddescriptor( universe, methodlist->methods[ i].descriptor.methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
       rval = mulle_objc_object_call( A_obj, methodlist->methods[ i].descriptor.methodid, NULL);
       assert( _mulle_objc_class_lookup_cached_methodimplementation( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));

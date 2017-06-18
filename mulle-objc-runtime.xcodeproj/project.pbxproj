@@ -378,11 +378,6 @@
 				41189F2C1EDD726700386DFB /* mulle_objc_protocollist.c */,
 				416BA7751A19017C002F603A /* mulle_objc_retain_release.h */,
 				416BA7761A19018D002F603A /* mulle_objc_retain_release.c */,
-				416BA7741A190089002F603A /* mulle_objc_universe.h */,
-				41A827671AADAE490017BE29 /* mulle_objc_universe.c */,
-				4111AFD81D8049C100DFB901 /* mulle_objc_universe_global.h */,
-				4111AFD71D8049C100DFB901 /* mulle_objc_universe_global.c */,
-				4111AFD91D8049C100DFB901 /* mulle_objc_universe_struct.h */,
 				4154F1641AA20D9B004B7259 /* mulle_objc_signature.h */,
 				4154F1631AA20D9B004B7259 /* mulle_objc_signature.c */,
 				4188ADDE1D37B7E900926C82 /* mulle_objc_taggedpointer.h */,
@@ -393,6 +388,11 @@
 				41A2882E1C65597A00BBA54E /* mulle_objc_uniqueid.c */,
 				4122BEB61EDB2B52008E6599 /* mulle_objc_uniqueidarray.h */,
 				4122BEB51EDB2B52008E6599 /* mulle_objc_uniqueidarray.c */,
+				416BA7741A190089002F603A /* mulle_objc_universe.h */,
+				41A827671AADAE490017BE29 /* mulle_objc_universe.c */,
+				4111AFD81D8049C100DFB901 /* mulle_objc_universe_global.h */,
+				4111AFD71D8049C100DFB901 /* mulle_objc_universe_global.c */,
+				4111AFD91D8049C100DFB901 /* mulle_objc_universe_struct.h */,
 				4177A96C1D325E77007DC3D8 /* mulle_objc_version.h */,
 			);
 			path = src;

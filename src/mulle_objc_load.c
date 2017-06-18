@@ -1350,9 +1350,9 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
       //
       _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: the loaded binary was produced for load version %d, but this universe %u.%u.%u (%s) supports load version %d only",
             universe, info->version.load,
-            mulle_objc_version_get_major( universe->version),
-            mulle_objc_version_get_minor( universe->version),
-            mulle_objc_version_get_patch( universe->version),
+            mulle_objc_version_get_major( _mulle_objc_universe_get_version( universe)),
+            mulle_objc_version_get_minor( _mulle_objc_universe_get_version( universe)),
+            mulle_objc_version_get_patch( _mulle_objc_universe_get_version( universe)),
             _mulle_objc_universe_get_path( universe) ? _mulle_objc_universe_get_path( universe) : "???",
             MULLE_OBJC_RUNTIME_LOAD_VERSION);
    }

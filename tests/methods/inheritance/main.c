@@ -14,7 +14,7 @@
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
 
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 #include <mulle_test_allocator/mulle_test_allocator.h>
 
 #include "test_simple_inheritance.h"
@@ -50,17 +50,17 @@ static void   test_inconsistency( char *format, va_list args)
 
 
 #pragma mark -
-#pragma mark reset runtime between tests
+#pragma mark reset universe between tests
 
-static void   reset_runtime()
+static void   reset_universe()
 {
-   struct _mulle_objc_runtime   *runtime;
+   struct _mulle_objc_universe   *universe;
 
-   mulle_objc_release_runtime();
-   runtime = mulle_objc_get_or_create_runtime();
+   mulle_objc_release_universe();
+   universe = mulle_objc_get_or_create_universe();
 
    // tests were written at an earlier time...
-   runtime->classdefaults.inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
+   universe->classdefaults.inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
 }
 
 
@@ -77,34 +77,34 @@ extern void   test_method( void);
 
 int main( int argc, const char * argv[])
 {
-   reset_runtime();
-#if 0
+   reset_universe();
+
    test_class_simple();
-   reset_runtime();
+   reset_universe();
    test_simple_inheritance();
 
-   reset_runtime();
+   reset_universe();
    test_category_inheritance();
 
-   reset_runtime();
+   reset_universe();
    test_protocol_inheritance();
 
-   reset_runtime();
+   reset_universe();
    test_method();
 
-   reset_runtime();
+   reset_universe();
    test_message_sending();
 
-   reset_runtime();
+   reset_universe();
    test_message_forwarding1();
 
-   reset_runtime();
+   reset_universe();
    test_message_forwarding2();
 
-   reset_runtime();
+   reset_universe();
    test_retain_release();
 
-   reset_runtime();
-#endif
+   reset_universe();
+
    return( 0);
 }

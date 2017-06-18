@@ -343,9 +343,9 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
       return;
 
    universe = _mulle_objc_classpair_get_universe( pair);
-   classid = _mulle_objc_classpair_get_classid( pair);
+   classid  = _mulle_objc_classpair_get_classid( pair);
 
-   while( protocolclassid = *protocolclassids++)
+   while( (protocolclassid = *protocolclassids++) != MULLE_OBJC_NO_PROTOCOLID)
    {
       if( protocolclassid == MULLE_OBJC_NO_PROTOCOLID || protocolclassid == MULLE_OBJC_INVALID_PROTOCOLID)
          _mulle_objc_class_raise_einval_exception();

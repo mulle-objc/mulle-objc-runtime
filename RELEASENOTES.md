@@ -10,6 +10,10 @@ should be part of MulleObjC.
 
 `__MULLE_OBJC_TRT__` will be renamed to `__MULLE_OBJC_TLU__` in 1.0
 
+It should now be possible to initialize a global universe from multiple threads.
+It should not be necessary to set the global universe up from a single thread,
+before starting other threads.
+
 
 ### 0.8.5
 

@@ -8,7 +8,7 @@
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
 
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 #include "test_runtime_ids.h"
 
 #include <stdio.h>
@@ -60,7 +60,7 @@ void   test_message_forwarding1()
    struct _mulle_objc_infraclass   *A_infra;
    struct _mulle_objc_metaclass    *A_meta;
    void                            *rval;
-   struct _mulle_objc_runtime      *runtime;
+   struct _mulle_objc_universe      *universe;
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
    assert( pair);
@@ -73,8 +73,8 @@ void   test_message_forwarding1()
    mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
    mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
 
-   runtime = mulle_objc_get_or_create_runtime();
-   runtime->classdefaults.forwardmethod = &forward_list.methods[ 0];
+   universe = mulle_objc_get_or_create_universe();
+   universe->classdefaults.forwardmethod = &forward_list.methods[ 0];
 
    mulle_objc_unfailing_add_infraclass( A_infra);
 
@@ -99,7 +99,7 @@ void   test_message_forwarding2()
    struct _mulle_objc_classpair     *pair;
    struct _mulle_objc_infraclass    *A_infra;
    struct _mulle_objc_metaclass     *A_meta;
-   struct _mulle_objc_runtime       *runtime;
+   struct _mulle_objc_universe       *universe;
    void                             *rval;
 
    pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
@@ -115,8 +115,8 @@ void   test_message_forwarding2()
 
    mulle_objc_unfailing_add_infraclass( A_infra);
 
-   runtime = mulle_objc_get_or_create_runtime();
-   assert( runtime->classdefaults.forwardmethod == NULL);
+   universe = mulle_objc_get_or_create_universe();
+   assert( universe->classdefaults.forwardmethod == NULL);
 
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) == NULL);

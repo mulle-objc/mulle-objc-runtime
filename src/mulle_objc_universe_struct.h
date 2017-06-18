@@ -100,7 +100,7 @@ struct _mulle_objc_universedebug
       unsigned   class_cache          : 1;
       unsigned   class_frees          : 1;
       unsigned   dependencies         : 1;
-      unsigned   dump_universe         : 1;  // hefty, set manually
+      unsigned   dump_universe        : 1;  // hefty, set manually
       unsigned   fastclass_adds       : 1;
       unsigned   initialize           : 1;
       unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
@@ -111,6 +111,7 @@ struct _mulle_objc_universedebug
       unsigned   state_bits           : 1;
       unsigned   string_adds          : 1;
       unsigned   tagged_pointers      : 1;
+      unsigned   universe             : 1;
    } trace;
 
    struct
@@ -280,7 +281,7 @@ struct _mulle_objc_universe
 
    // try to keep this region stable for version checks
 
-   uint32_t                                 version;
+   mulle_atomic_pointer_t                   version;
    char                                     *path;    
 
    // try to keep this region stable for loadcallbacks
@@ -352,7 +353,7 @@ struct _mulle_objc_universe
 
 static inline uint32_t   _mulle_objc_universe_get_version( struct _mulle_objc_universe *universe)
 {
-   return( universe->version);
+   return( (uint32_t) (uintptr_t) _mulle_atomic_pointer_read( &universe->version));
 }
 
 
@@ -364,8 +365,15 @@ static inline char   *_mulle_objc_universe_get_path( struct _mulle_objc_universe
 
 static inline int   _mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe)
 {
-   return( universe->version != (uint32_t) -1);
+   return( _mulle_objc_universe_get_version( universe) != (uint32_t) -1);
 }
+
+
+static inline int   _mulle_objc_universe_is_initializing( struct _mulle_objc_universe *universe)
+{
+   return( _mulle_objc_universe_get_version( universe) != (uint32_t) -2);
+}
+
 
 // #1#: whenever a caches contents change, this variable should be incremented
 //      if that is adhered to, then we can checkout the value before a

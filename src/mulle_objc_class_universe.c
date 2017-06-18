@@ -65,6 +65,8 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
       return( -1);
 #endif
    universe = mulle_objc_inlined_get_universe();
+   assert( _mulle_objc_universe_is_initialized( universe));
+
    gc      = _mulle_objc_universe_get_garbagecollection( universe);
    return( _mulle_aba_is_current_thread_registered( &gc->aba));
 }

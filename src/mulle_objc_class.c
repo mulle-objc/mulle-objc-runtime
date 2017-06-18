@@ -172,9 +172,12 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_search_forwardmetho
 {
    struct _mulle_objc_method   *method;
 
-   method = _mulle_objc_class_search_method( cls, MULLE_OBJC_FORWARD_METHODID,
-                                             NULL, MULLE_OBJC_ANY_OWNER,
-                                             cls->inheritance, NULL);
+   method = _mulle_objc_class_search_method( cls,
+                                             MULLE_OBJC_FORWARD_METHODID,
+                                             NULL,
+                                             MULLE_OBJC_ANY_OWNER,
+                                             cls->inheritance,
+                                             NULL);
    if( ! method)
       method = cls->universe->classdefaults.forwardmethod;
 
@@ -538,9 +541,9 @@ static struct _mulle_objc_method  *
    struct _mulle_objc_method                    *method;
    int                                          is_meta;
 
-   pair   = _mulle_objc_class_get_classpair( cls);
-   infra  = _mulle_objc_classpair_get_infraclass( pair);
-   found  = NULL;
+   pair    = _mulle_objc_class_get_classpair( cls);
+   infra   = _mulle_objc_classpair_get_infraclass( pair);
+   found   = NULL;
    is_meta = _mulle_objc_class_is_metaclass( cls);
 
    rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
@@ -553,8 +556,10 @@ static struct _mulle_objc_method  *
       if( is_meta)
          walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
 
-      method = _mulle_objc_class_search_method( walk_cls, methodid,
-                                                previous, owner,
+      method = _mulle_objc_class_search_method( walk_cls,
+                                                methodid,
+                                                previous,
+                                                owner,
                                                 inheritance | walk_cls->inheritance,
                                                 result);
       if( method)
@@ -863,8 +868,10 @@ struct _mulle_objc_method   *
    {
       if( cls->superclass)
       {
-         method = _mulle_objc_class_search_method( cls->superclass, methodid,
-                                                   previous, owner,
+         method = _mulle_objc_class_search_method( cls->superclass,
+                                                   methodid,
+                                                   previous,
+                                                   owner,
                                                    cls->superclass->inheritance,
                                                    result);
          if( method)
@@ -908,8 +915,10 @@ struct _mulle_objc_method  *mulle_objc_class_search_method( struct _mulle_objc_c
       return( NULL);
    }
 
-   method = _mulle_objc_class_search_method( cls, methodid,
-                                             NULL, MULLE_OBJC_ANY_OWNER,
+   method = _mulle_objc_class_search_method( cls,
+                                             methodid,
+                                             NULL,
+                                             MULLE_OBJC_ANY_OWNER,
                                              _mulle_objc_class_get_inheritance( cls),
                                              NULL);
    // this can happen if hidden override detection is on
@@ -935,8 +944,10 @@ struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct
    }
 
    inheritance = _mulle_objc_class_get_inheritance( cls) | MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
-   method      = _mulle_objc_class_search_method( cls, methodid,
-                                                  NULL, MULLE_OBJC_ANY_OWNER,
+   method      = _mulle_objc_class_search_method( cls,
+                                                  methodid,
+                                                  NULL,
+                                                  MULLE_OBJC_ANY_OWNER,
                                                   inheritance,
                                                   NULL);
    // this can happen if hidden override detection is on
