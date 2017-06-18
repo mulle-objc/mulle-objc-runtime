@@ -342,7 +342,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    assert( allocator->free);
    assert( allocator->realloc);
 
-   assert( ! _mulle_objc_universe_is_initializing( universe)); // != 0!
+   assert( _mulle_objc_universe_is_initializing( universe)); // != 0!
    _mulle_atomic_pointer_nonatomic_write( &universe->cachepivot.entries, universe->empty_cache.entries);
 
    universe->memory.allocator         = *allocator;
@@ -970,8 +970,11 @@ void   _mulle_objc_universe_dealloc( struct _mulle_objc_universe *universe)
    // do it like this, because we are not initialized anymore
    gc = _mulle_objc_universe_get_garbagecollection( universe);
    if( ! _mulle_aba_is_current_thread_registered( &gc->aba))
-      _mulle_objc_universe_register_current_thread( universe);
-
+   {
+      if( _mulle_aba_register_current_thread( &gc->aba))
+         _mulle_objc_perror_abort( "_mulle_aba_register_current_thread");
+   }
+   
    _mulle_objc_universe_free_friend( universe, &universe->userinfo);
    _mulle_objc_universe_free_friend( universe, &universe->foundation.universefriend);
 
@@ -980,9 +983,11 @@ void   _mulle_objc_universe_dealloc( struct _mulle_objc_universe *universe)
    cache = _mulle_objc_cachepivot_atomic_get_cache( &universe->cachepivot);
    if( cache != &universe->empty_cache)
       _mulle_objc_cache_free( cache, &universe->memory.allocator);
-   _mulle_objc_universe_unregister_current_thread( universe);
 
+   if( _mulle_aba_unregister_current_thread( &gc->aba))
+      _mulle_objc_perror_abort( "_mulle_aba_unregister_current_thread");
    _mulle_aba_done( &_mulle_objc_universe_get_garbagecollection( universe)->aba);
+
    mulle_thread_mutex_done( &universe->lock);
 
    if( _mulle_objc_is_global_universe( universe))

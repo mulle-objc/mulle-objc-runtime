@@ -365,14 +365,21 @@ static inline char   *_mulle_objc_universe_get_path( struct _mulle_objc_universe
 
 static inline int   _mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe)
 {
-   return( _mulle_objc_universe_get_version( universe) != (uint32_t) -1);
+   return( (int32_t) _mulle_objc_universe_get_version( universe) >= 0);
+}
+
+
+static inline int   _mulle_objc_universe_is_uninitialized( struct _mulle_objc_universe *universe)
+{
+   return( (int32_t) _mulle_objc_universe_get_version( universe) < 0);
 }
 
 
 static inline int   _mulle_objc_universe_is_initializing( struct _mulle_objc_universe *universe)
 {
-   return( _mulle_objc_universe_get_version( universe) != (uint32_t) -2);
+   return( (int32_t) _mulle_objc_universe_get_version( universe) == -2);
 }
+
 
 
 // #1#: whenever a caches contents change, this variable should be incremented
