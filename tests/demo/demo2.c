@@ -8,7 +8,7 @@
 #define __MULLE_OBJC_NO_TPS__   1
 #define __MULLE_OBJC_NO_TRT__   1
 
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 
 #include <stdio.h>
 
@@ -234,17 +234,17 @@ static void  __load()
 }
 
 
-struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
+struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void)
 {
-   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_universe    *universe;
 
-   runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initialized( runtime))
+   universe = __mulle_objc_get_universe();
+   if( ! _mulle_objc_universe_is_initialized( universe))
    {
-      __mulle_objc_runtime_setup( runtime, NULL);
-      runtime->config.ignore_ivarhash_mismatch = 1;
+      _mulle_objc_universe_bang( universe, 0, 0, NULL);
+      universe->config.ignore_ivarhash_mismatch = 1;
    }
-   return( runtime);
+   return( universe);
 }
 
 
@@ -267,7 +267,7 @@ int   main( int argc, const char * argv[])
    // if( [obj conformsToProtocol:@protocol( A)])
    //    printf( "A\n");
 
-   mulle_objc_dotdump_runtime_to_tmp();
+   mulle_objc_dotdump_to_tmp();
 
    if( mulle_objc_object_call( obj, ___conforms_to_protocol__methodid, &(struct { mulle_objc_protocolid_t a;  }){ .a = ___A__protocolid } ))
       printf( "A\n");

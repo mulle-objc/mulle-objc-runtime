@@ -8,7 +8,7 @@
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
 
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 
 #include <stdio.h>
 
@@ -436,17 +436,17 @@ static void  __load()
 }
 
 
-struct _mulle_objc_runtime  *__get_or_create_mulle_objc_runtime( void)
+struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void)
 {
-   struct _mulle_objc_runtime    *runtime;
+   struct _mulle_objc_universe    *universe;
 
-   runtime = __mulle_objc_get_runtime();
-   if( ! _mulle_objc_runtime_is_initialized( runtime))
+   universe = __mulle_objc_get_universe();
+   if( ! _mulle_objc_universe_is_initialized( universe))
    {
-      __mulle_objc_runtime_setup( runtime, NULL);
-      runtime->config.ignore_ivarhash_mismatch = 1;
+      __mulle_objc_universe_setup( universe, NULL);
+      universe->config.ignore_ivarhash_mismatch = 1;
    }
-   return( runtime);
+   return( universe);
 }
 
 

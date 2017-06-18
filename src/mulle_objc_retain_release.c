@@ -58,6 +58,7 @@ uintptr_t  __mulle_objc_object_get_retaincount( void *obj)
    return( retaincount_1 + 1);
 }
 
+
 /* ideally, we enter with retainCount == 0
    call finalize, afterwards retainCount is still 0
    then we call dealloc

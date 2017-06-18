@@ -64,13 +64,36 @@ mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_threadkey( void);
 void   mulle_objc_delete_threadkey( void);
 
 
+#pragma mark - stuff to be used in _get_or_create
+
+
+//
+// most of the interesting stuff in _get_or_create
+// you can pass in NULL for all the peramaters execpt universe
+// the runtime will then use it's default values
+//
+void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
+                                  void (*bang)( struct _mulle_objc_universe  *universe,
+                                                  void (*crunch)( void),
+                                                  void *userinfo),
+                                  void (*crunch)( void),
+                                  void *userinfo);
+
+void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
+                                    void (*crunch)( struct _mulle_objc_universe  *universe));
+
+void   _mulle_objc_universe_defaultbang( struct _mulle_objc_universe  *universe,
+                                        void (*exitus)( void),
+                                        void *userinfo);
+void   _mulle_objc_universe_defaultexitus( void);
+
 //
 // if it returns 1, put a teardown function (mulle_objc_release_universe) into
 // atexit (pedantic exit)
 //
-void  __mulle_objc_universe_setup( struct _mulle_objc_universe *universe,
+void   __mulle_objc_universe_setup( struct _mulle_objc_universe *universe,
                                   struct mulle_allocator *allocator);
-void  _mulle_objc_universe_assert_version( struct _mulle_objc_universe  *universe,
+void   _mulle_objc_universe_assert_version( struct _mulle_objc_universe  *universe,
                                           struct mulle_objc_loadversion *version);
 
 
@@ -92,8 +115,9 @@ static inline void  _mulle_objc_universe_retain( struct _mulle_objc_universe *un
 static inline void  _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
 {
    if( _mulle_atomic_pointer_decrement( &universe->retaincount_1) == 0)
-      _mulle_objc_universe_dealloc( universe);
+      _mulle_objc_universe_crunch( universe, _mulle_objc_universe_dealloc);
 }
+
 
 
 #pragma mark - globals / tables
@@ -503,8 +527,12 @@ struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_c
                                                                     struct _mulle_objc_infraclass *superclass);
 #endif
 
-// classes
-
+//    -1 on error, 0 success
+// errno:
+//    EFAULT= superclass not present
+//    EINVAL= parameter or property NULL
+//    ECHILD= missing methodlist, property etc.
+//
 int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
                                          struct _mulle_objc_infraclass *infra);
 

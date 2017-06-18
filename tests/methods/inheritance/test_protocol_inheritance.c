@@ -8,7 +8,7 @@
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
 
-#include <mulle_objc/mulle_objc.h>
+#include <mulle_objc_runtime/mulle_objc_runtime.h>
 
 #include "test_runtime_ids.h"
 #include "test_simple_inheritance.h"
@@ -61,9 +61,15 @@ static void  create_ABC_PROTO_classes( struct abc_classes *classes)
 
 static void  add_ABC_PROTO_classes( struct abc_classes *classes)
 {
+   static mulle_objc_protocolid_t     classprotocolids[] = { C_classid, MULLE_OBJC_NO_PROTOCOLID };
+   struct _mulle_objc_classpair       *pair;
+
    mulle_objc_unfailing_add_infraclass( classes->A_infra);
    mulle_objc_unfailing_add_infraclass( classes->B_infra);
    mulle_objc_unfailing_add_infraclass( classes->C_infra);
+
+   pair = _mulle_objc_infraclass_get_classpair( classes->A_infra);
+   mulle_objc_classpair_unfailing_add_protocolclassids( pair, classprotocolids);
 }
 
 
