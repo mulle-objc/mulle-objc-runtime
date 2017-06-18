@@ -64,8 +64,11 @@ mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_threadkey( void);
 void   mulle_objc_delete_threadkey( void);
 
 
-#pragma mark - stuff to be used in _get_or_create
+// this is defined by the user
+extern MULLE_C_CONST_RETURN
+struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void);
 
+#pragma mark - stuff to be used in _get_or_create
 
 //
 // most of the interesting stuff in _get_or_create

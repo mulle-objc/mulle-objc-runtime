@@ -437,8 +437,6 @@ struct _mulle_objc_universe  *__mulle_objc_get_universe( void)
 struct _mulle_objc_universe  *mulle_objc_get_or_create_universe( void)
 {
    struct _mulle_objc_universe  *universe;
-   extern MULLE_C_CONST_RETURN
-   struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void);
 
    universe = __get_or_create_mulle_objc_universe();  // the external function
    if( ! universe)
@@ -501,7 +499,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    
    if( universe->debug.trace.universe)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] trying to lock the universe down for crunch\n",
-                  universe, mulle_thread_self());
+                  universe, (void *) mulle_thread_self());
    
    // ensure only one thread is going at it
    for(;;)
@@ -511,7 +509,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
       {
          if( universe->debug.trace.universe)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] someone else crunched the universe already\n",
-                  universe, mulle_thread_self());
+                  universe, (void *) mulle_thread_self());
          return;  // someone else did it
       }
       if( actual == (void *) MULLE_OBJC_RUNTIME_VERSION)
@@ -523,7 +521,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    
    if( universe->debug.trace.universe)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] crunch of the universe in progress\n",
-              universe, mulle_thread_self());
+              universe, (void *) mulle_thread_self());
    
    (*crunch)( universe);
    mulle_atomic_memory_barrier(); // shared/global memory
@@ -540,13 +538,13 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
       {
          if( universe->debug.trace.universe)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] unlocked the universe\n",
-                  universe, mulle_thread_self());
+                  universe, (void *) mulle_thread_self());
          return;  // someone else did it
       }
       
       if( universe->debug.trace.universe)
          fprintf( stderr, "mulle_objc_universe %p trace: [%p] retrying to unlock the universe\n",
-               universe, mulle_thread_self());
+               universe, (void *) mulle_thread_self());
    }
 }
 
@@ -604,7 +602,7 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
    
    if( universe->debug.trace.universe)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] trying to lock the universe down for bang\n",
-                  universe, mulle_thread_self());
+                  universe, (void *) mulle_thread_self());
 
    
    // ensure only one thread is going at it
@@ -615,7 +613,7 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
       {
          if( universe->debug.trace.universe)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] someone else did the universe bang already\n",
-                  universe, mulle_thread_self());
+                  universe, (void *) mulle_thread_self());
          return;  // someone else did it
       }
       if( actual == (void *) -1)
@@ -626,7 +624,7 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
    // BEGIN OF LOCKED
    if( universe->debug.trace.universe)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] bang of the universe in progress\n",
-              universe, mulle_thread_self());
+              universe, (void *) mulle_thread_self());
    
    (*setup)( universe, exitus, userinfo);
 
@@ -642,13 +640,13 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
       {
          if( universe->debug.trace.universe)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] unlocked the universe\n",
-                  universe, mulle_thread_self());
+                  universe, (void *) mulle_thread_self());
          return;  // someone else did it
       }
       
       if( universe->debug.trace.universe)
          fprintf( stderr, "mulle_objc_universe %p trace: [%p] retrying to unlock the universe\n",
-               universe, mulle_thread_self());
+               universe, (void *) mulle_thread_self());
    }
 }
 
