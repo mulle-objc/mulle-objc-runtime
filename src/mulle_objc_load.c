@@ -1474,7 +1474,7 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    if( ! universe)
       _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc: Failed to acquire universe via `mulle_objc_get_or_create_universe`. This must not return NULL!");
 
-   if( ! _mulle_objc_universe_is_initialized( universe))
+   if( _mulle_objc_universe_is_uninitialized( universe))
       _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: universe was not properly initialized by `mulle_objc_get_or_create_universe`.", universe);
 
    if( ! universe->memory.allocator.calloc)
