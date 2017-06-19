@@ -124,14 +124,17 @@ static char  *inheritance_description( unsigned int inheritance)
 }
 
 
-static char  *categoryid_html_row_description( void *value, struct _mulle_objc_htmltablestyle *styling)
+static char  *categoryid_html_row_description( void *value,
+                                               struct _mulle_objc_universe *universe,
+                                               struct _mulle_objc_htmltablestyle *styling)
 {
    mulle_objc_categoryid_t   categoryid;
    char                      *s;
    char                      *result;
 
    categoryid = (mulle_objc_categoryid_t) (intptr_t) value;
-   s          = mulle_objc_string_for_categoryid( categoryid);
+   s          = _mulle_objc_universe_string_for_categoryid( universe,
+                                                           categoryid);
 
    mulle_objc_asprintf( &result, "<TR><TD>\"%s\"</TD><TD>%08x</TD></TR>\n",
          s, categoryid);
@@ -139,14 +142,16 @@ static char  *categoryid_html_row_description( void *value, struct _mulle_objc_h
 }
 
 
-static char  *protocolid_html_row_description( void *value, struct _mulle_objc_htmltablestyle *styling)
+static char  *protocolid_html_row_description( void *value,
+                                               struct _mulle_objc_universe *universe,
+                                               struct _mulle_objc_htmltablestyle *styling)
 {
    mulle_objc_protocolid_t   protocolid;
    char                      *s;
    char                      *result;
 
    protocolid = (mulle_objc_protocolid_t) (intptr_t) value;
-   s          = mulle_objc_string_for_protocolid( protocolid);
+   s          = _mulle_objc_universe_string_for_protocolid( universe, protocolid);
 
    mulle_objc_asprintf( &result, "<TR><TD>\"%s\"</TD><TD>%08x</TD></TR>\n",
          s, protocolid);
@@ -770,6 +775,7 @@ char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
 #pragma mark - methodlist
 
 char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list,
+                                                struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
@@ -787,12 +793,21 @@ char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *l
    asprintf_table_header( &tmp[ i], styling);
    len = strlen( tmp[ i]);
    ++i;
+
    
-   asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%s</TD></TR>",
-                        mulle_objc_string_for_categoryid( (mulle_objc_categoryid_t) (uintptr_t) list->owner));
+   if( universe)
+   {
+      asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%s</TD></TR>",
+                           _mulle_objc_universe_string_for_categoryid( universe,
+                                                                      (mulle_objc_categoryid_t) (uintptr_t) list->owner));
+   }
+   else
+   {
+      asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%p</TD></TR>", list->owner);
+   }
    len += strlen( tmp[ i]);
    ++i;
-
+   
    for( j = 0; j < list->n_methods; j++)
    {
       mulle_objc_sprintf_functionpointer( buf,
@@ -941,10 +956,12 @@ char   *mulle_objc_loadcategory_html_row_description( void *value,
 #pragma mark - protocols
 
 char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray *array,
+                                               struct _mulle_objc_universe *universe,
                                                struct _mulle_objc_htmltablestyle *styling)
 {
    return( mulle_objc_uniqueidarray_html_description( array,
                                                       protocolid_html_row_description,
+                                                      universe,
                                                       styling));
 }
 
@@ -952,10 +969,12 @@ char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray 
 #pragma mark - categories
 
 char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray *array,
+                                                struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
    return( mulle_objc_uniqueidarray_html_description( array,
                                                       categoryid_html_row_description,
+                                                      universe,
                                                       styling));
 }
 
@@ -1134,7 +1153,8 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
 #pragma mark - uniqueidarray
 
 char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidarray *array,
-                                                   char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
+                                                   char *(row_description)( void *, struct _mulle_objc_universe *, struct _mulle_objc_htmltablestyle *),
+                                                   struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_htmltablestyle *styling)
 
 {
@@ -1168,7 +1188,7 @@ char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidar
    
    while( p < sentinel)
    {
-      tmp[ i] = (*row_description)( (void *) (uintptr_t) *p++, styling);
+      tmp[ i] = (*row_description)( (void *) (uintptr_t) *p++, universe, styling);
       len    += strlen( tmp[ i]);
       ++i;
    }

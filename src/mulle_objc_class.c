@@ -780,7 +780,7 @@ struct _mulle_objc_method   *
             _mulle_objc_class_get_classtypename( cls),
             cls->name,
             methodid,
-            mulle_objc_string_for_methodid( methodid),
+            _mulle_objc_universe_string_for_methodid( universe, methodid),
             owner,
             previous ? _mulle_objc_method_get_implementation( previous) : NULL);
    }

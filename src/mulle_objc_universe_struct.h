@@ -272,6 +272,14 @@ struct _mulle_objc_waitqueues
  * All no, unfortunately there is one static class needed for
  * static strings.
  */
+enum
+{
+   mulle_objc_universe_is_uninitialized  = -3,
+   mulle_objc_universe_is_initializing   = -2,
+   mulle_objc_universe_is_deinitializing = -1
+};
+
+
 struct _mulle_objc_universe
 {
    //
@@ -363,21 +371,29 @@ static inline char   *_mulle_objc_universe_get_path( struct _mulle_objc_universe
 }
 
 
+// initialized is "ready for user code"
+// this is what you use in __get_or_create should query
 static inline int   _mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe)
 {
    return( (int32_t) _mulle_objc_universe_get_version( universe) >= 0);
 }
 
-
+// uninitialized is "ready for no code"
 static inline int   _mulle_objc_universe_is_uninitialized( struct _mulle_objc_universe *universe)
 {
-   return( (int32_t) _mulle_objc_universe_get_version( universe) < 0);
+   return( (int32_t) _mulle_objc_universe_get_version( universe) == mulle_objc_universe_is_uninitialized);
 }
 
-
-static inline int   _mulle_objc_universe_is_initializing( struct _mulle_objc_universe *universe)
+// transitioning is "ready for init/dealloc code" danger!
+static inline int   _mulle_objc_universe_is_transitioning( struct _mulle_objc_universe *universe)
 {
-   return( (int32_t) _mulle_objc_universe_get_version( universe) == -2);
+   switch( _mulle_objc_universe_get_version( universe))
+   {
+      case mulle_objc_universe_is_initializing   :
+      case mulle_objc_universe_is_deinitializing :
+         return( 1);
+   }
+   return( 0);
 }
 
 

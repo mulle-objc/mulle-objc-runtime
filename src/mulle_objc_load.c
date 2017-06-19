@@ -138,7 +138,7 @@ static struct _mulle_objc_dependency
                trace_preamble( universe);
                fprintf( stderr, "class %08x \"%s\" is not present yet\n",
                        dependencies->classid,
-                       mulle_objc_string_for_classid( dependencies->classid));
+                       _mulle_objc_universe_string_for_classid( universe, dependencies->classid));
             }
             return( *dependencies);
          }
@@ -155,8 +155,8 @@ static struct _mulle_objc_dependency
                fprintf( stderr, "category %08x,%08x \"%s( %s)\" is not present yet\n",
                        dependencies->classid,
                        dependencies->categoryid,
-                       mulle_objc_string_for_classid( dependencies->classid),
-                       mulle_objc_string_for_categoryid( dependencies->categoryid));
+                       _mulle_objc_universe_string_for_classid( universe, dependencies->classid),
+                       _mulle_objc_universe_string_for_categoryid( universe, dependencies->categoryid));
             }
             return( *dependencies);
          }
@@ -262,7 +262,7 @@ static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info
                       "waits for class %08x \"%s\" to load "
                       "or gain more categories on list %p",
                       missingclassid,
-                      mulle_objc_string_for_classid( missingclassid),
+                      _mulle_objc_universe_string_for_classid( universe, missingclassid),
                       list);
 
    return( 0);
@@ -370,7 +370,7 @@ static struct _mulle_objc_dependency
             {
                loadclass_trace( info, universe, "protocolclass %08x \"%s\" is not present yet",
                                *classid_p,
-                               mulle_objc_string_for_classid( *classid_p));
+                               _mulle_objc_universe_string_for_classid( universe, *classid_p));
             }
 
             dependency.classid    = *classid_p;
@@ -399,7 +399,7 @@ void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loa
 
    fprintf( stderr, "\t%08x \"%s\" waiting for class %08x \"%s\"\n",
            info->classid, info->classname,
-           dependency.classid, mulle_objc_string_for_classid( dependency.classid));
+           dependency.classid, _mulle_objc_universe_string_for_classid( universe, dependency.classid));
 
 }
 
@@ -450,7 +450,9 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    // this callqueue mechanism does the "right" thing
    //
    // ready to install
-   pair = mulle_objc_unfailing_new_classpair( info->classid, info->classname, info->instancesize, superclass);
+   pair = mulle_objc_universe_new_classpair( universe, info->classid, info->classname, info->instancesize, superclass);
+   if( ! pair)
+      _mulle_objc_universe_raise_fail_errno_exception( universe);  // unfailing vectors through there
 
    _mulle_objc_classpair_set_origin( pair, info->origin);
    mulle_objc_classpair_unfailing_add_protocollist( pair, info->protocols);
@@ -738,7 +740,7 @@ static int  mulle_objc_loadcategory_delayedadd( struct _mulle_objc_loadcategory 
       loadcategory_trace( info, universe, "waits for class %08x \"%s\" to load "
                          "or gain more categories on list %p",
                          missingclassid,
-                         mulle_objc_string_for_classid( missingclassid),
+                         _mulle_objc_universe_string_for_classid( universe, missingclassid),
                          list);
    
    return( 0);
@@ -834,7 +836,7 @@ static struct _mulle_objc_dependency
             {
                loadcategory_trace( info, universe, "protocolclass %08x \"%s\" is not present yet",
                                   *classid_p,
-                                  mulle_objc_string_for_classid( *classid_p));
+                                  _mulle_objc_universe_string_for_classid( universe, *classid_p));
             }
             dependency.classid    = *classid_p;
             dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
@@ -876,7 +878,8 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
    {
       fprintf( stderr, "\t%08x \"%s( %s)\" waiting for class %08x \"%s\"\n",
               info->categoryid, info->classname, info->categoryname,
-              dependency.classid, mulle_objc_string_for_classid( dependency.classid));
+              dependency.classid,
+              _mulle_objc_universe_string_for_classid( universe, dependency.classid));
       return;
    }
 
@@ -884,8 +887,8 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
            info->categoryid, info->classname, info->categoryname,
            dependency.classid,
            dependency.categoryid,
-           mulle_objc_string_for_classid( dependency.classid),
-           mulle_objc_string_for_categoryid( dependency.categoryid));
+           _mulle_objc_universe_string_for_classid( universe, dependency.classid),
+           _mulle_objc_universe_string_for_categoryid( universe, dependency.categoryid));
 }
 
 
@@ -1243,10 +1246,11 @@ static void   mulle_objc_loadhashedstringlist_unfailing_enqueue( struct _mulle_o
    if( ! map)
       return;
    
+   universe = mulle_objc_get_or_create_universe();
+
    if( need_sort)
       mulle_objc_loadhashedstringlist_sort( map);
 
-   universe = mulle_objc_get_or_create_universe();
    _mulle_objc_universe_add_loadhashedstringlist( universe, map);
 }
 
@@ -1471,11 +1475,10 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    assert( info);
 
    universe = mulle_objc_get_or_create_universe();
-   if( ! universe)
-      _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc: Failed to acquire universe via `mulle_objc_get_or_create_universe`. This must not return NULL!");
+   assert( universe);
 
    if( _mulle_objc_universe_is_uninitialized( universe))
-      _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: universe was not properly initialized by `mulle_objc_get_or_create_universe`.", universe);
+      _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: universe was not properly initialized by `__get_or_create_mulle_objc_universe`.", universe);
 
    if( ! universe->memory.allocator.calloc)
       _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: Has no allocator installed.", universe);

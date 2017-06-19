@@ -103,6 +103,9 @@ void   _mulle_objc_universe_raise_fail_exception( struct _mulle_objc_universe *u
    va_list   args;
 
    va_start( args, format);
+
+   if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
+      _mulle_objc_vprintf_abort( format, args);
    (*universe->failures.fail)( format, args);
    va_end( args);
 }
@@ -115,7 +118,7 @@ static void   _mulle_objc_class_not_found_abort( struct _mulle_objc_universe *un
    _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing class %08x \"%s\"",
                                  universe,
                                  missing_classid,
-                                 mulle_objc_string_for_classid( missing_classid));
+                                 _mulle_objc_universe_string_for_classid( universe, missing_classid));
 }
 
 
@@ -342,7 +345,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    assert( allocator->free);
    assert( allocator->realloc);
 
-   assert( _mulle_objc_universe_is_initializing( universe)); // != 0!
+   assert( _mulle_objc_universe_is_transitioning( universe)); // != 0!
    _mulle_atomic_pointer_nonatomic_write( &universe->cachepivot.entries, universe->empty_cache.entries);
 
    universe->memory.allocator         = *allocator;
@@ -433,7 +436,7 @@ struct _mulle_objc_universe  *__mulle_objc_get_universe( void)
    return( universe);
 }
 
-
+// this should only be used in "mulle_objc_load.c"
 struct _mulle_objc_universe  *mulle_objc_get_or_create_universe( void)
 {
    struct _mulle_objc_universe  *universe;
@@ -504,8 +507,8 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    // ensure only one thread is going at it
    for(;;)
    {
-      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) -2, (void *) MULLE_OBJC_RUNTIME_VERSION);
-      if( actual == (void *) -1)
+      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) mulle_objc_universe_is_deinitializing, (void *) MULLE_OBJC_RUNTIME_VERSION);
+      if( actual == (void *) mulle_objc_universe_is_uninitialized)
       {
          if( universe->debug.trace.universe)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] someone else crunched the universe already\n",
@@ -533,8 +536,8 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    // don't want to bloat the CAS api though
    for(;;)
    {
-      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) -1, (void *) -2);
-      if( actual == (void *) -2)
+      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) mulle_objc_universe_is_uninitialized, (void *) mulle_objc_universe_is_deinitializing);
+      if( actual == (void *) mulle_objc_universe_is_deinitializing)
       {
          if( universe->debug.trace.universe)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] unlocked the universe\n",
@@ -608,7 +611,7 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
    // ensure only one thread is going at it
    for(;;)
    {
-      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) -2, (void *) -1);
+      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *)mulle_objc_universe_is_initializing, (void *) mulle_objc_universe_is_uninitialized);
       if( actual == (void *) MULLE_OBJC_RUNTIME_VERSION)
       {
          if( universe->debug.trace.universe)
@@ -616,7 +619,7 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
                   universe, (void *) mulle_thread_self());
          return;  // someone else did it
       }
-      if( actual == (void *) -1)
+      if( actual == (void *) mulle_objc_universe_is_uninitialized)
          break;
       mulle_thread_yield();
    }
@@ -635,8 +638,8 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
    // don't want to bload the CAS api though
    for(;;)
    {
-      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) MULLE_OBJC_RUNTIME_VERSION, (void *) -2);
-      if( actual == (void *) -2)
+      actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) MULLE_OBJC_RUNTIME_VERSION, (void *) mulle_objc_universe_is_initializing);
+      if( actual == (void *) mulle_objc_universe_is_initializing)
       {
          if( universe->debug.trace.universe)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] unlocked the universe\n",
@@ -1261,22 +1264,19 @@ int  _mulle_objc_universe_match_exception( struct _mulle_objc_universe *universe
 }
 
 
-#ifndef MULLE_OBJC_NO_CONVENIENCES
-
-// conveniences
 void   mulle_objc_raise_fail_exception( char *format, ...)
 {
    va_list   args;
 
    va_start( args, format);
-   _mulle_objc_universe_raise_fail_exception( mulle_objc_get_or_create_universe(), format, args);
+   _mulle_objc_universe_raise_fail_exception( mulle_objc_get_universe(), format, args);
    va_end( args);
 }
 
 
 void   mulle_objc_raise_fail_errno_exception( void)
 {
-   _mulle_objc_universe_raise_fail_errno_exception( mulle_objc_get_or_create_universe());
+   _mulle_objc_universe_raise_fail_errno_exception( mulle_objc_get_universe());
 }
 
 
@@ -1285,15 +1285,14 @@ void   mulle_objc_raise_inconsistency_exception( char *format, ...)
    va_list   args;
 
    va_start( args, format);
-   _mulle_objc_universe_raise_inconsistency_exception( mulle_objc_get_or_create_universe(), format, args);
+   _mulle_objc_universe_raise_inconsistency_exception( mulle_objc_get_universe(), format, args);
    va_end( args);
 }
-#endif
 
 
 void   mulle_objc_raise_taggedpointer_exception( void *obj)
 {
-   _mulle_objc_universe_raise_inconsistency_exception( mulle_objc_get_or_create_universe(), "%p is a tagged pointer", obj);
+   _mulle_objc_universe_raise_inconsistency_exception( mulle_objc_get_universe(), "%p is a tagged pointer", obj);
 }
 
 
@@ -1441,6 +1440,7 @@ struct _mulle_objc_classpair
 }
 
 
+#ifndef MULLE_OBJC_NO_CONVENIENCES
 // convenience during loading
 struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_classid_t  classid,
                                                                     char *name,
@@ -1450,12 +1450,13 @@ struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_c
    struct _mulle_objc_classpair     *pair;
    struct _mulle_objc_universe       *universe;
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_get_universe();
    pair     = mulle_objc_universe_new_classpair( universe, classid, name, instancesize, superclass);
    if( ! pair)
       _mulle_objc_universe_raise_fail_errno_exception( universe);  // unfailing vectors through there
    return( pair);
 }
+#endif
 
 
 /* don't check for ivar_hash, as this is too painful for application
@@ -1559,7 +1560,7 @@ void   _mulle_objc_universe_set_fastclass( struct _mulle_objc_universe *universe
 
 void   mulle_objc_unfailing_add_infraclass( struct _mulle_objc_infraclass *infra)
 {
-   mulle_objc_universe_unfailing_add_infraclass( mulle_objc_get_or_create_universe(), infra);
+   mulle_objc_universe_unfailing_add_infraclass( mulle_objc_get_universe(), infra);
 }
 
 #endif
@@ -1626,7 +1627,7 @@ char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid)
    struct _mulle_objc_universe           *universe;
    struct _mulle_objc_methoddescriptor   *desc;
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_get_universe();
    desc    = _mulle_objc_universe_lookup_methoddescriptor( universe, methodid);
    return( desc ? desc->name : NULL);
 }
@@ -1636,7 +1637,7 @@ char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_get_universe();
    return( _mulle_objc_universe_search_debughashname( universe, uniqueid));
 }
 
@@ -1647,7 +1648,7 @@ char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid)
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 struct _mulle_objc_methodlist  *mulle_objc_alloc_methodlist( unsigned int n)
 {
-   return( mulle_objc_universe_calloc( mulle_objc_get_or_create_universe(),
+   return( mulle_objc_universe_calloc( mulle_objc_get_universe(),
                                       1,
                                       mulle_objc_sizeof_methodlist( n)));
 }
@@ -1706,14 +1707,15 @@ struct _mulle_objc_protocol  *mulle_objc_lookup_protocol( mulle_objc_protocolid_
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_get_universe();
    return( _mulle_objc_universe_lookup_protocol( universe, protocolid));
 }
+
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 struct _mulle_objc_protocollist  *mulle_objc_alloc_protocollist( unsigned int n)
 {
-   return( mulle_objc_universe_calloc( mulle_objc_get_or_create_universe(),
+   return( mulle_objc_universe_calloc( mulle_objc_get_universe(),
                                       1,
                                       mulle_objc_sizeof_protocollist( n)));
 }
@@ -1773,7 +1775,7 @@ char   *mulle_objc_lookup_category( mulle_objc_categoryid_t categoryid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_get_universe();
    return( _mulle_objc_universe_lookup_category( universe, categoryid));
 }
 
@@ -1894,6 +1896,80 @@ char  *_mulle_objc_universe_search_debughashname( struct _mulle_objc_universe *u
 }
 
 
+# pragma mark - uniqueid to string conversions
+
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_uniqueid( struct _mulle_objc_universe *universe,
+                                                  mulle_objc_uniqueid_t uniqueid)
+{
+   char   *s;
+   
+   if( uniqueid == MULLE_OBJC_NO_UNIQUEID)
+      return( "NOT AN ID");
+   if( uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
+      return( "INVALID ID");
+   s       = _mulle_objc_universe_search_debughashname( universe, uniqueid);
+   return( s ? s : "???");
+}
+
+
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_classid( struct _mulle_objc_universe *universe,
+                                                 mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_infraclass   *infra;
+   
+   infra   = _mulle_objc_universe_lookup_uncached_infraclass( universe, classid);
+   if( infra)
+      return( _mulle_objc_infraclass_get_name( infra));
+   return( _mulle_objc_universe_string_for_uniqueid( universe, classid));
+}
+
+
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_methodid( struct _mulle_objc_universe *universe,
+                                                  mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_methoddescriptor   *desc;
+   
+   desc   = _mulle_objc_universe_lookup_methoddescriptor( universe, methodid);
+   if( desc)
+      return( _mulle_objc_methoddescriptor_get_name( desc));
+   return( _mulle_objc_universe_string_for_uniqueid( universe, methodid));
+}
+
+
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_protocolid( struct _mulle_objc_universe *universe,
+                                                    mulle_objc_protocolid_t protocolid)
+{
+   struct _mulle_objc_protocol   *protocol;
+   
+   protocol = _mulle_objc_universe_lookup_protocol( universe, protocolid);
+   if( protocol)
+      return( _mulle_objc_protocol_get_name( protocol));
+   return( _mulle_objc_universe_string_for_uniqueid( universe, protocolid));
+}
+
+
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_categoryid( struct _mulle_objc_universe *universe,
+                                                    mulle_objc_categoryid_t categoryid)
+{
+   char    *name;
+   
+   name    = _mulle_objc_universe_lookup_category( universe, categoryid);
+   if( name)
+      return( name);
+   return( _mulle_objc_universe_string_for_uniqueid( universe, categoryid));
+}
+
+
+#ifndef MULLE_OBJC_NO_CONVENIENCES
+
+# pragma mark - string conveniences
+
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
 {
    char   *s;
@@ -1903,62 +1979,53 @@ char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
       return( "NOT AN ID");
    if( uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
       return( "INVALID ID");
-   universe = mulle_objc_get_or_create_universe();
+
+   universe = mulle_objc_get_universe();
    s       = _mulle_objc_universe_search_debughashname( universe, uniqueid);
    return( s ? s : "???");
 }
 
 
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_classid( mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_universe      *universe;
-   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_universe   *universe;
    
-   universe = mulle_objc_get_or_create_universe();
-   infra   = _mulle_objc_universe_lookup_uncached_infraclass( universe, classid);
-   if( infra)
-      return( _mulle_objc_infraclass_get_name( infra));
-   return( mulle_objc_string_for_uniqueid( classid));
+   universe = mulle_objc_get_universe();
+   return( _mulle_objc_universe_string_for_classid( universe, classid));
 }
 
 
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_methodid( mulle_objc_methodid_t methodid)
 {
-   struct _mulle_objc_universe            *universe;
-   struct _mulle_objc_methoddescriptor   *desc;
+   struct _mulle_objc_universe   *universe;
    
-   universe = mulle_objc_get_or_create_universe();
-   desc   = _mulle_objc_universe_lookup_methoddescriptor( universe, methodid);
-   if( desc)
-      return( _mulle_objc_methoddescriptor_get_name( desc));
-   return( mulle_objc_string_for_uniqueid( methodid));
+   universe = mulle_objc_get_universe();
+   return( _mulle_objc_universe_string_for_methodid( universe, methodid));
 }
 
 
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_protocolid( mulle_objc_protocolid_t protocolid)
 {
-   struct _mulle_objc_universe    *universe;
-   struct _mulle_objc_protocol   *protocol;
+   struct _mulle_objc_universe   *universe;
    
-   universe  = mulle_objc_get_or_create_universe();
-   protocol = _mulle_objc_universe_lookup_protocol( universe, protocolid);
-   if( protocol)
-      return( _mulle_objc_protocol_get_name( protocol));
-   return( mulle_objc_string_for_uniqueid( protocolid));
+   universe = mulle_objc_get_universe();
+   return( _mulle_objc_universe_string_for_protocolid( universe, protocolid));
 }
 
 
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid)
 {
-   struct _mulle_objc_universe    *universe;
-   char                          *name;
+   struct _mulle_objc_universe   *universe;
    
-   universe  = mulle_objc_get_or_create_universe();
-   name    = _mulle_objc_universe_lookup_category( universe, categoryid);
-   if( name)
-      return( name);
-   return( mulle_objc_string_for_uniqueid( categoryid));
+   universe = mulle_objc_get_universe();
+   return( _mulle_objc_universe_string_for_categoryid( universe, categoryid));
 }
+
+#endif
 
 
 # pragma mark - debug support

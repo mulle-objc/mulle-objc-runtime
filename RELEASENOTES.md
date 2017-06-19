@@ -14,6 +14,10 @@ It should now be possible to initialize a global universe from multiple threads.
 It should not be necessary to set the global universe up from a single thread,
 before starting other threads.
 
+Only use `mulle_objc_get_or_create_universe` during loading. Makes it easier.
+
+Also distribute mulle-objc-uniqueid.
+
 
 ### 0.8.5
 

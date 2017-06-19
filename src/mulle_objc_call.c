@@ -618,6 +618,7 @@ mulle_objc_methodimplementation_t
    if( ! cls || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
    {
       errno = EINVAL;
+      //  _mulle_objc_universe_raise_fail_errno_exception( mulle_objc_get_universe());
       mulle_objc_raise_fail_errno_exception();
    }
 

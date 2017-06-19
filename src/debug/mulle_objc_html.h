@@ -126,14 +126,17 @@ char   *mulle_objc_protocol_html_row_description( intptr_t  methodid,
                                                   struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list,
+                                                struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling);
 
 char  *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list,
                                                    struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray *array,
+                                               struct _mulle_objc_universe *universe,
                                                struct _mulle_objc_htmltablestyle *styling);
 char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray *array,
+                                                struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_loadclass_html_row_description( void *value,
@@ -155,7 +158,8 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
                                                    struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidarray *array,
-                                                   char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
+                                                   char *(row_description)( void *, struct _mulle_objc_universe *, struct _mulle_objc_htmltablestyle *),
+                                                   struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_htmltablestyle *styling);
 
 

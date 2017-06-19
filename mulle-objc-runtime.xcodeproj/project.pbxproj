@@ -696,6 +696,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/dependencies/lib/Debug",
@@ -709,6 +710,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/dependencies/lib/Debug",
@@ -722,6 +724,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/dependencies/lib/Debug",
@@ -743,8 +746,6 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-D_C11_SOURCE",
-					"-D_XOPEN_SOURCE=500",
-					"-D_C99_SOURCE",
 				);
 			};
 			name = Debug;
@@ -761,6 +762,7 @@
 				OTHER_CFLAGS = (
 					"$(inherited)",
 					"-D_C99_SOURCE",
+					"-DMULLE_OBJC_NO_CONVENIENCES",
 				);
 			};
 			name = Release;
@@ -769,12 +771,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A0B1C4E6E9A00290E05 /* StaticLibraryOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				OTHER_CFLAGS = (
 					"-H",
 					"$(inherited)",
-					"-D_C11_SOURCE",
-					"-D_XOPEN_SOURCE=500",
-					"-D_C99_SOURCE",
 				);
 			};
 			name = Debug;
@@ -783,6 +783,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A0B1C4E6E9A00290E05 /* StaticLibraryOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 			};
 			name = Release;
 		};
@@ -790,6 +791,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				LIBRARY_SEARCH_PATHS = (
@@ -807,6 +809,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				LIBRARY_SEARCH_PATHS = (
@@ -824,6 +827,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				DYLIB_COMPATIBILITY_VERSION = 1.0.0;
 				DYLIB_CURRENT_VERSION = "$(CURRENT_PROJECT_VERSION)";
 				LIBRARY_SEARCH_PATHS = (
@@ -875,6 +879,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 415A0A0B1C4E6E9A00290E05 /* StaticLibraryOSX.xcconfig */;
 			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 			};
 			name = Disassembly;
 		};

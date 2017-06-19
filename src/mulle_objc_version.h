@@ -48,7 +48,7 @@
 // these three values are read by the compiler(!)
 // only use integers and no expressions
 //
-#define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0  // max 1023
+#define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0  // max 511
 #define MULLE_OBJC_RUNTIME_VERSION_MINOR  9  // max 1023
 #define MULLE_OBJC_RUNTIME_VERSION_PATCH  1  // max 255
 
