@@ -42,7 +42,7 @@
 #ifdef __MULLE_OBJC_NO_TRT__
 MULLE_C_GLOBAL struct _mulle_objc_universe   mulle_objc_global_universe =
 {
-   .version = (void *) -1
+   .version = (void *) mulle_objc_universe_is_uninitialized
 };
 #endif
 

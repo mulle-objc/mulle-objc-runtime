@@ -417,14 +417,16 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    struct _mulle_objc_classpair                     *pair;
    struct _mulle_objc_infraclass                    *prop_cls;
    struct _mulle_objc_ivarlist                      *ivarlist;
+   struct _mulle_objc_universe                      *universe;
    struct _mulle_objc_methodlist                    *methodlist;
    struct _mulle_objc_propertylist                  *propertylist;
    struct _mulle_objc_htmltablestyle                style;
    struct _mulle_objc_uniqueidarray                 *array;
    mulle_objc_categoryid_t                          categoryid;
    
-   cls = _mulle_objc_infraclass_as_class( infra);
-
+   cls      = _mulle_objc_infraclass_as_class( infra);
+   universe = _mulle_objc_infraclass_get_universe( infra);
+   
    print_to_body_with_level( cls->name, NULL, 1, fp);
 
    print_to_body( NULL, "<DIV CLASS=\"class_links\">", fp);
@@ -535,7 +537,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
             style       = methodlisttable_style;
             categoryid  = (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner;
             if( categoryid)
-               style.title = mulle_objc_string_for_categoryid( categoryid);
+               style.title = _mulle_objc_universe_string_for_categoryid( universe, categoryid);
             else
                style.title = "";
             label       = mulle_objc_methodlist_html_hor_description( methodlist, &methodlisttable_style);
@@ -557,7 +559,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             style = methodlisttable_style;
-            style.title = mulle_objc_string_for_categoryid( (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
+            style.title = _mulle_objc_universe_string_for_categoryid( universe, (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
             label = mulle_objc_methodlist_html_hor_description( methodlist, &methodlisttable_style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -573,6 +575,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       if( array->n)
       {
          label = mulle_objc_protocols_html_description( array,
+                                                        universe,
                                                         &protocoltable_style);
          print_to_body( "Protocols", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -586,6 +589,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       if( array->n)
       {
          label = mulle_objc_categories_html_description( array,
+                                                         universe,
                                                          &categorytable_style);
 
          print_to_body( "Categories", label, fp);

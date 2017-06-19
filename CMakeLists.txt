@@ -64,21 +64,21 @@ ${END_ALL_LOAD}
 ${OS_SPECIFIC_LIBRARIES}
 )
 
+add_executable( mulle-objc-uniqueid
+src/mulle-objc-uniqueid/main.c
+)
+
+target_link_libraries( mulle-objc-uniqueid
+mulle_objc_runtime
+${C_DEPENDENCY_LIBRARIES}
+${OS_SPECIFIC_LIBRARIES}
+)
+
+add_dependencies( mulle-objc-uniqueid mulle_objc_runtime)
+#set_target_properties( mulle-objc-uniqueid PROPERTIES LINKER_LANGUAGE C)
+
+
 install( TARGETS mulle_objc_runtime mulle_objc_runtime_standalone DESTINATION "lib")
+install( TARGETS mulle-objc-uniqueid DESTINATION "bin")
 install( FILES ${PUBLIC_HEADERS} DESTINATION "include/mulle_objc_runtime")
 install( FILES CMakeDependencies.txt DESTINATION "include/mulle_objc_runtime")
-
-
-#
-# Doesn't work, don't know why
-#
-# add_executable( mulle-objc-uniqueid
-# src/mulle-objc-uniqueid/main.c
-# mulle_objc
-# ${DEPENDENCY_LIBRARIES}
-#)
-#
-#add_dependencies( mulle-objc-uniqueid mulle_objc)
-#set_target_properties( mulle-objc-uniqueid PROPERTIES LINKER_LANGUAGE C)
-#
-#INSTALL( TARGETS mulle-objc-uniqueid DESTINATION "bin")

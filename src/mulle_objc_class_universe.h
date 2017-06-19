@@ -84,7 +84,7 @@ static inline struct _mulle_objc_infraclass  *
                                                mulle_objc_classid_t classid);
    
    assert( universe);
-   assert( _mulle_objc_universe_get_version( universe) == MULLE_OBJC_RUNTIME_VERSION);
+   assert( ! _mulle_objc_universe_is_uninitialized( universe)); // not is_initalized!!
    assert( classid);
    
    index = mulle_objc_get_fastclasstable_index( classid);
@@ -110,7 +110,7 @@ static inline struct _mulle_objc_infraclass *
                                                         mulle_objc_classid_t classid);
    
    assert( universe);
-   assert( _mulle_objc_universe_get_version( universe) == MULLE_OBJC_RUNTIME_VERSION);
+   assert( ! _mulle_objc_universe_is_uninitialized( universe));  // not is_initalized!!
    assert( classid);
    
    index = mulle_objc_get_fastclasstable_index( classid);

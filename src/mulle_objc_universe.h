@@ -167,7 +167,7 @@ static inline struct _mulle_objc_universe  *mulle_objc_get_thread_universe( void
    assert( config && "thread not configure for mulle_objc");
 
    universe = config->universe;
-   assert( _mulle_objc_universe_is_initialized( universe) && "universe not initialized yet");
+   assert( ! _mulle_objc_universe_is_uninitialized( universe) && "universe not initialized yet");
 
    return( universe);
 }
@@ -235,7 +235,6 @@ static inline struct _mulle_objc_universe  *mulle_objc_inlined_get_universe( voi
 // always returns same value (in same thread)
 MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_universe  *__mulle_objc_get_universe( void);
-
 
 //
 // this call creates a global universe, if there is no thread or global universe
@@ -705,12 +704,43 @@ char   *_mulle_objc_universe_search_debughashname( struct _mulle_objc_universe *
 char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid);
 
 // never returns NULL
+
+# pragma mark - uniqueid to string conversions
+
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_uniqueid( struct _mulle_objc_universe *universe,
+                                                  mulle_objc_uniqueid_t uniqueid);
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_classid( struct _mulle_objc_universe *universe,
+                                                 mulle_objc_classid_t classid);
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_methodid( struct _mulle_objc_universe *universe,
+                                                  mulle_objc_methodid_t methodid);
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_protocolid( struct _mulle_objc_universe *universe,
+                                                    mulle_objc_protocolid_t protocolid);
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_categoryid( struct _mulle_objc_universe *universe,
+                                                    mulle_objc_categoryid_t categoryid);
+
+#ifndef MULLE_OBJC_NO_CONVENIENCES
+
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t classid);
 
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_classid( mulle_objc_classid_t classid);
+
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_methodid( mulle_objc_methodid_t methodid);
+
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_protocolid( mulle_objc_protocolid_t protocolid);
+
+MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid);
+
+#endif
 
 
 # pragma mark - debug waitqueues

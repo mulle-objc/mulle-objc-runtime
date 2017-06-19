@@ -97,15 +97,18 @@ void   _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
 
 
 void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
-                                     struct mulle_allocator *allocator)
+                                  struct mulle_allocator *allocator)
 {
+   struct _mulle_objc_universe   *universe;
+
    if( ! pair)
       return;
 
    if( ! allocator)
    {
-      errno = EINVAL;
-      _mulle_objc_universe_raise_fail_errno_exception( mulle_objc_get_or_create_universe());
+      universe = _mulle_objc_classpair_get_universe( pair);
+      errno    = EINVAL;
+      _mulle_objc_universe_raise_fail_errno_exception(universe);
    }
 
    _mulle_objc_classpair_free( pair, allocator);
@@ -120,7 +123,7 @@ mulle_objc_walkcommand_t
    mulle_objc_walkcommand_t   cmd;
    struct _mulle_objc_infraclass      *infra;
    struct _mulle_objc_metaclass       *meta;
-   struct _mulle_objc_universe         *universe;
+   struct _mulle_objc_universe        *universe;
 
    universe = _mulle_objc_classpair_get_universe( pair);
 
@@ -199,8 +202,8 @@ static void   _mulle_objc_class_raise_einval_exception( void)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_get_or_create_universe();
-   errno = EINVAL;
+   universe = mulle_objc_get_universe();
+   errno    = EINVAL;
    _mulle_objc_universe_raise_fail_errno_exception( universe);
 }
 
@@ -272,7 +275,7 @@ void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpa
                     _mulle_objc_classpair_get_name( pair),
                     categoryid,
                     _mulle_objc_classpair_get_name( pair),
-                    mulle_objc_string_for_categoryid( categoryid));
+                    _mulle_objc_universe_string_for_categoryid( universe, categoryid));
    }
 
    if( universe->debug.trace.category_adds || universe->debug.trace.dependencies)
@@ -280,7 +283,7 @@ void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpa
                        " to class %08x \"%s\"\n",
               universe,
               categoryid,
-              mulle_objc_string_for_categoryid( categoryid),
+              _mulle_objc_universe_string_for_categoryid( universe, categoryid),
               _mulle_objc_classpair_get_classid( pair),
               _mulle_objc_classpair_get_name( pair));
 

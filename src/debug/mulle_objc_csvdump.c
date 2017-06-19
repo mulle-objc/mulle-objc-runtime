@@ -67,6 +67,7 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
    struct _mulle_objc_cacheentry    *p;
    struct _mulle_objc_cacheentry    *sentinel;
    struct _mulle_objc_method        *method;
+   struct _mulle_objc_universe      *universe;
    mulle_objc_methodid_t            methodid;
    mulle_objc_categoryid_t          categoryid;
    struct _mulle_objc_searchresult  result;
@@ -83,6 +84,8 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return;
 
+   universe = _mulle_objc_class_get_universe( cls);
+   
    p        = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
    sentinel = &p[ cache->size];
    
@@ -109,7 +112,7 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
       classname  = _mulle_objc_class_get_name( result.class);
       if( categoryid)
       {
-         categoryname = mulle_objc_string_for_categoryid( categoryid);
+         categoryname = _mulle_objc_universe_string_for_categoryid( universe, categoryid);
          fprintf( fp, "%08x;%08x;%s;%s;",
                  _mulle_objc_class_get_classid( result.class),
                  categoryid,
