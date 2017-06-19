@@ -54,7 +54,7 @@ static inline struct _mulle_objc_universe  *mulle_objc_get_global_universe( void
 {
    MULLE_OBJC_EXTERN_GLOBAL struct _mulle_objc_universe   mulle_objc_global_universe;
 
-   assert( _mulle_objc_universe_is_initialized( &mulle_objc_global_universe) && "universe not initialized yet");
+   assert( ! _mulle_objc_universe_is_uninitialized( &mulle_objc_global_universe) && "universe not initialized yet");
    return( &mulle_objc_global_universe);
 }
 

@@ -454,6 +454,7 @@ static void   print_class( struct _mulle_objc_class *cls,
    struct _mulle_objc_infraclass                    *infra;
    struct _mulle_objc_metaclass                     *meta;
    struct _mulle_objc_methodlist                    *methodlist;
+   struct _mulle_objc_universe                      *universe;
    unsigned int                                     i;
    struct _mulle_objc_htmltablestyle                style;
 
@@ -482,7 +483,8 @@ static void   print_class( struct _mulle_objc_class *cls,
    }
    fprintf( info->fp, " ];\n");
 
-   if( _mulle_objc_class_get_universe( cls))
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe)
       fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"universe\" ];\n", cls,  _mulle_objc_class_get_universe( cls));
 
    // meta superclass is boring
@@ -548,7 +550,9 @@ static void   print_class( struct _mulle_objc_class *cls,
             fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"methodlist #%d\" ];\n",
                     cls, methodlist, i++);
 
-            label = mulle_objc_methodlist_html_description( methodlist, &methodlist_style);
+            label = mulle_objc_methodlist_html_description( methodlist,
+                                                            universe,
+                                                            &methodlist_style);
             fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", methodlist, label);
             free( label);
          }
@@ -577,7 +581,10 @@ static void   print_classpair( struct _mulle_objc_classpair *pair,
 {
    struct _mulle_objc_uniqueidarray   *array;
    char                               *label;
-
+   struct _mulle_objc_universe        *universe;
+   
+   universe = _mulle_objc_classpair_get_universe( pair);
+   
    array = _mulle_atomic_pointer_read( &pair->p_protocolids.pointer);
    if( array->n)
    {
@@ -585,6 +592,7 @@ static void   print_classpair( struct _mulle_objc_classpair *pair,
               cls, array);
 
       label = mulle_objc_protocols_html_description( array,
+                                                     universe,
                                                      &protocoltable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", array, label);
       free( label);
@@ -597,6 +605,7 @@ static void   print_classpair( struct _mulle_objc_classpair *pair,
               cls, array);
 
       label = mulle_objc_categories_html_description( array,
+                                                      universe,
                                                       &categorytable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", array, label);
       free( label);

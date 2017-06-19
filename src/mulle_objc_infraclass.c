@@ -384,7 +384,12 @@ static int  print_categoryid( mulle_objc_protocolid_t categoryid,
                               struct _mulle_objc_classpair *pair,
                               void *userinfo)
 {
-   fprintf( stderr, "\t%08x \"%s\"\n", categoryid, mulle_objc_string_for_categoryid( categoryid));
+   struct _mulle_objc_universe  *universe;
+   
+   universe = _mulle_objc_classpair_get_universe( pair);
+   fprintf( stderr, "\t%08x \"%s\"\n",
+            categoryid,
+           _mulle_objc_universe_string_for_categoryid( universe, categoryid));
    return( 0);
 }
 
