@@ -8,15 +8,15 @@
 bunch of headers.
 
 
-## TPS / TRT 
+## TPS / TRT
 
-You can compile the runtime in various configurations. You can not build a runtime to support all configurations.  
+You can compile the runtime in various configurations. You can not build a runtime to support all configurations.
 
 * **TPS** means: tagged pointers
 * **TRT** means: thread local runtime
 
 
-#### 
+####
 
  TPS  | TRT | Usage
 ------|-----|----------------------
@@ -24,9 +24,10 @@ You can compile the runtime in various configurations. You can not build a runti
   -   | x   | For plugins that can't use global runtimes.
   x   | -   | Default
   x   | x   | Fast dispatch for special classes
-  
-  
-This is set in the CMakeFile of the project. Define `__MULLE_TPS__` to enable TPS. Define `__MULLE_TRT__` to enable thread local runtime.
+
+
+This is set in the CMakeFile of the project. Define `__MULLE_TPS__` to enable
+TPS. Define `__MULLE_TRT__` to enable thread local runtime.
 
 The mulle-clang compiler uses `-fobjc-tps` by default. Turn it off with
 `-fno-objc-tps`. Use `-fobjc-trt` to enable thread local runtime mode.
@@ -36,7 +37,8 @@ The mulle-clang compiler uses `-fobjc-tps` by default. Turn it off with
 
 ### Compatibility
 
-**Runtime** shows the configuration as it is compiled. **Code** has included the runtime's headers and is linked against it.
+**Runtime** shows the configuration as it is compiled. **Code** has included
+the runtime's headers and is linked against it.
 
 
 Runtime | Code   | Description
@@ -46,7 +48,8 @@ Global  | TRT    | Works, but slower. Mixes with "Global Code" too
 TRT     | Global | Crashes
 TRT     | TRT    | Works
 
-So loading global code into a TRT enabled runtime is a bad idea. The runtime checks against that.
+So loading global code into a TRT enabled runtime is a bad idea. The runtime
+checks against that.
 
 
 Runtime | Code   | Description
@@ -56,9 +59,12 @@ No-TPS  | TPS    | Crashes
 TPS     | No-TPS | Works, but slower. Does not mix with "TPS Code"
 TPS     | YES    | Works
 
-The runtime does not allow loading of TPS code when not configured for TPS. When configured for TPS, it is possible to load No-TPS code only.
+The runtime does not allow loading of TPS code when not configured for TPS.
+When configured for TPS, it is possible to load No-TPS code only.
 
 ## Prerequisites
+
+![Dependencies](https://raw.githubusercontent.com/mulle-nat/mulle-objc-runtime/release/dox/mulle-objc-runtime-dependencies.png)
 
 #### mulle-aba
 

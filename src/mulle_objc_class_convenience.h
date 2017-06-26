@@ -52,7 +52,7 @@ static inline struct mulle_allocator   *_mulle_objc_class_get_allocator( struct 
    struct _mulle_objc_universe      *universe;
    struct _mulle_objc_foundation   *foundation;
 
-   universe    = _mulle_objc_class_get_universe( cls);
+   universe   = _mulle_objc_class_get_universe( cls);
    foundation = _mulle_objc_universe_get_foundation( universe);
    return( _mulle_objc_foundation_get_allocator( foundation));
 }
@@ -91,6 +91,7 @@ static inline struct _mulle_objc_object   *_mulle_objc_infraclass_alloc_instance
    _mulle_objc_object_set_isa( obj, _mulle_objc_infraclass_as_class( infra));
    return( obj);
 }
+
 
 static inline struct _mulle_objc_object   *mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra, struct mulle_allocator *allocator)
 {

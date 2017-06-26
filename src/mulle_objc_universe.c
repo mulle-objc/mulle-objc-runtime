@@ -561,7 +561,7 @@ void   _mulle_objc_universe_defaultbang( struct _mulle_objc_universe  *universe,
    int                              is_pedantic;
 
    allocator = NULL;
-   is_test = getenv_yes_no( "MULLE_OBJC_TEST_ALLOCATOR");
+   is_test   = getenv_yes_no( "MULLE_OBJC_TEST_ALLOCATOR");
    if( is_test)
    {
       // call this because we are probably also in +load here
