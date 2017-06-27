@@ -113,14 +113,14 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
       if( categoryid)
       {
          categoryname = _mulle_objc_universe_string_for_categoryid( universe, categoryid);
-         fprintf( fp, "%08x;%08x;%s;%s;",
+         fprintf( fp, "%08x;%s;%08x;%s;",
                  _mulle_objc_class_get_classid( result.class),
-                 categoryid,
                  classname,
+                 categoryid,
                  categoryname);
       }
       else
-         fprintf( fp, "%08x;;%s;;",
+         fprintf( fp, "%08x;%s;;;",
                        _mulle_objc_class_get_classid( result.class),
                        classname);
       
@@ -133,7 +133,7 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
 
 
 void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *universe,
-                                                 FILE *fp)
+                                                  FILE *fp)
 {
    intptr_t                                    classid;
    struct _mulle_objc_infraclass               *infra;
