@@ -18,6 +18,7 @@ Only use `mulle_objc_get_or_create_universe` during loading. Makes it easier.
 
 Also distribute mulle-objc-uniqueid.
 
+Changed the coverage format to be compatible with mulle-objc-list
 
 ### 0.8.5
 
