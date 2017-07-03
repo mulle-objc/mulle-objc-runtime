@@ -252,7 +252,7 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
    struct _mulle_objc_class        *call_cls;
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_infraclass   *call_infra;
-   struct _mulle_objc_universe      *universe;
+   struct _mulle_objc_universe     *universe;
 
    cls      = _mulle_objc_object_get_isa( obj);
    call_cls = cls->superclass;
