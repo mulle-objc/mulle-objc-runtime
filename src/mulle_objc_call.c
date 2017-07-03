@@ -91,6 +91,7 @@ static unsigned int   _mulle_objc_class_count_noninheritedmethods( struct _mulle
 }
 
 
+// TODO: investigate a better and simpler formula or use a sensible constant
 static mulle_objc_cache_uint_t  _mulle_objc_class_convenient_methodcache_size( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_class   *next;
@@ -749,7 +750,7 @@ static void   mulle_objc_metaclass_initialize_if_needed( struct _mulle_objc_meta
    
    // grab code from superclass
    // this is useful for MulleObjCSingleton
-   universe    = _mulle_objc_metaclass_get_universe( meta);
+   universe   = _mulle_objc_metaclass_get_universe( meta);
    initialize = _mulle_objc_class_search_method( &meta->base,
                                                 MULLE_OBJC_INITIALIZE_METHODID,
                                                 NULL,
@@ -784,9 +785,13 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
    // now setup the cache and let it rip, except when we don't ever want one
    universe = _mulle_objc_class_get_universe( cls);
    
+   // your chance to change the cache algorithm and initital size
+   n_entries = _mulle_objc_class_convenient_methodcache_size( cls);
+   if( universe->callbacks.will_init_cache)
+      n_entries = (*universe->callbacks.will_init_cache)( universe, cls, n_entries);
+ 
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
    {
-      n_entries = _mulle_objc_class_convenient_methodcache_size( cls);
       cache     = mulle_objc_cache_new( n_entries, &cls->universe->memory.allocator);
       
       assert( cache);
@@ -869,14 +874,10 @@ void   *_mulle_objc_object_call_class_needs_cache( void *obj,
       }
       else
          meta = _mulle_objc_class_as_metaclass( cls);
-      
-      mulle_objc_metaclass_initialize_if_needed( meta);
-      
-      //
-      // will replace cls->call, +initialize runs uncached intentionally
-      // so that the cache isn't "polluted" with one-time methods
-      //
+
+      // setup cache first now for coverage
       mulle_objc_class_setup_initial_cache( cls);
+      mulle_objc_metaclass_initialize_if_needed( meta);
    }
    
    //

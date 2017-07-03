@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.0)
 
-project( mulle-objc-runtime)
+project( mulle-objc-runtime C)
 
 add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern
                  -DMULLE_OBJC_EXTERN_GLOBAL=extern

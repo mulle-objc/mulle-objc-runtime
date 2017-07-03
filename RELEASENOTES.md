@@ -20,6 +20,13 @@ Also distribute mulle-objc-uniqueid.
 
 Changed the coverage format to be compatible with mulle-objc-list
 
+Initialize the cache now before +initialize. To be able to affect the cache
+size (and possible other stuff) there is a new callback in the universe
+`will_init_cache`.
+
+Made it a "C" cmake project
+
+
 ### 0.8.5
 
 * modernize project, beautify and fix dotdump a little

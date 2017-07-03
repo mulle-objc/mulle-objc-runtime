@@ -1491,9 +1491,9 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
 
    _mulle_objc_universe_assert_version( universe, &info->version);
 
-   if( universe->loadcallbacks.should_load_loadinfo)
+   if( universe->callbacks.should_load_loadinfo)
    {
-      if( ! (*universe->loadcallbacks.should_load_loadinfo)( universe, info))
+      if( ! (*universe->callbacks.should_load_loadinfo)( universe, info))
       {
          if( universe->debug.trace.loadinfo)
          {
