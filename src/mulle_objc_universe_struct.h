@@ -180,15 +180,20 @@ struct _mulle_objc_preloadmethodids
 struct _mulle_objc_classdefaults
 {
    struct _mulle_objc_method   *forwardmethod;
-   void                        (*class_is_missing)( struct _mulle_objc_universe *, mulle_objc_classid_t);
-
+   void                        (*class_is_missing)( struct _mulle_objc_universe *,
+                                                    mulle_objc_classid_t);
    unsigned short              inheritance;
 };
 
 
-struct _mulle_objc_loadcallbacks
+struct _mulle_objc_universecallbacks
 {
-   int   (*should_load_loadinfo)(  struct _mulle_objc_universe *, struct _mulle_objc_loadinfo *);
+   int    (*should_load_loadinfo)(  struct _mulle_objc_universe *,
+                                    struct _mulle_objc_loadinfo *);
+
+   mulle_objc_cache_uint_t   (*will_init_cache)(  struct _mulle_objc_universe *,
+                                                  struct _mulle_objc_class *,
+                                                  mulle_objc_cache_uint_t n_entries);
 };
 
 //
@@ -292,7 +297,7 @@ struct _mulle_objc_universe
    mulle_atomic_pointer_t                   version;
    char                                     *path;    
 
-   // try to keep this region stable for loadcallbacks
+   // try to keep this region stable for callbacks
 
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
@@ -303,7 +308,7 @@ struct _mulle_objc_universe
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
 
-   struct _mulle_objc_loadcallbacks         loadcallbacks;
+   struct _mulle_objc_universecallbacks     callbacks;
 
    // unstable region, edit at will
 
