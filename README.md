@@ -45,6 +45,14 @@ only locks during `+initialize` on a per class basis.
 
 ![Libraries and Tools](https://raw.githubusercontent.com/mulle-nat/mulle-objc-runtime/release/dox/mulle-objc-runtime-dependencies.png)
 
+  Name         | Build Status | Release Version
+---------------|--------------|---------------------------------
+[mulle-concurrent](//github.com/mulle-nat/mulle-concurrent) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-concurrent.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-concurrent) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-concurrent.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-concurrent.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-concurrent)
+[mulle-aba](//github.com/mulle-nat/mulle-aba) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-aba.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-aba) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-aba.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-aba.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-aba)
+[mulle-allocator](//github.com/mulle-nat/mulle-allocator) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-allocator.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-allocator) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-allocator.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-allocator.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-allocator)
+[mulle-vararg](//github.com/mulle-nat/mulle-vararg) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-vararg.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-vararg.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-vararg.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-vararg)
+[mulle-c11](//github.com/mulle-nat/mulle-c11) | [![Build Status](https://travis-ci.org/mulle-nat/mulle-c11.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-c11) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-nat/mulle-c11.svg) [![Build Status](https://travis-ci.org/mulle-nat/mulle-c11.svg?branch=release)](https://travis-ci.org/mulle-nat/mulle-c11)
+
 ## How to use it
 
 If you haven't used an Objective-C runtime before, it is useful to get to know
