@@ -15,8 +15,8 @@ digraph settings
    { rank = same; "gcc | clang "}
    { rank = same; "mulle-c11" } ->
    { rank = same; "C11 | [pthreads / mintomic]"; "C standard libraries" } [ style="invis"]
-   { rank = same; "mulle-thread"; "mulle-vararg" }
    { rank = same; "mulle-allocator" }
+   { rank = same; "mulle-thread"; "mulle-vararg" }
    { rank = same; "mulle-aba" }
    { rank = same; "mulle-concurrent" }
 
@@ -36,6 +36,7 @@ digraph settings
    "mulle-allocator"    -> "mulle-thread";
    "mulle-concurrent"   -> "mulle-aba";
  	"mulle-aba"          -> "mulle-allocator";
+   "mulle-objc-runtime" -> "mulle-allocator";
    "mulle-objc-runtime" -> "mulle-vararg";
    "mulle-objc-runtime" -> "mulle-concurrent";
 }
