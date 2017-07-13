@@ -263,7 +263,7 @@ void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpa
       _mulle_objc_class_raise_einval_exception();
    }
 
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRA_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
    {
       if( universe->debug.warn.protocolclass)
          if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
@@ -371,7 +371,7 @@ void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_c
       if( _mulle_objc_classpair_has_protocolclass( pair, proto_cls))
          continue;
 
-      if( _mulle_objc_infraclass_set_state_bit( proto_cls, MULLE_OBJC_INFRA_IS_PROTOCOLCLASS))
+      if( _mulle_objc_infraclass_set_state_bit( proto_cls, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
       {
          if( universe->debug.trace.protocol_adds)
             fprintf( stderr, "mulle_objc_universe %p trace: class %08x \"%s\""

@@ -45,9 +45,13 @@ struct _mulle_objc_loadinfo;
 void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *universe,
                                                 FILE *fp);
 void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
+                                               FILE *fp);
+void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *cls,
                                                 FILE *fp);
 void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *universe,
-                                                 FILE *fp);
+                                                  FILE *fp);
+void   mulle_objc_universe_csvdump_cachedmethodcoverage( struct _mulle_objc_universe *universe,
+                                                         FILE *fp);
 void   mulle_objc_class_csvdump_cachesizes( struct _mulle_objc_class *cls,
                                             FILE *fp);
 

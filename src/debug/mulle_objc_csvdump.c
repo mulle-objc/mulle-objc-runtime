@@ -48,31 +48,62 @@
 #include <errno.h>
 
 
+static void   mulle_objc_searchresult_csvdump( struct _mulle_objc_searchresult  *result,
+                                               FILE *fp)
+{
+   mulle_objc_categoryid_t          categoryid;
+   struct _mulle_objc_universe      *universe;
+   char                             *classname;
+   char                             *categoryname;
+   
+   universe = _mulle_objc_class_get_universe( result->class);
+   
+   categoryid = (mulle_objc_categoryid_t) (intptr_t) result->list->owner;
+   classname  = _mulle_objc_class_get_name( result->class);
+   if( categoryid)
+   {
+      categoryname = _mulle_objc_universe_string_for_categoryid( universe, categoryid);
+      fprintf( fp, "%08x;%s;%08x;%s;",
+              _mulle_objc_class_get_classid( result->class),
+              classname,
+              categoryid,
+              categoryname);
+   }
+   else
+      fprintf( fp, "%08x;%s;;;",
+              _mulle_objc_class_get_classid( result->class),
+              classname);
+   
+   fprintf( fp, "%08x;%c%s\n",
+           _mulle_objc_method_get_methodid( result->method),
+           _mulle_objc_class_is_metaclass( result->class) ? '+' : '-',
+           _mulle_objc_method_get_name( result->method));
+}
+
+
 //
 // remember a classpair needs to dump both meta and infra (this can handle both
 // but only dumps either)
 //
 // currently we look for methods that are in the cache, and we never really
 // empty the cache. BUT! This doesn't catch calls to methods, that are
-// overridden later. If we need this sometime, the solution is to turn
-// methoddescriptor bits into an atomic void * and set a bit on it, whenever
-// the method is added to the cache. Then we "just" traverse all methodlists
-// of all classes and dump them out. The format is different though, since
-// we don't have the cache information.
+// overridden later. If we need this we should use the
+// _mulle_objc_method_searched_and_found method descriptor bit.
+// Then we "just" traverse all methodlists of all classes and dump them out.
+// The format would be different though, since  we don't have the cache
+// information.
 //
-void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
-                                                FILE *fp)
+
+void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *cls,
+                                                      FILE *fp)
 {
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_cacheentry    *p;
-   struct _mulle_objc_cacheentry    *sentinel;
-   struct _mulle_objc_method        *method;
-   struct _mulle_objc_universe      *universe;
-   mulle_objc_methodid_t            methodid;
-   mulle_objc_categoryid_t          categoryid;
-   struct _mulle_objc_searchresult  result;
-   char                             *classname;
-   char                             *categoryname;
+   struct _mulle_objc_cache          *cache;
+   struct _mulle_objc_cacheentry     *p;
+   struct _mulle_objc_cacheentry     *sentinel;
+   struct _mulle_objc_method         *method;
+   struct _mulle_objc_searchresult   result;
+   struct _mulle_objc_universe       *universe;
+   mulle_objc_methodid_t             methodid;
    
    if( ! cls || ! fp)
    {
@@ -108,31 +139,57 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
               _mulle_objc_class_get_classid( cls),
               _mulle_objc_class_get_name( cls));
       
-      categoryid = (mulle_objc_categoryid_t) (intptr_t) result.list->owner;
-      classname  = _mulle_objc_class_get_name( result.class);
-      if( categoryid)
-      {
-         categoryname = _mulle_objc_universe_string_for_categoryid( universe, categoryid);
-         fprintf( fp, "%08x;%s;%08x;%s;",
-                 _mulle_objc_class_get_classid( result.class),
-                 classname,
-                 categoryid,
-                 categoryname);
-      }
-      else
-         fprintf( fp, "%08x;%s;;;",
-                       _mulle_objc_class_get_classid( result.class),
-                       classname);
-      
-      fprintf( fp, "%08x;%c%s\n",
-              _mulle_objc_method_get_methodid( method),
-              _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-              _mulle_objc_method_get_name( method));
+      mulle_objc_searchresult_csvdump( &result, fp);
    }
 }
 
 
-void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *universe,
+
+void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
+                                                FILE *fp)
+{
+   struct  _mulle_objc_methodlistenumerator                enumerator;
+   struct _mulle_objc_method                               *method;
+   struct _mulle_objc_methodlist                           *list;
+   struct _mulle_objc_searchresult                         result;
+   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
+   unsigned int                                            n;
+
+   if( ! cls || ! fp)
+   {
+      errno = EINVAL;
+      mulle_objc_raise_fail_errno_exception();
+   }
+   
+   n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
+   assert( n);
+   if( _mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
+      n = 1;
+
+   result.class = cls;
+
+   rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
+   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   {
+      result.list = list;
+      
+      enumerator = mulle_objc_methodlist_enumerate( list);
+      while( method = _mulle_objc_methodlistenumerator_next( &enumerator))
+      {
+         if( ! (method->descriptor.bits & _mulle_objc_method_searched_and_found))
+            continue;
+
+         result.method = method;
+
+         mulle_objc_searchresult_csvdump( &result, fp);
+      }
+      mulle_objc_methodlistenumerator_done( &enumerator);
+   }
+   mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
+}
+
+
+void   mulle_objc_universe_csvdump_cachedmethodcoverage( struct _mulle_objc_universe *universe,
                                                   FILE *fp)
 {
    intptr_t                                    classid;
@@ -151,6 +208,33 @@ void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *
    {
       meta = _mulle_objc_infraclass_get_metaclass( infra);
 
+      mulle_objc_class_csvdump_cachedmethodcoverage( _mulle_objc_metaclass_as_class( meta), fp);
+      mulle_objc_class_csvdump_cachedmethodcoverage( _mulle_objc_infraclass_as_class( infra), fp);
+   }
+   mulle_concurrent_hashmapenumerator_done( &rover);
+}
+
+
+
+void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *universe,
+                                                   FILE *fp)
+{
+   intptr_t                                    classid;
+   struct _mulle_objc_infraclass               *infra;
+   struct _mulle_objc_metaclass                *meta;
+   struct mulle_concurrent_hashmapenumerator   rover;
+   
+   if( ! universe || ! fp)
+   {
+      errno = EINVAL;
+      mulle_objc_raise_fail_errno_exception();
+   }
+   
+   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
+   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+   {
+      meta = _mulle_objc_infraclass_get_metaclass( infra);
+      
       mulle_objc_class_csvdump_methodcoverage( _mulle_objc_metaclass_as_class( meta), fp);
       mulle_objc_class_csvdump_methodcoverage( _mulle_objc_infraclass_as_class( infra), fp);
    }
@@ -164,7 +248,6 @@ void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *u
 {
    intptr_t                                    classid;
    struct _mulle_objc_infraclass               *infra;
-   struct _mulle_objc_metaclass                *meta;
    struct mulle_concurrent_hashmapenumerator   rover;
    
    if( ! universe || ! fp)
@@ -182,8 +265,7 @@ void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *u
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
    {
-      meta = _mulle_objc_infraclass_get_metaclass( infra);
-      if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
+      if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
          continue;
       
       fprintf( fp, "%08x;%s\n",
@@ -258,7 +340,7 @@ void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
    }
    
    universe = mulle_objc_get_universe();
-   mulle_objc_universe_csvdump_methodcoverage( universe, fp);
+   mulle_objc_universe_csvdump_cachedmethodcoverage( universe, fp);
    
    fclose( fp);
 
@@ -321,12 +403,16 @@ static void   _fprint_csv_version( FILE *fp, uint32_t version)
 
 void   mulle_objc_loadinfo_csvdump_terse( struct _mulle_objc_loadinfo *info, FILE *fp)
 {
+   char   *s;
+   
    if( ! fp)
    {
       errno = EINVAL;
       mulle_objc_raise_fail_errno_exception();
    }
-   fprintf( fp, "%s;", mulle_objc_loadinfo_get_originator( info));
+   
+   s = mulle_objc_loadinfo_get_originator( info);
+   fprintf( fp, "%s;", s ? s : "");
    _fprint_csv_version( fp, info->version.universe);
    _fprint_csv_version( fp, info->version.foundation);
    _fprint_csv_version( fp, info->version.user);
