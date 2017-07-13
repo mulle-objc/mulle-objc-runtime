@@ -99,6 +99,14 @@ enum
    _mulle_objc_method_variadic                  = 0x08,
    _mulle_objc_method_guessed_signature         = 0x10,
 
+   // this "coverage" bit gets set, when a method has been searched and found.
+   // Should setting the bit be atomic, though it will never be cleared ?
+   // And it's the only bit in this enum, that is set at runtime, so does
+   // it really need to be atomic ? I don't think so. Things would change
+   // if there are 2 writable bits though.
+   
+   _mulle_objc_method_searched_and_found        = 0x80,
+
 // this is from clang ObjCMethodFamilyAttr
 //  enum FamilyKind {
 //    OMF_None,
@@ -114,6 +122,8 @@ enum
    _mulle_objc_method_family_kind_init        = (3 << 16),
    _mulle_objc_method_family_kind_mutablecopy = (4 << 16),
    _mulle_objc_method_family_kind_new         = (5 << 16)
+
+
 };
 
 # pragma mark - methoddescriptor
@@ -123,7 +133,7 @@ struct _mulle_objc_methoddescriptor
    mulle_objc_methodid_t   methodid;
    char                    *name;
    char                    *signature;
-   int                     bits;
+   int                     bits;  // todo: make this a mulle_atomic_pointer_t
 };
 
 

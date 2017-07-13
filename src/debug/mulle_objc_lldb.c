@@ -69,7 +69,7 @@ mulle_objc_methodimplementation_t
    cls  = is_meta ? obj : _mulle_objc_object_get_isa( obj);
    
    // call "-class" so class initializes.. But WHY ??
-   // if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
+   // if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE))
    //   mulle_objc_object_call( cls, MULLE_OBJC_CLASS_METHODID, NULL);
    
    if( is_classid)

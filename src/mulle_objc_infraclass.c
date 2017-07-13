@@ -495,7 +495,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    {
       if( universe->debug.warn.protocolclass)
       {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol of same name, but it is "
                              "not a root class %s",
@@ -510,7 +510,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    {
       if( universe->debug.warn.protocolclass)
       {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol of the same name"
                  ", but implements instance variables %s",
                    universe,
@@ -527,7 +527,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    {
       if( universe->debug.warn.protocolclass)
       {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol but does not conform to it %s",
                     universe,
                     _mulle_objc_infraclass_get_name( infra),
@@ -540,7 +540,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    {
       if( universe->debug.warn.protocolclass)
       {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol but also inherits from other protocolclasses %s",
                     universe,
                     _mulle_objc_infraclass_get_name( infra),
@@ -566,7 +566,7 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
       has_categories = array->n != 0;
       if( has_categories)
       {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRA_WARN_PROTOCOL))
+         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
          {
             fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" conforms "
                     "to a protocol but has gained some categories, which "

@@ -247,7 +247,8 @@ struct _mulle_objc_loadinfo
 };
 
 
-// should give the file that was used to compile it
+// should give the file that was used to compile it, if available
+// can return NULL
 char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info);
 
 # pragma mark  - "master" load call

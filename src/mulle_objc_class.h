@@ -371,7 +371,7 @@ static inline int   mulle_objc_class_is_metaclass( struct _mulle_objc_class *cls
 
 //
 // if we are a metaclass, the infraclass is the "actual" ''infraclass''
-//
+// if we are a infraclass, the result is NULL!
 static inline struct _mulle_objc_infraclass   *mulle_objc_class_get_infraclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_infraclass( cls) : NULL);

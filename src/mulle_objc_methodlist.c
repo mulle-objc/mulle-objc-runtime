@@ -121,7 +121,7 @@ int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist 
    if( method)
    {
       imp   = _mulle_objc_method_get_implementation( method);
-      _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_META_LOAD_SCHEDULED);  // debugging help
+      _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_LOAD_SCHEDULED);  // debugging help
 
       if( mulle_objc_callqueue_add( loads, (struct _mulle_objc_object *) meta, MULLE_OBJC_LOAD_METHODID, imp))
          return( -1);

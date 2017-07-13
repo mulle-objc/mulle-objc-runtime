@@ -1460,7 +1460,7 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
    if( ! s)
       if( info->loadcategorylist && info->loadcategorylist->n_loadcategories)
          s = info->loadcategorylist->loadcategories[ 0]->origin;
-   return( s ? s : "???");
+   return( s);
 }
 
 
