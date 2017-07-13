@@ -18,11 +18,13 @@ Only use `mulle_objc_get_or_create_universe` during loading. Makes it easier.
 
 Also distribute mulle-objc-uniqueid.
 
-Changed the coverage format to be compatible with mulle-objc-list
+Changed the coverage format to be compatible with mulle-objc-list. Use a more
+all encompassing form of coverage check using a methoddescriptor bit. 
 
 Initialize the cache now before +initialize. To be able to affect the cache
 size (and possible other stuff) there is a new callback in the universe
-`will_init_cache`.
+`will_init_cache`. The +initialize code has been reworked, so that superclass
++initializes are now guaranteed to be called before the subclass.
 
 Made it a "C" cmake project
 

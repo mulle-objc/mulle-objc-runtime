@@ -71,7 +71,7 @@ static char   *lookup_bitname( unsigned int bit)
    case _MULLE_OBJC_CLASS_WARN_PROTOCOL     : return( "WARN_PROTOCOL");
    case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS  : return( "IS_PROTOCOLCLASS");
    case _MULLE_OBJC_CLASS_LOAD_SCHEDULED    : return( "LOAD_SCHEDULED");
-   case _MULLE_OBJC_CLASS_INITIALIZE_DONE   : return( "INITIALIZE_DONE");
+   case MULLE_OBJC_CLASS_INITIALIZE_DONE    : return( "INITIALIZE_DONE");
    }
    return( 0);
 }
@@ -339,6 +339,9 @@ static int   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class 
 
    assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
 
+   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
+      return( 0);
+   
    cache = _mulle_objc_class_get_methodcache( cls);
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return( 0);
@@ -752,7 +755,7 @@ struct _mulle_objc_method   *
                                      unsigned int inheritance,
                                      struct _mulle_objc_searchresult *result)
 {
-   struct _mulle_objc_universe                              *universe;
+   struct _mulle_objc_universe                             *universe;
    struct _mulle_objc_method                               *found;
    struct _mulle_objc_method                               *method;
    struct _mulle_objc_methodlist                           *list;
@@ -821,6 +824,9 @@ struct _mulle_objc_method   *
 
          if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
          {
+            // atomicity needed or not ? see header for more discussion
+            method->descriptor.bits |= _mulle_objc_method_searched_and_found;
+            
             if( universe->debug.trace.method_searches)
                trace_method_found( universe, cls, list, method, &rover);
 

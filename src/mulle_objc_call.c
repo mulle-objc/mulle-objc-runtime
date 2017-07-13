@@ -717,70 +717,14 @@ static void   *_mulle_objc_object_call_uncached_class( void *obj, mulle_objc_met
    return( (*_mulle_objc_method_get_implementation( method))( obj, methodid, parameter));
 }
 
-# pragma mark - calls
 
-
-static void   *_mulle_objc_call_class_waiting_for_cache( void *obj,
-                                                        mulle_objc_methodid_t methodid,
-                                                        void *parameter,
-                                                        struct _mulle_objc_class *cls)
-{
-   /* same thread ? we are single threaded! */
-   if( _mulle_atomic_pointer_read( &cls->thread) != (void *) mulle_thread_self())
-   {
-      /* wait for other thread to finish with +initialize */
-      /* TODO: using yield is poor though! Use a condition to be awaken! */
-      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
-         mulle_thread_yield();
-   }
-   
-   return( _mulle_objc_object_call_uncached_class( obj, methodid, parameter, cls));
-}
-
-
-static void   mulle_objc_metaclass_initialize_if_needed( struct _mulle_objc_metaclass *meta)
-{
-   struct _mulle_objc_method           *initialize;
-   struct _mulle_objc_universe          *universe;
-   struct _mulle_objc_infraclass       *infra;
-   mulle_objc_methodimplementation_t   imp;
-   
-   if( ! _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_META_INITIALIZE_DONE))
-      return;
-   
-   // grab code from superclass
-   // this is useful for MulleObjCSingleton
-   universe   = _mulle_objc_metaclass_get_universe( meta);
-   initialize = _mulle_objc_class_search_method( &meta->base,
-                                                MULLE_OBJC_INITIALIZE_METHODID,
-                                                NULL,
-                                                MULLE_OBJC_ANY_OWNER,
-                                                meta->base.inheritance,
-                                                NULL);
-   if( ! initialize)
-   {
-      if( universe->debug.trace.initialize)
-         fprintf( stderr, "mulle_objc_universe %p trace: "
-                          "no +[%s initialize] found\n",
-                 universe, _mulle_objc_metaclass_get_name( meta));
-      return;
-   }
-   
-   if( universe->debug.trace.initialize)
-      fprintf( stderr, "mulle_objc_universe %p trace: call +[%s initialize]\n",
-              universe, _mulle_objc_metaclass_get_name( meta));
-   
-   infra = _mulle_objc_metaclass_get_infraclass( meta);
-   imp   = _mulle_objc_method_get_implementation( initialize);
-   (*imp)( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
-}
-
+# pragma mark - cache
 
 static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_universe       *universe;
-   struct _mulle_objc_cache         *cache;
-   mulle_objc_cache_uint_t          n_entries;
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_cache      *cache;
+   mulle_objc_cache_uint_t       n_entries;
    
    // now setup the cache and let it rip, except when we don't ever want one
    universe = _mulle_objc_class_get_universe( cls);
@@ -792,10 +736,11 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
  
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
    {
-      cache     = mulle_objc_cache_new( n_entries, &cls->universe->memory.allocator);
+      cache = mulle_objc_cache_new( n_entries, &cls->universe->memory.allocator);
       
       assert( cache);
-      assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) == mulle_objc_get_universe()->empty_cache.entries);
+      assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) ==
+              mulle_objc_get_universe()->empty_cache.entries);
       
       _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
       cls->cachepivot.call2 = _mulle_objc_object_call2;
@@ -825,23 +770,79 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
                  _mulle_objc_class_get_classid( cls),
                  _mulle_objc_class_get_name( cls),
                  cls);
+
+      //
+      // count #caches, if there are zero caches yet, the universe can be much
+      // faster adding methods.
+      //
+      _mulle_atomic_pointer_increment( &cls->universe->cachecount_1);
    }
    
-   // finally unfreze
-   // threads waiting_for_cache will run now
-   // cache initialized is also called if emty cache!
+   // this marks the class as ready to run
    _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY);
 }
 
+# pragma mark - +initialize
 
-void   *_mulle_objc_object_call_class_needs_cache( void *obj,
-                                                   mulle_objc_methodid_t methodid,
-                                                   void *parameter,
-                                                   struct _mulle_objc_class *cls)
+static void   _mulle_objc_class_wait_for_setup(  struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_infraclass    *infra;
-   struct _mulle_objc_metaclass     *meta;
+   /* same thread ? we are single threaded! */
+   if( _mulle_atomic_pointer_read( &cls->thread) != (void *) mulle_thread_self())
+   {
+      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_INITIALIZE_DONE))
+         mulle_thread_yield();
+   }
+}
+
+
+static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_method           *initialize;
+   struct _mulle_objc_universe         *universe;
+   struct _mulle_objc_metaclass        *meta;
+   mulle_objc_methodimplementation_t   imp;
+   int                                 flag;
+
+   meta = _mulle_objc_infraclass_get_metaclass( infra);
+
+   assert( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE));
+   assert( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE));
    
+   // grab code from superclass
+   // this is useful for MulleObjCSingleton
+   initialize = _mulle_objc_class_search_method( &meta->base,
+                                                 MULLE_OBJC_INITIALIZE_METHODID,
+                                                 NULL,
+                                                 MULLE_OBJC_ANY_OWNER,
+                                                 meta->base.inheritance,
+                                                 NULL);
+   if( initialize)
+   {
+      if( universe->debug.trace.initialize)
+         fprintf( stderr, "mulle_objc_universe %p trace: call +[%s initialize]\n",
+                 universe, _mulle_objc_metaclass_get_name( meta));
+      
+      imp   = _mulle_objc_method_get_implementation( initialize);
+      (*imp)( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
+   }
+   else
+   {
+      if( universe->debug.trace.initialize)
+         fprintf( stderr, "mulle_objc_universe %p trace: "
+                          "no +[%s initialize] found\n",
+                 universe, _mulle_objc_metaclass_get_name( meta));
+   }
+
+   // must be 1 as a return value
+   flag = _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
+   assert( flag == 1);
+   flag = _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE);
+   assert( flag == 1);
+}
+
+
+static int   _mulle_objc_class_lock_for_setup( struct _mulle_objc_class *cls)
+{
    assert( mulle_objc_class_is_current_thread_registered( cls));
    
    //
@@ -852,39 +853,75 @@ void   *_mulle_objc_object_call_class_needs_cache( void *obj,
    // flagged in the meta class.
    //
    // If another thread enters here, it will expect `cls->thread` to be NULL.
-   // If it isn't it waits for MULLE_OBJC_CACHE_READY to go up.
+   // If it isn't it waits for MULLE_OBJC_CACHE_INITIALIZE_DONE to go up.
    //
    // what is tricky is, that cls and metaclass are executing this
    // singlethreaded, but still cls and metaclass could be in different threads
    //
    
    if( ! _mulle_atomic_pointer_compare_and_swap( &cls->thread, (void *) mulle_thread_self(), NULL))
-      return( _mulle_objc_call_class_waiting_for_cache( obj, methodid, parameter, cls));
-   
-   // Singlethreaded block with respect to cls, not meta though!
-   {
-      //
-      // first do +initialize,  uncached execution
-      // track state only in "meta" class
-      //
-      if( _mulle_objc_class_is_infraclass( cls))
-      {
-         infra = _mulle_objc_class_as_infraclass( cls);
-         meta  = _mulle_objc_infraclass_get_metaclass( infra);
-      }
-      else
-         meta = _mulle_objc_class_as_metaclass( cls);
+      return( 0);
+   return( 1);
+}
 
-      // setup cache first now for coverage
-      mulle_objc_class_setup_initial_cache( cls);
-      mulle_objc_metaclass_initialize_if_needed( meta);
+
+static void  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
+
+static void   _mulle_objc_infraclass_initialize_if_needed( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_infraclass  *superclass;
+   struct _mulle_objc_metaclass   *supermeta;
+
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
+      return;
+
+   superclass = infra;
+   while( superclass = _mulle_objc_infraclass_get_superclass( superclass))
+   {
+      supermeta = _mulle_objc_infraclass_get_metaclass( superclass);
+      
+      // call #initialize on superclass if needed
+      _mulle_objc_class_setup( _mulle_objc_metaclass_as_class( supermeta));
    }
    
-   //
-   // count #caches, if there are zero caches yet, the universe can be much
-   // faster adding methods.
-   //
-   _mulle_atomic_pointer_increment( &cls->universe->cachecount_1);
+   _mulle_objc_infraclass_call_initialize( infra);
+}
+
+
+
+static void   _mulle_objc_class_initialize_if_needed( struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_infraclass   *infra;
+   
+   // initialize is called only once though
+   if( _mulle_objc_class_is_infraclass( cls))
+      infra = _mulle_objc_class_as_infraclass( cls);
+   else
+      infra = _mulle_objc_class_get_infraclass( cls);
+      
+   _mulle_objc_infraclass_initialize_if_needed( infra);
+}
+
+
+static void  _mulle_objc_class_setup( struct _mulle_objc_class *cls)
+{
+   // this is always done
+   if( _mulle_objc_class_lock_for_setup( cls))
+   {
+      mulle_objc_class_setup_initial_cache( cls);
+      _mulle_objc_class_initialize_if_needed( cls);
+   }
+   else
+      _mulle_objc_class_wait_for_setup( cls);
+}
+
+
+void   *_mulle_objc_object_call_class_needs_cache( void *obj,
+                                                   mulle_objc_methodid_t methodid,
+                                                   void *parameter,
+                                                   struct _mulle_objc_class *cls)
+{
+   _mulle_objc_class_setup( cls);
    
    return( (*cls->call)( obj, methodid, parameter, cls));
 }
