@@ -124,8 +124,10 @@ struct _mulle_objc_universedebug
 
    struct
    {
-      unsigned   universe_config          : 1;
+      unsigned   universe_config         : 1;
       unsigned   print_origin            : 1; // set by default
+      unsigned   stuck_class_coverage    : 1;
+      unsigned   stuck_category_coverage : 1;
    } print;
 };
 
@@ -237,9 +239,9 @@ typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_universe *,
 struct _mulle_objc_foundation
 {
    struct _mulle_objc_universefriend    universefriend;
-   struct _mulle_objc_infraclass       *staticstringclass;
-   struct mulle_allocator              allocator;   // allocator for objects
-   mulle_objc_classid_t                rootclassid; // NSObject = e9e78cbd
+   struct _mulle_objc_infraclass        *staticstringclass;
+   struct mulle_allocator               allocator;   // allocator for objects
+   mulle_objc_classid_t                 rootclassid; // NSObject = e9e78cbd
 };
 
 

@@ -389,7 +389,8 @@ void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loa
 {
    struct _mulle_objc_dependency   dependency;
    struct _mulle_objc_infraclass   *infra;
-
+   char                            *s_class;
+   
    if( ! info || ! universe)
       return;
 
@@ -397,10 +398,13 @@ void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loa
    if( dependency.classid == MULLE_OBJC_NO_CLASSID)
       return;
 
+   s_class = _mulle_objc_universe_string_for_classid( universe, dependency.classid);
+   if( universe->debug.print.stuck_class_coverage)
+      printf( "%08x;%s;;\n", dependency.classid, s_class);
+   
    fprintf( stderr, "\t%08x \"%s\" waiting for class %08x \"%s\"\n",
            info->classid, info->classname,
-           dependency.classid, _mulle_objc_universe_string_for_classid( universe, dependency.classid));
-
+           dependency.classid, s_class);
 }
 
 
@@ -855,11 +859,13 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
    struct _mulle_objc_dependency   dependency;
    struct _mulle_objc_infraclass   *infra;
    int                             old;
+   char                            *s_class;
+   char                            *s_category;
    
    if( ! info || ! universe)
       return;
 
-   infra      = NULL;
+   infra = NULL;
    
    // turn this off (it annoys) -- we are assumed to be single-threaded here
    // anyway
@@ -874,21 +880,29 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
    if( dependency.classid == MULLE_OBJC_NO_CLASSID)
       return;
 
+   s_class = _mulle_objc_universe_string_for_classid( universe, dependency.classid);
    if( dependency.categoryid == MULLE_OBJC_NO_CATEGORYID)
    {
+      if( universe->debug.print.stuck_class_coverage)
+         printf( "%08x;%s;;\n", dependency.classid, s_class);
+      
       fprintf( stderr, "\t%08x \"%s( %s)\" waiting for class %08x \"%s\"\n",
               info->categoryid, info->classname, info->categoryname,
               dependency.classid,
-              _mulle_objc_universe_string_for_classid( universe, dependency.classid));
+              s_class);
       return;
    }
 
+   s_category = _mulle_objc_universe_string_for_categoryid( universe, dependency.categoryid);
+   if( universe->debug.print.stuck_category_coverage)
+      printf( "%08x;%s;%08x;%s\n", dependency.classid, s_class, dependency.categoryid, s_category);
+   
    fprintf( stderr, "\t%08x \"%s( %s)\" waiting for category %08x,%08x \"%s( %s)\"\n",
            info->categoryid, info->classname, info->categoryname,
            dependency.classid,
            dependency.categoryid,
-           _mulle_objc_universe_string_for_classid( universe, dependency.classid),
-           _mulle_objc_universe_string_for_categoryid( universe, dependency.categoryid));
+           s_class,
+           s_category);
 }
 
 
