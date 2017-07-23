@@ -1908,7 +1908,7 @@ char   *_mulle_objc_universe_string_for_uniqueid( struct _mulle_objc_universe *u
       return( "NOT AN ID");
    if( uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
       return( "INVALID ID");
-   s       = _mulle_objc_universe_search_debughashname( universe, uniqueid);
+   s = _mulle_objc_universe_search_debughashname( universe, uniqueid);
    return( s ? s : "???");
 }
 
@@ -1919,7 +1919,7 @@ char   *_mulle_objc_universe_string_for_classid( struct _mulle_objc_universe *un
 {
    struct _mulle_objc_infraclass   *infra;
    
-   infra   = _mulle_objc_universe_lookup_uncached_infraclass( universe, classid);
+   infra = _mulle_objc_universe_lookup_uncached_infraclass( universe, classid);
    if( infra)
       return( _mulle_objc_infraclass_get_name( infra));
    return( _mulle_objc_universe_string_for_uniqueid( universe, classid));

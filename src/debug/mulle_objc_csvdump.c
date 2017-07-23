@@ -276,6 +276,9 @@ void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *u
 }
 
 
+//
+// should dump collision statistics and "preferred" cache size here
+//
 static void  dump_cachesize( struct _mulle_objc_class *cls,
                              char prefix,
                              FILE *fp)
@@ -283,6 +286,12 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
    struct _mulle_objc_cache   *cache;
 
    cache = _mulle_objc_class_get_methodcache( cls);
+   
+   if( ! _mulle_objc_cache_get_count( cache) &&
+       ! _mulle_objc_cache_get_size( cache))
+   {
+       return;
+   }
    
    fprintf( fp, "%08x;%c%s;%u;%u;%x\n",
            _mulle_objc_class_get_classid( cls),
@@ -340,11 +349,11 @@ void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
    }
    
    universe = mulle_objc_get_universe();
-   mulle_objc_universe_csvdump_cachedmethodcoverage( universe, fp);
+   mulle_objc_universe_csvdump_methodcoverage( universe, fp);
    
    fclose( fp);
 
-   fprintf( stderr, "Dumped method coverage to \"/%s\"\n", filename);
+   fprintf( stderr, "Dumped method coverage to \"%s\"\n", filename);
 }
 
 
@@ -365,7 +374,7 @@ void   mulle_objc_csvdump_classcoverage_to_file( char *filename)
 
    fclose( fp);
 
-   fprintf( stderr, "Dumped class coverage to \"/%s\"\n", filename);
+   fprintf( stderr, "Dumped class coverage to \"%s\"\n", filename);
 }
 
 
@@ -386,7 +395,7 @@ void   mulle_objc_csvdump_cachesizes_to_file( char *filename)
 
    fclose( fp);
 
-   fprintf( stderr, "Dumped cache sizes to \"/%s\"\n", filename);
+   fprintf( stderr, "Dumped cache sizes to \"%s\"\n", filename);
 }
 
 
@@ -471,9 +480,9 @@ void   mulle_objc_csvdump_cachesizes( void)
 {
    char   *filename;
    
-   filename = getenv( "MULLE_OBJC_CLASS_CACHE_SIZES_FILENAME");
+   filename = getenv( "MULLE_OBJC_CLASS_CACHESIZES_FILENAME");
    if( ! filename)
-      filename = "cache-sizes.csv";
+      filename = "class-cachesizes.csv";
 
    mulle_objc_csvdump_cachesizes_to_file( filename);
 }

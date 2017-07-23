@@ -36,11 +36,14 @@
 #include "mulle_objc_runtime.h"
 
 
-int   main( int argc, const char * argv[])
+int   main( int argc, char *argv[])
 {
    if( argc != 2)
+   {
+      fprintf( stderr, "Usage:\n    mulle-objc-uniqueid <string>\n");
       return( -1);
+   }
 
-   printf( "%08lx\n", (long) mulle_objc_uniqueid_from_string( (char *) argv[ 1]));
+   printf( "%08lx\n", (long) mulle_objc_uniqueid_from_string( argv[ 1]));
    return 0;
 }
