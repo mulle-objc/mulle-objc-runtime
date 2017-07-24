@@ -806,7 +806,7 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
    meta = _mulle_objc_infraclass_get_metaclass( infra);
 
    assert( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE));
-   assert( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE));
+   assert( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE));
    
    // grab code from superclass
    // this is useful for MulleObjCSingleton
@@ -816,6 +816,8 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
                                                  MULLE_OBJC_ANY_OWNER,
                                                  meta->base.inheritance,
                                                  NULL);
+
+   universe = _mulle_objc_infraclass_get_universe( infra);
    if( initialize)
    {
       if( universe->debug.trace.initialize)
