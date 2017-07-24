@@ -102,7 +102,6 @@ void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *
    struct _mulle_objc_cacheentry     *sentinel;
    struct _mulle_objc_method         *method;
    struct _mulle_objc_searchresult   result;
-   struct _mulle_objc_universe       *universe;
    mulle_objc_methodid_t             methodid;
    
    if( ! cls || ! fp)
@@ -115,8 +114,6 @@ void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return;
 
-   universe = _mulle_objc_class_get_universe( cls);
-   
    p        = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
    sentinel = &p[ cache->size];
    
