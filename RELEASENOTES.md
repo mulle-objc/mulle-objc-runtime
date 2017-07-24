@@ -28,6 +28,7 @@ size (and possible other stuff) there is a new callback in the universe
 
 Made it a "C" cmake project
 
+* modernize to mulle-configuration 2.0.0
 
 ### 0.8.5
 
