@@ -58,7 +58,7 @@ endif()
 
 target_link_libraries( mulle_objc_runtime_standalone
 ${BEGIN_ALL_LOAD}
-mulle_objc_runtime
+${FORCE_LOAD} mulle_objc_runtime
 ${C_DEPENDENCY_LIBRARIES}
 ${END_ALL_LOAD}
 ${OS_SPECIFIC_LIBRARIES}
