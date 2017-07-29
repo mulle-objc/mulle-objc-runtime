@@ -57,11 +57,23 @@ if( MSVC)
                        VERBATIM)
 endif()
 
+set( TARGET_ALL_LOAD_LIBRARIES
+$<TARGET_FILE:mulle_objc_runtime>
+${C_DEPENDENCY_LIBRARIES}
+)
+
+if( FORCE_LOAD)
+   set( TMP)
+   foreach( library ${TARGET_ALL_LOAD_LIBRARIES})
+      list( APPEND TMP "${FORCE_LOAD} ${library}")
+   endforeach( library)
+   set( TARGET_ALL_LOAD_LIBRARIES ${TMP})
+endif()
+
 
 target_link_libraries( mulle_objc_runtime_standalone
 ${BEGIN_ALL_LOAD}
-${FORCE_LOAD} mulle_objc_runtime
-${C_DEPENDENCY_LIBRARIES}
+${TARGET_ALL_LOAD_LIBRARIES}
 ${END_ALL_LOAD}
 ${OS_SPECIFIC_LIBRARIES}
 )
