@@ -485,7 +485,7 @@ void  _mulle_objc_universe_defaultexitus()
 
    mulle_objc_release_universe();
 
-   if( getenv( "MULLE_OBJC_TEST_ALLOCATOR"))
+   if( mulle_objc_getenv_yes_no( "MULLE_OBJC_TEST_ALLOCATOR"))
       mulle_test_allocator_reset();
 }
 
@@ -499,8 +499,10 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
                                     void (*crunch)( struct _mulle_objc_universe  *universe))
 {
    void  *actual;
+   int   trace;
    
-   if( universe->debug.trace.universe)
+   trace = universe->debug.trace.universe;
+   if( trace)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] trying to lock the universe down for crunch\n",
                   universe, (void *) mulle_thread_self());
    
@@ -522,11 +524,16 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    
    // START OF LOCKED
    
-   if( universe->debug.trace.universe)
+   if( trace)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] crunch of the universe in progress\n",
               universe, (void *) mulle_thread_self());
    
    (*crunch)( universe);
+
+   if( trace)
+      fprintf( stderr, "mulle_objc_universe %p trace: [%p] crunch of the universe done\n",
+              universe, (void *) mulle_thread_self());
+
    mulle_atomic_memory_barrier(); // shared/global memory
 
    // END OF LOCKED
@@ -539,13 +546,13 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
       actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) mulle_objc_universe_is_uninitialized, (void *) mulle_objc_universe_is_deinitializing);
       if( actual == (void *) mulle_objc_universe_is_deinitializing)
       {
-         if( universe->debug.trace.universe)
+         if( trace)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] unlocked the universe\n",
                   universe, (void *) mulle_thread_self());
          return;  // someone else did it
       }
       
-      if( universe->debug.trace.universe)
+      if( trace)
          fprintf( stderr, "mulle_objc_universe %p trace: [%p] retrying to unlock the universe\n",
                universe, (void *) mulle_thread_self());
    }
@@ -602,8 +609,11 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
                                           void *userinfo)
 {
    void   *actual;
+   int    trace;
    
-   if( universe->debug.trace.universe)
+   trace = mulle_objc_getenv_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
+
+   if( trace)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] trying to lock the universe down for bang\n",
                   universe, (void *) mulle_thread_self());
 
@@ -614,7 +624,7 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
       actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *)mulle_objc_universe_is_initializing, (void *) mulle_objc_universe_is_uninitialized);
       if( actual == (void *) MULLE_OBJC_RUNTIME_VERSION)
       {
-         if( universe->debug.trace.universe)
+         if( trace)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] someone else did the universe bang already\n",
                   universe, (void *) mulle_thread_self());
          return;  // someone else did it
@@ -625,11 +635,15 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
    }
 
    // BEGIN OF LOCKED
-   if( universe->debug.trace.universe)
+   if( trace)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] bang of the universe in progress\n",
               universe, (void *) mulle_thread_self());
    
    (*setup)( universe, exitus, userinfo);
+
+   if( trace)
+      fprintf( stderr, "mulle_objc_universe %p trace: [%p] bang of the universe done\n",
+              universe, (void *) mulle_thread_self());
 
    mulle_atomic_memory_barrier();  // shared/global memory
    // END OF LOCKED
@@ -641,13 +655,13 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
       actual = __mulle_atomic_pointer_compare_and_swap( &universe->version, (void *) MULLE_OBJC_RUNTIME_VERSION, (void *) mulle_objc_universe_is_initializing);
       if( actual == (void *) mulle_objc_universe_is_initializing)
       {
-         if( universe->debug.trace.universe)
+         if( trace)
             fprintf( stderr, "mulle_objc_universe %p trace: [%p] unlocked the universe\n",
                   universe, (void *) mulle_thread_self());
          return;  // someone else did it
       }
       
-      if( universe->debug.trace.universe)
+      if( trace)
          fprintf( stderr, "mulle_objc_universe %p trace: [%p] retrying to unlock the universe\n",
                universe, (void *) mulle_thread_self());
    }
@@ -964,10 +978,16 @@ void   _mulle_objc_universe_dealloc( struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_cache               *cache;
    struct _mulle_objc_garbagecollection   *gc;
-
+   
+   if( universe->debug.trace.universe)
+      fprintf( stderr, "mulle_objc_universe %p: deallocs\n", universe);
+   
    if( universe->thread && universe->thread != mulle_thread_self())
       _mulle_objc_universe_raise_inconsistency_exception( universe, "universe must be deallocated by the same thread that created it (sorry)");
 
+   if( universe->callbacks.will_dealloc)
+      (*universe->callbacks.will_dealloc)( universe);
+   
    mulle_objc_set_thread_universe( NULL);
 
    // do it like this, because we are not initialized anymore

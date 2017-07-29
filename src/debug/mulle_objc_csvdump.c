@@ -246,6 +246,7 @@ void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *u
    intptr_t                                    classid;
    struct _mulle_objc_infraclass               *infra;
    struct mulle_concurrent_hashmapenumerator   rover;
+   int                                         nada;
    
    if( ! universe || ! fp)
    {
@@ -258,6 +259,7 @@ void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *u
    // bit (this also captures fastclasses)
    //
    
+   nada     = 1;
    universe = mulle_objc_get_universe();
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
@@ -265,11 +267,15 @@ void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *u
       if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
          continue;
       
+      nada = 0;
       fprintf( fp, "%08x;%s\n",
               _mulle_objc_infraclass_get_classid( infra),
               _mulle_objc_infraclass_get_name( infra));
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
+   
+   if( nada)
+      fprintf( stderr, "mulle_objc_universe %p warning: no coverage generated as no Objective-C code has run yet\n", universe);
 }
 
 
