@@ -1,4 +1,4 @@
-## 0.9.1
+### 0.9.1
 
 Finally got around to a renaming. The runtime library is now,
 mulle-objc-runtime and it's header is mulle-objc-runtime.h. I renamed the struct
@@ -19,7 +19,7 @@ Only use `mulle_objc_get_or_create_universe` during loading. Makes it easier.
 Also distribute mulle-objc-uniqueid.
 
 Changed the coverage format to be compatible with mulle-objc-list. Use a more
-all encompassing form of coverage check using a methoddescriptor bit. 
+all encompassing form of coverage check using a methoddescriptor bit.
 
 Initialize the cache now before +initialize. To be able to affect the cache
 size (and possible other stuff) there is a new callback in the universe
@@ -29,6 +29,9 @@ size (and possible other stuff) there is a new callback in the universe
 Made it a "C" cmake project
 
 * modernize to mulle-configuration 2.0.0
+* modernize CMakeDependencies.txt and CMakeLists.txt
+* better MULLE_OBJC_TRACE_UNIVERSE output
+* will_dealloc callback for universe deconstruction
 
 ### 0.8.5
 
@@ -198,4 +201,3 @@ Community Release
 ## 0.1.1
 
 Merciful Release
-

@@ -2,6 +2,8 @@ cmake_minimum_required( VERSION 3.0)
 
 project( mulle-objc-runtime C)
 
+set( MULLE_OBJC_RUNTIME_LIBRARY ON)
+
 add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern
                  -DMULLE_OBJC_EXTERN_GLOBAL=extern
                  -D__MULLE_OBJC_TPS__     ## tagged pointers runtime (default: on)
