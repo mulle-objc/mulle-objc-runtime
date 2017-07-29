@@ -196,6 +196,7 @@ struct _mulle_objc_universecallbacks
    mulle_objc_cache_uint_t   (*will_init_cache)(  struct _mulle_objc_universe *,
                                                   struct _mulle_objc_class *,
                                                   mulle_objc_cache_uint_t n_entries);
+   void   (*will_dealloc)(  struct _mulle_objc_universe *);
 };
 
 //

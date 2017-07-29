@@ -55,5 +55,18 @@ CACHE INTERNAL "need to cache this"
 )
 endif()
 
+#
+# for the benefit of ppl including us
+#
+if( NOT MULLE_OBJC_RUNTIME_LIBRARY)
+   find_library( MULLE_OBJC_RUNTIME_LIBRARY NAMES mulle_objc_runtime)
+   message(STATUS "MULLE_OBJC_RUNTIME_LIBRARY is ${MULLE_OBJC_RUNTIME_LIBRARY}")
+   set( C_DEPENDENCY_LIBRARIES
+${MULLE_OBJC_RUNTIME_LIBRARY}
+${C_DEPENDENCY_LIBRARIES}
+CACHE INTERNAL "need to cache this"
+)
+endif()
+
 
 message( STATUS "# Included mulle-objc-runtime CMakeDependencies.txt")
