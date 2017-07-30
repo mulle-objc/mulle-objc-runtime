@@ -825,6 +825,8 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
                  universe, _mulle_objc_metaclass_get_name( meta));
       
       imp   = _mulle_objc_method_get_implementation( initialize);
+      if( universe->debug.trace.method_calls)
+         mulle_objc_class_trace_method_call( &infra->base, MULLE_OBJC_INITIALIZE_METHODID, infra, NULL, imp);
       (*imp)( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
    }
    else
