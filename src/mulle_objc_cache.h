@@ -1,6 +1,6 @@
 //
 //  mulle_objc_cache.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 15.09.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -32,9 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
-
 #ifndef mulle_objc_cache_h__
 #define mulle_objc_cache_h__
 
@@ -178,9 +176,25 @@ static inline void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
 
 # pragma mark - cache add entry
 
-struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache, void *pointer, mulle_objc_uniqueid_t uniqueid);
+//
+// 25% fill rate, but 40% wouldn't be probably good also
+// Really the class should know that
+//
+static inline int  _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache)
+{
+   return( (size_t) _mulle_atomic_pointer_read( &cache->n) >= (cache->size >> 2));
+}
 
-struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_functionpointer_entry( struct _mulle_objc_cache *cache, mulle_functionpointer_t pointer, mulle_objc_uniqueid_t uniqueid);
+
+struct _mulle_objc_cacheentry   *
+    _mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache,
+                                                       void *pointer,
+                                                       mulle_objc_uniqueid_t uniqueid);
+
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_cache_inactivecache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
+                                                              mulle_functionpointer_t pointer,
+                                                              mulle_objc_uniqueid_t uniqueid);
 
 // returns null if cache is full
 struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mulle_objc_cache *cache,

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_ivarlist.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 13.08.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -33,7 +33,7 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-//
+#pragma clang diagnostic ignored "-Wparentheses"
 
 #include "mulle_objc_ivarlist.h"
 

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_object_convenience.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 11.03.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -32,17 +32,14 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
-
-//
-
 #ifndef mulle_objc_object_convenience_h__
 #define mulle_objc_object_convenience_h__
 
 #include "mulle_objc_object.h"
 
 #include "mulle_objc_class.h"
+#include "mulle_objc_class_search.h"
 
 
 // methods on class shortcuts
@@ -88,7 +85,7 @@ static inline struct _mulle_objc_method   *_mulle_objc_object_lookup_method( voi
    struct _mulle_objc_class   *cls;
 
    cls  = _mulle_objc_object_get_isa( obj);
-   return( mulle_objc_class_search_method( cls, methodid));
+   return( mulle_objc_class_defaultsearch_method( cls, methodid));
 }
 
 #endif

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_class.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 16/11/14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #ifndef mulle_objc_class_h__
 #define mulle_objc_class_h__
 
@@ -95,12 +94,26 @@ static inline unsigned int   _mulle_objc_class_count_depth( struct _mulle_objc_c
 }
 
 
-# pragma mark - method cache
+# pragma mark - method caches
 
 static inline struct _mulle_objc_cache   *_mulle_objc_class_get_methodcache( struct _mulle_objc_class *cls)
 {
    return( _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot));
 }
+
+
+
+static inline struct _mulle_objc_searchcache   *_mulle_objc_class_get_searchcache( struct _mulle_objc_class *cls)
+{
+   return( _mulle_objc_searchcachepivot_atomic_get_cache( &cls->searchcachepivot));
+}
+
+MULLE_C_NEVER_INLINE
+struct _mulle_objc_searchcacheentry   *
+  _mulle_objc_class_add_searchcacheentry_by_swapping_caches( struct _mulle_objc_class *cls,
+                                                             struct _mulle_objc_searchcache *cache,
+                                                             struct _mulle_objc_method *method,
+                                                             struct _mulle_objc_searchargumentscachable *args);
 
 
 # pragma mark - kvc caches
@@ -187,7 +200,7 @@ void   mulle_objc_class_did_add_methodlist( struct _mulle_objc_class *cls,
                                            struct _mulle_objc_methodlist *list);
 
 
-void   mulle_objc_class_unfailing_add_methodlist( struct _mulle_objc_class *cls,
+void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
                                                   struct _mulle_objc_methodlist *list);
 
 
@@ -198,84 +211,6 @@ struct _mulle_objc_methodlist   *mulle_objc_class_find_methodlist( struct _mulle
 
 
 unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class *cls);
-
-//
-// to find -methods ask isa of object, to find +methods, ask the metaclass of isa
-// these methods are uncached and authorative
-//
-struct _mulle_objc_method  *mulle_objc_class_search_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);
-
-//
-// cls: class to start search
-// methodid: method to search for
-// previous: the method that overrides the searched method (usually NULL)
-// owner: search for a specific owner of the methodlist (usually MULLE_OBJC_ANY_OWNER)
-// inheritance: the inheritance scheme to use (use cls->inheritance)
-// result: returned if a method was found (otherwise unchanged!), can be NULL
-//
-struct _mulle_objc_searchresult
-{
-   struct _mulle_objc_class       *class;    // where method was found
-   struct _mulle_objc_methodlist  *list;     // list containing method
-   struct _mulle_objc_method      *method;   // method
-};
-
-
-struct _mulle_objc_method   *
-   _mulle_objc_class_search_method( struct _mulle_objc_class *cls,
-                                    mulle_objc_methodid_t methodid,
-                                    struct _mulle_objc_method *previous,
-                                    void *owner,
-                                    unsigned int inheritance,
-                                    struct _mulle_objc_searchresult *result);
-
-
-# pragma mark - forwarding
-
-static inline int   _mulle_objc_class_is_forwardmethodimplementation( struct _mulle_objc_class *cls, mulle_objc_methodimplementation_t  imp)
-{
-   if( ! cls->forwardmethod)
-      return( 0);
-   return( _mulle_objc_method_get_implementation( cls->forwardmethod) == imp);
-}
-
-//
-// this should be used by the debugger, but the debugger is really fixed to
-// use __forward_mulle_objc_object_call
-//
-mulle_objc_methodimplementation_t
-   mulle_objc_class_get_forwardmethodimplementation( struct _mulle_objc_class *cls);
-
-
-//
-// this caches the forward method as a side effect
-// the user_method is just there to create a nicer crash log
-//
-struct _mulle_objc_method    *_mulle_objc_class_getorsearch_forwardmethod( struct _mulle_objc_class *cls);
-
-
-struct _mulle_objc_method    *_mulle_objc_class_unfailing_getorsearch_forwardmethod(
-                                 struct _mulle_objc_class *cls,
-                                 mulle_objc_methodid_t missing_method);
-
-struct _mulle_objc_method  *mulle_objc_class_search_non_inherited_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);
-
-
-MULLE_C_NON_NULL_RETURN
-static inline struct _mulle_objc_method   *_mulle_objc_class_unfailing_search_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid)
-{
-   struct _mulle_objc_method   *method;
-
-   method = _mulle_objc_class_search_method( cls, methodid,
-                                             NULL, MULLE_OBJC_ANY_OWNER,
-                                            _mulle_objc_class_get_inheritance( cls),
-                                            NULL);
-   assert( ! method || method->descriptor.methodid == methodid);
-   if( ! method)
-      method = _mulle_objc_class_unfailing_getorsearch_forwardmethod( cls, methodid);
-   return( method);
-}
-
 
 
 #pragma mark - walking
@@ -305,6 +240,15 @@ static inline struct _mulle_objc_method   *_mulle_objc_class_unfailing_search_me
 //
 int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned int inheritance , int (*f)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *), void *userinfo);
 
+
+static inline int
+   _mulle_objc_class_is_forwardmethodimplementation( struct _mulle_objc_class *cls,
+                                                     mulle_objc_methodimplementation_t  imp)
+{
+   if( ! cls->forwardmethod)
+      return( 0);
+   return( _mulle_objc_method_get_implementation( cls->forwardmethod) == imp);
+}
 
 
 # pragma mark - API class

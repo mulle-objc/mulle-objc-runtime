@@ -1,6 +1,6 @@
 //
 //  mulle_objc_infraclass.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 17/04/07
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #ifndef mulle_objc_infraclass_h__
 #define mulle_objc_infraclass_h__
 
@@ -157,13 +156,13 @@ static inline unsigned int   _mulle_objc_infraclass_get_state_bit( struct _mulle
 }
 
 
-static inline void   mulle_objc_infraclass_unfailing_add_methodlist( struct _mulle_objc_infraclass *infra,
+static inline void   mulle_objc_infraclass_unfailingadd_methodlist( struct _mulle_objc_infraclass *infra,
                                                                      struct _mulle_objc_methodlist *list)
 {
-   extern void   mulle_objc_class_unfailing_add_methodlist( struct _mulle_objc_class *cls,
+   extern void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
                                                             struct _mulle_objc_methodlist *list);
 
-   mulle_objc_class_unfailing_add_methodlist( &infra->base, list);
+   mulle_objc_class_unfailingadd_methodlist( &infra->base, list);
 }
 
 
@@ -183,10 +182,10 @@ static inline struct _mulle_objc_method  *
     mulle_objc_infraclass_search_method( struct _mulle_objc_infraclass *infra,
                                          mulle_objc_methodid_t methodid)
 {
-   extern struct _mulle_objc_method   *mulle_objc_class_search_method( struct _mulle_objc_class *cls,
+   extern struct _mulle_objc_method   *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                                                        mulle_objc_methodid_t methodid);
 
-   return( mulle_objc_class_search_method( &infra->base, methodid));
+   return( mulle_objc_class_defaultsearch_method( &infra->base, methodid));
 }
 
 
@@ -269,7 +268,6 @@ static inline void   _mulle_objc_infraclass_set_ivarhash( struct _mulle_objc_inf
 }
 
 
-
 static inline int   _mulle_objc_infraclass_is_taggedpointerclass( struct _mulle_objc_infraclass *infra)
 {
    return( _mulle_atomic_pointer_read( &infra->taggedpointerindex) != 0);
@@ -314,7 +312,7 @@ static inline struct mulle_concurrent_hashmapenumerator    _mulle_objc_infraclas
 int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
                                               struct _mulle_objc_propertylist *list);
 
-void   mulle_objc_infraclass_unfailing_add_propertylist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infraclass *infra,
                                                          struct _mulle_objc_propertylist *list);
 
 struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
@@ -329,7 +327,7 @@ struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mul
 int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
                                           struct _mulle_objc_ivarlist *list);
 
-void   mulle_objc_infraclass_unfailing_add_ivarlist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_unfailingadd_ivarlist( struct _mulle_objc_infraclass *infra,
                                                 struct _mulle_objc_ivarlist *list);
 
 

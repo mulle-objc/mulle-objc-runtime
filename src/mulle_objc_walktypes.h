@@ -1,6 +1,6 @@
 //
 //  mulle_objc_walktypes.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 17/04/08.
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #ifndef mulle_objc_walktypes_h__
 #define mulle_objc_walktypes_h__
 

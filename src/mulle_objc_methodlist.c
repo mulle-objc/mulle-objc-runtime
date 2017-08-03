@@ -1,6 +1,6 @@
 //
 //  mulle_objc_methodlist.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 10.03.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -32,11 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
-
-//
-
 #include "mulle_objc_methodlist.h"
 
 #include "mulle_objc_class.h"
@@ -130,7 +126,7 @@ int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist 
 }
 
 
-void   mulle_objc_methodlist_unfailing_add_load_to_callqueue( struct _mulle_objc_methodlist *list, struct _mulle_objc_metaclass *meta, struct _mulle_objc_callqueue *loads)
+void   mulle_objc_methodlist_unfailingadd_load_to_callqueue( struct _mulle_objc_methodlist *list, struct _mulle_objc_metaclass *meta, struct _mulle_objc_callqueue *loads)
 {
    if( mulle_objc_methodlist_add_load_to_callqueue( list, meta, loads))
       _mulle_objc_universe_raise_fail_errno_exception( _mulle_objc_metaclass_get_universe( meta));

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_atomicpointer.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 10.07.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.

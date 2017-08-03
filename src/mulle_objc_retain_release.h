@@ -1,6 +1,6 @@
 //
 //  mulle_objc_retain_release.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 16/11/14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -32,7 +32,6 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-//
 //
 
 #ifndef mulle_objc_retain_release_h__

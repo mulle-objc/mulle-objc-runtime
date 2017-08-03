@@ -1,6 +1,6 @@
 //
 //  mulle_objc_version.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 10.07.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
@@ -42,14 +42,14 @@
 // up the minor for added features
 // up the patch for bugfixes
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (9 << 8) | 1)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (10 << 8) | 1)
 
 //
 // these three values are read by the compiler(!)
 // only use integers and no expressions
 //
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0  // max 511
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  9  // max 1023
+#define MULLE_OBJC_RUNTIME_VERSION_MINOR  10  // max 1023
 #define MULLE_OBJC_RUNTIME_VERSION_PATCH  1  // max 255
 
 

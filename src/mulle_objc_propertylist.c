@@ -1,6 +1,6 @@
 //
 //  mulle_objc_propertylist.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 23.01.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_universe.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 09.03.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -32,7 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
+//
 #include "mulle_objc_universe.h"
 
 #include "mulle_objc_universe_global.h"
@@ -397,7 +397,7 @@ void   __mulle_objc_universe_setup( struct _mulle_objc_universe *universe,
    _mulle_concurrent_hashmap_init( &universe->waitqueues.classestoload, 64, &universe->memory.allocator);
    _mulle_concurrent_hashmap_init( &universe->waitqueues.categoriestoload, 32, &universe->memory.allocator);
 
-   mulle_objc_unfailing_get_or_create_threadkey();
+   mulle_objc_unfailingget_or_create_threadkey();
 
    mulle_thread_mutex_init( &universe->lock);
    universe->thread = mulle_thread_self();
@@ -739,7 +739,7 @@ static void   mulle_objc_thread_universe_destructor( struct _mulle_objc_threadco
 }
 
 
-mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_threadkey( void)
+mulle_thread_tss_t   mulle_objc_unfailingget_or_create_threadkey( void)
 {
    extern mulle_thread_tss_t   mulle_objc_thread_key;
 
@@ -748,7 +748,7 @@ mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_threadkey( void)
       if( mulle_thread_tss_create( (void *) mulle_objc_thread_universe_destructor,
                                    &mulle_objc_thread_key))
       {
-         _mulle_objc_perror_abort( "mulle_objc_unfailing_get_or_create_threadkey");
+         _mulle_objc_perror_abort( "mulle_objc_unfailingget_or_create_threadkey");
       }
    }
    return( mulle_objc_thread_key);
@@ -1269,7 +1269,7 @@ int  _mulle_objc_universe_match_exception( struct _mulle_objc_universe *universe
    assert( classid != MULLE_OBJC_NO_CLASSID && classid != MULLE_OBJC_INVALID_CLASSID);
    assert( exception);
 
-   infra        = _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe, classid);
+   infra        = _mulle_objc_universe_unfailinggetlookup_infraclass( universe, classid);
    exceptionCls = _mulle_objc_object_get_isa( exception);
 
    do
@@ -1346,7 +1346,7 @@ void  mulle_objc_set_thread_universe( struct _mulle_objc_universe *universe)
    config = _mulle_allocator_calloc( _mulle_objc_universe_get_allocator( universe), 1, sizeof( struct _mulle_objc_threadconfig));
 
    config->universe = universe;
-   mulle_thread_tss_set( mulle_objc_unfailing_get_or_create_threadkey(), config);
+   mulle_thread_tss_set( mulle_objc_unfailingget_or_create_threadkey(), config);
 }
 
 
@@ -1462,7 +1462,7 @@ struct _mulle_objc_classpair
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 // convenience during loading
-struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_classid_t  classid,
+struct _mulle_objc_classpair   *mulle_objc_unfailingnew_classpair( mulle_objc_classid_t  classid,
                                                                     char *name,
                                                                     size_t instancesize,
                                                                     struct _mulle_objc_infraclass *superclass)
@@ -1539,7 +1539,7 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
 }
 
 
-void   mulle_objc_universe_unfailing_add_infraclass( struct _mulle_objc_universe *universe,
+void   mulle_objc_universe_unfailingadd_infraclass( struct _mulle_objc_universe *universe,
                                                     struct _mulle_objc_infraclass *infra)
 {
    if( mulle_objc_universe_add_infraclass( universe, infra))
@@ -1578,9 +1578,9 @@ void   _mulle_objc_universe_set_fastclass( struct _mulle_objc_universe *universe
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 // conveniences
 
-void   mulle_objc_unfailing_add_infraclass( struct _mulle_objc_infraclass *infra)
+void   mulle_objc_unfailingadd_infraclass( struct _mulle_objc_infraclass *infra)
 {
-   mulle_objc_universe_unfailing_add_infraclass( mulle_objc_get_universe(), infra);
+   mulle_objc_universe_unfailingadd_infraclass( mulle_objc_get_universe(), infra);
 }
 
 #endif
@@ -1628,7 +1628,7 @@ int   _mulle_objc_universe_add_methoddescriptor( struct _mulle_objc_universe *un
 }
 
 
-void    mulle_objc_universe_unfailing_add_methoddescriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_methoddescriptor *p)
+void    mulle_objc_universe_unfailingadd_methoddescriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_methoddescriptor *p)
 {
    struct _mulle_objc_methoddescriptor   *dup;
 
@@ -1708,7 +1708,7 @@ int   _mulle_objc_universe_add_protocol( struct _mulle_objc_universe *universe,
 }
 
 
-void    mulle_objc_universe_unfailing_add_protocol( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_unfailingadd_protocol( struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_protocol *protocol)
 {
    struct _mulle_objc_protocol  *dup;
@@ -1775,7 +1775,7 @@ int   _mulle_objc_universe_add_category( struct _mulle_objc_universe *universe,
 }
 
 
-void    mulle_objc_universe_unfailing_add_category( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_unfailingadd_category( struct _mulle_objc_universe *universe,
                                                    mulle_objc_categoryid_t categoryid,
                                                    char *name)
 {
@@ -1939,7 +1939,7 @@ char   *_mulle_objc_universe_string_for_classid( struct _mulle_objc_universe *un
 {
    struct _mulle_objc_infraclass   *infra;
    
-   infra = _mulle_objc_universe_lookup_uncached_infraclass( universe, classid);
+   infra = _mulle_objc_universe_uncachedlookup_infraclass( universe, classid);
    if( infra)
       return( _mulle_objc_infraclass_get_name( infra));
    return( _mulle_objc_universe_string_for_uniqueid( universe, classid));

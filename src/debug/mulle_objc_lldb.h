@@ -1,6 +1,6 @@
 //
 //  mulle_objc_lldb.h
-//  mulle-objc-universe
+//  mulle-objc-runtime-universe
 //
 //  Created by Nat! on 16.05.17.
 //  Copyright © 2017 Mulle kybernetiK. All rights reserved.
@@ -32,7 +32,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #ifndef mulle_objc_lldb_h__
 #define mulle_objc_lldb_h__
 

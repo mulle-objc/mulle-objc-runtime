@@ -1,6 +1,6 @@
 //
 //  mulle_objc_taggedpointer.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 14.07.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_load.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 19.11.14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -33,7 +33,7 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-//
+#pragma clang diagnostic ignored "-Wparentheses"
 
 #include "mulle_objc_load.h"
 
@@ -130,7 +130,7 @@ static struct _mulle_objc_dependency
    {
       if( ! infra || (_mulle_objc_infraclass_get_classid( infra) != dependencies->classid))
       {
-         infra = _mulle_objc_universe_get_or_lookup_infraclass( universe, dependencies->classid);
+         infra = _mulle_objc_universe_getlookup_infraclass( universe, dependencies->classid);
          if( ! infra)
          {
             if( universe->debug.trace.dependencies)
@@ -323,7 +323,7 @@ static struct _mulle_objc_dependency
 
    if( info->superclassid)
    {
-      superclass    = _mulle_objc_universe_get_or_lookup_infraclass( universe, info->superclassid);
+      superclass    = _mulle_objc_universe_getlookup_infraclass( universe, info->superclassid);
       *p_superclass = superclass;
 
       if( ! superclass)
@@ -363,7 +363,7 @@ static struct _mulle_objc_dependency
          if( *classid_p == info->superclassid || *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_universe_get_or_lookup_infraclass( universe, *classid_p);
+         protocolclass = _mulle_objc_universe_getlookup_infraclass( universe, *classid_p);
          if( ! protocolclass)
          {
             if( universe->debug.trace.dependencies)
@@ -459,22 +459,22 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
       _mulle_objc_universe_raise_fail_errno_exception( universe);  // unfailing vectors through there
 
    _mulle_objc_classpair_set_origin( pair, info->origin);
-   mulle_objc_classpair_unfailing_add_protocollist( pair, info->protocols);
-   mulle_objc_classpair_unfailing_add_protocolclassids( pair, info->protocolclassids);
+   mulle_objc_classpair_unfailingadd_protocollist( pair, info->protocols);
+   mulle_objc_classpair_unfailingadd_protocolclassids( pair, info->protocolclassids);
 
    meta   = _mulle_objc_classpair_get_metaclass( pair);
 
-   mulle_objc_metaclass_unfailing_add_methodlist( meta, info->classmethods);
-   mulle_objc_methodlist_unfailing_add_load_to_callqueue( info->classmethods, meta, loads);
+   mulle_objc_metaclass_unfailingadd_methodlist( meta, info->classmethods);
+   mulle_objc_methodlist_unfailingadd_load_to_callqueue( info->classmethods, meta, loads);
 
    infra  = _mulle_objc_classpair_get_infraclass( pair);
    assert( meta == _mulle_objc_class_get_metaclass( &infra->base));
 
    _mulle_objc_infraclass_set_ivarhash( infra, info->classivarhash);
 
-   mulle_objc_infraclass_unfailing_add_ivarlist( infra, info->instancevariables);
-   mulle_objc_infraclass_unfailing_add_propertylist( infra, info->properties);
-   mulle_objc_infraclass_unfailing_add_methodlist( infra, info->instancemethods);
+   mulle_objc_infraclass_unfailingadd_ivarlist( infra, info->instancevariables);
+   mulle_objc_infraclass_unfailingadd_propertylist( infra, info->properties);
+   mulle_objc_infraclass_unfailingadd_methodlist( infra, info->instancemethods);
 
    if( info->fastclassindex >= 0)
       _mulle_objc_universe_set_fastclass( universe, infra, info->fastclassindex);
@@ -490,18 +490,18 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    //
    map_f( &universe->waitqueues.categoriestoload,
          info->classid,
-         (void (*)()) mulle_objc_loadcategory_unfailing_enqueue,
+         (void (*)()) mulle_objc_loadcategory_unfailingenqueue,
          loads);
    map_f( &universe->waitqueues.classestoload,
          info->classid,
-         (void (*)()) mulle_objc_loadclass_unfailing_enqueue,
+         (void (*)()) mulle_objc_loadclass_unfailingenqueue,
          loads);
    
    return( MULLE_OBJC_NO_CLASSID);
 }
 
 
-void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
+void   mulle_objc_loadclass_unfailingenqueue( struct _mulle_objc_loadclass *info,
                                               struct _mulle_objc_callqueue *loads)
 {
    struct _mulle_objc_universe     *universe;
@@ -648,7 +648,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
 
 #pragma mark - classlists
 
-static void   mulle_objc_loadclasslist_unfailing_enqueue( struct _mulle_objc_loadclasslist *list,
+static void   mulle_objc_loadclasslist_unfailingenqueue( struct _mulle_objc_loadclasslist *list,
                                                           int need_sort,
                                                           struct _mulle_objc_callqueue *loads)
 {
@@ -665,7 +665,7 @@ static void   mulle_objc_loadclasslist_unfailing_enqueue( struct _mulle_objc_loa
       if( need_sort)
          _mulle_objc_loadclass_listssort( *p_class);
 
-      mulle_objc_loadclass_unfailing_enqueue( *p_class, loads);
+      mulle_objc_loadclass_unfailingenqueue( *p_class, loads);
       p_class++;
    }
 }
@@ -807,7 +807,7 @@ static struct _mulle_objc_dependency
       loadcategory_trace( info, universe, "dependency check ...");
    
    // check class
-   infra    = _mulle_objc_universe_get_or_lookup_infraclass( universe, info->classid);
+   infra    = _mulle_objc_universe_getlookup_infraclass( universe, info->classid);
    *p_class = infra;
 
    
@@ -833,7 +833,7 @@ static struct _mulle_objc_dependency
          if( *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_universe_get_or_lookup_infraclass( universe, *classid_p);
+         protocolclass = _mulle_objc_universe_getlookup_infraclass( universe, *classid_p);
          if( ! protocolclass)
          {
             if( universe->debug.trace.dependencies)
@@ -886,8 +886,9 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
       if( universe->debug.print.stuck_class_coverage)
          printf( "%08x;%s;;\n", dependency.classid, s_class);
       
-      fprintf( stderr, "\t%08x \"%s( %s)\" waiting for class %08x \"%s\"\n",
-              info->categoryid, info->classname, info->categoryname,
+      fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for class %08x \"%s\"\n",
+              info->classid, info->categoryid,
+              info->classname, info->categoryname,
               dependency.classid,
               s_class);
       return;
@@ -897,8 +898,9 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
    if( universe->debug.print.stuck_category_coverage)
       printf( "%08x;%s;%08x;%s\n", dependency.classid, s_class, dependency.categoryid, s_category);
    
-   fprintf( stderr, "\t%08x \"%s( %s)\" waiting for category %08x,%08x \"%s( %s)\"\n",
-           info->categoryid, info->classname, info->categoryname,
+   fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for category %08x,%08x \"%s( %s)\"\n",
+           info->classid, info->categoryid,
+           info->classname, info->categoryname,
            dependency.classid,
            dependency.categoryid,
            s_class,
@@ -906,7 +908,7 @@ void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_
 }
 
 
-// ensure the load category, minimally make sense
+// ensure the load category, minimally makes sense
 static int  mulle_objc_loadcategory_is_sane( struct _mulle_objc_loadcategory *info)
 {
    if( ! info)
@@ -989,7 +991,7 @@ static mulle_objc_classid_t
       raise_duplicate_category_exception( pair, info);
 
    // checks for hash collisions
-   mulle_objc_universe_unfailing_add_category( universe, info->categoryid, info->categoryname);
+   mulle_objc_universe_unfailingadd_category( universe, info->categoryid, info->categoryname);
 
    // the loader sets the categoryid as owner
    if( info->instancemethods && info->instancemethods->n_methods)
@@ -1014,24 +1016,24 @@ static mulle_objc_classid_t
    // emit protocolnames together with ids. Keep central directory in
    // universe
    //
-   mulle_objc_classpair_unfailing_add_protocollist( pair, info->protocols);
-   mulle_objc_classpair_unfailing_add_protocolclassids( pair, info->protocolclassids);
+   mulle_objc_classpair_unfailingadd_protocollist( pair, info->protocols);
+   mulle_objc_classpair_unfailingadd_protocolclassids( pair, info->protocolclassids);
    if( info->categoryid)
-      mulle_objc_classpair_unfailing_add_categoryid( pair, info->categoryid);
+      mulle_objc_classpair_unfailingadd_categoryid( pair, info->categoryid);
 
    // this queues things up
-   mulle_objc_methodlist_unfailing_add_load_to_callqueue( info->classmethods, meta, loads);
+   mulle_objc_methodlist_unfailingadd_load_to_callqueue( info->classmethods, meta, loads);
 
    //
    // retrigger those who are waiting for their dependencies
    //
    map_f( &universe->waitqueues.categoriestoload,
           info->classid,
-          (void (*)()) mulle_objc_loadcategory_unfailing_enqueue,
+          (void (*)()) mulle_objc_loadcategory_unfailingenqueue,
           loads);
    map_f( &universe->waitqueues.classestoload,
           info->classid,
-          (void (*)()) mulle_objc_loadclass_unfailing_enqueue,
+          (void (*)()) mulle_objc_loadclass_unfailingenqueue,
           loads);
    
    return( MULLE_OBJC_NO_CLASSID);
@@ -1039,7 +1041,7 @@ static mulle_objc_classid_t
 
 
 
-void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info,
+void   mulle_objc_loadcategory_unfailingenqueue( struct _mulle_objc_loadcategory *info,
                                                   struct _mulle_objc_callqueue *loads)
 {
    mulle_objc_classid_t         missingclassid;
@@ -1124,7 +1126,7 @@ static void   _mulle_objc_loadcategory_listssort( struct _mulle_objc_loadcategor
 }
 
 
-static void   mulle_objc_loadcategorylist_unfailing_enqueue( struct _mulle_objc_loadcategorylist *list,
+static void   mulle_objc_loadcategorylist_unfailingenqueue( struct _mulle_objc_loadcategorylist *list,
                                                              int need_sort,
                                                              struct _mulle_objc_callqueue *loads)
 {
@@ -1141,7 +1143,7 @@ static void   mulle_objc_loadcategorylist_unfailing_enqueue( struct _mulle_objc_
       if( need_sort)
          _mulle_objc_loadcategory_listssort( *p_category);
 
-      mulle_objc_loadcategory_unfailing_enqueue( *p_category, loads);
+      mulle_objc_loadcategory_unfailingenqueue( *p_category, loads);
       p_category++;
    }
 }
@@ -1166,7 +1168,7 @@ static void   loadcategorylist_dump( struct _mulle_objc_loadcategorylist *list,
 
 # pragma mark - stringlists
 
-static void   mulle_objc_loadstringlist_unfailing_enqueue( struct _mulle_objc_loadstringlist *list)
+static void   mulle_objc_loadstringlist_unfailingenqueue( struct _mulle_objc_loadstringlist *list)
 {
    struct _mulle_objc_object    **p_string;
    struct _mulle_objc_object    **sentinel;
@@ -1253,7 +1255,7 @@ void   mulle_objc_loadhashedstring_sort( struct _mulle_objc_loadhashedstring *me
 
 # pragma mark - hashedstringlists
 
-static void   mulle_objc_loadhashedstringlist_unfailing_enqueue( struct _mulle_objc_loadhashedstringlist *map, int need_sort)
+static void   mulle_objc_loadhashedstringlist_unfailingenqueue( struct _mulle_objc_loadhashedstringlist *map, int need_sort)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -1481,7 +1483,7 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
 //
 // this is function called per .o file
 //
-void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
+void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
 {
    struct _mulle_objc_universe   *universe;
    int                          need_sort;
@@ -1500,7 +1502,7 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
    if( ! mulle_objc_class_is_current_thread_registered( NULL))
    {
       loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: The function \"mulle_objc_loadinfo_unfailing_enqueue\" is called from a non-registered thread.", universe, info->version.foundation);
+      _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: The function \"mulle_objc_loadinfo_unfailingenqueue\" is called from a non-registered thread.", universe, info->version.foundation);
    }
 
    _mulle_objc_universe_assert_version( universe, &info->version);
@@ -1532,12 +1534,12 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
       mulle_objc_dotdump_universe_frame_to_tmp();
 
    // load strings in first, can be done unlocked
-   mulle_objc_loadstringlist_unfailing_enqueue( info->loadstringlist);
+   mulle_objc_loadstringlist_unfailingenqueue( info->loadstringlist);
 
    // pass universe thru...
    need_sort = info->version.bits & _mulle_objc_loadinfo_unsorted;
 
-   mulle_objc_loadhashedstringlist_unfailing_enqueue( info->loadhashedstringlist, need_sort);
+   mulle_objc_loadhashedstringlist_unfailingenqueue( info->loadhashedstringlist, need_sort);
 
    _mulle_objc_universe_waitqueues_lock( universe);
    {
@@ -1560,8 +1562,8 @@ void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
       // Because these are locked now anyway, the pointerarray is overkill
       // and not that useful, because you can't remove entries
       //
-      mulle_objc_loadclasslist_unfailing_enqueue( info->loadclasslist, need_sort, &loads);
-      mulle_objc_loadcategorylist_unfailing_enqueue( info->loadcategorylist, need_sort, &loads);
+      mulle_objc_loadclasslist_unfailingenqueue( info->loadclasslist, need_sort, &loads);
+      mulle_objc_loadcategorylist_unfailingenqueue( info->loadcategorylist, need_sort, &loads);
 
       mulle_objc_callqueue_walk( &loads, (void (*)()) call_load, universe);
       mulle_objc_callqueue_done( &loads);

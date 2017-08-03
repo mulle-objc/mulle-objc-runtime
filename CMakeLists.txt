@@ -2,12 +2,14 @@ cmake_minimum_required( VERSION 3.0)
 
 project( mulle-objc-runtime C)
 
+
 set( MULLE_OBJC_RUNTIME_LIBRARY ON)
 
 add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern
                  -DMULLE_OBJC_EXTERN_GLOBAL=extern
                  -D__MULLE_OBJC_TPS__     ## tagged pointers runtime (default: on)
                  -D__MULLE_OBJC_NO_TRT__  ## thread local runtime (default: off)
+                 -DMULLE_C11_NO_NOOB_WARNINGS=1
                 )
 
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration/cmake)

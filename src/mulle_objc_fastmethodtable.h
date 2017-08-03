@@ -1,6 +1,6 @@
 //
 //  mulle_objc_fast_call.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 26/10/15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.

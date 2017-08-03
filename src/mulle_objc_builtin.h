@@ -1,6 +1,6 @@
 //
 //  mulle_objc_builtin.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 28.01.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
@@ -32,9 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
-
 #ifndef mulle_objc_builtin_h__
 #define mulle_objc_builtin_h__
 
