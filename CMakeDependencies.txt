@@ -1,72 +1,80 @@
-#
-# The ifs are there so, that if someone has run find_libary already
-# it doesn't add duplicates to DEPENDENCY_LIBRARIES
-#
-# Order these for deficient linkers
-#
+if( NOT __MULLE_OBJC_RUNTIME_CMAKE_DEPENDENCIES_TXT__)
+   set( __MULLE_OBJC_RUNTIME_CMAKE_DEPENDENCIES_TXT__ ON)
 
-if( NOT MULLE_THREAD_LIBRARY)
-   find_library( MULLE_THREAD_LIBRARY NAMES mulle_thread)
-   message(STATUS "MULLE_THREAD_LIBRARY is ${MULLE_THREAD_LIBRARY}")
-   set( C_DEPENDENCY_LIBRARIES
-${MULLE_THREAD_LIBRARY}
-${C_DEPENDENCY_LIBRARIES}
-CACHE INTERNAL "need to cache this"
-)
+   message( STATUS "# Include mulle-objc-runtime CMakeDependencies.txt")
+
+   #
+   # The ifs are there so, that if someone has run find_libary already
+   # it doesn't add duplicates to DEPENDENCY_LIBRARIES
+   #
+   # Order these for deficient linkers
+   #
+
+   if( NOT MULLE_THREAD_LIBRARY)
+      find_library( MULLE_THREAD_LIBRARY NAMES mulle_thread)
+      message(STATUS "MULLE_THREAD_LIBRARY is ${MULLE_THREAD_LIBRARY}")
+      set( C_DEPENDENCY_LIBRARIES
+         ${MULLE_THREAD_LIBRARY}
+         ${C_DEPENDENCY_LIBRARIES}
+         CACHE INTERNAL "need to cache this"
+      )
+   endif()
+
+   if( NOT MULLE_ALLOCATOR_LIBRARY)
+      find_library( MULLE_ALLOCATOR_LIBRARY NAMES mulle_allocator)
+      message(STATUS "MULLE_ALLOCATOR_LIBRARY is ${MULLE_ALLOCATOR_LIBRARY}")
+      set( C_DEPENDENCY_LIBRARIES
+         ${MULLE_ALLOCATOR_LIBRARY}
+         ${C_DEPENDENCY_LIBRARIES}
+         CACHE INTERNAL "need to cache this"
+      )
+   endif()
+
+   if( NOT MULLE_TEST_ALLOCATOR_LIBRARY)
+      find_library( MULLE_TEST_ALLOCATOR_LIBRARY NAMES mulle_test_allocator)
+      message(STATUS "MULLE_TEST_ALLOCATOR_LIBRARY is ${MULLE_TEST_ALLOCATOR_LIBRARY}")
+      set( C_DEPENDENCY_LIBRARIES
+         ${MULLE_TEST_ALLOCATOR_LIBRARY}
+         ${C_DEPENDENCY_LIBRARIES}
+         CACHE INTERNAL "need to cache this"
+      )
+   endif()
+
+   if( NOT MULLE_ABA_LIBRARY)
+      find_library( MULLE_ABA_LIBRARY NAMES mulle_aba)
+      message(STATUS "MULLE_ABA_LIBRARY is ${MULLE_ABA_LIBRARY}")
+      set( C_DEPENDENCY_LIBRARIES
+         ${MULLE_ABA_LIBRARY}
+         ${C_DEPENDENCY_LIBRARIES}
+         CACHE INTERNAL "need to cache this"
+      )
+   endif()
+
+   if( NOT MULLE_CONCURRENT_LIBRARY)
+      find_library( MULLE_CONCURRENT_LIBRARY NAMES mulle_concurrent)
+      message(STATUS "MULLE_CONCURRENT_LIBRARY is ${MULLE_CONCURRENT_LIBRARY}")
+      set( C_DEPENDENCY_LIBRARIES
+         ${MULLE_CONCURRENT_LIBRARY}
+         ${C_DEPENDENCY_LIBRARIES}
+         CACHE INTERNAL "need to cache this"
+      )
+   endif()
+
+   #
+   # for the benefit of ppl including us
+   #
+   if( NOT MULLE_OBJC_RUNTIME_LIBRARY)
+      find_library( MULLE_OBJC_RUNTIME_LIBRARY NAMES mulle_objc_runtime)
+      message(STATUS "MULLE_OBJC_RUNTIME_LIBRARY is ${MULLE_OBJC_RUNTIME_LIBRARY}")
+      set( C_DEPENDENCY_LIBRARIES
+         ${MULLE_OBJC_RUNTIME_LIBRARY}
+         ${C_DEPENDENCY_LIBRARIES}
+         CACHE INTERNAL "need to cache this"
+      )
+   endif()
+
+   message( STATUS "# Included mulle-objc-runtime CMakeDependencies.txt")
+
 endif()
 
-if( NOT MULLE_ALLOCATOR_LIBRARY)
-   find_library( MULLE_ALLOCATOR_LIBRARY NAMES mulle_allocator)
-   message(STATUS "MULLE_ALLOCATOR_LIBRARY is ${MULLE_ALLOCATOR_LIBRARY}")
-   set( C_DEPENDENCY_LIBRARIES
-${MULLE_ALLOCATOR_LIBRARY}
-${C_DEPENDENCY_LIBRARIES}
-CACHE INTERNAL "need to cache this"
-)
-endif()
 
-if( NOT MULLE_TEST_ALLOCATOR_LIBRARY)
-   find_library( MULLE_TEST_ALLOCATOR_LIBRARY NAMES mulle_test_allocator)
-   message(STATUS "MULLE_TEST_ALLOCATOR_LIBRARY is ${MULLE_TEST_ALLOCATOR_LIBRARY}")
-   set( C_DEPENDENCY_LIBRARIES
-${MULLE_TEST_ALLOCATOR_LIBRARY}
-${C_DEPENDENCY_LIBRARIES}
-CACHE INTERNAL "need to cache this"
-)
-endif()
-
-if( NOT MULLE_ABA_LIBRARY)
-   find_library( MULLE_ABA_LIBRARY NAMES mulle_aba)
-   message(STATUS "MULLE_ABA_LIBRARY is ${MULLE_ABA_LIBRARY}")
-   set( C_DEPENDENCY_LIBRARIES
-${MULLE_ABA_LIBRARY}
-${C_DEPENDENCY_LIBRARIES}
-CACHE INTERNAL "need to cache this"
-)
-endif()
-
-if( NOT MULLE_CONCURRENT_LIBRARY)
-   find_library( MULLE_CONCURRENT_LIBRARY NAMES mulle_concurrent)
-   message(STATUS "MULLE_CONCURRENT_LIBRARY is ${MULLE_CONCURRENT_LIBRARY}")
-   set( C_DEPENDENCY_LIBRARIES
-${MULLE_CONCURRENT_LIBRARY}
-${C_DEPENDENCY_LIBRARIES}
-CACHE INTERNAL "need to cache this"
-)
-endif()
-
-#
-# for the benefit of ppl including us
-#
-if( NOT MULLE_OBJC_RUNTIME_LIBRARY)
-   find_library( MULLE_OBJC_RUNTIME_LIBRARY NAMES mulle_objc_runtime)
-   message(STATUS "MULLE_OBJC_RUNTIME_LIBRARY is ${MULLE_OBJC_RUNTIME_LIBRARY}")
-   set( C_DEPENDENCY_LIBRARIES
-${MULLE_OBJC_RUNTIME_LIBRARY}
-${C_DEPENDENCY_LIBRARIES}
-CACHE INTERNAL "need to cache this"
-)
-endif()
-
-
-message( STATUS "# Included mulle-objc-runtime CMakeDependencies.txt")

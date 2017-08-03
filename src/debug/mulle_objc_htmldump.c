@@ -1,6 +1,6 @@
 //
 //  mulle_objc_htmldump.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 10.05.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
@@ -749,7 +749,7 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname, char *direct
 
    universe = mulle_objc_get_universe();
    classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_universe_get_or_lookup_infraclass( universe, classid);
+   infra   = _mulle_objc_universe_getlookup_infraclass( universe, classid);
    if( ! infra)
    {
       fprintf( stderr, "Class \"%s\" is unknown to the universe\n", classname);

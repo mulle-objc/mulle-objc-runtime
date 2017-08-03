@@ -1,6 +1,6 @@
 //
 //  mulle_objc_classpair.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 17/04/08.
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #ifndef mulle_objc_classpair_h__
 #define mulle_objc_classpair_h__
 
@@ -233,7 +232,7 @@ int   _mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair
                                               void *userinfo);
 
 
-void   mulle_objc_classpair_unfailing_add_categoryid( struct _mulle_objc_classpair *cls,
+void   mulle_objc_classpair_unfailingadd_categoryid( struct _mulle_objc_classpair *cls,
                                                     mulle_objc_categoryid_t categoryid);
 
 
@@ -263,7 +262,7 @@ int   _mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *
 void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pair,
                                                 struct _mulle_objc_infraclass *proto_cls);
 
-void   mulle_objc_classpair_unfailing_add_protocolclassids( struct _mulle_objc_classpair *pair,
+void   mulle_objc_classpair_unfailingadd_protocolclassids( struct _mulle_objc_classpair *pair,
                                                             mulle_objc_protocolid_t *protocolids);
 
 #pragma mark - protocols
@@ -299,7 +298,7 @@ static inline int   mulle_objc_classpair_conformsto_protocolid( struct _mulle_ob
    return( _mulle_objc_classpair_conformsto_protocolid( pair, protocolid));
 }
 
-void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_classpair *pair,
+void   mulle_objc_classpair_unfailingadd_protocollist( struct _mulle_objc_classpair *pair,
                                                         struct _mulle_objc_protocollist *protocols);
 
 # pragma mark - protocol class enumerator

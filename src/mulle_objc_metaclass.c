@@ -1,6 +1,6 @@
 //
 //  mulle_objc_metaclass.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 17/04/07
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -33,15 +33,12 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #include "mulle_objc_metaclass.h"
 
 #include "mulle_objc_class.h"
 
 #include <mulle_concurrent/mulle_concurrent.h>
 #include <mulle_allocator/mulle_allocator.h>
-
-
 
 
 # pragma mark - sanity check
