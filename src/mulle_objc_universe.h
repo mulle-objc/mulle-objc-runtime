@@ -1,6 +1,6 @@
 //
 //  mulle_objc_universe.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 16/11/14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-//
 
 #ifndef mulle_objc_universe_h__
 #define mulle_objc_universe_h__
@@ -60,7 +59,7 @@
  * this will be declared by the Foundation (or the test program)
  *
  */
-mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_threadkey( void);
+mulle_thread_tss_t   mulle_objc_unfailingget_or_create_threadkey( void);
 void   mulle_objc_delete_threadkey( void);
 
 
@@ -261,7 +260,7 @@ struct _mulle_concurrent_pointerarray  *_mulle_objc_universe_get_staticstrings( 
 #pragma mark - exceptions
 
 /* the default implementation for handling exceptions */
-mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_exceptionstack_key( void);
+mulle_thread_tss_t   mulle_objc_unfailingget_or_create_exceptionstack_key( void);
 
 MULLE_C_NO_RETURN
 void   mulle_objc_allocator_fail( void *block, size_t size);
@@ -321,7 +320,7 @@ static inline void  _mulle_objc_universe_add_gift( struct _mulle_objc_universe *
 }
 
 
-static inline void   mulle_objc_universe_unfailing_add_gift( struct _mulle_objc_universe *universe,
+static inline void   mulle_objc_universe_unfailingadd_gift( struct _mulle_objc_universe *universe,
                                                            void *gift)
 {
    if( ! universe || ! gift)
@@ -523,7 +522,7 @@ struct _mulle_objc_classpair   *mulle_objc_universe_new_classpair( struct _mulle
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
-struct _mulle_objc_classpair   *mulle_objc_unfailing_new_classpair( mulle_objc_classid_t  classid,
+struct _mulle_objc_classpair   *mulle_objc_unfailingnew_classpair( mulle_objc_classid_t  classid,
                                                                     char *name,
                                                                     size_t instancesize,
                                                                     struct _mulle_objc_infraclass *superclass);
@@ -539,13 +538,13 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
                                          struct _mulle_objc_infraclass *infra);
 
 
-void   mulle_objc_universe_unfailing_add_infraclass( struct _mulle_objc_universe *universe,
+void   mulle_objc_universe_unfailingadd_infraclass( struct _mulle_objc_universe *universe,
                                                     struct _mulle_objc_infraclass *infra);
 
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 // used in some tests
-void   mulle_objc_unfailing_add_infraclass( struct _mulle_objc_infraclass *pair);
+void   mulle_objc_unfailingadd_infraclass( struct _mulle_objc_infraclass *pair);
 #endif
 
 void  _mulle_objc_universe_set_fastclass( struct _mulle_objc_universe *universe,
@@ -575,7 +574,7 @@ static inline int   mulle_objc_universe_add_methoddescriptor( struct _mulle_objc
 }
 
 
-void   mulle_objc_universe_unfailing_add_methoddescriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_methoddescriptor *p);
+void   mulle_objc_universe_unfailingadd_methoddescriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_methoddescriptor *p);
 
 // get name from methodid for example
 struct _mulle_objc_methoddescriptor   *_mulle_objc_universe_lookup_methoddescriptor( struct _mulle_objc_universe *universe, mulle_objc_methodid_t methodid);
@@ -612,7 +611,7 @@ static inline int   mulle_objc_universe_add_protocol( struct _mulle_objc_univers
 }
 
 
-void    mulle_objc_universe_unfailing_add_protocol( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_unfailingadd_protocol( struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_protocol *protocol);
 
 struct _mulle_objc_protocol  *mulle_objc_lookup_protocol( mulle_objc_protocolid_t protocolid);
@@ -640,7 +639,7 @@ char   *_mulle_objc_universe_lookup_category( struct _mulle_objc_universe *unive
 int   _mulle_objc_universe_add_category( struct _mulle_objc_universe *universe,
                                         mulle_objc_categoryid_t categoryid,
                                         char *name);
-void    mulle_objc_universe_unfailing_add_category( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_unfailingadd_category( struct _mulle_objc_universe *universe,
                                                    mulle_objc_categoryid_t categoryid,
                                                    char *name);
 char   *mulle_objc_lookup_category( mulle_objc_categoryid_t categoryid);

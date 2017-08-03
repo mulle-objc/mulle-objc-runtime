@@ -1,6 +1,6 @@
 //
 //  mulle_objc_dotdump.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 25.10.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -32,7 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
+//
 #include "mulle_objc_dotdump.h"
 
 #include "mulle_objc_runtime.h"
@@ -836,7 +836,7 @@ static void   _mulle_objc_dotdump_classname_to_file( char *classname,
 
    universe = mulle_objc_get_universe();
    classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_universe_get_or_lookup_infraclass( universe, classid);
+   infra   = _mulle_objc_universe_getlookup_infraclass( universe, classid);
    if( ! infra)
    {
       fprintf( stderr, "Class \"%s\" is unknown to the universe\n", classname);

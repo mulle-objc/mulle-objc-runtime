@@ -1,6 +1,6 @@
 //
 //  mulle_standalone_objc_universe.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 21.01.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.

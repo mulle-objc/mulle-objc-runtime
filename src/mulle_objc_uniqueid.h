@@ -1,6 +1,6 @@
 //
 //  mulle_objc_uniqueid.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 15.09.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -33,12 +33,10 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
-//
-
 #ifndef mulle_objc_uniqueid_h__
 #define mulle_objc_uniqueid_h__
 
+#include <mulle_c11/mulle_c11.h>
 #include <stdint.h>
 
 

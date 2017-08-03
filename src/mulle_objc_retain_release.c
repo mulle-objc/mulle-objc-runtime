@@ -1,6 +1,6 @@
 //
 //  mulle_objc_retain_release.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 16/11/14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -33,8 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-//
-
 #include "mulle_objc_retain_release.h"
 
 #include "mulle_objc_call.h"

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_fastclasstable.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 01.02.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
@@ -74,7 +74,7 @@ static inline struct _mulle_objc_infraclass *
 
 MULLE_C_NON_NULL_RETURN
 static inline struct _mulle_objc_infraclass  *
-     mulle_objc_fastclasstable_unfailing_get_infraclass( struct _mulle_objc_fastclasstable *table,
+     mulle_objc_fastclasstable_unfailingget_infraclass( struct _mulle_objc_fastclasstable *table,
                                                          unsigned int i)
 {
    extern int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);

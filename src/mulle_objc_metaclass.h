@@ -1,6 +1,6 @@
 //
 //  mulle_objc_metaclass.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 17/04/07
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -139,13 +139,13 @@ static inline unsigned int   _mulle_objc_metaclass_get_state_bit( struct _mulle_
 }
 
 
-static inline void   mulle_objc_metaclass_unfailing_add_methodlist( struct _mulle_objc_metaclass *meta,
+static inline void   mulle_objc_metaclass_unfailingadd_methodlist( struct _mulle_objc_metaclass *meta,
                                                                     struct _mulle_objc_methodlist *list)
 {
-   extern void   mulle_objc_class_unfailing_add_methodlist( struct _mulle_objc_class *cls,
+   extern void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
                                                             struct _mulle_objc_methodlist *list);
 
-   mulle_objc_class_unfailing_add_methodlist( &meta->base, list);
+   mulle_objc_class_unfailingadd_methodlist( &meta->base, list);
 }
 
 
@@ -153,10 +153,10 @@ static inline struct _mulle_objc_method  *
     mulle_objc_metaclass_search_method( struct _mulle_objc_metaclass *meta,
                                          mulle_objc_methodid_t methodid)
 {
-   extern struct _mulle_objc_method   *mulle_objc_class_search_method( struct _mulle_objc_class *cls,
+   extern struct _mulle_objc_method   *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                                                        mulle_objc_methodid_t methodid);
 
-   return( mulle_objc_class_search_method( &meta->base, methodid));
+   return( mulle_objc_class_defaultsearch_method( &meta->base, methodid));
 }
 
 

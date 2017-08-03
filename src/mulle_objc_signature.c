@@ -1,6 +1,6 @@
 //
 //  mulle_objc_signature.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 28.02.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -32,11 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
-
-//
-
 #include "mulle_objc_signature.h"
 
 #include "mulle_objc_uniqueid.h"

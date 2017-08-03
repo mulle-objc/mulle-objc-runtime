@@ -1,6 +1,6 @@
 //
 //  mulle_objc_universe_global.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 07.09.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
@@ -32,7 +32,6 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-//
 //
 #include "mulle_objc_universe_struct.h"
 

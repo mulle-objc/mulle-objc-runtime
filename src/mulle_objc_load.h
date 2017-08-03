@@ -1,6 +1,6 @@
 //
 //  mulle_objc_load.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 19.11.14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -33,8 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-//
-
 #ifndef mulle_objc_load_h__
 #define mulle_objc_load_h__
 
@@ -55,6 +53,7 @@ struct _mulle_objc_propertylist;
 struct _mulle_objc_protocollist;
 struct _mulle_objc_universe;
 
+
 struct _mulle_objc_dependency
 {
    mulle_objc_classid_t      classid;
@@ -62,12 +61,11 @@ struct _mulle_objc_dependency
 };
 
 
-
 //
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   8
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   9
 
 
 struct _mulle_objc_loadclass
@@ -257,7 +255,7 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info);
 // use this if the compiler was able to sort all protocol_uniqueids
 // all method lists referenced by load_categories and loadclasses by their methodid
 //
-void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info);
+void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info);
 
 // checks that loadinfo is compatibly compiled
 void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *universe,
@@ -269,7 +267,7 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
 // use this function to determine, if the universe is ready to load this class
 // yet. Returns the class, that's not yet loaded.
 //
-void   mulle_objc_loadclass_unfailing_enqueue( struct _mulle_objc_loadclass *info,
+void   mulle_objc_loadclass_unfailingenqueue( struct _mulle_objc_loadclass *info,
                                                struct _mulle_objc_callqueue *loads);
 
 void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loadclass *info,
@@ -284,7 +282,7 @@ int   mulle_objc_loadcategory_is_categorycomplete( struct _mulle_objc_loadcatego
 
 int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info,
                                         struct _mulle_objc_callqueue *loads);
-void   mulle_objc_loadcategory_unfailing_enqueue( struct _mulle_objc_loadcategory *info,
+void   mulle_objc_loadcategory_unfailingenqueue( struct _mulle_objc_loadcategory *info,
                                                   struct _mulle_objc_callqueue *loads);
 
 void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_loadcategory *info,

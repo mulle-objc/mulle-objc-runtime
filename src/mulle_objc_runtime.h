@@ -1,6 +1,6 @@
 //
 //  mulle_objc.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 10.07.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
@@ -59,6 +59,7 @@
 #include "mulle_objc_class.h"
 #include "mulle_objc_classpair.h"
 #include "mulle_objc_class_convenience.h"
+#include "mulle_objc_class_search.h"
 #include "mulle_objc_class_struct.h"
 #include "mulle_objc_fastclasstable.h"
 #include "mulle_objc_fastmethodtable.h"
@@ -80,6 +81,7 @@
 #include "mulle_objc_universe.h"
 #include "mulle_objc_universe_global.h"
 #include "mulle_objc_universe_struct.h"
+#include "mulle_objc_searchcache.h"
 #include "mulle_objc_signature.h"
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_try_catch_finally.h"

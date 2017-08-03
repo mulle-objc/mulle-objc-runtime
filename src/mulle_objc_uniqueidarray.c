@@ -1,6 +1,6 @@
 //
 //  mulle_objc_uniqueidarray.c
-//  mulle-objc-universe
+//  mulle-objc-runtime-universe
 //
 //  Created by Nat! on 28.05.17
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.

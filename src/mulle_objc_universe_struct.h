@@ -1,6 +1,6 @@
 //
 //  mulle_objc_universe_struct.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 16/11/14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-//
 #ifndef mulle_objc_universe_struct_h__
 #define mulle_objc_universe_struct_h__
 
@@ -44,6 +43,7 @@
 #include "mulle_objc_load.h"
 #include "mulle_objc_methodlist.h"
 #include "mulle_objc_propertylist.h"
+#include "mulle_objc_searchcache.h"
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_uniqueid.h"
 #include "mulle_objc_uniqueidarray.h"
@@ -352,6 +352,7 @@ struct _mulle_objc_universe
    union
    {
       struct _mulle_objc_cache           empty_cache;
+      struct _mulle_objc_searchcache     empty_searchcache;
       struct _mulle_objc_methodlist      empty_methodlist;
       struct _mulle_objc_ivarlist        empty_ivarlist;
       struct _mulle_objc_propertylist    empty_propertylist;

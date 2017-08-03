@@ -1,6 +1,6 @@
 //
 //  mulle_objc_csvdump.c
-//  mulle-objc-universe
+//  mulle-objc-runtime-universe
 //
 //  Created by Nat! on 16.05.17.
 //  Copyright © 2017 Mulle kybernetiK. All rights reserved.
@@ -37,6 +37,7 @@
 #include "mulle_objc_cache.h"
 #include "mulle_objc_class.h"
 #include "mulle_objc_class_universe.h"
+#include "mulle_objc_class_search.h"
 #include "mulle_objc_class_struct.h"
 #include "mulle_objc_classpair.h"
 #include "mulle_objc_infraclass.h"
@@ -97,12 +98,13 @@ static void   mulle_objc_searchresult_csvdump( struct _mulle_objc_searchresult  
 void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *cls,
                                                       FILE *fp)
 {
-   struct _mulle_objc_cache          *cache;
-   struct _mulle_objc_cacheentry     *p;
-   struct _mulle_objc_cacheentry     *sentinel;
-   struct _mulle_objc_method         *method;
-   struct _mulle_objc_searchresult   result;
-   mulle_objc_methodid_t             methodid;
+   struct _mulle_objc_cache             *cache;
+   struct _mulle_objc_cacheentry        *p;
+   struct _mulle_objc_cacheentry        *sentinel;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_searchresult      result;
+   mulle_objc_methodid_t                methodid;
    
    if( ! cls || ! fp)
    {
@@ -125,10 +127,11 @@ void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *
       if( methodid == MULLE_OBJC_NO_METHODID)
          continue;
       
-      method = _mulle_objc_class_search_method( cls, methodid,
-                                                NULL, MULLE_OBJC_ANY_OWNER,
-                                                _mulle_objc_class_get_inheritance( cls),
-                                                &result);
+      _mulle_objc_searcharguments_defaultinit( &search, methodid);
+      method = mulle_objc_class_search_method( cls,
+                                               &search,
+                                               _mulle_objc_class_get_inheritance( cls),
+                                               &result);
       if( ! method)
          mulle_objc_raise_inconsistency_exception( "universe information has disappeared");
       
@@ -139,7 +142,6 @@ void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *
       mulle_objc_searchresult_csvdump( &result, fp);
    }
 }
-
 
 
 void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,

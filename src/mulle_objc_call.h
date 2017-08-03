@@ -1,6 +1,6 @@
 //
 //  mulle_objc_call.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 16/11/14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -32,9 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
-
 #ifndef mulle_objc_call_h__
 #define mulle_objc_call_h__
 
@@ -214,7 +212,7 @@ static inline void   *_mulle_objc_infraclass_inline_metacall_classid( struct _mu
    universe    = _mulle_objc_infraclass_get_universe( infra);
    call_infra = (struct _mulle_objc_infraclass *) infra->base.superclass;
    if( infra->base.superclassid != classid)
-      call_infra = _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe, classid);
+      call_infra = _mulle_objc_universe_unfailinggetlookup_infraclass( universe, classid);
 
    call_meta = _mulle_objc_infraclass_get_metaclass( call_infra);
    // need to call cls->call to prepare caches
@@ -259,7 +257,7 @@ static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
    if( cls->superclassid != classid)
    {
       universe    = _mulle_objc_class_get_universe( cls);
-      call_infra = _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe, classid);
+      call_infra = _mulle_objc_universe_unfailinggetlookup_infraclass( universe, classid);
       call_cls   = _mulle_objc_infraclass_as_class( call_infra);
    }
    // need to call cls->call to prepare caches
@@ -306,10 +304,10 @@ void   *_mulle_objc_object_call_class_needs_cache( void *obj, mulle_objc_methodi
 
 // internal, call
 struct _mulle_objc_cacheentry
-   *_mulle_objc_class_add_entry_by_swapping_caches( struct _mulle_objc_class *cls,
-                                                    struct _mulle_objc_cache *cache,
-                                                    struct _mulle_objc_method *method,
-                                                    mulle_objc_methodid_t methodid);
+   *_mulle_objc_class_add_cacheentry_by_swapping_caches( struct _mulle_objc_class *cls,
+                                                         struct _mulle_objc_cache *cache,
+                                                         struct _mulle_objc_method *method,
+                                                         mulle_objc_methodid_t methodid);
 
 void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
                                            mulle_objc_methodid_t methodid,
@@ -364,11 +362,11 @@ mulle_objc_methodimplementation_t
 
 // knows about trace and empty cache, forwards
 mulle_objc_methodimplementation_t
-   _mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+   _mulle_objc_class_unfailinglookup_methodimplementation( struct _mulle_objc_class *cls,
                                                           mulle_objc_methodid_t methodid);
 
 mulle_objc_methodimplementation_t
-    mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+    mulle_objc_class_unfailinglookup_methodimplementation( struct _mulle_objc_class *cls,
                                                             mulle_objc_methodid_t methodid);
 
 
@@ -440,7 +438,5 @@ static inline void   mulle_objc_object_dealloc( void *obj)
    if( obj)
       _mulle_objc_object_dealloc( obj);
 }
-
-
 
 #endif

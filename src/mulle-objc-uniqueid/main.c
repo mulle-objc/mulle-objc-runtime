@@ -1,6 +1,6 @@
 //
 //  main.c
-//  mulle-objc-uniqueid
+//  mulle-objc-runtime-uniqueid
 //
 //  Created by Nat! on 19.04.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.

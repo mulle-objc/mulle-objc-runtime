@@ -1,6 +1,6 @@
 //
 //  c_set.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 10.05.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
@@ -33,6 +33,9 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
+#ifndef MULLE_C11_NO_NOOB_WARNINGS
+# define MULLE_C11_NO_NOOB_WARNINGS  1
+#endif
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

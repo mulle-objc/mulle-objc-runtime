@@ -1,6 +1,6 @@
 //
 //  mulle_objc_message.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 16/11/14.
 //  Copyright (c) 2014 Nat! - Mulle kybernetiK.
@@ -32,12 +32,11 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
 //
-
 #include "mulle_objc_call.h"
 
 #include "mulle_objc_class.h"
+#include "mulle_objc_class_search.h"
 #include "mulle_objc_class_universe.h"
 #include "mulle_objc_methodlist.h"
 #include "mulle_objc_object.h"
@@ -51,7 +50,7 @@
 
 
 
-static void   *_mulle_objc_object_call_uncached_class( void *obj,
+static void   *_mulle_objc_object_uncachedcall_class( void *obj,
                                                        mulle_objc_methodid_t methodid,
                                                        void *parameter,
                                                        struct _mulle_objc_class *cls);
@@ -68,7 +67,7 @@ static void   *_mulle_objc_object_call_class( void *obj,
                                               void *parameter,
                                               struct _mulle_objc_class *cls);
 
-static void   *_mulle_objc_object_unfailing_call_methodid( void *obj,
+static void   *_mulle_objc_object_unfailingcall_methodid( void *obj,
                                                            mulle_objc_methodid_t methodid,
                                                            void *parameter,
                                                            struct  _mulle_objc_class *cls);
@@ -149,7 +148,7 @@ static void   _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodi
    sentinel = &p[ n];
    while( p < sentinel)
    {
-      method = mulle_objc_class_search_method( cls, *p++);
+      method = mulle_objc_class_defaultsearch_method( cls, *p++);
       if( method)
          _mulle_objc_cache_inactivecache_add_pointer_entry( cache, _mulle_objc_method_get_implementation( method), method->descriptor.methodid);
    }
@@ -194,7 +193,7 @@ struct _mulle_objc_cacheentry  empty_entry;
 
 MULLE_C_NEVER_INLINE
 struct _mulle_objc_cacheentry   *
-   _mulle_objc_class_add_entry_by_swapping_caches( struct _mulle_objc_class *cls,
+   _mulle_objc_class_add_cacheentry_by_swapping_caches( struct _mulle_objc_class *cls,
                                                    struct _mulle_objc_cache *cache,
                                                    struct _mulle_objc_method *method,
                                                    mulle_objc_methodid_t methodid)
@@ -229,7 +228,7 @@ struct _mulle_objc_cacheentry   *
       entry = _mulle_objc_cache_inactivecache_add_functionpointer_entry( cache, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method), methodid);
 
    //
-   // an empty_cache ? this is getting called to early
+   // an empty_cache ? this is getting called too early
    //
    assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) != mulle_objc_get_universe()->empty_cache.entries);
 
@@ -302,7 +301,7 @@ static struct _mulle_objc_cacheentry   *
    // need to check that we are initialized
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
    {
-      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "call comes to early, the %s \"%s\" hasn't been initialized yet.", _mulle_objc_class_get_classtypename( cls), cls->name);
+      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "call comes too early, the %s \"%s\" hasn't been initialized yet.", _mulle_objc_class_get_classtypename( cls), cls->name);
    }
 
    // when we trace method calls, we don't cache ever
@@ -315,9 +314,9 @@ static struct _mulle_objc_cacheentry   *
    for(;;)
    {
       cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
-      if( (size_t) _mulle_atomic_pointer_read( &cache->n) >= (cache->size >> 2))  // 25% fill rate is nicer
+      if( _mulle_objc_cache_should_grow( cache)) 
       {
-         entry = _mulle_objc_class_add_entry_by_swapping_caches( cls, cache, method, methodid);
+         entry = _mulle_objc_class_add_cacheentry_by_swapping_caches( cls, cache, method, methodid);
          if( entry)
             return( entry);
          continue;
@@ -331,11 +330,11 @@ static struct _mulle_objc_cacheentry   *
 
 
 
-//mulle_objc_methodimplementation_t   mulle_objc_class_unfailing_search_methodimplementation( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid)
+//mulle_objc_methodimplementation_t   mulle_objc_class_unfailingsearch_methodimplementation( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid)
 //{
 //   struct _mulle_objc_method   *method;
 //
-//   method  = _mulle_objc_class_unfailing_search_method( cls, methodid);
+//   method  = _mulle_objc_class_unfailingsearch_method( cls, methodid);
 //   return( method->implementation);
 //}
 
@@ -379,7 +378,7 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
 // most general case
 //
 MULLE_C_NEVER_INLINE
-static void   *_mulle_objc_object_unfailing_call_methodid( void *obj,
+static void   *_mulle_objc_object_unfailingcall_methodid( void *obj,
                                                            mulle_objc_methodid_t methodid,
                                                            void *parameter,
                                                            struct  _mulle_objc_class *cls)
@@ -387,7 +386,7 @@ static void   *_mulle_objc_object_unfailing_call_methodid( void *obj,
    mulle_objc_methodimplementation_t   imp;
    struct _mulle_objc_universe          *universe;
    
-   imp = _mulle_objc_class_unfailing_lookup_methodimplementation( cls, methodid);
+   imp = _mulle_objc_class_unfailinglookup_methodimplementation( cls, methodid);
    
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.method_calls)
@@ -448,7 +447,7 @@ mulle_objc_methodimplementation_t
    }
    else
    {
-      method = mulle_objc_class_search_method( cls, methodid);
+      method = mulle_objc_class_defaultsearch_method( cls, methodid);
       if( method)
          imp = _mulle_objc_method_get_implementation( method);
    }
@@ -485,7 +484,7 @@ mulle_objc_methodimplementation_t
       return( imp);
    }
 
-   method = mulle_objc_class_search_method( cls, methodid);
+   method = mulle_objc_class_defaultsearch_method( cls, methodid);
    if( method)
    {
       imp = _mulle_objc_method_get_implementation( method);
@@ -506,7 +505,7 @@ mulle_objc_methodimplementation_t
    struct _mulle_objc_cacheentry       *entries;
    struct _mulle_objc_cacheentry       *entry;
    struct _mulle_objc_method           *method;
-
+   
    assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
@@ -517,12 +516,7 @@ mulle_objc_methodimplementation_t
    if( imp)
       return( imp);
 
-   method = _mulle_objc_class_search_method( cls,
-                                             methodid,
-                                             NULL,
-                                             MULLE_OBJC_ANY_OWNER,
-                                             _mulle_objc_class_get_inheritance( cls),
-                                             NULL);
+   method = mulle_objc_class_defaultsearch_method( cls, methodid);
    if( ! method)
    {
       method = _mulle_objc_class_getorsearch_forwardmethod( cls);
@@ -557,12 +551,7 @@ mulle_objc_methodimplementation_t
    if( imp)
       return( imp);
 
-   method = _mulle_objc_class_search_method( cls,
-                                            methodid,
-                                            NULL,
-                                            MULLE_OBJC_ANY_OWNER,
-                                            _mulle_objc_class_get_inheritance( cls),
-                                            NULL);
+   method = mulle_objc_class_defaultsearch_method( cls, methodid);
    if( ! method)
       method = _mulle_objc_class_getorsearch_forwardmethod( cls);
 
@@ -581,7 +570,7 @@ mulle_objc_methodimplementation_t
 // it knows about traces and the empty cache bit
 //
 mulle_objc_methodimplementation_t
-   _mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+   _mulle_objc_class_unfailinglookup_methodimplementation( struct _mulle_objc_class *cls,
                                                           mulle_objc_methodid_t methodid)
 {
    mulle_objc_methodimplementation_t   imp;
@@ -589,7 +578,7 @@ mulle_objc_methodimplementation_t
    struct _mulle_objc_method           *method;
    struct _mulle_objc_cacheentry       *entry;
    
-   method  = _mulle_objc_class_unfailing_search_method( cls, methodid);
+   method  = mulle_objc_class_unfailingsearch_method( cls, methodid);
    imp     = _mulle_objc_method_get_implementation( method);
    
    universe = _mulle_objc_class_get_universe( cls);
@@ -613,7 +602,7 @@ mulle_objc_methodimplementation_t
 // also checks and raises on empty class and wrong methodid
 //
 mulle_objc_methodimplementation_t
-   mulle_objc_class_unfailing_lookup_methodimplementation( struct _mulle_objc_class *cls,
+   mulle_objc_class_unfailinglookup_methodimplementation( struct _mulle_objc_class *cls,
                                                            mulle_objc_methodid_t methodid)
 {
    if( ! cls || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
@@ -623,7 +612,7 @@ mulle_objc_methodimplementation_t
       mulle_objc_raise_fail_errno_exception();
    }
 
-   return( _mulle_objc_class_unfailing_lookup_methodimplementation( cls, methodid));
+   return( _mulle_objc_class_unfailinglookup_methodimplementation( cls, methodid));
 }
 
 
@@ -661,7 +650,7 @@ void   *_mulle_objc_object_call_class( void *obj,
       }
 
       if( ! entry->key.uniqueid)
-/*->*/   return( _mulle_objc_object_unfailing_call_methodid( obj, methodid, parameter, cls));
+/*->*/   return( _mulle_objc_object_unfailingcall_methodid( obj, methodid, parameter, cls));
 
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
@@ -702,18 +691,18 @@ void   *_mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, voi
       }
 
       if( ! entry->key.uniqueid)
-/*->*/   return( _mulle_objc_object_unfailing_call_methodid( obj, methodid, parameter, cls));
+/*->*/   return( _mulle_objc_object_unfailingcall_methodid( obj, methodid, parameter, cls));
    }
 }
 
 
-static void   *_mulle_objc_object_call_uncached_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
+static void   *_mulle_objc_object_uncachedcall_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
 
-   method = mulle_objc_class_search_method( cls, methodid);
+   method = mulle_objc_class_defaultsearch_method( cls, methodid);
    if( ! method)
-      method = _mulle_objc_class_unfailing_getorsearch_forwardmethod( cls, methodid);
+      method = _mulle_objc_class_unfailinggetorsearch_forwardmethod( cls, methodid);
    return( (*_mulle_objc_method_get_implementation( method))( obj, methodid, parameter));
 }
 
@@ -760,7 +749,7 @@ static void   mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cl
    else
    {
       cls->cachepivot.call2 = _mulle_objc_object_call2_empty_cache;
-      cls->call             = _mulle_objc_object_call_uncached_class;
+      cls->call             = _mulle_objc_object_uncachedcall_class;
       
       if( universe->debug.trace.method_caches)
          fprintf( stderr, "mulle_objc_universe %p trace: use "
@@ -810,12 +799,7 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
    
    // grab code from superclass
    // this is useful for MulleObjCSingleton
-   initialize = _mulle_objc_class_search_method( &meta->base,
-                                                 MULLE_OBJC_INITIALIZE_METHODID,
-                                                 NULL,
-                                                 MULLE_OBJC_ANY_OWNER,
-                                                 meta->base.inheritance,
-                                                 NULL);
+   initialize = mulle_objc_class_defaultsearch_method( &meta->base, MULLE_OBJC_INITIALIZE_METHODID);
 
    universe = _mulle_objc_infraclass_get_universe( infra);
    if( initialize)
@@ -952,7 +936,7 @@ static void   *_mulle_objc_object_call2_empty_cache( void *obj, mulle_objc_metho
    struct _mulle_objc_method   *method;
 
    cls    = _mulle_objc_object_get_isa( obj);
-   method = _mulle_objc_class_unfailing_search_method( cls, methodid);
+   method = mulle_objc_class_unfailingsearch_method( cls, methodid);
    return( (*_mulle_objc_method_get_implementation( method))( obj, methodid, parameter));
 }
 

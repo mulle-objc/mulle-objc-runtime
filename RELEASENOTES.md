@@ -1,3 +1,15 @@
+### 0.10.1
+
+Search now supports "supreme" and "overridden". For that search arguments to
+`_mulle_objc_class_search_method` have been combined into a struct.
+See [SUPREME.md](dox/supreme/SUPREME.md) for some more info about this.
+Some search arguments can be cached and in a later evolution of the runtime
+will be. Making all super/supreme/overidden calls very fast.
+For general searching use `mulle_objc_class_defaultsearch_method` for 
+specialed searches use `mulle_objc_class_search_method`
+Went a bit nuts on verbing stuff, instead of using underscores. So for instance
+all `_get_or_lookup` functions are now called `getlookup`.
+
 ### 0.9.1
 
 Finally got around to a renaming. The runtime library is now,

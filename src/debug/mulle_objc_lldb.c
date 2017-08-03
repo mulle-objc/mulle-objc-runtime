@@ -1,6 +1,6 @@
 //
 //  mulle_objc_lldb.c
-//  mulle-objc-universe
+//  mulle-objc-runtime-universe
 //
 //  Created by Nat! on 18.05.17.
 //  Copyright © 2017 Mulle kybernetiK.
@@ -75,7 +75,7 @@ mulle_objc_methodimplementation_t
    if( is_classid)
    {
       universe  = _mulle_objc_class_get_universe( cls);
-      found    = _mulle_objc_universe_unfailing_get_or_lookup_infraclass( universe,
+      found    = _mulle_objc_universe_unfailinggetlookup_infraclass( universe,
                                                                         (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
       if( is_meta)
          call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));

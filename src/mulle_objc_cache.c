@@ -1,6 +1,6 @@
 //
 //  mulle_objc_cache.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 15.09.15.
 //  Copyright (c) 2015 Nat! - Mulle kybernetiK.
@@ -32,8 +32,7 @@
 //  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
-
-
+//
 #include "mulle_objc_cache.h"
 
 #include <mulle_thread/mulle_thread.h>
@@ -275,7 +274,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_ent
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
 
-   assert( (size_t) _mulle_atomic_pointer_read( &cache->n) < (cache->size >> 2));
+   assert( ! _mulle_objc_cache_should_grow( cache));
 
    offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
@@ -297,7 +296,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_functionpoi
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
 
-   assert( (size_t) _mulle_atomic_pointer_read( &cache->n) < (cache->size >> 2));
+   assert( ! _mulle_objc_cache_should_grow( cache));
 
    offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];

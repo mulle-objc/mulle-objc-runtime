@@ -1,6 +1,6 @@
 //
 //  mulle_objc_try_catch_finally.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 22/01/16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.

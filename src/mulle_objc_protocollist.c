@@ -1,6 +1,6 @@
 //
 //  mulle_objc_protocollist.c
-//  mulle-objc-universe
+//  mulle-objc-runtime-universe
 //
 //  Created by Nat! on 30.05.17
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.

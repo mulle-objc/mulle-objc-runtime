@@ -1,6 +1,6 @@
 //
 //  mulle_objc_infraclass.h
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 17/04/07
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #include "mulle_objc_infraclass.h"
 
 #include "mulle_objc_class.h"
@@ -193,7 +192,7 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 }
 
 
-void   mulle_objc_infraclass_unfailing_add_propertylist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infraclass *infra,
                                                          struct _mulle_objc_propertylist *list)
 {
    if( mulle_objc_infraclass_add_propertylist( infra, list))
@@ -231,7 +230,7 @@ int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
 }
 
 
-void   mulle_objc_infraclass_unfailing_add_ivarlist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_unfailingadd_ivarlist( struct _mulle_objc_infraclass *infra,
                                                      struct _mulle_objc_ivarlist *list)
 {
    if( mulle_objc_infraclass_add_ivarlist( infra, list))

@@ -1,6 +1,6 @@
 //
 //  mulle_objc_class_struct.h
-//  mulle-objc-universe
+//  mulle-objc-runtime-universe
 //
 //  Created by Nat! on 07.04.17.
 //  Copyright (c) 2017 Mulle kybernetiK. All rights reserved.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #ifndef mulle_objc_class_struct_h__
 #define mulle_objc_class_struct_h__
 
@@ -42,6 +41,7 @@
 
 #include "mulle_objc_atomicpointer.h"
 #include "mulle_objc_cache.h"
+#include "mulle_objc_searchcache.h"
 #include "mulle_objc_fastmethodtable.h"
 #include "mulle_objc_kvccache.h"
 #include "mulle_objc_objectheader.h"
@@ -74,7 +74,6 @@ struct _mulle_objc_methodcachepivot
 };
 
 
-#define MULLE_OBJC_ANY_OWNER  ((void *) -1)
 
 enum
 {
@@ -96,6 +95,7 @@ enum _mulle_objc_class_state
    MULLE_OBJC_CLASS_CACHE_READY        = 0x0001,
    MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE = 0x0002,
    MULLE_OBJC_CLASS_FIXED_SIZE_CACHE   = 0x0004,
+   MULLE_OBJC_CLASS_NO_SEARCH_CACHE    = 0x0008,
 
    // infra/meta flags
    _MULLE_OBJC_CLASS_WARN_PROTOCOL     = 0x0010,
@@ -127,7 +127,7 @@ struct _mulle_objc_class
    // keep name here for debugging
 
    char                                    *name;            // offset (void **)[ 3]
-   struct _mulle_objc_universe              *universe;         // keep here for debugger (void **)[ 4]
+   struct _mulle_objc_universe             *universe;         // keep here for debugger (void **)[ 4]
 
    struct _mulle_objc_class                *superclass;      // keep here for debugger (void **)[ 5]
 
@@ -152,6 +152,8 @@ struct _mulle_objc_class
    uint16_t                                inheritance;
    uint16_t                                preloads;
 
+   struct _mulle_objc_searchcachepivot     searchcachepivot;
+  
    struct mulle_concurrent_pointerarray    methodlists;
    struct _mulle_objc_fastmethodtable      vtab;  // dont' move it up, debugs nicer here
 };

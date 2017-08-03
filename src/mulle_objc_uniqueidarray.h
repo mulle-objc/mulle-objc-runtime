@@ -1,6 +1,6 @@
 //
 //  mulle_objc_uniqueidarray.h
-//  mulle-objc-universe
+//  mulle-objc-runtime-universe
 //
 //  Created by Nat! on 28.05.17
 //  Copyright (c) 2017 Nat! - Mulle kybernetiK.
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 
 #ifndef mulle_objc_uniqueidarray_h__
 #define mulle_objc_uniqueidarray_h__

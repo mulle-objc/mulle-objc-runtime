@@ -1,6 +1,6 @@
 //
 //  mulle_objc_fnv1.c
-//  mulle-objc
+//  mulle-objc-runtime
 //
 //  Created by Nat! on 19.04.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
