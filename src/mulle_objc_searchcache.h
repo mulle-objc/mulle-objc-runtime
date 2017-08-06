@@ -200,20 +200,10 @@ static inline void   _mulle_objc_searchcache_abafree( struct _mulle_objc_searchc
 # pragma mark - cache add entry
 
 struct _mulle_objc_searchcacheentry   *
-   _mulle_objc_searchcache_inactivecache_add_pointer_entry( struct _mulle_objc_searchcache *cache,
-                                                            void *pointer,
-                                                            struct _mulle_objc_searchargumentscachable *args);
-
-struct _mulle_objc_searchcacheentry   *
     _mulle_objc_searchcache_inactivecache_add_functionpointer_entry( struct _mulle_objc_searchcache *cache,
                                                                      mulle_functionpointer_t pointer,
                                                                      struct _mulle_objc_searchargumentscachable *args);
 
-// returns null if cache is full
-struct _mulle_objc_searchcacheentry   *
-   _mulle_objc_searchcache_add_pointer_entry( struct _mulle_objc_searchcache *cache,
-                                              void *pointer,
-                                              struct _mulle_objc_searchargumentscachable *args);
 struct _mulle_objc_searchcacheentry   *
     _mulle_objc_searchcache_add_functionpointer_entry( struct _mulle_objc_searchcache *cache,
                                                        mulle_functionpointer_t pointer,
@@ -221,9 +211,6 @@ struct _mulle_objc_searchcacheentry   *
 
 
 # pragma mark - cache method lookup
-
-void   *_mulle_objc_searchcache_lookup_pointer( struct _mulle_objc_searchcache *cache,
-                                                struct _mulle_objc_searchargumentscachable *args);
 
 mulle_functionpointer_t
    _mulle_objc_searchcache_lookup_functionpointer( struct _mulle_objc_searchcache *cache,

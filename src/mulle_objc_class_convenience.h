@@ -47,9 +47,10 @@
 #pragma mark - instance creation
 
 MULLE_C_NON_NULL_RETURN
-static inline struct mulle_allocator   *_mulle_objc_class_get_allocator( struct _mulle_objc_class *cls)
+static inline struct mulle_allocator   *
+    _mulle_objc_class_get_allocator( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_universe      *universe;
+   struct _mulle_objc_universe     *universe;
    struct _mulle_objc_foundation   *foundation;
 
    universe   = _mulle_objc_class_get_universe( cls);
@@ -59,14 +60,17 @@ static inline struct mulle_allocator   *_mulle_objc_class_get_allocator( struct 
 
 
 MULLE_C_NON_NULL_RETURN
-static inline struct mulle_allocator   *_mulle_objc_infraclass_get_allocator( struct _mulle_objc_infraclass *infra)
+static inline struct mulle_allocator   *
+   _mulle_objc_infraclass_get_allocator( struct _mulle_objc_infraclass *infra)
 {
    return( _mulle_objc_class_get_allocator( _mulle_objc_infraclass_as_class( infra)));
 }
 
 
-
-static inline struct _mulle_objc_object   *_mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra, struct mulle_allocator *allocator)
+// free with mulle_allocator_free
+static inline struct _mulle_objc_object   *
+    _mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra,
+                                           struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
    struct _mulle_objc_object        *obj;
@@ -78,7 +82,10 @@ static inline struct _mulle_objc_object   *_mulle_objc_infraclass_alloc_instance
 }
 
 
-static inline struct _mulle_objc_object   *_mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra, size_t extra, struct mulle_allocator *allocator)
+static inline struct _mulle_objc_object   *
+    _mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
+                                                 size_t extra,
+                                                 struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
    struct _mulle_objc_object        *obj;
@@ -93,7 +100,9 @@ static inline struct _mulle_objc_object   *_mulle_objc_infraclass_alloc_instance
 }
 
 
-static inline struct _mulle_objc_object   *mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra, struct mulle_allocator *allocator)
+static inline struct _mulle_objc_object   *
+   mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra,
+                                         struct mulle_allocator *allocator)
 {
    if( ! infra)
       abort();
@@ -103,7 +112,10 @@ static inline struct _mulle_objc_object   *mulle_objc_infraclass_alloc_instance(
 }
 
 
-static inline struct _mulle_objc_object   *mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra, size_t extra, struct mulle_allocator *allocator)
+static inline struct _mulle_objc_object   *
+   mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
+                                               size_t extra,
+                                               struct mulle_allocator *allocator)
 {
    if( ! infra)
       abort();
@@ -115,7 +127,8 @@ static inline struct _mulle_objc_object   *mulle_objc_infraclass_alloc_instance_
 
 #pragma mark - instance deletion
 
-static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj, struct mulle_allocator *allocator)
+static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj,
+                                              struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
 
@@ -124,7 +137,8 @@ static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj, st
 }
 
 
-static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj, struct mulle_allocator *allocator)
+static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj,
+                                             struct mulle_allocator *allocator)
 {
    if( ! obj)
       return;
@@ -136,8 +150,9 @@ static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj, str
 
 #pragma mark - classpair conveniences
 
-static inline int   _mulle_objc_infraclass_conformsto_protocolid( struct _mulle_objc_infraclass *infra,
-   mulle_objc_protocolid_t protocolid)
+static inline int
+   _mulle_objc_infraclass_conformsto_protocolid( struct _mulle_objc_infraclass *infra,
+                                                 mulle_objc_protocolid_t protocolid)
 {
    struct _mulle_objc_classpair   *pair;
 

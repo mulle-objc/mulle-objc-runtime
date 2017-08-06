@@ -504,7 +504,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
 void   mulle_objc_loadclass_unfailingenqueue( struct _mulle_objc_loadclass *info,
                                               struct _mulle_objc_callqueue *loads)
 {
-   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_universe    *universe;
    mulle_objc_classid_t           missingclassid;
    
    // possibly get or create universe..
@@ -755,7 +755,7 @@ static struct _mulle_objc_dependency
    _mulle_objc_loadcategory_fulfill_user_dependencies( struct _mulle_objc_loadcategory *info,
                                                        struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_universe         *universe;
    struct _mulle_objc_dependency       *dependencies;
    mulle_objc_methodimplementation_t   imp;
 
@@ -931,7 +931,7 @@ static int  mulle_objc_loadcategory_is_sane( struct _mulle_objc_loadcategory *in
 static void  raise_duplicate_category_exception( struct _mulle_objc_classpair *pair,
                                                  struct _mulle_objc_loadcategory *info)
 {
-   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_universe    *universe;
    char                           *info_origin;
    char                           *pair_origin;
 
@@ -1044,7 +1044,7 @@ static mulle_objc_classid_t
 void   mulle_objc_loadcategory_unfailingenqueue( struct _mulle_objc_loadcategory *info,
                                                   struct _mulle_objc_callqueue *loads)
 {
-   mulle_objc_classid_t         missingclassid;
+   mulle_objc_classid_t          missingclassid;
    struct _mulle_objc_universe   *universe;
    
    universe = mulle_objc_get_or_create_universe();
@@ -1170,8 +1170,8 @@ static void   loadcategorylist_dump( struct _mulle_objc_loadcategorylist *list,
 
 static void   mulle_objc_loadstringlist_unfailingenqueue( struct _mulle_objc_loadstringlist *list)
 {
-   struct _mulle_objc_object    **p_string;
-   struct _mulle_objc_object    **sentinel;
+   struct _mulle_objc_object     **p_string;
+   struct _mulle_objc_object     **sentinel;
    struct _mulle_objc_universe   *universe;
 
    if( ! list)
@@ -1486,7 +1486,7 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
 void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
 {
    struct _mulle_objc_universe   *universe;
-   int                          need_sort;
+   int                           need_sort;
 
    assert( info);
 

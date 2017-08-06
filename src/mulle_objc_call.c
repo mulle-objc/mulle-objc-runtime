@@ -202,7 +202,7 @@ struct _mulle_objc_cacheentry   *
    struct _mulle_objc_cacheentry   *entry;
    struct _mulle_objc_cacheentry   *p;
    struct _mulle_objc_cacheentry   *sentinel;
-   struct _mulle_objc_universe      *universe;
+   struct _mulle_objc_universe     *universe;
    mulle_objc_cache_uint_t         new_size;
    
    old_cache = cache;
@@ -301,7 +301,11 @@ static struct _mulle_objc_cacheentry   *
    // need to check that we are initialized
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
    {
-      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "call comes too early, the %s \"%s\" hasn't been initialized yet.", _mulle_objc_class_get_classtypename( cls), cls->name);
+      _mulle_objc_universe_raise_inconsistency_exception( cls->universe,
+               "Method call %08x \"%s\" comes too early, "
+               "the cache of %s \"%s\" hasn't been initialized yet.",
+               methodid, _mulle_objc_method_get_name( method),
+               _mulle_objc_class_get_classtypename( cls), cls->name);
    }
 
    // when we trace method calls, we don't cache ever
@@ -348,7 +352,7 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
                                            mulle_objc_methodimplementation_t imp)
 {
    struct _mulle_objc_methoddescriptor   *desc;
-   struct _mulle_objc_universe            *universe;
+   struct _mulle_objc_universe           *universe;
 
    universe = _mulle_objc_class_get_universe( cls);
    desc    = _mulle_objc_universe_lookup_methoddescriptor( universe, methodid);
@@ -384,7 +388,7 @@ static void   *_mulle_objc_object_unfailingcall_methodid( void *obj,
                                                            struct  _mulle_objc_class *cls)
 {
    mulle_objc_methodimplementation_t   imp;
-   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_universe         *universe;
    
    imp = _mulle_objc_class_unfailinglookup_methodimplementation( cls, methodid);
    
@@ -574,7 +578,7 @@ mulle_objc_methodimplementation_t
                                                           mulle_objc_methodid_t methodid)
 {
    mulle_objc_methodimplementation_t   imp;
-   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_universe         *universe;
    struct _mulle_objc_method           *method;
    struct _mulle_objc_cacheentry       *entry;
    
@@ -582,6 +586,7 @@ mulle_objc_methodimplementation_t
    imp     = _mulle_objc_method_get_implementation( method);
    
    universe = _mulle_objc_class_get_universe( cls);
+   // trace but don't cache it
    if( universe->debug.trace.method_calls)
       return( imp);
    // some special classes may choose to never cache
@@ -1001,26 +1006,18 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
    }
 }
 
-# pragma mark - class super call
-void   *mulle_objc_infraclass_metacall_classid( struct _mulle_objc_infraclass *infra,
-                                                mulle_objc_methodid_t methodid,
-                                                void *parameter,
-                                                mulle_objc_classid_t classid)
-{
-   if( ! infra)
-      return( infra);
-   return( _mulle_objc_infraclass_inline_metacall_classid( infra, methodid, parameter, classid));
-}
+# pragma mark - super calls
 
-
-#pragma mark - instance super call
-void   *mulle_objc_object_call_classid( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        void *parameter,
-                                        mulle_objc_classid_t classid)
+void   *mulle_objc_object_supercall_classid( void *obj,
+                                             mulle_objc_methodid_t methodid,
+                                             void *parameter,
+                                             mulle_objc_classid_t classid)
 {
    if( ! obj)
       return( 0);
-   return( _mulle_objc_object_inline_call_classid( obj, methodid, parameter, classid));
+   return( _mulle_objc_object_inline_supercall_classid( obj, methodid, parameter, classid));
 }
+
+// need to call cls->call to prepare caches
+
 

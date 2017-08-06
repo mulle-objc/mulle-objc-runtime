@@ -1,0 +1,18 @@
+digraph super_2 {
+
+   node [ shape="note", penwidth="2", fontsize="14" ]
+
+   { rank="same" ; "A" }
+   { rank="same" ; "B" }
+   { rank="same" ; "P" }
+   { rank="same" ; "B+C" }
+
+   "B+C" -> "B" [ label=" 1"]
+   "B"   -> "P" [ label=" 2"]
+   "P"   -> "A" [ label=" 3"]
+
+   "A"   [ label="@interface A" ]
+   "B"   [ label="@interface B : A <P>" ]
+   "P"   [ label="@protocolclass P"]
+   "B+C" [ label="@interface B( C)" ]
+}

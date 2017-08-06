@@ -1,0 +1,27 @@
+digraph super_2 {
+
+   node [ shape="note", penwidth="2", fontsize="14" ]
+
+   { rank="same" ; "A" }
+   { rank="same" ; "B" }
+   { rank="same" ; "P" }
+   { rank="same" ; "B+C" }
+
+   "B+C" -> "B" [ style="invis" ]
+   "B"   -> "P" [ style="invis" ]
+   "P"   -> "A" [ style="invis" ]
+
+   "A"   [ label="@interface A" ]
+   "B"   [ label="@interface B : A <P>" ]
+   "P"   [ label="@protocolclass P"]
+   "B+C" [ label="@interface B( C)" ]
+
+   node [ shape="none", fontcolor="red" fontname="Anonymous Pro", fontsize="16"]
+
+   "B"     -> "A" [ label=" super", penwidth="2" , color="blue" ]
+   "A"     -> "*forward*" [ label=" super", color="red", penwidth="2"  ]
+   "P"     -> "*forward*" [ label=" super", color="red", penwidth="2"  ]
+   "B+C"   -> "A" [ label=" super", penwidth="2" , color="blue" ]
+
+
+}

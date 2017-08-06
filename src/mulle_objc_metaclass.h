@@ -138,6 +138,21 @@ static inline unsigned int   _mulle_objc_metaclass_get_state_bit( struct _mulle_
    return( _mulle_objc_class_get_state_bit( &meta->base, (unsigned int) bit));
 }
 
+#pragma mark -
+
+struct _mulle_objc_searchargumentscachable;
+
+static inline mulle_objc_methodimplementation_t
+   _mulle_objc_metaclass_lookup_methodsearch( struct _mulle_objc_metaclass *meta,
+                                              struct _mulle_objc_searchargumentscachable *args)
+{
+   extern mulle_objc_methodimplementation_t
+      _mulle_objc_class_lookup_methodsearch( struct _mulle_objc_class *cls,
+                                             struct _mulle_objc_searchargumentscachable *args);
+
+   return( _mulle_objc_class_lookup_methodsearch( &meta->base, args));
+}
+
 
 static inline void   mulle_objc_metaclass_unfailingadd_methodlist( struct _mulle_objc_metaclass *meta,
                                                                     struct _mulle_objc_methodlist *list)

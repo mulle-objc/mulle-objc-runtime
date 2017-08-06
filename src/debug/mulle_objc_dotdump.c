@@ -291,7 +291,7 @@ struct dump_info
 
 
 static void   print_universe( struct _mulle_objc_universe *universe,
-                             struct dump_info *info)
+                              struct dump_info *info)
 {
    char   *label;
    int    i;
@@ -420,7 +420,7 @@ static void   print_universe( struct _mulle_objc_universe *universe,
 
 
 static void   print_hyper_universe( struct _mulle_objc_universe *universe,
-                                   struct dump_info *info)
+                                    struct dump_info *info)
 {
    char   *label;
 
@@ -824,9 +824,9 @@ static void   _mulle_objc_dotdump_classname_to_file( char *classname,
                                                      char *filename)
 {
    struct _mulle_objc_universe     *universe;
-   struct _mulle_objc_class       *cls;
-   struct _mulle_objc_infraclass  *infra;
-   mulle_objc_classid_t           classid;
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *infra;
+   mulle_objc_classid_t            classid;
 
    if( ! classname || ! *classname)
    {
@@ -863,7 +863,7 @@ static void   __mulle_objc_dotdump_classes( void (*dump)( char *, char *, char *
    char                                        *path;
    intptr_t                                    classid;
    struct _mulle_objc_infraclass               *infra;
-   struct _mulle_objc_universe                  *universe;
+   struct _mulle_objc_universe                 *universe;
    struct mulle_concurrent_hashmapenumerator   rover;
 
    universe = mulle_objc_get_universe();

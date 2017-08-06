@@ -1,0 +1,32 @@
+digraph super {
+
+   node [ shape="note", penwidth="2",fontsize="14" ]
+
+   { rank="same" ; "B+C" }
+   { rank="same" ; "A" }
+   { rank="same" ; "B" }
+   { rank="same" ; "P" }
+
+   node [ shape="box", penwidth="1" fontname="Anonymous Pro", fontsize="12"]
+
+   { rank="same" ; "foo1", "foo2", "foo3", "foo4" }
+
+   "A"   -> foo1  [ label=" @implementation", fontsize="10" ]
+   "B"   -> foo2  [ label=" @implementation", fontsize="10" ]
+   "P"   -> foo3  [ label=" @implementation", fontsize="10" ]
+   "B+C" -> foo4  [ label=" @implementation", fontsize="10" ]
+
+   "A"   [ label="@interface A" ]
+   "B"   [ label="@interface B : A <P>" ]
+   "P"   [ label="@protocolclass P"]
+   "B+C" [ label="@interface B( C)" ]
+
+   "B"     -> "P"  [ label=" adopts"]
+   "B"     -> "A"  [ label=" inherits" ]
+   "B+C"   -> "B"  [ label=" overrides" ]
+
+   foo1 [ label="- (void) foo\l{\l   [super foo];\l}\l"]
+   foo2 [ label="- (void) foo\l{\l   [super foo];\l}\l"]
+   foo3 [ label="- (void) foo\l{\l   [super foo];\l}\l"]
+   foo4 [ label="- (void) foo\l{\l   [super foo];\l}\l"]
+}

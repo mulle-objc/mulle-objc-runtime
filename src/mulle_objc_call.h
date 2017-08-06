@@ -196,72 +196,47 @@ void   mulle_objc_objects_call( void **objects,
 
 #pragma mark - calls for super
 
+
+void   *_mulle_objc_object_supercall_classid2( void *obj,
+                                              mulle_objc_methodid_t methodid,
+                                              void *parameter,
+                                              mulle_objc_classid_t classid);
+
 //
-// this is used for calling super on class methods, the classid is determined by
-// the compiler since it is a super call, infra is known to be non-nil.
+// this is used for calling super. It's the same for metaclasses and
+// infraclasses. The classid of the caller is determined by the compiler.
+// Since it is a super call, obj is known to be non-nil.
 //
-static inline void   *_mulle_objc_infraclass_inline_metacall_classid( struct _mulle_objc_infraclass *infra,
-                                                                      mulle_objc_methodid_t methodid,
-                                                                      void *parameter,
-                                                                      mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_infraclass   *call_infra;
-   struct _mulle_objc_metaclass    *call_meta;
-   struct _mulle_objc_universe     *universe;
-
-   universe    = _mulle_objc_infraclass_get_universe( infra);
-   call_infra = (struct _mulle_objc_infraclass *) infra->base.superclass;
-   if( infra->base.superclassid != classid)
-      call_infra = _mulle_objc_universe_unfailinggetlookup_infraclass( universe, classid);
-
-   call_meta = _mulle_objc_infraclass_get_metaclass( call_infra);
-   // need to call cls->call to prepare caches
-   return( (*call_meta->base.call)( &infra->base, methodid, parameter, &call_meta->base));
-}
-
-
-static inline void   *mulle_objc_infraclass_inline_metacall_classid( struct _mulle_objc_infraclass *infra,
-                                                                     mulle_objc_methodid_t methodid,
-                                                                     void *parameter,
-                                                                     mulle_objc_classid_t classid)
-{
-
-   if( ! infra)
-      return( infra);
-   return( _mulle_objc_infraclass_inline_metacall_classid( infra, methodid, parameter, classid));
-}
-
-
-void   *mulle_objc_infraclass_metacall_classid( struct _mulle_objc_infraclass *infra,
+static inline void   *
+   _mulle_objc_object_inline_supercall_classid( void *obj,
                                                 mulle_objc_methodid_t methodid,
                                                 void *parameter,
-                                                mulle_objc_classid_t classid);
-
-
-//
-// this is used for calling super on instances, the classid is determined by
-// the compiler since it is a super call, obj is known to be non-nil.
-//
-static inline void   *_mulle_objc_object_inline_call_classid( void *obj,
-                                                              mulle_objc_methodid_t methodid,
-                                                              void *parameter,
-                                                              mulle_objc_classid_t classid)
+                                                mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_class        *call_cls;
-   struct _mulle_objc_class        *cls;
-   struct _mulle_objc_infraclass   *call_infra;
-   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_class                     *cls;
+   struct _mulle_objc_searchargumentscachable   search;
+   mulle_objc_methodimplementation_t            imp;
 
-   cls      = _mulle_objc_object_get_isa( obj);
-   call_cls = cls->superclass;
-   if( cls->superclassid != classid)
+   cls = _mulle_objc_object_get_isa( obj);
+   
+/*
+   THIS OPTIMIZATION LOOKS GOOD, BUT I HAVE A FEELING THAT GOING THROUGH TWO
+   CACHES WILL BE UNDESIRABLE FOR CONDITIONS, WHERE ONE CACHE HAS BEEN 
+   INVALIDATED DUE TO A METHODLIST ADD AND THE OTHER NOT YET AND WE ARE
+   GETTING DIFFERENT RESULTS INTERMITTENTLY
+ 
+   if( cls->classid == classid)
    {
-      universe    = _mulle_objc_class_get_universe( cls);
-      call_infra = _mulle_objc_universe_unfailinggetlookup_infraclass( universe, classid);
-      call_cls   = _mulle_objc_infraclass_as_class( call_infra);
+      struct _mulle_objc_class   *call_cls;
+      call_cls = cls->nextclass;
+      return( (*call_cls->call)( obj, methodid, parameter, call_cls));
    }
-   // need to call cls->call to prepare caches
-   return( (*call_cls->call)( obj, methodid, parameter, call_cls));
+*/
+   
+   _mulle_objc_searchargumentscacheable_superinit( &search, methodid, classid);
+   cls = _mulle_objc_object_get_isa( obj);
+   imp = _mulle_objc_class_lookup_methodsearch( cls, &search);
+   return( (*imp)( obj, methodid, parameter));
 }
 
 
@@ -277,22 +252,26 @@ void   *mulle_objc_object_call( void *obj,
 // this is used for calling super on classes, the classid is determined by
 // the compiler since it is a super call, self is known to be non-nil.
 //
-static inline void   *mulle_objc_object_inline_call_classid( void *obj,
+static inline void   *mulle_objc_object_inline_supercall_classid( void *obj,
                                                              mulle_objc_methodid_t methodid,
                                                              void *parameter,
                                                              mulle_objc_classid_t classid)
 {
    if( ! obj)
       return( obj);
-   return( _mulle_objc_object_inline_call_classid( obj, methodid, parameter, classid));
+   return( _mulle_objc_object_inline_supercall_classid( obj, methodid, parameter, classid));
 }
 
 
-void   *mulle_objc_object_call_classid( void *obj,
+void   *mulle_objc_object_supercall_classid( void *obj,
                                         mulle_objc_methodid_t methodid,
                                         void *parameter,
                                         mulle_objc_classid_t classid);
 
+void   *_mulle_objc_object_supercall_classid2( void *obj,
+                                               mulle_objc_methodid_t methodid,
+                                               void *parameter,
+                                               mulle_objc_classid_t classid);
 
 # pragma mark - special initial setup calls
 
@@ -426,6 +405,7 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 
 # pragma mark - API
 
+// [self finalize]
 static inline void   mulle_objc_object_finalize( void *obj)
 {
    if( obj)
@@ -433,6 +413,7 @@ static inline void   mulle_objc_object_finalize( void *obj)
 }
 
 
+// [self dealloc]
 static inline void   mulle_objc_object_dealloc( void *obj)
 {
    if( obj)
