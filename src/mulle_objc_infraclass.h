@@ -134,7 +134,8 @@ static inline unsigned int   _mulle_objc_infraclass_get_inheritance( struct _mul
 }
 
 
-static inline void   _mulle_objc_infraclass_set_inheritance( struct _mulle_objc_infraclass *infra, unsigned int inheritance)
+static inline void   _mulle_objc_infraclass_set_inheritance( struct _mulle_objc_infraclass *infra,
+                                                             unsigned int inheritance)
 {
    assert( (unsigned short) inheritance == inheritance);
 
@@ -157,10 +158,10 @@ static inline unsigned int   _mulle_objc_infraclass_get_state_bit( struct _mulle
 
 
 static inline void   mulle_objc_infraclass_unfailingadd_methodlist( struct _mulle_objc_infraclass *infra,
-                                                                     struct _mulle_objc_methodlist *list)
+                                                                    struct _mulle_objc_methodlist *list)
 {
    extern void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
-                                                            struct _mulle_objc_methodlist *list);
+                                                           struct _mulle_objc_methodlist *list);
 
    mulle_objc_class_unfailingadd_methodlist( &infra->base, list);
 }
@@ -179,13 +180,27 @@ static inline size_t   _mulle_objc_infraclass_get_instancesize( struct _mulle_ob
 
 
 static inline struct _mulle_objc_method  *
-    mulle_objc_infraclass_search_method( struct _mulle_objc_infraclass *infra,
-                                         mulle_objc_methodid_t methodid)
+    mulle_objc_infraclass_defaultsearch_method( struct _mulle_objc_infraclass *infra,
+                                                mulle_objc_methodid_t methodid)
 {
    extern struct _mulle_objc_method   *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
-                                                                       mulle_objc_methodid_t methodid);
+                                                                              mulle_objc_methodid_t methodid);
 
    return( mulle_objc_class_defaultsearch_method( &infra->base, methodid));
+}
+
+
+struct _mulle_objc_searchargumentscachable;
+
+static inline mulle_objc_methodimplementation_t
+   _mulle_objc_infraclass_lookup_methodsearch( struct _mulle_objc_infraclass *infra,
+                                               struct _mulle_objc_searchargumentscachable *args)
+{
+   extern mulle_objc_methodimplementation_t
+      _mulle_objc_class_lookup_methodsearch( struct _mulle_objc_class *cls,
+                                             struct _mulle_objc_searchargumentscachable *args);
+
+   return( _mulle_objc_class_lookup_methodsearch( &infra->base, args));
 }
 
 
@@ -202,7 +217,7 @@ static inline struct _mulle_objc_object *   _mulle_objc_infraclass_get_placehold
 
 // 1: it has worked, 0: someone else was faster
 static inline int  _mulle_objc_infraclass_set_placeholder( struct _mulle_objc_infraclass *infra,
-                                                         struct _mulle_objc_object *obj)
+                                                           struct _mulle_objc_object *obj)
 {
    return( _mulle_atomic_pointer_compare_and_swap( &infra->placeholder.pointer, obj, NULL));
 }
@@ -216,7 +231,7 @@ static inline struct _mulle_objc_object *   _mulle_objc_infraclass_get_auxplaceh
 
 // 1: it has worked, 0: someone else was faster
 static inline int  _mulle_objc_infraclass_set_auxplaceholder( struct _mulle_objc_infraclass *infra,
-                                                            struct _mulle_objc_object *obj)
+                                                              struct _mulle_objc_object *obj)
 {
    return( _mulle_atomic_pointer_compare_and_swap( &infra->auxplaceholder.pointer, obj, NULL));
 }
@@ -241,7 +256,7 @@ static inline unsigned int   _mulle_objc_infraclass_get_taggedpointerindex( stru
 
 // 1: it has worked, 0: someone else was faster, can only be set once
 static inline int  _mulle_objc_infraclass_set_coderversion( struct _mulle_objc_infraclass *infra,
-                                                           uintptr_t value)
+                                                            uintptr_t value)
 {
    return( _mulle_atomic_pointer_compare_and_swap( &infra->coderversion, (void *) value, NULL));
 }
@@ -249,7 +264,7 @@ static inline int  _mulle_objc_infraclass_set_coderversion( struct _mulle_objc_i
 
 // 1: it has worked, 0: someone else was faster
 static inline int   _mulle_objc_infraclass_set_taggedpointerindex( struct _mulle_objc_infraclass *infra,
-                                                     unsigned int value)
+                                                                   unsigned int value)
 {
    return( _mulle_atomic_pointer_compare_and_swap( &infra->taggedpointerindex, (void *) (uintptr_t) value, NULL));
 }
@@ -282,25 +297,31 @@ int   mulle_objc_infraclass_is_sane( struct _mulle_objc_infraclass *infra);
 
 # pragma mark - class variables
 
-static inline void   *_mulle_objc_infraclass_get_cvar( struct _mulle_objc_infraclass *infra, void *key)
+static inline void   *_mulle_objc_infraclass_get_cvar( struct _mulle_objc_infraclass *infra,
+                                                       void *key)
 {
    return( _mulle_concurrent_hashmap_lookup( &infra->cvars, (intptr_t) key));
 }
 
 
-static inline int   _mulle_objc_infraclass_set_cvar( struct _mulle_objc_infraclass *infra, void *key, void *value)
+static inline int   _mulle_objc_infraclass_set_cvar( struct _mulle_objc_infraclass *infra,
+                                                     void *key,
+                                                     void *value)
 {
    return( _mulle_concurrent_hashmap_insert( &infra->cvars, (intptr_t) key, value));
 }
 
 
-static inline int   _mulle_objc_infraclass_remove_cvar( struct _mulle_objc_infraclass *infra, void *key, void *value)
+static inline int   _mulle_objc_infraclass_remove_cvar( struct _mulle_objc_infraclass *infra,
+                                                        void *key,
+                                                        void *value)
 {
    return( _mulle_concurrent_hashmap_remove( &infra->cvars, (intptr_t) key, value));
 }
 
 
-static inline struct mulle_concurrent_hashmapenumerator    _mulle_objc_infraclass_enumerate_cvars( struct _mulle_objc_infraclass *infra)
+static inline struct mulle_concurrent_hashmapenumerator
+    _mulle_objc_infraclass_enumerate_cvars( struct _mulle_objc_infraclass *infra)
 {
    return( mulle_concurrent_hashmap_enumerate( &infra->cvars));
 }
@@ -313,13 +334,13 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
                                               struct _mulle_objc_propertylist *list);
 
 void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infraclass *infra,
-                                                         struct _mulle_objc_propertylist *list);
+                                                        struct _mulle_objc_propertylist *list);
 
 struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
-                                                                     mulle_objc_propertyid_t propertyid);
+                                                                       mulle_objc_propertyid_t propertyid);
 
 struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
-                                                                   mulle_objc_propertyid_t propertyid);
+                                                                     mulle_objc_propertyid_t propertyid);
 
 
 # pragma mark - ivar lists
@@ -328,24 +349,33 @@ int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
                                           struct _mulle_objc_ivarlist *list);
 
 void   mulle_objc_infraclass_unfailingadd_ivarlist( struct _mulle_objc_infraclass *infra,
-                                                struct _mulle_objc_ivarlist *list);
+                                                    struct _mulle_objc_ivarlist *list);
 
 
 # pragma mark - ivars
 
 struct _mulle_objc_ivar   *_mulle_objc_infraclass_search_ivar( struct _mulle_objc_infraclass *infra,
-                                                                mulle_objc_ivarid_t ivarid);
+                                                               mulle_objc_ivarid_t ivarid);
 
 struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_infraclass *infra,
-                                                            mulle_objc_ivarid_t ivarid);
+                                                             mulle_objc_ivarid_t ivarid);
 
 
 #pragma mark - walkers
 
 
-int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *cls, unsigned int inheritance , int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *), void *userinfo);
-int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra, unsigned int inheritance , int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *), void *userinfo);
-
+int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *cls,
+                                         unsigned int inheritance,
+                                         int (*f)( struct _mulle_objc_ivar *,
+                                                   struct _mulle_objc_infraclass *,
+                                                   void *),
+                                         void *userinfo);
+int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
+                                              unsigned int inheritance,
+                                              int (*f)( struct _mulle_objc_property *,
+                                                        struct _mulle_objc_infraclass *,
+                                                        void *),
+                                              void *userinfo);
 
 mulle_objc_walkcommand_t
    mulle_objc_infraclass_walk( struct _mulle_objc_infraclass   *infra,

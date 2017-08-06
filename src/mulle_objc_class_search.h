@@ -52,43 +52,22 @@ struct _mulle_objc_class;
 //
 struct _mulle_objc_method  *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);
 
-//
-// previous_category: id of category/methodlist that overrides the searched method (usually -1)
-// previous_method: the method that overrides the searched method (usually NULL)
-// start_class:    id of class where to start search from (usually -1) for "cls"
-// start_category: id of category/methodlist where to start search from (usually -1) for last
-//
-#define MULLE_OBJC_SEARCH_ANY_METHOD      NULL
-
-
 enum
 {
    MULLE_OBJC_SEARCH_INVALID           = -1,   // used by cache to build entry
    MULLE_OBJC_SEARCH_DEFAULT           = 0,    // not cacheable
    MULLE_OBJC_SEARCH_SUPER_METHOD      = 1,    // like [super call]
    MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD = 2,    // find the method overridden by class,category
-   MULLE_OBJC_SEARCH_SUPREME_METHOD    = 3,    // find in protocolclass or superclass
-   MULLE_OBJC_SEARCH_SPECIFIC_METHOD   = 4,    // find method implemented in class,category
-   MULLE_OBJC_SEARCH_PREVIOUS_METHOD   = 5     // not cacheable
+   MULLE_OBJC_SEARCH_SPECIFIC_METHOD   = 3,    // find method implemented in class,category
+   MULLE_OBJC_SEARCH_PREVIOUS_METHOD   = 4     // not cacheable
 };
 
 
 //
 // assume super is called most often
-// then overridden then supreme
+// then overridden then specific
 //
-
-struct __mulle_objc_searchargumentscachable
-{
-   mulle_objc_uniqueid_t   mode;
-   mulle_objc_methodid_t   methodid;
-   mulle_objc_classid_t    classid;
-   mulle_objc_classid_t    categoryid;
-};
-
-
 #pragma mark - _mulle_objc_searchargumentscachable
-
 
 struct _mulle_objc_searchargumentscachable
 {
@@ -102,7 +81,7 @@ struct _mulle_objc_searchargumentscachable
          mulle_objc_classid_t   classid;
          mulle_objc_classid_t   categoryid;
       };
-      mulle_atomic_pointer_t   pointer;
+      mulle_atomic_functionpointer_t    pointer;
    };
 };
 
@@ -110,6 +89,7 @@ struct _mulle_objc_searchargumentscachable
 //
 // this must be as fast as possible, while still
 // maintaing decent diffusion, as this affects call speed
+// This is something the compiler can do for us at compile time!
 //
 static inline uintptr_t
    _mulle_objc_searchargumentscachable_hash( struct _mulle_objc_searchargumentscachable
@@ -129,13 +109,13 @@ static inline uintptr_t
 static inline int
    _mulle_objc_searchargumentscachable_equals( struct _mulle_objc_searchargumentscachable
                                           *a,
-                                                 struct _mulle_objc_searchargumentscachable
+                                               struct _mulle_objc_searchargumentscachable
                                                  *b)
 {
    // in estimated order of likeliness of difference
-   return( a->methodid == b->methodid &&
-           a->classid == b->classid &&
-           a->mode == b->mode &&
+   return( a->methodid   == b->methodid &&
+           a->classid    == b->classid &&
+           a->mode       == b->mode &&
            a->categoryid == b->categoryid);
 }
 
@@ -146,8 +126,6 @@ static inline void
    assert( p);
    assert( p->methodid != MULLE_OBJC_NO_METHODID && p->methodid != MULLE_OBJC_INVALID_METHODID);
    assert( p->mode != MULLE_OBJC_SEARCH_SUPER_METHOD ||
-          (p->classid != 0 && p->categoryid == MULLE_OBJC_INVALID_CATEGORYID));
-   assert( p->mode != MULLE_OBJC_SEARCH_SUPREME_METHOD ||
           (p->classid != 0 && p->categoryid == MULLE_OBJC_INVALID_CATEGORYID));
    assert( p->mode != MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD ||
           (p->classid != 0 && p->categoryid != MULLE_OBJC_INVALID_CATEGORYID));
@@ -169,22 +147,13 @@ static inline void
 // @end
 // ```
 // foo of 'Y' will be found with:
-//   _mulle_objc_searcharguments_init_supreme( &search, @selector( foo), @selector( Y))
+//   _mulle_objc_searcharguments_init_super( &search, @selector( foo), @selector( X))
 //   mulle_objc_class_search_method( [A class], &search,....)
 // foo of 'X' will be found with:
-//   _mulle_objc_searcharguments_init_supreme( &search, @selector( foo), @selector( X))
+//   _mulle_objc_searcharguments_init_supreme( &search, @selector( foo), @selector( A))
 //   mulle_objc_class_search_method( [A class], &search,....)
 //
-// If not found in A(B) mulle_objc_class_search_method will return NULL
-//
-//
-// Classid is the id of the superclass of the implementation class
-// (not of the instance!)
-//
-// e.g. classes  A : X : Y
-//
-//  -[X foo] does [super foo]. It calls -[Y foo].
-//  if A did not implement -foo itself, an instance of A will use -[X foo].
+// Classid is the id of the implementation class, that does the call
 //
 static inline void   _mulle_objc_searchargumentscacheable_superinit( struct _mulle_objc_searchargumentscachable *p,
                                                              mulle_objc_methodid_t methodid,
@@ -197,39 +166,6 @@ static inline void   _mulle_objc_searchargumentscacheable_superinit( struct _mul
    p->categoryid = MULLE_OBJC_INVALID_CATEGORYID;  // 4 cache and asserts
 }
 
-
-
-// find the overridden method of the next protocolclass(!) or superclass:
-// ```
-// @implementation X
-// - foo {}
-// @end
-// @implementation A : X
-// - foo {}
-// @end
-// @implementation A(B)
-// - foo {}
-// @end
-// ```
-// foo of 'X' will be found with:
-//   _mulle_objc_searcharguments_init_supreme( &search, @selector( A))
-//   mulle_objc_class_search_method( [A class], @selector( foo), &search,....)
-//
-// If not found in A( B) mulle_objc_class_search_method will return NULL
-//
-// Here classid marks the start of the search which is not included. This is
-// contrary to the way the super search works.
-// Here we use @selector( A) to search. Search upwards from 'A'
-//
-static inline void   _mulle_objc_searchargumentscacheable_supremeinit( struct _mulle_objc_searchargumentscachable *p,
-                                                               mulle_objc_methodid_t methodid,
-                                                               mulle_objc_classid_t classid)
-{
-   p->mode       = MULLE_OBJC_SEARCH_SUPREME_METHOD;
-   p->methodid   = methodid;
-   p->classid    = classid;
-   p->categoryid = MULLE_OBJC_INVALID_CATEGORYID;  // 4 cache and asserts
-}
 
 // find the directly overridden method:
 // ```
@@ -244,10 +180,7 @@ static inline void   _mulle_objc_searchargumentscacheable_supremeinit( struct _m
 //   _mulle_objc_searcharguments_init_overridden( &search, @selector( A), @selector( B))
 //   mulle_objc_class_search_method( [A class], @selector( foo), &search,....)
 //
-// If not found in A(B) mulle_objc_class_search_method will return NULL
-//
-// classid is the class we start the search (like super, unlike supreme)
-// categoryid is the category to search past
+// Classid, categoryid is the id of the implementation class/category, that does the call
 //
 static inline void   _mulle_objc_searchargumentscacheable_overriddeninit( struct _mulle_objc_searchargumentscachable *p,
                                                                   mulle_objc_methodid_t methodid,
@@ -270,8 +203,6 @@ static inline void   _mulle_objc_searchargumentscacheable_overriddeninit( struct
 // will be found with:
 //   _mulle_objc_searcharguments_init_specific( &search, @selector( A), @selector( B))
 //   mulle_objc_class_search_method( [A class], @selector( foo), &search,....)
-//
-// If not found in A(B) mulle_objc_class_search_method will return NULL
 //
 static inline void   _mulle_objc_searchargumentscacheable_specificinit( struct _mulle_objc_searchargumentscachable *p,
                                                                 mulle_objc_methodid_t methodid,
@@ -337,15 +268,6 @@ static inline void   _mulle_objc_searcharguments_superinit( struct _mulle_objc_s
                                                              mulle_objc_classid_t classid)
 {
    _mulle_objc_searchargumentscacheable_superinit( &p->args, methodid, classid);
-}
-
-
-static inline void   _mulle_objc_searcharguments_supremeinit( struct _mulle_objc_searcharguments *p,
-                                                             mulle_objc_methodid_t methodid,
-
-                                                             mulle_objc_classid_t classid)
-{
-   _mulle_objc_searchargumentscacheable_supremeinit( &p->args, methodid, classid);
 }
 
 

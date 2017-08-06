@@ -49,8 +49,9 @@ static inline char   *_mulle_objc_object_get_isa_name( void *obj)
    return( _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)));
 }
 
-static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_cached_implementation( void *obj,
-                                                                                                 mulle_objc_methodid_t methodid)
+static inline mulle_objc_methodimplementation_t
+    _mulle_objc_object_lookup_cached_implementation( void *obj,
+                                                     mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
@@ -59,8 +60,9 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_cach
 }
 
 
-static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_implementation( void *obj,
-                                                                                                    mulle_objc_methodid_t methodid)
+static inline mulle_objc_methodimplementation_t
+    _mulle_objc_object_lookup_implementation( void *obj,
+                                              mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
@@ -69,8 +71,9 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_impl
 }
 
 
-static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_implementation_no_forward( void *obj,
-                                                                                                              mulle_objc_methodid_t methodid)
+static inline mulle_objc_methodimplementation_t
+    _mulle_objc_object_lookup_implementation_no_forward( void *obj,
+                                                         mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
@@ -79,8 +82,9 @@ static inline mulle_objc_methodimplementation_t   _mulle_objc_object_lookup_impl
 }
 
 
-static inline struct _mulle_objc_method   *_mulle_objc_object_lookup_method( void *obj,
-                                                                             mulle_objc_methodid_t methodid)
+static inline struct _mulle_objc_method   *
+    _mulle_objc_object_lookup_method( void *obj,
+                                      mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 

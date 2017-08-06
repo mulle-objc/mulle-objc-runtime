@@ -134,8 +134,8 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
 
    cls->superclass               = superclass;
    cls->superclassid             = superclass ? superclass->classid : MULLE_OBJC_NO_CLASSID;
+   //   cls->nextclass                = superclass;
    cls->classid                  = classid;
-
    cls->allocationsize           = sizeof( struct _mulle_objc_objectheader) + instancesize;
    cls->call                     = _mulle_objc_object_call_class_needs_cache;
    cls->universe                 = universe;
@@ -339,6 +339,9 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
 
    _mulle_objc_class_invalidate_all_kvcinfos( cls);
 
+   // searchcaches need to be invalidate regardless
+   _mulle_objc_class_invalidate_searchcache( cls);
+   
    // if caches have been cleaned for class, it's done
    rover = _mulle_objc_methodlist_enumerate( list);
    while( method = _mulle_objc_methodlistenumerator_next( &rover))
@@ -346,9 +349,6 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
          break;
    _mulle_objc_methodlistenumerator_done( &rover);
 
-   // searchcaches need to be invalidate regardless
-   _mulle_objc_class_invalidate_searchcache( cls);
-   
    return( mulle_objc_walk_ok);
 }
 
@@ -424,6 +424,17 @@ struct _mulle_objc_searchcacheentry   *
 
 #pragma mark - methods
 
+//
+// The assumption on the runtime is, that you can only add but don't
+// interpose. In this regard caches might be outdated but not wrong.
+// TODO: What happens when a class gets adds a methodlist and
+// the a method expects the superclass to also have a methodlist added
+// already, which it hasn't. Solved by +dependencies!
+// A problem remains: the superclass gets an incompatible method added,
+// overriding the old, but the class isn't updated yet and a call
+// happens which then supercalls.
+// Solution: late categories may only add methods, not overwrite
+//
 void   mulle_objc_class_did_add_methodlist( struct _mulle_objc_class *cls,
                                             struct _mulle_objc_methodlist *list)
 {
@@ -521,7 +532,9 @@ void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
 
 static int   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *cls,
                                                       unsigned int inheritance,
-                                                      int (*f)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *),
+                                                      int (*f)( struct _mulle_objc_method *,
+                                                                struct _mulle_objc_class *,
+                                                                void *),
                                                       void *userinfo)
 {
    int                                          rval;
@@ -704,8 +717,8 @@ mulle_objc_walkcommand_t
                           void *userinfo)
 {
    struct _mulle_objc_universe   *universe;
-   mulle_objc_walkcommand_t     cmd;
-   struct bouncy_info           info;
+   mulle_objc_walkcommand_t      cmd;
+   struct bouncy_info            info;
 
    universe = _mulle_objc_class_get_universe( cls);
    cmd     = (*callback)( universe, cls, type, NULL, parent, userinfo);

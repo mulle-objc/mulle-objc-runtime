@@ -177,8 +177,8 @@ static inline void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
 # pragma mark - cache add entry
 
 //
-// 25% fill rate, but 40% wouldn't be probably good also
-// Really the class should know that
+// 25% fill rate, but 40% would be probably good also.
+// Really, the class should know that.
 //
 static inline int  _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache)
 {

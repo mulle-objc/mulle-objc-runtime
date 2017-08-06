@@ -1,0 +1,22 @@
+digraph supreme {
+
+   node [ shape="note", penwidth="2", fontsize="14" ]
+
+   { rank="same" ; "A" }
+   { rank="same" ; "B" }
+   { rank="same" ; "P" }
+   { rank="same" ; "B+C" }
+
+   "A"   [ label="@interface A" ]
+   "B"   [ label="@interface B : A <P>" ]
+   "P"   [ label="@protocolclass P"]
+   "B+C" [ label="@interface B( C)" ]
+
+   "P"     -> "A" [ label=" overridden", penwidth="2" , color="blue" ]
+   "B"     -> "P" [ label=" overridden", penwidth="2" , color="blue" ]
+   "B+C"   -> "B" [ label=" overridden", penwidth="2" , color="blue" ]
+
+   node [ shape="none", textcolor="red" fontname="Anonymous Pro", fontsize="16"]
+
+   "A"     -> "*forward*" [ label=" overridden", color="red", penwidth="2"  ]
+}
