@@ -80,7 +80,8 @@ enum
    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS          = 0x01,
    MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES          = 0x02,
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS           = 0x04,
-   MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES = 0x08
+   MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES = 0x08,
+   MULLE_OBJC_CLASS_INHERIT_FIRST_PROTOCOL_META      = 0x10,
 };
 
 #define MULLE_OBJC_CLASS_S_FAST_METHODS  16
@@ -139,9 +140,12 @@ struct _mulle_objc_class
    // vvv - from here on the debugger doesn't care
 
    uintptr_t                               extensionoffset;  // 4 later #1#
+   
 
    mulle_objc_classid_t                    classid;
    mulle_objc_classid_t                    superclassid;
+
+   //   struct _mulle_objc_class                *nextclass;      // last protocolclass or superclass
 
    mulle_atomic_pointer_t                  thread;          // protects the empty cache
    mulle_atomic_pointer_t                  state;

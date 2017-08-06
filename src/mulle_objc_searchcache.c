@@ -67,38 +67,6 @@ struct _mulle_objc_searchcache   *
 }
 
 
-void   *
-   _mulle_objc_searchcache_lookup_pointer( struct _mulle_objc_searchcache *cache,
-                                           struct _mulle_objc_searchargumentscachable *args)
-{
-   struct _mulle_objc_searchcacheentry   *entries;
-   struct _mulle_objc_searchcacheentry   *entry;
-   mulle_objc_searchcache_uint_t         offset;
-   mulle_objc_searchcache_uint_t         mask;
-   
-   assert( cache);
-   assert( args);
-   assert( _mulle_objc_is_cacheablesearchmode( args->mode));
-   
-   entries = cache->entries;
-   mask    = cache->mask;
-   
-   offset  = (mulle_objc_searchcache_uint_t) _mulle_objc_searchargumentscachable_hash( args);
-   for(;;)
-   {
-      offset = (mulle_objc_searchcache_uint_t) offset & mask;
-      entry = (void *) &((char *) entries)[ offset];
-      if( _mulle_objc_searchargumentscachable_equals( &entry->key, args))
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-      
-      if( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer))
-         return( NULL);
-      
-      offset += sizeof( struct _mulle_objc_searchcacheentry);
-   }
-}
-
-
 mulle_functionpointer_t
    _mulle_objc_searchcache_lookup_functionpointer( struct _mulle_objc_searchcache *cache,
                                                    struct _mulle_objc_searchargumentscachable *args)
@@ -294,7 +262,7 @@ struct _mulle_objc_searchcacheentry   *
    struct _mulle_objc_searchcacheentry   *entry;
    mulle_objc_uniqueid_t                 offset;
    
-   assert( _mulle_objc_searchcache_should_grow( cache));
+   assert( ! _mulle_objc_searchcache_should_grow( cache));
    
    offset = _mulle_objc_searchcache_find_entryoffset( cache, args);
    entry  = (void *) &((char *) cache->entries)[ offset];
@@ -343,7 +311,7 @@ struct _mulle_objc_searchcacheentry   *
       // implementation set by someone else...
       // if that guy is done writing the args check if it matches ours, then fine!
       //
-      if( _mulle_atomic_pointer_read( &entry->key.pointer) == (void *) args->pointer)
+      if( _mulle_atomic_functionpointer_read( &entry->key.pointer) == args->pointer)
       {
          // since the memory barrier was set up by the writer
          // the whole entry must be consistent (and immutable) now
@@ -370,7 +338,7 @@ struct _mulle_objc_searchcacheentry   *
    
    // now we atomically write down the pointer which sets
    // entry->key.methodid
-   _mulle_atomic_pointer_write( &entry->key.pointer, (void *) args->pointer);
+   _mulle_atomic_functionpointer_write( &entry->key.pointer, args->pointer);
    
    return( entry);
 }

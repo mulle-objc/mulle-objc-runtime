@@ -145,7 +145,7 @@ struct _mulle_objc_threadconfig
 static inline struct _mulle_objc_universe  *__mulle_objc_get_thread_universe( void)
 {
    struct _mulle_objc_universe       *universe;
-   struct _mulle_objc_threadconfig  *config;
+   struct _mulle_objc_threadconfig   *config;
 
    config  = mulle_objc_get_threadconfig();
    if( ! config)
@@ -160,7 +160,7 @@ MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
 static inline struct _mulle_objc_universe  *mulle_objc_get_thread_universe( void)
 {
    struct _mulle_objc_universe       *universe;
-   struct _mulle_objc_threadconfig  *config;
+   struct _mulle_objc_threadconfig   *config;
 
    config  = mulle_objc_get_threadconfig();
    assert( config && "thread not configure for mulle_objc");
@@ -194,15 +194,15 @@ static inline uintptr_t   _mulle_objc_universe_get_loadbits( struct _mulle_objc_
 }
 
 void   _mulle_objc_universe_set_loadbit( struct _mulle_objc_universe *universe,
-                                        uintptr_t value);
+                                         uintptr_t value);
 
 
 //
 // returns 1 if index is out of bounds for this cpu
 //
 int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_universe  *universe,
-                                                          struct _mulle_objc_infraclass *infra,
-                                                          unsigned int index);
+                                                           struct _mulle_objc_infraclass *infra,
+                                                           unsigned int index);
 
 //
 // this method is used by API consumers. It is generally assumed that the
@@ -217,10 +217,10 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
 //
 
 MULLE_C_CONST_NON_NULL_RETURN
-struct _mulle_objc_universe  *mulle_objc_get_universe( void);
+struct _mulle_objc_universe   *mulle_objc_get_universe( void);
 
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
-static inline struct _mulle_objc_universe  *mulle_objc_inlined_get_universe( void)
+static inline struct _mulle_objc_universe   *mulle_objc_inlined_get_universe( void)
 {
 #if __MULLE_OBJC_TRT__
    return( mulle_objc_get_thread_universe());
@@ -233,7 +233,7 @@ static inline struct _mulle_objc_universe  *mulle_objc_inlined_get_universe( voi
 // use this only during mulle_objc_get_or_create_universe
 // always returns same value (in same thread)
 MULLE_C_CONST_NON_NULL_RETURN
-struct _mulle_objc_universe  *__mulle_objc_get_universe( void);
+struct _mulle_objc_universe   *__mulle_objc_get_universe( void);
 
 //
 // this call creates a global universe, if there is no thread or global universe
@@ -243,7 +243,7 @@ struct _mulle_objc_universe  *__mulle_objc_get_universe( void);
 // manually. Others preferably use mulle_objc_inlined_get_universe().
 //
 MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_universe  *mulle_objc_get_or_create_universe( void);
+struct _mulle_objc_universe   *mulle_objc_get_or_create_universe( void);
 //
 // "convenience" use this in test cases to tear down all objects
 // and check for leaks

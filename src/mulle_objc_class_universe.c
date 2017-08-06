@@ -58,7 +58,7 @@ struct _mulle_objc_infraclass  *
 int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_garbagecollection   *gc;
-   struct _mulle_objc_universe             *universe;
+   struct _mulle_objc_universe            *universe;
 
 #if __MULLE_OBJC_TRT__
    if( cls && (cls->classid == 0x5b791fc6 || cls->classid == 0x645eeb40))

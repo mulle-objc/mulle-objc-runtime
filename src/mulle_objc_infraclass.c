@@ -205,7 +205,6 @@ void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infra
 }
 
 
-
 # pragma mark - ivar lists
 
 int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,

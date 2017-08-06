@@ -62,40 +62,120 @@ enum internal_search_mode
    search_previous_method     = MULLE_OBJC_SEARCH_PREVIOUS_METHOD,
    search_specific_method     = MULLE_OBJC_SEARCH_SPECIFIC_METHOD,
    search_super_method        = MULLE_OBJC_SEARCH_SUPER_METHOD,
-   search_supreme_method      = MULLE_OBJC_SEARCH_SUPREME_METHOD,
 
    search_overridden_method_2 = OFFSET_2_MODE + search_overridden_method,
    search_previous_method_2   = OFFSET_2_MODE + search_previous_method,
    search_specific_method_2   = OFFSET_2_MODE + search_specific_method,
    search_super_method_2      = OFFSET_2_MODE + search_super_method,
-   search_supreme_method_2    = OFFSET_2_MODE + search_supreme_method,
 
    search_overridden_method_3 = OFFSET_3_MODE + search_overridden_method,
    search_specific_method_3   = OFFSET_3_MODE + search_specific_method
 };
 
 static struct _mulle_objc_method   *
-__mulle_objc_class_search_method( struct _mulle_objc_class *cls,
-                                  struct _mulle_objc_searcharguments *search,
-                                  unsigned int inheritance,
-                                  struct _mulle_objc_searchresult *result,
-                                  enum internal_search_mode *mode);
+   __mulle_objc_class_search_method( struct _mulle_objc_class *cls,
+                                     struct _mulle_objc_searcharguments *search,
+                                     unsigned int inheritance,
+                                     struct _mulle_objc_searchresult *result,
+                                     enum internal_search_mode *mode);
 
 
 #pragma mark - trace support
 
-
-static void   trace_method_found( struct _mulle_objc_universe *universe,
-                                 struct _mulle_objc_class *cls,
-                                 struct _mulle_objc_methodlist *list,
-                                 struct _mulle_objc_method *method,
-                                 struct mulle_concurrent_pointerarrayreverseenumerator *rover)
+static void   trace_method_start( struct _mulle_objc_class *cls,
+                                  struct _mulle_objc_searcharguments *search)
 {
-   char                      buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
-   mulle_objc_categoryid_t   categoryid;
-   char                      *s;
+   struct _mulle_objc_universe   *universe;
+   char                          buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
+   char                          *name;
    
-   fprintf( stderr, "mulle_objc_universe %p trace: found in %s ",
+   universe = _mulle_objc_class_get_universe( cls);
+   name     = _mulle_objc_universe_string_for_methodid( universe, search->args.methodid);
+   fprintf( stderr, "mulle_objc_universe %p trace: start search for "
+                    "methodid %08x \"%s\" in %s %08x \"%s\"",
+           universe,
+           search->args.methodid,
+           name,
+           _mulle_objc_class_get_classtypename( cls),
+           _mulle_objc_class_get_classid( cls),
+           _mulle_objc_class_get_name( cls));
+   
+   switch( search->args.mode)
+   {
+   case search_previous_method   :
+      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( search->previous_method));
+      fprintf( stderr, " (previous method=%p (IMP=%p))\n",
+              search->previous_method,
+              buf);
+      return;
+      
+   case search_specific_method :
+      fprintf( stderr, " (specific=%08x,%08x)\n",
+              search->args.classid,
+              search->args.categoryid);
+      return;
+      
+   case search_super_method :
+      fprintf( stderr, " (super=%08x)\n",
+              search->args.classid);
+      return;
+      
+   case search_overridden_method :
+      fprintf( stderr, " (overridden=%08x,%08x)\n",
+              search->args.classid,
+              search->args.categoryid);
+      return;
+   }
+   fprintf( stderr, "\n");
+}
+
+
+static void   trace_method_done( struct _mulle_objc_class *cls,
+                                 struct _mulle_objc_method *method)
+{
+   struct _mulle_objc_universe   *universe;
+   char                          buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
+
+   universe = _mulle_objc_class_get_universe( cls);
+   mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
+   fprintf( stderr, "mulle_objc_universe %p trace: found method IMP %s\n",
+           universe,
+           buf);
+}
+
+
+static void   trace_method_fail( struct _mulle_objc_class *cls,
+                                 int error)
+{
+   struct _mulle_objc_universe   *universe;
+   
+   universe = _mulle_objc_class_get_universe( cls);
+   switch( errno)
+   {
+   case ENOENT:
+      fprintf( stderr, "mulle_objc_universe %p trace: not found\n",
+                        universe);
+   default :
+      fprintf( stderr, "mulle_objc_universe %p trace: error %d\n",
+                        universe,
+                        error);
+   }
+}
+
+
+
+static void   trace_method_found( struct _mulle_objc_class *cls,
+                                  struct _mulle_objc_methodlist *list,
+                                  struct _mulle_objc_method *method,
+                                  struct mulle_concurrent_pointerarrayreverseenumerator *rover)
+{
+   struct _mulle_objc_universe   *universe;
+   char                          buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
+   mulle_objc_categoryid_t       categoryid;
+   char                          *s;
+   
+   universe = _mulle_objc_class_get_universe( cls);
+   fprintf( stderr, "mulle_objc_universe %p trace:   found in %s ",
            universe,
            _mulle_objc_class_get_classtypename( cls));
    
@@ -115,61 +195,29 @@ static void   trace_method_found( struct _mulle_objc_universe *universe,
               s);
    }
    else
-      fprintf( stderr, "\"%s\" implementation ",
+      fprintf( stderr, "\"%s\"",
               cls->name);
-   mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
    
-   fprintf( stderr, "%s for methodid %08x ( \"%s\")\"\n",
-           buf,
+   fprintf( stderr, " methodid %08x ( \"%s\")\"\n",
            method->descriptor.methodid,
            method->descriptor.name);
 }
 
 
-static void   trace_search( struct _mulle_objc_universe *universe,
-                            struct _mulle_objc_class *cls,
+static void   trace_search( struct _mulle_objc_class *cls,
                             struct _mulle_objc_searcharguments *search,
+                            unsigned int inheritance,
                             enum internal_search_mode mode)
 {
-   fprintf( stderr, "mulle_objc_universe %p trace: search %08x %s\"%s\" methodid %08x \"%s\"",
+   struct _mulle_objc_universe   *universe;
+
+   universe = _mulle_objc_class_get_universe( cls);
+   fprintf( stderr, "mulle_objc_universe %p trace:   search %s %08x \"%s\" (0x%x)\n",
            universe,
-           cls->classid,
            _mulle_objc_class_get_classtypename( cls),
+           cls->classid,
            cls->name,
-           search->args.methodid,
-           _mulle_objc_universe_string_for_methodid( universe, search->args.methodid));
-   
-   switch( mode)
-   {
-   case search_previous_method   :
-      fprintf( stderr, " (previous method=%p (IMP=%p))\n",
-              search->previous_method,
-              _mulle_objc_method_get_implementation( search->previous_method));
-      return;
-      
-   case search_specific_method :
-      fprintf( stderr, " (specific=%08x,%08x)\n",
-              search->args.classid,
-              search->args.categoryid);
-      return;
-      
-   case search_super_method :
-      fprintf( stderr, " (super=%08x)\n",
-              search->args.classid);
-      return;
-      
-   case search_supreme_method :
-      fprintf( stderr, " (supreme=%08x)\n",
-              search->args.classid);
-      return;
-      
-   case search_overridden_method :
-      fprintf( stderr, " (overridden=%08x,%08x)\n",
-              search->args.classid,
-              search->args.categoryid);
-      return;
-   }
-   fprintf( stderr, "\n");
+           inheritance);
 }
 
 
@@ -178,35 +226,48 @@ static void   trace_search( struct _mulle_objc_universe *universe,
 #define MULLE_OBJC_METHOD_SEARCH_FAIL  ((struct _mulle_objc_method *) -1)
 
 static struct _mulle_objc_method  *
-_mulle_objc_class_protocol_search_method( struct _mulle_objc_class *cls,
-                                          struct _mulle_objc_searcharguments *search,
-                                          unsigned int inheritance,
-                                          struct _mulle_objc_searchresult *result,
-                                          enum internal_search_mode *mode)
+   _mulle_objc_class_protocol_search_method( struct _mulle_objc_class *cls,
+                                             struct _mulle_objc_searcharguments *search,
+                                             unsigned int inheritance,
+                                             struct _mulle_objc_searchresult *result,
+                                             enum internal_search_mode *mode)
 {
-   struct _mulle_objc_classpair                 *pair;
-   struct _mulle_objc_infraclass                *infra;
-   struct _mulle_objc_class                     *walk_cls;
-   struct _mulle_objc_infraclass                *proto_cls;
-   struct _mulle_objc_protocolclassenumerator   rover;
-   struct _mulle_objc_method                    *found;
-   struct _mulle_objc_method                    *method;
-   int                                          is_meta;
+   struct _mulle_objc_classpair                        *pair;
+   struct _mulle_objc_infraclass                       *infra;
+   struct _mulle_objc_class                            *walk_cls;
+   struct _mulle_objc_infraclass                       *proto_cls;
+   struct _mulle_objc_infraclass                       *next_proto_cls;
+   struct _mulle_objc_protocolclassreverseenumerator   rover;
+   struct _mulle_objc_method                           *found;
+   struct _mulle_objc_method                           *method;
+   int                                                 is_meta;
    
    found   = MULLE_OBJC_METHOD_SEARCH_FAIL;
    pair    = _mulle_objc_class_get_classpair( cls);
    infra   = _mulle_objc_classpair_get_infraclass( pair);
    is_meta = _mulle_objc_class_is_metaclass( cls);
    
-   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-   while( proto_cls = _mulle_objc_protocolclassenumerator_next( &rover))
+   inheritance   |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+
+   rover          = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
+
+   next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
+   while( proto_cls = next_proto_cls)
    {
+      next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
       if( proto_cls == infra)
          continue;
-      
+
       walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
       if( is_meta)
+      {
          walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
+         if( ! next_proto_cls)
+         {
+            if( inheritance & MULLE_OBJC_CLASS_INHERIT_FIRST_PROTOCOL_META)
+               inheritance &= ~MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+         }
+      }
       
       method = __mulle_objc_class_search_method( walk_cls,
                                                  search,
@@ -217,24 +278,77 @@ _mulle_objc_class_protocol_search_method( struct _mulle_objc_class *cls,
          continue;
       
       if( ! method)
-         return( NULL);
+      {
+         found = NULL;
+         break;
+      }
       
       if( found != MULLE_OBJC_METHOD_SEARCH_FAIL)
       {
          errno = EEXIST;
-         return( NULL);
+         found = NULL;
+         break;
       }
       
-      if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
-         return( method);
-      
       found = method;
+
+      if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
+         break;
    }
-   _mulle_objc_protocolclassenumerator_done( &rover);
+   _mulle_objc_protocolclassreverseenumerator_done( &rover);
    
    return( found);
 }
 
+
+
+//
+// if we are in the metaclass root, we would wrap to the infraclass
+// That we don't want IF there are protocolclasses. In case of
+// protocolclasses, we instead would like to wrap to the infraclass of
+// the protocolclass, after the meta paths through the protocolclasses
+// have been exhausted
+//
+static struct _mulle_objc_class   *search_superclass( struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_classpair                 *pair;
+   struct _mulle_objc_protocolclassenumerator   rover;
+   struct _mulle_objc_infraclass                *infra;
+   struct _mulle_objc_metaclass                 *meta;
+   struct _mulle_objc_class                     *supercls;
+   struct _mulle_objc_class                     *protocls;
+   
+   supercls =_mulle_objc_class_get_superclass( cls);
+   if( _mulle_objc_class_is_infraclass( cls))
+      return( supercls);
+   if( _mulle_objc_class_is_metaclass( supercls))
+      return( supercls);
+
+   // Ok we'd be transitioning from metaclass to infraclass
+   // Use protocolclass if available
+   protocls = NULL;
+
+   pair  = _mulle_objc_class_get_classpair( cls);
+   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
+
+   for(;;)
+   {
+      infra = _mulle_objc_protocolclassenumerator_next( &rover);
+      if( ! infra)
+         break;
+      
+      meta     = _mulle_objc_infraclass_get_metaclass( infra);
+      protocls = _mulle_objc_metaclass_as_class( meta);
+      if( protocls != cls)
+      {
+         supercls = protocls;
+         break;
+      }
+   }
+   _mulle_objc_protocolclassenumerator_done( &rover);
+
+   return( supercls);
+}
 
 
 //
@@ -254,6 +368,7 @@ static struct _mulle_objc_method   *
    struct _mulle_objc_universe                             *universe;
    struct _mulle_objc_method                               *found;
    struct _mulle_objc_method                               *method;
+   struct _mulle_objc_class                                *supercls;
    struct _mulle_objc_methodlist                           *list;
    struct mulle_concurrent_pointerarrayreverseenumerator   rover;
    unsigned int                                            n;
@@ -268,22 +383,21 @@ static struct _mulle_objc_method   *
    found    = MULLE_OBJC_METHOD_SEARCH_FAIL;
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.method_searches)
-      trace_search( universe, cls, search, *mode);
+      trace_search( cls, search, inheritance, *mode);
    
    switch( *mode)
    {
    case search_super_method      :
+      if( search->args.classid == cls->classid)
+         *mode += OFFSET_2_MODE;
+      goto next_class;
+
    case search_overridden_method :
    case search_specific_method   :
       if( search->args.classid != cls->classid)
          goto next_class;
       *mode += OFFSET_2_MODE;
       break;
-      
-   case search_supreme_method    :
-      if( search->args.classid == cls->classid)
-         *mode += OFFSET_2_MODE;
-      goto next_class;
    }
    
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
@@ -349,7 +463,7 @@ static struct _mulle_objc_method   *
          method->descriptor.bits |= _mulle_objc_method_searched_and_found;
          
          if( universe->debug.trace.method_searches)
-            trace_method_found( universe, cls, list, method, &rover);
+            trace_method_found( cls, list, method, &rover);
          
          mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
          return( method);
@@ -409,15 +523,17 @@ next_class:
    //
    // searching the superclass for owner seems wanted
    //
+
    if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
    {
-      if( cls->superclass)
+      supercls = search_superclass( cls);
+      if( supercls)
       {
-         method = __mulle_objc_class_search_method( cls->superclass,
-                                                    search,
-                                                    cls->superclass->inheritance,
-                                                    result,
-                                                    mode);
+         method = __mulle_objc_class_search_method( supercls,
+                                                   search,
+                                                   supercls->inheritance,
+                                                   result,
+                                                   mode);
          if( method != MULLE_OBJC_METHOD_SEARCH_FAIL)
          {
             if( ! method)
@@ -436,7 +552,7 @@ next_class:
          }
       }
    }
-   
+
    return( found);
 }
 
@@ -456,11 +572,8 @@ static struct _mulle_objc_searchcacheentry   *
    assert( method);
    
    // need to check that we are initialized
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
-   {
-      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "call comes too early, the %s \"%s\" hasn't been initialized yet.", _mulle_objc_class_get_classtypename( cls), cls->name);
-   }
-   
+   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_NO_SEARCH_CACHE))
+      return( NULL);
    // when we trace method calls, we don't cache ever
    if( _mulle_objc_class_get_universe( cls)->debug.trace.method_calls)
       return( NULL);
@@ -486,7 +599,9 @@ static struct _mulle_objc_searchcacheentry   *
 }
 
 
+//
 // fills the cache and does forward
+//
 mulle_objc_methodimplementation_t
    _mulle_objc_class_lookup_methodsearch( struct _mulle_objc_class *cls,
                                           struct _mulle_objc_searchargumentscachable *args)
@@ -497,7 +612,6 @@ mulle_objc_methodimplementation_t
    struct _mulle_objc_searchcacheentry   *entries;
    struct _mulle_objc_searchcacheentry   *entry;
    struct _mulle_objc_method             *method;
-   struct _mulle_objc_method             *forward;
 
    assert( args);
    assert( _mulle_objc_is_cacheablesearchmode( args->mode));
@@ -508,13 +622,8 @@ mulle_objc_methodimplementation_t
    offset  = _mulle_objc_searchcache_find_entryoffset( cache, args);
    entry   = (void *) &((char *) entries)[ offset];
    imp     = (mulle_objc_methodimplementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-   forward = _mulle_objc_class_unfailinggetorsearch_forwardmethod( cls, args->methodid);
    if( imp)
-   {
-      if( _mulle_objc_method_get_implementation( forward) == imp)
-         imp = 0;
       return( imp);
-   }
    
    //
    // since "previous_method" in args will not be accessed" this is OK to cast
@@ -525,9 +634,9 @@ mulle_objc_methodimplementation_t
                                             cls->inheritance,
                                             NULL);
    if( ! method)
-      method = forward;
-   else
-      imp = _mulle_objc_method_get_implementation( method);
+      method = _mulle_objc_class_unfailinggetorsearch_forwardmethod( cls, args->methodid);
+
+   imp = _mulle_objc_method_get_implementation( method);
 
    _mulle_objc_class_fill_searchcache_with_methodsearch( cls, method, args);
 
@@ -548,6 +657,7 @@ struct _mulle_objc_method   *
 {
    struct _mulle_objc_method    *method;
    enum internal_search_mode    mode;
+   int                          trace;
    
    if( ! cls || ! search)
    {
@@ -566,7 +676,6 @@ struct _mulle_objc_method   *
    case search_previous_method   :
    case search_specific_method   :
    case search_super_method      :
-   case search_supreme_method    :
    case search_overridden_method :
       break;
       
@@ -575,6 +684,10 @@ struct _mulle_objc_method   *
       return( NULL);
    }
 
+   trace = cls->universe->debug.trace.method_searches;
+   if( trace)
+      trace_method_start( cls, search);
+   
    method = __mulle_objc_class_search_method( cls,
                                               search,
                                               inheritance,
@@ -591,8 +704,9 @@ struct _mulle_objc_method   *
    {
    case search_previous_method   :
    case search_super_method      :
-   case search_supreme_method    :
    case search_overridden_method :
+      if( trace)
+         trace_method_fail( cls, EINVAL);
       errno = EINVAL;
       return( NULL);
    }
@@ -607,10 +721,14 @@ struct _mulle_objc_method   *
                               _mulle_objc_class_get_name( cls),
                               search->args.methodid);
       
+      if( trace)
+         trace_method_fail( cls, ENOENT);
       errno = ENOENT;
       return( NULL);
    }
    
+   if( trace)
+      trace_method_done( cls, method);
    return( method);
 }
 

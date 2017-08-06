@@ -243,7 +243,7 @@ void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *
 
 
 void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *universe,
-                                                FILE *fp)
+                                                  FILE *fp)
 {
    intptr_t                                    classid;
    struct _mulle_objc_infraclass               *infra;
@@ -310,7 +310,7 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
 
 
 static void   mulle_objc_universe_csvdump_cachesizes( struct _mulle_objc_universe *universe,
-                                                     FILE *fp)
+                                                      FILE *fp)
 {
    intptr_t                                    classid;
    struct _mulle_objc_infraclass               *infra;
@@ -344,7 +344,7 @@ static void   mulle_objc_universe_csvdump_cachesizes( struct _mulle_objc_univers
 void   mulle_objc_csvdump_methodcoverage_to_file( char *filename)
 {
    struct _mulle_objc_universe   *universe;
-   FILE                         *fp;
+   FILE                          *fp;
 
    fp = fopen( filename, "a");
    if( ! fp)
