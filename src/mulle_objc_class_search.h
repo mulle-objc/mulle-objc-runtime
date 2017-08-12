@@ -90,7 +90,7 @@ struct _mulle_objc_searchargumentscachable
 // this must be as fast as possible, while still
 // maintaing decent diffusion, as this affects call speed
 // This is something the compiler can do for us at compile time!
-//
+// 
 static inline uintptr_t
    _mulle_objc_searchargumentscachable_hash( struct _mulle_objc_searchargumentscachable
                                           *args)

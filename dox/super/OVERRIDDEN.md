@@ -15,7 +15,6 @@ together with categories, since you can create initializer and destruction
 chains. It is also a nicer way to "wrap" exisiting methods, since you can reuse
 the old code.
 
-
 With `specific` one could pick a specific implementation, maybe to circumvent
 a bad category patch.
 
