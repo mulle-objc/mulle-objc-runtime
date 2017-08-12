@@ -260,14 +260,7 @@ static struct _mulle_objc_method  *
 
       walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
       if( is_meta)
-      {
          walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
-         if( ! next_proto_cls)
-         {
-            if( inheritance & MULLE_OBJC_CLASS_INHERIT_FIRST_PROTOCOL_META)
-               inheritance &= ~MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
-         }
-      }
       
       method = __mulle_objc_class_search_method( walk_cls,
                                                  search,
@@ -309,7 +302,8 @@ static struct _mulle_objc_method  *
 // the protocolclass, after the meta paths through the protocolclasses
 // have been exhausted
 //
-static struct _mulle_objc_class   *search_superclass( struct _mulle_objc_class *cls)
+static struct _mulle_objc_class   *search_superclass( struct _mulle_objc_class *cls,
+                                                      unsigned int inheritance)
 {
    struct _mulle_objc_classpair                 *pair;
    struct _mulle_objc_protocolclassenumerator   rover;
@@ -317,6 +311,9 @@ static struct _mulle_objc_class   *search_superclass( struct _mulle_objc_class *
    struct _mulle_objc_metaclass                 *meta;
    struct _mulle_objc_class                     *supercls;
    struct _mulle_objc_class                     *protocls;
+
+   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS)
+      return( NULL);
    
    supercls =_mulle_objc_class_get_superclass( cls);
    if( _mulle_objc_class_is_infraclass( cls))
@@ -324,6 +321,9 @@ static struct _mulle_objc_class   *search_superclass( struct _mulle_objc_class *
    if( _mulle_objc_class_is_metaclass( supercls))
       return( supercls);
 
+   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META)
+      return( NULL);
+   
    // Ok we'd be transitioning from metaclass to infraclass
    // Use protocolclass if available
    protocls = NULL;
@@ -523,33 +523,29 @@ next_class:
    //
    // searching the superclass for owner seems wanted
    //
-
-   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   supercls = search_superclass( cls, inheritance);
+   if( supercls)
    {
-      supercls = search_superclass( cls);
-      if( supercls)
+      method = __mulle_objc_class_search_method( supercls,
+                                                search,
+                                                supercls->inheritance,
+                                                result,
+                                                mode);
+      if( method != MULLE_OBJC_METHOD_SEARCH_FAIL)
       {
-         method = __mulle_objc_class_search_method( supercls,
-                                                   search,
-                                                   supercls->inheritance,
-                                                   result,
-                                                   mode);
-         if( method != MULLE_OBJC_METHOD_SEARCH_FAIL)
+         if( ! method)
+            return( NULL);
+         
+         if( found != MULLE_OBJC_METHOD_SEARCH_FAIL)
          {
-            if( ! method)
-               return( NULL);
-            
-            if( found != MULLE_OBJC_METHOD_SEARCH_FAIL)
-            {
-               errno = EEXIST;
-               return( NULL);
-            }
-            
-            if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
-               return( method);
-            
-            found = method;
+            errno = EEXIST;
+            return( NULL);
          }
+         
+         if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
+            return( method);
+         
+         found = method;
       }
    }
 
