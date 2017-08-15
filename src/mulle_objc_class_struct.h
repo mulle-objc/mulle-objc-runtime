@@ -41,7 +41,6 @@
 
 #include "mulle_objc_atomicpointer.h"
 #include "mulle_objc_cache.h"
-#include "mulle_objc_searchcache.h"
 #include "mulle_objc_fastmethodtable.h"
 #include "mulle_objc_kvccache.h"
 #include "mulle_objc_objectheader.h"
@@ -70,7 +69,7 @@ struct _mulle_objc_universe;
 struct _mulle_objc_methodcachepivot
 {
    struct _mulle_objc_cachepivot       pivot; // for atomic XCHG with pointer indirection
-   mulle_objc_methodimplementation_t   call2;
+   mulle_objc_implementation_t   call2;
 };
 
 
@@ -120,7 +119,10 @@ struct _mulle_objc_class
 {
    struct _mulle_objc_methodcachepivot    cachepivot;  // DON'T MOVE
 
-   void                                   *(*call)( void *, mulle_objc_methodid_t, void *, struct _mulle_objc_class *);
+   void                                   *(*call)( void *,
+                                                    mulle_objc_methodid_t,
+                                                    void *,
+                                                    struct _mulle_objc_class *);
 
    /* ^^^ keep above like this, or change mulle_objc_fastmethodtable fault */
 
@@ -145,19 +147,19 @@ struct _mulle_objc_class
    mulle_objc_classid_t                    classid;
    mulle_objc_classid_t                    superclassid;
 
-   //   struct _mulle_objc_class                *nextclass;      // last protocolclass or superclass
-
    mulle_atomic_pointer_t                  thread;          // protects the empty cache
    mulle_atomic_pointer_t                  state;
 
-   // general storage mechanism for class variable, only in the infraclass
-   struct _mulle_objc_kvccachepivot        kvc;   // ? needed in meta
+   // general storage mechanism for KVC, needed in meta ?
+   struct _mulle_objc_kvccachepivot        kvc;
 
    uint16_t                                inheritance;
    uint16_t                                preloads;
 
-   struct _mulle_objc_searchcachepivot     searchcachepivot;
-  
+   struct _mulle_objc_cachepivot           supercachepivot;  
+   mulle_objc_implementation_t             (*lookup_superimplementation)( struct _mulle_objc_class *,
+                                                                        mulle_objc_superid_t);
+
    struct mulle_concurrent_pointerarray    methodlists;
    struct _mulle_objc_fastmethodtable      vtab;  // dont' move it up, debugs nicer here
 };

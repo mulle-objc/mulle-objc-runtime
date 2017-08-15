@@ -43,6 +43,7 @@
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
 #include "mulle_objc_methodlist.h"
+#include "mulle_objc_super.h"
 #include "mulle_objc_universe.h"
 
 #include <assert.h>
@@ -285,7 +286,7 @@ static struct _mulle_objc_method  *
       
       found = method;
 
-      if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
+      if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
          break;
    }
    _mulle_objc_protocolclassreverseenumerator_done( &rover);
@@ -457,7 +458,7 @@ static struct _mulle_objc_method   *
          result->method = method;
       }
       
-      if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
+      if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
       {
          // atomicity needed or not ? see header for more discussion
          method->descriptor.bits |= _mulle_objc_method_searched_and_found;
@@ -513,7 +514,7 @@ next_class:
             return( NULL);
          }
          
-         if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
+         if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
             return( method);
          
          found = method;
@@ -542,7 +543,7 @@ next_class:
             return( NULL);
          }
          
-         if( ! _mulle_objc_methoddescriptor_is_hidden_override_fatal( &method->descriptor))
+         if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
             return( method);
          
          found = method;
@@ -550,93 +551,6 @@ next_class:
    }
 
    return( found);
-}
-
-
-# pragma mark - caching
-
-MULLE_C_NEVER_INLINE
-static struct _mulle_objc_searchcacheentry   *
-   _mulle_objc_class_fill_searchcache_with_methodsearch( struct _mulle_objc_class *cls,
-                                                         struct _mulle_objc_method *method,
-                                                         struct _mulle_objc_searchargumentscachable *args)
-{
-   struct _mulle_objc_searchcache        *cache;
-   struct _mulle_objc_searchcacheentry   *entry;
-   
-   assert( cls);
-   assert( method);
-   
-   // need to check that we are initialized
-   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_NO_SEARCH_CACHE))
-      return( NULL);
-   // when we trace method calls, we don't cache ever
-   if( _mulle_objc_class_get_universe( cls)->debug.trace.method_calls)
-      return( NULL);
-   
-   //
-   //  try to get most up to date value
-   //
-   for(;;)
-   {
-      cache = _mulle_objc_searchcachepivot_atomic_get_cache( &cls->searchcachepivot);
-      if( _mulle_objc_searchcache_should_grow( cache))
-      {
-         entry = _mulle_objc_class_add_searchcacheentry_by_swapping_caches( cls, cache, method, args);
-         if( entry)
-            return( entry);
-         continue;
-      }
-      
-      entry = _mulle_objc_searchcache_add_functionpointer_entry( cache, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method), args);
-      if( entry)
-         return( entry);
-   }
-}
-
-
-//
-// fills the cache and does forward
-//
-mulle_objc_methodimplementation_t
-   _mulle_objc_class_lookup_methodsearch( struct _mulle_objc_class *cls,
-                                          struct _mulle_objc_searchargumentscachable *args)
-{
-   mulle_objc_searchcache_uint_t         offset;
-   mulle_objc_methodimplementation_t     imp;
-   struct _mulle_objc_searchcache        *cache;
-   struct _mulle_objc_searchcacheentry   *entries;
-   struct _mulle_objc_searchcacheentry   *entry;
-   struct _mulle_objc_method             *method;
-
-   assert( args);
-   assert( _mulle_objc_is_cacheablesearchmode( args->mode));
-   _mulle_objc_searchargumentscacheable_assert( args);
-   
-   entries = _mulle_objc_searchcachepivot_atomic_get_entries( &cls->searchcachepivot);
-   cache   = _mulle_objc_searchcacheentry_get_cache_from_entries( entries);
-   offset  = _mulle_objc_searchcache_find_entryoffset( cache, args);
-   entry   = (void *) &((char *) entries)[ offset];
-   imp     = (mulle_objc_methodimplementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-   if( imp)
-      return( imp);
-   
-   //
-   // since "previous_method" in args will not be accessed" this is OK to cast
-   // and obviously cheaper than making a copy
-   //
-   method = mulle_objc_class_search_method( cls,
-                                            (struct _mulle_objc_searcharguments *) args,
-                                            cls->inheritance,
-                                            NULL);
-   if( ! method)
-      method = _mulle_objc_class_unfailinggetorsearch_forwardmethod( cls, args->methodid);
-
-   imp = _mulle_objc_method_get_implementation( method);
-
-   _mulle_objc_class_fill_searchcache_with_methodsearch( cls, method, args);
-
-   return( imp);
 }
 
 
@@ -684,6 +598,7 @@ struct _mulle_objc_method   *
    if( trace)
       trace_method_start( cls, search);
    
+   errno  = ENOENT;
    method = __mulle_objc_class_search_method( cls,
                                               search,
                                               inheritance,
@@ -713,13 +628,16 @@ struct _mulle_objc_method   *
    {
       if( errno == EEXIST)
          _mulle_objc_universe_raise_inconsistency_exception( cls->universe,
-                              "class \"%s\" hidden method override of %08x",
+                              "class %08x \"%s\" hidden method override of %08x \"%s\"",
+                              _mulle_objc_class_get_classid( cls),
                               _mulle_objc_class_get_name( cls),
-                              search->args.methodid);
-      
+                              search->args.methodid,
+                              mulle_objc_string_for_methodid( search->args.methodid));
+
+      assert( errno == ENOENT);
       if( trace)
          trace_method_fail( cls, ENOENT);
-      errno = ENOENT;
+
       return( NULL);
    }
    
@@ -790,7 +708,7 @@ static inline struct _mulle_objc_method   *
 
 
 struct _mulle_objc_method    *
-   _mulle_objc_class_getorsearch_forwardmethod( struct _mulle_objc_class *cls)
+   _mulle_objc_class_lazyget_forwardmethod( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
    
@@ -833,12 +751,12 @@ static void
 
 MULLE_C_NON_NULL_RETURN
 struct _mulle_objc_method    *
-   _mulle_objc_class_unfailinggetorsearch_forwardmethod( struct _mulle_objc_class *cls,
+   _mulle_objc_class_unfailinglazyget_forwardmethod( struct _mulle_objc_class *cls,
                                                           mulle_objc_methodid_t   missing_method)
 {
    struct _mulle_objc_method   *method;
    
-   method = _mulle_objc_class_getorsearch_forwardmethod( cls);
+   method = _mulle_objc_class_lazyget_forwardmethod( cls);
    if( method)
       return( method);
    
@@ -847,8 +765,8 @@ struct _mulle_objc_method    *
 
 
 // used by the debugger
-mulle_objc_methodimplementation_t
-mulle_objc_class_get_forwardmethodimplementation( struct _mulle_objc_class *cls)
+mulle_objc_implementation_t
+mulle_objc_class_get_forwardimplementation( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
    
