@@ -62,21 +62,21 @@ void   test_message_forwarding1()
    void                            *rval;
    struct _mulle_objc_universe      *universe;
 
-   pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
+   pair = mulle_objc_unfailingnew_classpair( A_classid, "A", 0, NULL);
    assert( pair);
    A_infra      = _mulle_objc_classpair_get_infraclass( pair);
    A_meta = _mulle_objc_class_get_metaclass( _mulle_objc_infraclass_as_class( A_infra));
 
       // now fix up classes with empty method lists, so they are OK to be added
-   mulle_objc_infraclass_unfailing_add_methodlist( A_infra, NULL);
-   mulle_objc_metaclass_unfailing_add_methodlist( A_meta, NULL);
-   mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
-   mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_methodlist( A_infra, NULL);
+   mulle_objc_metaclass_unfailingadd_methodlist( A_meta, NULL);
+   mulle_objc_infraclass_unfailingadd_ivarlist( A_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_propertylist( A_infra, NULL);
 
    universe = mulle_objc_get_or_create_universe();
    universe->classdefaults.forwardmethod = &forward_list.methods[ 0];
 
-   mulle_objc_unfailing_add_infraclass( A_infra);
+   mulle_objc_unfailingadd_infraclass( A_infra);
 
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) == NULL);
@@ -102,18 +102,18 @@ void   test_message_forwarding2()
    struct _mulle_objc_universe       *universe;
    void                             *rval;
 
-   pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
+   pair = mulle_objc_unfailingnew_classpair( A_classid, "A", 0, NULL);
    assert( pair);
    A_infra      = _mulle_objc_classpair_get_infraclass( pair);
    A_meta = _mulle_objc_classpair_get_metaclass( pair);
 
    // now fix up classes with empty method lists, so they are OK to be added
-   mulle_objc_infraclass_unfailing_add_methodlist( A_infra, NULL);
-   mulle_objc_metaclass_unfailing_add_methodlist( A_meta, &forward_list);
-   mulle_objc_infraclass_unfailing_add_ivarlist( A_infra, NULL);
-   mulle_objc_infraclass_unfailing_add_propertylist( A_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_methodlist( A_infra, NULL);
+   mulle_objc_metaclass_unfailingadd_methodlist( A_meta, &forward_list);
+   mulle_objc_infraclass_unfailingadd_ivarlist( A_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_propertylist( A_infra, NULL);
 
-   mulle_objc_unfailing_add_infraclass( A_infra);
+   mulle_objc_unfailingadd_infraclass( A_infra);
 
    universe = mulle_objc_get_or_create_universe();
    assert( universe->classdefaults.forwardmethod == NULL);

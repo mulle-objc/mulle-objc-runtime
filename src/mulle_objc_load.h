@@ -51,6 +51,7 @@ struct _mulle_objc_ivarlist;
 struct _mulle_objc_methodlist;
 struct _mulle_objc_propertylist;
 struct _mulle_objc_protocollist;
+struct _mulle_objc_superlist;
 struct _mulle_objc_universe;
 
 
@@ -65,7 +66,7 @@ struct _mulle_objc_dependency
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   10
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   11
 
 
 struct _mulle_objc_loadclass
@@ -160,6 +161,7 @@ struct _mulle_objc_loadhashedstringlist
    struct _mulle_objc_loadhashedstring   loadentries[ 1];
 };
 
+int  mulle_objc_loadhashedstring_is_sane( struct _mulle_objc_loadhashedstring *p);
 
 int   _mulle_objc_loadhashedstring_compare( struct _mulle_objc_loadhashedstring *a,
                                             struct _mulle_objc_loadhashedstring *b);
@@ -168,12 +170,27 @@ void   mulle_objc_loadhashedstring_sort( struct _mulle_objc_loadhashedstring *me
                                          unsigned int n);
 
 
+char   *_mulle_objc_loadhashedstring_search( struct _mulle_objc_loadhashedstring *buf,
+                                             unsigned int n,
+                                             mulle_objc_uniqueid_t search);
+
+static inline char   *
+   mulle_objc_loadhashedstringlist_search( struct _mulle_objc_loadhashedstringlist *map,
+                                            mulle_objc_uniqueid_t search)
+{
+   if( map)
+      return( _mulle_objc_loadhashedstring_search( map->loadentries, map->n_loadentries, search));
+   return( NULL);
+}
+
+
 char   *_mulle_objc_loadhashedstring_bsearch( struct _mulle_objc_loadhashedstring *buf,
                                               unsigned int n,
-                                              mulle_objc_ivarid_t search);
+                                              mulle_objc_uniqueid_t search);
 
-static inline char   *mulle_objc_loadhashedstringlist_bsearch( struct _mulle_objc_loadhashedstringlist *map,
-                                                          mulle_objc_ivarid_t search)
+static inline char   *
+   mulle_objc_loadhashedstringlist_bsearch( struct _mulle_objc_loadhashedstringlist *map,
+                                            mulle_objc_uniqueid_t search)
 {
    if( map)
       return( _mulle_objc_loadhashedstring_bsearch( map->loadentries, map->n_loadentries, search));
@@ -237,6 +254,7 @@ struct _mulle_objc_loadinfo
 
    struct _mulle_objc_loadclasslist          *loadclasslist;
    struct _mulle_objc_loadcategorylist       *loadcategorylist;
+   struct _mulle_objc_superlist              *loadsuperlist;
    struct _mulle_objc_loadstringlist         *loadstringlist;
    struct _mulle_objc_loadhashedstringlist   *loadhashedstringlist;  // optional for debugging
 
@@ -259,7 +277,7 @@ void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info);
 
 // checks that loadinfo is compatibly compiled
 void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *universe,
-                                           struct _mulle_objc_loadinfo *info);
+                                             struct _mulle_objc_loadinfo *info);
 
 # pragma mark - class
 

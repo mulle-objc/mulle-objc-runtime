@@ -546,12 +546,11 @@ char   *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *l
 }
 
 
-#pragma mark - methoddescriptor
+#pragma mark - descriptor
 
 
-char   *mulle_objc_methoddescriptor_html_description( intptr_t methodid,
-                                                      struct _mulle_objc_methoddescriptor *desc,
-                                                      struct _mulle_objc_htmltablestyle *styling)
+char   *mulle_objc_descriptor_html_description( struct _mulle_objc_descriptor *desc,
+                                                struct _mulle_objc_htmltablestyle *styling)
 {
    char   *tmp[ 2];
    char   *th;
@@ -578,7 +577,7 @@ char   *mulle_objc_methoddescriptor_html_description( intptr_t methodid,
 }
 
 
-char   *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_methoddescriptor *desc)
+char   *mulle_objc_descriptor_html_hor_description( struct _mulle_objc_descriptor *desc)
 {
    char   *s;
 
@@ -598,11 +597,11 @@ char   *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_met
 }
 
 
-char   *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
-                                                          void *value,
-                                                          struct _mulle_objc_htmltablestyle *styling)
+char   *mulle_objc_descriptor_html_row_description( intptr_t  methodid,
+                                                    void *value,
+                                                    struct _mulle_objc_htmltablestyle *styling)
 {
-   struct _mulle_objc_methoddescriptor *desc = value;
+   struct _mulle_objc_descriptor *desc = value;
    char   *s;
 
    asprintf( &s,

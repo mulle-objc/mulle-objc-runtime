@@ -20,21 +20,21 @@ void  create_ABC_classes( struct abc_classes *classes)
 {
    struct _mulle_objc_classpair   *pair;
 
-   pair = mulle_objc_unfailing_new_classpair( A_classid, "A", 0, NULL);
+   pair = mulle_objc_unfailingnew_classpair( A_classid, "A", 0, NULL);
    assert( pair);
    classes->A_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->A_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_infra);
    assert( classes->A_meta);
 
-   pair = mulle_objc_unfailing_new_classpair( B_classid, "B", 0, classes->A_infra);
+   pair = mulle_objc_unfailingnew_classpair( B_classid, "B", 0, classes->A_infra);
    assert( pair);
    classes->B_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->B_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->B_infra);
    assert( classes->B_meta);
 
-   pair = mulle_objc_unfailing_new_classpair( C_classid, "C", 0, classes->B_infra);
+   pair = mulle_objc_unfailingnew_classpair( C_classid, "C", 0, classes->B_infra);
    assert( pair);
    classes->C_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->C_meta  = _mulle_objc_classpair_get_metaclass( pair);
@@ -45,9 +45,9 @@ void  create_ABC_classes( struct abc_classes *classes)
 
 void  add_ABC_classes( struct abc_classes *classes)
 {
-   mulle_objc_unfailing_add_infraclass( classes->A_infra);
-   mulle_objc_unfailing_add_infraclass( classes->B_infra);
-   mulle_objc_unfailing_add_infraclass( classes->C_infra);
+   mulle_objc_unfailingadd_infraclass( classes->A_infra);
+   mulle_objc_unfailingadd_infraclass( classes->B_infra);
+   mulle_objc_unfailingadd_infraclass( classes->C_infra);
 }
 
 
@@ -167,22 +167,22 @@ void   add_simple_methods( struct abc_classes  *classes)
 
    universe = mulle_objc_get_or_create_universe();
 
-   mulle_objc_infraclass_unfailing_add_methodlist( classes->A_infra, &A_i_list);
-   mulle_objc_metaclass_unfailing_add_methodlist( classes->A_meta, &universe->empty_methodlist);
-   mulle_objc_infraclass_unfailing_add_methodlist( classes->B_infra, &B_i_list);
-   mulle_objc_metaclass_unfailing_add_methodlist( classes->B_meta, &B_c_list);
-   mulle_objc_infraclass_unfailing_add_methodlist( classes->C_infra, &C_i_list);
+   mulle_objc_infraclass_unfailingadd_methodlist( classes->A_infra, &A_i_list);
+   mulle_objc_metaclass_unfailingadd_methodlist( classes->A_meta, &universe->empty_methodlist);
+   mulle_objc_infraclass_unfailingadd_methodlist( classes->B_infra, &B_i_list);
+   mulle_objc_metaclass_unfailingadd_methodlist( classes->B_meta, &B_c_list);
+   mulle_objc_infraclass_unfailingadd_methodlist( classes->C_infra, &C_i_list);
 
    // this is OK it's like adding an empty list
-   mulle_objc_metaclass_unfailing_add_methodlist( classes->C_meta, NULL);
+   mulle_objc_metaclass_unfailingadd_methodlist( classes->C_meta, NULL);
 
-   mulle_objc_infraclass_unfailing_add_ivarlist( classes->A_infra, NULL);
-   mulle_objc_infraclass_unfailing_add_ivarlist( classes->B_infra, NULL);
-   mulle_objc_infraclass_unfailing_add_ivarlist( classes->C_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_ivarlist( classes->A_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_ivarlist( classes->B_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_ivarlist( classes->C_infra, NULL);
 
-   mulle_objc_infraclass_unfailing_add_propertylist( classes->A_infra, NULL);
-   mulle_objc_infraclass_unfailing_add_propertylist( classes->B_infra, NULL);
-   mulle_objc_infraclass_unfailing_add_propertylist( classes->C_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_propertylist( classes->A_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_propertylist( classes->B_infra, NULL);
+   mulle_objc_infraclass_unfailingadd_propertylist( classes->C_infra, NULL);
 }
 
 
@@ -190,51 +190,51 @@ static void   test_normal_inheritance( struct abc_classes  *classes)
 {
    struct _mulle_objc_method    *method;
 
-   method = mulle_objc_infraclass_search_method( classes->A_infra, foo_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, foo_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
 
    // root meta inherits from root...
-   method = mulle_objc_metaclass_search_method( classes->A_meta, foo_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->A_meta, foo_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
 
-   method = mulle_objc_infraclass_search_method( classes->B_infra, foo_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, foo_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
 
-   method = mulle_objc_metaclass_search_method( classes->B_meta, foo_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, foo_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
 
-   method = mulle_objc_infraclass_search_method( classes->C_infra, foo_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, foo_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
 
-   method = mulle_objc_metaclass_search_method( classes->C_meta, foo_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, foo_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
 
 
-   method = mulle_objc_infraclass_search_method( classes->A_infra, bar_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, bar_methodid);
    assert( ! method);
 
-   method = mulle_objc_metaclass_search_method( classes->A_meta, bar_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->A_meta, bar_methodid);
    assert( ! method);
 
-   method = mulle_objc_infraclass_search_method( classes->B_infra, bar_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, bar_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_bar);
 
-   method = mulle_objc_metaclass_search_method( classes->B_meta, bar_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, bar_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
 
-   method = mulle_objc_infraclass_search_method( classes->C_infra, bar_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, bar_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 
-   method = mulle_objc_metaclass_search_method( classes->C_meta, bar_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, bar_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
 }
@@ -245,46 +245,46 @@ static void   test_inhibited_inheritance( struct abc_classes  *classes)
 {
    struct _mulle_objc_method    *method;
 
-   method = mulle_objc_infraclass_search_method( classes->A_infra, foo_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, foo_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
 
    // root meta inherits from root...
-   method = mulle_objc_metaclass_search_method( classes->A_meta, foo_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->A_meta, foo_methodid);
    assert( ! method);
 
-   method = mulle_objc_infraclass_search_method( classes->B_infra, foo_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, foo_methodid);
    assert( ! method);
 
-   method = mulle_objc_metaclass_search_method( classes->B_meta, foo_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, foo_methodid);
    assert( ! method);
 
-   method = mulle_objc_infraclass_search_method( classes->C_infra, foo_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, foo_methodid);
    assert( ! method);
 
-   method = mulle_objc_metaclass_search_method( classes->C_meta, foo_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, foo_methodid);
    assert( ! method);
 
 
-   method = mulle_objc_infraclass_search_method( classes->A_infra, bar_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, bar_methodid);
    assert( ! method);
 
-   method = mulle_objc_metaclass_search_method( classes->A_meta, bar_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->A_meta, bar_methodid);
    assert( ! method);
 
-   method = mulle_objc_infraclass_search_method( classes->B_infra, bar_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, bar_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_bar);
 
-   method = mulle_objc_metaclass_search_method( classes->B_meta, bar_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, bar_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
 
-   method = mulle_objc_infraclass_search_method( classes->C_infra, bar_methodid);
+   method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, bar_methodid);
    assert( method);
    assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
 
-   method = mulle_objc_metaclass_search_method( classes->C_meta, bar_methodid);
+   method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, bar_methodid);
    assert( ! method);
 }
 

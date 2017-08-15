@@ -1,10 +1,10 @@
 //
-//  mulle_objc_lldb.h
-//  mulle-objc-runtime-universe
+//  mulle_objc_super.h
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 16.05.17.
-//  Copyright © 2017 Mulle kybernetiK. All rights reserved.
-//  Copyright © 2017 Codeon GmbH. All rights reserved.
+//  Created by Nat! on 12.08.17.
+//  Copyright (c) 2017 Mulle kybernetiK. All rights reserved.
+//  Copyright (c) 2017 Codeon GmbH.All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -32,29 +32,27 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_lldb_h__
-#define mulle_objc_lldb_h__
+#ifndef mulle_objc_super_h__
+#define mulle_objc_super_h__
+
 
 #include "mulle_objc_uniqueid.h"
-#include "mulle_objc_method.h"
+
+struct _mulle_objc_super
+{
+   mulle_objc_superid_t    superid;
+   mulle_objc_classid_t    classid;
+   mulle_objc_methodid_t   methodid;
+};
 
 
-// for test only, don't use this if you aren't a debugger
-
-void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel);
-
-struct _mulle_objc_descriptor  *
-   mulle_objc_lldb_lookup_descriptor_by_name( char *name);
-
-mulle_objc_implementation_t
-   mulle_objc_lldb_lookup_implementation( void *object,
-                                            mulle_objc_methodid_t sel,
-                                            void *cls_or_classid,
-                                            int is_classid,
-                                            int is_meta,
-                                            int debug);
-
-void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void);
+struct _mulle_objc_superlist
+{
+   unsigned int                n_supers; 
+   struct _mulle_objc_super    supers[ 1];
+};
 
 
-#endif /* mulle_objc_lldb_h */
+int   mulle_objc_super_is_sane( struct _mulle_objc_super *p);
+
+#endif

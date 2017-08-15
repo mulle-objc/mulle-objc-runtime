@@ -109,7 +109,7 @@ void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *
    if( ! cls || ! fp)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
    
    cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
@@ -157,7 +157,7 @@ void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
    if( ! cls || ! fp)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
    
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
@@ -199,7 +199,7 @@ void   mulle_objc_universe_csvdump_cachedmethodcoverage( struct _mulle_objc_univ
    if( ! universe || ! fp)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
 
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
@@ -226,7 +226,7 @@ void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *
    if( ! universe || ! fp)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
    
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
@@ -253,7 +253,7 @@ void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *u
    if( ! universe || ! fp)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
 
    //
@@ -320,7 +320,7 @@ static void   mulle_objc_universe_csvdump_cachesizes( struct _mulle_objc_univers
    if( ! universe || ! fp)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
 
    //
@@ -422,7 +422,7 @@ void   mulle_objc_loadinfo_csvdump_terse( struct _mulle_objc_loadinfo *info, FIL
    if( ! fp)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
    
    s = mulle_objc_loadinfo_get_originator( info);

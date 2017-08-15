@@ -307,7 +307,7 @@ static void   print_universe( struct _mulle_objc_universe *universe,
                  universe, &universe->descriptortable);
          
          label = mulle_concurrent_hashmap_html_description( &universe->descriptortable,
-                                                           mulle_objc_methoddescriptor_html_row_description,
+                                                           mulle_objc_descriptor_html_row_description,
                                                            &selectortable_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
                  &universe->descriptortable, label, "box");
@@ -836,7 +836,7 @@ static void   _mulle_objc_dotdump_classname_to_file( char *classname,
 
    universe = mulle_objc_get_universe();
    classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_universe_getlookup_infraclass( universe, classid);
+   infra   = _mulle_objc_universe_fastlookup_infraclass( universe, classid);
    if( ! infra)
    {
       fprintf( stderr, "Class \"%s\" is unknown to the universe\n", classname);

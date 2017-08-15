@@ -105,7 +105,7 @@ int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist 
                                                   struct _mulle_objc_callqueue *loads)
 {
    struct _mulle_objc_method            *method;
-   mulle_objc_methodimplementation_t    imp;
+   mulle_objc_implementation_t    imp;
 
    assert( loads);
 
@@ -129,6 +129,6 @@ int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist 
 void   mulle_objc_methodlist_unfailingadd_load_to_callqueue( struct _mulle_objc_methodlist *list, struct _mulle_objc_metaclass *meta, struct _mulle_objc_callqueue *loads)
 {
    if( mulle_objc_methodlist_add_load_to_callqueue( list, meta, loads))
-      _mulle_objc_universe_raise_fail_errno_exception( _mulle_objc_metaclass_get_universe( meta));
+      _mulle_objc_universe_raise_errno_exception( _mulle_objc_metaclass_get_universe( meta));
 }
 

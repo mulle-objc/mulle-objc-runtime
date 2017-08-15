@@ -1,10 +1,10 @@
 //
-//  mulle_objc_lldb.h
-//  mulle-objc-runtime-universe
+//  mulle_objc_super.h
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 16.05.17.
-//  Copyright © 2017 Mulle kybernetiK. All rights reserved.
-//  Copyright © 2017 Codeon GmbH. All rights reserved.
+//  Created by Nat! on 12.08.17.
+//  Copyright (c) 2017 Mulle kybernetiK. All rights reserved.
+//  Copyright (c) 2017 Codeon GmbH.All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -32,29 +32,30 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef mulle_objc_lldb_h__
-#define mulle_objc_lldb_h__
+
+#include "mulle_objc_super.h"
 
 #include "mulle_objc_uniqueid.h"
-#include "mulle_objc_method.h"
+#include <string.h>
+#include <errno.h>
 
 
-// for test only, don't use this if you aren't a debugger
+int   mulle_objc_super_is_sane( struct _mulle_objc_super *p)
+{
+   if( ! p)
+      return( 0);
 
-void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel);
+   if( p->superid == MULLE_OBJC_NO_SUPERID ||
+       p->superid == MULLE_OBJC_INVALID_SUPERID)
+      return( 0);
 
-struct _mulle_objc_descriptor  *
-   mulle_objc_lldb_lookup_descriptor_by_name( char *name);
+   if( p->classid == MULLE_OBJC_NO_CLASSID ||
+       p->classid == MULLE_OBJC_INVALID_CLASSID)
+      return( 0);
 
-mulle_objc_implementation_t
-   mulle_objc_lldb_lookup_implementation( void *object,
-                                            mulle_objc_methodid_t sel,
-                                            void *cls_or_classid,
-                                            int is_classid,
-                                            int is_meta,
-                                            int debug);
-
-void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void);
-
-
-#endif /* mulle_objc_lldb_h */
+   if( p->methodid == MULLE_OBJC_NO_METHODID ||
+       p->methodid == MULLE_OBJC_INVALID_METHODID)
+      return( 0);
+   
+   return( 1);
+}

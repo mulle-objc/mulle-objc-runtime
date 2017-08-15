@@ -277,18 +277,18 @@ int  _mulle_objc_universe_match_exception( struct _mulle_objc_universe *universe
                                          mulle_objc_classid_t classId,
                                          void *exception);
 
-void   _mulle_objc_universe_raise_fail_exception( struct _mulle_objc_universe *universe, char *format, ...)           MULLE_C_NO_RETURN;
-void   _mulle_objc_universe_raise_fail_errno_exception( struct _mulle_objc_universe *universe)                        MULLE_C_NO_RETURN;
+void   _mulle_objc_universe_raise_generic_exception( struct _mulle_objc_universe *universe, char *format, ...)           MULLE_C_NO_RETURN;
+void   _mulle_objc_universe_raise_errno_exception( struct _mulle_objc_universe *universe)                        MULLE_C_NO_RETURN;
 void   _mulle_objc_universe_raise_inconsistency_exception( struct _mulle_objc_universe *universe, char *format, ...)  MULLE_C_NO_RETURN;
+void   _mulle_objc_universe_raise_super_not_found_exception( struct _mulle_objc_universe *universe, mulle_objc_classid_t superid)  MULLE_C_NO_RETURN;
 void   _mulle_objc_universe_raise_class_not_found_exception( struct _mulle_objc_universe *universe, mulle_objc_classid_t classid)  MULLE_C_NO_RETURN;
 void   _mulle_objc_class_raise_method_not_found_exception( struct _mulle_objc_class *class, mulle_objc_methodid_t methodid)  MULLE_C_NO_RETURN;
 
 // exceptions
 
-void   mulle_objc_raise_fail_exception( char *format, ...)           MULLE_C_NO_RETURN;
-void   mulle_objc_raise_fail_errno_exception( void)                  MULLE_C_NO_RETURN;
+void   mulle_objc_raise_generic_exception( char *format, ...)        MULLE_C_NO_RETURN;
+void   mulle_objc_raise_errno_exception( void)                       MULLE_C_NO_RETURN;
 void   mulle_objc_raise_inconsistency_exception( char *format, ...)  MULLE_C_NO_RETURN;
-
 void   mulle_objc_raise_taggedpointer_exception( void *obj);
 
 
@@ -331,7 +331,7 @@ static inline void   mulle_objc_universe_unfailingadd_gift( struct _mulle_objc_u
 
 
 #pragma mark - memory allocation with "gifting"
-void   mulle_objc_raise_fail_errno_exception( void) MULLE_C_NO_RETURN;
+void   mulle_objc_raise_errno_exception( void) MULLE_C_NO_RETURN;
 
 
 static inline void   *_mulle_objc_universe_strdup( struct _mulle_objc_universe *universe, char  *s)
@@ -362,7 +362,7 @@ static inline void   *mulle_objc_universe_strdup( struct _mulle_objc_universe *u
    if( ! universe || ! s)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
    return( _mulle_objc_universe_strdup( universe, s));
 }
@@ -373,7 +373,7 @@ static inline void   *mulle_objc_universe_calloc( struct _mulle_objc_universe *u
    if( ! universe)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
    return( _mulle_objc_universe_calloc( universe, n, size));
 }
@@ -384,7 +384,7 @@ static inline void   mulle_objc_universe_set_path( struct _mulle_objc_universe *
    if( ! universe || ! s)
    {
       errno = EINVAL;
-      mulle_objc_raise_fail_errno_exception();
+      mulle_objc_raise_errno_exception();
    }
 
    // can only set once
@@ -561,23 +561,25 @@ static inline unsigned int   _mulle_objc_universe_number_of_preloadmethods( stru
 
 #pragma mark - methods
 
-int    _mulle_objc_universe_add_methoddescriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_methoddescriptor *p);
+int    _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
+                                            struct _mulle_objc_descriptor *p);
 
-static inline int   mulle_objc_universe_add_methoddescriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_methoddescriptor *p)
+static inline int   mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
+                                                        struct _mulle_objc_descriptor *p)
 {
    if( ! universe)
    {
       errno = EINVAL;
       return( -1);
    }
-   return( _mulle_objc_universe_add_methoddescriptor( universe, p));
+   return( _mulle_objc_universe_add_descriptor( universe, p));
 }
 
 
-void   mulle_objc_universe_unfailingadd_methoddescriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_methoddescriptor *p);
+void   mulle_objc_universe_unfailingadd_descriptor( struct _mulle_objc_universe *universe, struct _mulle_objc_descriptor *p);
 
 // get name from methodid for example
-struct _mulle_objc_methoddescriptor   *_mulle_objc_universe_lookup_methoddescriptor( struct _mulle_objc_universe *universe, mulle_objc_methodid_t methodid);
+struct _mulle_objc_descriptor   *_mulle_objc_universe_lookup_descriptor( struct _mulle_objc_universe *universe, mulle_objc_methodid_t methodid);
 
 
 // this function automatically gifts the methodlist to the
@@ -590,6 +592,24 @@ static inline struct _mulle_objc_method  *mulle_objc_universe_alloc_array_of_met
 
 
 char   *mulle_objc_lookup_methodname( mulle_objc_methodid_t methodid);
+
+# pragma mark - superstrings
+
+# pragma mark - super map
+
+struct _mulle_objc_super   *
+   _mulle_objc_universe_lookup_super( struct _mulle_objc_universe *universe,
+                                      mulle_objc_superid_t superid);
+struct _mulle_objc_super   *
+   _mulle_objc_universe_unfailinglookup_super( struct _mulle_objc_universe *universe,
+                                               mulle_objc_superid_t superid);
+
+int   _mulle_objc_universe_add_super( struct _mulle_objc_universe *universe,
+                                      struct _mulle_objc_super *p);
+void    mulle_objc_universe_unfailingadd_super( struct _mulle_objc_universe *universe,
+                                                struct _mulle_objc_super *p);
+struct _mulle_objc_super   *mulle_objc_lookup_super( mulle_objc_superid_t superid);
+
 
 
 # pragma mark - protocols
@@ -721,6 +741,10 @@ char   *_mulle_objc_universe_string_for_protocolid( struct _mulle_objc_universe 
 MULLE_C_NON_NULL_RETURN
 char   *_mulle_objc_universe_string_for_categoryid( struct _mulle_objc_universe *universe,
                                                     mulle_objc_categoryid_t categoryid);
+MULLE_C_NON_NULL_RETURN
+char   *_mulle_objc_universe_string_for_superid( struct _mulle_objc_universe *universe,
+                                                mulle_objc_superid_t classid);
+
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
@@ -738,6 +762,9 @@ char   *mulle_objc_string_for_protocolid( mulle_objc_protocolid_t protocolid);
 
 MULLE_C_NON_NULL_RETURN
 char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid);
+
+MULLE_C_NON_NULL_RETURN
+char   *mulle_objc_string_for_superid( mulle_objc_superid_t superid);
 
 #endif
 

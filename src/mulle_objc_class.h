@@ -102,19 +102,10 @@ static inline struct _mulle_objc_cache   *_mulle_objc_class_get_methodcache( str
 }
 
 
-
-static inline struct _mulle_objc_searchcache   *_mulle_objc_class_get_searchcache( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_cache   *_mulle_objc_class_get_supercache( struct _mulle_objc_class *cls)
 {
-   return( _mulle_objc_searchcachepivot_atomic_get_cache( &cls->searchcachepivot));
+   return( _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot));
 }
-
-MULLE_C_NEVER_INLINE
-struct _mulle_objc_searchcacheentry   *
-  _mulle_objc_class_add_searchcacheentry_by_swapping_caches( struct _mulle_objc_class *cls,
-                                                             struct _mulle_objc_searchcache *cache,
-                                                             struct _mulle_objc_method *method,
-                                                             struct _mulle_objc_searchargumentscachable *args);
-
 
 # pragma mark - kvc caches
 
@@ -242,8 +233,8 @@ int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned in
 
 
 static inline int
-   _mulle_objc_class_is_forwardmethodimplementation( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodimplementation_t  imp)
+   _mulle_objc_class_is_forwardimplementation( struct _mulle_objc_class *cls,
+                                                     mulle_objc_implementation_t  imp)
 {
    if( ! cls->forwardmethod)
       return( 0);

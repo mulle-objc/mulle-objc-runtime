@@ -45,8 +45,8 @@
 
 # pragma mark - lldb support
 
-mulle_objc_methodimplementation_t
-   mulle_objc_lldb_lookup_methodimplementation( void *obj,
+mulle_objc_implementation_t
+   mulle_objc_lldb_lookup_implementation( void *obj,
                                                 mulle_objc_methodid_t methodid,
                                                 void *cls_or_classid,
                                                 int is_classid,
@@ -57,7 +57,7 @@ mulle_objc_methodimplementation_t
    struct _mulle_objc_universe          *universe;
    struct _mulle_objc_infraclass       *found;
    struct _mulle_objc_class            *call_cls;
-   mulle_objc_methodimplementation_t   imp;
+   mulle_objc_implementation_t   imp;
    
    if( debug)
       fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, cls_or_classid, is_classid);
@@ -75,7 +75,7 @@ mulle_objc_methodimplementation_t
    if( is_classid)
    {
       universe  = _mulle_objc_class_get_universe( cls);
-      found    = _mulle_objc_universe_unfailinggetlookup_infraclass( universe,
+      found    = _mulle_objc_universe_unfailingfastlookup_infraclass( universe,
                                                                         (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
       if( is_meta)
          call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));
@@ -85,7 +85,7 @@ mulle_objc_methodimplementation_t
    else
       call_cls = cls_or_classid;
    
-   imp = _mulle_objc_class_lookup_or_search_methodimplementation_no_forward( call_cls, methodid);
+   imp = _mulle_objc_class_noncachinglookup_implementation_no_forward( call_cls, methodid);
    if( debug)
    {
       char   buf[ s_mulle_objc_sprintf_functionpointer_buffer];
@@ -97,15 +97,15 @@ mulle_objc_methodimplementation_t
 }
 
 
-struct _mulle_objc_methoddescriptor  *
-   mulle_objc_lldb_lookup_methoddescriptor_by_name( char *name)
+struct _mulle_objc_descriptor  *
+   mulle_objc_lldb_lookup_descriptor_by_name( char *name)
 {
    mulle_objc_methodid_t        methodid;
    struct _mulle_objc_universe   *universe;
    
    methodid = mulle_objc_uniqueid_from_string( name);
    universe = mulle_objc_get_universe();
-   return( _mulle_objc_universe_lookup_methoddescriptor( universe, methodid));
+   return( _mulle_objc_universe_lookup_descriptor( universe, methodid));
 }
 
 
@@ -120,7 +120,7 @@ void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel)
    cls = _mulle_objc_object_get_isa( obj);
    strlen( cls->name);    // try to crash here
    
-   if( ! _mulle_objc_class_lookup_methodimplementation_no_forward( cls, sel))
+   if( ! _mulle_objc_class_lookup_implementation_no_forward( cls, sel))
       *((volatile int *)0) = '1848'; // force crash
 }
 

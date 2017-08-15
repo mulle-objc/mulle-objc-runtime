@@ -320,8 +320,8 @@ struct _mulle_objc_method   *
 // this should be used by the debugger, but the debugger is really fixed to
 // use __forward_mulle_objc_object_call
 //
-mulle_objc_methodimplementation_t
-   mulle_objc_class_get_forwardmethodimplementation( struct _mulle_objc_class *cls);
+mulle_objc_implementation_t
+   mulle_objc_class_get_forwardimplementation( struct _mulle_objc_class *cls);
 
 
 //
@@ -329,11 +329,11 @@ mulle_objc_methodimplementation_t
 // the user_method is just there to create a nicer crash log
 //
 struct _mulle_objc_method   *
-   _mulle_objc_class_getorsearch_forwardmethod( struct _mulle_objc_class *cls);
+   _mulle_objc_class_lazyget_forwardmethod( struct _mulle_objc_class *cls);
 
 
 struct _mulle_objc_method   *
-   _mulle_objc_class_unfailinggetorsearch_forwardmethod(
+   _mulle_objc_class_unfailinglazyget_forwardmethod(
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
 
@@ -352,7 +352,7 @@ static inline struct _mulle_objc_method   *
    method = mulle_objc_class_defaultsearch_method( cls, methodid);
    assert( ! method || method->descriptor.methodid == methodid);
    if( ! method)
-      method = _mulle_objc_class_unfailinggetorsearch_forwardmethod( cls, methodid);
+      method = _mulle_objc_class_unfailinglazyget_forwardmethod( cls, methodid);
    return( method);
 }
 
@@ -360,8 +360,8 @@ static inline struct _mulle_objc_method   *
 #pragma mark - cached searches
 
 // will return NULL when not found and not forward!
-mulle_objc_methodimplementation_t
-   _mulle_objc_class_lookup_methodsearch( struct _mulle_objc_class *cls,
-                                          struct _mulle_objc_searchargumentscachable *args);
+mulle_objc_implementation_t
+   _mulle_objc_class_lookup_superimplementation( struct _mulle_objc_class *cls,
+                                                       mulle_objc_superid_t superid);
 
 #endif /* mulle_objc_class_search_h */

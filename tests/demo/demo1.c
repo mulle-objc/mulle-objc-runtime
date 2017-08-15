@@ -114,6 +114,14 @@ struct _gnu_mulle_objc_loadclasslist
 };
 
 
+struct _gnu_mulle_objc_superlist
+{
+   unsigned int                n_supers;
+   struct _mulle_objc_super    supers[];
+};
+
+
+
 
 
 // @interface Object
@@ -172,9 +180,9 @@ static struct _mulle_objc_methodlist  Object_instance_methodlist =
       {
          {
             ___init__methodid,	// descriptor.methodid
-            "init",		// descriptor.name
-            "@:",		// descriptor.signature
-            0			// descriptor.bits
+            "init",		         // descriptor.name
+            "@:",		            // descriptor.signature
+            0			            // descriptor.bits
          },
          (mulle_objc_methodimplementation_t) Object_init	// implementation
       }
@@ -247,6 +255,8 @@ struct Foo
 //
 //- (void *) init
 //{
+//   self = [super init];
+//
 //   a = 1;
 //   b = 2;
 //
@@ -256,7 +266,11 @@ struct Foo
 
 static void   *Foo_init( struct Foo *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   self = (void *) mulle_objc_object_call_classid( (void *) self, _cmd, _params, ___Object_classid);
+   mulle_objc_superid_t   superid;
+
+   superid = mulle_objc_superid_from_classid_and_methodid( ___Foo_classid, ___init__methodid);
+
+   self = (void *) mulle_objc_object_call_superid( (void *) self, _cmd, _params, superid);
 
    self->a = 1;
    self->b = 2;
@@ -368,11 +382,7 @@ static void   Foo_Print_print( struct Foo *self, mulle_objc_methodid_t _cmd, voi
    printf( "%d%d\n", self->a, self->b);
 }
 
-
-
-
 // @end
-
 
 
 static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
@@ -443,6 +453,24 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 };
 
 
+#define X_MULLE_OBJC_SUPERID_MAKE( c, m) \
+   ((mulle_objc_superid_t) (((mulle_objc_uniqueid_t) (c) * (mulle_objc_uniqueid_t) 0x01000193) ^ (mulle_objc_uniqueid_t)(m)))
+
+
+struct _gnu_mulle_objc_superlist  super_list =
+{
+   1,
+   {
+      {
+         X_MULLE_OBJC_SUPERID_MAKE( ___Foo_classid, ___init__methodid),
+         ___Foo_classid,
+         ___init__methodid
+      }
+   }
+};
+
+
+
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
@@ -454,8 +482,7 @@ static struct _mulle_objc_loadinfo  load_info =
    },
    (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
    &category_list,
-   NULL,
-   NULL,
+   &super_list
 };
 
 
@@ -473,7 +500,7 @@ static void  __load()
       return;
    has_loaded = 1;
 
-   mulle_objc_loadinfo_unfailing_enqueue( &load_info);
+   mulle_objc_loadinfo_unfailingenqueue( &load_info);
 }
 
 
@@ -506,8 +533,8 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Foo alloc] init];
 
-   fprintf( stderr, "-==> mulle_objc_unfailing_get_or_lookup_infraclass()\n");
-   cls = mulle_objc_unfailing_get_or_lookup_infraclass( ___Foo_classid);
+   fprintf( stderr, "-==> mulle_objc_unfailingfastlookup_infraclass()\n");
+   cls = mulle_objc_unfailingfastlookup_infraclass( ___Foo_classid);
 
    fprintf( stderr, "-==> mulle_objc_infraclass_alloc_instance()\n");
    obj = mulle_objc_infraclass_alloc_instance( cls, NULL);

@@ -76,7 +76,7 @@ struct _mulle_objc_classpair
 # pragma mark - init and done
 
 void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
-                                              struct mulle_allocator *allocator);
+                                        struct mulle_allocator *allocator);
 
 void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator);

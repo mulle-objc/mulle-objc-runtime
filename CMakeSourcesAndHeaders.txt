@@ -51,8 +51,8 @@ src/mulle_objc_propertylist.h
 src/mulle_objc_protocol.h
 src/mulle_objc_protocollist.h
 src/mulle_objc_retain_release.h
-src/mulle_objc_searchcache.h
 src/mulle_objc_signature.h
+src/mulle_objc_super.h
 src/mulle_objc_taggedpointer.h
 src/mulle_objc_try_catch_finally.h
 src/mulle_objc_uniqueid.h
@@ -92,8 +92,8 @@ src/mulle_objc_protocol.c
 src/mulle_objc_protocollist.c
 src/mulle_objc_retain_release.c
 src/mulle_objc_try_catch_finally.c
-src/mulle_objc_searchcache.c
 src/mulle_objc_signature.c
+src/mulle_objc_super.c
 src/mulle_objc_uniqueid.c
 src/mulle_objc_uniqueidarray.c
 src/mulle_objc_universe.c

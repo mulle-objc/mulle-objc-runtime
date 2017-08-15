@@ -60,7 +60,7 @@ uint32_t   _mulle_objc_chained_fnv1_32( void *buf, size_t len, uint32_t hash)
 }
 
 
-#define FNV1_64_PRIME   0x100000001b3ULL
+#define FNV1_64_PRIME   0x0100000001b3ULL
 
 
 uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
@@ -77,7 +77,7 @@ uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
    while( s < sentinel)
    {
       hash *= FNV1_64_PRIME;
-      hash ^= *s++;
+      hash ^= (uint64_t) *s++;
    }
 
    return( hash);
@@ -88,10 +88,12 @@ uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
 // cc -o mulle_objc_fnv1 -DMAIN mulle_objc_fnv1.c mulle_objc_uniqueid.c
 //
 #ifdef MAIN
-#include <stdio.h>
-extern uint32_t  mulle_objc_uniqueid_from_string( char *s);
 
-int main(int argc, const char * argv[])
+#include <stdio.h>
+
+extern uint32_t   mulle_objc_uniqueid_from_string( char *s);
+
+int   main( int argc, const char * argv[])
 {
    if( argc != 2)
       return( -1);

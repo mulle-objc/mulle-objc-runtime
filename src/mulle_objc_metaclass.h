@@ -142,15 +142,15 @@ static inline unsigned int   _mulle_objc_metaclass_get_state_bit( struct _mulle_
 
 struct _mulle_objc_searchargumentscachable;
 
-static inline mulle_objc_methodimplementation_t
-   _mulle_objc_metaclass_lookup_methodsearch( struct _mulle_objc_metaclass *meta,
-                                              struct _mulle_objc_searchargumentscachable *args)
+static inline mulle_objc_implementation_t
+   _mulle_objc_metaclass_lookup_superimplementation( struct _mulle_objc_metaclass *meta,
+                                                           mulle_objc_superid_t superid)
 {
-   extern mulle_objc_methodimplementation_t
-      _mulle_objc_class_lookup_methodsearch( struct _mulle_objc_class *cls,
-                                             struct _mulle_objc_searchargumentscachable *args);
+   extern mulle_objc_implementation_t
+      _mulle_objc_class_lookup_superimplementation( struct _mulle_objc_class *cls,
+                                                          mulle_objc_superid_t superid);
 
-   return( _mulle_objc_class_lookup_methodsearch( &meta->base, args));
+   return( _mulle_objc_class_lookup_superimplementation( &meta->base, superid));
 }
 
 
@@ -165,7 +165,7 @@ static inline void   mulle_objc_metaclass_unfailingadd_methodlist( struct _mulle
 
 
 static inline struct _mulle_objc_method  *
-    mulle_objc_metaclass_search_method( struct _mulle_objc_metaclass *meta,
+    mulle_objc_metaclass_defaultsearch_method( struct _mulle_objc_metaclass *meta,
                                          mulle_objc_methodid_t methodid)
 {
    extern struct _mulle_objc_method   *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,

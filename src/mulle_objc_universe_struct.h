@@ -43,10 +43,10 @@
 #include "mulle_objc_load.h"
 #include "mulle_objc_methodlist.h"
 #include "mulle_objc_propertylist.h"
-#include "mulle_objc_searchcache.h"
 #include "mulle_objc_taggedpointer.h"
 #include "mulle_objc_uniqueid.h"
 #include "mulle_objc_uniqueidarray.h"
+#include "mulle_objc_super.h"
 #include "mulle_objc_version.h"
 
 #include <mulle_aba/mulle_aba.h>
@@ -69,7 +69,7 @@ struct _mulle_objc_universeconfig
    unsigned   min_optlevel             : 3;  // min compiler optimization level: (0)
    unsigned   max_optlevel             : 3;  // max compiler optimization level: (7)
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
-   unsigned   no_tagged_pointers       : 1;  // don't use tagged pointers
+   unsigned   no_tagged_pointer       : 1;  // don't use tagged pointers
    unsigned   thread_local_rt          : 1;  // use thread local universes
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
 };
@@ -95,31 +95,33 @@ struct _mulle_objc_universedebug
    {
       unsigned   method_searches;      // keep this in an int
 
-      unsigned   category_adds        : 1;
-      unsigned   class_adds           : 1;
+      unsigned   category_add         : 1;
+      unsigned   class_add            : 1;
       unsigned   class_cache          : 1;
-      unsigned   class_frees          : 1;
-      unsigned   dependencies         : 1;
+      unsigned   class_free           : 1;
+      unsigned   dependency           : 1;
       unsigned   dump_universe        : 1;  // hefty, set manually
-      unsigned   fastclass_adds       : 1;
+      unsigned   fastclass_add        : 1;
       unsigned   initialize           : 1;
-      unsigned   load_calls           : 1; // +initialize, +load, +categoryDependencies
+      unsigned   load_call            : 1; // +initialize, +load, +categoryDependencies
       unsigned   loadinfo             : 1;
-      unsigned   method_caches        : 1;
-      unsigned   method_calls         : 1;
-      unsigned   protocol_adds        : 1;
-      unsigned   state_bits           : 1;
-      unsigned   string_adds          : 1;
-      unsigned   tagged_pointers      : 1;
+      unsigned   method_cache         : 1;
+      unsigned   method_call          : 1;
+      unsigned   descriptor_add : 1;
+      unsigned   protocol_add         : 1;
+      unsigned   state_bit            : 1;
+      unsigned   string_add           : 1;
+      unsigned   super_add            : 1;
+      unsigned   tagged_pointer       : 1;
       unsigned   universe             : 1;
    } trace;
 
    struct
    {
-      unsigned   methodid_types          : 1;
-      unsigned   protocolclass           : 1;
-      unsigned   stuck_loadables         : 1;  // set by default
-      unsigned   pedantic_methodid_types : 1;
+      unsigned   methodid_type          : 1;
+      unsigned   protocolclass          : 1;
+      unsigned   stuck_loadable         : 1;  // set by default
+      unsigned   pedantic_methodid_type : 1;
    } warn;
 
    struct
@@ -161,6 +163,9 @@ struct _mulle_objc_universefailures
    // method not found -> abort
    void   (*method_not_found)( struct _mulle_objc_class *cls,
                                mulle_objc_methodid_t missing_method)  MULLE_C_NO_RETURN;
+   // super not found -> abort
+   void   (*super_not_found)( struct _mulle_objc_universe *universe,
+                              mulle_objc_superid_t missing_super)  MULLE_C_NO_RETURN;
 };
 
 
@@ -306,7 +311,7 @@ struct _mulle_objc_universe
    struct mulle_concurrent_hashmap          descriptortable;
    struct mulle_concurrent_hashmap          protocoltable;
    struct mulle_concurrent_hashmap          categorytable;
-
+   struct mulle_concurrent_hashmap          supertable;
    struct mulle_concurrent_pointerarray     staticstrings;
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
@@ -352,10 +357,10 @@ struct _mulle_objc_universe
    union
    {
       struct _mulle_objc_cache           empty_cache;
-      struct _mulle_objc_searchcache     empty_searchcache;
-      struct _mulle_objc_methodlist      empty_methodlist;
       struct _mulle_objc_ivarlist        empty_ivarlist;
+      struct _mulle_objc_methodlist      empty_methodlist;
       struct _mulle_objc_propertylist    empty_propertylist;
+      struct _mulle_objc_superlist       empty_superlist;
       struct _mulle_objc_uniqueidarray   empty_uniqueidarray;
    };   //
    // this allows the foundation to come up during load without having to do

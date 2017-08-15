@@ -312,13 +312,13 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
    }
    fprintf( fp, "</DIV>\n");
 
-   fprintf( fp, "\n<DIV CLASS=\"universe_methoddescriptors\">\n");
+   fprintf( fp, "\n<DIV CLASS=\"universe_descriptors\">\n");
    {
       if( mulle_concurrent_hashmap_count( &universe->descriptortable))
       {
-         fprintf( fp, "<TABLE CLASS=\"universe_methoddescriptor_table\">\n");
+         fprintf( fp, "<TABLE CLASS=\"universe_descriptor_table\">\n");
          label = mulle_concurrent_hashmap_html_description( &universe->descriptortable,
-                                                           mulle_objc_methoddescriptor_html_row_description,
+                                                           mulle_objc_descriptor_html_row_description,
                                                            &descriptortable_style);
          print_to_body( "Method Descriptors", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -749,7 +749,7 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname, char *direct
 
    universe = mulle_objc_get_universe();
    classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_universe_getlookup_infraclass( universe, classid);
+   infra   = _mulle_objc_universe_lookup_infraclass( universe, classid);
    if( ! infra)
    {
       fprintf( stderr, "Class \"%s\" is unknown to the universe\n", classname);
