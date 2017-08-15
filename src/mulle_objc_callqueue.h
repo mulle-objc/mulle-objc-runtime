@@ -72,7 +72,7 @@ void   mulle_objc_callqueue_done( struct _mulle_objc_callqueue *p);
 int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *p,
                                 struct _mulle_objc_object *obj,
                                 mulle_objc_methodid_t methodid,
-                                mulle_objc_methodimplementation_t imp);
+                                mulle_objc_implementation_t imp);
 
 
 void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *p);
@@ -80,7 +80,7 @@ void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *p);
 void   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
                                   void (*callback)( struct _mulle_objc_object *obj,
                                                     mulle_objc_methodid_t methodid,
-                                                    mulle_objc_methodimplementation_t imp,
+                                                    mulle_objc_implementation_t imp,
                                                     void *userinfo),
                                   void *userinfo);
 

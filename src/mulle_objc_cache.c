@@ -165,7 +165,9 @@ int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache, mulle_
 // find a slot, where either the uniqueid matches, or where the slot is free
 // (at least at the moment)
 //
-mulle_objc_cache_uint_t   _mulle_objc_cache_find_entryoffset( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid)
+mulle_objc_cache_uint_t
+   _mulle_objc_cache_find_entryoffset( struct _mulle_objc_cache *cache,
+                                       mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
@@ -173,7 +175,8 @@ mulle_objc_cache_uint_t   _mulle_objc_cache_find_entryoffset( struct _mulle_objc
    mulle_objc_cache_uint_t         mask;
 
    assert( cache);
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID &&
+           uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -360,9 +363,10 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mu
 }
 
 
-struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
-                                                              mulle_functionpointer_t pointer,
-                                                              mulle_objc_uniqueid_t uniqueid)
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_cache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
+                                                mulle_functionpointer_t pointer,
+                                                mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;

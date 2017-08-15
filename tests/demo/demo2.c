@@ -211,8 +211,7 @@ static struct _mulle_objc_loadinfo  load_info =
       0,
       0
    },
-   &class_list,
-   NULL
+   &class_list
 };
 
 
@@ -230,7 +229,7 @@ static void  __load()
       return;
    has_loaded = 1;
 
-   mulle_objc_loadinfo_unfailing_enqueue( &load_info);
+   mulle_objc_loadinfo_unfailingenqueue( &load_info);
 }
 
 
@@ -260,7 +259,7 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Object alloc] init];
 
-   cls = mulle_objc_unfailing_get_or_lookup_infraclass( ___Object_classid);
+   cls = mulle_objc_unfailingfastlookup_infraclass( ___Object_classid);
    obj = mulle_objc_infraclass_alloc_instance( cls, NULL);
    obj = mulle_objc_object_call( obj, ___init__methodid, NULL);
 

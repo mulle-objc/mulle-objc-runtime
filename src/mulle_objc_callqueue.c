@@ -49,14 +49,14 @@ struct _queue_entry
 {
    struct _mulle_objc_object           *obj;
    mulle_objc_methodid_t               uniqueid;
-   mulle_objc_methodimplementation_t   imp;
+   mulle_objc_implementation_t   imp;
 };
 
 
 static inline void   queue_entry_set( struct _queue_entry *q,
                                       struct _mulle_objc_object *obj,
                                       mulle_objc_methodid_t methodid,
-                                      mulle_objc_methodimplementation_t imp)
+                                      mulle_objc_implementation_t imp)
 {
    q->obj      = obj;
    q->uniqueid = methodid;
@@ -92,7 +92,7 @@ int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *queue, struct mul
 int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *queue,
                                 struct _mulle_objc_object *obj,
                                 mulle_objc_methodid_t methodid,
-                                mulle_objc_methodimplementation_t imp)
+                                mulle_objc_implementation_t imp)
 {
    struct _queue_entry   *entry;
 
@@ -125,7 +125,7 @@ void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *queue)
 void   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
                                   void (*callback)( struct _mulle_objc_object *obj,
                                                     mulle_objc_methodid_t methodid,
-                                                    mulle_objc_methodimplementation_t imp,
+                                                    mulle_objc_implementation_t imp,
                                                     void *userinfo),
                                   void *userinfo)
 {

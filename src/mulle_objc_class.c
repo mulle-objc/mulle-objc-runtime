@@ -97,13 +97,15 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
    while( ! _mulle_atomic_pointer_compare_and_swap( &cls->state, state, old));
 
    universe = _mulle_objc_class_get_universe( cls);
-   if( universe->debug.trace.state_bits)
+   if( universe->debug.trace.state_bit)
    {
       bitname = lookup_bitname( bit);
-      fprintf( stderr, "mulle_objc_universe %p trace: %s %08x \"%s\" "
+      fprintf( stderr, "mulle_objc_universe %p trace: %s %08x \"%s\" (%p) "
                        "gained the 0x%x bit (%s)\n",
                        universe, _mulle_objc_class_get_classtypename( cls),
-                       cls->classid, cls->name, bit, bitname ? bitname : "???");
+                       cls->classid, cls->name,
+                       cls,
+                       bit, bitname ? bitname : "???");
    }
    return( 1);
 }
@@ -141,9 +143,10 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->universe                 = universe;
    cls->inheritance              = universe->classdefaults.inheritance;
 
-   cls->cachepivot.call2         = _mulle_objc_object_call2_needs_cache;
-
-   _mulle_atomic_pointer_nonatomic_write( &cls->searchcachepivot.entries, universe->empty_searchcache.entries);
+   cls->cachepivot.call2           = _mulle_objc_object_call2_needs_cache;
+   cls->lookup_superimplementation = _mulle_objc_class_unfailinglookup_superimplementation;
+   
+   _mulle_atomic_pointer_nonatomic_write( &cls->supercachepivot.entries, universe->empty_cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->empty_cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 
@@ -157,7 +160,7 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
                                struct mulle_allocator *allocator)
 {
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_searchcache   *searchcache;
+   struct _mulle_objc_cache   *supercache;
 
    assert( cls);
    assert( allocator);
@@ -172,9 +175,9 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
    if( cache != &cls->universe->empty_cache)
       _mulle_objc_cache_free( cache, allocator);
 
-   searchcache = _mulle_objc_searchcachepivot_atomic_get_cache( &cls->searchcachepivot);
-   if( searchcache != &cls->universe->empty_searchcache)
-      _mulle_objc_searchcache_free( searchcache, allocator);
+   supercache = _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot);
+   if( supercache != &cls->universe->empty_cache)
+      _mulle_objc_cache_free( supercache, allocator);
 }
 
 
@@ -281,13 +284,13 @@ static int
       return( 0);
 
    //
-   // if we get NULL, from _mulle_objc_class_add_entry_by_swapping_caches
+   // if we get NULL, from _mulle_objc_class_add_cacheentry_by_swapping_caches
    // someone else recreated the cache, fine by us!
    //
    for(;;)
    {
       // always break regardless of return value
-      _mulle_objc_class_add_cacheentry_by_swapping_caches( cls, cache, NULL, MULLE_OBJC_NO_UNIQUEID);
+      _mulle_objc_class_add_cacheentry_by_swapping_methodcaches( cls, cache, NULL, MULLE_OBJC_NO_UNIQUEID);
       break;
    }
 
@@ -296,17 +299,17 @@ static int
 
 
 static int
-   _mulle_objc_class_invalidate_searchcache( struct _mulle_objc_class *cls)
+   _mulle_objc_class_invalidate_supercache( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_searchcache   *searchcache;
+   struct _mulle_objc_cache   *supercache;
    
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return( 0);
    
-   searchcache = _mulle_objc_class_get_searchcache( cls);
-   if( ! _mulle_atomic_pointer_read( &searchcache->n))
+   supercache = _mulle_objc_class_get_supercache( cls);
+   if( ! _mulle_atomic_pointer_read( &supercache->n))
       return( 0);
-   
+
    //
    // if we get NULL, from _mulle_objc_class_add_entry_by_swapping_caches
    // someone else recreated the cache, fine by us!
@@ -314,7 +317,7 @@ static int
    for(;;)
    {
       // always break regardless of return value
-      _mulle_objc_class_add_searchcacheentry_by_swapping_caches( cls, searchcache, NULL, NULL);
+      _mulle_objc_class_add_cacheentry_by_swapping_supercaches( cls, supercache, NULL, MULLE_OBJC_NO_METHODID);
       break;
    }
    
@@ -339,8 +342,8 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
 
    _mulle_objc_class_invalidate_all_kvcinfos( cls);
 
-   // searchcaches need to be invalidate regardless
-   _mulle_objc_class_invalidate_searchcache( cls);
+   // supercaches need to be invalidate regardless
+   _mulle_objc_class_invalidate_supercache( cls);
    
    // if caches have been cleaned for class, it's done
    rover = _mulle_objc_methodlist_enumerate( list);
@@ -350,75 +353,6 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
    _mulle_objc_methodlistenumerator_done( &rover);
 
    return( mulle_objc_walk_ok);
-}
-
-
-#pragma mark - cache handling
-
-//
-// fills the cache line with a forward: if message does not exist or
-// if it exists it fills up the entry
-//
-struct _mulle_objc_searchcacheentry  empty_entry;
-
-MULLE_C_NEVER_INLINE
-struct _mulle_objc_searchcacheentry   *
-   _mulle_objc_class_add_searchcacheentry_by_swapping_caches( struct _mulle_objc_class *cls,
-                                                              struct _mulle_objc_searchcache *cache,
-                                                              struct _mulle_objc_method *method,
-                                                              struct _mulle_objc_searchargumentscachable *args)
-{
-   struct _mulle_objc_searchcache        *old_cache;
-   struct _mulle_objc_searchcacheentry   *entry;
-   struct _mulle_objc_universe           *universe;
-   mulle_objc_cache_uint_t               new_size;
-   
-   old_cache = cache;
-   
-   // a new beginning.. let it be filled anew
-   new_size = cache->size * 2;
-   cache    = mulle_objc_searchcache_new( new_size, &cls->universe->memory.allocator);
-   
-   //
-   // if someone passes in a NULL for method, empty_entry is a marker
-   // for success..
-   //
-   entry = &empty_entry;
-   if( method)
-      entry = _mulle_objc_searchcache_inactivecache_add_functionpointer_entry( cache, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method), args);
-
-   universe = _mulle_objc_class_get_universe( cls);
-
-   // if the set fails, then someone else was faster
-   if( _mulle_objc_searchcachepivot_atomic_set_entries( &cls->searchcachepivot, cache->entries, old_cache->entries))
-   {
-      _mulle_objc_searchcache_free( cache, &universe->memory.allocator); // sic, can be unsafe deleted now
-      return( NULL);
-   }
-   
-   if( universe->debug.trace.method_caches)
-      fprintf( stderr, "mulle_objc_universe %p trace: new search cache %p for %s %08x \"%s\" with %u entries\n",
-              universe,
-              cache,
-              _mulle_objc_class_get_classtypename( cls),
-              _mulle_objc_class_get_classid( cls),
-              _mulle_objc_class_get_name( cls),
-              cache->size);
-   
-   if( &old_cache->entries[ 0] != &universe->empty_searchcache.entries[ 0])
-   {
-      if( universe->debug.trace.method_caches)
-         fprintf( stderr, "mulle_objc_universe %p trace: free old search cache %p for %s %08x \"%s\" with %u entries\n",
-                 universe,
-                 cache,
-                 _mulle_objc_class_get_classtypename( cls),
-                 _mulle_objc_class_get_classid( cls),
-                 _mulle_objc_class_get_name( cls),
-                 cache->size);
-      
-      _mulle_objc_searchcache_abafree( old_cache, &cls->universe->memory.allocator);
-   }
-   return( entry);
 }
 
 
@@ -483,14 +417,14 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
       }
 
       last = method->descriptor.methodid;
-      if( _mulle_objc_universe_add_methoddescriptor( cls->universe, &method->descriptor))
+      if( _mulle_objc_universe_add_descriptor( cls->universe, &method->descriptor))
       {
          _mulle_objc_methodlistenumerator_done( &rover);
          // errno = EEXIST; // errno set by _add_...
          return( -1);
       }
 
-      if( _mulle_objc_methoddescriptor_is_preload_method( &method->descriptor))
+      if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
       {
          cls->preloads++;
       }
@@ -525,7 +459,7 @@ void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
                                                   struct _mulle_objc_methodlist *list)
 {
    if( mulle_objc_class_add_methodlist( cls, list))
-      _mulle_objc_universe_raise_fail_errno_exception( cls->universe);
+      _mulle_objc_universe_raise_errno_exception( cls->universe);
 }
 
 

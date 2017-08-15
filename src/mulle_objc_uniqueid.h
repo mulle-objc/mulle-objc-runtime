@@ -38,6 +38,7 @@
 
 #include <mulle_c11/mulle_c11.h>
 #include <stdint.h>
+#include <assert.h>
 
 
 // it's signed, because it sorts easier
@@ -92,7 +93,7 @@ typedef mulle_objc_uniqueid_t   mulle_objc_classid_t;
 
 typedef mulle_objc_uniqueid_t   mulle_objc_ivarid_t;
 
-#define MULLE_OBJC_IVARID( x)       MULLE_OBJC_UNIQUEID(x)
+#define MULLE_OBJC_IVARID( x)       MULLE_OBJC_UNIQUEID( x)
 
 #define MULLE_OBJC_NO_IVARID        MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_IVARID   MULLE_OBJC_INVALID_UNIQUEID
@@ -102,10 +103,21 @@ typedef mulle_objc_uniqueid_t   mulle_objc_ivarid_t;
 
 typedef mulle_objc_uniqueid_t      mulle_objc_methodid_t;
 
-#define MULLE_OBJC_METHODID( x)       MULLE_OBJC_UNIQUEID(x)
+#define MULLE_OBJC_METHODID( x)       MULLE_OBJC_UNIQUEID( x)
 
 #define MULLE_OBJC_NO_METHODID        MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_METHODID   MULLE_OBJC_INVALID_UNIQUEID
+
+
+
+#pragma mark - mulle_objc_superid_t
+
+typedef mulle_objc_uniqueid_t      mulle_objc_superid_t;
+
+#define MULLE_OBJC_SUPERID( x)       MULLE_OBJC_UNIQUEID( x)
+
+#define MULLE_OBJC_NO_SUPERID        MULLE_OBJC_NO_UNIQUEID
+#define MULLE_OBJC_INVALID_SUPERID   MULLE_OBJC_INVALID_UNIQUEID
 
 
 #pragma mark - mulle_objc_propertyid_t
@@ -151,6 +163,38 @@ static inline mulle_objc_ivarid_t   mulle_objc_ivarid_from_string( char *s)
 static inline mulle_objc_methodid_t   mulle_objc_methodid_from_string( char *s)
 {
    return( mulle_objc_uniqueid_from_string( s));
+}
+
+
+#define MULLE_OBJC_SUPERID_MAKE( c, m)  \
+   ((mulle_objc_superid_t) (((mulle_objc_uniqueid_t) (c) * (mulle_objc_uniqueid_t) 0x01000193) ^ (mulle_objc_uniqueid_t)(m)))
+
+
+static inline mulle_objc_superid_t
+    mulle_objc_superid_from_classid_and_methodid( mulle_objc_classid_t classid,
+                                                  mulle_objc_methodid_t methodid)
+{
+   assert( classid != MULLE_OBJC_NO_CLASSID && classid != MULLE_OBJC_INVALID_CLASSID);
+   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   
+   return( MULLE_OBJC_SUPERID_MAKE( classid, methodid));
+}
+
+
+// used for overridden methods /future
+static inline mulle_objc_superid_t
+   mulle_objc_superid_from_classid_and_categoryid_and_methodid(
+                                             mulle_objc_classid_t classid,
+                                             mulle_objc_categoryid_t categoryid,
+                                             mulle_objc_methodid_t methodid)
+{
+   mulle_objc_superid_t   hash;
+   
+   hash  = classid * 0x01000193;
+   hash ^= (uint32_t) categoryid;
+   hash *= 0x01000193;
+   hash ^= (uint32_t) methodid;
+   return( hash);
 }
 
 

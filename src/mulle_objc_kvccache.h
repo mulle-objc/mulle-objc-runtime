@@ -51,7 +51,7 @@
 //
 struct _mulle_objc_kvcinfo
 {
-   mulle_objc_methodimplementation_t   implementation[ 4];
+   mulle_objc_implementation_t   implementation[ 4];
    mulle_objc_methodid_t               methodid[ 4];
    ptrdiff_t                           offset;
    char                                valueType;

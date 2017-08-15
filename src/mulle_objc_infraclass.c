@@ -200,7 +200,7 @@ void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infra
       struct _mulle_objc_universe   *universe;
 
       universe = _mulle_objc_infraclass_get_universe( infra);
-      _mulle_objc_universe_raise_fail_errno_exception( universe);
+      _mulle_objc_universe_raise_errno_exception( universe);
    }
 }
 
@@ -237,7 +237,7 @@ void   mulle_objc_infraclass_unfailingadd_ivarlist( struct _mulle_objc_infraclas
       struct _mulle_objc_universe   *universe;
 
       universe = _mulle_objc_infraclass_get_universe( infra);
-      _mulle_objc_universe_raise_fail_errno_exception( universe);
+      _mulle_objc_universe_raise_errno_exception( universe);
    }
 }
 

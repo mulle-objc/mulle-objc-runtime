@@ -45,10 +45,6 @@ MULLE_C_CONST_NON_NULL_RETURN  struct _mulle_objc_infraclass  *
    _mulle_objc_universe_unfailinglookup_infraclass( struct _mulle_objc_universe *universe,
                                                     mulle_objc_classid_t classid);
 
-struct _mulle_objc_infraclass  *
-    _mulle_objc_universe_lookup_infraclass( struct _mulle_objc_universe *universe,
-                                           mulle_objc_classid_t classid);
-
 
 //
 // only NSAutoreleasePool 0x5b791fc6 and 0xNSThread are allowed to be called
@@ -205,7 +201,7 @@ static struct _mulle_objc_cacheentry   *
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   infra = _mulle_objc_universe_uncachedlookup_infraclass( universe, classid);
+   infra = _mulle_objc_universe_cacheonlylookup_infraclass( universe, classid);
    if( ! infra)
       return( NULL);
 
@@ -222,7 +218,7 @@ static struct _mulle_objc_cacheentry   *
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   infra   = _mulle_objc_universe_unfailinguncachedlookup_infraclass( universe, classid);
+   infra   = _mulle_objc_universe_unfailingcacheonlylookup_infraclass( universe, classid);
    assert( mulle_objc_class_is_current_thread_registered( (void *)  infra));
 
    entry = _mulle_objc_universe_fill_classcache_with_infraclass( universe, infra);
@@ -233,7 +229,7 @@ static struct _mulle_objc_cacheentry   *
 #pragma mark - class lookup, uncached
 
 struct _mulle_objc_infraclass   *
-_mulle_objc_universe_uncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+_mulle_objc_universe_cacheonlylookup_infraclass( struct _mulle_objc_universe *universe,
                                                mulle_objc_classid_t classid)
 {
    return( _mulle_concurrent_hashmap_lookup( &universe->classtable, classid));
@@ -241,7 +237,7 @@ _mulle_objc_universe_uncachedlookup_infraclass( struct _mulle_objc_universe *uni
 
 
 struct _mulle_objc_infraclass   *
-_mulle_objc_universe_unfailinguncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+_mulle_objc_universe_unfailingcacheonlylookup_infraclass( struct _mulle_objc_universe *universe,
                                                          mulle_objc_classid_t classid)
 {
    struct _mulle_objc_infraclass   *infra;
@@ -356,11 +352,11 @@ struct _mulle_objc_infraclass  *
 #pragma mark - class lookup, cached and fastclass
 
 MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_infraclass   *mulle_objc_unfailinggetlookup_infraclass( mulle_objc_classid_t classid)
+struct _mulle_objc_infraclass   *mulle_objc_unfailingfastlookup_infraclass( mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
    
    universe = mulle_objc_inlined_get_universe();
-   return( _mulle_objc_universe_unfailinggetlookup_infraclass( universe, classid));
+   return( _mulle_objc_universe_unfailingfastlookup_infraclass( universe, classid));
 }
 

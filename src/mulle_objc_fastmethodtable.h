@@ -78,9 +78,9 @@ static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
                                                           struct _mulle_objc_fastmethodtable *table,
                                                           unsigned int index)
 {
-   mulle_objc_methodimplementation_t   imp;
+   mulle_objc_implementation_t   imp;
 
-   imp = (mulle_objc_methodimplementation_t) _mulle_atomic_pointer_read( &table->methods[ index].pointer);
+   imp = (mulle_objc_implementation_t) _mulle_atomic_pointer_read( &table->methods[ index].pointer);
    return( (*imp)( obj, methodid, param));
 }
 

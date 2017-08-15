@@ -47,7 +47,7 @@
 
 
 // tough decision, but I type self as void
-typedef void    *(*mulle_objc_methodimplementation_t)( void *, mulle_objc_methodid_t, void *);
+typedef void    *(*mulle_objc_implementation_t)( void *, mulle_objc_methodid_t, void *);
 
 // #define ? An enum is wrong when sizeof( int) != sizeof( uintptr_t)
 //
@@ -70,7 +70,7 @@ typedef void    *(*mulle_objc_methodimplementation_t)( void *, mulle_objc_method
 #define MULLE_OBJC_DEPENDENCIES_METHODID  MULLE_OBJC_METHODID( 0xfb10562e)
 
 //
-// idea... add a bit to this _mulle_objc_methoddescriptor, that the compiler
+// idea... add a bit to this _mulle_objc_descriptor, that the compiler
 // sets, if this method is expected to override a method (maybe differentiate
 // between a class method and a protocol method to override)
 //
@@ -124,9 +124,9 @@ enum
 
 };
 
-# pragma mark - methoddescriptor
+# pragma mark - descriptor
 
-struct _mulle_objc_methoddescriptor
+struct _mulle_objc_descriptor
 {
    mulle_objc_methodid_t   methodid;
    char                    *name;
@@ -137,37 +137,37 @@ struct _mulle_objc_methoddescriptor
 
 # pragma mark - method descriptor petty accessors
 
-static inline char   *_mulle_objc_methoddescriptor_get_name( struct _mulle_objc_methoddescriptor *desc)
+static inline char   *_mulle_objc_descriptor_get_name( struct _mulle_objc_descriptor *desc)
 {
    return( desc->name);
 }
 
 
-static inline char   *_mulle_objc_methoddescriptor_get_signature( struct _mulle_objc_methoddescriptor *desc)
+static inline char   *_mulle_objc_descriptor_get_signature( struct _mulle_objc_descriptor *desc)
 {
    return( desc->signature);
 }
 
 
-static inline int   _mulle_objc_methoddescriptor_is_preload_method( struct _mulle_objc_methoddescriptor *desc)
+static inline int   _mulle_objc_descriptor_is_preload_method( struct _mulle_objc_descriptor *desc)
 {
    return( desc->bits & _mulle_objc_method_preload);
 }
 
 
-static inline int   _mulle_objc_methoddescriptor_is_variadic( struct _mulle_objc_methoddescriptor *desc)
+static inline int   _mulle_objc_descriptor_is_variadic( struct _mulle_objc_descriptor *desc)
 {
    return( desc->bits & _mulle_objc_method_variadic);
 }
 
 
-static inline int   _mulle_objc_methoddescriptor_is_hidden_override_fatal( struct _mulle_objc_methoddescriptor *desc)
+static inline int   _mulle_objc_descriptor_is_hidden_override_fatal( struct _mulle_objc_descriptor *desc)
 {
    return( desc->bits & _mulle_objc_method_check_unexpected_override);
 }
 
 
-static inline int   _mulle_objc_methoddescriptor_is_init_method( struct _mulle_objc_methoddescriptor *desc)
+static inline int   _mulle_objc_descriptor_is_init_method( struct _mulle_objc_descriptor *desc)
 {
    return( desc->bits & _mulle_objc_method_family_kind_init);
 }
@@ -175,7 +175,7 @@ static inline int   _mulle_objc_methoddescriptor_is_init_method( struct _mulle_o
 
 # pragma mark - method descriptor consistency
 
-int  mulle_objc_methoddescriptor_is_sane( struct _mulle_objc_methoddescriptor *p);
+int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p);
 
 
 
@@ -184,11 +184,11 @@ int  mulle_objc_methoddescriptor_is_sane( struct _mulle_objc_methoddescriptor *p
 
 struct _mulle_objc_method
 {
-   struct _mulle_objc_methoddescriptor  descriptor;
+   struct _mulle_objc_descriptor     descriptor;
    union
    {
-      mulle_objc_methodimplementation_t    value;
-      mulle_atomic_functionpointer_t       implementation;
+      mulle_objc_implementation_t       value;
+      mulle_atomic_functionpointer_t    implementation;
    };
 };
 
@@ -213,15 +213,15 @@ static inline mulle_objc_methodid_t  _mulle_objc_method_get_methodid( struct _mu
 }
 
 
-static inline mulle_objc_methodimplementation_t
+static inline mulle_objc_implementation_t
    _mulle_objc_method_get_implementation( struct _mulle_objc_method *method)
 {
-   return( (mulle_objc_methodimplementation_t) _mulle_atomic_functionpointer_read( &method->implementation));
+   return( (mulle_objc_implementation_t) _mulle_atomic_functionpointer_read( &method->implementation));
 }
 
 
-static inline struct _mulle_objc_methoddescriptor *
-   _mulle_objc_method_get_methoddescriptor( struct _mulle_objc_method *method)
+static inline struct _mulle_objc_descriptor *
+   _mulle_objc_method_get_descriptor( struct _mulle_objc_method *method)
 {
    return( &method->descriptor);
 }
@@ -233,9 +233,10 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
                                                          unsigned int n,
                                                          mulle_objc_methodid_t search);
 
-static inline struct _mulle_objc_method   *mulle_objc_method_bsearch( struct _mulle_objc_method *buf,
-                                                                      unsigned int n,
-                                                                      mulle_objc_methodid_t search)
+static inline struct _mulle_objc_method   *
+    mulle_objc_method_bsearch( struct _mulle_objc_method *buf,
+                               unsigned int n,
+                               mulle_objc_methodid_t search)
 {
    if( ! buf)
       return( NULL);
@@ -273,17 +274,17 @@ static inline mulle_objc_methodid_t  mulle_objc_method_get_methodid( struct _mul
 }
 
 
-static inline mulle_objc_methodimplementation_t
-mulle_objc_method_get_implementation( struct _mulle_objc_method *method)
+static inline mulle_objc_implementation_t
+   mulle_objc_method_get_implementation( struct _mulle_objc_method *method)
 {
    return( method ? _mulle_objc_method_get_implementation( method) : 0);
 }
 
 
-static inline struct _mulle_objc_methoddescriptor *
-mulle_objc_method_get_methoddescriptor( struct _mulle_objc_method *method)
+static inline struct _mulle_objc_descriptor *
+   mulle_objc_method_get_descriptor( struct _mulle_objc_method *method)
 {
-   return( method ? _mulle_objc_method_get_methoddescriptor( method) : NULL);
+   return( method ? _mulle_objc_method_get_descriptor( method) : NULL);
 }
 
 

@@ -82,13 +82,15 @@ void    _mulle_objc_infraclass_plusdone( struct _mulle_objc_infraclass *infra);
 
 
 
-static inline struct _mulle_objc_class   *_mulle_objc_infraclass_as_class( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_class   *
+   _mulle_objc_infraclass_as_class( struct _mulle_objc_infraclass *infra)
 {
    return( &infra->base);
 }
 
 
-static inline struct _mulle_objc_infraclass   *_mulle_objc_class_as_infraclass( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_infraclass   *
+   _mulle_objc_class_as_infraclass( struct _mulle_objc_class *cls)
 {
    assert( _mulle_objc_class_is_infraclass( cls));
 
@@ -98,13 +100,15 @@ static inline struct _mulle_objc_infraclass   *_mulle_objc_class_as_infraclass( 
 
 # pragma mark - conveniences
 
-static inline struct _mulle_objc_universe   *_mulle_objc_infraclass_get_universe( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_universe   *
+   _mulle_objc_infraclass_get_universe( struct _mulle_objc_infraclass *infra)
 {
    return( infra->base.universe);
 }
 
 
-static inline mulle_objc_classid_t   _mulle_objc_infraclass_get_classid( struct _mulle_objc_infraclass *infra)
+static inline mulle_objc_classid_t
+   _mulle_objc_infraclass_get_classid( struct _mulle_objc_infraclass *infra)
 {
    return( infra->base.classid);
 }
@@ -116,13 +120,15 @@ static inline char   *_mulle_objc_infraclass_get_name( struct _mulle_objc_infrac
 }
 
 
-static inline struct _mulle_objc_infraclass   *_mulle_objc_infraclass_get_superclass( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_infraclass   *
+   _mulle_objc_infraclass_get_superclass( struct _mulle_objc_infraclass *infra)
 {
    return( (struct _mulle_objc_infraclass *) infra->base.superclass);
 }
 
 
-static inline struct _mulle_objc_infraclass   *mulle_objc_infraclass_get_superclass( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_infraclass   *
+   mulle_objc_infraclass_get_superclass( struct _mulle_objc_infraclass *infra)
 {
    return( infra ?  (struct _mulle_objc_infraclass *) infra->base.superclass : NULL);
 }
@@ -192,15 +198,15 @@ static inline struct _mulle_objc_method  *
 
 struct _mulle_objc_searchargumentscachable;
 
-static inline mulle_objc_methodimplementation_t
-   _mulle_objc_infraclass_lookup_methodsearch( struct _mulle_objc_infraclass *infra,
-                                               struct _mulle_objc_searchargumentscachable *args)
+static inline mulle_objc_implementation_t
+   _mulle_objc_infraclass_lookup_superimplementation( struct _mulle_objc_infraclass *infra,
+                                                            mulle_objc_superid_t superid)
 {
-   extern mulle_objc_methodimplementation_t
-      _mulle_objc_class_lookup_methodsearch( struct _mulle_objc_class *cls,
-                                             struct _mulle_objc_searchargumentscachable *args);
+   extern mulle_objc_implementation_t
+      _mulle_objc_class_lookup_superimplementation( struct _mulle_objc_class *cls,
+                                                          mulle_objc_superid_t superid);
 
-   return( _mulle_objc_class_lookup_methodsearch( &infra->base, args));
+   return( _mulle_objc_class_lookup_superimplementation( &infra->base, superid));
 }
 
 
@@ -209,7 +215,8 @@ static inline mulle_objc_methodimplementation_t
 //
 // the placeholder is used for +instantiate in foundation
 //
-static inline struct _mulle_objc_object *   _mulle_objc_infraclass_get_placeholder( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_object *
+   _mulle_objc_infraclass_get_placeholder( struct _mulle_objc_infraclass *infra)
 {
    return( _mulle_atomic_pointer_read( &infra->placeholder.pointer));
 }

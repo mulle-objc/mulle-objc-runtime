@@ -48,7 +48,7 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
 {
    struct _mulle_objc_class            *cls;
    struct _mulle_objc_universe          *universe;
-   mulle_objc_methodimplementation_t   imp;
+   mulle_objc_implementation_t   imp;
 
    // don't cache it
    cls     = _mulle_objc_object_get_isa( obj);
@@ -56,9 +56,9 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
 
    // looking up methods, should be thread safe
    {
-      imp = _mulle_objc_class_lookup_or_search_methodimplementation( cls, methodid);
+      imp = _mulle_objc_class_noncachinglookup_implementation( cls, methodid);
 
-      if( universe->debug.trace.method_calls)
+      if( universe->debug.trace.method_call)
          // trace but don't cache it
          mulle_objc_class_trace_method_call( cls, methodid, obj, param, imp);
       else

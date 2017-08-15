@@ -49,7 +49,7 @@ struct _mulle_objc_ivarlist;
 struct _mulle_objc_propertylist;
 struct _mulle_objc_cache;
 struct _mulle_objc_methodlist;
-struct _mulle_objc_methoddescriptor;
+struct _mulle_objc_descriptor;
 struct _mulle_objc_uniqueidarray;
 
 struct mulle_concurrent_pointerarray;
@@ -111,11 +111,10 @@ char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist
 char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
                                            struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_methoddescriptor_html_description( intptr_t methodid,
-                                                      struct _mulle_objc_methoddescriptor *desc,
-                                                      struct _mulle_objc_htmltablestyle *styling);
-char  *mulle_objc_methoddescriptor_html_hor_description( struct _mulle_objc_methoddescriptor *desc);
-char  *mulle_objc_methoddescriptor_html_row_description( intptr_t  methodid,
+char   *mulle_objc_descriptor_html_description( struct _mulle_objc_descriptor *desc,
+                                                struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_descriptor_html_hor_description( struct _mulle_objc_descriptor *desc);
+char  *mulle_objc_descriptor_html_row_description( intptr_t  methodid,
                                                          void *descriptor,
                                                          struct _mulle_objc_htmltablestyle *styling);
 char   *mulle_objc_category_html_row_description( intptr_t  categoryid,

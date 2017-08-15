@@ -1,4 +1,13 @@
-### 0.10.1
+## 0.10.1
+
+Shortened `mulle_objc_methoddescriptor_t` to `mulle_objc_descriptor_t` 
+Shortened `mulle_objc_methodimplementation_t` to `mulle_objc_implementation_t` 
+Added new `struct _mulle_objc_super` to support even faster and better super 
+calls (and **overridden** calls in the future)
+Renamed a lot of functions to make them easier to understand what they do.
+
+
+## 0.10.1
 
 Search now supports "supreme" and "overridden". For that search arguments to
 `_mulle_objc_class_search_method` have been combined into a struct.
@@ -8,9 +17,9 @@ will be. Making all super/supreme/overidden calls very fast.
 For general searching use `mulle_objc_class_defaultsearch_method` for 
 specialed searches use `mulle_objc_class_search_method`
 Went a bit nuts on verbing stuff, instead of using underscores. So for instance
-all `_get_or_lookup` functions are now called `getlookup`.
+all `_get_or_lookup` functions are now called `fastlookup`.
 
-### 0.9.1
+## 0.9.1
 
 Finally got around to a renaming. The runtime library is now,
 mulle-objc-runtime and it's header is mulle-objc-runtime.h. I renamed the struct
@@ -31,7 +40,7 @@ Only use `mulle_objc_get_or_create_universe` during loading. Makes it easier.
 Also distribute mulle-objc-uniqueid.
 
 Changed the coverage format to be compatible with mulle-objc-list. Use a more
-all encompassing form of coverage check using a methoddescriptor bit.
+all encompassing form of coverage check using a descriptor bit.
 
 Initialize the cache now before +initialize. To be able to affect the cache
 size (and possible other stuff) there is a new callback in the universe

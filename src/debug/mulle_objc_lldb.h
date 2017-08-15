@@ -43,11 +43,11 @@
 
 void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel);
 
-struct _mulle_objc_methoddescriptor  *
-   mulle_objc_lldb_lookup_methoddescriptor_by_name( char *name);
+struct _mulle_objc_descriptor  *
+   mulle_objc_lldb_lookup_descriptor_by_name( char *name);
 
-mulle_objc_methodimplementation_t
-   mulle_objc_lldb_lookup_methodimplementation( void *object,
+mulle_objc_implementation_t
+   mulle_objc_lldb_lookup_implementation( void *object,
                                             mulle_objc_methodid_t sel,
                                             void *cls_or_classid,
                                             int is_classid,

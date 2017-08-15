@@ -104,9 +104,9 @@ void   mulle_objc_method_sort( struct _mulle_objc_method *methods,
 }
 
 
-#pragma mark - methoddescriptor
+#pragma mark - descriptor
 
-int  mulle_objc_methoddescriptor_is_sane( struct _mulle_objc_methoddescriptor *p)
+int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p)
 {
    if( ! p)
    {
