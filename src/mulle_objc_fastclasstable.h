@@ -72,10 +72,10 @@ static inline struct _mulle_objc_infraclass *
 
 
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_CONST_NON_NULL_RETURN MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_infraclass  *
      mulle_objc_fastclasstable_unfailingget_infraclass( struct _mulle_objc_fastclasstable *table,
-                                                         unsigned int i)
+                                                        unsigned int i)
 {
    extern int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
    struct _mulle_objc_infraclass   *infra;
@@ -99,7 +99,7 @@ static inline struct _mulle_objc_infraclass  *
 // classes. IMO. Obvious candidates are all the small clases, NSData, NSString
 // an obvious non-candidate would be NSFileManager.
 //
-MULLE_C_CONST_RETURN
+MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
 static inline int   mulle_objc_get_fastclasstable_index( mulle_objc_classid_t classid)
 {
    switch( classid)

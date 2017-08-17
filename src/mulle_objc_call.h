@@ -59,18 +59,18 @@
 // use this for -O3
 //
 MULLE_C_ALWAYS_INLINE
-static inline void  *mulle_objc_object_inline_constant_methodid_call( void *obj,
-                                                                      mulle_objc_methodid_t methodid,
-                                                                      void *parameter)
+   static inline void  *mulle_objc_object_inline_constant_methodid_call( void *obj,
+                                                                         mulle_objc_methodid_t methodid,
+                                                                         void *parameter)
 {
-   int                                 index;
-   mulle_objc_implementation_t   f;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   struct _mulle_objc_class            *cls;
-   mulle_objc_cache_uint_t             mask;
-   mulle_objc_cache_uint_t             offset;
+   int                             index;
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
 
    if( __builtin_expect( ! obj, 0))
       return( obj);

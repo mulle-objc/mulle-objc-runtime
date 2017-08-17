@@ -49,7 +49,6 @@
 #include <errno.h>
 
 
-
 static void   *_mulle_objc_object_noncachingcall_class( void *obj,
                                                        mulle_objc_methodid_t methodid,
                                                        void *parameter,
@@ -182,7 +181,6 @@ static inline void   _mulle_objc_class_preload_inactivecache( struct _mulle_objc
    universe = cls->universe;
    _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( cls, cache, universe->methodidstopreload.methodids, universe->methodidstopreload.n);
 }
-
 
 
 //
@@ -563,9 +561,9 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
 //
 MULLE_C_NEVER_INLINE
 static void   *_mulle_objc_object_unfailingcall_methodid( void *obj,
-                                                           mulle_objc_methodid_t methodid,
-                                                           void *parameter,
-                                                           struct  _mulle_objc_class *cls)
+                                                          mulle_objc_methodid_t methodid,
+                                                          void *parameter,
+                                                          struct  _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t   imp;
    struct _mulle_objc_universe         *universe;
@@ -587,7 +585,7 @@ static void   *_mulle_objc_object_unfailingcall_methodid( void *obj,
 // only searches cache, returns what there
 mulle_objc_implementation_t
    _mulle_objc_class_cacheonlylookup_implementation( struct _mulle_objc_class *cls,
-                                                         mulle_objc_methodid_t methodid)
+                                                     mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entry;
@@ -607,7 +605,7 @@ mulle_objc_implementation_t
 // does not update the cache, no forward
 mulle_objc_implementation_t
    _mulle_objc_class_noncachinglookup_implementation_no_forward( struct _mulle_objc_class *cls,
-                                                                       mulle_objc_methodid_t methodid)
+                                                                 mulle_objc_methodid_t methodid)
 {
    mulle_objc_implementation_t   imp;
    struct _mulle_objc_cache            *cache;
@@ -645,7 +643,7 @@ mulle_objc_implementation_t
 //
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_no_forward( struct _mulle_objc_class *cls,
-                                                             mulle_objc_methodid_t methodid)
+                                                       mulle_objc_methodid_t methodid)
 {
    mulle_objc_implementation_t   imp;
    struct _mulle_objc_cache            *cache;
@@ -681,7 +679,7 @@ mulle_objc_implementation_t
 // does not fill the cache but does forward
 mulle_objc_implementation_t
    _mulle_objc_class_noncachinglookup_implementation( struct _mulle_objc_class *cls,
-                                                            mulle_objc_methodid_t methodid)
+                                                      mulle_objc_methodid_t methodid)
 {
    mulle_objc_cache_uint_t             offset;
    mulle_objc_implementation_t   imp;
@@ -748,7 +746,6 @@ mulle_objc_implementation_t
 }
 
 
-
 //
 // fills the cache and does forward, will raise if no method
 // it knows about traces and the empty cache bit
@@ -757,10 +754,10 @@ mulle_objc_implementation_t
    _mulle_objc_class_unfailinglookup_implementation( struct _mulle_objc_class *cls,
                                                           mulle_objc_methodid_t methodid)
 {
-   mulle_objc_implementation_t   imp;
-   struct _mulle_objc_universe         *universe;
-   struct _mulle_objc_method           *method;
-   struct _mulle_objc_cacheentry       *entry;
+   mulle_objc_implementation_t     imp;
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_method       *method;
+   struct _mulle_objc_cacheentry   *entry;
    
    method  = mulle_objc_class_unfailingsearch_method( cls, methodid);
    imp     = _mulle_objc_method_get_implementation( method);

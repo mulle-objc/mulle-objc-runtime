@@ -122,6 +122,7 @@ mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle
 }
 
 
+// used by benchmark code
 int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid)
 {
    int                             index;
