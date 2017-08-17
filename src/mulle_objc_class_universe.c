@@ -41,7 +41,8 @@
 #include <mulle_aba/mulle_aba.h>
 
 
-MULLE_C_CONST_NON_NULL_RETURN  struct _mulle_objc_infraclass  *
+MULLE_C_CONST_NON_NULL_RETURN
+struct _mulle_objc_infraclass  *
    _mulle_objc_universe_unfailinglookup_infraclass( struct _mulle_objc_universe *universe,
                                                     mulle_objc_classid_t classid);
 
@@ -72,8 +73,8 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 
 static struct _mulle_objc_cacheentry
    *_mulle_objc_universe_add_classcacheentry_by_swapping_caches( struct _mulle_objc_universe *universe,
-                                                                struct _mulle_objc_cache *cache,
-                                                                struct _mulle_objc_class *cls)
+                                                                 struct _mulle_objc_cache *cache,
+                                                                 struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_cache        *old_cache;
    struct _mulle_objc_cacheentry   *entry;
@@ -201,7 +202,7 @@ static struct _mulle_objc_cacheentry   *
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   infra = _mulle_objc_universe_cacheonlylookup_infraclass( universe, classid);
+   infra = _mulle_objc_universe_uncachedlookup_infraclass( universe, classid);
    if( ! infra)
       return( NULL);
 
@@ -211,6 +212,7 @@ static struct _mulle_objc_cacheentry   *
 }
 
 
+MULLE_C_CONST_NON_NULL_RETURN
 static struct _mulle_objc_cacheentry   *
     _mulle_objc_universe_unfailingfill_classcache( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid)
@@ -218,7 +220,7 @@ static struct _mulle_objc_cacheentry   *
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   infra   = _mulle_objc_universe_unfailingcacheonlylookup_infraclass( universe, classid);
+   infra   = _mulle_objc_universe_unfailinguncachedlookup_infraclass( universe, classid);
    assert( mulle_objc_class_is_current_thread_registered( (void *)  infra));
 
    entry = _mulle_objc_universe_fill_classcache_with_infraclass( universe, infra);
@@ -229,16 +231,17 @@ static struct _mulle_objc_cacheentry   *
 #pragma mark - class lookup, uncached
 
 struct _mulle_objc_infraclass   *
-_mulle_objc_universe_cacheonlylookup_infraclass( struct _mulle_objc_universe *universe,
-                                               mulle_objc_classid_t classid)
+   _mulle_objc_universe_uncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+                                                   mulle_objc_classid_t classid)
 {
    return( _mulle_concurrent_hashmap_lookup( &universe->classtable, classid));
 }
 
 
+MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_infraclass   *
-_mulle_objc_universe_unfailingcacheonlylookup_infraclass( struct _mulle_objc_universe *universe,
-                                                         mulle_objc_classid_t classid)
+   _mulle_objc_universe_unfailinguncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+                                                            mulle_objc_classid_t classid)
 {
    struct _mulle_objc_infraclass   *infra;
    int                              retry;

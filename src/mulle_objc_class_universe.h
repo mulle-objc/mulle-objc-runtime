@@ -58,7 +58,7 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 // use this method to not fill up the cache uselessy.
 //
 struct _mulle_objc_infraclass   *
-    _mulle_objc_universe_cacheonlylookup_infraclass( struct _mulle_objc_universe *universe,
+    _mulle_objc_universe_uncachedlookup_infraclass( struct _mulle_objc_universe *universe,
                                                     mulle_objc_classid_t classid);
 
 //
@@ -67,8 +67,8 @@ struct _mulle_objc_infraclass   *
 //
 MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_infraclass *
-   _mulle_objc_universe_unfailingcacheonlylookup_infraclass( struct _mulle_objc_universe *universe,
-                                                             mulle_objc_classid_t classid);
+   _mulle_objc_universe_unfailinguncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+                                                            mulle_objc_classid_t classid);
 
 
 struct _mulle_objc_infraclass  *
