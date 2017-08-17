@@ -154,9 +154,11 @@ struct _mulle_objc_class
    uint16_t                                inheritance;
    uint16_t                                preloads;
 
-   struct _mulle_objc_cachepivot           supercachepivot;  
-   mulle_objc_implementation_t             (*lookup_superimplementation)( struct _mulle_objc_class *,
-                                                                        mulle_objc_superid_t);
+//   struct _mulle_objc_cachepivot           supercachepivot;
+   mulle_objc_implementation_t             (*superlookup)( struct _mulle_objc_class *,
+                                                           mulle_objc_superid_t);
+   mulle_objc_implementation_t             (*superlookup2)( struct _mulle_objc_class *,
+                                                            mulle_objc_superid_t);
 
    struct mulle_concurrent_pointerarray    methodlists;
 #ifdef __MULLE_OBJC_FMC__
