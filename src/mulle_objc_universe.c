@@ -2067,7 +2067,7 @@ char   *_mulle_objc_universe_string_for_classid( struct _mulle_objc_universe *un
 {
    struct _mulle_objc_infraclass   *infra;
    
-   infra = _mulle_objc_universe_cacheonlylookup_infraclass( universe, classid);
+   infra = _mulle_objc_universe_uncachedlookup_infraclass( universe, classid);
    if( infra)
       return( _mulle_objc_infraclass_get_name( infra));
    return( _mulle_objc_universe_string_for_uniqueid( universe, classid));

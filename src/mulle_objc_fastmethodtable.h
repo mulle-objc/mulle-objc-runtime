@@ -91,7 +91,7 @@ static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
 // code-size a lot for the inlineable code and the compiler generated code.
 // retain/release may be a waste of space really
 //
-MULLE_C_CONST_RETURN
+MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
 static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t methodid)
 {
    switch( methodid)
