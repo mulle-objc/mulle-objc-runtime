@@ -72,6 +72,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
    unsigned int                 index;
    struct _mulle_objc_universe   *universe;
 
+   // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointer_index( obj);
    if( ! index)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
@@ -89,6 +90,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_get_isa( void *obj)
    unsigned int                 index;
    struct _mulle_objc_universe   *universe;
 
+   // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointer_index( obj);
    if( __builtin_expect( ! index, 1))
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
@@ -104,6 +106,7 @@ static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_cl
    unsigned int   index;
    extern void    mulle_objc_raise_taggedpointer_exception( void *obj);
 
+   // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointer_index( obj);
    if( index)
       mulle_objc_raise_taggedpointer_exception( obj);

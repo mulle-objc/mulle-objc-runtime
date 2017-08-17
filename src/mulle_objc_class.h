@@ -102,10 +102,10 @@ static inline struct _mulle_objc_cache   *_mulle_objc_class_get_methodcache( str
 }
 
 
-static inline struct _mulle_objc_cache   *_mulle_objc_class_get_supercache( struct _mulle_objc_class *cls)
-{
-   return( _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot));
-}
+//static inline struct _mulle_objc_cache   *_mulle_objc_class_get_supercache( struct _mulle_objc_class *cls)
+//{
+//   return( _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot));
+//}
 
 # pragma mark - kvc caches
 

@@ -129,7 +129,7 @@ static inline void   *mulle_objc_object_constant_methodid_call( void *obj,
 
 #ifdef __MULLE_OBJC_FMC__
    index = mulle_objc_get_fastmethodtable_index( methodid);
-   if( index >= 0)
+   if( __builtin_expect( index >= 0, 1))
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
@@ -205,26 +205,99 @@ void   mulle_objc_objects_call( void **objects,
 
 #pragma mark - calls for super
 
-//
-// this is used for calling super. It's the same for metaclasses and
-// infraclasses. The superid is hash( <classname> ';' <methodname>)
-// Since it is a super call, obj is known to be non-nil.
-// Will call _mulle_objc_class_unfailinglookup_superimplementation
-//
+mulle_objc_implementation_t
+   _mulle_objc_object_unfailinglookup_superimplementation( void *obj,
+                                                         mulle_objc_superid_t superid);
 
-static inline void   *
-   _mulle_objc_object_inline_call_superid( void *obj,
-                                           mulle_objc_methodid_t methodid,
-                                           void *parameter,
-                                           mulle_objc_superid_t superid)
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_inline_unfailinglookup_superimplementation( void *obj,
+                                                                  mulle_objc_superid_t superid)
 {
    struct _mulle_objc_class      *cls;
    mulle_objc_implementation_t   imp;
 
    cls = _mulle_objc_object_get_isa( obj);
-   imp = (*cls->lookup_superimplementation)( cls, superid);
+   imp = (*cls->superlookup)( cls, superid);
+   return( imp);
+}
+
+//
+// this is used for calling super. It's the same for metaclasses and
+// infraclasses. The superid is hash( <classname> ';' <methodname>)
+// Since it is a super call, obj is known to be non-nil. So there is
+// no corresponding mulle_objc_object_inline_supercall.
+// Will call _mulle_objc_class_unfailinglookup_superimplementation
+//
+
+static inline void   *
+   _mulle_objc_object_partialinline_supercall( void *obj,
+                                               mulle_objc_methodid_t methodid,
+                                               void *parameter,
+                                               mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t   imp;
+
+   imp = _mulle_objc_object_unfailinglookup_superimplementation( obj, superid);
    return( (*imp)( obj, methodid, parameter));
 }
+
+
+
+MULLE_C_ALWAYS_INLINE
+   static inline void  *_mulle_objc_object_inline_supercall( void *obj,
+                                                             mulle_objc_methodid_t methodid,
+                                                             void *parameter,
+                                                              mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
+
+   if( __builtin_expect( ! obj, 0))
+      return( obj);
+
+   //
+   // with tagged pointers inlining starts to become useless, because this
+   // _mulle_objc_object_get_isa function produces too much code IMO
+   //
+   cls = _mulle_objc_object_get_isa( obj);
+
+   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+
+   entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+
+   offset  = (mulle_objc_cache_uint_t) superid & mask;
+   entry   = (void *) &((char *) entries)[ offset];
+
+   if( __builtin_expect( (entry->key.uniqueid == superid), 1))
+      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+   else
+      f  = (*cls->superlookup2)( cls, superid);
+   return( (*f)( obj, methodid, parameter));
+}
+
+
+
+void   *_mulle_objc_object_supercall( void *obj,
+                                      mulle_objc_methodid_t methodid,
+                                      void *parameter,
+                                      mulle_objc_superid_t superid);
+
+MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN
+struct _mulle_objc_method *
+   _mulle_objc_class_unfailinguncachedlookup_supermethod( struct _mulle_objc_class *cls,
+                                                          mulle_objc_superid_t superid);
+
+MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN
+mulle_objc_implementation_t
+   _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation( struct _mulle_objc_class *cls,
+                                                                        mulle_objc_superid_t superid);
 
 
 # pragma mark - API Calls
@@ -233,27 +306,6 @@ static inline void   *
 void   *mulle_objc_object_call( void *obj,
                                mulle_objc_methodid_t methodid,
                                void *parameter);
-
-
-
-// this is used for calling super on classes, the classid is determined by
-// the compiler since it is a super call, self is known to be non-nil.
-//
-static inline void   *mulle_objc_object_inline_call_superid( void *obj,
-                                                             mulle_objc_methodid_t methodid,
-                                                             void *parameter,
-                                                             mulle_objc_classid_t classid)
-{
-   if( ! obj)
-      return( obj);
-   return( _mulle_objc_object_inline_call_superid( obj, methodid, parameter, classid));
-}
-
-
-void   *mulle_objc_object_call_superid( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        void *parameter,
-                                        mulle_objc_classid_t classid);
 
 
 # pragma mark - special initial setup calls
