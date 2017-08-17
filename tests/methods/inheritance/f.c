@@ -7999,7 +7999,7 @@ void   *f999( void *self, mulle_objc_methodid_t _cmd, void *_params)
    return( (void *) (uintptr_t) sel);
 }
 
-mulle_objc_methodimplementation_t    f[] =
+mulle_objc_implementation_t    f[] =
 {
 f0,
 f1,

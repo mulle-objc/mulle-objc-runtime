@@ -5,8 +5,9 @@
 //  Created by Nat! on 19/11/14.
 //  Copyright (c) 2014 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__  1
-#define __MULLE_OBJC_NO_TRT__  1
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_FMC__
 
 #include <mulle_objc_runtime/mulle_objc_runtime.h>
 
@@ -87,6 +88,8 @@
 #define ___b___ivarid          MULLE_OBJC_IVARID( 0x050c5d7d)
 #define ___a___ivarid          MULLE_OBJC_IVARID( 0x050c5d7e)
 
+#define ___Foo_init_supername  "Foo;init"
+#define ___Foo_init_superid    MULLE_OBJC_SUPERID( 0xb9d2cae4)
 
 //
 // use gnu style initalization (empty methods[], because it's less painful)
@@ -157,13 +160,13 @@ static void   *Object_init( struct Object *self, mulle_objc_methodid_t _cmd, voi
 //
 // struct _mulle_objc_method
 // {
-//   struct _mulle_objc_methoddescriptor  descriptor;
-//   mulle_objc_methodimplementation_t    implementation;
+//   struct _mulle_objc_descriptor  descriptor;
+//   mulle_objc_implementation_t    implementation;
 // };
 //
 // this is how a method descriptor is defined:
 //
-// struct _mulle_objc_methoddescriptor
+// struct _mulle_objc_descriptor
 // {
 //    mulle_objc_methodid_t   methodid;
 //    char                    *name;
@@ -184,7 +187,7 @@ static struct _mulle_objc_methodlist  Object_instance_methodlist =
             "@:",		            // descriptor.signature
             0			            // descriptor.bits
          },
-         (mulle_objc_methodimplementation_t) Object_init	// implementation
+         (mulle_objc_implementation_t) Object_init	// implementation
       }
    }
 };
@@ -266,11 +269,7 @@ struct Foo
 
 static void   *Foo_init( struct Foo *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   mulle_objc_superid_t   superid;
-
-   superid = mulle_objc_superid_from_classid_and_methodid( ___Foo_classid, ___init__methodid);
-
-   self = (void *) mulle_objc_object_call_superid( (void *) self, _cmd, _params, superid);
+   self = (void *) mulle_objc_object_call_superid( (void *) self, _cmd, _params, ___Foo_init_superid);
 
    self->a = 1;
    self->b = 2;
@@ -333,7 +332,7 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
             "@:ii",
             0
          },
-         (mulle_objc_methodimplementation_t) Foo_setA_b_
+         (mulle_objc_implementation_t) Foo_setA_b_
       },
       {
          {
@@ -342,7 +341,7 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
             "@:",
             0
          },
-         (mulle_objc_methodimplementation_t) Foo_init
+         (mulle_objc_implementation_t) Foo_init
       }
    }
 };
@@ -397,7 +396,7 @@ static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
             "@:",
             0
          },
-         (mulle_objc_methodimplementation_t) Foo_Print_print
+         (mulle_objc_implementation_t) Foo_Print_print
       }
    }
 };
@@ -462,7 +461,8 @@ struct _gnu_mulle_objc_superlist  super_list =
    1,
    {
       {
-         X_MULLE_OBJC_SUPERID_MAKE( ___Foo_classid, ___init__methodid),
+         ___Foo_init_superid,
+         ___Foo_init_supername,
          ___Foo_classid,
          ___init__methodid
       }

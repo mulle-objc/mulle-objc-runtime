@@ -7,6 +7,7 @@
 //
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_FMC__
 
 #include <mulle_objc_runtime/mulle_objc_runtime.h>
 #include "test_runtime_ids.h"

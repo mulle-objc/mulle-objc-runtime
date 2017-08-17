@@ -151,8 +151,9 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 
    _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &universe->memory.allocator);
-
+#ifdef __MULLE_OBJC_FMC__
    _mulle_objc_fastmethodtable_init( &cls->vtab);
+#endif
 }
 
 
@@ -165,8 +166,9 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
    assert( cls);
    assert( allocator);
 
+#ifdef __MULLE_OBJC_FMC__
    _mulle_objc_fastmethodtable_done( &cls->vtab);
-
+#endif
    _mulle_concurrent_pointerarray_done( &cls->methodlists);
 
    _mulle_objc_class_invalidate_all_kvcinfos( cls);

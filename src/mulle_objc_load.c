@@ -583,7 +583,6 @@ static void   loadprotocols_dump( struct _mulle_objc_protocollist *protocols)
 }
 
 
-
 static void   loadmethod_dump( struct _mulle_objc_method *method, char *prefix, char type)
 {
    fprintf( stderr, "%s %c%s; // id=%08x signature=%s bits=0x%x\n",
@@ -1321,9 +1320,10 @@ static void   loadsuper_dump( struct _mulle_objc_super *p,
    if( ! methodname)
       methodname = mulle_objc_string_for_methodid( p->superid);
    
-   fprintf( stderr, "%s // super %08x is class %08x \"%s\" and method %08x \"%s\"\n",
+   fprintf( stderr, "%s // super %08x \"%s\" is class %08x \"%s\" and method %08x \"%s\"\n",
            prefix,
            p->superid,
+           p->name,
            p->classid, classname,
            p->methodid, methodname);
 }
@@ -1497,11 +1497,11 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    // Remember that static strings can be tps!
    //
    // universe | Code   | Description
-   // --------|--------|--------------
-   // No-TPS  | No-TPS | Works
-   // No-TPS  | TPS    | Crashes
-   // TPS     | No-TPS | Works, but slower. Does not mix with "TPS Code"
-   // TPS     | YES    | Works
+   // ---------|--------|--------------
+   // No-TPS   | No-TPS | Works
+   // No-TPS   | TPS    | Crashes
+   // TPS      | No-TPS | Works, but slower. Does not mix with "TPS Code"
+   // TPS      | TPS    | Works
    //
    // Allow loading of "NO TPS"-code into a "TPS" aware universe as long
    // as no "TPS"-code is loaded also.
@@ -1526,11 +1526,11 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    // check for thread local universe
    //
    // universe | Code   | Description
-   // --------|--------|--------------
-   // Global  | Global | Default
-   // Global  | TRT    | Works, but slower. Mixes with "Global Code" too
-   // TRT     | Global | Crashes
-   // TRT     | TRT    | Works
+   // ---------|--------|--------------
+   // Global   | Global | Default
+   // Global   | TRT    | Works, but slower. Mixes with "Global Code" too
+   // TRT      | Global | Crashes
+   // TRT      | TRT    | Works
    //
    if( universe->config.thread_local_rt)
       if( ! (info->version.bits & _mulle_objc_loadinfo_threadlocalrt))
@@ -1550,6 +1550,30 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
                                                         optlevel,
                                                         universe->config.min_optlevel,
                                                         universe->config.max_optlevel);
+   }
+   
+   
+   //
+   // Check for fast methods classes. What can happen ?
+   // Compatibility of fast method funtions must be ascertained with version
+   // numbering.
+   //
+   // universe | Code   | Description
+   // ---------|--------|--------------
+   // No-FMC   | No-FMC | Works
+   // No-FMC   | FMC    | Crashes
+   // FMC      | No-FMC | Crashes (wrong class size messes up classpair code)
+   // FMC      | FMC    | Works
+   //
+#ifdef __MULLE_OBJC_FMC__
+   if( info->version.bits & _mulle_objc_loadinfo_nofastmethods)
+#else
+   if( ! (info->version.bits & _mulle_objc_loadinfo_nofastmethods))
+#endif
+   {
+      loadinfo_dump( info, "loadinfo:   ");
+      _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: the universe is not compiled for fast methods, but classes are.",
+                                                        universe);
    }
 }
 

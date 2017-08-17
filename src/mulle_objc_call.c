@@ -61,10 +61,10 @@ static void   *_mulle_objc_object_call2( void *obj,
                                          mulle_objc_methodid_t methodid,
                                          void *parameter);
 
-static void   *_mulle_objc_object_call_class( void *obj,
-                                              mulle_objc_methodid_t methodid,
-                                              void *parameter,
-                                              struct _mulle_objc_class *cls);
+void   *_mulle_objc_object_call_class( void *obj,
+                                       mulle_objc_methodid_t methodid,
+                                       void *parameter,
+                                       struct _mulle_objc_class *cls);
 
 static void   *_mulle_objc_object_unfailingcall_methodid( void *obj,
                                                            mulle_objc_methodid_t methodid,
@@ -801,11 +801,11 @@ mulle_objc_implementation_t
 # pragma mark - calls
 
 void   *_mulle_objc_object_call_class( void *obj,
-                                      mulle_objc_methodid_t methodid,
-                                      void *parameter,
-                                      struct _mulle_objc_class *cls)
+                                       mulle_objc_methodid_t methodid,
+                                       void *parameter,
+                                       struct _mulle_objc_class *cls)
 {
-   mulle_objc_implementation_t   imp;
+   mulle_objc_implementation_t         imp;
    struct _mulle_objc_cache            *cache;
    struct _mulle_objc_cacheentry       *entries;
    struct _mulle_objc_cacheentry       *entry;

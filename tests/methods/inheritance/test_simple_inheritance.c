@@ -192,28 +192,28 @@ static void   test_normal_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    // root meta inherits from root...
    method = mulle_objc_metaclass_defaultsearch_method( classes->A_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, bar_methodid);
@@ -224,19 +224,19 @@ static void   test_normal_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_bar);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_meta_bar);
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) C_bar);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_meta_bar);
 }
 
 
@@ -247,7 +247,7 @@ static void   test_inhibited_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    // root meta inherits from root...
    method = mulle_objc_metaclass_defaultsearch_method( classes->A_meta, foo_methodid);
@@ -274,15 +274,15 @@ static void   test_inhibited_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_bar);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_meta_bar);
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) C_bar);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, bar_methodid);
    assert( ! method);

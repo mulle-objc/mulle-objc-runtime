@@ -5,8 +5,9 @@
 //  Created by Nat! on 04.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__   1
-#define __MULLE_OBJC_NO_TRT__   1
+#define __MULLE_OBJC_NO_TPS__
+#define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_FMC__
 
 #include <mulle_objc_runtime/mulle_objc_runtime.h>
 
@@ -135,7 +136,7 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
             "@:*i",
             0
          },
-         (mulle_objc_methodimplementation_t) Object_conforms_to_protocol
+         (mulle_objc_implementation_t) Object_conforms_to_protocol
       },
       {
          {
@@ -144,7 +145,7 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
             "@:",
             0
          },
-         (mulle_objc_methodimplementation_t) Object_init
+         (mulle_objc_implementation_t) Object_init
       }
    }
 };
