@@ -71,6 +71,10 @@ static void   *_mulle_objc_object_unfailingcall_methodid( void *obj,
                                                            void *parameter,
                                                            struct  _mulle_objc_class *cls);
 
+static mulle_objc_implementation_t
+   _mulle_objc_class_unfailinglookup2_superimplementation( struct _mulle_objc_class *cls,
+                                                           mulle_objc_superid_t superid);
+                                                         
 # pragma mark - class cache
 
 static unsigned int   _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_class *cls)
@@ -351,6 +355,10 @@ static struct _mulle_objc_cacheentry   *
 }
 
 
+#ifdef HAVE_SUPERCACHE
+
+# pragma mark - supercache (use if methodcache sharing is not so hot)
+
 //
 // fills the cache line with a forward: if message does not exist or
 // if it exists it fills up the entry
@@ -418,9 +426,6 @@ struct _mulle_objc_cacheentry   *
 }
 
 
-
-# pragma mark - caching
-
 MULLE_C_NEVER_INLINE
 static struct _mulle_objc_cacheentry   *
    _mulle_objc_class_fill_supercache_with_method( struct _mulle_objc_class *cls,
@@ -462,32 +467,19 @@ static struct _mulle_objc_cacheentry   *
    }
 }
 
+#endif
 
-//
-// fills the cache and does forward
-//
-mulle_objc_implementation_t
-   _mulle_objc_class_unfailinglookup_superimplementation( struct _mulle_objc_class *cls,
+
+MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN
+struct _mulle_objc_method *
+   _mulle_objc_class_unfailinguncachedlookup_supermethod( struct _mulle_objc_class *cls,
                                                           mulle_objc_superid_t superid)
 {
-   mulle_objc_cache_uint_t               offset;
-   mulle_objc_implementation_t           imp;
-   struct _mulle_objc_cache              *cache;
-   struct _mulle_objc_cacheentry         *entries;
-   struct _mulle_objc_cacheentry         *entry;
    struct _mulle_objc_method             *method;
    struct _mulle_objc_universe           *universe;
    struct _mulle_objc_searcharguments    args;
    struct _mulle_objc_super              *p;
-   
-   entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->supercachepivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   offset  = _mulle_objc_cache_find_entryoffset( cache, superid);
-   entry   = (void *) &((char *) entries)[ offset];
-   imp     = (mulle_objc_implementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-   if( imp)
-      return( imp);
-   
+
    //
    // since "previous_method" in args will not be accessed" this is OK to cast
    // and obviously cheaper than making a copy
@@ -502,10 +494,61 @@ mulle_objc_implementation_t
                                             NULL);
    if( ! method)
       method = _mulle_objc_class_unfailinglazyget_forwardmethod( cls, args.args.methodid);
+   return( method);
+}
 
-   imp = _mulle_objc_method_get_implementation( method);
 
+MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN
+mulle_objc_implementation_t
+   _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation( struct _mulle_objc_class *cls,
+                                                                        mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_method     *method;
+   mulle_objc_implementation_t   imp;
+   
+   method = _mulle_objc_class_unfailinguncachedlookup_supermethod( cls, superid);
+   imp    = _mulle_objc_method_get_implementation( method);
+   return( imp);
+}
+
+//
+// fills the cache and does forward
+//
+mulle_objc_implementation_t
+   _mulle_objc_class_unfailinglookup_superimplementation( struct _mulle_objc_class *cls,
+                                                          mulle_objc_superid_t superid)
+{
+   mulle_objc_cache_uint_t               offset;
+   mulle_objc_implementation_t           imp;
+   struct _mulle_objc_cache              *cache;
+   struct _mulle_objc_cacheentry         *entries;
+   struct _mulle_objc_cacheentry         *entry;
+   struct _mulle_objc_method             *method;
+
+#ifndef HAVE_SUPERCACHE
+   entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
+#else
+   entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->supercachepivot);
+#endif
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, superid);
+   entry   = (void *) &((char *) entries)[ offset];
+   imp     = (mulle_objc_implementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+   if( imp)
+      return( imp);
+   
+   //
+   // since "previous_method" in args will not be accessed" this is OK to cast
+   // and obviously cheaper than making a copy
+   //
+   method = _mulle_objc_class_unfailinguncachedlookup_supermethod( cls, superid);
+   imp    = _mulle_objc_method_get_implementation( method);
+
+#ifndef HAVE_SUPERCACHE
+   _mulle_objc_class_fill_methodcache_with_method( cls, method, superid);
+#else
    _mulle_objc_class_fill_supercache_with_method( cls, method, superid);
+#endif
 
    return( imp);
 }
@@ -878,6 +921,44 @@ void   *_mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, voi
 }
 
 
+//
+// this function is called, when the first inline cache check gave a
+// collision
+//
+static mulle_objc_implementation_t
+   _mulle_objc_class_unfailinglookup2_superimplementation( struct _mulle_objc_class *cls,
+                                                           mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t         imp;
+   struct _mulle_objc_cache            *cache;
+   struct _mulle_objc_cacheentry       *entries;
+   struct _mulle_objc_cacheentry       *entry;
+   mulle_objc_cache_uint_t             mask;
+   mulle_objc_cache_uint_t             offset;
+
+   entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;
+
+   offset  = (mulle_objc_cache_uint_t) superid;
+   for(;;)
+   {
+      offset += sizeof( struct _mulle_objc_cacheentry);
+      offset  = offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == superid)
+      {
+         imp = (mulle_objc_implementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         return( imp);
+      }
+
+      if( ! entry->key.uniqueid)
+/*->*/   return( _mulle_objc_class_unfailinglookup_superimplementation( cls, superid));
+   }
+}
+
+
+
 static void   *_mulle_objc_object_noncachingcall_class( void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
@@ -916,6 +997,8 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
       _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
       cls->cachepivot.call2 = _mulle_objc_object_call2;
       cls->call             = _mulle_objc_object_call_class;
+      cls->superlookup      = _mulle_objc_class_unfailinglookup_superimplementation;
+      cls->superlookup2     = _mulle_objc_class_unfailinglookup2_superimplementation;
       
       if( universe->debug.trace.method_cache)
          fprintf( stderr, "mulle_objc_universe %p trace: new initial cache %p "
@@ -930,8 +1013,10 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
    }
    else
    {
-      cls->cachepivot.call2 = _mulle_objc_object_call2_empty_cache;
-      cls->call             = _mulle_objc_object_noncachingcall_class;
+      cls->cachepivot.call2      = _mulle_objc_object_call2_empty_cache;
+      cls->call                  = _mulle_objc_object_noncachingcall_class;
+      cls->superlookup           = _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation;
+      cls->superlookup2          = _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation;
       
       if( universe->debug.trace.method_cache)
          fprintf( stderr, "mulle_objc_universe %p trace: use "
@@ -1151,6 +1236,18 @@ void   *_mulle_objc_object_call2_needs_cache( void *obj, mulle_objc_methodid_t m
 }
 
 
+mulle_objc_implementation_t   _mulle_objc_class_superlookup2_needs_cache( struct _mulle_objc_class *cls,
+                                                                     mulle_objc_superid_t superid);
+
+mulle_objc_implementation_t   _mulle_objc_class_superlookup2_needs_cache( struct _mulle_objc_class *cls,
+                                                                      mulle_objc_superid_t superid)
+{
+   _mulle_objc_class_setup( cls);
+   
+   return( (*cls->superlookup2)( cls, superid));
+}
+
+
 #pragma mark - empty cache calls
 
 static void   *_mulle_objc_object_call2_empty_cache( void *obj, mulle_objc_methodid_t methodid, void *parameter)
@@ -1224,16 +1321,24 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
    }
 }
 
-# pragma mark - super calls
 
-void   *mulle_objc_object_call_superid( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        void *parameter,
-                                        mulle_objc_superid_t superid)
+mulle_objc_implementation_t
+   _mulle_objc_object_unfailinglookup_superimplementation( void *obj,
+                                                         mulle_objc_superid_t superid)
 {
-   if( ! obj)
-      return( 0);
-   return( _mulle_objc_object_inline_call_superid( obj, methodid, parameter, superid));
+   return( _mulle_objc_object_inline_unfailinglookup_superimplementation( obj, superid));
+}
+
+
+void   *_mulle_objc_object_supercall( void *obj,
+                                      mulle_objc_methodid_t methodid,
+                                      void *parameter,
+                                      mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t   imp;
+
+   imp = _mulle_objc_object_inline_unfailinglookup_superimplementation( obj, superid);
+   return( (*imp)( obj, methodid, parameter));
 }
 
 // need to call cls->call to prepare caches

@@ -1389,6 +1389,12 @@ static void  dump_bits( unsigned int bits)
       delim=", ";
    }
 
+   if( bits & _mulle_objc_loadinfo_nofastmethods)
+   {
+      fprintf( stderr, "%sno fast methods", delim);
+      delim=", ";
+   }
+
    if( bits & _mulle_objc_loadinfo_threadlocalrt)
    {
       fprintf( stderr, "%sthread local universe", delim);
@@ -1410,6 +1416,7 @@ static void   print_version( char *prefix, uint32_t version)
 
 static void   loadinfo_dump( struct _mulle_objc_loadinfo *info, char *prefix)
 {
+   fprintf( stderr, "%s", prefix);
    print_version( "universe", info->version.universe);
    print_version( ", foundation", info->version.foundation);
    print_version( ", user", info->version.user);
@@ -1567,14 +1574,23 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    //
 #ifdef __MULLE_OBJC_FMC__
    if( info->version.bits & _mulle_objc_loadinfo_nofastmethods)
-#else
-   if( ! (info->version.bits & _mulle_objc_loadinfo_nofastmethods))
-#endif
    {
       loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_universe_raise_inconsistency_exception( universe, "mulle_objc_universe %p: the universe is not compiled for fast methods, but classes are.",
-                                                        universe);
+      _mulle_objc_universe_raise_inconsistency_exception( universe,
+         "mulle_objc_universe %p: the universe is compiled for fast methods, "
+         "but classes and categories are not.", universe);
    }
+#endif
+
+#ifdef __MULLE_OBJC_NO_FMC__
+   if( ! (info->version.bits & _mulle_objc_loadinfo_nofastmethods))
+   {
+      loadinfo_dump( info, "loadinfo:   ");
+      _mulle_objc_universe_raise_inconsistency_exception( universe,
+         "mulle_objc_universe %p: the universe can't handle fast methods, "
+         "but classes and categories use them.", universe);
+   }
+#endif
 }
 
 

@@ -196,6 +196,7 @@ static void   _mulle_objc_universeconfig_dump( struct _mulle_objc_universeconfig
 {
    fprintf( stderr, "%s", config->thread_local_rt ? "thread local" : "global");
    fprintf( stderr, ", %stagged pointers", config->no_tagged_pointer ? "no " : "");
+   fprintf( stderr, ", %sfast method calls", config->no_fast_method_call ? "no " : "");
    if( config->forget_strings)
       fprintf( stderr, ", forget strings");
 
@@ -273,7 +274,7 @@ static void   _mulle_objc_universe_set_debug_defaults_from_environment( struct _
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
    universe->debug.trace.method_call     = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALL");  // totally excessive!
    universe->debug.trace.method_searches = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCH");  // fairly excessive!
-   universe->debug.trace.descriptor_add = getenv_yes_no( "MULLE_OBJC_TRACE_descriptor_ADD");
+   universe->debug.trace.descriptor_add  = getenv_yes_no( "MULLE_OBJC_TRACE_descriptor_ADD");
    universe->debug.trace.protocol_add    = getenv_yes_no( "MULLE_OBJC_TRACE_PROTOCOL_ADD");
    universe->debug.trace.state_bit       = getenv_yes_no( "MULLE_OBJC_TRACE_STATE_BIT");
    universe->debug.trace.string_add      = getenv_yes_no( "MULLE_OBJC_TRACE_STRING_ADD");
@@ -303,7 +304,8 @@ static void   _mulle_objc_universe_set_debug_defaults_from_environment( struct _
 
    if( universe->debug.print.universe_config)
    {
-      fprintf( stderr, "mulle-objc: v%u.%u.%u (load-version: %u) (",
+      fprintf( stderr, "mulle-objc-universe %p: v%u.%u.%u (load-version: %u) (",
+         universe,
          MULLE_OBJC_RUNTIME_VERSION_MAJOR,
          MULLE_OBJC_RUNTIME_VERSION_MINOR,
          MULLE_OBJC_RUNTIME_VERSION_PATCH,
@@ -388,11 +390,14 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    _mulle_concurrent_pointerarray_init( &universe->gifts, 0, &universe->memory.allocator);
 
    universe->config.max_optlevel = 0x7;
-#if __MULLE_OBJC_TRT__
+#ifdef __MULLE_OBJC_TRT__
    universe->config.thread_local_rt = 1;
 #endif
-#if __MULLE_OBJC_NO_TPS__
+#ifdef __MULLE_OBJC_NO_TPS__
    universe->config.no_tagged_pointer = 1;
+#endif
+#ifdef __MULLE_OBJC_NO_FMC__
+   universe->config.no_fast_method_call = 1;
 #endif
    _mulle_objc_universe_set_debug_defaults_from_environment( universe);
 }

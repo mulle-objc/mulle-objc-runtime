@@ -129,6 +129,9 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    extern void   *_mulle_objc_object_call2_needs_cache( void *obj,
                                                         mulle_objc_methodid_t methodid,
                                                         void *parameter);
+   extern mulle_objc_implementation_t
+      _mulle_objc_class_superlookup2_needs_cache( struct _mulle_objc_class *cls,
+                                                mulle_objc_superid_t superid);
 
    assert( universe);
 
@@ -143,10 +146,11 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->universe                 = universe;
    cls->inheritance              = universe->classdefaults.inheritance;
 
-   cls->cachepivot.call2           = _mulle_objc_object_call2_needs_cache;
-   cls->lookup_superimplementation = _mulle_objc_class_unfailinglookup_superimplementation;
-   
+   cls->cachepivot.call2         = _mulle_objc_object_call2_needs_cache;
+   cls->superlookup2             = _mulle_objc_class_superlookup2_needs_cache;
+#ifdef HAVE_SUPERCACHE
    _mulle_atomic_pointer_nonatomic_write( &cls->supercachepivot.entries, universe->empty_cache.entries);
+#endif
    _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->empty_cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 
@@ -160,8 +164,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
 void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
                                struct mulle_allocator *allocator)
 {
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_cache   *supercache;
+   struct _mulle_objc_cache   *cache;
 
    assert( cls);
    assert( allocator);
@@ -177,9 +180,15 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
    if( cache != &cls->universe->empty_cache)
       _mulle_objc_cache_free( cache, allocator);
 
-   supercache = _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot);
-   if( supercache != &cls->universe->empty_cache)
-      _mulle_objc_cache_free( supercache, allocator);
+#ifdef HAVE_SUPERCACHE
+   {
+      struct _mulle_objc_cache   *supercache;
+      
+      supercache = _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot);
+      if( supercache != &cls->universe->empty_cache)
+         _mulle_objc_cache_free( supercache, allocator);
+   }
+#endif
 }
 
 
@@ -300,6 +309,7 @@ static int
 }
 
 
+#ifdef HAVE_SUPERCACHE
 static int
    _mulle_objc_class_invalidate_supercache( struct _mulle_objc_class *cls)
 {
@@ -325,7 +335,7 @@ static int
    
    return( 0x1);
 }
-
+#endif
 
 
 static int  invalidate_caches( struct _mulle_objc_universe *universe,
@@ -344,8 +354,11 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
 
    _mulle_objc_class_invalidate_all_kvcinfos( cls);
 
+// not having a supercache is so much better (timing...)
+#ifdef HAVE_SUPERCACHE
    // supercaches need to be invalidate regardless
    _mulle_objc_class_invalidate_supercache( cls);
+#endif
    
    // if caches have been cleaned for class, it's done
    rover = _mulle_objc_methodlist_enumerate( list);

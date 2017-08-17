@@ -66,12 +66,13 @@ struct mulle_objc_loadversion;
 struct _mulle_objc_universeconfig
 {
    unsigned   forget_strings           : 1;  // don't keep track of static strings
-   unsigned   min_optlevel             : 3;  // min compiler optimization level: (0)
-   unsigned   max_optlevel             : 3;  // max compiler optimization level: (7)
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
-   unsigned   no_tagged_pointer       : 1;  // don't use tagged pointers
-   unsigned   thread_local_rt          : 1;  // use thread local universes
+   unsigned   max_optlevel             : 3;  // max compiler optimization level: (7)
+   unsigned   min_optlevel             : 3;  // min compiler optimization level: (0)
+   unsigned   no_tagged_pointer        : 1;  // don't use tagged pointers
+   unsigned   no_fast_method_call      : 1;  // don't use fast method calls
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
+   unsigned   thread_local_rt          : 1;  // use thread local universes
 };
 
 
