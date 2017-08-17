@@ -83,8 +83,6 @@ enum
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META       = 0x10,
 };
 
-#define MULLE_OBJC_CLASS_S_FAST_METHODS  16
-
 
 // 0x00000001 - 0x00008000 :: mulle-objc  = 16 bits
 // 0x00001000 - 0x00080000 :: Foundation  = 8 bits
@@ -130,7 +128,7 @@ struct _mulle_objc_class
    // keep name here for debugging
 
    char                                    *name;            // offset (void **)[ 3]
-   struct _mulle_objc_universe             *universe;         // keep here for debugger (void **)[ 4]
+   struct _mulle_objc_universe             *universe;        // keep here for debugger (void **)[ 4]
 
    struct _mulle_objc_class                *superclass;      // keep here for debugger (void **)[ 5]
 
@@ -161,7 +159,9 @@ struct _mulle_objc_class
                                                                         mulle_objc_superid_t);
 
    struct mulle_concurrent_pointerarray    methodlists;
+#ifdef __MULLE_OBJC_FMC__
    struct _mulle_objc_fastmethodtable      vtab;  // dont' move it up, debugs nicer here
+#endif
 };
 
 
