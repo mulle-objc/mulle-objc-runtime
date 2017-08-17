@@ -2115,8 +2115,13 @@ char   *_mulle_objc_universe_string_for_categoryid( struct _mulle_objc_universe 
 
 MULLE_C_NON_NULL_RETURN
 char   *_mulle_objc_universe_string_for_superid( struct _mulle_objc_universe *universe,
-                                                mulle_objc_superid_t superid)
+                                                 mulle_objc_superid_t superid)
 {
+   struct _mulle_objc_super   *p;
+   
+   p = _mulle_objc_universe_lookup_super( universe, superid);
+   if( p)
+      return( p->name);
    return( _mulle_objc_universe_string_for_uniqueid( universe, superid));
 }
 
