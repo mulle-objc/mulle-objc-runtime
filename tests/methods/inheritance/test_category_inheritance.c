@@ -7,6 +7,7 @@
 //
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_FMC__
 
 #include <mulle_objc_runtime/mulle_objc_runtime.h>
 
@@ -75,28 +76,28 @@ static void   test_normal_foo_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->A_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    // root meta inherits from root...
    method = mulle_objc_metaclass_defaultsearch_method( classes->A_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 }
 
 
@@ -111,19 +112,19 @@ static void   test_normal_bar_inheritance( struct abc_classes  *classes)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->B_infra, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_cat_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_cat_bar);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->B_meta, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_meta_bar);
 
    method = mulle_objc_infraclass_defaultsearch_method( classes->C_infra, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) C_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) C_bar);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes->C_meta, bar_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) B_meta_bar);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) B_meta_bar);
 }
 
 
@@ -149,20 +150,20 @@ void   test_category_inheritance( void)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes.A_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    // root meta inherits from root...
    method = mulle_objc_metaclass_defaultsearch_method( classes.A_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes.B_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes.C_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_foo);
 
    //
    // the flag is only class specific and doesn't inherit down
@@ -172,18 +173,18 @@ void   test_category_inheritance( void)
 
    method = mulle_objc_infraclass_defaultsearch_method( classes.A_infra, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    // root meta inherits from root...
    method = mulle_objc_metaclass_defaultsearch_method( classes.A_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes.B_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 
    method = mulle_objc_metaclass_defaultsearch_method( classes.C_meta, foo_methodid);
    assert( method);
-   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_methodimplementation_t) A_cat_foo);
+   assert( _mulle_objc_method_get_implementation( method) == (mulle_objc_implementation_t) A_cat_foo);
 }

@@ -52,6 +52,13 @@
 # error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_TRT__ and __MULLE_OBJC_NO_TRT__)"
 #endif
 
+#if ! defined( __MULLE_OBJC_FMC__) && ! defined( __MULLE_OBJC_NO_FMC__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (or define either __MULLE_OBJC_FMC__ or __MULLE_OBJC_NO_FMC__)"
+#endif
+#if defined( __MULLE_OBJC_FMC__) && defined( __MULLE_OBJC_NO_FMC__)
+# error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FMC__ and __MULLE_OBJC_NO_FMC__)"
+#endif
+
 
 #include "mulle_objc_atomicpointer.h"
 #include "mulle_objc_builtin.h"

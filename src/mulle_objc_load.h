@@ -215,6 +215,7 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_aaomode       = 0x2,
    _mulle_objc_loadinfo_notaggedptrs  = 0x4,
    _mulle_objc_loadinfo_threadlocalrt = 0x8,
+   _mulle_objc_loadinfo_nofastmethods = 0x10,
 
    _mulle_objc_loadinfo_optlevel_0   = (0 << 8),  // actual values...
    _mulle_objc_loadinfo_optlevel_1   = (1 << 8),

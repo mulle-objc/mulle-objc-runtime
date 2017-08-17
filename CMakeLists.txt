@@ -9,6 +9,7 @@ add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern
                  -DMULLE_OBJC_EXTERN_GLOBAL=extern
                  -D__MULLE_OBJC_TPS__     ## tagged pointers runtime (default: on)
                  -D__MULLE_OBJC_NO_TRT__  ## thread local runtime (default: off)
+                 -D__MULLE_OBJC_FMC__     ## fast method calls (default: on)
                  -DMULLE_C11_NO_NOOB_WARNINGS=1
                 )
 

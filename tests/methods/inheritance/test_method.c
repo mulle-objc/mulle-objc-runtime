@@ -7,6 +7,7 @@
 //
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_FMC__
 
 #include <mulle_objc_runtime/mulle_objc_runtime.h>
 
@@ -22,17 +23,17 @@
 void   test_method( void)
 {
    int    rval;
-   struct _mulle_objc_methoddescriptor   clone;
+   struct _mulle_objc_descriptor   clone;
    struct _mulle_objc_universe           *universe;
 
    universe = mulle_objc_get_or_create_universe();
    assert( universe);
 
-   rval = _mulle_objc_universe_add_methoddescriptor( universe, &A_foo_method->descriptor);
+   rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor);
    assert( ! rval);
 
    // duplicate add with same name is OK
-   rval = _mulle_objc_universe_add_methoddescriptor( universe, &A_foo_method->descriptor);
+   rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor);
    assert( ! rval);
 
    // check that duplicate ID is wrong if name doesn't match
@@ -42,7 +43,7 @@ void   test_method( void)
 #if DEBUG
    fprintf( stderr, "possibly following warning about x's different method id is expected\n");
 #endif
-   rval = _mulle_objc_universe_add_methoddescriptor( universe, &clone);
+   rval = _mulle_objc_universe_add_descriptor( universe, &clone);
    assert( rval && errno == EEXIST);
 
    // different signature is harmless
@@ -51,7 +52,7 @@ void   test_method( void)
 #if DEBUG
    fprintf( stderr, "possibly following warning about x's different signature is expected\n");
 #endif
-   rval = _mulle_objc_universe_add_methoddescriptor( universe, &clone);
+   rval = _mulle_objc_universe_add_descriptor( universe, &clone);
    assert( ! rval);
 
    // different id for same name will not be caught, but will warn in debug
@@ -61,7 +62,7 @@ void   test_method( void)
 #if DEBUG
    fprintf( stderr, "possibly following warning about foo's different method id is expected\n");
 #endif
-   rval = _mulle_objc_universe_add_methoddescriptor( universe, &clone);
+   rval = _mulle_objc_universe_add_descriptor( universe, &clone);
    assert( ! rval);
 }
 

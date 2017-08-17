@@ -36,11 +36,14 @@
 #ifndef mulle_objc_fastmethodtable_h__
 #define mulle_objc_fastmethodtable_h__
 
+#ifdef __MULLE_OBJC_FMC__
+
 #include "mulle_objc_method.h"
 
 #include <mulle_thread/mulle_thread.h>
 #include <mulle_aba/mulle_aba.h>
 #include <mulle_c11/mulle_c11.h>
+
 
 
 #define MULLE_OBJC_S_FASTMETHODS    24
@@ -160,5 +163,6 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
    return( -1);
 }
 
+#endif
 
 #endif /* mulle_objc_fastmethodtable_h */

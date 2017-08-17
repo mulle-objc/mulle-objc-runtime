@@ -35,6 +35,8 @@
 //
 #include "mulle_objc_fastmethodtable.h"
 
+#ifdef __MULLE_OBJC_FMC__
+
 #include "mulle_objc_call.h"
 #include "mulle_objc_class.h"
 #include "mulle_objc_object.h"
@@ -59,8 +61,10 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
       imp = _mulle_objc_class_noncachinglookup_implementation( cls, methodid);
 
       if( universe->debug.trace.method_call)
+      {
          // trace but don't cache it
          mulle_objc_class_trace_method_call( cls, methodid, obj, param, imp);
+      }
       else
          _mulle_atomic_pointer_write( &cls->vtab.methods[ index].pointer, imp);
    }
@@ -134,3 +138,5 @@ void   _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *tab
    _mulle_atomic_pointer_write( &table->methods[22].pointer, _mulle_objc_fastmethodtablefaulthandler_22);
    _mulle_atomic_pointer_write( &table->methods[23].pointer, _mulle_objc_fastmethodtablefaulthandler_23);
 }
+
+#endif

@@ -7,6 +7,7 @@
 //
 #define __MULLE_OBJC_NO_TPS__
 #define __MULLE_OBJC_NO_TRT__
+#define __MULLE_OBJC_FMC__
 
 #include <mulle_objc_runtime/mulle_objc_runtime.h>
 
@@ -38,7 +39,7 @@ void   test_message_sending()
    struct _mulle_objc_classpair           *pair;
    struct _mulle_objc_infraclass          *A_infra;
    struct _mulle_objc_metaclass           *A_meta;
-   struct _mulle_objc_methoddescriptor    *desc;
+   struct _mulle_objc_descriptor    *desc;
    struct _mulle_objc_methodlist          *methodlist;
    struct _mulle_objc_object              *A_obj;
    struct _mulle_objc_universe             *universe;
@@ -96,11 +97,11 @@ void   test_message_sending()
    A_cls = _mulle_objc_infraclass_as_class( A_infra);
    for( i = 0; i < 1000; i++)
    {
-      assert( i == 500 || ! _mulle_objc_class_cacheonlylookup_methodimplementation( (void *) A_cls, methodlist->methods[ i].descriptor.methodid));
-      desc = _mulle_objc_universe_lookup_methoddescriptor( universe, methodlist->methods[ i].descriptor.methodid);
+      assert( i == 500 || ! _mulle_objc_class_cacheonlylookup_implementation( (void *) A_cls, methodlist->methods[ i].descriptor.methodid));
+      desc = _mulle_objc_universe_lookup_descriptor( universe, methodlist->methods[ i].descriptor.methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
       rval = mulle_objc_object_call( A_obj, methodlist->methods[ i].descriptor.methodid, NULL);
-      assert( _mulle_objc_class_cacheonlylookup_methodimplementation( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
+      assert( _mulle_objc_class_cacheonlylookup_implementation( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
       assert( rval == (void *) (uintptr_t) methodlist->methods[ i].descriptor.methodid);
    }
 
