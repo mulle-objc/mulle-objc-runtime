@@ -37,10 +37,14 @@
 
 
 #include "mulle_objc_uniqueid.h"
+#include "mulle_objc_fnv1.h"
+#include <string.h>
+
 
 struct _mulle_objc_super
 {
    mulle_objc_superid_t    superid;
+   char                    *name;
    mulle_objc_classid_t    classid;
    mulle_objc_methodid_t   methodid;
 };
@@ -54,5 +58,21 @@ struct _mulle_objc_superlist
 
 
 int   mulle_objc_super_is_sane( struct _mulle_objc_super *p);
+
+#define MULLE_OBJC_SUPERSELECTOR_STRING( s_cls, s_method)       (s_cls ";" s_method)
+#define MULLE_OBJC_OVERRIDDENSELECTOR_STRING( s_cls, s_method)  (s_cls " " s_method)
+
+
+// used for overridden methods /future
+static inline mulle_objc_superid_t
+   mulle_objc_superid_from_classid_and_categoryname( mulle_objc_classid_t classid,
+                                                     char *s)
+{
+   mulle_objc_superid_t   hash;
+
+   hash = _mulle_objc_chained_fnv1_32( ";", 1, classid);
+   hash = _mulle_objc_chained_fnv1_32( s, strlen( s), classid);
+   return( hash);
+}
 
 #endif
