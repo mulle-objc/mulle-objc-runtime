@@ -639,6 +639,26 @@ char   *mulle_objc_category_html_row_description( intptr_t  categoryid,
    return( s);
 }
 
+#pragma mark - supers
+
+char   *mulle_objc_super_html_row_description( intptr_t  superid,
+                                               void *value,
+                                               struct _mulle_objc_htmltablestyle *styling)
+{
+   struct _mulle_objc_super  *superinfo = value;
+   char  *s;
+   
+   asprintf( &s,
+            "<TR>"
+            "<TD>%s</TD>"
+            "<TD>%08x</TD>"
+            "</TR>\n",
+            html_escape( _mulle_objc_super_get_name( superinfo)),
+            superid);
+   
+   return( s);
+}
+
 
 #pragma mark - protocols
 
@@ -727,23 +747,19 @@ char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
    unsigned int    i;
    unsigned int    j;
    unsigned int    n;
-
+   int             index;
+   mulle_objc_methodid_t   sel;
+   
    n   = cache->size + 2 + 2;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    i = 0;
-   asprintf_table_header_colspan( &tmp[ i], styling, 3);
+   asprintf_table_header_colspan( &tmp[ i], styling, 4);
    len = strlen( tmp[ i]);
    ++i;
 
    asprintf( &tmp[ i],
-               "<TR><TD COLSPAN=\"2\">size</TD><TD>%lu</TD></TR>\n",
-               (long) cache->size);
-   len += strlen( tmp[ i]);
-   ++i;
-
-   asprintf( &tmp[ i],
-            "<TR><TD COLSPAN=\"2\">n</TD><TD>%lu</TD></TR>\n",
+            "<TR><TD>n</TD><TD COLSPAN=\"3\">%lu</TD></TR>\n",
             (long) _mulle_atomic_pointer_nonatomic_read( &cache->n));
    len += strlen( tmp[ i]);
    ++i;
@@ -751,11 +767,19 @@ char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
 
    for( j = 0; j < cache->size; j++)
    {
+      index = 0;
+      sel   = cache->entries[ j].key.uniqueid;
+      if( sel)
+         index = _mulle_objc_cache_find_entryindex( cache, sel);
+
       asprintf( &tmp[ i],
-               "<TR><TD>#%ld</TD><TD>0x%lx</TD><TD>%p</TD></TR>\n",
+               "<TR><TD>#%ld</TD><TD>%08x \"%s\"</TD><TD>%p</TD><TD>%d (%x)</TD></TR>\n",
                i,
-               (long) cache->entries[ j].key.uniqueid,
-               cache->entries[ j].value.functionpointer);
+               sel,
+               mulle_objc_string_for_methodid( sel),
+               cache->entries[ j].value.functionpointer,
+               index,
+               sel & cache->mask);
 
       len += strlen( tmp[ i]);
       ++i;

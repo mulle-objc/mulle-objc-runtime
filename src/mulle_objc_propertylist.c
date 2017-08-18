@@ -68,8 +68,9 @@ int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
 }
 
 
-struct _mulle_objc_property  *_mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
-                                                                   mulle_objc_propertyid_t propertyid)
+struct _mulle_objc_property  *
+   _mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
+                                           mulle_objc_propertyid_t propertyid)
 {
    struct _mulle_objc_property   *sentinel;
    struct _mulle_objc_property   *p;

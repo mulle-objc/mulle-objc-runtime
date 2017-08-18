@@ -215,6 +215,16 @@ static struct _mulle_objc_htmltablestyle    categorytable_style =
 };
 
 
+static struct _mulle_objc_htmltablestyle    supertable_style =
+{
+   "supers",
+   NULL,
+   "white",
+   "dimgray",
+   0
+};
+
+
 static struct _mulle_objc_htmltablestyle    protocoltable_style =
 {
    "protocols",
@@ -337,6 +347,19 @@ static void   print_universe( struct _mulle_objc_universe *universe,
                                                         &categorytable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
               &universe->categorytable, label, "box");
+      free( label);
+   }
+
+   if( mulle_concurrent_hashmap_count( &universe->supertable))
+   {
+      fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"supertable\" ];\n",
+              universe, &universe->supertable);
+      
+      label = mulle_concurrent_hashmap_html_description( &universe->supertable,
+                                                        mulle_objc_super_html_row_description,
+                                                        &supertable_style);
+      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
+              &universe->supertable, label, "box");
       free( label);
    }
 
