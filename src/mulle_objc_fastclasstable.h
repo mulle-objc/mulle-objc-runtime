@@ -45,7 +45,7 @@
 struct _mulle_objc_infraclass;
 
 
-#define MULLE_OBJC_S_FASTCLASSES    32
+#define MULLE_OBJC_S_FASTCLASSES   64
 
 //
 // Adding more classes is relatively inexpensive, as this table is

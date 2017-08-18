@@ -71,6 +71,7 @@ static char   *lookup_bitname( unsigned int bit)
    case _MULLE_OBJC_CLASS_WARN_PROTOCOL     : return( "WARN_PROTOCOL");
    case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS  : return( "IS_PROTOCOLCLASS");
    case _MULLE_OBJC_CLASS_LOAD_SCHEDULED    : return( "LOAD_SCHEDULED");
+   case _MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY  : return( "HAS_RELEASABLE_PROPERTY");
    case MULLE_OBJC_CLASS_INITIALIZE_DONE    : return( "INITIALIZE_DONE");
    }
    return( 0);

@@ -93,6 +93,10 @@
 
 struct mulle_objc_typeinfo
 {
+   char       *type;            // not a copy(!) keep your passed in in "types" around, will be past "const"
+   char       *pure_type_end;   // if you have "{?=QQ}16", will point just after '}'
+   char       *name;            // @"NSString", @"<X>"  will be "NSString" in quotes!
+
    int32_t    offset;
 
    uint32_t   natural_size;
@@ -102,9 +106,8 @@ struct mulle_objc_typeinfo
    uint16_t   natural_alignment;
 
    uint16_t   n_members;        // 0, for scalar, n: for union (members), array(len), bitfield(len), struct( members)
-   char       *type;            // not a copy(!) keep your passed in in "types" around, will be past "const"
-   char       *pure_type_end;   // if you have "{?=QQ}16", will point just after '}'
-   char       *name;            // @"NSString", @"<X>"  will be "NSString" in quotes!
+   char       has_object;
+   char       has_retainable_object;
 };
 
 
@@ -174,6 +177,12 @@ int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a, struct mulle_
 
 int  _mulle_objc_signature_compare( char *a, char *b);
 
+
+// check if type is '@' '~' '=' '#' (or as member array, union, struct member)
+int   mulle_objc_signature_contains_object( char *type);
+
+// check if type is '@' '~' (or as member in array, union, struct member)
+int   mulle_objc_signature_contains_retainableobject( char *type);
 
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */

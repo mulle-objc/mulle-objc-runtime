@@ -42,6 +42,7 @@
 #include "mulle_objc_ivarlist.h"
 #include "mulle_objc_property.h"
 #include "mulle_objc_propertylist.h"
+#include "mulle_objc_signature.h"
 #include "mulle_objc_universe.h"
 
 
@@ -145,15 +146,15 @@ struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mul
 }
 
 
-
 int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
                                               struct _mulle_objc_propertylist *list)
 {
    mulle_objc_propertyid_t                     last;
    struct _mulle_objc_property                 *property;
    struct _mulle_objc_propertylistenumerator   rover;
-   struct _mulle_objc_universe                  *universe;
-
+   struct _mulle_objc_universe                 *universe;
+   int                                         has_releasable_property;
+   
    if( ! infra)
    {
       errno = EINVAL;
@@ -165,13 +166,16 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
       universe = _mulle_objc_infraclass_get_universe( infra);
       list    = &universe->empty_propertylist;
    }
+   
+   has_releasable_property = 0;
 
    /* register instance methods */
    last  = MULLE_OBJC_MIN_UNIQUEID - 1;
    rover = _mulle_objc_propertylist_enumerate( list);
    while( property = _mulle_objc_propertylistenumerator_next( &rover))
    {
-      assert( property->propertyid != MULLE_OBJC_NO_PROPERTYID && property->propertyid != MULLE_OBJC_INVALID_PROPERTYID);
+      assert( property->propertyid != MULLE_OBJC_NO_PROPERTYID &&
+              property->propertyid != MULLE_OBJC_INVALID_PROPERTYID);
       //
       // properties must be sorted by propertyid, so we can binary search them
       // (in the future)
@@ -182,10 +186,21 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
          return( -1);
       }
       last = property->propertyid;
-   }
+      
+      if( ! property->clearer && ! property->setter)
+         continue;
+      
+      if( ! mulle_objc_signature_contains_retainableobject( property->signature))
+         continue;
 
+      has_releasable_property = 1;
+   }
    _mulle_objc_propertylistenumerator_done( &rover);
 
+   // add before, its harmless and more foolproof
+   if( has_releasable_property)
+      _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_RELEASABLE_PROPERTY);
+   
    _mulle_concurrent_pointerarray_add( &infra->propertylists, list);
 
    return( 0);
@@ -288,11 +303,9 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 
 # pragma mark - ivar walker
 
-typedef   int (*mulle_objc_walk_ivars_callback)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *);
-
 int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
                                          unsigned int inheritance,
-                                         mulle_objc_walk_ivars_callback f,
+                                         mulle_objc_walk_ivars_callback *f,
                                          void *userinfo)
 {
    int                                                    rval;
@@ -336,9 +349,10 @@ int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
 
 # pragma mark - property walker
 
-typedef   int (*mulle_objc_walk_properties_callback)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *);
-
-int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra, unsigned int inheritance , mulle_objc_walk_properties_callback f, void *userinfo)
+int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
+                                             unsigned int inheritance,
+                                             mulle_objc_walk_properties_callback *f,
+                                             void *userinfo)
 {
    int                                                     rval;
    struct _mulle_objc_propertylist                         *list;

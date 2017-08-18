@@ -52,9 +52,10 @@ struct _mulle_objc_method;
 
 enum _mulle_objc_infraclass_state
 {
-   MULLE_OBJC_INFRACLASS_WARN_PROTOCOL    = _MULLE_OBJC_CLASS_WARN_PROTOCOL,
-   MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS = _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS,
-   MULLE_OBJC_INFRACLASS_INITIALIZE_DONE  = MULLE_OBJC_CLASS_INITIALIZE_DONE
+   MULLE_OBJC_INFRACLASS_HAS_RELEASABLE_PROPERTY = _MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY,
+   MULLE_OBJC_INFRACLASS_WARN_PROTOCOL           = _MULLE_OBJC_CLASS_WARN_PROTOCOL,
+   MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS        = _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS,
+   MULLE_OBJC_INFRACLASS_INITIALIZE_DONE         = MULLE_OBJC_CLASS_INITIALIZE_DONE
 };
 
 
@@ -370,18 +371,21 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 
 #pragma mark - walkers
 
+typedef int   mulle_objc_walk_properties_callback( struct _mulle_objc_property *,
+                                                   struct _mulle_objc_infraclass *,
+                                                   void *);
+typedef int   mulle_objc_walk_ivars_callback( struct _mulle_objc_ivar *,
+                                              struct _mulle_objc_infraclass *,
+                                              void *);
+
 
 int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *cls,
                                          unsigned int inheritance,
-                                         int (*f)( struct _mulle_objc_ivar *,
-                                                   struct _mulle_objc_infraclass *,
-                                                   void *),
+                                         mulle_objc_walk_ivars_callback *f,
                                          void *userinfo);
 int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
                                               unsigned int inheritance,
-                                              int (*f)( struct _mulle_objc_property *,
-                                                        struct _mulle_objc_infraclass *,
-                                                        void *),
+                                              mulle_objc_walk_properties_callback *f,
                                               void *userinfo);
 
 mulle_objc_walkcommand_t

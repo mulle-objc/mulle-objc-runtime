@@ -159,17 +159,19 @@ static void   _mulle_objc_method_not_found_abort( struct _mulle_objc_class *cls,
    // keep often seen output more user friendly
    if( ! methodname)
       _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing %s "
-                                "method with id %08x in class \"%s\"",
+                                "method %08x in class %08x \"%s\"",
                                 universe,
                                 _mulle_objc_class_is_metaclass( cls) ? "class" : "instance",
                                 missing_method,
+                               _mulle_objc_class_get_classid( cls),
                                 name);
    _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing method "
-                             "\"%c%s\" (%08x) in class \"%s\"",
+                             "%08x \"%c%s\" n class %08x \"%s\"",
                              universe,
+                             missing_method,
                              _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
                              methodname,
-                             missing_method,
+                             _mulle_objc_class_get_classid( cls),
                              name);
 }
 
@@ -1815,7 +1817,8 @@ int   _mulle_objc_universe_add_protocol( struct _mulle_objc_universe *universe,
 {
    struct _mulle_objc_descriptor   *dup;
 
-   if( protocol->protocolid == MULLE_OBJC_NO_PROTOCOLID || protocol->protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
+   if( protocol->protocolid == MULLE_OBJC_NO_PROTOCOLID ||
+       protocol->protocolid == MULLE_OBJC_INVALID_PROTOCOLID)
       return( -1);
 
    dup = _mulle_concurrent_hashmap_lookup( &universe->protocoltable, protocol->protocolid);

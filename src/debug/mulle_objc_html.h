@@ -124,6 +124,10 @@ char   *mulle_objc_protocol_html_row_description( intptr_t  methodid,
                                                   void *value,
                                                   struct _mulle_objc_htmltablestyle *styling);
 
+char   *mulle_objc_super_html_row_description( intptr_t  superid,
+                                               void *value,
+                                               struct _mulle_objc_htmltablestyle *styling);
+
 char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list,
                                                 struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling);

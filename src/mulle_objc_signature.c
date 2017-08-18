@@ -101,6 +101,16 @@ static inline void   _CLEAR_RUNTIME_TYPE_INFO( struct mulle_objc_typeinfo *info)
    info->bits_struct_alignment = STRUCT_MEMBER_ALIGNMENT( type) * 8;   \
    info->bits_size             = sizeof( type) * 8
 
+#define _SUPPLY_RUNTIME_C_TYPE_INFO( info, type, type2)             \
+   _SUPPLY_RUNTIME_TYPE_INFO( info, type, type2);                   \
+   info->has_object            = 0;                                 \
+   info->has_retainable_object = 0
+
+
+#define _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, type, type2, retain) \
+   _SUPPLY_RUNTIME_TYPE_INFO( info, type, type2);                  \
+   info->has_object            = 1;                                \
+   info->has_retainable_object = retain
 
 static int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_objc_typeinfo *info)
 {
@@ -108,33 +118,33 @@ static int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_
    {
    case 0            : return( 0);
    case _C_VOID      : _CLEAR_RUNTIME_TYPE_INFO( info); return( 0);
-   case _C_RETAIN_ID :
-   case _C_COPY_ID   :
-   case _C_ASSIGN_ID : _SUPPLY_RUNTIME_TYPE_INFO( info, struct mulle_objc_object *, void_pointer); return( 0);
-   case _C_CLASS     : _SUPPLY_RUNTIME_TYPE_INFO( info, struct mulle_objc_class *, void_pointer); return( 0);
-   case _C_SEL       : _SUPPLY_RUNTIME_TYPE_INFO( info, mulle_objc_methodid_t, void_pointer); return( 0);
-   case _C_CHR       : _SUPPLY_RUNTIME_TYPE_INFO( info, char, char); return( 0);
-   case _C_UCHR      : _SUPPLY_RUNTIME_TYPE_INFO( info, unsigned char, char); return( 0);
-   case _C_SHT       : _SUPPLY_RUNTIME_TYPE_INFO( info, short, short); return( 0);
-   case _C_USHT      : _SUPPLY_RUNTIME_TYPE_INFO( info, unsigned short, short); return( 0);
-   case _C_INT       : _SUPPLY_RUNTIME_TYPE_INFO( info, int, int); return( 0);
-   case _C_UINT      : _SUPPLY_RUNTIME_TYPE_INFO( info, unsigned int, int); return( 0);
-   case _C_LNG       : _SUPPLY_RUNTIME_TYPE_INFO( info, long, long); return( 0);
-   case _C_ULNG      : _SUPPLY_RUNTIME_TYPE_INFO( info, unsigned long, long); return( 0);
-   case _C_LNG_LNG   : _SUPPLY_RUNTIME_TYPE_INFO( info, long long, long_long); return( 0);
-   case _C_ULNG_LNG  : _SUPPLY_RUNTIME_TYPE_INFO( info, unsigned long long, long_long); return( 0);
-   case _C_FLT       : _SUPPLY_RUNTIME_TYPE_INFO( info, float, float); return( 0);
-   case _C_DBL       : _SUPPLY_RUNTIME_TYPE_INFO( info, double, double); return( 0);
-   case _C_LNG_DBL   : _SUPPLY_RUNTIME_TYPE_INFO( info, long double, long_double); return( 0);
-   case _C_CHARPTR   : _SUPPLY_RUNTIME_TYPE_INFO( info, char *, char_pointer); return( 0);
+   case _C_RETAIN_ID : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, void_pointer, 1); return( 0);
+   case _C_COPY_ID   : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, void_pointer, 1); return( 0);
+   case _C_ASSIGN_ID : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, void_pointer, 0); return( 0);
+   case _C_CLASS     : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_class *, void_pointer, 0); return( 0);
+   case _C_SEL       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, mulle_objc_methodid_t, void_pointer); return( 0);
+   case _C_CHR       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, char, char); return( 0);
+   case _C_UCHR      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned char, char); return( 0);
+   case _C_SHT       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, short, short); return( 0);
+   case _C_USHT      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned short, short); return( 0);
+   case _C_INT       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, int, int); return( 0);
+   case _C_UINT      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned int, int); return( 0);
+   case _C_LNG       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, long, long); return( 0);
+   case _C_ULNG      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned long, long); return( 0);
+   case _C_LNG_LNG   : _SUPPLY_RUNTIME_C_TYPE_INFO( info, long long, long_long); return( 0);
+   case _C_ULNG_LNG  : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned long long, long_long); return( 0);
+   case _C_FLT       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, float, float); return( 0);
+   case _C_DBL       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, double, double); return( 0);
+   case _C_LNG_DBL   : _SUPPLY_RUNTIME_C_TYPE_INFO( info, long double, long_double); return( 0);
+   case _C_CHARPTR   : _SUPPLY_RUNTIME_C_TYPE_INFO( info, char *, char_pointer); return( 0);
 #ifdef _C_BOOL
-   case _C_BOOL      : _SUPPLY_RUNTIME_TYPE_INFO( info, unsigned char, bool); return( 0);
+   case _C_BOOL      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned char, bool); return( 0);
 #endif
 #ifdef _C_UNDEF
-   case _C_UNDEF     : _SUPPLY_RUNTIME_TYPE_INFO( info, void *, void_pointer); return( 0);
+   case _C_UNDEF     : _SUPPLY_RUNTIME_C_TYPE_INFO( info, void *, void_pointer); return( 0);
 #endif
 #ifdef _C_ATOM
-   case _C_ATOM      : _SUPPLY_RUNTIME_TYPE_INFO( info, char *, char_pointer); return( 0);
+   case _C_ATOM      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, char *, char_pointer); return( 0);
 #endif
    }
    return( 1);
@@ -159,6 +169,8 @@ static char  *_mulle_objc_signature_supply_bitfield_info( char *type, int level,
       info->natural_size          = (((info->n_members + 7) / 8) + sizeof( int) - 1) / sizeof( int);
       info->natural_alignment     = 0;    // they have none
       info->bits_struct_alignment = 1;
+      info->has_object            = 0;
+      info->has_retainable_object = 0;
    }
    return( type);
 }
@@ -176,7 +188,9 @@ static void   _update_array_typeinfo_with_length( struct mulle_objc_typeinfo *in
 }
 
 
-static char  *_mulle_objc_signature_supply_array_typeinfo( char *type, int level,struct mulle_objc_typeinfo *info)
+static char  *_mulle_objc_signature_supply_array_typeinfo( char *type,
+                                                           int level,
+                                                           struct mulle_objc_typeinfo *info)
 {
    int   len;
    char  *memoType;
@@ -194,6 +208,7 @@ static char  *_mulle_objc_signature_supply_array_typeinfo( char *type, int level
    while( *type >= '0' && *type <= '9')
       ++type;
 
+   // reuse info, we remember the important parts
    type = __mulle_objc_signature_supply_next_typeinfo( type, level, info);
    if( type)
    {
@@ -216,6 +231,8 @@ static void   _update_struct_typeinfo_with_first_member_typeinfo( struct mulle_o
    info->bits_size             = tmp->bits_size;
    info->bits_struct_alignment = tmp->bits_struct_alignment;
    info->natural_alignment     = tmp->natural_alignment;
+   info->has_object            = tmp->has_object;
+   info->has_retainable_object = tmp->has_retainable_object;
 }
 
 
@@ -236,6 +253,8 @@ static inline void   _update_struct_typeinfo_with_subsequent_member_typeinfo( st
    if( tmp->bits_struct_alignment > info->bits_struct_alignment)
       info->bits_struct_alignment = tmp->bits_struct_alignment;
 
+   info->has_object            |= tmp->has_object;
+   info->has_retainable_object |= tmp->has_retainable_object;
 }
 
 
@@ -312,6 +331,9 @@ static void   _update_union_typeinfo_with_member_typeinfo( struct mulle_objc_typ
       info->bits_size = tmp->bits_size;
    if( tmp->natural_size > info->natural_size)
       info->natural_size = tmp->natural_size;
+   
+   info->has_object            |= tmp->has_object;
+   info->has_retainable_object |= tmp->has_retainable_object;
 }
 
 
@@ -700,4 +722,42 @@ int   _mulle_objc_signature_compare( char *a, char *b)
       if( comparison)
          return( comparison);
    }
+}
+
+
+int   mulle_objc_signature_contains_retainableobject( char *type)
+{
+   struct mulle_objc_typeinfo  info;
+   
+   if( ! type)
+   {
+      errno = EINVAL;
+      return( -1);
+   }
+   type = _mulle_objc_signature_supply_next_typeinfo( type,  &info);
+   if( ! type)
+   {
+      errno = EINVAL;
+      return( -1);
+   }
+   return( info.has_retainable_object);
+}
+
+
+int   mulle_objc_signature_contains_object( char *type)
+{
+   struct mulle_objc_typeinfo  info;
+   
+   if( ! type)
+   {
+      errno = EINVAL;
+      return( -1);
+   }
+   type = _mulle_objc_signature_supply_next_typeinfo( type,  &info);
+   if( ! type)
+   {
+      errno = EINVAL;
+      return( -1);
+   }
+   return( info.has_retainable_object);
 }
