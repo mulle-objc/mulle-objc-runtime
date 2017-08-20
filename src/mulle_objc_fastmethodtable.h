@@ -39,6 +39,7 @@
 #ifdef __MULLE_OBJC_FMC__
 
 #include "mulle_objc_method.h"
+#include "mulle_objc_methodidconstants.h"
 
 #include <mulle_thread/mulle_thread.h>
 #include <mulle_aba/mulle_aba.h>

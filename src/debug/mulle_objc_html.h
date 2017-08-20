@@ -109,6 +109,7 @@ char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist
                                                  struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
+                                           struct _mulle_objc_universe *universe,
                                            struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_descriptor_html_description( struct _mulle_objc_descriptor *desc,

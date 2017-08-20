@@ -39,12 +39,18 @@
 #include <mulle_c11/mulle_c11.h>
 #include <stdint.h>
 #include <assert.h>
+#include <errno.h>
 
 
 // it's signed, because it sorts easier
 
 typedef uint32_t   mulle_objc_uniqueid_t;
 
+#define MULLE_OBJC_UNIQUEHASH_FNV1     0
+#define MULLE_OBJC_UNIQUEHASH_FNV1A    1
+
+extern const int  MULLE_OBJC_UNIQUEHASH_SHIFT;      
+extern const int  MULLE_OBJC_UNIQUEHASH_ALGORITHM;
 
 #define MULLE_OBJC_NO_UNIQUEID         ((mulle_objc_uniqueid_t) 0)
 #define MULLE_OBJC_INVALID_UNIQUEID    ((mulle_objc_uniqueid_t) -1)
@@ -63,6 +69,19 @@ typedef uint32_t   mulle_objc_uniqueid_t;
 #endif
 
 mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s);
+
+static inline int  _mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid)
+{
+   if( uniqueid == MULLE_OBJC_NO_UNIQUEID ||
+       uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
+   {
+      return( 0);
+   }
+   return( 1);
+}
+
+
+int   mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid, char *s);
 
 // for compiler purposes it's better to typedef the various id types here
 // (include cycles..)

@@ -53,7 +53,7 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
    int   middle;
    struct _mulle_objc_method   *p;
 
-   assert( search != MULLE_OBJC_NO_METHODID && search != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( search));
 
    first  = 0;
    last   = n - 1;
@@ -108,39 +108,14 @@ void   mulle_objc_method_sort( struct _mulle_objc_method *methods,
 
 int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p)
 {
-   if( ! p)
+   if( ! p || ! p->name || ! p->signature || ! p->signature[ 0])
    {
       errno = EINVAL;
       return( 0);
    }
 
-   if( p->methodid == MULLE_OBJC_NO_METHODID || p->methodid == MULLE_OBJC_INVALID_METHODID)
-   {
-      errno = EINVAL;
+   if( ! mulle_objc_uniqueid_is_sane( p->methodid, p->name))
       return( 0);
-   }
 
-   if( ! p->name || ! strlen( p->name))
-   {
-      errno = EINVAL;
-      return( 0);
-   }
-
-   if( ! p->signature || ! strlen( p->signature))
-   {
-      errno = EINVAL;
-      return( 0);
-   }
-
-   // costly, but just print to keep API stable, don't throw
-#if DEBUG
-   {
-      mulle_objc_methodid_t   correct;
-
-      correct = mulle_objc_methodid_from_string( p->name);
-      if( correct != p->methodid)
-         fprintf( stderr, "mulle_objc_universe warning: \"%s\" should have methodid %08x but has methodid %08x\n", p->name, correct, p->methodid);
-   }
-#endif
    return( 1);
 }

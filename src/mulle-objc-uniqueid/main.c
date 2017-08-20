@@ -34,16 +34,50 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 #include "mulle_objc_runtime.h"
+#include <ctype.h>
 
 
 int   main( int argc, char *argv[])
 {
-   if( argc != 2)
+   unsigned long   value;
+   char            *prefix;
+   char            *suffix;
+   size_t          len;
+   
+   if( argc != 2 || ! (len = strlen( argv[ 1])))
    {
-      fprintf( stderr, "Usage:\n    mulle-objc-uniqueid <string>\n");
+      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
+                       "      Based on fnv1%s32 with shift %d\n",
+                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
+                       MULLE_OBJC_UNIQUEHASH_SHIFT);
       return( -1);
    }
 
-   printf( "%08lx\n", (long) mulle_objc_uniqueid_from_string( argv[ 1]));
+   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
+   prefix = getenv( "PREFIX");
+   suffix = getenv( "SUFFIX");
+   if( ! suffix)
+      suffix = "_METHODID";
+   if( prefix)
+   {
+      char   buf[ len + 1];
+      char   *s1, *s2;
+      char   c;
+      
+      s1 = argv[ 1];
+      s2 = buf;
+      while( c = *s1++)
+         *s2++ = (char) toupper( c);
+      *s2 = c;
+      
+      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
+            prefix,
+            buf,
+            suffix,
+            value,
+            argv[ 1]);
+   }
+   else
+      printf( "%08lx\n", value);
    return 0;
 }

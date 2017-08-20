@@ -207,8 +207,7 @@ void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
                                              mulle_objc_categoryid_t categoryid)
 {
    assert( pair);
-   assert( categoryid != MULLE_OBJC_NO_CATEGORYID);
-   assert( categoryid != MULLE_OBJC_INVALID_CATEGORYID);
+   assert( _mulle_objc_uniqueid_is_sane( categoryid));
    assert( ! _mulle_objc_classpair_has_categoryid( pair, categoryid));
 
    _mulle_objc_classpair_add_categoryids( pair, 1, &categoryid);
@@ -261,7 +260,7 @@ void   mulle_objc_classpair_unfailingadd_categoryid( struct _mulle_objc_classpai
    if( ! pair)
       _mulle_objc_class_raise_einval_exception();
 
-   if( categoryid == MULLE_OBJC_NO_CATEGORYID || categoryid == MULLE_OBJC_INVALID_CATEGORYID)
+   if( ! _mulle_objc_uniqueid_is_sane( categoryid))
       _mulle_objc_class_raise_einval_exception();
 
    infra = _mulle_objc_classpair_get_infraclass( pair);
@@ -383,7 +382,7 @@ void   mulle_objc_classpair_unfailingadd_protocolclassids( struct _mulle_objc_cl
 
    while( (protocolclassid = *protocolclassids++) != MULLE_OBJC_NO_PROTOCOLID)
    {
-      if( protocolclassid == MULLE_OBJC_NO_PROTOCOLID || protocolclassid == MULLE_OBJC_INVALID_PROTOCOLID)
+      if( ! _mulle_objc_uniqueid_is_sane( protocolclassid))
          _mulle_objc_class_raise_einval_exception();
 
       // if same as myself, no point in adding the protocolclass

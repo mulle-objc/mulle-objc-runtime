@@ -72,7 +72,7 @@ void   *_mulle_objc_cache_lookup_pointer( struct _mulle_objc_cache *cache,
    mulle_objc_cache_uint_t         offset;
    mulle_objc_cache_uint_t         mask;
 
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -101,7 +101,7 @@ mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle
    mulle_objc_cache_uint_t         offset;
    mulle_objc_cache_uint_t         mask;
 
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -132,7 +132,7 @@ int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache, mulle_
    mulle_objc_cache_uint_t         offset;
 
    assert( cache);
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -176,8 +176,7 @@ mulle_objc_cache_uint_t
    mulle_objc_cache_uint_t         mask;
 
    assert( cache);
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID &&
-           uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -219,8 +218,8 @@ unsigned int  mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cach
 
 
 unsigned int   mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cache *cache,
-                                                unsigned int *percentages,
-                                                unsigned int size)
+                                                         unsigned int *percentages,
+                                                         unsigned int size)
 {
    unsigned int                     i, n;
    unsigned int                     total;
@@ -278,8 +277,6 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_ent
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
 
-   assert( ! _mulle_objc_cache_should_grow( cache));
-
    offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
@@ -299,8 +296,6 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_functionpoi
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
-
-   assert( ! _mulle_objc_cache_should_grow( cache));
 
    offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
@@ -327,7 +322,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mu
 
    assert( cache);
    assert( pointer);
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
 
    //
    // entries pointer never changes in cache..
@@ -374,7 +369,7 @@ struct _mulle_objc_cacheentry   *
 
    assert( cache);
    assert( pointer);
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
 
    //
    // entries pointer never changes in cache..

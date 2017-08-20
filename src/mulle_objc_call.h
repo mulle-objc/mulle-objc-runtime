@@ -92,7 +92,7 @@ MULLE_C_ALWAYS_INLINE
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -156,7 +156,7 @@ static inline void  *mulle_objc_object_inline_variable_methodid_call( void *obj,
    if( __builtin_expect( ! obj, 0))
       return( obj);
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    cls     = _mulle_objc_object_get_isa( obj);
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
@@ -266,7 +266,7 @@ MULLE_C_ALWAYS_INLINE
    //
    cls = _mulle_objc_object_get_isa( obj);
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -370,7 +370,7 @@ static inline mulle_objc_implementation_t   _mulle_objc_object_noncachinglookup_
 
 
 // goes through cache returns an implementation if cached, NULL otherwise
-// will return forward:: if nothing found and (!) put it into the cache
+// will return forward: if nothing found and (!) put it into the cache
 mulle_objc_implementation_t
     _mulle_objc_class_lookup_implementation( struct _mulle_objc_class *cls,
                                                    mulle_objc_methodid_t methodid);

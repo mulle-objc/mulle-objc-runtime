@@ -217,9 +217,7 @@ int   __mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
    //
    // just check for some glaring errors
    //
-   if( ! cls ||
-       (cls->classid == MULLE_OBJC_NO_CLASSID) ||
-       (cls->classid == MULLE_OBJC_INVALID_CLASSID))
+   if( ! cls)
    {
       errno = EINVAL;
       return( 0);
@@ -241,9 +239,11 @@ int   __mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
       return( 0);
    }
 
+   if( ! mulle_objc_uniqueid_is_sane( cls->classid, cls->name))
+      return( 0);
+
    assert( cls->call);
    assert( cls->cachepivot.call2);
-   assert( mulle_objc_classid_from_string( cls->name) == cls->classid);
 
    return( 1);
 }
@@ -279,7 +279,7 @@ static int
    mulle_objc_uniqueid_t           offset;
    struct _mulle_objc_cache        *cache;
 
-   assert( uniqueid != MULLE_OBJC_NO_UNIQUEID && uniqueid != MULLE_OBJC_INVALID_UNIQUEID);
+   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
 
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return( 0);
@@ -421,7 +421,7 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
    rover = _mulle_objc_methodlist_enumerate( list);
    while( method = _mulle_objc_methodlistenumerator_next( &rover))
    {
-      assert( method->descriptor.methodid != MULLE_OBJC_NO_METHODID && method->descriptor.methodid != MULLE_OBJC_INVALID_METHODID);
+      assert( _mulle_objc_uniqueid_is_sane( method->descriptor.methodid));
       //
       // methods must be sorted by signed methodid, so we can binary search them
       // (in the future)

@@ -77,67 +77,13 @@ static mulle_objc_implementation_t
                                                          
 # pragma mark - class cache
 
-static unsigned int   _mulle_objc_class_count_noninheritedmethods( struct _mulle_objc_class *cls)
+static mulle_objc_cache_uint_t  _mulle_objc_class_search_minmethodcachesize( struct _mulle_objc_class *cls)
 {
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   struct _mulle_objc_methodlist                    *list;
-   unsigned int                                     count;
-
-   count = 0;
-   rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
-   while( list = _mulle_concurrent_pointerarrayenumerator_next( &rover))
-      count += list->n_methods;
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
-
-   return( count);
-}
-
-
-// TODO: investigate a better and simpler formula or use a sensible constant
-static mulle_objc_cache_uint_t  _mulle_objc_class_convenient_methodcache_size( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_class   *next;
-   mulle_objc_cache_uint_t    count;
-   mulle_objc_cache_uint_t    pow2;
-   mulle_objc_cache_uint_t    total;
-   mulle_objc_cache_uint_t    preloads;
-
+   mulle_objc_cache_uint_t   preloads;
+   
    // these are definitely in the cache
-   preloads = _mulle_objc_class_count_preloadmethods( cls) + _mulle_objc_universe_number_of_preloadmethods( cls->universe);
-
-   // just a heuristic
-   total  = 0;
-   next   = cls->superclass;
-   for(;;)
-   {
-      count  = _mulle_objc_class_count_noninheritedmethods( cls);
-      total += count;
-
-      cls = next;
-      if( ! cls)
-         break;
-
-      next = cls->superclass;
-
-      // root class as superclass, just too big to be interesting
-      if( ! next)
-         break;
-   }
-
-   // heuristic time
-   // Assume of all the methods available, called we only need 1/8,
-   // but cache should be only 25% full
-
-   // put preloads are a given
-   total = (total >> 3) << 2;
-   total += preloads;
-
-   // calculate a nice power of 2 for cache size
-   pow2 = 4;
-   while( total > pow2)
-      pow2 += pow2;
-
-   return( pow2);
+   preloads = _mulle_objc_class_count_preloadmethods( cls) + _mulle_objc_universe_get_numberofpreloadmethods( cls->universe);
+   return( preloads);
 }
 
 
@@ -209,16 +155,21 @@ struct _mulle_objc_cacheentry   *
    
    old_cache = cache;
 
+   // if the set fails, then someone else was faster
+   universe = _mulle_objc_class_get_universe( cls);
+
    // a new beginning.. let it be filled anew
+   // could ask the universe here what to do as new size
+
    new_size = cache->size * 2;
    cache    = mulle_objc_cache_new( new_size, &cls->universe->memory.allocator);
 
    // fill it up with preload messages and place our method there too
    // now for good measure
-
+   
    if( _mulle_objc_class_count_preloadmethods( cls))
       _mulle_objc_class_fill_inactivecache_with_preloadmethods( cls, cache);
-   if( _mulle_objc_universe_number_of_preloadmethods( cls->universe))
+   if( _mulle_objc_universe_get_numberofpreloadmethods( cls->universe))
       _mulle_objc_class_preload_inactivecache( cls, cache);
 
    //
@@ -234,8 +185,6 @@ struct _mulle_objc_cacheentry   *
    //
    assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) != mulle_objc_get_universe()->empty_cache.entries);
 
-   // if the set fails, then someone else was faster
-   universe = _mulle_objc_class_get_universe( cls);
    if( _mulle_objc_cachepivot_atomic_set_entries( &cls->cachepivot.pivot, cache->entries, old_cache->entries))
    {
       _mulle_objc_cache_free( cache, &cls->universe->memory.allocator); // sic, can be unsafe deleted now
@@ -243,13 +192,14 @@ struct _mulle_objc_cacheentry   *
    }
 
    if( universe->debug.trace.method_cache)
-      fprintf( stderr, "mulle_objc_universe %p trace: new method cache %p for %s %08x \"%s\" with %u entries\n",
+      fprintf( stderr, "mulle_objc_universe %p trace: new method cache %p (%u of %u used) for %s %08x \"%s\"\n",
               universe,
               cache,
+              _mulle_objc_cache_get_count( cache),
+              old_cache->size,
               _mulle_objc_class_get_classtypename( cls),
               _mulle_objc_class_get_classid( cls),
-              _mulle_objc_class_get_name( cls),
-              cache->size);
+              _mulle_objc_class_get_name( cls));
 
    if( &old_cache->entries[ 0] != &cls->universe->empty_cache.entries[ 0])
    {
@@ -274,13 +224,14 @@ struct _mulle_objc_cacheentry   *
       }
       
       if( universe->debug.trace.method_cache)
-         fprintf( stderr, "mulle_objc_universe %p trace: free old method cache %p for %s %08x \"%s\" with %u entries\n",
+         fprintf( stderr, "mulle_objc_universe %p trace: free old method cache %p (%u of %u used) for %s %08x \"%s\"\n",
                  universe,
                  old_cache,
+                  _mulle_objc_cache_get_count( cache),
+                  old_cache->size,
                  _mulle_objc_class_get_classtypename( cls),
                  _mulle_objc_class_get_classid( cls),
-                 _mulle_objc_class_get_name( cls),
-                 old_cache->size);
+                 _mulle_objc_class_get_name( cls));
       
       _mulle_objc_cache_abafree( old_cache, &cls->universe->memory.allocator);
    }
@@ -296,14 +247,16 @@ static struct _mulle_objc_cacheentry   *
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_universe     *universe;
 
    assert( cls);
    assert( method);
 
    // need to check that we are initialized
+   universe = _mulle_objc_class_get_universe( cls);
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
    {
-      _mulle_objc_universe_raise_inconsistency_exception( cls->universe,
+      _mulle_objc_universe_raise_inconsistency_exception( universe,
                "Method call %08x \"%s\" comes too early, "
                "the cache of %s \"%s\" hasn't been initialized yet.",
                methodid, _mulle_objc_method_get_name( method),
@@ -320,7 +273,7 @@ static struct _mulle_objc_cacheentry   *
    for(;;)
    {
       cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
-      if( _mulle_objc_cache_should_grow( cache)) 
+      if( _mulle_objc_universe_should_grow_cache( universe, cache))
       {
          entry = _mulle_objc_class_add_cacheentry_by_swapping_methodcaches( cls, cache, method, methodid);
          if( entry)
@@ -435,6 +388,7 @@ static struct _mulle_objc_cacheentry   *
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entry;
    mulle_functionpointer_t         imp;
+   struct _mulle_objc_universe     *universe;
    
    assert( cls);
    assert( method);
@@ -443,7 +397,8 @@ static struct _mulle_objc_cacheentry   *
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_NO_SEARCH_CACHE))
       return( NULL);
    // when we trace method calls, we don't cache ever
-   if( _mulle_objc_class_get_universe( cls)->debug.trace.method_call)
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe->debug.trace.method_call)
       return( NULL);
    
    //
@@ -452,7 +407,7 @@ static struct _mulle_objc_cacheentry   *
    for(;;)
    {
       cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot);
-      if( _mulle_objc_cache_should_grow( cache))
+      if( _mulle_objc_universe_should_grow_cache( universe, cache))
       {
          entry = _mulle_objc_class_add_cacheentry_by_swapping_supercaches( cls, cache, method, superid);
          if( entry)
@@ -635,7 +590,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry   *entries;
    mulle_objc_cache_uint_t         offset;
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
@@ -657,7 +612,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_method           *method;
    mulle_objc_cache_uint_t             offset;
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
@@ -695,7 +650,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_method           *method;
    mulle_objc_cache_uint_t             offset;
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
@@ -731,7 +686,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry       *entry;
    struct _mulle_objc_method           *method;
    
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -766,7 +721,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry       *entry;
    struct _mulle_objc_method           *method;
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -828,9 +783,9 @@ mulle_objc_implementation_t
 //
 mulle_objc_implementation_t
    mulle_objc_class_unfailinglookup_implementation( struct _mulle_objc_class *cls,
-                                                           mulle_objc_methodid_t methodid)
+                                                    mulle_objc_methodid_t methodid)
 {
-   if( ! cls || methodid == MULLE_OBJC_NO_METHODID || methodid == MULLE_OBJC_INVALID_METHODID)
+   if( ! cls || ! _mulle_objc_uniqueid_is_sane( methodid))
    {
       errno = EINVAL;
       //  _mulle_objc_universe_raise_errno_exception( mulle_objc_get_universe());
@@ -856,7 +811,7 @@ void   *_mulle_objc_object_call_class( void *obj,
    mulle_objc_cache_uint_t             offset;
 
    assert( obj);
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -896,7 +851,7 @@ void   *_mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, voi
    mulle_objc_cache_uint_t             mask;
    mulle_objc_cache_uint_t             offset;
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
 
    cls     = _mulle_objc_object_get_isa( obj);
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
@@ -982,7 +937,7 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
    universe = _mulle_objc_class_get_universe( cls);
    
    // your chance to change the cache algorithm and initital size
-   n_entries = _mulle_objc_class_convenient_methodcache_size( cls);
+   n_entries = _mulle_objc_class_search_minmethodcachesize( cls);
    if( universe->callbacks.will_init_cache)
       n_entries = (*universe->callbacks.will_init_cache)( universe, cls, n_entries);
  
@@ -1289,7 +1244,7 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
    void                                **sentinel;
    void                                *p;
 
-   assert( methodid != MULLE_OBJC_NO_METHODID && methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( _mulle_objc_uniqueid_is_sane( methodid));
    memset( lastIsa, 0, sizeof( lastIsa));
 
    // assume compiler can do unrolling

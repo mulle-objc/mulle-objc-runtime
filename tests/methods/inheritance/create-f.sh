@@ -22,7 +22,7 @@ done
 
 cat <<EOF2
 
-mulle_objc_methodimplementation_t    f[] =
+mulle_objc_implementation_t    f[] =
 {
 EOF2
 

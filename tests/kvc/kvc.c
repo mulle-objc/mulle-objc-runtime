@@ -14,13 +14,13 @@
 #include <stdio.h>
 
 
-#define ___Foo_classid         MULLE_OBJC_CLASSID( 0x40413ff3)
+#define ___Foo_classid         MULLE_OBJC_CLASSID( 0xc7e16770)
 
-#define ___a___methodid        MULLE_OBJC_METHODID( 0x050c5d7e)
-#define ___init__methodid      MULLE_OBJC_METHODID( 0x50c63a23)
-#define ___setA___methodid     MULLE_OBJC_METHODID( 0xc0601476)
+#define ___a___methodid        MULLE_OBJC_METHODID( 0x40c292ce)
+#define ___init__methodid      MULLE_OBJC_METHODID( 0x6b1d3731)
+#define ___setA___methodid     MULLE_OBJC_METHODID( 0xffb5e54a)
 
-#define ___a___ivarid          MULLE_OBJC_IVARID( 0x050c5d7e)
+#define ___a___ivarid          MULLE_OBJC_IVARID( 0x40c292ce)
 
 
 struct _gnu_mulle_objc_methodlist

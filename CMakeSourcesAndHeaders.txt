@@ -40,8 +40,10 @@ src/mulle_objc_ivarlist.h
 src/mulle_objc_kvccache.h
 src/mulle_objc_load.h
 src/mulle_objc_fnv1.h
+src/mulle_objc_fnv1a.h
 src/mulle_objc_metaclass.h
 src/mulle_objc_method.h
+src/mulle_objc_methodidconstants.h
 src/mulle_objc_methodlist.h
 src/mulle_objc_object.h
 src/mulle_objc_object_convenience.h
@@ -82,6 +84,7 @@ src/mulle_objc_ivar.c
 src/mulle_objc_ivarlist.c
 src/mulle_objc_load.c
 src/mulle_objc_fnv1.c
+src/mulle_objc_fnv1a.c
 src/mulle_objc_kvccache.c
 src/mulle_objc_metaclass.c
 src/mulle_objc_method.c

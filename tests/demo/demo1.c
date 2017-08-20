@@ -75,21 +75,30 @@
 
 
 // generate these ids with mulle-objc-uniqueid
-// ex. mulle-objc-uniqueid Foo ->  40413ff3
+// mulle-objc-uniqueid Foo
+// mulle-objc-uniqueid Object
+// mulle-objc-uniqueid Print
+// mulle-objc-uniqueid setA:b:
+// mulle-objc-uniqueid print
+// mulle-objc-uniqueid init
+// mulle-objc-uniqueid a
+// mulle-objc-uniqueid b
+// mulle-objc-uniqueid Foo;init
+// mulle-objc-uniqueid 'Foo;init'
+#define ___Foo_classid         MULLE_OBJC_CLASSID( 0xc7e16770)
+#define ___Object_classid      MULLE_OBJC_CLASSID( 0x58e64dae)
+#define ___Print_categoryid    MULLE_OBJC_CATEGORYID( 0x8320d28e)
 
-#define ___Foo_classid         MULLE_OBJC_CLASSID( 0x40413ff3)
-#define ___Object_classid      MULLE_OBJC_CLASSID( 0x5bd95814)
-#define ___Print_categoryid    MULLE_OBJC_CATEGORYID( 0xcbe38fa2)
+#define ___print__methodid     MULLE_OBJC_METHODID( 0x6378a881)
 
-#define ___setA_b___methodid   MULLE_OBJC_METHODID( 0x3c146ada)
-#define ___print__methodid     MULLE_OBJC_METHODID( 0x4bb743c2)
-#define ___init__methodid      MULLE_OBJC_METHODID( 0x50c63a23)
+#define ___init__methodid      MULLE_OBJC_METHODID( 0x6b1d3731)
+#define ___setA_b___methodid   MULLE_OBJC_METHODID( 0xf6bb528e)
 
-#define ___b___ivarid          MULLE_OBJC_IVARID( 0x050c5d7d)
-#define ___a___ivarid          MULLE_OBJC_IVARID( 0x050c5d7e)
+#define ___a___ivarid          MULLE_OBJC_IVARID( 0x40c292ce)
+#define ___b___ivarid          MULLE_OBJC_IVARID( 0x70c2de5e)
 
 #define ___Foo_init_supername  "Foo;init"
-#define ___Foo_init_superid    MULLE_OBJC_SUPERID( 0xb9d2cae4)
+#define ___Foo_init_superid    MULLE_OBJC_SUPERID( 0x85edca67)
 
 //
 // use gnu style initalization (empty methods[], because it's less painful)
@@ -269,7 +278,7 @@ struct Foo
 
 static void   *Foo_init( struct Foo *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   self = (void *) mulle_objc_object_call_superid( (void *) self, _cmd, _params, ___Foo_init_superid);
+   self = (void *) _mulle_objc_object_supercall( (void *) self, _cmd, _params, ___Foo_init_superid);
 
    self->a = 1;
    self->b = 2;
@@ -302,19 +311,19 @@ static struct _gnu_mulle_objc_ivarlist  Foo_ivarlist =
    {
       {
          {
-            ___b___ivarid,
-            "b",
-            "i"
-         },
-         offsetof( struct Foo, b)
-      },
-      {
-         {
             ___a___ivarid,
             "a",
             "i"
          },
          offsetof( struct Foo, a)
+      },
+      {
+         {
+            ___b___ivarid,
+            "b",
+            "i"
+         },
+         offsetof( struct Foo, b)
       }
    }
 };
@@ -327,21 +336,21 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
    {
       {
          {
-            ___setA_b___methodid,
-            "setA:b:",
-            "@:ii",
-            0
-         },
-         (mulle_objc_implementation_t) Foo_setA_b_
-      },
-      {
-         {
             ___init__methodid,
             "init",
             "@:",
             0
          },
          (mulle_objc_implementation_t) Foo_init
+      },
+      {
+         {
+            ___setA_b___methodid,
+            "setA:b:",
+            "@:ii",
+            0
+         },
+         (mulle_objc_implementation_t) Foo_setA_b_
       }
    }
 };

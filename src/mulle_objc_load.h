@@ -272,7 +272,8 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info);
 
 //
 // use this if the compiler was able to sort all protocol_uniqueids
-// all method lists referenced by load_categories and loadclasses by their methodid
+// all method lists referenced by load_categories and loadclasses by
+// their methodid
 //
 void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info);
 

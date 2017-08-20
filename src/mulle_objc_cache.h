@@ -47,7 +47,7 @@
 # pragma mark - method cache
 
 
-#define MULLE_OBJC_MIN_CACHE_SIZE  32
+#define MULLE_OBJC_MIN_CACHE_SIZE  4
 
 typedef mulle_objc_uniqueid_t   mulle_objc_cache_uint_t;
 
@@ -71,7 +71,7 @@ struct _mulle_objc_cacheentry
 struct _mulle_objc_cache
 {
    mulle_atomic_pointer_t          n;
-   mulle_objc_cache_uint_t         size;
+   mulle_objc_cache_uint_t         size;  // don't optimize away (alignment!)
    mulle_objc_cache_uint_t         mask;
    struct _mulle_objc_cacheentry   entries[ 1];
 };
@@ -175,16 +175,6 @@ static inline void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
 
 
 # pragma mark - cache add entry
-
-//
-// 25% fill rate, but 40% would be probably good also.
-// Really, the class should know that.
-//
-static inline int  _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache)
-{
-   return( (size_t) _mulle_atomic_pointer_read( &cache->n) >= (cache->size >> 2));
-}
-
 
 struct _mulle_objc_cacheentry   *
     _mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache,
