@@ -49,25 +49,6 @@
 // tough decision, but I type self as void
 typedef void    *(*mulle_objc_implementation_t)( void *, mulle_objc_methodid_t, void *);
 
-// #define ? An enum is wrong when sizeof( int) != sizeof( uintptr_t)
-//
-// f.e. create finalize selector using `mulle-objc-uniqueid`
-//
-#define MULLE_OBJC_ALLOC_METHODID        MULLE_OBJC_METHODID( 0x1e16cffc)
-#define MULLE_OBJC_AUTORELEASE_METHODID  MULLE_OBJC_METHODID( 0xf958ae7b)
-#define MULLE_OBJC_CLASS_METHODID        MULLE_OBJC_METHODID( 0x5e8533db)
-#define MULLE_OBJC_COPY_METHODID         MULLE_OBJC_METHODID( 0xdfc5a45a)
-#define MULLE_OBJC_DEALLOC_METHODID      MULLE_OBJC_METHODID( 0x3a3d966b)
-#define MULLE_OBJC_FINALIZE_METHODID     MULLE_OBJC_METHODID( 0xc39d1bbf)
-#define MULLE_OBJC_INITIALIZE_METHODID   MULLE_OBJC_METHODID( 0x6543f237)
-#define MULLE_OBJC_INIT_METHODID         MULLE_OBJC_METHODID( 0x50c63a23)
-#define MULLE_OBJC_INSTANTIATE_METHODID  MULLE_OBJC_METHODID( 0x30f80cb7)
-#define MULLE_OBJC_LOAD_METHODID         MULLE_OBJC_METHODID( 0x1f2fdaed)
-#define MULLE_OBJC_RELEASE_METHODID      MULLE_OBJC_METHODID( 0x8f63473c)  // release
-#define MULLE_OBJC_RETAIN_METHODID       MULLE_OBJC_METHODID( 0xd2f2322a)  // retain
-
-#define MULLE_OBJC_FORWARD_METHODID       MULLE_OBJC_METHODID( 0x3f134576)
-#define MULLE_OBJC_DEPENDENCIES_METHODID  MULLE_OBJC_METHODID( 0xfb10562e)
 
 //
 // idea... add a bit to this _mulle_objc_descriptor, that the compiler

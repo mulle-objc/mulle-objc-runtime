@@ -37,33 +37,33 @@ void   test_method( void)
    assert( ! rval);
 
    // check that duplicate ID is wrong if name doesn't match
-   clone       = A_foo_method->descriptor;
-   clone.name = "x";
+   clone           = A_foo_method->descriptor;
+   clone.name      = "x";
 
 #if DEBUG
    fprintf( stderr, "possibly following warning about x's different method id is expected\n");
 #endif
    rval = _mulle_objc_universe_add_descriptor( universe, &clone);
-   assert( rval && errno == EEXIST);
+   assert( rval && errno == EEXIST || errno == EINVAL);
 
    // different signature is harmless
    clone           = A_foo_method->descriptor;
    clone.signature = "@:@";
+
 #if DEBUG
    fprintf( stderr, "possibly following warning about x's different signature is expected\n");
 #endif
    rval = _mulle_objc_universe_add_descriptor( universe, &clone);
    assert( ! rval);
 
-   // different id for same name will not be caught, but will warn in debug
-   clone           = A_foo_method->descriptor;
+   // different id for same name will be caught in debug only
+   clone          = A_foo_method->descriptor;
    clone.methodid = B_bar_method->descriptor.methodid;
 
 #if DEBUG
    fprintf( stderr, "possibly following warning about foo's different method id is expected\n");
 #endif
    rval = _mulle_objc_universe_add_descriptor( universe, &clone);
-   assert( ! rval);
 }
 
 

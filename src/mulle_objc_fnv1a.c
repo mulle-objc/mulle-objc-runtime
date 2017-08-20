@@ -1,8 +1,8 @@
 //
-//  mulle_objc_fnv1.c
+//  mulle_objc_fnv1a.c
 //  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
+//  Created by Nat! on 19.08.17
 
 /***
  *
@@ -23,13 +23,13 @@
  * Share and Enjoy!     :-)
  */
 
-#include "mulle_objc_fnv1.h"
+#include "mulle_objc_fnv1a.h"
 
 
-#define FNV1_32_PRIME   0x01000193
+#define FNV1A_32_PRIME   0x01000193
 
 
-uint32_t   _mulle_objc_chained_fnv1_32( void *buf, size_t len, uint32_t hash)
+uint32_t   _mulle_objc_chained_fnv1a_32( void *buf, size_t len, uint32_t hash)
 {
    unsigned char   *s;
    unsigned char   *sentinel;
@@ -38,22 +38,22 @@ uint32_t   _mulle_objc_chained_fnv1_32( void *buf, size_t len, uint32_t hash)
    sentinel = &s[ len];
 
    /*
-    * FNV-1 hash each octet in the buffer
+    * FNV-1A hash each octet in the buffer
     */
    while( s < sentinel)
    {
-      hash *= FNV1_32_PRIME;
       hash ^= (uint32_t) *s++;
+      hash *= FNV1A_32_PRIME;
    }
 
    return( hash);
 }
 
 
-#define FNV1_64_PRIME   0x0100000001b3ULL
+#define FNV1A_64_PRIME   0x0100000001b3ULL
 
 
-uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
+uint64_t   _mulle_objc_chained_fnv1a_64( void *buf, size_t len, uint64_t hash)
 {
    unsigned char   *s;
    unsigned char   *sentinel;
@@ -66,8 +66,8 @@ uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
     */
    while( s < sentinel)
    {
-      hash *= FNV1_64_PRIME;
       hash ^= (uint64_t) *s++;
+      hash *= FNV1A_64_PRIME;
    }
 
    return( hash);
@@ -76,7 +76,7 @@ uint64_t   _mulle_objc_chained_fnv1_64( void *buf, size_t len, uint64_t hash)
 
 // Build it with:
 //
-// cc -o mulle_objc_fnv1 -DMAIN mulle_objc_fnv1.c
+// cc -o mulle_objc_fnv1a -DMAIN mulle_objc_fnv1a.c
 // to check if it produces same results as reference implementation
 //
 #ifdef MAIN
@@ -90,7 +90,7 @@ int   main( int argc, char * argv[])
    if( argc != 2)
       return( -1);
 
-   printf( "0x%08x\n", (uint32_t) _mulle_objc_fnv1_32( argv[ 1], strlen( argv[ 1])));
+   printf( "0x%08x\n", (uint32_t) _mulle_objc_fnv1a_32( argv[ 1], strlen( argv[ 1])));
    return 0;
 }
 

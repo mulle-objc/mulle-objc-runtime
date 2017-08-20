@@ -6,9 +6,9 @@
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
 
-#define A_classid      MULLE_OBJC_CLASSID( 0x050c5d5e)
-#define B_classid      MULLE_OBJC_CLASSID( 0x050c5d5d)
-#define C_classid      MULLE_OBJC_CLASSID( 0x050c5d5c)
+#define A_classid      MULLE_OBJC_CLASSID( 0x40bf6ccc)
+#define B_classid      MULLE_OBJC_CLASSID( 0x70bfb85c)
+#define C_classid      MULLE_OBJC_CLASSID( 0x60bf9f2c)
 
-#define foo_methodid   MULLE_OBJC_METHODID( 0x408f5e13)
-#define bar_methodid   MULLE_OBJC_METHODID( 0x1e99b620)
+#define foo_methodid   MULLE_OBJC_METHODID( 0x9f37ed7a)
+#define bar_methodid   MULLE_OBJC_METHODID( 0x6b77d1a7)

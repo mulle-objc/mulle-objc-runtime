@@ -36,12 +36,25 @@
 #include "mulle_objc_uniqueid.h"
 
 #include "mulle_objc_fnv1.h"
+#include "mulle_objc_fnv1a.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 
-mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
+// I had picked fnv1 because it less collision lowercase in this article
+// https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed
+//
+// But I think the randomness improvement of fnv1a is actually more important
+// for improved cache spread, so I am moving to fnv1a here
+//
+
+const int  MULLE_OBJC_UNIQUEHASH_SHIFT     = 4;
+const int  MULLE_OBJC_UNIQUEHASH_ALGORITHM = MULLE_OBJC_UNIQUEHASH_FNV1A;
+
+
+mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
 {
    mulle_objc_uniqueid_t  value;
    unsigned int           len;
@@ -52,18 +65,61 @@ mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
       errno = EINVAL;
       return( MULLE_OBJC_INVALID_UNIQUEID);
    }
-   value = _mulle_objc_fnv1_32( s, len);
 
-   // make sure key is valid
-   if( value == MULLE_OBJC_INVALID_UNIQUEID || value == MULLE_OBJC_NO_UNIQUEID)
-      value = MULLE_OBJC_MIN_UNIQUEID;  // assumed to be unlikely
+   if( MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A)
+      value = _mulle_objc_fnv1a_32( s, len);
+   else
+      value = _mulle_objc_fnv1_32( s, len);
 
-//   if( ! (value >> 16))
-//      value |= 0x80000000;
-//   if( ! (value & 0xFFFF))
-//      value |= 0x1;
+   //
+   // fnv1 favors the last byte disproportionally, but that' usually just ':'
+   // lets rotate it a bit, so the hash bit portions used for cache
+   // access are better. This doesn't affect collisions at all as all bits
+   // are preserved.
+   //
+   value = (value << MULLE_OBJC_UNIQUEHASH_SHIFT) | (value >> (32 - MULLE_OBJC_UNIQUEHASH_SHIFT));
 
+   if( value == MULLE_OBJC_NO_UNIQUEID)
+      value = MULLE_OBJC_INVALID_UNIQUEID;
+
+   if( value == MULLE_OBJC_INVALID_UNIQUEID)
+   {
+      fprintf( stderr, "Congratulations, your string \"%s\" "
+              "hashes badly (rare and precious, please tweet it @mulle_nat, then rename it).", s);
+#ifdef DEBUG
+      abort();
+#endif
+   }
+   
    return( value);
+}
+
+
+int   mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid, char *s)
+{
+   if( ! _mulle_objc_uniqueid_is_sane( uniqueid))
+   {
+      errno = EINVAL;
+      return( 0);
+   }
+   
+#if DEBUG
+   {
+      mulle_objc_uniqueid_t  correct;
+
+      correct = mulle_objc_uniqueid_from_string( s);
+      if( uniqueid != correct)
+      {
+         fprintf( stderr, "error: String \"%s\" should have "
+                 "uniqueid %08x but has uniqueid %08x\n",
+                 s, correct, uniqueid);
+         errno = EINVAL;  // this is needed for tests
+         return( 0);
+      }
+   }
+#endif
+
+   return( 1);
 }
 
 
@@ -88,36 +144,4 @@ int  _mulle_objc_uniqueid_qsortcompare( mulle_objc_uniqueid_t *a, mulle_objc_uni
       return( -1);
    return( ! ! diff);
 }
-
-
-#if 0
-mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s)
-{
-   struct mulle_objc_md5       context;
-   mulle_objc_uniqueid_t  value;
-   unsigned char          digest[ MULLE_OBJC_MD5_DIGESTLENGTH];
-   unsigned int           i;
-   unsigned int           len;
-
-   len = (unsigned int) strlen( s);
-   if( ! s || ! len)
-   {
-      errno = EINVAL;
-      return( MULLE_OBJC_INVALID_UNIQUEID);
-   }
-
-   mulle_objc_md5_init( &context);
-   mulle_objc_md5_update( &context, (const unsigned char *) s, len);
-   mulle_objc_md5_final( &context, digest);
-
-   // non-optimal
-   value = 0;
-   for( i = 0; i < sizeof( mulle_objc_uniqueid_t); i++)
-   {
-      value <<= 8;
-      value |= digest[ i];
-   }
-   return( value);
-}
-#endif
 

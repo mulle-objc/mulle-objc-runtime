@@ -553,10 +553,14 @@ void  _mulle_objc_universe_set_fastclass( struct _mulle_objc_universe *universe,
 
 #pragma mark - method cache
 
-static inline unsigned int   _mulle_objc_universe_number_of_preloadmethods( struct _mulle_objc_universe *universe)
+static inline unsigned int   _mulle_objc_universe_get_numberofpreloadmethods( struct _mulle_objc_universe *universe)
 {
    return( universe->methodidstopreload.n);
 }
+
+
+int  _mulle_objc_universe_should_grow_cache( struct _mulle_objc_universe *universe,
+                                             struct _mulle_objc_cache *cache);
 
 
 #pragma mark - methods

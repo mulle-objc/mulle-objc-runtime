@@ -14,24 +14,22 @@
 #include <stdio.h>
 
 
-#define ___Foo_classid         MULLE_OBJC_CLASSID( 0x40413ff3)
-#define ___Object_classid      MULLE_OBJC_CLASSID( 0x5bd95814)
+#define ___Object_classid      MULLE_OBJC_CLASSID( 0x58e64dae)
 
-#define ___conforms_to_protocol__methodid   MULLE_OBJC_METHODID( 0x10691aa7)
-#define ___setA_b___methodid   MULLE_OBJC_METHODID( 0x3c146ada)
-#define ___print__methodid     MULLE_OBJC_METHODID( 0x4bb743c2)
-#define ___init__methodid      MULLE_OBJC_METHODID( 0x50c63a23)
+#define ___conforms_to_protocol__methodid   MULLE_OBJC_METHODID( 0x3d1e9472)
+#define ___init__methodid      MULLE_OBJC_METHODID( 0x6b1d3731)
 
-#define ___b___ivarid          MULLE_OBJC_IVARID( 0x050c5d7d)
-#define ___a___ivarid          MULLE_OBJC_IVARID( 0x050c5d7e)
+//  x=B; echo "#define ___"$x"__protocolid   MULLE_OBJC_PROTOCOLID( 0x"`./build/mulle-objc-uniqueid $x`")"
 
-#define ___G__protocolid  MULLE_OBJC_PROTOCOLID( 0x050c5d58)
-#define ___F__protocolid  MULLE_OBJC_PROTOCOLID( 0x050c5d59)
-#define ___E__protocolid  MULLE_OBJC_PROTOCOLID( 0x050c5d5a)
-#define ___D__protocolid  MULLE_OBJC_PROTOCOLID( 0x050c5d5b)
-#define ___C__protocolid  MULLE_OBJC_PROTOCOLID( 0x050c5d5c)
-#define ___B__protocolid  MULLE_OBJC_PROTOCOLID( 0x050c5d5d)
-#define ___A__protocolid  MULLE_OBJC_PROTOCOLID( 0x050c5d5e)
+#define ___E__protocolid   MULLE_OBJC_PROTOCOLID( 0x00bf080c)
+#define ___D__protocolid   MULLE_OBJC_PROTOCOLID( 0x10bf213c)
+#define ___A__protocolid   MULLE_OBJC_PROTOCOLID( 0x40bf6ccc)
+#define ___C__protocolid   MULLE_OBJC_PROTOCOLID( 0x60bf9f2c)
+#define ___B__protocolid   MULLE_OBJC_PROTOCOLID( 0x70bfb85c)
+
+
+#define ___F__protocolid   MULLE_OBJC_PROTOCOLID( 0x30bf539c)
+#define ___G__protocolid   MULLE_OBJC_PROTOCOLID( 0x20bf3a6c)
 
 
 /* This example just checks that protocols work
@@ -146,7 +144,7 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
             0
          },
          (mulle_objc_implementation_t) Object_init
-      }
+      },
    }
 };
 
@@ -166,11 +164,12 @@ static struct _gnu_mulle_objc_protcollist   Object_protocollist =
 {
    5,
    {
-      { ___A__protocolid, "A" },
-      { ___B__protocolid, "B" },
-      { ___C__protocolid, "C" },
+      // keep sorted by protocolid
+      { ___E__protocolid, "E" },
       { ___D__protocolid, "D" },
-      { ___E__protocolid, "E" }
+      { ___A__protocolid, "A" },
+      { ___C__protocolid, "C" },
+      { ___B__protocolid, "B" },
    }
 };
 

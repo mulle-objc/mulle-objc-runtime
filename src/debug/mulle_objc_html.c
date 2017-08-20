@@ -740,6 +740,7 @@ char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylis
 #pragma mark - cache
 
 char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
+                                           struct _mulle_objc_universe *universe,
                                            struct _mulle_objc_htmltablestyle *styling)
 {
    size_t          len;
@@ -750,17 +751,22 @@ char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
    int             index;
    mulle_objc_methodid_t   sel;
    
-   n   = cache->size + 2 + 2;
+   n   = cache->size + 3 + 2;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
 
    i = 0;
-   asprintf_table_header_colspan( &tmp[ i], styling, 4);
+   asprintf_table_header_colspan( &tmp[ i], styling, 5);
    len = strlen( tmp[ i]);
    ++i;
 
    asprintf( &tmp[ i],
-            "<TR><TD>n</TD><TD COLSPAN=\"3\">%lu</TD></TR>\n",
+            "<TR><TD>n</TD><TD COLSPAN=\"4\">%lu</TD></TR>\n",
             (long) _mulle_atomic_pointer_nonatomic_read( &cache->n));
+   len += strlen( tmp[ i]);
+   ++i;
+   asprintf( &tmp[ i],
+            "<TR><TD>mask</TD><TD COLSPAN=\"4\">0x%lx</TD></TR>\n",
+             (long) cache->mask);
    len += strlen( tmp[ i]);
    ++i;
 
@@ -773,10 +779,10 @@ char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
          index = _mulle_objc_cache_find_entryindex( cache, sel);
 
       asprintf( &tmp[ i],
-               "<TR><TD>#%ld</TD><TD>%08x \"%s\"</TD><TD>%p</TD><TD>%d (%x)</TD></TR>\n",
-               i,
+               "<TR><TD>#%ld</TD><TD>%08x</TD><TD>%s</TD><TD>%p</TD><TD>%d (%x)</TD></TR>\n",
+               j,
                sel,
-               mulle_objc_string_for_methodid( sel),
+               _mulle_objc_universe_string_for_methodid( universe, sel),
                cache->entries[ j].value.functionpointer,
                index,
                sel & cache->mask);

@@ -166,7 +166,7 @@ static void   _mulle_objc_method_not_found_abort( struct _mulle_objc_class *cls,
                                _mulle_objc_class_get_classid( cls),
                                 name);
    _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing method "
-                             "%08x \"%c%s\" n class %08x \"%s\"",
+                             "%08x \"%c%s\" in class %08x \"%s\"",
                              universe,
                              missing_method,
                              _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
@@ -205,6 +205,7 @@ static void   _mulle_objc_universeconfig_dump( struct _mulle_objc_universeconfig
    if( config->ignore_ivarhash_mismatch)
       fprintf( stderr, ", ignore ivarhash mismatch");
    fprintf( stderr, ", min:-O%u max:-O%u", config->min_optlevel, config->max_optlevel);
+   fprintf( stderr, ", cache fillrate: %u%%", config->cache_fillrate ? config->cache_fillrate : 25);
 }
 
 
@@ -276,13 +277,29 @@ static void   _mulle_objc_universe_set_debug_defaults_from_environment( struct _
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
    universe->debug.trace.method_call     = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALL");  // totally excessive!
    universe->debug.trace.method_searches = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCH");  // fairly excessive!
-   universe->debug.trace.descriptor_add  = getenv_yes_no( "MULLE_OBJC_TRACE_descriptor_ADD");
+   universe->debug.trace.descriptor_add  = getenv_yes_no( "MULLE_OBJC_TRACE_DESCRIPTOR_ADD");
    universe->debug.trace.protocol_add    = getenv_yes_no( "MULLE_OBJC_TRACE_PROTOCOL_ADD");
    universe->debug.trace.state_bit       = getenv_yes_no( "MULLE_OBJC_TRACE_STATE_BIT");
    universe->debug.trace.string_add      = getenv_yes_no( "MULLE_OBJC_TRACE_STRING_ADD");
    universe->debug.trace.super_add       = getenv_yes_no( "MULLE_OBJC_TRACE_SUPER_ADD");
    universe->debug.trace.tagged_pointer  = getenv_yes_no( "MULLE_OBJC_TRACE_TAGGED_POINTER");
 
+   if( getenv_yes_no( "MULLE_OBJC_TRACE_CACHE"))
+   {
+      universe->debug.trace.method_cache  = 1;
+      universe->debug.trace.class_cache   = 1;
+   }
+
+   if( getenv_yes_no( "MULLE_OBJC_TRACE_LOAD"))
+   {
+      universe->debug.trace.load_call  = 1;
+      universe->debug.trace.loadinfo   = 1;
+      universe->debug.trace.dependency = 1;
+      universe->debug.trace.initialize = 1;
+      universe->debug.trace.state_bit  = 1;
+   }
+
+   
    // don't trace method search and calls, per default... too expensive
    // don't trace caches either, usually that's too boring
    // also don't dump, per default
@@ -1429,6 +1446,7 @@ struct _mulle_objc_classpair
    struct _mulle_objc_classpair       *pair;
    struct _mulle_objc_metaclass       *super_meta;
    struct _mulle_objc_metaclass       *super_meta_isa;
+   mulle_objc_classid_t               correct;
    size_t                             size;
 
    if( ! universe || ! universe->memory.allocator.calloc)
@@ -1449,7 +1467,14 @@ struct _mulle_objc_classpair
       return( NULL);
    }
 
-   assert( mulle_objc_classid_from_string( name) == classid);
+   correct = mulle_objc_classid_from_string( name);
+   if( classid != correct)
+   {
+      fprintf( stderr, "mulle_objc_universe error: Class \"%s\" should have classid %08x but has classid %08x\n", name,
+            correct, classid);
+      errno = EINVAL;
+      return( 0);
+   }
 
    super_meta     = NULL;
    super_meta_isa = NULL;
@@ -1615,6 +1640,25 @@ void   mulle_objc_unfailingadd_infraclass( struct _mulle_objc_infraclass *infra)
 }
 
 #endif
+
+
+# pragma mark - cache
+
+
+int   _mulle_objc_universe_should_grow_cache( struct _mulle_objc_universe *universe,
+                                             struct _mulle_objc_cache *cache)
+{
+   size_t   used;
+   size_t   size;
+
+   used = (size_t) _mulle_atomic_pointer_read( &cache->n);
+   size = cache->size;
+   
+   if( ! universe->config.cache_fillrate)
+      return( used >= (size >> 2));
+   
+   return( used * 100 >= size * universe->config.cache_fillrate);
+}
 
 
 # pragma mark - method descriptors

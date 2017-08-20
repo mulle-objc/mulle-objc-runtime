@@ -73,6 +73,8 @@ struct _mulle_objc_universeconfig
    unsigned   no_fast_method_call      : 1;  // don't use fast method calls
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
    unsigned   thread_local_rt          : 1;  // use thread local universes
+   
+   int        cache_fillrate;                // default is (0) can be 0-90
 };
 
 
@@ -338,7 +340,7 @@ struct _mulle_objc_universe
    char                                     compilation[ 128];   // debugging
 
    mulle_thread_t                           thread;  // init-done thread
-
+   
    struct _mulle_objc_memorymanagement      memory;
 
    struct _mulle_objc_classdefaults         classdefaults;

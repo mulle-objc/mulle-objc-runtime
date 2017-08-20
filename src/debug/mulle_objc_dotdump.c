@@ -590,7 +590,7 @@ static void   print_class( struct _mulle_objc_class *cls,
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
                  cls, cache);
 
-         label = mulle_objc_cache_html_description( cache, &cachetable_style);
+         label = mulle_objc_cache_html_description( cache, universe, &cachetable_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", cache, label);
          free( label);
       }

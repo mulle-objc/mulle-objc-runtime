@@ -169,7 +169,7 @@ static struct _mulle_objc_cacheentry   *
    for(;;)
    {
       cache = _mulle_objc_cachepivot_atomic_get_cache( &universe->cachepivot);
-      if( _mulle_objc_cache_should_grow( cache))
+      if( _mulle_objc_universe_should_grow_cache( universe, cache))
       {
          entry = _mulle_objc_universe_add_classcacheentry_by_swapping_caches( universe, cache, _mulle_objc_infraclass_as_class( infra));
          if( ! entry)
@@ -245,8 +245,8 @@ struct _mulle_objc_infraclass   *
 {
    struct _mulle_objc_infraclass   *infra;
    int                              retry;
-   
-   assert( classid != MULLE_OBJC_INVALID_CLASSID && classid != MULLE_OBJC_NO_CLASSID);
+
+   assert( _mulle_objc_uniqueid_is_sane( classid));
    
    retry = 1;
    for(;;)
