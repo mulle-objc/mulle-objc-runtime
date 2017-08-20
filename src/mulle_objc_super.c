@@ -43,19 +43,20 @@
 int   mulle_objc_super_is_sane( struct _mulle_objc_super *p)
 {
    if( ! p)
+   {
+      errno = EINVAL;
+      return( 0);
+   }
+
+   if( ! mulle_objc_uniqueid_is_sane( p->superid, p->name))
       return( 0);
 
-   if( p->superid == MULLE_OBJC_NO_SUPERID ||
-       p->superid == MULLE_OBJC_INVALID_SUPERID)
+   if( ! _mulle_objc_uniqueid_is_sane( p->classid) ||
+       ! _mulle_objc_uniqueid_is_sane( p->methodid))
+   {
+      errno = EINVAL;
       return( 0);
+   }
 
-   if( p->classid == MULLE_OBJC_NO_CLASSID ||
-       p->classid == MULLE_OBJC_INVALID_CLASSID)
-      return( 0);
-
-   if( p->methodid == MULLE_OBJC_NO_METHODID ||
-       p->methodid == MULLE_OBJC_INVALID_METHODID)
-      return( 0);
-   
    return( 1);
 }

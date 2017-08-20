@@ -134,7 +134,7 @@ struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _m
 struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
                                                                 mulle_objc_propertyid_t propertyid)
 {
-   assert( propertyid != MULLE_OBJC_NO_PROPERTYID && propertyid != MULLE_OBJC_INVALID_PROPERTYID);
+   assert( _mulle_objc_uniqueid_is_sane( propertyid));
 
    if( ! infra)
    {
@@ -174,8 +174,7 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
    rover = _mulle_objc_propertylist_enumerate( list);
    while( property = _mulle_objc_propertylistenumerator_next( &rover))
    {
-      assert( property->propertyid != MULLE_OBJC_NO_PROPERTYID &&
-              property->propertyid != MULLE_OBJC_INVALID_PROPERTYID);
+      assert( _mulle_objc_uniqueid_is_sane( property->propertyid));
       //
       // properties must be sorted by propertyid, so we can binary search them
       // (in the future)
@@ -289,7 +288,7 @@ struct _mulle_objc_ivar   *_mulle_objc_infraclass_search_ivar( struct _mulle_obj
 struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_infraclass *infra,
                                                              mulle_objc_ivarid_t ivarid)
 {
-   assert( ivarid != MULLE_OBJC_NO_IVARID && ivarid != MULLE_OBJC_INVALID_IVARID);
+   assert( _mulle_objc_uniqueid_is_sane( ivarid));
 
    if( ! infra)
    {
