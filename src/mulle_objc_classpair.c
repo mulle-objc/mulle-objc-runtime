@@ -484,7 +484,7 @@ void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_class
                                                         struct _mulle_objc_protocollist *protocols)
 {
    mulle_objc_protocolid_t       *q;
-   struct _mulle_objc_universe    *universe;
+   struct _mulle_objc_universe   *universe;
    struct _mulle_objc_protocol   *p;
    struct _mulle_objc_protocol   *sentinel;
    
@@ -497,7 +497,11 @@ void   mulle_objc_classpair_unfailing_add_protocollist( struct _mulle_objc_class
    universe = _mulle_objc_classpair_get_universe( pair);
 
    {
+#ifdef _WIN32
+      mulle_objc_protocolid_t  *protocolids =  alloca( protocols->n_protocols * sizeof( mulle_objc_protocolid_t));  
+#else
       auto mulle_objc_protocolid_t    protocolids[ protocols->n_protocols];
+#endif
    
       p        = protocols->protocols;
       sentinel = &p[ protocols->n_protocols];
