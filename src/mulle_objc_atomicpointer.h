@@ -84,7 +84,12 @@ union _mulle_objc_uniqueidarraypointer_t
 #  if defined( __LITTE_ENDIAN__) && defined( __BIG_ENDIAN__)
 #   error Both __LITTLE_ENDIAN__ and __BIG_ENDIAN__ defined
 #  else
-#   error Neither __LITTLE_ENDIAN__ nor __BIG_ENDIAN__ defined
+#   ifdef _WIN32
+#    define __LITTLE_ENDIAN__  1
+#    define __BIG_ENDIAN__     0
+#   else
+#    error Neither __LITTLE_ENDIAN__ nor __BIG_ENDIAN__ defined
+#   endif
 #  endif
 # endif
 #endif

@@ -532,7 +532,11 @@ void   mulle_objc_classpair_unfailingadd_protocollist( struct _mulle_objc_classp
    universe = _mulle_objc_classpair_get_universe( pair);
 
    {
+#ifdef _WIN32
+      mulle_objc_protocolid_t  *protocolids =  alloca( protocols->n_protocols * sizeof( mulle_objc_protocolid_t));  
+#else
       auto mulle_objc_protocolid_t    protocolids[ protocols->n_protocols];
+#endif
    
       p        = protocols->protocols;
       sentinel = &p[ protocols->n_protocols];
