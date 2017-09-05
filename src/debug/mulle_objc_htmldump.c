@@ -624,12 +624,12 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra, char *dire
 }
 
 
-static int   callback( struct _mulle_objc_universe *universe,
-                       void *p,
-                       enum mulle_objc_walkpointertype_t type,
-                       char *key,
-                       void *parent,
-                       void *userinfo)
+static mulle_objc_walkcommand_t   callback( struct _mulle_objc_universe *universe,
+                                            void *p,
+                                            enum mulle_objc_walkpointertype_t type,
+                                            char *key,
+                                            void *parent,
+                                            void *userinfo)
 {
    char                            *directory;
    struct _mulle_objc_infraclass   *infra;
@@ -678,7 +678,7 @@ static int   callback( struct _mulle_objc_universe *universe,
 # pragma mark - universe dump
 
 void   mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *universe,
-                                                 char *directory)
+                                                  char *directory)
 {
    struct dump_info  info;
 

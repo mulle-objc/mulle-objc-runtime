@@ -150,17 +150,17 @@ struct _mulle_objc_universeexceptionvectors
 //
 struct _mulle_objc_universefailures
 {
-   void   (*uncaughtexception)( void *exception)         MULLE_C_NO_RETURN;
+   void   (*uncaughtexception)( void *exception)         _MULLE_C_NO_RETURN;
    // fails in unfailing method -> abort
-   void   (*fail)( char *format, va_list args)           MULLE_C_NO_RETURN;
+   void   (*fail)( char *format, va_list args)           _MULLE_C_NO_RETURN;
    // unexpected happening -> abort
-   void   (*inconsistency)( char *format, va_list args)  MULLE_C_NO_RETURN;
+   void   (*inconsistency)( char *format, va_list args)  _MULLE_C_NO_RETURN;
    // class not found -> abort
    void   (*class_not_found)( struct _mulle_objc_universe *universe,
-                              mulle_objc_methodid_t missing_method)  MULLE_C_NO_RETURN;
+                              mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
    // method not found -> abort
    void   (*method_not_found)( struct _mulle_objc_class *cls,
-                               mulle_objc_methodid_t missing_method)  MULLE_C_NO_RETURN;
+                               mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
 };
 
 

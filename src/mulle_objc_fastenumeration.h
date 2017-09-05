@@ -36,6 +36,9 @@
 #ifndef mulle_objc_fastenumeration_h__
 #define mulle_objc_fastenumeration_h__
 
+#include <mulle_c11/mulle_c11.h>
+
+MULLE_C_NO_RETURN
 void   mulle_objc_enumeration_mutation( void *collection);
 
 #endif /* mulle_objc_fastenumeration_h */
