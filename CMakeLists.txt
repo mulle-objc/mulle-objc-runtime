@@ -42,8 +42,12 @@ if( MSVC)
    set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS OFF)
    set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DEF:${DEF_FILE}")
    # /NODEFAULTLIB:MSVCRT")
-endif()
 
+   add_custom_command( OUTPUT ${DEF_FILE}
+                       COMMAND mulle-mingw-dumpdef.bat -o "${DEF_FILE}" --name "mulle_objc_runtime_standalone" --prefix "mulle" ${DEPENDENCY_LIBRARIES} $<TARGET_FILE:mulle_objc_runtime>
+                       DEPENDS "${DEPENDENCY_LIBRARIES}" $<TARGET_FILE:mulle_objc_runtime>
+                       VERBATIM)
+endif()
 
 add_library( mulle_objc_runtime_standalone SHARED
 src/mulle_objc_runtime_standalone.c
@@ -52,13 +56,6 @@ ${DEF_FILE}
 
 add_dependencies( mulle_objc_runtime_standalone mulle_objc_runtime)
 
-
-if( MSVC)
-   add_custom_command( OUTPUT ${DEF_FILE}
-                       COMMAND mulle-mingw-dumpdef.bat -o "${DEF_FILE}" --name "mulle_objc_runtime_standalone" --prefix "mulle" ${DEPENDENCY_LIBRARIES} $<TARGET_FILE:mulle_objc_runtime>
-                       DEPENDS "${DEPENDENCY_LIBRARIES}" $<TARGET_FILE:mulle_objc_runtime>
-                       VERBATIM)
-endif()
 
 set( TARGET_ALL_LOAD_LIBRARIES
 $<TARGET_FILE:mulle_objc_runtime>

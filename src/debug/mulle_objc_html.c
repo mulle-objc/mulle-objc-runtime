@@ -42,7 +42,7 @@
 #include <stdio.h>
 
 
-#pragma - printing support
+#pragma mark - printing support
 // lazy copout
 static char   *html_escape( char *s)
 {

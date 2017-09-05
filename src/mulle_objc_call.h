@@ -42,6 +42,7 @@
 #include "mulle_objc_infraclass.h"
 #include "mulle_objc_metaclass.h"
 #include "mulle_objc_method.h"
+#include "mulle_objc_methodidconstants.h"
 #include "mulle_objc_object.h"
 
 #include "mulle_objc_class_universe.h"
