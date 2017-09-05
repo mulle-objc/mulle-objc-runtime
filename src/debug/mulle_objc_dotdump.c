@@ -725,12 +725,12 @@ static void   print_metaclass( struct _mulle_objc_metaclass *meta,
 }
 
 
-static int   callback( struct _mulle_objc_universe *universe,
-                       void *p,
-                       enum mulle_objc_walkpointertype_t type,
-                       char *key,
-                       void *parent,
-                       void *userinfo)
+static mulle_objc_walkcommand_t   callback( struct _mulle_objc_universe *universe,
+                                            void *p,
+                                            enum mulle_objc_walkpointertype_t type,
+                                            char *key,
+                                            void *parent,
+                                            void *userinfo)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_metaclass    *meta;
