@@ -278,18 +278,27 @@ int  _mulle_objc_universe_match_exception( struct _mulle_objc_universe *universe
                                          mulle_objc_classid_t classId,
                                          void *exception);
 
-void   _mulle_objc_universe_raise_fail_exception( struct _mulle_objc_universe *universe, char *format, ...)           MULLE_C_NO_RETURN;
-void   _mulle_objc_universe_raise_fail_errno_exception( struct _mulle_objc_universe *universe)                        MULLE_C_NO_RETURN;
-void   _mulle_objc_universe_raise_inconsistency_exception( struct _mulle_objc_universe *universe, char *format, ...)  MULLE_C_NO_RETURN;
-void   _mulle_objc_universe_raise_class_not_found_exception( struct _mulle_objc_universe *universe, mulle_objc_classid_t classid)  MULLE_C_NO_RETURN;
-void   _mulle_objc_class_raise_method_not_found_exception( struct _mulle_objc_class *class, mulle_objc_methodid_t methodid)  MULLE_C_NO_RETURN;
+MULLE_C_NO_RETURN
+void   _mulle_objc_universe_raise_fail_exception( struct _mulle_objc_universe *universe, char *format, ...)           _MULLE_C_NO_RETURN;
+MULLE_C_NO_RETURN
+void   _mulle_objc_universe_raise_fail_errno_exception( struct _mulle_objc_universe *universe)                        _MULLE_C_NO_RETURN;
+MULLE_C_NO_RETURN
+void   _mulle_objc_universe_raise_inconsistency_exception( struct _mulle_objc_universe *universe, char *format, ...)  _MULLE_C_NO_RETURN;
+MULLE_C_NO_RETURN
+void   _mulle_objc_universe_raise_class_not_found_exception( struct _mulle_objc_universe *universe, mulle_objc_classid_t classid)  _MULLE_C_NO_RETURN;
+MULLE_C_NO_RETURN
+void   _mulle_objc_class_raise_method_not_found_exception( struct _mulle_objc_class *class, mulle_objc_methodid_t methodid)  _MULLE_C_NO_RETURN;
 
 // exceptions
 
-void   mulle_objc_raise_fail_exception( char *format, ...)           MULLE_C_NO_RETURN;
-void   mulle_objc_raise_fail_errno_exception( void)                  MULLE_C_NO_RETURN;
-void   mulle_objc_raise_inconsistency_exception( char *format, ...)  MULLE_C_NO_RETURN;
+MULLE_C_NO_RETURN
+void   mulle_objc_raise_fail_exception( char *format, ...);
+MULLE_C_NO_RETURN
+void   mulle_objc_raise_fail_errno_exception( void);
+MULLE_C_NO_RETURN
+void   mulle_objc_raise_inconsistency_exception( char *format, ...);
 
+MULLE_C_NO_RETURN
 void   mulle_objc_raise_taggedpointer_exception( void *obj);
 
 
@@ -332,7 +341,7 @@ static inline void   mulle_objc_universe_unfailing_add_gift( struct _mulle_objc_
 
 
 #pragma mark - memory allocation with "gifting"
-void   mulle_objc_raise_fail_errno_exception( void) MULLE_C_NO_RETURN;
+void   mulle_objc_raise_fail_errno_exception( void) _MULLE_C_NO_RETURN;
 
 
 static inline void   *_mulle_objc_universe_strdup( struct _mulle_objc_universe *universe, char  *s)

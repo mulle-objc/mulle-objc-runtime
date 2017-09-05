@@ -409,7 +409,7 @@ void   mulle_objc_class_did_add_methodlist( struct _mulle_objc_class *cls,
       // this optimization works as long as you are installing plain classes.
       //
       if( _mulle_atomic_pointer_read( &cls->universe->cachecount_1))
-         mulle_objc_universe_walk_classes( cls->universe, (int (*)()) invalidate_caches, list);
+         mulle_objc_universe_walk_classes( cls->universe, (mulle_objc_walkcallback_t) invalidate_caches, list);
    }
 }
 

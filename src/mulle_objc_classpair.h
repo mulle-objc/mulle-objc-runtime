@@ -171,7 +171,7 @@ static inline struct _mulle_objc_classpair   *_mulle_objc_metaclass_get_classpai
 {
    assert( meta->base.infraclass != NULL);
 
-   return( (struct _mulle_objc_classpair *) &((char *) meta)[  - offsetof( struct _mulle_objc_classpair, metaclass)]);
+   return( (struct _mulle_objc_classpair *) &((char *) meta)[ - (int) offsetof( struct _mulle_objc_classpair, metaclass)]);
 }
 
 

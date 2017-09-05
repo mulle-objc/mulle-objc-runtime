@@ -55,10 +55,6 @@
 
 # pragma mark - errors
 
-static void   _mulle_objc_vprintf_abort( char *format, va_list args) MULLE_C_NO_RETURN;
-static void   _mulle_objc_perror_abort( char *s)                     MULLE_C_NO_RETURN;
-
-
 MULLE_C_NO_RETURN
 static void   _mulle_objc_perror_abort( char *s)
 {

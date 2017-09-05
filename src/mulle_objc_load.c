@@ -1354,10 +1354,10 @@ static void   call_load( struct _mulle_objc_metaclass *meta,
 void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *universe,
                                             struct _mulle_objc_loadinfo *info)
 {
-   int                                optlevel;
-   int                                load_tps;
-   int                                mismatch;
-   uintptr_t                          bits;
+   unsigned int   optlevel;
+   int            load_tps;
+   int            mismatch;
+   uintptr_t      bits;
 
    if( info->version.load != MULLE_OBJC_RUNTIME_LOAD_VERSION)
    {

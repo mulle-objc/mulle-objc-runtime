@@ -50,7 +50,7 @@
 
 # pragma mark - exceptions
 
-void   _mulle_objc_class_raise_null_exception( void)   MULLE_C_NO_RETURN;
+void   _mulle_objc_class_raise_null_exception( void)   _MULLE_C_NO_RETURN;
 
 
 # pragma mark - method alloc / free
@@ -132,7 +132,7 @@ _mulle_objc_class_get_empty_kvccache( struct _mulle_objc_class *cls)
 
 
 static inline int    _mulle_objc_class_set_kvcinfo( struct _mulle_objc_class *cls,
-                                                   struct _mulle_objc_kvcinfo *info)
+                                                    struct _mulle_objc_kvcinfo *info)
 {
    struct _mulle_objc_kvccache        *empty_cache;
    struct _mulle_objc_kvccachepivot   *pivot;
@@ -148,7 +148,7 @@ static inline int    _mulle_objc_class_set_kvcinfo( struct _mulle_objc_class *cl
 
 static inline struct _mulle_objc_kvcinfo  *
 _mulle_objc_class_lookup_kvcinfo( struct _mulle_objc_class *cls,
-                                 char  *key)
+                                  char  *key)
 {
    struct _mulle_objc_kvccachepivot   *pivot;
    struct _mulle_objc_kvccache        *cache;
