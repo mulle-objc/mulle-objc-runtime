@@ -62,10 +62,17 @@ static char   *dot_filename_for_name( char *name, char *directory)
 {
    char     *buf;
    size_t   len;
+   char     separator;
+
+#ifdef _WIN32
+    separator = '\\';
+#else
+    separator = '/';
+#endif
 
    len = strlen( name) + strlen( directory) + 16;
    buf = mulle_allocator_malloc( &mulle_stdlib_allocator, len);
-   sprintf( buf, "%s/%s.dot", directory, html_escape( name));
+   sprintf( buf, "%s%c%s.dot", directory, separator, html_escape( name));
    return( buf);
 }
 
@@ -1033,33 +1040,36 @@ static void   _mulle_objc_dotdump_classname( char *classname, char *directory)
 
 #pragma mark - dump to /tmp
 
+extern char   *_mulle_objc_get_tmpdir( void);
+
+
 void   mulle_objc_dotdump_overview_to_tmp( void)
 {
-   _mulle_objc_dotdump_overview( "/tmp");
+   _mulle_objc_dotdump_overview( _mulle_objc_get_tmpdir());
 }
 
 
 void   mulle_objc_dotdump_universe_to_tmp()
 {
-   _mulle_objc_dotdump_universe( "/tmp", 1);
+   _mulle_objc_dotdump_universe( _mulle_objc_get_tmpdir(), 1);
 }
 
 
 void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls)
 {
-   _mulle_objc_class_dotdump( cls, "/tmp");
+   _mulle_objc_class_dotdump( cls, _mulle_objc_get_tmpdir());
 }
 
 
 void   mulle_objc_dotdump_classname_to_tmp( char *classname)
 {
-   _mulle_objc_dotdump_classname( classname, "/tmp");
+   _mulle_objc_dotdump_classname( classname, _mulle_objc_get_tmpdir());
 }
 
 
 void   mulle_objc_dotdump_classes_to_tmp( void)
 {
-   __mulle_objc_dotdump_classes( mulle_objc_dotdump_classname_to_file, "/tmp");
+   __mulle_objc_dotdump_classes( mulle_objc_dotdump_classname_to_file, _mulle_objc_get_tmpdir());
 }
 
 
@@ -1141,7 +1151,7 @@ void   mulle_objc_dotdump_universe_frame_to_tmp()
    }
 
    sprintf( buf, "/tmp/universe_%06d.dot", nr);
-   mulle_objc_dotdump_universe_to_file( "/tmp", buf, 0);
+   mulle_objc_dotdump_universe_to_file( _mulle_objc_get_tmpdir(), buf, 0);
 }
 
 
@@ -1158,7 +1168,7 @@ void   mulle_objc_dotdump( void)
 
 void   mulle_objc_dotdump_to_tmp( void)
 {
-   _mulle_objc_dotdump_overview( "/tmp");
-   _mulle_objc_dotdump_universe( "/tmp", 0);
-   _mulle_objc_dotdump_classes( "/tmp");
+   _mulle_objc_dotdump_overview( _mulle_objc_get_tmpdir());
+   _mulle_objc_dotdump_universe( _mulle_objc_get_tmpdir(), 0);
+   _mulle_objc_dotdump_classes( _mulle_objc_get_tmpdir());
 }

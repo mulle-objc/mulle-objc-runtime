@@ -737,7 +737,8 @@ static void   mulle_objc_thread_universe_destructor( struct _mulle_objc_threadco
 
 mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_threadkey( void)
 {
-   extern mulle_thread_tss_t   mulle_objc_thread_key;
+   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL 
+      mulle_thread_tss_t   mulle_objc_thread_key;
 
    if( ! mulle_objc_thread_key_is_intitialized())
    {
@@ -753,8 +754,9 @@ mulle_thread_tss_t   mulle_objc_unfailing_get_or_create_threadkey( void)
 
 static void   mulle_objc_unset_thread_universe( void)
 {
+   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL 
+      mulle_thread_tss_t   mulle_objc_thread_key;
    struct _mulle_objc_threadconfig *config;
-   extern mulle_thread_tss_t   mulle_objc_thread_key;
 
    if( ! mulle_objc_thread_key_is_intitialized())
       return;
@@ -772,7 +774,9 @@ static void   mulle_objc_unset_thread_universe( void)
 
 void   mulle_objc_delete_threadkey( void)
 {
-   extern mulle_thread_tss_t   mulle_objc_thread_key;
+   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL 
+      mulle_thread_tss_t   mulle_objc_thread_key;
+
    if( mulle_objc_thread_key_is_intitialized())
       return;
 
