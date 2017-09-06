@@ -4,11 +4,9 @@ project( mulle-objc-runtime C)
 
 set( MULLE_OBJC_RUNTIME_LIBRARY ON)
 
-add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern
-                 -DMULLE_OBJC_EXTERN_GLOBAL=extern
-                 -D__MULLE_OBJC_TPS__     ## tagged pointers runtime (default: on)
-                 -D__MULLE_OBJC_NO_TRT__  ## thread local runtime (default: off)
-                )
+add_definitions( -D__MULLE_OBJC_TPS__)     ## tagged pointers runtime (default: on)
+add_definitions( -D__MULLE_OBJC_NO_TRT__)  ## thread local runtime (default: off)
+                
 
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration/cmake)
 message(STATUS "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}")
@@ -23,6 +21,13 @@ include( CMakeSourcesAndHeaders.txt)
 include( CMakeDependencies.txt)
 
 
+if( MSVC)
+   add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern)
+   add_definitions( -DMULLE_OBJC_RUNTIME_EXTERN_GLOBAL=extern)
+   message(STATUS "MSVC definitions add")
+endif()
+
+
 add_library( mulle_objc_runtime STATIC
 ${SOURCES}
 ${DEBUG_SOURCES}
@@ -30,9 +35,6 @@ ${C_DEPENDENCY_LIBRARIES}
 )
 
 
-#
-# standalone
-#
 if( MSVC)
    set( DEF_FILE mulle_objc_runtime_standalone.def)
    set_source_files_properties( ${DEF_FILE} PROPERTIES HEADER_FILE_ONLY TRUE)
@@ -45,6 +47,7 @@ if( MSVC)
                        DEPENDS "${DEPENDENCY_LIBRARIES}" $<TARGET_FILE:mulle_objc_runtime>
                        VERBATIM)
 endif()
+
 
 add_library( mulle_objc_runtime_standalone SHARED
 src/mulle_objc_runtime_standalone.c

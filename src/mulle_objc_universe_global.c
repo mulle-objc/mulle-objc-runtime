@@ -34,13 +34,14 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 //
-#include "mulle_objc_universe_struct.h"
+#include "mulle_objc_universe_global.h"
 
 #include <mulle_c11/mulle_c11.h>
 
 
 #ifdef __MULLE_OBJC_NO_TRT__
-MULLE_C_GLOBAL struct _mulle_objc_universe   mulle_objc_global_universe =
+MULLE_OBJC_RUNTIME_GLOBAL 
+struct _mulle_objc_universe   mulle_objc_global_universe =
 {
    .version = (void *) mulle_objc_universe_is_uninitialized
 };
@@ -50,5 +51,6 @@ MULLE_C_GLOBAL struct _mulle_objc_universe   mulle_objc_global_universe =
 // a global I can't get rid off
 // must be initialized because of windows
 //
-MULLE_C_GLOBAL mulle_thread_tss_t   mulle_objc_thread_key = -1;
+MULLE_OBJC_RUNTIME_GLOBAL 
+mulle_thread_tss_t   mulle_objc_thread_key = -1;
 
