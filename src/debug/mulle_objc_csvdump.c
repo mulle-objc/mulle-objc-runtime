@@ -49,6 +49,35 @@
 #include <errno.h>
 
 
+static char   *html_escape( char *s)
+{
+   if( ! strchr( s, '&') && ! strchr( s, '<'))
+      return( s);
+
+   return( "bad-html");
+}
+
+
+static char   *csv_filename_for_name( char *name, char *directory)
+{
+   char     *buf;
+   size_t   len;
+   char     separator;
+
+#ifdef _WIN32
+    separator = '\\';
+#else
+    separator = '/';
+#endif
+
+   len = strlen( name) + strlen( directory) + 16;
+   buf = mulle_allocator_malloc( &mulle_stdlib_allocator, len);
+   sprintf( buf, "%s%c%s.csv", directory, separator, html_escape( name));
+   return( buf);
+}
+
+
+
 static void   mulle_objc_searchresult_csvdump( struct _mulle_objc_searchresult  *result,
                                                FILE *fp)
 {
@@ -438,21 +467,36 @@ void   mulle_objc_loadinfo_csvdump_terse( struct _mulle_objc_loadinfo *info, FIL
 
 #pragma mark - dump to /tmp
 
+extern char   *_mulle_objc_get_tmpdir( void);
+
+
 void   mulle_objc_csvdump_methodcoverage_to_tmp( void)
 {
-   mulle_objc_csvdump_methodcoverage_to_file( "/tmp/method-coverage.csv");
+   char   *s;
+
+   s = csv_filename_for_name( "method-coverage.csv", _mulle_objc_get_tmpdir());
+   mulle_objc_csvdump_methodcoverage_to_file( s);
+   mulle_allocator_free( &mulle_stdlib_allocator, s);
 }
 
 
 void   mulle_objc_csvdump_classcoverage_to_tmp( void)
 {
-   mulle_objc_csvdump_classcoverage_to_file( "/tmp/class-coverage.csv");
+   char   *s;
+
+   s = csv_filename_for_name( "class-coverage.csv", _mulle_objc_get_tmpdir());
+   mulle_objc_csvdump_classcoverage_to_file( s);
+   mulle_allocator_free( &mulle_stdlib_allocator, s);
 }
 
 
 void   mulle_objc_csvdump_cachesizes_to_tmp( void)
 {
-   mulle_objc_csvdump_cachesizes_to_file( "/tmp/cache-sizes.csv");
+   char   *s;
+
+   s = csv_filename_for_name( "cache-sizes.csv", _mulle_objc_get_tmpdir());
+   mulle_objc_csvdump_cachesizes_to_file( s);
+   mulle_allocator_free( &mulle_stdlib_allocator, s);
 }
 
 
