@@ -172,17 +172,21 @@ static char   *html_escape( char *s)
 }
 
 
-static char   *html_filename_for_classname( char *name, char *directory)
+static char   *html_filename_for_name( char *name, char *directory)
 {
    char     *buf;
    size_t   len;
+   char     separator;
 
-   assert( name);
-   assert( directory);
+#ifdef _WIN32
+    separator = '\\';
+#else
+    separator = '/';
+#endif
 
    len = strlen( name) + strlen( directory) + 16;
    buf = mulle_allocator_malloc( &mulle_stdlib_allocator, len);
-   sprintf( buf, "%s/%s.html", directory, html_escape( name));
+   sprintf( buf, "%s%c%s.html", directory, separator, html_escape( name));
    return( buf);
 }
 
@@ -614,7 +618,7 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra, char *dire
    char   *path;
    FILE   *fp;
 
-   path = html_filename_for_classname( infra->base.name, directory);
+   path = html_filename_for_name( infra->base.name, directory);
 
    fp = open_and_print_start( path, infra->base.name);
    _print_infraclass( infra, fp);
@@ -762,22 +766,50 @@ void   mulle_objc_htmldump_classname_to_directory( char *classname, char *direct
 
 #pragma mark - dump to /tmp
 
+
+char   *_mulle_objc_get_tmpdir( void);
+
+char   *_mulle_objc_get_tmpdir( void)
+{
+   char  *s;
+
+   s = getenv( "TMPDIR");
+   if( s)
+      return( s);
+   s = getenv( "TMP");
+   if( s)
+      return( s);
+   s = getenv( "TEMP");
+   if( s)
+      return( s);
+   s = getenv( "TEMPDIR");
+   if( s)
+      return( s);
+
+#ifdef _WIN32
+   return( ".");
+#else
+   return( "/tmp");
+#endif
+}
+
+
 void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls)
 {
-   mulle_objc_class_htmldump_to_directory( cls, "/tmp");
+   mulle_objc_class_htmldump_to_directory( cls, _mulle_objc_get_tmpdir());
 }
 
 
 void   mulle_objc_htmldump_classname_to_tmp( char *classname)
 {
-   mulle_objc_htmldump_classname_to_directory( classname, "/tmp");
+   mulle_objc_htmldump_classname_to_directory( classname, _mulle_objc_get_tmpdir());
 }
 
 
 // we have no mkdir, chdir getcwd just
 void   mulle_objc_htmldump_universe_to_tmp( void)
 {
-   mulle_objc_htmldump_universe_to_directory( "/tmp");
+   mulle_objc_htmldump_universe_to_directory( _mulle_objc_get_tmpdir());
 }
 
 

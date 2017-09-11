@@ -58,3 +58,5 @@ tests/punish/punish
 /.repos
 bin/tap-info.sh
 tap-info.sh
+/.bootstrap.repos
+/stashes

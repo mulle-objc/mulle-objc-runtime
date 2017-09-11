@@ -208,6 +208,7 @@
 		415A0A0D1C4E6E9A00290E05 /* _Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = _Common.xcconfig; sourceTree = "<group>"; };
 		416688C21C53E285005F4E3E /* mulle_objc_propertylist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_propertylist.c; sourceTree = "<group>"; };
 		416688C31C53E285005F4E3E /* mulle_objc_propertylist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_propertylist.h; sourceTree = "<group>"; };
+		416874EA1F5F3B550080A1B6 /* mulle_objc_methodidconstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_methodidconstants.h; sourceTree = "<group>"; };
 		416A752E1AAFA1A400A5F511 /* mulle_objc_methodlist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_methodlist.c; sourceTree = "<group>"; };
 		416A752F1AAFA1A400A5F511 /* mulle_objc_methodlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_methodlist.h; sourceTree = "<group>"; };
 		416BA7741A190089002F603A /* mulle_objc_universe.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_universe.h; sourceTree = "<group>"; };
@@ -378,6 +379,7 @@
 				41212A151E97BF4B0089F711 /* mulle_objc_metaclass.c */,
 				416BA7801A1908B8002F603A /* mulle_objc_method.h */,
 				416BA7851A198BE1002F603A /* mulle_objc_method.c */,
+				416874EA1F5F3B550080A1B6 /* mulle_objc_methodidconstants.h */,
 				416A752F1AAFA1A400A5F511 /* mulle_objc_methodlist.h */,
 				416A752E1AAFA1A400A5F511 /* mulle_objc_methodlist.c */,
 				416BA77C1A190332002F603A /* mulle_objc_object.h */,
