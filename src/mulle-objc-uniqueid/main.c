@@ -35,6 +35,9 @@
 //
 #include "mulle_objc_runtime.h"
 #include <ctype.h>
+#ifdef _WIN32      
+# include <malloc.h>
+#endif
 
 
 int   main( int argc, char *argv[])
@@ -60,7 +63,11 @@ int   main( int argc, char *argv[])
       suffix = "_METHODID";
    if( prefix)
    {
+#ifdef _WIN32      
+      char   *buf = alloca( sizeof( char) * (len + 1));
+#else
       char   buf[ len + 1];
+#endif
       char   *s1, *s2;
       char   c;
       
