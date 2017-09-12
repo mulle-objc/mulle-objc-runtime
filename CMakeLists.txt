@@ -49,7 +49,7 @@ if( MSVC)
    # /NODEFAULTLIB:MSVCRT")
 
    add_definitions( -DMULLE_ALLOCATOR_EXTERN_GLOBAL=extern)
-   add_definitions( -DMULLE_OBJC_EXTERN_GLOBAL=extern)
+   add_definitions( -DMULLE_OBJC_RUNTIME_EXTERN_GLOBAL=extern)
 
    add_custom_command( OUTPUT ${DEF_FILE}
                        COMMAND mulle-mingw-dumpdef.bat -o "${DEF_FILE}"
