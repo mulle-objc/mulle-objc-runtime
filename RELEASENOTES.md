@@ -1,23 +1,34 @@
+## 0.11.1
+
+* fixes for windows
+* mingw fixes and hacks
+* use a tuned fnv1a hash for better cache utilization
+* improve dotdump method cache
+* improve contents of signature typeinfo
+* reduce initial method cache size to 4
+* increase fast class cache size to 64
+* add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking
+* improve superfunctions some more by inlining first stage also. Put everything into the methodcache
+* super struct now gains the selector name for introspection. The selector is now compatible to @selector
+* Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
+* expect propertyclasses now in declaration order from compiler
+* adapt search so that a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
+* adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
+* add searchcache functionality to the runtime
+* up the load version, because of function renaming
+
+
 ## 0.10.1
 
-Shortened `mulle_objc_methoddescriptor_t` to `mulle_objc_descriptor_t` 
-Shortened `mulle_objc_methodimplementation_t` to `mulle_objc_implementation_t` 
-Added new `struct _mulle_objc_super` to support even faster and better super 
+Shortened `mulle_objc_methoddescriptor_t` to `mulle_objc_descriptor_t`
+Shortened `mulle_objc_methodimplementation_t` to `mulle_objc_implementation_t`
+Added new `struct _mulle_objc_super` to support even faster and better super
 calls (and **overridden** calls in the future)
 Renamed a lot of functions to make them easier to understand what they do.
 
-
-## 0.10.1
-
-Search now supports "supreme" and "overridden". For that search arguments to
-`_mulle_objc_class_search_method` have been combined into a struct.
-See [SUPREME.md](dox/supreme/SUPREME.md) for some more info about this.
-Some search arguments can be cached and in a later evolution of the runtime
-will be. Making all super/supreme/overidden calls very fast.
-For general searching use `mulle_objc_class_defaultsearch_method` for 
-specialed searches use `mulle_objc_class_search_method`
 Went a bit nuts on verbing stuff, instead of using underscores. So for instance
 all `_get_or_lookup` functions are now called `fastlookup`.
+
 
 ## 0.9.1
 

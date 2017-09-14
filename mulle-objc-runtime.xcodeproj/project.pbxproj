@@ -104,7 +104,7 @@
 		41A963BB1CE2368E00412367 /* mulle_objc_htmldump.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A963B91CE2368E00412367 /* mulle_objc_htmldump.c */; };
 		41A963BC1CE2368E00412367 /* mulle_objc_htmldump.h in Headers */ = {isa = PBXBuildFile; fileRef = 41A963BA1CE2368E00412367 /* mulle_objc_htmldump.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		41A963C11CE2484100412367 /* mulle_objc_html.c in Sources */ = {isa = PBXBuildFile; fileRef = 41A963BF1CE237AF00412367 /* mulle_objc_html.c */; };
-		41B2CC691C512BCF006CA7BB /* libmulle_objc_runtime.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4158AC8A1A1A0180007F2A2D /* libmulle_objc_runtime.a */; };
+		41B2CC691C512BCF006CA7BB /* .dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4158AC8A1A1A0180007F2A2D /* .dylib */; };
 		41B2CC6A1C512BD6006CA7BB /* libmulle_aba.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4170B7031BDD2E35008614DC /* libmulle_aba.a */; };
 		41B2CC6D1C512C4A006CA7BB /* libmulle_allocator.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 41B2CC6C1C512C4A006CA7BB /* libmulle_allocator.a */; };
 		41B2CC7B1C512EBC006CA7BB /* mulle_objc_runtime_standalone.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B2CC7A1C512EBC006CA7BB /* mulle_objc_runtime_standalone.c */; };
@@ -195,7 +195,7 @@
 		4147BDCA1A1CA4ED00AE8831 /* mulle_objc_load.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_load.h; sourceTree = "<group>"; };
 		4154F1631AA20D9B004B7259 /* mulle_objc_signature.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_signature.c; sourceTree = "<group>"; };
 		4154F1641AA20D9B004B7259 /* mulle_objc_signature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_signature.h; sourceTree = "<group>"; };
-		4158AC8A1A1A0180007F2A2D /* libmulle_objc_runtime.a */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmulle_objc_runtime.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		4158AC8A1A1A0180007F2A2D /* .dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = .dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		415A0A031C4E6E9A00290E05 /* Common.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Common.xcconfig; sourceTree = "<group>"; };
 		415A0A041C4E6E9A00290E05 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		415A0A051C4E6E9A00290E05 /* IOS.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = IOS.xcconfig; sourceTree = "<group>"; };
@@ -252,7 +252,7 @@
 		41A963BD1CE2373800412367 /* c_set.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; path = c_set.inc; sourceTree = "<group>"; };
 		41A963BF1CE237AF00412367 /* mulle_objc_html.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mulle_objc_html.c; sourceTree = "<group>"; };
 		41A963C01CE2384600412367 /* mulle_objc_html.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mulle_objc_html.h; sourceTree = "<group>"; };
-		41B2CC621C512BBD006CA7BB /* libmulle_objc_runtime_standalone.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libmulle_objc_runtime_standalone.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		41B2CC621C512BBD006CA7BB /* libmulle_objc_runtime_standalone.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; name = libmulle_objc_runtime_standalone.dylib; path = .dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		41B2CC6C1C512C4A006CA7BB /* libmulle_allocator.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmulle_allocator.a; path = "../mulle-aba/dependencies/lib/Debug/libmulle_allocator.a"; sourceTree = "<group>"; };
 		41B2CC6E1C512D64006CA7BB /* DynamicLibrary.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DynamicLibrary.xcconfig; sourceTree = "<group>"; };
 		41B2CC6F1C512D64006CA7BB /* DynamicLibraryOSX.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = DynamicLibraryOSX.xcconfig; sourceTree = "<group>"; };
@@ -289,7 +289,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				41B2CC691C512BCF006CA7BB /* libmulle_objc_runtime.a in Frameworks */,
+				41B2CC691C512BCF006CA7BB /* .dylib in Frameworks */,
 				41B2CC6D1C512C4A006CA7BB /* libmulle_allocator.a in Frameworks */,
 				4184C4791C8DC0BC004CED2F /* libmulle_concurrent.a in Frameworks */,
 				41837DCD1C845B5A00DA9F1D /* libmulle_test_allocator.a in Frameworks */,
@@ -328,7 +328,7 @@
 		413C8ACB1A17A0A700BA0630 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				4158AC8A1A1A0180007F2A2D /* libmulle_objc_runtime.a */,
+				4158AC8A1A1A0180007F2A2D /* .dylib */,
 				41B2CC621C512BBD006CA7BB /* libmulle_objc_runtime_standalone.dylib */,
 				4138D0E01CC6704B00940B7B /* mulle-objc-uniqueid */,
 			);
@@ -575,7 +575,7 @@
 			);
 			name = mulle_objc_runtime;
 			productName = "mulle-objc-runtime";
-			productReference = 4158AC8A1A1A0180007F2A2D /* libmulle_objc_runtime.a */;
+			productReference = 4158AC8A1A1A0180007F2A2D /* .dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 		41B2CC611C512BBD006CA7BB /* mulle_objc_runtime_standalone */ = {
