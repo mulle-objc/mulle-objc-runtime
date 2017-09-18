@@ -487,8 +487,8 @@ struct _mulle_objc_universe  *mulle_objc_get_or_create_universe( void)
 }
 
 
-void  _mulle_objc_universe_assert_version( struct _mulle_objc_universe  *universe,
-                                          struct mulle_objc_loadversion *version)
+void  _mulle_objc_universe_assert_version( struct _mulle_objc_universe *universe,
+                                           struct mulle_objc_loadversion *version)
 {
    if( (mulle_objc_version_get_major( version->universe) !=
         mulle_objc_version_get_major( _mulle_objc_universe_get_version( universe))) ||
@@ -501,16 +501,15 @@ void  _mulle_objc_universe_assert_version( struct _mulle_objc_universe  *univers
       
    {
       _mulle_objc_universe_raise_generic_exception( universe,
-         "mulle_objc_universe %p fatal: universe version %u.%u.%u (%s) is incompatible with "
-         "compiled version %u.%u.%u\n",
+         "mulle_objc_universe %p fatal: can't load code with incompatible version %u.%u.%u. This mulle-objc universe is version %u.%u.%u (%s)\n",
             universe,
+            mulle_objc_version_get_major( version->universe),
+            mulle_objc_version_get_minor( version->universe),
+            mulle_objc_version_get_patch( version->universe),
             mulle_objc_version_get_major( _mulle_objc_universe_get_version( universe)),
             mulle_objc_version_get_minor( _mulle_objc_universe_get_version( universe)),
             mulle_objc_version_get_patch( _mulle_objc_universe_get_version( universe)),
-            _mulle_objc_universe_get_path( universe) ? _mulle_objc_universe_get_path( universe) : "???",
-            mulle_objc_version_get_major( version->universe),
-            mulle_objc_version_get_minor( version->universe),
-            mulle_objc_version_get_patch( version->universe));
+                                                   _mulle_objc_universe_get_path( universe) ? _mulle_objc_universe_get_path( universe) : "???");
    }
 }
 
