@@ -3,62 +3,7 @@ if( NOT __MULLE_OBJC_RUNTIME_CMAKE_DEPENDENCIES_TXT__)
 
    message( STATUS "# Include mulle-objc-runtime CMakeDependencies.txt")
 
-   #
-   # The ifs are there so, that if someone has run find_libary already
-   # it doesn't add duplicates to DEPENDENCY_LIBRARIES
-   #
-   # Order these for deficient linkers
-   #
-
-   if( NOT MULLE_THREAD_LIBRARY)
-      find_library( MULLE_THREAD_LIBRARY NAMES mulle_thread)
-      message(STATUS "MULLE_THREAD_LIBRARY is ${MULLE_THREAD_LIBRARY}")
-      set( C_DEPENDENCY_LIBRARIES
-         ${MULLE_THREAD_LIBRARY}
-         ${C_DEPENDENCY_LIBRARIES}
-         CACHE INTERNAL "need to cache this"
-      )
-   endif()
-
-   if( NOT MULLE_ALLOCATOR_LIBRARY)
-      find_library( MULLE_ALLOCATOR_LIBRARY NAMES mulle_allocator)
-      message(STATUS "MULLE_ALLOCATOR_LIBRARY is ${MULLE_ALLOCATOR_LIBRARY}")
-      set( C_DEPENDENCY_LIBRARIES
-         ${MULLE_ALLOCATOR_LIBRARY}
-         ${C_DEPENDENCY_LIBRARIES}
-         CACHE INTERNAL "need to cache this"
-      )
-   endif()
-
-   if( NOT MULLE_TEST_ALLOCATOR_LIBRARY)
-      find_library( MULLE_TEST_ALLOCATOR_LIBRARY NAMES mulle_test_allocator)
-      message(STATUS "MULLE_TEST_ALLOCATOR_LIBRARY is ${MULLE_TEST_ALLOCATOR_LIBRARY}")
-      set( C_DEPENDENCY_LIBRARIES
-         ${MULLE_TEST_ALLOCATOR_LIBRARY}
-         ${C_DEPENDENCY_LIBRARIES}
-         CACHE INTERNAL "need to cache this"
-      )
-   endif()
-
-   if( NOT MULLE_ABA_LIBRARY)
-      find_library( MULLE_ABA_LIBRARY NAMES mulle_aba)
-      message(STATUS "MULLE_ABA_LIBRARY is ${MULLE_ABA_LIBRARY}")
-      set( C_DEPENDENCY_LIBRARIES
-         ${MULLE_ABA_LIBRARY}
-         ${C_DEPENDENCY_LIBRARIES}
-         CACHE INTERNAL "need to cache this"
-      )
-   endif()
-
-   if( NOT MULLE_CONCURRENT_LIBRARY)
-      find_library( MULLE_CONCURRENT_LIBRARY NAMES mulle_concurrent)
-      message(STATUS "MULLE_CONCURRENT_LIBRARY is ${MULLE_CONCURRENT_LIBRARY}")
-      set( C_DEPENDENCY_LIBRARIES
-         ${MULLE_CONCURRENT_LIBRARY}
-         ${C_DEPENDENCY_LIBRARIES}
-         CACHE INTERNAL "need to cache this"
-      )
-   endif()
+   include( ${DEPENDENCIES_DIR}/include/mulle_concurrent/CMakeDependencies.txt)
 
    #
    # for the benefit of ppl including us
@@ -73,7 +18,15 @@ if( NOT __MULLE_OBJC_RUNTIME_CMAKE_DEPENDENCIES_TXT__)
       )
    endif()
 
-   message( STATUS "# Included mulle-objc-runtime CMakeDependencies.txt")
+
+   if( MSVC)
+      set( MULLE_OBJC_RUNTIME_DEFINITIONS
+         ${MULLE_CONCURRENT_DEFINITIONS}
+         -DMULLE_OBJC_RUNTIME_GLOBAL_EXTERN=extern
+      )
+      list( REMOVE_DUPLICATES MULLE_OBJC_RUNTIME_DEFINITIONS)
+   endif()
+
 
 endif()
 

@@ -1668,7 +1668,6 @@ void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
 
    if( ! mulle_objc_class_is_current_thread_registered( NULL))
    {
-      loadinfo_dump( info, "loadinfo:   ");
       _mulle_objc_universe_raise_inconsistency_exception( universe,
          "mulle_objc_universe %p: The function "
          "\"mulle_objc_loadinfo_unfailingenqueue\" is called from a "

@@ -1,3 +1,7 @@
+### 0.11.3
+
+* follow mulle-configuration 3.1 changes and move .travis.yml to trusty
+
 ## 0.11.1
 
 * fixes for windows
