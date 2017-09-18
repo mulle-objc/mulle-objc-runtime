@@ -76,7 +76,7 @@
 				415A0A0C1C4E6E9A00290E05 /* ToolOSX.xcconfig */,
 				415A0A0D1C4E6E9A00290E05 /* _Common.xcconfig */,
 			);
-			path = "mulle-configuration";
+			path = "mulle-configuration/xcode";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
