@@ -36,9 +36,20 @@ ${DEBUG_SOURCES}
 ${C_DEPENDENCY_LIBRARIES}
 )
 
+target_compile_definitions( mulle_objc_runtime
+PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
+)
+
+
 add_executable( mulle-objc-uniqueid
 src/mulle-objc-uniqueid/main.c
 )
+
+
+target_compile_definitions( mulle-objc-uniqueid
+PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
+)
+
 
 add_dependencies( mulle-objc-uniqueid mulle_objc_runtime)
 
