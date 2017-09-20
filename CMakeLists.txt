@@ -65,3 +65,5 @@ install( TARGETS mulle_objc_runtime mulle_objc_runtime_standalone DESTINATION "l
 install( TARGETS mulle-objc-uniqueid DESTINATION "bin")
 install( FILES ${PUBLIC_HEADERS} DESTINATION "include/mulle_objc_runtime")
 install( FILES CMakeDependencies.txt DESTINATION "include/mulle_objc_runtime")
+
+include( MulleTest)
