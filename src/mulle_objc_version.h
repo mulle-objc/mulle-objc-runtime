@@ -42,7 +42,7 @@
 // up the minor for added features
 // up the patch for bugfixes
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (11 << 8) | 3)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (11 << 8) | 1)
 
 //
 // these three values are read by the compiler(!)
@@ -55,18 +55,24 @@
 
 static inline uint32_t  mulle_objc_version_get_major( uint32_t version)
 {
+   assert( (MULLE_OBJC_RUNTIME_VERSION >> 20) == MULLE_OBJC_RUNTIME_VERSION_MAJOR);
+
    return( (uint32_t) (version >> 20));
 }
 
 
 static inline uint32_t  mulle_objc_version_get_minor( uint32_t version)
 {
+   assert( ((MULLE_OBJC_RUNTIME_VERSION >> 8) & (1024 - 1)) == MULLE_OBJC_RUNTIME_VERSION_MINOR);
+
    return( (uint32_t) (version >> 8) & (1024 - 1));
 }
 
 
 static inline uint32_t  mulle_objc_version_get_patch( uint32_t version)
 {
+   assert( (MULLE_OBJC_RUNTIME_VERSION_PATCH & 255) == MULLE_OBJC_RUNTIME_VERSION_PATCH);
+
    return( (uint32_t) (version & 255));
 }
 
