@@ -461,12 +461,12 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    mulle_objc_classpair_unfailingadd_protocollist( pair, info->protocols);
    mulle_objc_classpair_unfailingadd_protocolclassids( pair, info->protocolclassids);
 
-   meta   = _mulle_objc_classpair_get_metaclass( pair);
+   meta = _mulle_objc_classpair_get_metaclass( pair);
 
    mulle_objc_metaclass_unfailingadd_methodlist( meta, info->classmethods);
    mulle_objc_methodlist_unfailingadd_load_to_callqueue( info->classmethods, meta, loads);
 
-   infra  = _mulle_objc_classpair_get_infraclass( pair);
+   infra = _mulle_objc_classpair_get_infraclass( pair);
    assert( meta == _mulle_objc_class_get_metaclass( &infra->base));
 
    _mulle_objc_infraclass_set_ivarhash( infra, info->classivarhash);
@@ -1702,8 +1702,20 @@ void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
    if( universe->debug.trace.dump_universe)
       mulle_objc_dotdump_universe_frame_to_tmp();
 
+   if( universe->debug.trace.loadinfo)
+   {
+      trace_preamble( universe);
+      fprintf( stderr, "loading strings...\n");
+   }
+
    // load strings in first, can be done unlocked
    mulle_objc_loadstringlist_unfailingenqueue( info->loadstringlist);
+
+   if( universe->debug.trace.loadinfo)
+   {
+      trace_preamble( universe);
+      fprintf( stderr, "loading hashes...\n");
+   }
 
    // pass universe thru...
    need_sort = info->version.bits & _mulle_objc_loadinfo_unsorted;
@@ -1711,11 +1723,29 @@ void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
    mulle_objc_loadhashedstringlist_unfailingenqueue( info->loadhashedstringlist,
                                                      need_sort);
 
+   if( universe->debug.trace.loadinfo)
+   {
+      trace_preamble( universe);
+      fprintf( stderr, "loading super strings...\n");
+   }
+
    // super strings are unproblematic also
    mulle_objc_loadsuperlist_unfailingenqueue( info->loadsuperlist);
 
+   if( universe->debug.trace.loadinfo)
+   {
+      trace_preamble( universe);
+      fprintf( stderr, "locking waitqueues...\n");
+   }
+
    _mulle_objc_universe_waitqueues_lock( universe);
    {
+      if( universe->debug.trace.loadinfo)
+      {
+         trace_preamble( universe);
+         fprintf( stderr, "lock successful\n");
+      }
+
       //
       // serialize the classes and categories for +load!
       // see dox/load/LOAD.md for more info
@@ -1735,17 +1765,49 @@ void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
       // Because these are locked now anyway, the pointerarray is overkill
       // and not that useful, because you can't remove entries
       //
+
+      if( universe->debug.trace.loadinfo)
+      {
+         trace_preamble( universe);
+         fprintf( stderr, "loading classes...\n");
+      }
+
       mulle_objc_loadclasslist_unfailingenqueue( info->loadclasslist,
                                                  need_sort,
                                                  &loads);
+      if( universe->debug.trace.loadinfo)
+      {
+         trace_preamble( universe);
+         fprintf( stderr, "loading categories...\n");
+      }
+
       mulle_objc_loadcategorylist_unfailingenqueue( info->loadcategorylist,
                                                     need_sort,
                                                     &loads);
+
+      if( universe->debug.trace.loadinfo)
+      {
+         trace_preamble( universe);
+         fprintf( stderr, "performing +load calls...\n");
+      }
 
       mulle_objc_callqueue_walk( &loads, (void (*)()) call_load, universe);
       mulle_objc_callqueue_done( &loads);
    }
 
+   if( universe->debug.trace.loadinfo)
+   {
+      trace_preamble( universe);
+      fprintf( stderr, "unlocking waitqueues...");
+   }
+
    _mulle_objc_universe_waitqueues_unlock( universe);
+
+
+   if( universe->debug.trace.loadinfo)
+   {
+      trace_preamble( universe);
+      fprintf( stderr, "finished with loadinfo %p\n", info);
+   }
 }
 
