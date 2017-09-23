@@ -1652,7 +1652,10 @@ void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
    struct _mulle_objc_universe   *universe;
    int                           need_sort;
 
-   assert( info);
+   // allow NULL input so mulle_objc_list can call this once, so the
+   // linker can't optimize it away
+   if( ! info)
+      return;
 
    universe = mulle_objc_get_or_create_universe();
    assert( universe);
