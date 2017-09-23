@@ -170,8 +170,6 @@ static struct _mulle_objc_dependency
 
 #pragma mark - classes
 
-
-
 static void  loadclass_fprintf( FILE *fp,
                                struct _mulle_objc_loadclass *info)
 {
@@ -233,7 +231,6 @@ static struct mulle_concurrent_pointerarray   *
    _mulle_concurrent_pointerarray_add( list, info);
    return( list);
 }
-
 
 
 static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info,
@@ -434,11 +431,11 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
                                                              struct _mulle_objc_callqueue *loads,
                                                              struct _mulle_objc_universe *universe)
 {
-   struct _mulle_objc_classpair   *pair;
-   struct _mulle_objc_metaclass   *meta;
-   struct _mulle_objc_infraclass  *infra;
-   struct _mulle_objc_infraclass  *superclass;
-   struct _mulle_objc_dependency  dependency;
+   struct _mulle_objc_classpair    *pair;
+   struct _mulle_objc_metaclass    *meta;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_infraclass   *superclass;
+   struct _mulle_objc_dependency   dependency;
 
    // root ?
    superclass = NULL;
