@@ -1798,7 +1798,7 @@ void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info)
    if( universe->debug.trace.loadinfo)
    {
       trace_preamble( universe);
-      fprintf( stderr, "unlocking waitqueues...");
+      fprintf( stderr, "unlocking waitqueues...\n");
    }
 
    _mulle_objc_universe_waitqueues_unlock( universe);
