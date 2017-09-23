@@ -314,8 +314,8 @@ static void   _mulle_objc_universe_set_debug_defaults_from_environment( struct _
       universe->debug.trace.tagged_pointer       = 1;
    }
 
-   universe->debug.print.print_origin   = getenv_yes_no_default( "MULLE_OBJC_PRINT_ORIGIN", 1);
-   universe->debug.print.universe_config = getenv_yes_no( "MULLE_OBJC_PRINT_RUNTIME_CONFIG");
+   universe->debug.print.print_origin    = getenv_yes_no_default( "MULLE_OBJC_PRINT_ORIGIN", 1);
+   universe->debug.print.universe_config = getenv_yes_no( "MULLE_OBJC_PRINT_UNIVERSE_CONFIG");
 
    if( universe->debug.print.universe_config)
    {
