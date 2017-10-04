@@ -3,7 +3,6 @@ cmake_minimum_required( VERSION 3.0)
 project( mulle-objc-runtime C)
 
 
-set( MULLE_OBJC_RUNTIME_LIBRARY ON)
 
 
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration/cmake)
@@ -16,9 +15,14 @@ else()
   include( Release)
 endif()
 
+set( MULLE_OBJC_RUNTIME_LIBRARY ON)
+set( MULLE_OBJC_RUNTIME_STARTUP_LIBRARY ON)
+
 include( CMakeSourcesAndHeaders.txt)
 include( CMakeDependencies.txt)
 
+include_directories( ${INCLUDE_DIRS}
+)
 
 #
 # these definitions are just used when compiling the
@@ -40,6 +44,10 @@ target_compile_definitions( mulle_objc_runtime
 PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
 )
 
+
+add_library( mulle_objc_runtime_startup STATIC
+${STANDALONE_SOURCES}
+)
 
 add_executable( mulle-objc-uniqueid
 src/mulle-objc-uniqueid/main.c
@@ -63,16 +71,19 @@ ${OS_SPECIFIC_LIBRARIES}
 set( STANDALONE_BASE_NAME "mulle_objc_runtime")
 set( STANDALONE_NAME "mulle_objc_runtime_standalone")
 set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
+set( STANDALONE_DEPENDENCIES mulle_objc_runtime
+mulle_objc_runtime_startup)
 set( STANDALONE_ALL_LOAD_LIBRARIES
 $<TARGET_FILE:mulle_objc_runtime>
 ${C_DEPENDENCY_LIBRARIES}
+$<TARGET_FILE:mulle_objc_runtime_startup>
 ${OS_SPECIFIC_LIBRARIES}
 )
 
 include( Standalone)
 
 
-install( TARGETS mulle_objc_runtime mulle_objc_runtime_standalone DESTINATION "lib")
+install( TARGETS mulle_objc_runtime mulle_objc_runtime_startup mulle_objc_runtime_standalone DESTINATION "lib")
 install( TARGETS mulle-objc-uniqueid DESTINATION "bin")
 install( FILES ${PUBLIC_HEADERS} DESTINATION "include/mulle_objc_runtime")
 install( FILES CMakeDependencies.txt DESTINATION "include/mulle_objc_runtime")

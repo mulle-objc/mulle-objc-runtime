@@ -18,6 +18,20 @@ if( NOT __MULLE_OBJC_RUNTIME_CMAKE_DEPENDENCIES_TXT__)
       )
    endif()
 
+   #
+   # the startup lib needed for executable linking with static libraries
+   # and for dynamic standalone libraries
+   #
+   if( NOT MULLE_OBJC_RUNTIME_STARTUP_LIBRARY)
+      find_library( MULLE_OBJC_RUNTIME_STARTUP_LIBRARY NAMES mulle_objc_runtime_startup)
+      message(STATUS "MULLE_OBJC_RUNTIME_STARTUP_LIBRARY is ${MULLE_OBJC_RUNTIME_STARTUP_LIBRARY}")
+      set( OBJC_STARTUP_LIBRARY
+         ${MULLE_OBJC_RUNTIME_STARTUP_LIBRARY}
+         CACHE INTERNAL "need to cache this"
+      )
+   endif()
+
+
    if( MSVC)
       set( MULLE_OBJC_RUNTIME_DEFINITIONS
          ${MULLE_CONCURRENT_DEFINITIONS}
