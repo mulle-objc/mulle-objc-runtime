@@ -76,7 +76,7 @@ struct _mulle_objc_property  *
    struct _mulle_objc_property   *p;
 
    assert( list);
-   assert( _mulle_objc_uniqueid_is_sane( propertyid));
+   assert( mulle_objc_uniqueid_is_sane( propertyid));
 
    p        = &list->properties[ 0];
    sentinel = &p[ list->n_properties];

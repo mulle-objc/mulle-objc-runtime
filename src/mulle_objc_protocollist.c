@@ -76,7 +76,7 @@ struct _mulle_objc_protocol  *_mulle_objc_protocollist_linear_search( struct _mu
    struct _mulle_objc_protocol   *p;
 
    assert( list);
-   assert( _mulle_objc_uniqueid_is_sane( protocolid));
+   assert( mulle_objc_uniqueid_is_sane( protocolid));
 
    p        = &list->protocols[ 0];
    sentinel = &p[ list->n_protocols];

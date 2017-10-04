@@ -72,7 +72,7 @@ void   *_mulle_objc_cache_lookup_pointer( struct _mulle_objc_cache *cache,
    mulle_objc_cache_uint_t         offset;
    mulle_objc_cache_uint_t         mask;
 
-   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -101,7 +101,7 @@ mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle
    mulle_objc_cache_uint_t         offset;
    mulle_objc_cache_uint_t         mask;
 
-   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -132,7 +132,7 @@ int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache, mulle_
    mulle_objc_cache_uint_t         offset;
 
    assert( cache);
-   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -176,7 +176,7 @@ mulle_objc_cache_uint_t
    mulle_objc_cache_uint_t         mask;
 
    assert( cache);
-   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    entries = cache->entries;
    mask    = cache->mask;
@@ -322,7 +322,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mu
 
    assert( cache);
    assert( pointer);
-   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    //
    // entries pointer never changes in cache..
@@ -369,7 +369,7 @@ struct _mulle_objc_cacheentry   *
 
    assert( cache);
    assert( pointer);
-   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    //
    // entries pointer never changes in cache..

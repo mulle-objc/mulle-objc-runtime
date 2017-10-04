@@ -93,7 +93,7 @@ MULLE_C_ALWAYS_INLINE
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -157,7 +157,7 @@ static inline void  *mulle_objc_object_inline_variable_methodid_call( void *obj,
    if( __builtin_expect( ! obj, 0))
       return( obj);
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    cls     = _mulle_objc_object_get_isa( obj);
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
@@ -267,7 +267,7 @@ MULLE_C_ALWAYS_INLINE
    //
    cls = _mulle_objc_object_get_isa( obj);
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);

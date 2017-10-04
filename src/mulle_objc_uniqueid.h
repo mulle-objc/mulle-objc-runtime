@@ -70,7 +70,7 @@ extern const int  MULLE_OBJC_UNIQUEHASH_ALGORITHM;
 
 mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s);
 
-static inline int  _mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid)
+static inline int  mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid)
 {
    if( uniqueid == MULLE_OBJC_NO_UNIQUEID ||
        uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
@@ -81,7 +81,7 @@ static inline int  _mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid)
 }
 
 
-int   mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid, char *s);
+int   mulle_objc_uniqueid_is_sane_string( mulle_objc_uniqueid_t uniqueid, char *s);
 
 // for compiler purposes it's better to typedef the various id types here
 // (include cycles..)
@@ -97,6 +97,11 @@ typedef mulle_objc_uniqueid_t   mulle_objc_categoryid_t;
 #define MULLE_OBJC_NO_CATEGORYID            MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_CATEGORYID       MULLE_OBJC_INVALID_UNIQUEID
 
+static inline int  mulle_objc_categoryid_is_sane( mulle_objc_categoryid_t uniqueid)
+{
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
+}
+
 
 #pragma mark - mulle_objc_classid_t
 
@@ -106,6 +111,11 @@ typedef mulle_objc_uniqueid_t   mulle_objc_classid_t;
 
 #define MULLE_OBJC_NO_CLASSID            MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_CLASSID       MULLE_OBJC_INVALID_UNIQUEID
+
+static inline int  mulle_objc_classid_is_sane( mulle_objc_classid_t uniqueid)
+{
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
+}
 
 
 #pragma mark - mulle_objc_ivarid_t
@@ -117,6 +127,11 @@ typedef mulle_objc_uniqueid_t   mulle_objc_ivarid_t;
 #define MULLE_OBJC_NO_IVARID        MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_IVARID   MULLE_OBJC_INVALID_UNIQUEID
 
+static inline int  mulle_objc_ivarid_is_sane( mulle_objc_ivarid_t uniqueid)
+{
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
+}
+
 
 #pragma mark - mulle_objc_methodid_t
 
@@ -127,6 +142,10 @@ typedef mulle_objc_uniqueid_t      mulle_objc_methodid_t;
 #define MULLE_OBJC_NO_METHODID        MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_METHODID   MULLE_OBJC_INVALID_UNIQUEID
 
+static inline int  mulle_objc_methodid_is_sane( mulle_objc_methodid_t uniqueid)
+{
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
+}
 
 
 #pragma mark - mulle_objc_superid_t
@@ -138,6 +157,11 @@ typedef mulle_objc_uniqueid_t      mulle_objc_superid_t;
 #define MULLE_OBJC_NO_SUPERID        MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_SUPERID   MULLE_OBJC_INVALID_UNIQUEID
 
+static inline int  mulle_objc_superid_is_sane( mulle_objc_superid_t uniqueid)
+{
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
+}
+
 
 #pragma mark - mulle_objc_propertyid_t
 
@@ -148,6 +172,11 @@ typedef mulle_objc_uniqueid_t      mulle_objc_propertyid_t;
 #define MULLE_OBJC_NO_PROPERTYID        MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_PROPERTYID   MULLE_OBJC_INVALID_UNIQUEID
 
+static inline int  mulle_objc_propertyid_is_sane( mulle_objc_propertyid_t uniqueid)
+{
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
+}
+
 
 #pragma mark - mulle_objc_protocolid_t
 
@@ -157,6 +186,11 @@ typedef mulle_objc_uniqueid_t      mulle_objc_protocolid_t;
 
 #define MULLE_OBJC_NO_PROTOCOLID        MULLE_OBJC_NO_UNIQUEID
 #define MULLE_OBJC_INVALID_PROTOCOLID   MULLE_OBJC_INVALID_UNIQUEID
+
+static inline int  mulle_objc_protocolid_is_sane( mulle_objc_protocolid_t uniqueid)
+{
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
+}
 
 
 

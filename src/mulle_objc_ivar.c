@@ -49,7 +49,7 @@ struct _mulle_objc_ivar   *_mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *bu
    int                       middle;
    struct _mulle_objc_ivar   *p;
 
-   assert( _mulle_objc_uniqueid_is_sane( search));
+   assert( mulle_objc_uniqueid_is_sane( search));
 
    first  = 0;
    last   = n - 1;  // unsigned not good (need extra if)

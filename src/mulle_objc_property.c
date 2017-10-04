@@ -76,7 +76,7 @@ struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_
    int        middle;
    struct _mulle_objc_property   *p;
 
-   assert( _mulle_objc_uniqueid_is_sane( search));
+   assert( mulle_objc_uniqueid_is_sane( search));
 
    first  = 0;
    last   = n - 1;

@@ -590,7 +590,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry   *entries;
    mulle_objc_cache_uint_t         offset;
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
@@ -612,7 +612,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_method           *method;
    mulle_objc_cache_uint_t             offset;
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
@@ -650,7 +650,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_method           *method;
    mulle_objc_cache_uint_t             offset;
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    cache   = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
    offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
@@ -686,7 +686,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry       *entry;
    struct _mulle_objc_method           *method;
    
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -721,7 +721,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry       *entry;
    struct _mulle_objc_method           *method;
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -785,7 +785,7 @@ mulle_objc_implementation_t
    mulle_objc_class_unfailinglookup_implementation( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t methodid)
 {
-   if( ! cls || ! _mulle_objc_uniqueid_is_sane( methodid))
+   if( ! cls || ! mulle_objc_uniqueid_is_sane( methodid))
    {
       errno = EINVAL;
       //  _mulle_objc_universe_raise_errno_exception( mulle_objc_get_universe());
@@ -811,7 +811,7 @@ void   *_mulle_objc_object_call_class( void *obj,
    mulle_objc_cache_uint_t             offset;
 
    assert( obj);
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
@@ -851,7 +851,7 @@ void   *_mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, voi
    mulle_objc_cache_uint_t             mask;
    mulle_objc_cache_uint_t             offset;
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    cls     = _mulle_objc_object_get_isa( obj);
    entries = _mulle_objc_cachepivot_atomic_get_entries( &cls->cachepivot.pivot);
@@ -1244,7 +1244,7 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
    void                                **sentinel;
    void                                *p;
 
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
    memset( lastIsa, 0, sizeof( lastIsa));
 
    // assume compiler can do unrolling

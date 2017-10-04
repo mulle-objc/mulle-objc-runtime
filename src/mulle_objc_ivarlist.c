@@ -48,7 +48,7 @@ struct _mulle_objc_ivar  *_mulle_objc_ivarlist_linear_search( struct _mulle_objc
    struct _mulle_objc_ivar   *p;
 
    assert( list);
-   assert( _mulle_objc_uniqueid_is_sane( ivarid));
+   assert( mulle_objc_uniqueid_is_sane( ivarid));
 
    p        = &list->ivars[ 0];
    sentinel = &p[ list->n_ivars];

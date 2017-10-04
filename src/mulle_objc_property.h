@@ -44,9 +44,12 @@
 #include <stddef.h>
 
 
+// properties have no descriptor (why ?)
+
 struct _mulle_objc_property
 {
    mulle_objc_propertyid_t    propertyid;
+   mulle_objc_ivarid_t        ivarid;      // name prefixed with _
    char                       *name;
    char                       *signature;  // hmmm...
    mulle_objc_methodid_t      getter;
@@ -75,6 +78,12 @@ static inline mulle_objc_propertyid_t  _mulle_objc_property_get_propertyid( stru
 }
 
 
+static inline mulle_objc_ivarid_t  _mulle_objc_property_get_ivarid( struct _mulle_objc_property *property)
+{
+   return( property->ivarid);
+}
+
+
 static inline mulle_objc_methodid_t    _mulle_objc_property_get_getter( struct _mulle_objc_property *property)
 {
    return( property->getter);
@@ -87,6 +96,7 @@ static inline mulle_objc_methodid_t    _mulle_objc_property_get_setter( struct _
 }
 
 
+// todo: fix this naming strangenesss
 char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *property, char type);
 char   *_mulle_objc_propertysignature_next_types( char *s, char *types);
 

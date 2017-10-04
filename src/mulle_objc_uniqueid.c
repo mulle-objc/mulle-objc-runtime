@@ -95,9 +95,9 @@ mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
 }
 
 
-int   mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid, char *s)
+int   mulle_objc_uniqueid_is_sane_string( mulle_objc_uniqueid_t uniqueid, char *s)
 {
-   if( ! _mulle_objc_uniqueid_is_sane( uniqueid))
+   if( ! mulle_objc_uniqueid_is_sane( uniqueid))
    {
       errno = EINVAL;
       return( 0);

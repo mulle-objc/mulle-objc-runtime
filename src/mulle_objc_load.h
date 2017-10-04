@@ -66,7 +66,7 @@ struct _mulle_objc_dependency
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   11
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   12
 
 
 struct _mulle_objc_loadclass

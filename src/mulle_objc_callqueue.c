@@ -96,7 +96,7 @@ int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *queue,
 {
    struct _queue_entry   *entry;
 
-   if( ! queue || ! obj || ! imp || ! _mulle_objc_uniqueid_is_sane( methodid))
+   if( ! queue || ! obj || ! imp || ! mulle_objc_uniqueid_is_sane( methodid))
    {
       errno = EINVAL;
       return( -1);

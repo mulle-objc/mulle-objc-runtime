@@ -48,11 +48,11 @@ int   mulle_objc_super_is_sane( struct _mulle_objc_super *p)
       return( 0);
    }
 
-   if( ! mulle_objc_uniqueid_is_sane( p->superid, p->name))
+   if( ! mulle_objc_uniqueid_is_sane_string( p->superid, p->name))
       return( 0);
 
-   if( ! _mulle_objc_uniqueid_is_sane( p->classid) ||
-       ! _mulle_objc_uniqueid_is_sane( p->methodid))
+   if( ! mulle_objc_uniqueid_is_sane( p->classid) ||
+       ! mulle_objc_uniqueid_is_sane( p->methodid))
    {
       errno = EINVAL;
       return( 0);
