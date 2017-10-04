@@ -53,7 +53,7 @@ struct _mulle_objc_protocol   *_mulle_objc_protocol_bsearch( struct _mulle_objc_
    int   middle;
    struct _mulle_objc_protocol   *p;
 
-   assert( _mulle_objc_uniqueid_is_sane( search));
+   assert( mulle_objc_uniqueid_is_sane( search));
 
    first  = 0;
    last   = n - 1;

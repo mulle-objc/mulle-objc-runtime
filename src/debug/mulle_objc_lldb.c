@@ -62,7 +62,7 @@ mulle_objc_implementation_t
    if( debug)
       fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, cls_or_classid, is_classid);
    
-   if( ! obj || _mulle_objc_uniqueid_is_sane( MULLE_OBJC_NO_METHODID))
+   if( ! obj || mulle_objc_uniqueid_is_sane( MULLE_OBJC_NO_METHODID))
       return( 0);
    
    // ensure class init

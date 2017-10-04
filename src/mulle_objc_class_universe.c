@@ -246,7 +246,7 @@ struct _mulle_objc_infraclass   *
    struct _mulle_objc_infraclass   *infra;
    int                              retry;
 
-   assert( _mulle_objc_uniqueid_is_sane( classid));
+   assert( mulle_objc_uniqueid_is_sane( classid));
    
    retry = 1;
    for(;;)

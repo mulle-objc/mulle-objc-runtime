@@ -239,7 +239,7 @@ int   __mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
       return( 0);
    }
 
-   if( ! mulle_objc_uniqueid_is_sane( cls->classid, cls->name))
+   if( ! mulle_objc_uniqueid_is_sane_string( cls->classid, cls->name))
       return( 0);
 
    assert( cls->call);
@@ -279,7 +279,7 @@ static int
    mulle_objc_uniqueid_t           offset;
    struct _mulle_objc_cache        *cache;
 
-   assert( _mulle_objc_uniqueid_is_sane( uniqueid));
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return( 0);
@@ -421,7 +421,7 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
    rover = _mulle_objc_methodlist_enumerate( list);
    while( method = _mulle_objc_methodlistenumerator_next( &rover))
    {
-      assert( _mulle_objc_uniqueid_is_sane( method->descriptor.methodid));
+      assert( mulle_objc_uniqueid_is_sane( method->descriptor.methodid));
       //
       // methods must be sorted by signed methodid, so we can binary search them
       // (in the future)

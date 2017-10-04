@@ -53,7 +53,7 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
    int   middle;
    struct _mulle_objc_method   *p;
 
-   assert( _mulle_objc_uniqueid_is_sane( search));
+   assert( mulle_objc_uniqueid_is_sane( search));
 
    first  = 0;
    last   = n - 1;
@@ -114,7 +114,7 @@ int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p)
       return( 0);
    }
 
-   if( ! mulle_objc_uniqueid_is_sane( p->methodid, p->name))
+   if( ! mulle_objc_uniqueid_is_sane_string( p->methodid, p->name))
       return( 0);
 
    return( 1);

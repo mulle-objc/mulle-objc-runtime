@@ -114,10 +114,13 @@ struct mulle_objc_typeinfo
 
 // returns address of next type in types
 
-static inline char    *mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_objc_typeinfo *info)
+static inline char   *
+   mulle_objc_signature_supply_next_typeinfo( char *types, 
+                                              struct mulle_objc_typeinfo *info)
 {
    // don't call this yourself, always check types first
-   char   *_mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_objc_typeinfo *info);
+   char   *_mulle_objc_signature_supply_next_typeinfo( char *types, 
+                                                       struct mulle_objc_typeinfo *info);
 
    if( ! types || ! *types)
       return( NULL);
@@ -136,7 +139,9 @@ static inline char    *mulle_objc_signature_next_type( char *types)
 }
 
 // kinda the same just a little simpler to interact with
-char   *mulle_objc_signature_supply_size_and_alignment( char *type, unsigned int *size, unsigned int *alignment);
+char   *mulle_objc_signature_supply_size_and_alignment( char *type, 
+                                                        unsigned int *size, 
+                                                        unsigned int *alignment);
 
 unsigned int    mulle_objc_signature_count_typeinfos( char *types);
 
@@ -162,7 +167,8 @@ enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabireturntype( c
 
 
 // this method does not inspect the complete signature! only the type
-static inline enum mulle_objc_metaabiparamtype   _mulle_objc_signature_get_metaabiparamtype( char *type)
+static inline enum mulle_objc_metaabiparamtype   
+   _mulle_objc_signature_get_metaabiparamtype( char *type)
 {
    return( mulle_objc_signature_get_metaabireturntype( type)); // sic(!)
 }
@@ -173,7 +179,8 @@ static inline int  _mulle_objc_signature_pedantic_compare( char *a, char *b)
    return( strcmp( a, b));
 }
 
-int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a, struct mulle_objc_typeinfo *b);
+int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
+                                    struct mulle_objc_typeinfo *b);
 
 int  _mulle_objc_signature_compare( char *a, char *b);
 

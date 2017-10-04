@@ -414,7 +414,7 @@ static int  mulle_objc_loadclass_is_sane( struct _mulle_objc_loadclass *info)
    if( ! info->classname)
       return( 0);
 
-   if( ! mulle_objc_uniqueid_is_sane( info->classid, info->classname))
+   if( ! mulle_objc_uniqueid_is_sane_string( info->classid, info->classname))
       return( 0);
 
    // class method lists should have no owner
@@ -581,7 +581,7 @@ static void   loadprotocols_dump( struct _mulle_objc_protocollist *protocols)
 
 static void   loadmethod_dump( struct _mulle_objc_method *method, char *prefix, char type)
 {
-   fprintf( stderr, "%s %c%s; // id=%08x signature=%s bits=0x%x\n",
+   fprintf( stderr, "%s %c%s; // id=%08x signature=\"%s\" bits=0x%x\n",
             prefix,
             type,
             method->descriptor.name,
@@ -591,14 +591,30 @@ static void   loadmethod_dump( struct _mulle_objc_method *method, char *prefix, 
 
 }
 
+static void   loadivar_dump( struct _mulle_objc_ivar *ivar, char *prefix)
+{
+   fprintf( stderr, "%s    %s; // id=%08x signature=\"%s\"\n",
+           prefix,
+           ivar->descriptor.name,
+           ivar->descriptor.ivarid,
+           ivar->descriptor.signature);
+}
+
+static void   loadproperty_dump( struct _mulle_objc_property *property, char *prefix)
+{
+   fprintf( stderr, "%s @property %s; // id=%08x ivarid=%08x signature=\"%s\"\n",
+           prefix,
+           property->name,
+           property->propertyid,
+           property->ivarid,
+           property->signature);
+}
+
 
 static void   loadclass_dump( struct _mulle_objc_loadclass *p,
                               char *prefix)
 
 {
-   struct _mulle_objc_method   *method;
-   struct _mulle_objc_method   *sentinel;
-
    if( p->protocolclassids)
       loadprotocolclasses_dump( p->protocolclassids, prefix, p->protocols);
 
@@ -615,8 +631,41 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
 
    fprintf( stderr, "\n");
 
+   if( p->instancevariables)
+   {
+      fprintf( stderr, "%s{\n", prefix);
+      struct _mulle_objc_ivar   *ivar;
+      struct _mulle_objc_ivar   *sentinel;
+      
+      ivar     = p->instancevariables->ivars;
+      sentinel = &ivar[ p->instancevariables->n_ivars];
+      while( ivar < sentinel)
+      {
+         loadivar_dump( ivar, prefix);
+         ++ivar;
+      }
+      fprintf( stderr, "%s}\n", prefix);
+   }
+
+   if( p->properties)
+   {
+      struct _mulle_objc_property   *property;
+      struct _mulle_objc_property   *sentinel;
+      
+      property = p->properties->properties;
+      sentinel = &property[ p->properties->n_properties];
+      while( property < sentinel)
+      {
+         loadproperty_dump( property, prefix);
+         ++property;
+      }
+   }
+
    if( p->classmethods)
    {
+      struct _mulle_objc_method   *method;
+      struct _mulle_objc_method   *sentinel;
+
       method   = p->classmethods->methods;
       sentinel = &method[ p->classmethods->n_methods];
       while( method < sentinel)
@@ -628,6 +677,9 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
 
    if( p->instancemethods)
    {
+      struct _mulle_objc_method   *method;
+      struct _mulle_objc_method   *sentinel;
+
       method = p->instancemethods->methods;
       sentinel = &method[ p->instancemethods->n_methods];
       while( method < sentinel)
@@ -915,9 +967,9 @@ static int  mulle_objc_loadcategory_is_sane( struct _mulle_objc_loadcategory *in
       return( 0);
    }
 
-   if( ! mulle_objc_uniqueid_is_sane( info->classid, info->classname))
+   if( ! mulle_objc_uniqueid_is_sane_string( info->classid, info->classname))
       return( 0);
-   if( ! mulle_objc_uniqueid_is_sane( info->categoryid, info->categoryname))
+   if( ! mulle_objc_uniqueid_is_sane_string( info->categoryid, info->categoryname))
       return( 0);
 
    return( 1);
@@ -1204,7 +1256,7 @@ char   *_mulle_objc_loadhashedstring_bsearch( struct _mulle_objc_loadhashedstrin
    int   middle;
    struct _mulle_objc_loadhashedstring   *p;
 
-   assert( _mulle_objc_uniqueid_is_sane( search));
+   assert( mulle_objc_uniqueid_is_sane( search));
 
    first  = 0;
    last   = n - 1;  // unsigned not good (need extra if)
@@ -1283,7 +1335,7 @@ int  mulle_objc_loadhashedstring_is_sane( struct _mulle_objc_loadhashedstring *p
       return( 0);
    }
 
-   if( ! mulle_objc_uniqueid_is_sane( p->uniqueid, p->string))
+   if( ! mulle_objc_uniqueid_is_sane_string( p->uniqueid, p->string))
       return( 0);
 
    return( 1);

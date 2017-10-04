@@ -710,6 +710,7 @@ char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylis
                  "<TABLE>"
                    "<TR><TD>signature</TD><TD>%s</TD></TR>"
                    "<TR><TD>propertyid</TD><TD>%08x</TD></TR>"
+                   "<TR><TD>ivarid</TD><TD>%08x</TD></TR>"
                    "<TR><TD>getter</TD><TD>%08x</TD></TR>"
                    "<TR><TD>setter</TD><TD>%08x</TD></TR>"
                    "<TR><TD>clearer</TD><TD>%08x</TD></TR>"
@@ -719,6 +720,7 @@ char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylis
                html_escape( list->properties[ j].name),
                html_escape( list->properties[ j].signature),
                list->properties[ j].propertyid,
+               list->properties[ j].ivarid,
                list->properties[ j].getter,
                list->properties[ j].setter,
                list->properties[ j].clearer);

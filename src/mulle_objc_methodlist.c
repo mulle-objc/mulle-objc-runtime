@@ -76,7 +76,7 @@ struct _mulle_objc_method  *_mulle_objc_methodlist_linear_search( struct _mulle_
    struct _mulle_objc_method   *p;
 
    assert( list);
-   assert( _mulle_objc_uniqueid_is_sane( methodid));
+   assert( mulle_objc_uniqueid_is_sane( methodid));
 
    p        = &list->methods[ 0];
    sentinel = &p[ list->n_methods];
