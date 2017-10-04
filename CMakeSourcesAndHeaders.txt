@@ -1,4 +1,4 @@
-include_directories(
+set( INCLUDE_DIRS
    src
    src/debug
 )
@@ -102,4 +102,8 @@ src/mulle_objc_uniqueidarray.c
 src/mulle_objc_universe.c
 src/mulle_objc_universe_global.c
 src/debug/mulle_objc_lldb.c  # always add
+)
+
+set( STANDALONE_SOURCES
+src/mulle_objc_runtime_standalone.c
 )
