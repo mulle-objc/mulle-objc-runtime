@@ -174,6 +174,12 @@ static inline enum mulle_objc_metaabiparamtype
 }
 
 
+//
+// not sure of this is really needed or paranoia
+// skip prefix fluff of signature
+//
+char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s);
+
 static inline int  _mulle_objc_signature_pedantic_compare( char *a, char *b)
 {
    return( strcmp( a, b));

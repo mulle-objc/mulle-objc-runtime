@@ -521,6 +521,38 @@ char    *_mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_o
 // "types" must be correct
 // this does not error checking (we don't have the time)
 //
+char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s)
+{
+   //
+   // parse extended class info
+   // @"<NSCopying>" or @"NSString"
+   // not considered part of pure_type_end
+   //
+   for(;;)
+   {
+      switch( *s)
+      {
+         case '"' :
+            while( *++s != '"');
+            break;
+            
+         case '-' :
+         case '+' :
+            break;
+
+         default :
+            if( *s < '0' || *s > '9')
+               return( s);
+      }
+      ++s;
+   }
+}
+
+
+//
+// "types" must be correct
+// this does not error checking (we don't have the time)
+//
 char   *_mulle_objc_signature_next_typeinfo( char *types)
 {
    char   *next;
@@ -528,29 +560,7 @@ char   *_mulle_objc_signature_next_typeinfo( char *types)
    next = __mulle_objc_signature_supply_next_typeinfo( types, -1, NULL);
    if( ! next)
       return( next);
-
-   //
-   // parse extended class info
-   // @"<NSCopying>" or @"NSString"
-   // not considered part of pure_type_end
-   //
-   if( *next == '"')
-   {
-      while( *++next != '"');
-      ++next;  // skip terminator
-   }
-   
-   switch( *next)
-   {
-   case '-' :
-   case '+' :
-      ++next;
-   }
-
-   while( *next >= '0' && *next <= '9')
-      ++next;
-
-   return( next);
+   return( _mulle_objc_signature_skip_extendedtypeinfo( next));
 }
 
 

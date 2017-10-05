@@ -1231,6 +1231,22 @@ void   *mulle_objc_object_call( void *obj,
 }
 
 
+#pragma mark - super call
+
+void   *_mulle_objc_object_supercall( void *obj,
+                                      mulle_objc_methodid_t methodid,
+                                      void *parameter,
+                                      mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t   imp;
+   
+   imp = _mulle_objc_object_inline_unfailinglookup_superimplementation( obj, superid);
+   return( (*imp)( obj, methodid, parameter));
+}
+
+// need to call cls->call to prepare caches
+
+
 #pragma mark - multiple objects call
 
 void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_methodid_t methodid, void *params)
@@ -1284,18 +1300,5 @@ mulle_objc_implementation_t
    return( _mulle_objc_object_inline_unfailinglookup_superimplementation( obj, superid));
 }
 
-
-void   *_mulle_objc_object_supercall( void *obj,
-                                      mulle_objc_methodid_t methodid,
-                                      void *parameter,
-                                      mulle_objc_superid_t superid)
-{
-   mulle_objc_implementation_t   imp;
-
-   imp = _mulle_objc_object_inline_unfailinglookup_superimplementation( obj, superid);
-   return( (*imp)( obj, methodid, parameter));
-}
-
-// need to call cls->call to prepare caches
 
 
