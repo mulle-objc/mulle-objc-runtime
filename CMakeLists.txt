@@ -3,8 +3,6 @@ cmake_minimum_required( VERSION 3.0)
 project( mulle-objc-runtime C)
 
 
-
-
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration/cmake)
 message(STATUS "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}")
 message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
@@ -72,6 +70,7 @@ ${OS_SPECIFIC_LIBRARIES}
 
 set( STANDALONE_BASE_NAME "mulle_objc_runtime")
 set( STANDALONE_NAME "mulle_objc_runtime_standalone")
+set( STANDALONE_SOURCE "-")
 set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
 set( STANDALONE_DEPENDENCIES
    mulle_objc_runtime
