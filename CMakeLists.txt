@@ -70,7 +70,6 @@ ${OS_SPECIFIC_LIBRARIES}
 
 set( STANDALONE_BASE_NAME "mulle_objc_runtime")
 set( STANDALONE_NAME "mulle_objc_runtime_standalone")
-set( STANDALONE_SOURCE "-")
 set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
 set( STANDALONE_DEPENDENCIES
    mulle_objc_runtime
