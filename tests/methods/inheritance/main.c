@@ -58,6 +58,7 @@ static void   reset_universe()
    struct _mulle_objc_universe   *universe;
 
    mulle_objc_release_universe();
+
    universe = mulle_objc_get_or_create_universe();
 
    // tests were written at an earlier time...

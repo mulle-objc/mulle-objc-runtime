@@ -104,6 +104,10 @@ src/mulle_objc_universe_global.c
 src/debug/mulle_objc_lldb.c  # always add
 )
 
+set( STARTUP_SOURCES
+src/mulle_objc_runtime_startup.c
+)
+
 set( STANDALONE_SOURCES
 src/mulle_objc_runtime_standalone.c
 )

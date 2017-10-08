@@ -21,8 +21,7 @@ set( MULLE_OBJC_RUNTIME_STARTUP_LIBRARY ON)
 include( CMakeSourcesAndHeaders.txt)
 include( CMakeDependencies.txt)
 
-include_directories( ${INCLUDE_DIRS}
-)
+include_directories( ${INCLUDE_DIRS})
 
 #
 # these definitions are just used when compiling the
@@ -46,7 +45,7 @@ PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
 
 
 add_library( mulle_objc_runtime_startup STATIC
-${STANDALONE_SOURCES}
+${STARTUP_SOURCES}
 )
 
 add_executable( mulle-objc-uniqueid
@@ -59,7 +58,10 @@ PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
 )
 
 
-add_dependencies( mulle-objc-uniqueid mulle_objc_runtime)
+add_dependencies( mulle-objc-uniqueid
+   mulle_objc_runtime
+)
+
 
 target_link_libraries( mulle-objc-uniqueid
 $<TARGET_FILE:mulle_objc_runtime>
@@ -71,8 +73,11 @@ ${OS_SPECIFIC_LIBRARIES}
 set( STANDALONE_BASE_NAME "mulle_objc_runtime")
 set( STANDALONE_NAME "mulle_objc_runtime_standalone")
 set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
-set( STANDALONE_DEPENDENCIES mulle_objc_runtime
-mulle_objc_runtime_startup)
+set( STANDALONE_DEPENDENCIES
+   mulle_objc_runtime
+   mulle_objc_runtime_startup
+)
+
 set( STANDALONE_ALL_LOAD_LIBRARIES
 $<TARGET_FILE:mulle_objc_runtime>
 ${C_DEPENDENCY_LIBRARIES}
