@@ -3,6 +3,7 @@
 .*
 
 build/
+build*.d/
 xcuserdata/
 project.xcworkspace/
 *.o
@@ -16,6 +17,7 @@ project.xcworkspace/
 *.debug
 *.bak
 *.old
+tmp.*
 
 main
 
