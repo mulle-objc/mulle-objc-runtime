@@ -52,6 +52,7 @@
 		4124009E1AB0652A00D56278 /* mulle_objc_method.h in Headers */ = {isa = PBXBuildFile; fileRef = 416BA7801A1908B8002F603A /* mulle_objc_method.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4124009F1AB0653200D56278 /* mulle_objc_load.h in Headers */ = {isa = PBXBuildFile; fileRef = 4147BDCA1A1CA4ED00AE8831 /* mulle_objc_load.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		412400A01AB0654400D56278 /* mulle_objc_callqueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 41978C351A1DF8C300DAFA51 /* mulle_objc_callqueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		4124FE2E1F8A862600169D0F /* mulle_objc_runtime_startup.c in Sources */ = {isa = PBXBuildFile; fileRef = 4124FE2D1F8A82D200169D0F /* mulle_objc_runtime_startup.c */; };
 		4137D8411C724E6C00102D35 /* mulle_objc_fastenumeration.c in Sources */ = {isa = PBXBuildFile; fileRef = 4137D83F1C724E6C00102D35 /* mulle_objc_fastenumeration.c */; };
 		4137D8421C724E6C00102D35 /* mulle_objc_fastenumeration.h in Headers */ = {isa = PBXBuildFile; fileRef = 4137D8401C724E6C00102D35 /* mulle_objc_fastenumeration.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		4138D0E31CC6704B00940B7B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 4138D0E21CC6704B00940B7B /* main.c */; };
@@ -183,6 +184,7 @@
 		41212A231E97DC6A0089F711 /* mulle_objc_walktypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_walktypes.h; sourceTree = "<group>"; };
 		4122BEB51EDB2B52008E6599 /* mulle_objc_uniqueidarray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_uniqueidarray.c; sourceTree = "<group>"; };
 		4122BEB61EDB2B52008E6599 /* mulle_objc_uniqueidarray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_uniqueidarray.h; sourceTree = "<group>"; };
+		4124FE2D1F8A82D200169D0F /* mulle_objc_runtime_startup.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_runtime_startup.c; sourceTree = "<group>"; };
 		4137D83F1C724E6C00102D35 /* mulle_objc_fastenumeration.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mulle_objc_fastenumeration.c; sourceTree = "<group>"; };
 		4137D8401C724E6C00102D35 /* mulle_objc_fastenumeration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mulle_objc_fastenumeration.h; sourceTree = "<group>"; };
 		4138D0E01CC6704B00940B7B /* mulle-objc-uniqueid */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "mulle-objc-uniqueid"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -413,6 +415,7 @@
 				4111AFD71D8049C100DFB901 /* mulle_objc_universe_global.c */,
 				4111AFD91D8049C100DFB901 /* mulle_objc_universe_struct.h */,
 				4177A96C1D325E77007DC3D8 /* mulle_objc_version.h */,
+				4124FE2D1F8A82D200169D0F /* mulle_objc_runtime_startup.c */,
 			);
 			path = src;
 			sourceTree = "<group>";
@@ -696,6 +699,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				41B2CC7B1C512EBC006CA7BB /* mulle_objc_runtime_standalone.c in Sources */,
+				4124FE2E1F8A862600169D0F /* mulle_objc_runtime_startup.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

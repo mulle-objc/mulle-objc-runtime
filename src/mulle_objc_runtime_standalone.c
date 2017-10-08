@@ -1,5 +1,5 @@
 //
-//  mulle_standalone_objc_universe.c
+//  mulle_objc_runtime_standalone.c
 //  mulle-objc-runtime
 //
 //  Created by Nat! on 21.01.16.
@@ -35,18 +35,5 @@
 //
 #include "mulle_objc_runtime.h"
 
-#include <mulle_test_allocator/mulle_test_allocator.h>
 
-
-MULLE_C_CONST_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void)
-{
-   struct _mulle_objc_universe   *universe;
-
-   universe = __mulle_objc_get_universe();
-   if( _mulle_objc_universe_is_uninitialized( universe))
-      _mulle_objc_universe_bang( universe, 0, 0, NULL);
-   
-   return( universe);
-}
-
+int  __mulle_objc_runtime_standalone_version = MULLE_OBJC_RUNTIME_VERSION;

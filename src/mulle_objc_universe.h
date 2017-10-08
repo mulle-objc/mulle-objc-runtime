@@ -236,13 +236,15 @@ MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_universe   *__mulle_objc_get_universe( void);
 
 //
-// this call creates a global universe, if there is no thread or global universe
+// This call creates a global universe, if there is no thread or global universe
 // present yet.
 //
 // This method is used in the universe for loading and compositing classes
 // manually. Others preferably use mulle_objc_inlined_get_universe().
 //
-MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
+// It is not CONST, so you can reinitialize a universe with this function.
+//
+MULLE_C_NON_NULL_RETURN  // always returns same value (in same thread)
 struct _mulle_objc_universe   *mulle_objc_get_or_create_universe( void);
 //
 // "convenience" use this in test cases to tear down all objects

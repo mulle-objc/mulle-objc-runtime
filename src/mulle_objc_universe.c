@@ -646,8 +646,7 @@ static void   __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe
    void   *actual;
    int    trace;
    
-   trace = mulle_objc_getenv_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
-
+   trace = universe->debug.trace.universe;
    if( trace)
       fprintf( stderr, "mulle_objc_universe %p trace: [%p] trying to lock the universe down for bang\n",
                   universe, (void *) mulle_thread_self());
@@ -1437,20 +1436,27 @@ void  mulle_objc_set_thread_universe( struct _mulle_objc_universe *universe)
 //
 struct _mulle_objc_classpair
    *mulle_objc_universe_new_classpair( struct _mulle_objc_universe *universe,
-                                      mulle_objc_classid_t  classid,
-                                      char *name,
-                                      size_t instancesize,
-                                      struct _mulle_objc_infraclass *superclass)
+                                       mulle_objc_classid_t  classid,
+                                       char *name,
+                                       size_t instancesize,
+                                       struct _mulle_objc_infraclass *superclass)
 {
-   struct _mulle_objc_classpair       *pair;
-   struct _mulle_objc_metaclass       *super_meta;
-   struct _mulle_objc_metaclass       *super_meta_isa;
-   mulle_objc_classid_t               correct;
-   size_t                             size;
+   struct _mulle_objc_classpair   *pair;
+   struct _mulle_objc_metaclass   *super_meta;
+   struct _mulle_objc_metaclass   *super_meta_isa;
+   mulle_objc_classid_t           correct;
+   size_t                         size;
 
-   if( ! universe || ! universe->memory.allocator.calloc)
+   if( ! universe)
    {
       errno = EINVAL;
+      return( NULL);
+   }
+
+   if( _mulle_objc_universe_is_uninitialized( universe) || ! universe->memory.allocator.calloc)
+   {
+      fprintf( stderr, "mulle_objc_universe error: The universe %p has not been set up yet. You probably forgot to link the startup library\n", universe);
+      errno = ENXIO;
       return( NULL);
    }
 
@@ -1472,7 +1478,7 @@ struct _mulle_objc_classpair
       fprintf( stderr, "mulle_objc_universe error: Class \"%s\" should have classid %08x but has classid %08x\n", name,
             correct, classid);
       errno = EINVAL;
-      return( 0);
+      return( NULL);
    }
 
    super_meta     = NULL;
@@ -1518,12 +1524,12 @@ struct _mulle_objc_classpair
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 // convenience during loading
 struct _mulle_objc_classpair   *mulle_objc_unfailingnew_classpair( mulle_objc_classid_t  classid,
-                                                                    char *name,
-                                                                    size_t instancesize,
-                                                                    struct _mulle_objc_infraclass *superclass)
+                                                                   char *name,
+                                                                   size_t instancesize,
+                                                                   struct _mulle_objc_infraclass *superclass)
 {
-   struct _mulle_objc_classpair     *pair;
-   struct _mulle_objc_universe       *universe;
+   struct _mulle_objc_classpair   *pair;
+   struct _mulle_objc_universe    *universe;
 
    universe = mulle_objc_get_universe();
    pair     = mulle_objc_universe_new_classpair( universe, classid, name, instancesize, superclass);

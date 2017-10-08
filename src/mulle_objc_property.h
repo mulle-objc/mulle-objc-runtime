@@ -78,6 +78,7 @@ static inline mulle_objc_propertyid_t  _mulle_objc_property_get_propertyid( stru
 }
 
 
+// can be 0 if @dynamic
 static inline mulle_objc_ivarid_t  _mulle_objc_property_get_ivarid( struct _mulle_objc_property *property)
 {
    return( property->ivarid);
