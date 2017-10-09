@@ -16,4 +16,5 @@ before_install:
    - sudo apt-get -y --allow-unauthenticated install mulle-build
 
 script:
-   - mulle-build -vv -V --bootstrap
+   - mulle-build -V --bootstrap
+   - mulle-test -V --bootstrap
