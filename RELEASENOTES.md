@@ -16,9 +16,9 @@
 * use a tuned fnv1a hash for better cache utilization
 * improve dotdump method cache
 * improve contents of signature typeinfo
-* reduce initial method cache size to 4 
+* reduce initial method cache size to 4
 * increase fast class cache size to 64
-* add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking 
+* add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking
 * improve superfunctions some more by inlining first stage also. Put everything into the methodcache
 * super struct now gains the selector name for introspection. The selector is now compatible to @selector
 * Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
@@ -112,25 +112,20 @@ Made it a "C" cmake project
 
 ### 0.8.3
 
-* enlarged class state bit space for mulle-objc to 16 bits, which cramps
-user and foundation to 8 bits each
-* added cache csv dump fo future shenanigans
+* enlarged class state bit space for mulle-objc to 16 bits, which cramps user and foundation to 8 bits each
+* added cache csv dump for future real-time shenanigans
 
 
 ## 0.8.1
 
-* introduced the _mulle_objc_protocol structure, which is now emitted by the
-compiler. It's sole use is to detect hash collisions on protocolids, as unlikely
-they maybe
-* also there is now a central table for categories, also just to check for
-collisions
+* introduced the `_mulle_objc_protocol` structure, which is now emitted by the compiler. It's sole use is to detect hash collisions on protocolids, as unlikely they maybe
+* also there is now a central table for categories, also just to check for collisions
 * improved the search speed of conformsToProtocol:
 * upped the LOAD version to 8
-* renamed _size_of_ functions to _sizeof_ as its more c like
-* renamed has_category/has_protocol and related functions to has_categoryid/has_protocolid,
+* renamed `_size_of_` functions to _sizeof_` as its more c like
+* renamed `has_category/has_protocol` and related functions to `has_categoryid/has_protocolid`,
 because it is less confusing
-* removed misleading mulle_objc_string_for_ivarid and friends (use class to get
-the names)
+* removed misleading `mulle_objc_string_for_ivarid` and friends (use class to get the names)
 
 ## 0.7.1
 
@@ -153,18 +148,18 @@ stacktrace'
 
 * coverage file "append" to existing coverage files (seems more useful)
 * added short-name dump routines to dump to working directory
-* added _mulle_objc_searchresult to _mulle_objc_class_search_method, so one can
+* added `_mulle_objc_searchresult` to `_mulle_objc_class_search_method`, so one can
 find the location a method is stored
 * shortened the names of the dump sources
-* renamed various "get_id" functions to get_<type>id" for consistency
+* renamed various `get_id` functions to `get_<type>id` for consistency
 * added coverage csv dumpers for future optimization benefits
-* renamed ..._CACHE_INITIALIZED to ..._CACHE_READY, because it confused me
+* renamed `..._CACHE_INITIALIZED` to `..._CACHE_READY`, because it confused me
 * when doing a dotdump of everything, don't write out each class filename
 * improved protocol class detection, so now protocolclasses can conform
 to protocols (as long as they aren't protocolclasses)
-* added MULLE_OBJC_TRACE_DEPENDENCIES
-* added MULLE_OBJC_TRACE_STATE_BITS
-* +classDependencies and +categoryDependencies don't exist anymore. They are
+* added `MULLE_OBJC_TRACE_DEPENDENCIES`
+* added `MULLE_OBJC_TRACE_STATE_BITS`
+* `+classDependencies` and `+categoryDependencies` don't exist anymore. They are
 replaced by +dependencies, which combines them. To specify a dependency on
 a class do `{ @selector( Class), 0 }`, on a category do
 `{ @selector( Class), @selector( Category) }`
@@ -182,13 +177,13 @@ universe environments.
 
 ## 0.4.1
 
-* this universe needs the mulle-clang compiler, based on clang 4.0.0
-* the universe load structures now have their own independent versioning
-called MULLE_OBJC_RUNTIME_LOAD_VERSION
-* the class now contains a list of categoryids, which can be queried at universe
-* the class loader will check if a class implements +classDependencies,
-this allows proper sequenced +loads of classes. the category loader will check
-if a category implements +categoryDependencies. this allows proper sequenced
+* this runtime needs the mulle-clang compiler, based on clang 4.0.0
+* the runtime load structures now have their own independent versioning
+called `MULLE_OBJC_RUNTIME_LOAD_VERSION`
+* the class now contains a list of categoryids, which can be queried at runtime
+* the class loader will check if a class implements `+classDependencies`,
+this allows proper sequenced `+loads` of classes. the category loader will check
+if a category implements `+categoryDependencies`. this allows proper sequenced
 +loads of categories and their order in the  methodlists. To make this really
 happen though, the loading of classes and categories had to be serialized with lock!
 * Renamed `mulle_vararg_count_objects` and `mulle_vararg_next_object` to
@@ -196,7 +191,7 @@ happen though, the loading of classes and categories had to be serialized with l
 now resides in MulleObjC.
 * new trace flag `MULLE_OBJC_TRACE_LOAD_CALLS` traces `+load`, `+initialize` and
 `+categoryDependencies` calls.
-* With mulle_objc_check_runtimewaitqueues you can see if clases or categories are "stuck" waiting for dependencies
+* With `mulle_objc_check_runtimewaitqueues` you can see if clases or categories are "stuck" waiting for dependencies
 * `mulle_objc_object_get_retaincount` now returns a human readable number.
 Ask the header for the raw value (if its not a tagged pointer)
 
@@ -238,14 +233,13 @@ matches the current default of the  mulle-clang compiler
 * improved super calls
 
 
->>>>>>> Stashed changes
 ## 0.2.1
 
 * add support for char5-encoding check
 * rename some load struct fields
 * dependency check on "class" protocolids added
-* renamed MULLE_OBJC_HAVE_THREAD_LOCAL_RUNTIME to MULLE_OBJC_THREAD_LOCAL_RUNTIME
-* universe checks for mismatch between global and thread local universe code
+* renamed `MULLE_OBJC_HAVE_THREAD_LOCAL_RUNTIME` to `MULLE_OBJC_THREAD_LOCAL_RUNTIME`
+* runtime checks for mismatch between global and thread local runtime code
 
 ## 0.1.7
 
