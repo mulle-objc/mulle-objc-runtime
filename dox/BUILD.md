@@ -127,7 +127,7 @@ for instrutions how to get the "Git for Windows" bash going.
 Install the [homebrew](//brew.sh/) package manager, then
 
 ```
-brew tap mulle-kybernetik/software
+brew tap mulle-objc/software
 brew install mulle-build
 ```
 
@@ -143,16 +143,16 @@ sudo apt-get install python-setuptools
 and then
 
 ```
-brew tap mulle-kybernetik/software
+brew tap mulle-objc/software
 brew install mulle-build
 ```
 
 ### All: Install mulle-build using git
 
 ```
-git clone --branch release https://github.com/mulle-nat/mulle-bootstrap
+git clone --branch release https://github.com/mulle-objc/mulle-bootstrap
 ( cd mulle-bootstrap ; ./install.sh )
-git clone --branch release https://github.com/mulle-nat/mulle-build
+git clone --branch release https://github.com/mulle-objc/mulle-build
 ( cd mulle-build ; ./install.sh )
 ```
 

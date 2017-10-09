@@ -1,3 +1,7 @@
+### 0.12.2
+
+* community release
+
 ## 0.12.1
 
 * added _mulle_objc_signature_skip_extendedtypeinfo

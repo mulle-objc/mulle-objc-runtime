@@ -10,11 +10,10 @@ addons:
       - cmake-data
 
 before_install:
-   - curl -sS "https://www.mulle-kybernetik.com/dists/admin-pub.asc" | sudo apt-key add -
-   - echo "deb [arch=all] http://www.mulle-kybernetik.com `lsb_release -c -s` main" | sudo tee "/etc/apt/sources.list.d/mulle-kybernetik.com-main.list" > /dev/null
+   - curl -sS "https://www.mulle-kybernetik.com/dists/admin.asc" | sudo apt-key add -
+   - echo "deb [arch=all] "http://www.mulle-kybernetik.com" `lsb_release -c -s` main" | sudo tee "/etc/apt/sources.list.d/mulle-kybernetik.com-main.list" > /dev/null
    - sudo apt-get update
    - sudo apt-get -y --allow-unauthenticated install mulle-build
 
 script:
    - mulle-build -vv -V --bootstrap
-   - mulle-test -vv -V
