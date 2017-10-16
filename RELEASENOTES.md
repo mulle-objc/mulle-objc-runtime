@@ -4,6 +4,32 @@
 
 ## 0.12.1
 
+* _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY replaces _MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY
+* _mulle_objc_object_nonatomic_infiniteretain replaces _mulle_objc_object_nonatomic_infinite_retain
+* added _mulle_objc_signature_skip_extendedtypeinfo
+* load version 12
+* rename _mulle_objc_uniqueid_is_sane to mulle_objc_uniqueid_is_sane
+* property gains an ivarid
+* MULLE_OBJC_PRINT_RUNTIME_CONFIG renamed to MULLE_OBJC_PRINT_UNIVERSE_CONFIG
+* support newer mulle-tests
+* follow mulle-configuration 3.1 changes and move .travis.yml to trusty
+* fixes for windows
+* mingw fixes and hacks
+* use a tuned fnv1a hash for better cache utilization
+* improve dotdump method cache
+* improve contents of signature typeinfo
+* reduce initial method cache size to 4 
+* increase fast class cache size to 64
+* add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking 
+* improve superfunctions some more by inlining first stage also. Put everything into the methodcache
+* super struct now gains the selector name for introspection. The selector is now compatible to @selector
+* Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
+* new super call with its own cache
+* expect propertyclasses now in declaration order from compiler
+* adapt search so that we a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
+* adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
+* add searchcache functionality to the runtime
+* up the load version, because of function renaming
 * added _mulle_objc_signature_skip_extendedtypeinfo
 * load version 12
 * rename _mulle_objc_uniqueid_is_sane to mulle_objc_uniqueid_is_sane
