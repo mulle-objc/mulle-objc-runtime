@@ -602,12 +602,15 @@ static void   loadivar_dump( struct _mulle_objc_ivar *ivar, char *prefix)
 
 static void   loadproperty_dump( struct _mulle_objc_property *property, char *prefix)
 {
-   fprintf( stderr, "%s @property %s; // id=%08x ivarid=%08x signature=\"%s\"\n",
+   fprintf( stderr, "%s @property %s; // id=%08x ivarid=%08x signature=\"%s\" get=%08x set=%08x clr=%08x\n",
            prefix,
            property->name,
            property->propertyid,
            property->ivarid,
-           property->signature);
+           property->signature,
+           property->getter,
+           property->setter,
+           property->clearer);
 }
 
 
@@ -636,7 +639,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
       fprintf( stderr, "%s{\n", prefix);
       struct _mulle_objc_ivar   *ivar;
       struct _mulle_objc_ivar   *sentinel;
-      
+
       ivar     = p->instancevariables->ivars;
       sentinel = &ivar[ p->instancevariables->n_ivars];
       while( ivar < sentinel)
@@ -651,7 +654,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
    {
       struct _mulle_objc_property   *property;
       struct _mulle_objc_property   *sentinel;
-      
+
       property = p->properties->properties;
       sentinel = &property[ p->properties->n_properties];
       while( property < sentinel)

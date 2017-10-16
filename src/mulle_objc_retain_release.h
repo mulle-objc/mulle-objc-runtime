@@ -116,7 +116,7 @@ static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj
 // You should only use it when creating an object, not "on the fly"
 // therefore it's nonatomic
 //
-static inline void   _mulle_objc_object_nonatomic_infinite_retain( void *obj)
+static inline void   _mulle_objc_object_nonatomic_infiniteretain( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
