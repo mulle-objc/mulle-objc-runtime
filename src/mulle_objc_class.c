@@ -65,14 +65,14 @@ static char   *lookup_bitname( unsigned int bit)
    // some "known" values
    switch( bit)
    {
-   case MULLE_OBJC_CLASS_CACHE_READY        : return( "CACHE_READY");
-   case MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE : return( "ALWAYS_EMPTY_CACHE");
-   case MULLE_OBJC_CLASS_FIXED_SIZE_CACHE   : return( "FIXED_SIZE_CACHE");
-   case _MULLE_OBJC_CLASS_WARN_PROTOCOL     : return( "WARN_PROTOCOL");
-   case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS  : return( "IS_PROTOCOLCLASS");
-   case _MULLE_OBJC_CLASS_LOAD_SCHEDULED    : return( "LOAD_SCHEDULED");
-   case _MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY  : return( "HAS_RELEASABLE_PROPERTY");
-   case MULLE_OBJC_CLASS_INITIALIZE_DONE    : return( "INITIALIZE_DONE");
+   case MULLE_OBJC_CLASS_CACHE_READY              : return( "CACHE_READY");
+   case MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE       : return( "ALWAYS_EMPTY_CACHE");
+   case MULLE_OBJC_CLASS_FIXED_SIZE_CACHE         : return( "FIXED_SIZE_CACHE");
+   case _MULLE_OBJC_CLASS_WARN_PROTOCOL           : return( "WARN_PROTOCOL");
+   case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        : return( "IS_PROTOCOLCLASS");
+   case _MULLE_OBJC_CLASS_LOAD_SCHEDULED          : return( "LOAD_SCHEDULED");
+   case _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  : return( "HAS_CLEARABLE_PROPERTY");
+   case MULLE_OBJC_CLASS_INITIALIZE_DONE          : return( "INITIALIZE_DONE");
    }
    return( 0);
 }

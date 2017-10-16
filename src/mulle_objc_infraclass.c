@@ -153,7 +153,7 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
    struct _mulle_objc_property                 *property;
    struct _mulle_objc_propertylistenumerator   rover;
    struct _mulle_objc_universe                 *universe;
-   int                                         has_releasable_property;
+   int                                         has_clearable_property;
    
    if( ! infra)
    {
@@ -167,7 +167,7 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
       list    = &universe->empty_propertylist;
    }
    
-   has_releasable_property = 0;
+   has_clearable_property = 0;
 
    /* register instance methods */
    last  = MULLE_OBJC_MIN_UNIQUEID - 1;
@@ -175,9 +175,9 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
    while( property = _mulle_objc_propertylistenumerator_next( &rover))
    {
       assert( mulle_objc_uniqueid_is_sane( property->propertyid));
+
       //
       // properties must be sorted by propertyid, so we can binary search them
-      // (in the future)
       //
       if( last > property->propertyid)
       {
@@ -186,19 +186,17 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
       }
       last = property->propertyid;
       
-      if( ! property->clearer && ! property->setter)
-         continue;
-      
-      if( ! mulle_objc_signature_contains_retainableobject( property->signature))
+      if( ! property->clearer)
          continue;
 
-      has_releasable_property = 1;
+      has_clearable_property = 1;
+      break;
    }
    _mulle_objc_propertylistenumerator_done( &rover);
 
    // add before, its harmless and more foolproof
-   if( has_releasable_property)
-      _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_RELEASABLE_PROPERTY);
+   if( has_clearable_property)
+      _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY);
    
    _mulle_concurrent_pointerarray_add( &infra->propertylists, list);
 
