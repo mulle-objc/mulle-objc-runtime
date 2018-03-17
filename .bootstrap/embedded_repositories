@@ -1,2 +1,0 @@
-${MULLE_EMBEDDED_REPOSITORIES:-https://github.com/mulle-nat}/mulle-tests;tests/mulle-tests;${MULLE_TESTS_BRANCH:-release}
-${MULLE_EMBEDDED_REPOSITORIES:-https://github.com/mulle-nat}/mulle-configuration;;${MULLE_CONFIGURATION_BRANCH:-release}

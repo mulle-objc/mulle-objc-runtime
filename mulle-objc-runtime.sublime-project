@@ -1,0 +1,28 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+         "file_exclude_patterns": [
+            "*~",
+            "*~.*",
+            "*.chk",
+            ".DS_Store",
+            "._.DS_Store",
+            "*.sublime-workspace",
+            "tmp.*"
+         ],
+         "folder_exclude_patterns": [
+             "package",
+             "stashes",
+             "build",
+             "addiction",
+             "dependency",
+             "stash",
+             ".mulle-*",
+             ".git*",
+         ],
+
+		}
+	]
+}

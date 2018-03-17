@@ -1,0 +1,3 @@
+src/**/*[_-]private.h
+src/**/*[_-]private.inc
+

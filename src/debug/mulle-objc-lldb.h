@@ -1,11 +1,10 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_lldb.h
+//  mulle-objc-runtime-universe
 //
-//  Created by Nat! on 19.04.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
-//  All rights reserved.
+//  Created by Nat! on 16.05.17.
+//  Copyright © 2017 Mulle kybernetiK. All rights reserved.
+//  Copyright © 2017 Codeon GmbH. All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -33,58 +32,29 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+#ifndef mulle_objc_lldb_h__
+#define mulle_objc_lldb_h__
+
+#include "mulle-objc-uniqueid.h"
+#include "mulle-objc-method.h"
 
 
-int   main( int argc, char *argv[])
-{
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
+// for test only, don't use this if you aren't a debugger
 
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
+void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel);
 
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
+struct _mulle_objc_descriptor  *
+   mulle_objc_lldb_lookup_descriptor_by_name( char *name);
 
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
+mulle_objc_implementation_t
+   mulle_objc_lldb_lookup_implementation( void *object,
+                                            mulle_objc_methodid_t sel,
+                                            void *cls_or_classid,
+                                            int is_classid,
+                                            int is_meta,
+                                            int debug);
 
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
-}
+void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void);
+
+
+#endif /* mulle_objc_lldb_h */

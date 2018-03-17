@@ -1,8 +1,8 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_runtime_standalone.c
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
+//  Created by Nat! on 21.01.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2016 Codeon GmbH.
 //  All rights reserved.
@@ -34,57 +34,6 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 #include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
 
 
-int   main( int argc, char *argv[])
-{
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
-
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
-
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
-
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
-
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
-}
+int  __mulle_objc_runtime_standalone_version = MULLE_OBJC_RUNTIME_VERSION;

@@ -1,0 +1,2 @@
+mulle-concurrent;tar;no-all-load;8ae0712b-418b-4a24-bd84-48cf5caf5e38;${MULLE_CONCURRENT_URL:-https://github.com/mulle-c/mulle-concurrent/archive/${MULLE_CONCURRENT_BRANCH:-latest}.tar.gz};;;;
+mulle-vararg;tar;no-all-load;3bb60fad-077f-41cc-b6d4-93c91f1d457a;${MULLE_VARARG_URL:-https://github.com/mulle-c/mulle-vararg/archive/${MULLE_VARARG_BRANCH:-latest}.tar.gz};;;;

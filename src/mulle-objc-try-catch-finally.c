@@ -1,8 +1,8 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_try-catch-finally.c
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
+//  Created by Nat! on 22/01/16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2016 Codeon GmbH.
 //  All rights reserved.
@@ -33,58 +33,61 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+#include "mulle-objc-try-catch-finally.h"
 
+#include "mulle-objc-universe.h"
 
-int   main( int argc, char *argv[])
+//
+// these functions vector throught the universe,
+// usually into a Foundation
+//
+static void   objc_exception_throw( void *exception)  // familar name
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
+   struct _mulle_objc_universe   *universe;
 
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
-
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
-
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
-
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
+   universe = mulle_objc_inlined_get_universe();
+   universe->exceptionvectors.throw( universe, exception);
 }
+
+
+void   mulle_objc_exception_throw( void *exception)
+{
+   objc_exception_throw( exception);
+}
+
+
+void   mulle_objc_exception_try_enter( void *localExceptionData)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = mulle_objc_inlined_get_universe();
+   universe->exceptionvectors.try_enter( universe, localExceptionData);
+}
+
+
+void   mulle_objc_exception_try_exit( void *localExceptionData)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = mulle_objc_inlined_get_universe();
+   universe->exceptionvectors.try_exit( universe, localExceptionData);
+}
+
+
+void   *mulle_objc_exception_extract( void *localExceptionData)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = mulle_objc_inlined_get_universe();
+   return( universe->exceptionvectors.extract( universe, localExceptionData));
+}
+
+
+int   _mulle_objc_exception_match( mulle_objc_classid_t classid, void *exception)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = mulle_objc_inlined_get_universe();
+   return( universe->exceptionvectors.match( universe, classid, exception));
+}
+

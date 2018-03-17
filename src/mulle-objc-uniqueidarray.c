@@ -1,10 +1,10 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_uniqueidarray.c
+//  mulle-objc-runtime-universe
 //
-//  Created by Nat! on 19.04.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
+//  Created by Nat! on 28.05.17
+//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,58 +33,41 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+
+#include "mulle-objc-uniqueidarray.h"
+
+#include <stdlib.h>
 
 
-int   main( int argc, char *argv[])
+static inline void
+   _mulle_objc_uniqueidarray_sort( struct _mulle_objc_uniqueidarray  *p)
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
+   qsort( p->entries,
+          p->n,
+          sizeof( mulle_objc_uniqueid_t),
+          (int (*)()) _mulle_objc_uniqueid_qsortcompare);
+}
 
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
 
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
+struct _mulle_objc_uniqueidarray
+   *_mulle_objc_uniqueidarray_by_adding_ids( struct _mulle_objc_uniqueidarray  *p,
+                                             unsigned int m,
+                                             mulle_objc_uniqueid_t *uniqueids,
+                                             struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_uniqueidarray  *copy;
+   unsigned int   n;
 
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
+   n = p->n + m;
 
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
+   copy = mulle_objc_alloc_uniqueidarray( n, allocator);
+
+   memcpy( copy->entries, p->entries, sizeof( mulle_objc_uniqueid_t) * p->n);
+   memcpy( &copy->entries[ p->n], uniqueids, sizeof( mulle_objc_uniqueid_t) * m);
+
+   copy->n = n;
+
+   _mulle_objc_uniqueidarray_sort( copy);
+
+   return( copy);
 }

@@ -1,8 +1,8 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_propertylist.c
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
+//  Created by Nat! on 23.01.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2016 Codeon GmbH.
 //  All rights reserved.
@@ -33,58 +33,60 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+#include "mulle-objc-propertylist.h"
+
+#include "mulle-objc-class.h"
+#include "mulle-objc-universe.h"
+#include "mulle-objc-callqueue.h"
+
+#include <assert.h>
+#include <stdlib.h>
 
 
-int   main( int argc, char *argv[])
+int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
+                                    int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
+                                    struct _mulle_objc_infraclass *infra,
+                                    void *userinfo)
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
+   struct _mulle_objc_property   *sentinel;
+   struct _mulle_objc_property   *p;
+   int                           rval;
 
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
+   assert( list);
+
+   p        = &list->properties[ 0];
+   sentinel = &p[ list->n_properties];
+
+   while( p < sentinel)
    {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
+      if( rval = (*f)( p, infra, userinfo))
+         return( rval);
+      ++p;
    }
 
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
+   return( 0);
+}
+
+
+struct _mulle_objc_property  *
+   _mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
+                                           mulle_objc_propertyid_t propertyid)
+{
+   struct _mulle_objc_property   *sentinel;
+   struct _mulle_objc_property   *p;
+
+   assert( list);
+   assert( mulle_objc_uniqueid_is_sane( propertyid));
+
+   p        = &list->properties[ 0];
+   sentinel = &p[ list->n_properties];
+
+   while( p < sentinel)
    {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
-
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
-
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
+      if( p->propertyid == propertyid)
+         return( p);
+      ++p;
    }
-   else
-      printf( "%08lx\n", value);
-   return 0;
+
+   return( 0);
 }

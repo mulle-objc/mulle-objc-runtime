@@ -1,0 +1,11 @@
+
+otool
+install_name_tool
+xcrun
+xcodebuild
+inotifywait
+ssh
+ninja
+cc
+gcc
+ld

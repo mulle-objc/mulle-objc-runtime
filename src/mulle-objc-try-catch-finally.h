@@ -1,8 +1,8 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle-objc-try-catch-finally.h
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
+//  Created by Nat! on 22/01/16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2016 Codeon GmbH.
 //  All rights reserved.
@@ -33,58 +33,32 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+#ifndef mulle_objc_try_catch_finally_h__
+#define mulle_objc_try_catch_finally_h__
+
+#include "mulle-objc-class.h"
+#include <setjmp.h>
+
+//
+// the naming is pretty much consistent with those of Apple
+// for better or worse
+// these methods are known as builtins by the compiler
+//
+void   mulle_objc_exception_throw( void *exception);
+void   mulle_objc_exception_try_enter( void *localExceptionData);
+void   mulle_objc_exception_try_exit( void *localExceptionData);
+void   *mulle_objc_exception_extract( void *localExceptionData);
+int    _mulle_objc_exception_match( mulle_objc_classid_t classid, void *exception);
 
 
-int   main( int argc, char *argv[])
+static inline int  mulle_objc_exception_match( mulle_objc_classid_t classId, void *exception)
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
+   extern int  _mulle_objc_exception_match( mulle_objc_classid_t classId, void *exception);
 
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
-
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
-
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
-
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
+   // short circuit, if classID is NSException
+   if( classId == MULLE_OBJC_CLASSID( 0xa41284db))
+      return( 1);
+   return( _mulle_objc_exception_match( classId, exception));
 }
+
+#endif

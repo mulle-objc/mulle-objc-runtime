@@ -1,8 +1,8 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_universe_global.h
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
+//  Created by Nat! on 07.09.16.
 //  Copyright (c) 2016 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2016 Codeon GmbH.
 //  All rights reserved.
@@ -33,58 +33,26 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+#include "mulle-objc-universe-struct.h"
+
+#include "dependencies.h"
 
 
-int   main( int argc, char *argv[])
+#define MULLE_OBJC_RUNTIME_GLOBAL   MULLE_C_GLOBAL
+
+
+#ifdef __MULLE_OBJC_NO_TRT__
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_universe   mulle_objc_global_universe =
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
-
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
-
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
+   .version = (void *) mulle_objc_universe_is_uninitialized
+};
 #endif
-      char   *s1, *s2;
-      char   c;
 
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
+//
+// a global I can't get rid off
+// must be initialized because of windows
+//
+MULLE_OBJC_RUNTIME_GLOBAL
+mulle_thread_tss_t   mulle_objc_thread_key = -1;
 
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
-}

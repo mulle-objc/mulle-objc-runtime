@@ -1,10 +1,10 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_metaclass.c
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
+//  Created by Nat! on 17/04/07
+//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,58 +33,39 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+#include "mulle-objc-metaclass.h"
+
+#include "mulle-objc-class.h"
+
+#include "dependencies.h"
 
 
-int   main( int argc, char *argv[])
+# pragma mark - sanity check
+
+int   mulle_objc_metaclass_is_sane( struct _mulle_objc_metaclass *meta)
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
-
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
+   if( ! meta)
    {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
+      errno = EINVAL;
+      return( 0);
    }
 
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
-
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
-
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
+   return( _mulle_objc_class_is_sane( &meta->base));
 }
+
+
+#pragma mark - walker
+
+mulle_objc_walkcommand_t
+   mulle_objc_metaclass_walk( struct _mulle_objc_metaclass   *meta,
+                               enum mulle_objc_walkpointertype_t  type,
+                               mulle_objc_walkcallback_t   callback,
+                               void *parent,
+                               void *userinfo)
+{
+   mulle_objc_walkcommand_t     cmd;
+
+   cmd = mulle_objc_class_walk( _mulle_objc_metaclass_as_class( meta), type, callback, parent, userinfo);
+   return( cmd);
+}
+

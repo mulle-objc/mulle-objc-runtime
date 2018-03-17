@@ -1,10 +1,10 @@
 //
-//  main.c
-//  mulle-objc-runtime-uniqueid
+//  mulle_objc_protocol.h
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 19.04.16.
-//  Copyright (c) 2016 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2016 Codeon GmbH.
+//  Created by Nat! on 30.05.17
+//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
 //
 //  Redistribution and use in source and binary forms, with or without
@@ -33,58 +33,49 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle-objc-runtime.h"
-#include <ctype.h>
-#ifdef _WIN32
-# include <malloc.h>
-#endif
+#ifndef mulle_objc_protocol_h__
+#define mulle_objc_protocol_h__
+
+#include "mulle-objc-uniqueid.h"
 
 
-int   main( int argc, char *argv[])
+
+//
+// this structure is emitted by the compiler and saved in the universe
+// the protocolname is there to catch possible protocolid collisions
+// otherwise struct _mulle_objc_protocol is unused
+struct _mulle_objc_protocol
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
+   mulle_objc_protocolid_t    protocolid;
+   char                       *name;
+};
 
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
 
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
-#ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-      char   buf[ len + 1];
-#endif
-      char   *s1, *s2;
-      char   c;
+# pragma mark - method petty accessors
 
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
-
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
-            prefix,
-            buf,
-            suffix,
-            value,
-            argv[ 1]);
-   }
-   else
-      printf( "%08lx\n", value);
-   return 0;
+static inline char   *_mulle_objc_protocol_get_name( struct _mulle_objc_protocol *protocol)
+{
+   return( protocol->name);
 }
+
+
+static inline mulle_objc_protocolid_t  _mulle_objc_protocol_get_protocolid( struct _mulle_objc_protocol *protocol)
+{
+   return( protocol->protocolid);
+}
+
+
+#pragma mark - bsearch
+
+struct _mulle_objc_protocol   *_mulle_objc_protocol_bsearch( struct _mulle_objc_protocol *buf,
+                                                             unsigned int n,
+                                                             mulle_objc_protocolid_t search);
+
+#pragma mark - qsort
+
+int  _mulle_objc_protocol_compare( struct _mulle_objc_protocol *a, struct _mulle_objc_protocol *b);
+void   mulle_objc_protocol_sort( struct _mulle_objc_protocol *protocols,
+                                 unsigned int n);
+int  mulle_objc_protocol_is_sane( struct _mulle_objc_protocol *p);
+
+#endif
