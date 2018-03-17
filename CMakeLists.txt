@@ -3,23 +3,39 @@ cmake_minimum_required( VERSION 3.0)
 project( mulle-objc-runtime C)
 
 
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/mulle-configuration/cmake)
-message(STATUS "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}")
-message(STATUS "CMAKE_BUILD_TYPE is ${CMAKE_BUILD_TYPE}")
+### mulle-sde environment
 
-if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  include( Debug)
-else()
-  include( Release)
-endif()
+# add cmake module paths to search path
+list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/share")
+list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake")
+
+include( Environment)
+
+
+### Files
+
+include( PreFiles OPTIONAL)
 
 set( MULLE_OBJC_RUNTIME_LIBRARY ON)
-set( MULLE_OBJC_RUNTIME_STARTUP_LIBRARY ON)
 
-include( CMakeSourcesAndHeaders.txt)
-include( CMakeDependencies.txt)
+#
+# Include all non underscored .cmake files in ./cmake
+#
+file( GLOB LOCAL_CMAKE_INCLUDES
+   "cmake/[A-Za-z0-9]*.cmake"
+)
+
+foreach( FILE ${LOCAL_CMAKE_INCLUDES} )
+   include( "${FILE}")
+endforeach()
+
 
 include_directories( ${INCLUDE_DIRS})
+
+include( PostFiles OPTIONAL)
+
+### Library
+
 
 #
 # these definitions are just used when compiling the
@@ -31,23 +47,37 @@ add_definitions( -D__MULLE_OBJC_FMC__)     ## fast method calls (default: on)
 add_definitions( -DMULLE_C11_NO_NOOB_WARNINGS=1)
 
 
-add_library( mulle_objc_runtime STATIC
+include( PreLibrary OPTIONAL)
+
+add_library( "mulle-objc-runtime"
 ${SOURCES}
 ${DEBUG_SOURCES}
-${C_DEPENDENCY_LIBRARIES}
+${PUBLIC_HEADERS}
+${PRIVATE_HEADERS}
+${CMAKE_EDITABLE_FILES}
 )
 
-target_compile_definitions( mulle_objc_runtime
+if( BUILD_SHARED_LIBS)
+   target_link_libraries( mulle-objc-runtime
+${DEPENDENCIES_LIBRARIES}
+${OS_SPECIFIC_LIBRARIES}
+)
+endif()
+
+target_compile_definitions( mulle-objc-runtime
 PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
 )
 
+include( PostLibrary OPTIONAL)
 
-add_library( mulle_objc_runtime_startup STATIC
+
+add_library( mulle-objc-runtime-startup STATIC
 ${STARTUP_SOURCES}
 )
 
+
 add_executable( mulle-objc-uniqueid
-src/mulle-objc-uniqueid/main.c
+${UNIQUEID_SOURCES}
 )
 
 
@@ -57,38 +87,68 @@ PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
 
 
 add_dependencies( mulle-objc-uniqueid
-   mulle_objc_runtime
+mulle-objc-runtime
 )
 
 
 target_link_libraries( mulle-objc-uniqueid
-$<TARGET_FILE:mulle_objc_runtime>
+$<TARGET_FILE:mulle-objc-runtime>
 ${C_DEPENDENCY_LIBRARIES}
 ${OS_SPECIFIC_LIBRARIES}
 )
 
 
-set( STANDALONE_BASE_NAME "mulle_objc_runtime")
-set( STANDALONE_NAME "mulle_objc_runtime_standalone")
-set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
-set( STANDALONE_DEPENDENCIES
-   mulle_objc_runtime
-   mulle_objc_runtime_startup
+set( INSTALL_EXECUTABLE_TARGETS
+"mulle-objc-uniqueid"
 )
 
-set( STANDALONE_ALL_LOAD_LIBRARIES
-$<TARGET_FILE:mulle_objc_runtime>
-${C_DEPENDENCY_LIBRARIES}
-$<TARGET_FILE:mulle_objc_runtime_startup>
-${OS_SPECIFIC_LIBRARIES}
+option( STANDALONE "Create standalone library for debugging" OFF)
+
+set( INSTALL_LIBRARY_TARGETS
+"mulle-objc-runtime"
+"mulle-objc-runtime-startup"
 )
 
-include( Standalone)
+if( STANDALONE)
+   set( STANDALONE_BASE_NAME "mulle-objc-runtime")
+   set( STANDALONE_NAME "mulle-objc-runtime-standalone")
+   set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
+   set( STANDALONE_DEPENDENCIES
+   mulle-objc-runtime
+   mulle-objc-runtime-startup
+   )
+
+   set( STANDALONE_ALL_LOAD_LIBRARIES
+   $<TARGET_FILE:mulle-objc-runtime>
+   $<TARGET_FILE:mulle-objc-runtime-startup>
+   ${DEPENDENCY_LIBRARIES}
+   ${OPTIONAL_DEPENDENCY_LIBRARIES}
+   ${OS_SPECIFIC_LIBRARIES}
+   )
+
+   include( Standalone)
+
+   set( INSTALL_LIBRARY_TARGETS
+   ${INSTALL_LIBRARY_TARGETS}
+   "mulle-objc-runtime-standalone"
+   )
+endif()
 
 
-install( TARGETS mulle_objc_runtime mulle_objc_runtime_startup mulle_objc_runtime_standalone DESTINATION "lib")
-install( TARGETS mulle-objc-uniqueid DESTINATION "bin")
-install( FILES ${PUBLIC_HEADERS} DESTINATION "include/mulle_objc_runtime")
-install( FILES CMakeDependencies.txt DESTINATION "include/mulle_objc_runtime")
+### Install
 
-include( MulleTest)
+include( PreInstall OPTIONAL)
+
+install( TARGETS ${INSTALL_EXECUTABLE_TARGETS} DESTINATION "bin")
+install( TARGETS ${INSTALL_LIBRARY_TARGETS} DESTINATION "lib")
+install( FILES ${PUBLIC_HEADERS}  DESTINATION "include/mulle-objc-runtime")
+install( FILES ${DEBUG_HEADERS}  DESTINATION "include/mulle-objc-runtime")
+install( FILES ${PRIVATE_HEADERS} DESTINATION "include/mulle-objc-runtime/private")
+
+# definitions from cmake/share/Environment.cmake
+install( FILES ${CMAKE_INCLUDES}  DESTINATION "include/mulle-objc-runtime/cmake")
+
+# definitions from cmake/share/LinkManifest.cmake
+install( FILES ${LINK_MANIFEST_FILES}  DESTINATION "include/mulle-objc-runtime/link")
+
+include( PostInstall OPTIONAL)

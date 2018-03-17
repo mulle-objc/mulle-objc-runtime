@@ -1,0 +1,624 @@
+#! /usr/bin/env bash
+#
+#   Copyright (c) 2018 Nat! - Mulle kybernetiK
+#   All rights reserved.
+#
+#   Redistribution and use in source and binary forms, with or without
+#   modification, are permitted provided that the following conditions are met:
+#
+#   Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+#   Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+#   Neither the name of Mulle kybernetiK nor the names of its contributors
+#   may be used to endorse or promote products derived from this software
+#   without specific prior written permission.
+#
+#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#   POSSIBILITY OF SUCH DAMAGE.
+#
+
+[ "${TRACE}" = "YES" ] && set -x && : "$0" "$@"
+
+
+CMAKE_SOURCETREE_UPDATE_VERSION="0.0.2"
+
+
+usage()
+{
+   [ $# -ne 0 ] && log_error "$1"
+
+   cat <<EOF >&2
+Usage:
+   ${MULLE_USAGE_NAME} <action> <filename> <category>
+
+   Let mulle-monitor run this for you. None of the arguments are actually
+   used.
+
+EOF
+   exit 1
+}
+
+
+# https://cmake.org/Wiki/CMake_Checking_Platform
+uname_to_cmake()
+{
+   log_entry "uname_to_cmake" "$@"
+
+   local uname="$1"
+
+   case "${uname}" in
+      darwin)
+         echo "APPLE"
+      ;;
+
+      "")
+         fail "uname is empty"
+      ;;
+
+      *)
+         tr 'a-z' 'A-Z' <<< "${uname}"
+      ;;
+   esac
+}
+
+
+osexclude_to_cmake_if()
+{
+   log_entry "osexclude_to_cmake_if" "$@"
+
+   local marks="$1"
+
+   local cmakevar
+
+   local excludes
+   local onlys
+
+   set -o noglob ; IFS=","
+
+   for osexclude in ${marks}
+   do
+      IFS="${DEFAULT_IFS}"; set +o noglob
+
+      case "${osexclude}" in
+         only-os-*)
+            cmakevar="`uname_to_cmake "${osexclude:8}"`"
+            onlys="`concat "${onlys}" "${cmakevar}" " OR " `"
+         ;;
+
+         no-os-*)
+            cmakevar="`uname_to_cmake "${osexclude:6}"`"
+            excludes="`concat "${excludes}" "${cmakevar}" " AND "`"
+         ;;
+      esac
+   done
+   IFS="${DEFAULT_IFS}"; set +o noglob
+
+   if [ ! -z "${onlys}" ]
+   then
+      echo "if( ${onlys})"
+      return
+   fi
+
+   if [ ! -z "${excludes}" ]
+   then
+      case "${excludes}" in
+         *" OR "*)
+            echo "if( NOT (${excludes}))"
+         ;;
+
+         *)
+            echo "if( NOT ${excludes})"
+         ;;
+      esac
+   fi
+}
+
+
+_emit_cmake_find_library()
+{
+   log_entry "_emit_cmake_find_library" "$@"
+
+   local preference="$1"; shift
+
+   local aliases="$1"
+   local identifier="$2"
+   local containername="$3"
+   local marks="$4"
+   local indent="$5"
+
+   local libraries
+   local i
+
+   for i in ${aliases}
+   do
+      case "${preference}" in
+         "static")
+            libraries="`concat "${libraries}" "\\\${CMAKE_STATIC_LIBRARY_PREFIX}${i}\\\${CMAKE_STATIC_LIBRARY_SUFFIX}"`"
+         ;;
+
+         "shared")
+            libraries="`concat "${libraries}" "\\\${CMAKE_SHARED_LIBRARY_PREFIX}${i}\\\${CMAKE_SHARED_LIBRARY_SUFFIX}"`"
+         ;;
+      esac
+
+      # fallback to whatever linkage
+      libraries="`concat "${libraries}" "${i}"`"
+   done
+
+   local failstring
+   local failstatus
+
+   case ",${marks}," in
+      *,no-require-link,*)
+
+         failstatus="STATUS"
+         failstring="${identifier}_LIBRARY is missing but it\'s \"no-require-link\""
+      ;;
+
+      *)
+         failstatus="FATAL_ERROR"
+         failstring="${identifier}_LIBRARY was not found"
+      ;;
+   esac
+
+   cat <<EOF
+${indent}if( NOT ${identifier}_LIBRARY)
+${indent}   find_library( ${identifier}_LIBRARY NAMES ${libraries})
+${indent}   message( STATUS "${identifier}_LIBRARY is \${${identifier}_LIBRARY}")
+${indent}
+${indent}   # the order looks ascending, but due to the way this file is read
+${indent}   # it ends up being descending, which is what we need
+${indent}   if( ${identifier}_LIBRARY)
+${indent}      set( ${containername}
+${indent}         \${${containername}}
+${indent}         \${${identifier}_LIBRARY}
+${indent}         CACHE INTERNAL "need to cache this"
+${indent}      )
+${indent}      # temporarily expand CMAKE_MODULE_PATH
+${indent}      get_filename_component( _TMP_${identifier}_ROOT "\${${identifier}_LIBRARY}" DIRECTORY)
+${indent}      get_filename_component( _TMP_${identifier}_ROOT "\${_TMP_${identifier}_ROOT}" DIRECTORY)
+${indent}
+${indent}      # search for DependenciesAndLibraries.cmake to include
+${indent}      foreach( _TMP_${identifier}_NAME in ${aliases})
+${indent}         set( _TMP_${identifier}_DIR "\${_TMP_${identifier}_ROOT}/include/\${_TMP_${identifier}_NAME}/cmake")
+${indent}         # use explicit path to avoid "surprises"
+${indent}         if( EXISTS "\${_TMP_${identifier}_DIR}/DependenciesAndLibraries.cmake")
+${indent}            unset( ${identifier}_DEFINITIONS)
+${indent}            list( INSERT CMAKE_MODULE_PATH 0 "\${_TMP_${identifier}_DIR}")
+${indent}            include( "\${_TMP_${identifier}_DIR}/DependenciesAndLibraries.cmake")
+${indent}            list( REMOVE_ITEM CMAKE_MODULE_PATH "\${_TMP_${identifier}_DIR}")
+${indent}            set( INHERITED_DEFINITIONS
+${indent}               \${INHERITED_DEFINITIONS}
+${indent}               \${${identifier}_DEFINITIONS}
+${indent}               CACHE INTERNAL "need to cache this"
+${indent}            )
+${indent}            break()
+${indent}         endif()
+${indent}      endforeach()
+${indent}   else()
+${indent}      message( ${failstatus} "${failstring}")
+${indent}   endif()
+${indent}endif()
+EOF
+}
+
+
+_emit_cmake_library()
+{
+   log_entry "_emit_cmake_library" "$@"
+
+   _emit_cmake_find_library "any" "$@"
+}
+
+
+_emit_cmake_dependency()
+{
+   log_entry "_emit_cmake_dependency" "$@"
+
+   _emit_cmake_find_library "static" "$@"
+}
+
+
+#
+#
+_emit_cmake_header_only()
+{
+   log_entry "_emit_cmake_header_only" "$@"
+
+   local aliases="$1"
+   local identifier="$2"
+   local containername="$3"
+   local marks="$4"
+   local indent="$5"
+
+   local headers
+   local i
+
+   for i in ${aliases}
+   do
+      headers="`concat "${headers}" "${i}.h"`"
+      headers="`concat "${headers}" "${i}/${i}.h"`"
+   done
+
+   case ",${marks}," in
+      *,no-require-link,*)
+
+         failstatus="STATUS"
+         failstring="${identifier}_HEADER is missing but it\'s \"no-require-link\""
+      ;;
+
+      *)
+         failstatus="FATAL_ERROR"
+         failstring="${identifier}_HEADER was not found"
+      ;;
+   esac
+   #
+   # the idea here is that cmake should generate the proper -I option
+   #
+   cat <<EOF
+${indent}if( NOT ${identifier}_HEADER)
+${indent}   find_file( ${identifier}_HEADER NAMES ${headers})
+${indent}   message( STATUS "${identifier}_HEADER is \${${identifier}_HEADER}")
+${indent}   set( ${containername}
+${indent}      \${${identifier}_HEADER}
+${indent}      \${${containername}}
+${indent}      CACHE INTERNAL "need to cache this"
+${indent}   )
+${indent}   if( ${identifier}_HEADER)
+${indent}      # search for DependenciesAndLibraries.cmake to include
+${indent}      get_filename_component( _TMP_${identifier}_DIR "\${${identifier}_HEADER}" DIRECTORY)
+${indent}      set( _TMP_${identifier}_DIR "\${_TMP_${identifier}_DIR}/cmake")
+${indent}      # use explicit path to avoid "surprises"
+${indent}      if( EXISTS "\${_TMP_${identifier}_DIR}/DependenciesAndLibraries.cmake")
+${indent}         unset( ${identifier}_DEFINITIONS)
+${indent}         list( INSERT CMAKE_MODULE_PATH 0 "\${_TMP_${identifier}_DIR}")
+${indent}         include( "\${_TMP_${identifier}_DIR}/DependenciesAndLibraries.cmake")
+${indent}         list( REMOVE_ITEM CMAKE_MODULE_PATH "\${_TMP_${identifier}_DIR}")
+${indent}         set( INHERITED_DEFINITIONS
+${indent}               \${INHERITED_DEFINITIONS}
+${indent}               \${${identifier}_DEFINITIONS}
+${indent}               CACHE INTERNAL "need to cache this"
+${indent}         )
+${indent}      endif()
+${indent}   else()
+${indent}      message( ${failstatus} "${failstring}")
+${indent}   endif()
+${indent}endif()
+EOF
+}
+
+
+emit_cmake_dependency()
+{
+   log_entry "emit_cmake_dependency" "$@"
+
+   local emitter="$1"
+   local containername="$2"
+   local address="$3"
+   local marks="$4"
+   local aliases="$5"
+
+   [ -z "${emitter}" ] && internal_fail "emitter is empty"
+   [ -z "${address}" ] && internal_fail "address is empty"
+   [ -z "${containername}" ] && internal_fail "containername is empty"
+
+   local indent
+   local ifstatement
+   local endifstatement
+   local name
+
+   #
+   # ALL_LOAD_ is the default for Objective-C static libraries and is the
+   # default. "C" libraries are marked with no-all-load and remove the
+   # prefix
+   #
+   name="ALL_LOAD_${containername}"
+
+   if [ ! -z "${marks}" ]
+   then
+      ifstatement="`osexclude_to_cmake_if "${marks}" `"
+      if [ ! -z "${ifstatement}" ]
+      then
+         indent="   "
+      fi
+
+      case ",${marks}," in
+         *,no-all-load,*)
+            name="${containername}"
+         ;;
+      esac
+   fi
+
+   if [ ! -z "${ifstatement}" ]
+   then
+      echo "${ifstatement}"
+   fi
+
+   local identifier
+
+   identifier="` tr 'a-z-' 'A-Z_' <<< "${address}" `"
+   aliases="` concat "${address}" "${aliases}" `"
+
+   "${emitter}" "${aliases}" \
+                "${identifier}" \
+                "${name}" \
+                "${marks}" \
+                "${indent}"
+
+   if [ ! -z "${ifstatement}" ]
+   then
+      echo "endif()"
+   fi
+
+   echo
+   echo
+}
+
+
+emit_cmake_dependencies()
+{
+   log_entry "emit_cmake_dependencies" "$@"
+
+   local dependencies="$1"
+   local emitter="$2"
+   local containername="$3"
+
+   local dependency
+
+   set -o noglob ; IFS="
+"
+   for dependency in ${dependencies}
+   do
+      IFS="${DEFAULT_IFS}"; set +o noglob
+
+      local address
+      local marks
+      local aliases
+
+      log_debug "read \"${dependency}\""
+
+      IFS=";" read address marks aliases include <<< "${dependency}"
+
+      log_debug "address: ${address}"
+      log_debug "marks:   ${marks}"
+      log_debug "aliases: ${aliases}"
+
+      if [ ! -z "${address}" ]
+      then
+         log_verbose "Emit statements for ${C_MAGENTA}${C_BOLD}${address}"
+         emit_cmake_dependency "${emitter}" \
+                               "${containername}" \
+                               "${address}" \
+                               "${marks}" \
+                               "${aliases}"
+      fi
+   done
+   IFS="${DEFAULT_IFS}"; set +o noglob
+}
+
+
+#
+# collect library and dependency, with routines in
+# mulle-sde-updatesupport.sh for reuse with stuff other than cmake
+#
+write_libraries_file()
+{
+   log_entry "write_libraries_file" "$@"
+
+   local text_lib
+
+   if [ "${MULLE_SDE_LIBRARIES_FILE}" = "NONE" ]
+   then
+      MULLE_SDE_LIBRARIES_FILE=""
+
+      text_lib="# library generation turned off by MULLE_SDE_LIBRARIES_FILE"
+   else
+      local library
+      local header
+      local text_header
+
+      header="`exekutor mulle-sde ${MULLE_SDE_FLAGS} library list \
+                                                         --marks header,no-link \
+                                                         -- \
+                                                         --output-raw \
+                                                         --no-output-header`" || return 1
+      log_debug "header: ${header}"
+      text_header="`emit_cmake_dependencies "${header}" \
+                                            "_emit_cmake_header_only" \
+                                            "HEADER_ONLY_LIBRARIES"`"
+
+      library="`exekutor mulle-sde ${MULLE_SDE_FLAGS} library list \
+                                                         --marks link \
+                                                         -- \
+                                                         --output-raw \
+                                                         --no-output-header`" || return 1
+      log_debug "library: ${library}"
+      text_lib="`emit_cmake_dependencies "${library}" \
+                                         "_emit_cmake_library" \
+                                         "OS_SPECIFIC_LIBRARIES"`" || return 1
+
+      text_lib="`add_line "${text_header}" "${text_lib}"`"
+      #
+      if [ -z "${text_lib}" ]
+      then
+         text_lib="# there are no libraries in the sourcetree"
+      fi
+   fi
+   MULLE_SDE_LIBRARIES_FILE="${MULLE_SDE_LIBRARIES_FILE:-cmake/_Libraries.cmake}"
+
+   text_lib="# ${MULLE_SDE_LIBRARIES_FILE} is generated by \`mulle-sde\`. Edits will be lost.
+#
+if( MULLE_TRACE_INCLUDE)
+   message( STATUS \"# Include \\\"\${CMAKE_CURRENT_LIST_FILE}\\\"\" )
+endif()
+
+${text_lib}"
+
+   log_verbose "Writing ${C_RESET_BOLD}${MULLE_SDE_LIBRARIES_FILE}"
+   exekutor mkdir -p  "`fast_dirname "${MULLE_SDE_LIBRARIES_FILE}"`" 2> /dev/null
+   exekutor chmod a+w "${MULLE_SDE_LIBRARIES_FILE}"  2> /dev/null
+   redirect_exekutor "${MULLE_SDE_LIBRARIES_FILE}" echo "${text_lib}"
+   exekutor chmod a-w "${MULLE_SDE_LIBRARIES_FILE}"
+}
+
+
+write_dependencies_file()
+{
+   log_entry "write_dependencies_file" "$@"
+
+   local text_dep
+
+   if [ "${MULLE_SDE_DEPENDENCIES_FILE}" = "NONE" ]
+   then
+      MULLE_SDE_DEPENDENCIES_FILE=""
+      text_dep="# dependency generation turned off by MULLE_SDE_DEPENDENCIES_FILE"
+   else
+      local dependency
+      local header
+      local text_header
+
+      header="`exekutor mulle-sde ${MULLE_SDE_FLAGS} dependency list \
+                                                        --marks header,no-link \
+                                                        -- \
+                                                        --output-raw \
+                                                        --no-output-header`" || return 1
+      log_debug "header: ${header}"
+
+      text_header="`emit_cmake_dependencies "${header}" \
+                                            "_emit_cmake_header_only" \
+                                            "HEADER_ONLY_LIBRARIES"`"
+
+      dependency="`exekutor mulle-sde ${MULLE_SDE_FLAGS} dependency list \
+                                                        --marks link \
+                                                        -- \
+                                                        --output-raw \
+                                                        --no-output-header`" || return 1
+      log_debug "header: ${header}"
+      text_dep="`emit_cmake_dependencies "${dependency}" \
+                                         "_emit_cmake_dependency" \
+                                         "DEPENDENCY_LIBRARIES"`"
+      text_dep="`add_line "${text_header}" "${text_dep}"`"
+
+      if [ -z "${text_dep}" ]
+      then
+         text_dep="# there are no linkable dependencies in the sourcetree"
+      fi
+   fi
+
+   MULLE_SDE_DEPENDENCIES_FILE="${MULLE_SDE_DEPENDENCIES_FILE:-cmake/_Dependencies.cmake}"
+
+   text_dep="# ${MULLE_SDE_DEPENDENCIES_FILE} is generated by \`mulle-sde\`. Edits will be lost.
+#
+if( MULLE_TRACE_INCLUDE)
+   message( STATUS \"# Include \\\"\${CMAKE_CURRENT_LIST_FILE}\\\"\" )
+endif()
+
+${text_dep}"
+
+   log_fluff "Create cmake files (${PWD})"
+
+   log_verbose "Writing ${C_RESET_BOLD}${MULLE_SDE_DEPENDENCIES_FILE}"
+   exekutor mkdir -p  "`fast_dirname "${MULLE_SDE_DEPENDENCIES_FILE}"`" 2> /dev/null
+   exekutor chmod a+w "${MULLE_SDE_DEPENDENCIES_FILE}"  2> /dev/null
+   redirect_exekutor "${MULLE_SDE_DEPENDENCIES_FILE}" echo "${text_dep}"
+   exekutor chmod a-w "${MULLE_SDE_DEPENDENCIES_FILE}"
+}
+
+
+main()
+{
+   log_entry "main" "$@"
+
+   local MULLE_TRACE
+   local MULLE_FLAG_DONT_DEFER="NO"
+   local MULLE_FLAG_EXEKUTOR_DRY_RUN="NO"
+   local MULLE_FLAG_FOLLOW_SYMLINKS="YES"
+   local MULLE_FLAG_LOG_CACHE="NO"
+   local MULLE_FLAG_LOG_DEBUG="NO"
+   local MULLE_FLAG_LOG_EXEKUTOR="NO"
+   local MULLE_FLAG_LOG_FLUFF="NO"
+   local MULLE_FLAG_LOG_MERGE="NO"
+   local MULLE_FLAG_LOG_SCRIPTS="NO"
+   local MULLE_FLAG_LOG_SETTINGS="NO"
+   local MULLE_FLAG_LOG_VERBOSE="NO"
+   local MULLE_TRACE_PATHS_FLIP_X="NO"
+   local MULLE_TRACE_POSTPONE="NO"
+   local MULLE_TRACE_RESOLVER_FLIP_X="NO"
+   local MULLE_TRACE_SETTINGS_FLIP_X="NO"
+
+   while [ $# -ne 0 ]
+   do
+      if options_technical_flags "$1"
+      then
+         shift
+         continue
+      fi
+
+      case "$1" in
+         -h*|--help|help)
+            usage
+         ;;
+
+         -p|--projectname)
+            [ "$#" -eq 1 ] && usage "missing argument to \"$1\""
+            shift
+
+            PROJECT_NAME="$1"
+         ;;
+
+         --version)
+            echo "${CMAKE_SOURCETREE_UPDATE_VERSION}"
+            return 0
+         ;;
+
+         -*)
+            usage "unknown option \"$1\""
+         ;;
+
+         *)
+            break
+         ;;
+      esac
+
+      shift
+   done
+
+   options_setup_trace "${MULLE_TRACE}"
+
+   write_dependencies_file "${categorized_files}" &
+   write_libraries_file "${categorized_files}" &
+
+   log_verbose "waiting..."
+   wait
+   log_verbose 'done!'
+}
+
+
+_init()
+{
+   if [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ]
+   then
+      MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env "libexec-dir" 2> /dev/null`"
+      [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ] && \
+         echo "mulle-bashfunctions-env not installed" >&2 && \
+         exit 1
+   fi
+
+   . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-bashfunctions.sh" "minimal" || exit 1
+}
+
+_init "$@"
+main "$@"

@@ -1,9 +1,0 @@
-#
-# override the repositories like so:
-#    echo "https://www.mulle-kybernetik.com/repositories" > .bootstrap.local/MULLE_REPOSITORIES
-#
-# override the branches like so:
-#    echo "master" > .bootstrap.local/MULLE_VARARG_BRANCH
-
-${MULLE_REPOSITORIES:-https://github.com/mulle-nat}/mulle-concurrent;;${MULLE_CONCURRENT_BRANCH:-release}
-${MULLE_REPOSITORIES:-https://github.com/mulle-nat}/mulle-vararg;;${MULLE_VARARG_BRANCH:-release}

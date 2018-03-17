@@ -1,0 +1,398 @@
+#! /usr/bin/env bash
+#
+#   Copyright (c) 2018 Nat! - Mulle kybernetiK
+#   All rights reserved.
+#
+#   Redistribution and use in source and binary forms, with or without
+#   modification, are permitted provided that the following conditions are met:
+#
+#   Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+#   Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+#   Neither the name of Mulle kybernetiK nor the names of its contributors
+#   may be used to endorse or promote products derived from this software
+#   without specific prior written permission.
+#
+#   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#   IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#   ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#   LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#   CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#   SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#   INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#   CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#   POSSIBILITY OF SUCH DAMAGE.
+#
+
+[ "${TRACE}" = "YES" ] && set -x && : "$0" "$@"
+
+
+usage()
+{
+   cat <<EOF >&2
+Usage:
+   c-sourcetree-update <action> <filename> <category>
+
+   This produces the _dependencies.h or some similiarly named file.
+
+EOF
+   exit 1
+}
+
+
+#
+# this is bullshit right now, just in the process of building it up
+#
+uname_to_cpp()
+{
+   log_entry "uname_to_cmake" "$@"
+
+   local uname="$1"
+
+   case "${uname}" in
+      darwin)
+         echo "__APPLE__"
+      ;;
+
+      "")
+         fail "uname is empty"
+      ;;
+
+      *)
+         echo "__`tr 'a-z' 'A-Z' <<< "${uname}"`__"
+      ;;
+   esac
+}
+
+
+osexclude_to_cpp_if()
+{
+   log_entry "osexclude_to_cpp_if" "$@"
+
+   local marks="$1"
+
+   local cppvar
+
+   local excludes
+   local onlys
+
+   set -o noglob ; IFS=","
+
+   for osexclude in ${marks}
+   do
+      IFS="${DEFAULT_IFS}"; set +o noglob
+
+      case "${osexclude}" in
+         only-os-*)
+            cppvar="`uname_to_cpp "${osexclude:8}"`"
+            onlys="`concat "${onlys}" "defined( ${cppvar})" " || " `"
+         ;;
+
+         no-os-*)
+            cppvar="`uname_to_cpp "${osexclude:6}"`"
+            excludes="`concat "${excludes}" "! defined( ${cppvar})" " && "`"
+         ;;
+      esac
+   done
+   IFS="${DEFAULT_IFS}"; set +o noglob
+
+   if [ ! -z "${onlys}" ]
+   then
+      echo "# if ${onlys}"
+      return
+   fi
+
+   if [ ! -z "${excludes}" ]
+   then
+      echo "# if ${excludes}"
+   fi
+}
+
+
+_emit_c_include()
+{
+   log_entry "_emit_c_include" "$@"
+
+   local header="$1"
+   local marks="$2"
+   local aliases="$3"
+
+   local indent
+   local ifstatement
+   local include
+   local mark
+
+   #
+   # so objc can reuse this, make a provision for import with --objc flag
+   # but allow #include if the mark no-objc is set
+   #
+   include="include"
+   if [ "${OPTION_OBJC}" = "YES" ]
+   then
+      include="import"
+
+      set -o noglob ; IFS=","
+      for mark in ${marks}
+      do
+         if [ "${mark}" = "no-objc" ]
+         then
+            include="include"
+            break
+         fi
+      done
+      IFS="${DEFAULT_IFS}" ; set o noglob
+   fi
+
+   if [ ! -z "${marks}" ]
+   then
+      ifstatement="`osexclude_to_cpp_if "${marks}" `"
+   fi
+
+   if [ ! -z "${ifstatement}" ]
+   then
+      echo "${ifstatement}"
+      indent=" "
+   fi
+
+   echo "# ${indent}include <${header}>"
+   if [ ! -z "${ifstatement}" ]
+   then
+      echo "# endif"
+   fi
+
+   echo
+}
+
+
+emit_c_include_library()
+{
+   log_entry "emit_c_include_library" "$@"
+
+   local name="$1"
+   local marks="$2"
+   local aliases="$3"
+   local header="$4"
+
+   #
+   # the default for libraries is old style <name.h> not <name/name.h>
+   #
+   if [ -z "${header}" ]
+   then
+      header="${name}.h"
+   fi
+
+   _emit_c_include "${header}" "${marks}" "${aliases}"
+
+}
+
+emit_c_include_dependency()
+{
+   log_entry "emit_c_include_dependency" "$@"
+
+   local name="$1"
+   local marks="$2"
+   local aliases="$3"
+   local header="$4"
+
+   #
+   # the default for dependencies is <name/name.h>
+   #
+   if [ -z "${header}" ]
+   then
+      header="${name}/${name}.h"
+   fi
+
+   _emit_c_include "${header}" "${marks}" "${aliases}"
+}
+
+
+emit_c_header()
+{
+   log_entry "emit_c_header" "$@"
+
+   # since the order of the headers is important and needs to be in treeorder
+   # we use mulle-sourcetree directly
+   local headers
+
+   headers="`exekutor mulle-sourcetree list \
+                                       --format "%a;%m;%i={aliases,,-------};\
+%i={include,,-------}\\n" \
+                                       --marks header \
+                                       --output-raw \
+                                       --no-output-header`" || return 1
+
+   local dependency
+
+   set -o noglob ; IFS="
+"
+   for header in ${headers}
+   do
+      IFS="${DEFAULT_IFS}"; set +o noglob
+
+      local address
+      local marks
+      local include
+
+      IFS=";" read address marks aliases include <<< "${header}"
+
+      if [ -z "${address}" ]
+      then
+         continue
+      fi
+
+      log_verbose "Emit statements for ${C_MAGENTA}${C_BOLD}${address}"
+
+      case ",${marks}," in
+         *,no-dependency,*)
+            emit_c_include_library "${address}" \
+                                   "${marks}" \
+                                   "${aliases}" \
+                                   "${include}" \
+                                   "$@"
+         ;;
+
+         *)
+            emit_c_include_dependency "${address}" \
+                                      "${marks}" \
+                                      "${aliases}" \
+                                      "${include}" \
+                                      "$@"
+         ;;
+      esac
+   done
+
+   IFS="${DEFAULT_IFS}"; set +o noglob
+}
+
+
+main()
+{
+   log_entry "main" "$@"
+
+   # technical flags
+   local MULLE_TRACE
+   local MULLE_FLAG_DONT_DEFER="NO"
+   local MULLE_FLAG_EXEKUTOR_DRY_RUN="NO"
+   local MULLE_FLAG_FOLLOW_SYMLINKS="YES"
+   local MULLE_FLAG_LOG_CACHE="NO"
+   local MULLE_FLAG_LOG_DEBUG="NO"
+   local MULLE_FLAG_LOG_EXEKUTOR="NO"
+   local MULLE_FLAG_LOG_FLUFF="NO"
+   local MULLE_FLAG_LOG_MERGE="NO"
+   local MULLE_FLAG_LOG_SCRIPTS="NO"
+   local MULLE_FLAG_LOG_SETTINGS="NO"
+   local MULLE_FLAG_LOG_VERBOSE="NO"
+   local MULLE_TRACE_PATHS_FLIP_X="NO"
+   local MULLE_TRACE_POSTPONE="NO"
+   local MULLE_TRACE_RESOLVER_FLIP_X="NO"
+   local MULLE_TRACE_SETTINGS_FLIP_X="NO"
+
+   local OPTION_OBJC_HEURISTIC="NO"
+
+   while [ $# -ne 0 ]
+   do
+      if options_technical_flags "$1"
+      then
+         shift
+         continue
+      fi
+
+      case "$1" in
+         -h*|--help|help)
+            usage
+         ;;
+
+         --objc)
+            OPTION_OBJC="YES"
+         ;;
+
+         -*)
+            log_error "unknown option \"$1\""
+            usage
+         ;;
+
+         *)
+            break
+         ;;
+      esac
+
+      shift
+   done
+
+   options_setup_trace "${MULLE_TRACE}"
+
+
+   local projectname
+
+   projectname="${MULLE_SDE_PROJECT_NAME}"
+   projectname="${projectname:-${PROJECT_NAME}}"
+   if [ -z "${projectname}" ]
+   then
+      projectname="`fast_basename "${PWD}"`" # could be nicer
+   fi
+
+   if [ "${MULLE_SDE_DEPENDENCIES_HEADER_FILE}" = "NONE" ]
+   then
+      return
+   fi
+
+   if [ -z "${MULLE_SDE_DEPENDENCIES_HEADER_FILE}" ]
+   then
+      MULLE_SDE_DEPENDENCIES_HEADER_FILE="src/_${projectname}-dependencies.h"
+   fi
+
+   local text_h
+   local text_dep
+
+   text_h="`emit_c_header`"     || exit 1
+
+   if [ -z "${text_h}" ]
+   then
+      text_h="/* no headers */"
+   fi
+
+   local projectidentifier
+
+   projectidentifier="`tr 'A-Z-' 'a-z_' <<< "${projectname}" `"
+
+   text_h="/*
+   This file will be regenerated by \`mulle-sde update|monitor\`.
+   Edits will be lost.
+*/
+
+#ifndef _${projectidentifier}__dependencies_h__
+#define _${projectidentifier}__dependencies_h__
+
+${text_h}
+
+#endif"
+
+   log_fluff "Create header file (${PWD})"
+
+   log_verbose "Writing ${C_RESET_BOLD}${MULLE_SDE_DEPENDENCIES_HEADER_FILE}"
+   redirect_exekutor "${MULLE_SDE_DEPENDENCIES_HEADER_FILE}" echo "${text_h}"
+}
+
+
+_init()
+{
+   if [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ]
+   then
+      MULLE_BASHFUNCTIONS_LIBEXEC_DIR="`mulle-bashfunctions-env "libexec-dir" 2> /dev/null`"
+      [ -z "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}" ] && \
+         echo "mulle-bashfunctions-env not installed" >&2 && \
+         exit 1
+   fi
+
+   . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-bashfunctions.sh" "minimal" || exit 1
+}
+
+_init "$@"
+main "$@"
+

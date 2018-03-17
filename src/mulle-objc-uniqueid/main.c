@@ -33,9 +33,9 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-#include "mulle_objc_runtime.h"
+#include "mulle-objc-runtime.h"
 #include <ctype.h>
-#ifdef _WIN32      
+#ifdef _WIN32
 # include <malloc.h>
 #endif
 
@@ -46,7 +46,7 @@ int   main( int argc, char *argv[])
    char            *prefix;
    char            *suffix;
    size_t          len;
-   
+
    if( argc != 2 || ! (len = strlen( argv[ 1])))
    {
       fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
@@ -63,20 +63,20 @@ int   main( int argc, char *argv[])
       suffix = "_METHODID";
    if( prefix)
    {
-#ifdef _WIN32      
+#ifdef _WIN32
       char   *buf = alloca( sizeof( char) * (len + 1));
 #else
       char   buf[ len + 1];
 #endif
       char   *s1, *s2;
       char   c;
-      
+
       s1 = argv[ 1];
       s2 = buf;
       while( c = *s1++)
          *s2++ = (char) toupper( c);
       *s2 = c;
-      
+
       printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
             prefix,
             buf,
