@@ -1,8 +1,3 @@
-These are compiler tests for mulle-clang. They are in Objective-C.
-
-```
-mulle-test --dir-name test-compiler --project-dialect objc
-```
 @0_compiler
 
 These tests run within the MulleObjC tests, but they can run even if

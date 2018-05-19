@@ -1,0 +1,10 @@
+property i has a getter, a setter, no clearer
+property a1 has a getter, a setter, a clearer
+property b1 has a getter, a setter, a clearer
+property c1 has a getter, a setter, a clearer
+property a2 has a getter, no setter, no clearer
+property b2 has a getter, no setter, no clearer
+property c2 has a getter, no setter, no clearer
+property a3 has a getter, a setter, no clearer
+property b3 has a getter, a setter, no clearer
+property c3 has a getter, a setter, no clearer
