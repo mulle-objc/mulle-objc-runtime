@@ -1,0 +1,38 @@
+-callChar:CHAR_MIN PASS
+-callChar:CHAR_MAX PASS
+-callShort:SHRT_MIN PASS
+-callShort:SHRT_MAX PASS
+-callShort:INT_MIN PASS
+-callShort:INT_MAX PASS
+-callLong:LONG_MIN PASS
+-callLong:LONG_MAX PASS
+-callLongLong:LLONG_MIN PASS
+-callLongLong:LLONG_MAX PASS
+-callCharPtr:INTPTR_MIN PASS
+-callCharPtr:INTPTR_MAX PASS
+-callSmallStruct:{ INTPTR_MIN } PASS
+-callSmallStruct:{ INTPTR_MAX } PASS
+-callLargeStruct:{ INTPTR_MIN, INTPTR_MAX } PASS
+-callLargeStruct:{ INTPTR_MAX, INTPTR_MIN } PASS
+-callChar:CHAR_MIN longlong:LLONG_MIN PASS
+-callChar:CHAR_MIN longlong:LLONG_MAX PASS
+-callChar:CHAR_MAX longlong:LLONG_MIN PASS
+-callChar:CHAR_MAX longlong:LLONG_MAX PASS
+-callCharPtr:"VfL Bochum 1848" longlong:LLONG_MIN PASS
+-callCharPtr:"VfL Bochum 1848" longlong:LLONG_MAX PASS
+-callLongLong:... #0 PASS
+-callLongLong:... #1 PASS
+-callLongLong:... #2 PASS
+-callLongLong:... #3 PASS
+-callLongLong:... #4 PASS
+-callLongLong:... #5 PASS
+-callLongLong:... #6 PASS
+-callLongLong:... #7 PASS
+-callLongLong:... #8 PASS
+-callLongLong:... #9 PASS
+-callLongLong:... #10 PASS
+-callLongLong:... #11 PASS
+-callLongLong:... #12 PASS
+-callLongLong:... #13 PASS
+-callLongLong:... #14 PASS
+-callLongLong:... #15 PASS

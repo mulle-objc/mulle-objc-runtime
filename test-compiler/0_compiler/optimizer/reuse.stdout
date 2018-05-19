@@ -1,0 +1,22 @@
++[Foo test1::]
+Reused
++[Foo test2::]
+Not reused
++[Foo test3::]
+Reused
++[Foo test4::]
+Not reused
++[Foo test5::]
+Not reused
+Reused
++[Foo test6::]
+Reused
+Reused
++[Foo test7::]
+Not reused
++[Foo test8::]
+Not reused
++[Foo test9::]
+Not reused
++[Foo testa::]
+Not reused
