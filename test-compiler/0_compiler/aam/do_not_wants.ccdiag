@@ -1,0 +1,9 @@
+error: in AAM method 'allocWithZone:'
+error: in AAM method 'autorelease'
+error: in AAM method 'release'
+error: in AAM method 'retain'
+error: in AAM method 'dealloc'
+error: in AAM method 'zone'
+error: in AAM method 'copyWithZone:'
+error: in AAM method 'mutableCopyWithZone:'
+

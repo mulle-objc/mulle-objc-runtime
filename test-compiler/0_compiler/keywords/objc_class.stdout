@@ -1,0 +1,3 @@
+void alone(): ( )
++[A bar]: A( )
++[A(B) baz]: A( B)
