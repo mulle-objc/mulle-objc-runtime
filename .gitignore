@@ -19,8 +19,9 @@ tmp.*
 /research*
 
 
-# ignore all tests artefacts
+# ignore all tests and compiler-test artefacts
 test/
+test-compiler/
 !*.h
 !*.m
 !*.aam
