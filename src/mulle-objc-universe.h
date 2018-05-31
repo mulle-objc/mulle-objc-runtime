@@ -92,9 +92,9 @@ void   _mulle_objc_universe_defaultexitus( void);
 // atexit (pedantic exit)
 //
 void   __mulle_objc_universe_setup( struct _mulle_objc_universe *universe,
-                                  struct mulle_allocator *allocator);
+                                    struct mulle_allocator *allocator);
 void   _mulle_objc_universe_assert_version( struct _mulle_objc_universe  *universe,
-                                          struct mulle_objc_loadversion *version);
+                                            struct mulle_objc_loadversion *version);
 
 
 //

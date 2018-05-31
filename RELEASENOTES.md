@@ -1,55 +1,38 @@
+## 0.13.0
+
+* moved compiler test-suite back from MulleObjC
+* migrated to mulle-sde
+* for release 6.0.0 of the mulle-clang compiler
+
+
 ## 0.12.1
 
 * _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY replaces _MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY
 * _mulle_objc_object_nonatomic_infiniteretain replaces _mulle_objc_object_nonatomic_infinite_retain
-* added _mulle_objc_signature_skip_extendedtypeinfo
-* load version 12
-* rename _mulle_objc_uniqueid_is_sane to mulle_objc_uniqueid_is_sane
-* property gains an ivarid
-* MULLE_OBJC_PRINT_RUNTIME_CONFIG renamed to MULLE_OBJC_PRINT_UNIVERSE_CONFIG
-* support newer mulle-tests
-* follow mulle-configuration 3.1 changes and move .travis.yml to trusty
-* fixes for windows
-* mingw fixes and hacks
-* use a tuned fnv1a hash for better cache utilization
-* improve dotdump method cache
-* improve contents of signature typeinfo
-* reduce initial method cache size to 4 
-* increase fast class cache size to 64
-* add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking 
-* improve superfunctions some more by inlining first stage also. Put everything into the methodcache
-* super struct now gains the selector name for introspection. The selector is now compatible to @selector
 * Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
-* new super call with its own cache
-* expect propertyclasses now in declaration order from compiler
 * adapt search so that we a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
 * adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
-* add searchcache functionality to the runtime
-* up the load version, because of function renaming
-* added _mulle_objc_signature_skip_extendedtypeinfo
-* load version 12
-* rename _mulle_objc_uniqueid_is_sane to mulle_objc_uniqueid_is_sane
-* property gains an ivarid
-* MULLE_OBJC_PRINT_RUNTIME_CONFIG renamed to MULLE_OBJC_PRINT_UNIVERSE_CONFIG
-* support newer mulle-tests
-* follow mulle-configuration 3.1 changes and move .travis.yml to trusty
-* fixes for windows
-* mingw fixes and hacks
-* use a tuned fnv1a hash for better cache utilization
-* improve dotdump method cache
-* improve contents of signature typeinfo
-* reduce initial method cache size to 4 
-* increase fast class cache size to 64
 * add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking 
-* improve superfunctions some more by inlining first stage also. Put everything into the methodcache
-* super struct now gains the selector name for introspection. The selector is now compatible to @selector
-* Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
-* new super call with its own cache
-* expect propertyclasses now in declaration order from compiler
-* adapt search so that we a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
-* adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
 * add searchcache functionality to the runtime
+* added _mulle_objc_signature_skip_extendedtypeinfo
+* expect propertyclasses now in declaration order from compiler
+* fixes for windows
+* follow mulle-configuration 3.1 changes and move .travis.yml to trusty
+* improve contents of signature typeinfo
+* improve dotdump method cache
+* improve superfunctions some more by inlining first stage also. Put everything into the methodcache
+* increase fast class cache size to 64
+* load version 12
+* mingw fixes and hacks
+* MULLE_OBJC_PRINT_RUNTIME_CONFIG renamed to MULLE_OBJC_PRINT_UNIVERSE_CONFIG
+* new super call with its own cache
+* property gains an ivarid
+* reduce initial method cache size to 4 
+* rename _mulle_objc_uniqueid_is_sane to mulle_objc_uniqueid_is_sane
+* super struct now gains the selector name for introspection. The selector is now compatible to @selector
+* support newer mulle-tests
 * up the load version, because of function renaming
+* use a tuned fnv1a hash for better cache utilization
 
 
 ### 0.11.3

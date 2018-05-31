@@ -13,13 +13,15 @@ addons:
       - cmake-data
 
 before_install:
+   - curl -sS https://www.codeon.de/dists/codeon-pub.asc | sudo apt-key add -
+   - sudo echo "deb [arch=amd64] http://download.codeon.de `lsb_release -c -s` main" | sudo tee "/etc/apt/sources.list.d/codeon.de-main.list"  > /dev/null
    - curl -sS "https://www.mulle-kybernetik.com/dists/debian-admin-pub.asc" | sudo apt-key add -
    - echo "deb [arch=all] http://www.mulle-kybernetik.com `lsb_release -c -s` main" | sudo tee "/etc/apt/sources.list.d/mulle-kybernetik.com-main.list" > /dev/null
    - sudo apt-get update
-   - sudo apt-get -y install mulle-objc-developer mulle-test
+   - sudo apt-get -y install mulle-clang mulle-sde mulle-test
 
 script: 
    - mulle-sde -vvv craft
-   - mulle-test -vvv
-   - mulle-test -vvv --dir-name test-compiler --project-dialect objc
-   - mulle-test -vvv --dir-name test-compiler-runtime --project-dialect objc
+   - mulle-test -v
+   - mulle-test -v --dir-name test-compiler --project-dialect objc
+   - mulle-test -v --dir-name test-compiler-runtime --project-dialect objc
