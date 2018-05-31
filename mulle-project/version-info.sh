@@ -1,1 +1,1 @@
-VERSIONFILE="src/mulle_objc_version.h"
+VERSIONFILE="src/mulle-objc-version.h"
