@@ -142,8 +142,11 @@ _emit_cmake_find_library()
    local libraries
    local i
 
+   IFS=","; shopt -s nullglob
    for i in ${aliases}
    do
+      IFS="${DEFAULT_IFS}"; shopt -u nullglob
+
       case "${preference}" in
          "static")
             libraries="`concat "${libraries}" "\\\${CMAKE_STATIC_LIBRARY_PREFIX}${i}\\\${CMAKE_STATIC_LIBRARY_SUFFIX}"`"
@@ -157,6 +160,7 @@ _emit_cmake_find_library()
       # fallback to whatever linkage
       libraries="`concat "${libraries}" "${i}"`"
    done
+   IFS="${DEFAULT_IFS}"; shopt -u nullglob
 
    local failstring
    local failstatus
@@ -247,11 +251,13 @@ _emit_cmake_header_only()
    local headers
    local i
 
+   IFS=","; shopt -s nullglob
    for i in ${aliases}
    do
       headers="`concat "${headers}" "${i}.h"`"
       headers="`concat "${headers}" "${i}/${i}.h"`"
    done
+   IFS="${DEFAULT_IFS}"; shopt -u nullglob
 
    case ",${marks}," in
       *,no-require-link,*)
@@ -348,9 +354,16 @@ emit_cmake_dependency()
    fi
 
    local identifier
+   local filename
 
-   identifier="` tr 'a-z-' 'A-Z_' <<< "${address}" `"
-   aliases="` concat "${address}" "${aliases}" `"
+   if [ -z "${aliases}" ]
+   then
+      aliases="${address}"
+   fi
+
+   # first alias determines the identifier
+   filename="`fast_basename "${aliases%%,*}"`"
+   identifier="` tr 'a-z-' 'A-Z_' <<< "${filename}" `"
 
    "${emitter}" "${aliases}" \
                 "${identifier}" \
@@ -430,21 +443,21 @@ write_libraries_file()
       local header
       local text_header
 
-      header="`exekutor mulle-sde ${MULLE_SDE_FLAGS} library list \
+      header="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
                                                          --marks header,no-link \
                                                          -- \
                                                          --output-raw \
-                                                         --no-output-header`" || return 1
+                                                         --output-no-header`" || return 1
       log_debug "header: ${header}"
       text_header="`emit_cmake_dependencies "${header}" \
                                             "_emit_cmake_header_only" \
                                             "HEADER_ONLY_LIBRARIES"`"
 
-      library="`exekutor mulle-sde ${MULLE_SDE_FLAGS} library list \
+      library="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
                                                          --marks link \
                                                          -- \
                                                          --output-raw \
-                                                         --no-output-header`" || return 1
+                                                         --output-no-header`" || return 1
       log_debug "library: ${library}"
       text_lib="`emit_cmake_dependencies "${library}" \
                                          "_emit_cmake_library" \
@@ -490,7 +503,7 @@ write_dependencies_file()
       local header
       local text_header
 
-      header="`exekutor mulle-sde ${MULLE_SDE_FLAGS} dependency list \
+      header="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} dependency list \
                                                         --marks header,no-link \
                                                         -- \
                                                         --output-raw \
@@ -501,7 +514,7 @@ write_dependencies_file()
                                             "_emit_cmake_header_only" \
                                             "HEADER_ONLY_LIBRARIES"`"
 
-      dependency="`exekutor mulle-sde ${MULLE_SDE_FLAGS} dependency list \
+      dependency="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} dependency list \
                                                         --marks link \
                                                         -- \
                                                         --output-raw \
@@ -535,6 +548,34 @@ ${text_dep}"
    exekutor chmod a+w "${MULLE_SDE_DEPENDENCIES_FILE}"  2> /dev/null
    redirect_exekutor "${MULLE_SDE_DEPENDENCIES_FILE}" echo "${text_dep}"
    exekutor chmod a-w "${MULLE_SDE_DEPENDENCIES_FILE}"
+}
+
+
+# should get results from mulle-sde subprojects here
+run_update_on_subproject()
+{
+   log_entry "write_dependencies_file" "$@"
+
+   local text_dep
+
+   if [ -z  "${MULLE_SDE_SUBPROJECTS}" -o "${MULLE_SDE_SUBPROJECTS}" = "NONE" ]
+   then
+      return
+   fi
+
+   set -f; IFS=":"
+   for i in ${MULLE_SDE_SUBPROJECTS}
+   do
+      set +f; IFS="${DEFAULT_IFS}"
+
+      [ ! -d "${i}" ] && log_error "Subproject \"${i}\" does not exist"
+
+      (
+         MULLE_SDE="${MULLE_SDE}" \
+            "${MULLE_SDE}" --subproject "${i}" ${MULLE_SDE_FLAGS} update
+      )
+   done
+   set +f; IFS="${DEFAULT_IFS}"
 }
 
 
@@ -595,6 +636,9 @@ main()
 
       shift
    done
+
+   MULLE_SDE="${MULLE_SDE:-`command -v mulle-sde`}"
+   [ -z "${MULLE_SDE}" ] && fail "mulle-sde not in PATH"
 
    options_setup_trace "${MULLE_TRACE}"
 

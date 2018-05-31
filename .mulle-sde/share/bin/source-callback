@@ -41,19 +41,7 @@ main()
    local filename="$2"
    local category="$3"
 
-   case "${action}" in
-      "")
-         echo "cmake-source-update"
-      ;;
-
-      "update")
-         echo "craft" # nothing to change in CMakeLists.txt
-      ;;
-
-      *)
-         echo "cmake-source-update-and-craft"
-      ;;
-   esac
+   echo "cmake-source-update"
 }
 
 main "$@"

@@ -6,8 +6,8 @@
 #ifndef _mulle_objc_runtime__dependencies_h__
 #define _mulle_objc_runtime__dependencies_h__
 
-# include <mulle-concurrent/mulle-concurrent.h>
+# include <mulle-concurrent/mulle-concurrent.h>   // mulle-concurrent
 
-# include <mulle-vararg/mulle-vararg.h>
+# include <mulle-vararg/mulle-vararg.h>   // mulle-vararg
 
 #endif

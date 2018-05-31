@@ -13,8 +13,8 @@ set( DEBUG_HEADERS
 src/debug/c-set.inc
 src/debug/mulle-objc-csvdump.h
 src/debug/mulle-objc-dotdump.h
-src/debug/mulle-objc-htmldump.h
 src/debug/mulle-objc-html.h
+src/debug/mulle-objc-htmldump.h
 src/debug/mulle-objc-lldb.h
 )
 
@@ -26,16 +26,16 @@ src/mulle-objc-cache.h
 src/mulle-objc-call.h
 src/mulle-objc-callqueue.h
 src/mulle-objc-class-convenience.h
-src/mulle-objc-class.h
-src/mulle-objc-classpair.h
 src/mulle-objc-class-search.h
 src/mulle-objc-class-struct.h
 src/mulle-objc-class-universe.h
+src/mulle-objc-class.h
+src/mulle-objc-classpair.h
 src/mulle-objc-fastclasstable.h
 src/mulle-objc-fastenumeration.h
 src/mulle-objc-fastmethodtable.h
-src/mulle-objc-fnv1a.h
 src/mulle-objc-fnv1.h
+src/mulle-objc-fnv1a.h
 src/mulle-objc-infraclass.h
 src/mulle-objc-ivar.h
 src/mulle-objc-ivarlist.h
@@ -58,11 +58,11 @@ src/mulle-objc-signature.h
 src/mulle-objc-super.h
 src/mulle-objc-taggedpointer.h
 src/mulle-objc-try-catch-finally.h
-src/mulle-objc-uniqueidarray.h
 src/mulle-objc-uniqueid.h
+src/mulle-objc-uniqueidarray.h
 src/mulle-objc-universe-global.h
-src/mulle-objc-universe.h
 src/mulle-objc-universe-struct.h
+src/mulle-objc-universe.h
 src/mulle-objc-version.h
 src/mulle-objc-walktypes.h
 ) 

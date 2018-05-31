@@ -1,1 +1,7 @@
 
+inotifywait
+ssh
+cc
+gcc
+ld
+ninja
