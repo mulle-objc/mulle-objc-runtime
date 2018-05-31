@@ -51,7 +51,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <mulle-test-allocator/mulle-test-allocator.h> // only used once in project
 
 # pragma mark - errors
 

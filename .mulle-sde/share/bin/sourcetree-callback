@@ -41,12 +41,7 @@ main()
    local filename="$2"
    local category="$3"
 
-   if [ -z "${action}" ]
-   then
-      echo "cmake-sourcetree-update"
-   else
-      echo "cmake-sourcetree-update-and-craft"
-   fi
+   echo "cmake-sourcetree-update"
 }
 
 main "$@"

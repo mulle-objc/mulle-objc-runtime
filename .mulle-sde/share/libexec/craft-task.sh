@@ -49,7 +49,9 @@ craft_task_run()
       remove_task_job "test"
    fi
 
-   if ! eval_exekutor mulle-craft ${MULLE_CRAFT_FLAGS} ${MULLE_CRAFT_ARGS}
+   if ! eval_exekutor mulle-sde "${MULLE_SDE_CRAFT_TASK_FLAGS}" \
+                      craft "$@" \
+                      "${MULLE_SDE_CRAFT_TASK_ARGS}"
    then
       return 1
    fi

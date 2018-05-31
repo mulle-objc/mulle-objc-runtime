@@ -22,6 +22,7 @@ tmp.*
 # ignore all tests and compiler-test artefacts
 test/
 test-compiler/
+test-compiler-runtime/
 !*.h
 !*.m
 !*.aam
@@ -42,7 +43,9 @@ test-compiler/
 .mulle-env/libexec/
 
 # style is "fluctuating" on a per-user level so not interesting
-.mulle-env/etc/style
+.mulle-env/share/style
+.mulle-env/etc/environment-host-*.sh
+.mulle-env/etc/environment-user-*.sh
 
 # .mulle-sde is generally interesting
 

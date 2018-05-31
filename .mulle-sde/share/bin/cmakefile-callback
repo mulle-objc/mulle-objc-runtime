@@ -38,7 +38,7 @@ main()
    local filename="$2"
    local category="$3"
 
-   echo "craft"
+   echo "none"
 }
 
 main "$@"

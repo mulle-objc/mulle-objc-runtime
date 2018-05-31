@@ -72,11 +72,13 @@ static struct _mulle_objc_dependency  no_dependency =
 };
 
 
+// this is destructive
 static void    map_f( struct mulle_concurrent_hashmap *table,
                       mulle_objc_uniqueid_t uniqueid,
                       void (*f)( void *,
                                  struct _mulle_objc_callqueue *),
-                      struct _mulle_objc_callqueue *loads)
+                      struct _mulle_objc_callqueue *loads,
+                      struct mulle_allocator *allocator)
 {
    struct mulle_concurrent_pointerarray            *list;
    struct mulle_concurrent_pointerarrayenumerator  rover;
@@ -99,6 +101,7 @@ static void    map_f( struct mulle_concurrent_hashmap *table,
    mulle_concurrent_pointerarrayenumerator_done( &rover);
 
    _mulle_concurrent_pointerarray_done( list);
+   _mulle_allocator_free( allocator, list);
 }
 
 
@@ -487,11 +490,13 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    map_f( &universe->waitqueues.categoriestoload,
          info->classid,
          (void (*)()) mulle_objc_loadcategory_unfailingenqueue,
-         loads);
+         loads,
+          &universe->memory.allocator);
    map_f( &universe->waitqueues.classestoload,
          info->classid,
          (void (*)()) mulle_objc_loadclass_unfailingenqueue,
-         loads);
+         loads,
+         &universe->memory.allocator);
 
    return( MULLE_OBJC_NO_CLASSID);
 }
@@ -804,9 +809,9 @@ static struct _mulle_objc_dependency
    _mulle_objc_loadcategory_fulfill_user_dependencies( struct _mulle_objc_loadcategory *info,
                                                        struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_universe         *universe;
-   struct _mulle_objc_dependency       *dependencies;
-   mulle_objc_implementation_t   imp;
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_dependency   *dependencies;
+   mulle_objc_implementation_t     imp;
 
    assert( info);
    assert( infra);
@@ -1087,11 +1092,13 @@ static mulle_objc_classid_t
    map_f( &universe->waitqueues.categoriestoload,
           info->classid,
           (void (*)()) mulle_objc_loadcategory_unfailingenqueue,
-          loads);
+          loads,
+          &universe->memory.allocator);
    map_f( &universe->waitqueues.classestoload,
           info->classid,
           (void (*)()) mulle_objc_loadclass_unfailingenqueue,
-          loads);
+          loads,
+          &universe->memory.allocator);
 
    return( MULLE_OBJC_NO_CLASSID);
 }
