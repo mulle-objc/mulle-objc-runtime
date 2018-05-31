@@ -53,6 +53,11 @@ only locks during `+initialize` on a per class basis.
 [mulle-thread](//github.com/mulle-c/mulle-thread) | [![Build Status](https://travis-ci.org/mulle-c/mulle-thread.svg?branch=release)](https://travis-ci.org/mulle-c/mulle-thread) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-thread.svg) [![Build Status](https://travis-ci.org/mulle-c/mulle-thread.svg?branch=release)](https://travis-ci.org/mulle-c/mulle-thread)
 [mulle-vararg](//github.com/mulle-c/mulle-vararg) | [![Build Status](https://travis-ci.org/mulle-c/mulle-vararg.svg?branch=release)](https://travis-ci.org/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](https://travis-ci.org/mulle-c/mulle-vararg.svg?branch=release)](https://travis-ci.org/mulle-c/mulle-vararg)
 
+## Install
+
+See [mulle-objc-developer](//github.com/mulle-objc/mulle-objc-developer) for
+installation instructions.
+
 
 ## How to build it
 

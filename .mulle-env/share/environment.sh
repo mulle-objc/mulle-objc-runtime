@@ -1,4 +1,4 @@
-[ "${TRACE}" = "YES" ] && set -x  && : "$0" "$@"
+[ "${TRACE}" = "YES" -o "${MULLE_ENVIRONMENT_TRACE}" = "YES" ] && set -x  && : "$0" "$@"
 
 #
 # If mulle-env is broken, sometimes its nice just to source this file.
@@ -22,73 +22,81 @@ then
 your convenience" >&2
 fi
 
-alias mulle-env-reload='. "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/environment-include.sh"'
+alias mulle-env-reload='. "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/include-environment.sh"'
 
+case "${MULLE_SHELL_MODE}" in
+   *INTERACTIVE*)
+      #
+      # Set PS1 so that we can see, that we are in a mulle-env
+      #
+      envname="`PATH=/bin:/usr/bin basename -- "${MULLE_VIRTUAL_ROOT}"`"
 
-if [ "${MULLE_SHELL_MODE}" = "INTERACTIVE" ]
-then
-   #
-   # Set PS1 so that we can see, that we are in a mulle-env
-   #
-   envname="`PATH=/bin:/usr/bin basename -- "${MULLE_VIRTUAL_ROOT}"`"
+      case "${PS1}" in
+         *\\h\[*)
+         ;;
 
-   case "${PS1}" in
-      *\\h\[*)
-      ;;
+         *\\h*)
+            PS1="$(sed 's/\\h/\\h\['${envname}'\]/' <<< '${PS1}' )"
+         ;;
 
-      *\\h*)
-         PS1="$(sed 's/\\h/\\h\['${envname}'\]/' <<< '${PS1}' )"
-      ;;
+         *)
+            PS1='\u@\h['${envname}'] \W$ '
+         ;;
+      esac
+      export PS1
 
-      *)
-         PS1='\u@\h['${envname}'] \W$ '
-      ;;
-   esac
-   export PS1
+      unset envname
 
-   unset envname
+      # install cd catcher
+      . "${MULLE_ENV_LIBEXEC_DIR}/mulle-env-cd.sh"
+      unset MULLE_ENV_LIBEXEC_DIR
 
-   # install cd catcher
-   . "${MULLE_ENV_LIBEXEC_DIR}/mulle-env-cd.sh"
-   unset MULLE_ENV_LIBEXEC_DIR
+      mulle-env-reload
+   ;;
 
-   mulle-env-reload
-else
-   set -a ; mulle-env-reload     # export all definitions for command
-   ${COMMAND}
-   exit $?
-fi
+   *)
+      set -a ; mulle-env-reload     # export all definitions for command
+      eval ${COMMAND}  # must eval this so ls -1 /home/nat/srcO/mulle-objc/mulle-objc-runtime works
+      exit $?
+   ;;
+esac
 
 
 #
 # Source in bash completion if available
 # Assumed is, that they are not user modifiable
 #
-if [ "${MULLE_SHELL_MODE}" = "INTERACTIVE" ]
-then
-   DEFAULT_IFS="${IFS}"
-   shopt -s nullglob; IFS="
+case "${MULLE_SHELL_MODE}" in
+   *INTERACTIVE*)
+      DEFAULT_IFS="${IFS}"
+      shopt -s nullglob; IFS="
 "
-   for FILENAME in "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/libexec"/*-bash-completion.sh
-   do
-      . "${FILENAME}"
-   done
-   shopt -u nullglob; IFS="${DEFAULT_IFS}"
+      for FILENAME in "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/libexec"/*-bash-completion.sh
+      do
+         . "${FILENAME}"
+      done
+      shopt -u nullglob; IFS="${DEFAULT_IFS}"
 
-   unset FILENAME
-   unset DEFAULT_IFS
-fi
+      unset FILENAME
+      unset DEFAULT_IFS
+   ;;
+esac
 
 #
 #
 # show motd, if any
 #
-if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd" ]
+if [ -z ""]
 then
-   cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd"
-else
-   if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd" ]
+   if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd" ]
    then
-      cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd"
+      cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd"
+   else
+      if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd" ]
+      then
+         cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd"
+      fi
    fi
+else
+   unset NO_MOTD
 fi

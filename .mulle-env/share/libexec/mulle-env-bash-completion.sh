@@ -32,6 +32,32 @@
 [ "${TRACE}" = "YES" ] && set -x && : "$0" "$@"
 
 
+_mulle_env_style_complete()
+{
+   local cur=${COMP_WORDS[COMP_CWORD]}
+
+   local toolstyles
+   local envstyles
+
+   toolstyles="${1:-`mulle-env toolstyles`}"
+   envstyles="`mulle-env envstyles`"
+
+   local ts
+   local es
+   local allstyles
+
+   for ts in ${toolstyles}
+   do
+      for es in ${envstyles}
+      do
+         allstyles="${allstyles} ${ts}/${es}"
+      done
+   done
+
+   COMPREPLY=( $( compgen -W "${allstyles}" -- "$cur" ) )
+}
+
+
 _mulle_env_complete()
 {
    local cur=${COMP_WORDS[COMP_CWORD]}
@@ -44,7 +70,7 @@ _mulle_env_complete()
    for i in "${COMP_WORDS[@]}"
    do
       case "$i" in
-         tool|environment|init)
+         environment|init|style|subenv|tool)
             context="$i"
          ;;
       esac
@@ -80,23 +106,37 @@ _mulle_env_complete()
             list)
             ;;
 
+            --scope)
+               list="`mulle-env -s environment scopes`"
+               COMPREPLY=( $( compgen -W "${list}" -- "$cur" ) )
+            ;;
+
             *)
-               COMPREPLY=( $( compgen -W "get list set" -- "$cur" ) )
+               case "${cur}" in
+                  -*)
+                     COMPREPLY=( $( compgen -W "--global --hostname --os --scope --user" -- "$cur" ) )
+                  ;;
+
+                  *)
+                     COMPREPLY=( $( compgen -W "get list set scopes" -- "$cur" ) )
+                  ;;
+               esac
             ;;
          esac
       ;;
 
-      init)
+      subenv)
+         COMPREPLY=( $( compgen -d -- "$cur" ) )
+      ;;
+
+      style)
+         _mulle_env_style_complete
       ;;
 
       *)
          case "$prev" in
             -s|--style)
-               COMPREPLY=( $( compgen -W "\
-none/wild none/inherit none/restrict none/relax none/tight \
-minimal/wild minimal/inherit minimal/restrict minimal/relax minimal/tight \
-developer/wild developer/inherit developer/restrict developer/relax developer/tight \
-mulle/wild mulle/inherit mulle/restrict mulle/relax mulle/tight" -- "$cur" ) )
+               _mulle_env_style_complete
             ;;
 
             -d|--directory)
@@ -110,7 +150,12 @@ mulle/wild mulle/inherit mulle/restrict mulle/relax mulle/tight" -- "$cur" ) )
                   ;;
 
                   *)
-                     COMPREPLY=( $( compgen -W "environment init tool" -- $cur ) )
+                     if [ "${context}" = "init" ]
+                     then
+                        COMPREPLY=( $( compgen -d -- "$cur" ) )
+                     else
+                        COMPREPLY=( $( compgen -W "environment init subenv style tool" -- $cur ) )
+                     fi
                   ;;
                esac
             ;;

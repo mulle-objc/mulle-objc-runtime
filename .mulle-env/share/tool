@@ -59,7 +59,12 @@ stat
 tail
 test
 tr
-uuidgen
 vi
 wc
 which
+curl
+column
+git
+uuidgen
+cmake
+make
