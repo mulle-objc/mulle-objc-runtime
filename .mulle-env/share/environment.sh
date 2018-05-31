@@ -56,7 +56,7 @@ case "${MULLE_SHELL_MODE}" in
 
    *)
       set -a ; mulle-env-reload     # export all definitions for command
-      eval ${COMMAND}  # must eval this so ls -1 /home/nat/srcO/mulle-objc/mulle-objc-runtime works
+      eval ${COMMAND}  # must eval this so ls -1  works
       exit $?
    ;;
 esac
