@@ -32,6 +32,15 @@ endforeach()
 
 include_directories( ${INCLUDE_DIRS})
 
+set( PROJECT_FILES
+${SOURCES}
+${DEBUG_SOURCES}
+${PUBLIC_HEADERS}
+${PRIVATE_HEADERS}
+${CMAKE_EDITABLE_FILES}
+)
+
+
 include( PostFiles OPTIONAL)
 
 ### Library
@@ -50,30 +59,32 @@ add_definitions( -DMULLE_C11_NO_NOOB_WARNINGS=1)
 include( PreLibrary OPTIONAL)
 
 add_library( "mulle-objc-runtime"
-${SOURCES}
-${DEBUG_SOURCES}
-${PUBLIC_HEADERS}
-${PRIVATE_HEADERS}
-${CMAKE_EDITABLE_FILES}
+${PROJECT_FILES}
 )
 
 if( BUILD_SHARED_LIBS)
    target_link_libraries( mulle-objc-runtime
-${DEPENDENCIES_LIBRARIES}
-${OS_SPECIFIC_LIBRARIES}
-)
+      ${DEPENDENCY_LIBRARIES}
+      ${OS_SPECIFIC_LIBRARIES}
+   )
 endif()
 
 target_compile_definitions( mulle-objc-runtime
 PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
 )
 
-include( PostLibrary OPTIONAL)
-
-
 add_library( mulle-objc-runtime-startup STATIC
 ${STARTUP_SOURCES}
 )
+
+set( STARTUP_LIBRARY mulle-objc-runtime-startup)
+
+set( INSTALL_LIBRARY_TARGETS
+"mulle-objc-runtime"
+"mulle-objc-runtime-startup"
+)
+
+include( PostLibrary OPTIONAL)
 
 
 add_executable( mulle-objc-uniqueid
@@ -90,7 +101,6 @@ add_dependencies( mulle-objc-uniqueid
 mulle-objc-runtime
 )
 
-
 target_link_libraries( mulle-objc-uniqueid
 $<TARGET_FILE:mulle-objc-runtime>
 ${C_DEPENDENCY_LIBRARIES}
@@ -101,38 +111,6 @@ ${OS_SPECIFIC_LIBRARIES}
 set( INSTALL_EXECUTABLE_TARGETS
 "mulle-objc-uniqueid"
 )
-
-option( STANDALONE "Create standalone library for debugging" OFF)
-
-set( INSTALL_LIBRARY_TARGETS
-"mulle-objc-runtime"
-"mulle-objc-runtime-startup"
-)
-
-if( STANDALONE)
-   set( STANDALONE_BASE_NAME "mulle-objc-runtime")
-   set( STANDALONE_NAME "mulle-objc-runtime-standalone")
-   set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
-   set( STANDALONE_DEPENDENCIES
-   mulle-objc-runtime
-   mulle-objc-runtime-startup
-   )
-
-   set( STANDALONE_ALL_LOAD_LIBRARIES
-   $<TARGET_FILE:mulle-objc-runtime>
-   $<TARGET_FILE:mulle-objc-runtime-startup>
-   ${DEPENDENCY_LIBRARIES}
-   ${OPTIONAL_DEPENDENCY_LIBRARIES}
-   ${OS_SPECIFIC_LIBRARIES}
-   )
-
-   include( Standalone)
-
-   set( INSTALL_LIBRARY_TARGETS
-   ${INSTALL_LIBRARY_TARGETS}
-   "mulle-objc-runtime-standalone"
-   )
-endif()
 
 
 ### Install

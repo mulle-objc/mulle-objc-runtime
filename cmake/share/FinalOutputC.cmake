@@ -1,5 +1,5 @@
-if( NOT __FINAL_OUTPUT__CMAKE__)
-   set( __FINAL_OUTPUT__CMAKE__ ON)
+if( NOT __FINAL_OUTPUT_C_CMAKE__)
+   set( __FINAL_OUTPUT_C_CMAKE__ ON)
 
    if( MULLE_TRACE_INCLUDE)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )

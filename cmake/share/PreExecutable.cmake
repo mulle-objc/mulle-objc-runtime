@@ -5,8 +5,5 @@ if( NOT __PRE_EXECUTABLE__CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
-   include( CompilerDetection)
-   include( UnwantedWarnings)
-
    include( PreExecutableCAux OPTIONAL)
 endif()

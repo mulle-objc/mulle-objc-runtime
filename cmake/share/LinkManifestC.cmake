@@ -1,3 +1,8 @@
+if( NOT __LINK_MANIFEST_C_CMAKE__)
+   set( __LINK_MANIFEST_C_CMAKE__ ON)
+
+  option( LINK_MANIFEST "Enable link info output" ON)
+
 #
 # Since tests do not know how to link stuff, and we don't really want to
 # write a CMakeLists.txt for each test
@@ -5,11 +10,6 @@
 #
 # We could also just grep CMakeCache.txt here, but how stable is its format ?
 #
-
-if( NOT __LINK_MANIFEST__CMAKE__)
-   set( __LINK_MANIFEST__CMAKE__ ON)
-
-  option( LINK_MANIFEST "Enable link info output" ON)
 
 
   if( LINK_MANIFEST)
