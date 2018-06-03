@@ -142,11 +142,9 @@ _emit_cmake_find_library()
    local libraries
    local i
 
-   IFS=","; shopt -s nullglob
+   IFS=","; set -o noglob
    for i in ${aliases}
    do
-      IFS="${DEFAULT_IFS}"; shopt -u nullglob
-
       case "${preference}" in
          "static")
             libraries="`concat "${libraries}" "\\\${CMAKE_STATIC_LIBRARY_PREFIX}${i}\\\${CMAKE_STATIC_LIBRARY_SUFFIX}"`"
@@ -160,7 +158,7 @@ _emit_cmake_find_library()
       # fallback to whatever linkage
       libraries="`concat "${libraries}" "${i}"`"
    done
-   IFS="${DEFAULT_IFS}"; shopt -u nullglob
+   IFS="${DEFAULT_IFS}"; set -o noglob
 
    local failstring
    local failstatus
@@ -251,13 +249,13 @@ _emit_cmake_header_only()
    local headers
    local i
 
-   IFS=","; shopt -s nullglob
+   IFS=","; set -o noglob
    for i in ${aliases}
    do
       headers="`concat "${headers}" "${i}.h"`"
       headers="`concat "${headers}" "${i}/${i}.h"`"
    done
-   IFS="${DEFAULT_IFS}"; shopt -u nullglob
+   IFS="${DEFAULT_IFS}"; set +o noglob
 
    case ",${marks}," in
       *,no-require-link,*)
