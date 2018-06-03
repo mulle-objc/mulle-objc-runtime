@@ -1,4 +1,4 @@
-# files that have user edits
+# cmake files that can have user edits
 CMakeLists.txt
 CMakePackage.cmake
-cmake/*.cmake
+cmake/[^_]*.cmake

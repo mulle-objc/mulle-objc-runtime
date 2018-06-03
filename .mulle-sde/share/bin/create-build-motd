@@ -43,7 +43,7 @@ emit_executable_motd()
 
    filepath="`filepath_concat "${builddir}" "${name}" `"
    printf "%b\n"  "${C_INFO}Run your executable:${C_RESET}"
-   printf "%b\n"  "${C_BOLD}   ${filepath}${C_RESET}"
+   printf "%b\n"  "${C_BOLD}   ${filepath#${MULLE_VIRTUAL_ROOT#/}}${C_RESET}"
 }
 
 

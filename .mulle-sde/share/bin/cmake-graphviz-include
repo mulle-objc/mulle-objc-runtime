@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+
+
+get_includes()
+{
+   local filename="$1"
+
+   sed -n -e 's/^.*include([ ]*\([^) ]*\)[ ]*\([^ ]*\)[ ]*).*/\1;\2/p' "${filename}"
+}
+
+
+find_cmake_file()
+{
+   local filename="$1"
+   local originator="$2"
+   local searchpath="$3"
+
+   case "${filename}" in
+      *.*)
+         searchpath="`dirname -- "${originator}"`"
+      ;;
+
+      *)
+         filename="${filename}.cmake"
+      ;;
+   esac
+
+   local directory
+
+   IFS=":"
+   for directory in ${searchpath}
+   do
+      IFS="${DEFAULT_IFS}"
+
+      if [ -f "${directory}/${filename}" ]
+      then
+         echo "${directory}/${filename}"
+         return 0
+      fi
+   done
+   IFS="${DEFAULT_IFS}"
+
+   return 1
+}
+
+
+pretty()
+{
+   local filename="$1"
+
+   case "${filename}" in
+      ./*)
+         pretty "${filename#./}"
+         return
+      ;;
+   esac
+
+   echo "${filename}"
+}
+
+_list_cmake_include()
+{
+   local filename="$1"
+   local originator="$2"
+   local searchpath="$3"
+
+   local actualfile
+
+   if ! actualfile="`find_cmake_file "${filename}" "${originator}" "${searchpath}"`"
+   then
+      if [ -z "${optional}" ]
+      then
+         echo "\"${filename}\" not found" >&2
+         return 1
+      fi
+         return 0
+   fi
+
+   echo "   \"`pretty "${originator}"`\" -> \"`pretty "${actualfile}"`\""
+
+   list_cmake_includes "${actualfile}" "${searchpath}"
+}
+
+
+list_cmake_includes()
+{
+   local filename="$1"
+   local searchpath="$2"
+
+   local actualfile
+   local includefile
+   local includeinfo
+   local optional
+
+   IFS="
+"
+   for includeinfo in `get_includes "${filename}"`
+   do
+      IFS="${DEFAULT_IFS}"
+
+      includefile="${includeinfo%;*}"
+      optional="${includeinfo%*#}"
+
+      if [ "${includefile}" = '"${FILE}"' ]
+      then
+         local directory
+
+         directory="`dirname -- "${filename}"`"
+         for includefile in "${directory}"/cmake/[A-Za-z0-9]*.cmake
+         do
+            _list_cmake_include "${includefile}" "${filename}" "${searchpath}"
+         done
+      else
+         _list_cmake_include "${includefile}" "${filename}" "${searchpath}"
+      fi
+   done
+   IFS="${DEFAULT_IFS}"
+}
+
+
+main()
+{
+   local filename="${1:-CMakeLists.txt}"
+
+   CMAKE_SEARCHPATH="${CMAKE_SEARCHPATH:-cmake:cmake/share:.}"
+
+   if [ ! -f "${filename}" ]
+   then
+      echo "\"${filename}\" not found" >&2
+      exit 1
+   fi
+
+   echo "digraph xxx {"
+   echo "   ordering=out"
+   echo "   rankdir=\"LR\""
+   echo "   node [ shape=\"note\" ]"
+   echo "   \"`pretty "${filename}"`\""
+
+   list_cmake_includes "${filename}" "${CMAKE_SEARCHPATH}"
+   echo "}"
+}
+
+
+DEFAULT_IFS="${IFS}"
+
+main "$@"

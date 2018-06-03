@@ -349,9 +349,11 @@ main()
       return
    fi
 
+   [ -z "${PROJECT_SOURCE_DIR}" ] && internal_fail "PROJECT_SOURCE_DIR not set"
+
    if [ -z "${MULLE_SDE_DEPENDENCIES_HEADER_FILE}" ]
    then
-      MULLE_SDE_DEPENDENCIES_HEADER_FILE="${PROJECT_SOURCE_DIR:-src}/_${projectname}-dependencies.h"
+      MULLE_SDE_DEPENDENCIES_HEADER_FILE="${PROJECT_SOURCE_DIR}/_${projectname}-dependencies.h"
    fi
 
    local text_h

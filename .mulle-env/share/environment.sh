@@ -56,7 +56,7 @@ case "${MULLE_SHELL_MODE}" in
 
    *)
       set -a ; mulle-env-reload     # export all definitions for command
-      eval ${COMMAND}  # must eval this so ls -1  works
+      eval ${COMMAND}  # must eval this so ls -1 ${MULLE_VIRTUAL_ROOT} works
       exit $?
    ;;
 esac
@@ -86,7 +86,7 @@ esac
 #
 # show motd, if any
 #
-if [ -z ""]
+if [ -z "${NO_MOTD}" ]
 then
    if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd" ]
    then
