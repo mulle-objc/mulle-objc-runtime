@@ -1,26 +1,3 @@
-#
-# A standalone library is a combination of multiple static libraries into
-# one shared library. Due to deficiencies in cmake on windows it is necessary
-# to have at lease one extra .c or .m file in the standalone library
-# defined in STANDALONE_SOURCES.
-#
-
-#
-# Input:
-#
-# STANDALONE_BASE_NAME
-# STANDALONE_ALL_LOAD_LIBRARIES
-# STANDALONE_SOURCES
-#
-# Optional:
-#
-# STANDALONE_NAME
-# STANDALONE_DEFINITIONS
-# STANDALONE_SYMBOL_PREFIXES
-# STANDALONE_NORMAL_LOAD_LIBRARIES
-# MULLE_LANGUAGE
-#
-
 if( NOT __STANDALONE__CMAKE__)
    set( __STANDALONE__CMAKE__ ON)
 
@@ -28,30 +5,45 @@ if( NOT __STANDALONE__CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
-   #
-   # option must be set in CMakeLists.txt
-   # option( STANDALONE "Create standalone library for debugging" OFF)
+   option( STANDALONE "Create standalone library for debugging" OFF)
 
    if( STANDALONE)
-      set( STANDALONE_VERSION 3)
+
+
+      if( NOT STANDALONE_NAME)
+         set( STANDALONE_NAME "mulle-objc-runtime-standalone")
+      endif()
+
+      if( NOT STANDALONE_STARTUP_LIBRARY)
+         set( STANDALONE_STARTUP_LIBRARY ${STARTUP_LIBRARY})
+      endif()
+
+      set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
+
+      #
+      # A standalone library has all symbols and nothing is optimized away
+      # sorta like a big static library, just shared
+      #
+      set( STANDALONE_ALL_LOAD_LIBRARIES
+         $<TARGET_FILE:mulle-objc-runtime>
+         ${ALL_LOAD_DEPENDENCY_LIBRARIES}
+         ${DEPENDENCY_LIBRARIES}
+         ${OPTIONAL_DEPENDENCY_LIBRARIES}
+         ${OS_SPECIFIC_LIBRARIES}
+      )
 
       #
       # If the main library is built as a shared library, we can't do it
       #
-      if( NOT BUILD_SHARED_LIBS)
-
-         include( AllLoad)
-
-         if( NOT STANDALONE_NAME)
-            set( STANDALONE_NAME "${STANDALONE_BASE_NAME}Standalone")
-         endif()
-
+      if( BUILD_SHARED_LIBS)
+         message( WARNING "Standalone can not be built with BUILD_SHARED_LIBS set to ON")
+      else()
          #
          # Check for required standalone source file
          #
          if( NOT STANDALONE_SOURCES)
             message( FATAL_ERROR "You need to define STANDALONE_SOURCES. Add a file
-mulle-objc-runtime-standalone.c with contents like this:
+mulle-objc-runtime-standalone.c with contents like this to it:
    int  ___mulle_objc_runtime_unused__;
 and everybody will be happy")
          endif()
@@ -60,6 +52,7 @@ and everybody will be happy")
          # symbol prefixes to export on Windows, ignored on other platforms
          #
          if( NOT STANDALONE_SYMBOL_PREFIXES)
+
             set( STANDALONE_SYMBOL_PREFIXES "mulle"
                     "_mulle"
             )
@@ -77,14 +70,9 @@ and everybody will be happy")
            endif()
          endif()
 
-
          #
          # Make sure static libraries aren't optimized away
          #
-         foreach( library ${STANDALONE_ALL_LOAD_LIBRARIES})
-            list( APPEND STANDALONE_FORCE_ALL_LOAD_LIBRARIES "${FORCE_LOAD_PREFIX}${library}")
-         endforeach()
-
          foreach( prefix ${STANDALONE_SYMBOL_PREFIXES})
             list( APPEND STANDALONE_DUMPDEF_SYMBOL_PREFIXES "--prefix")
             list( APPEND STANDALONE_DUMPDEF_SYMBOL_PREFIXES "${prefix}")
@@ -112,8 +100,8 @@ and everybody will be happy")
 
 
          #
-         # if STANDALONE_SOURCE is not defined, cmake on windows "forgets" to produce
-         # the DEF_FILE.
+         # if STANDALONE_SOURCE is not defined, cmake on windows "forgets" to
+         # produce the DEF_FILE.
          #
          # Also you get tedious linker warnings on other platforms. Creating the
          # STANDALONE_SOURCES on the fly, is just not worth it IMO.
@@ -123,14 +111,10 @@ and everybody will be happy")
             ${DEF_FILE}
          )
 
-         if( NOT STANDALONE_DEPENDENCIES)
-            set( STANDALONE_DEPENDENCIES
-               ${STANDALONE_BASE_NAME}
-               ${STANDALONE_STARTUP}
-            )
-         endif()
-
-         add_dependencies( ${STANDALONE_NAME} ${STANDALONE_DEPENDENCIES})
+         add_dependencies( ${STANDALONE_NAME}
+            mulle-objc-runtime
+            ${STANDALONE_STARTUP_LIBRARY}
+         )
 
          # If STANDALONE_SOURCES were to be empty, this would be needed
          # set_target_properties( ${STANDALONE_NAME} PROPERTIES LINKER_LANGUAGE "C")
@@ -140,18 +124,29 @@ and everybody will be happy")
 
          #
          # If you add DEPENDENCY_LIBRARIES to the static, adding them again to
-         # MulleObjCStandardFoundationStandalone confuses cmake it seems. But they are
-         # implicitly added.
+         # MulleObjCStandardFoundationStandalone confuses cmake it seems. But they
+         # are implicitly added.
          #
-         target_link_libraries( ${STANDALONE_NAME}
-            ${BEGIN_ALL_LOAD}
-            ${STANDALONE_FORCE_ALL_LOAD_LIBRARIES}
-            ${END_ALL_LOAD}
-            ${STANDALONE_NORMAL_LOAD_LIBRARIES}
-         )
-      else()
-         message( WARNING "Standalone can not be built with BUILD_SHARED_LIBS set to ON")
-      endif()
+         # creates FORCE_STANDALONE_ALL_LOAD_LIBRARIES
 
+         set( STANDALONE_ALL_LOAD_LIBRARIES
+            ${STANDALONE_ALL_LOAD_LIBRARIES}
+            ${STANDALONE_STARTUP_LIBRARY}
+         )
+
+         CreateForceAllLoadList( STANDALONE_ALL_LOAD_LIBRARIES FORCE_STANDALONE_ALL_LOAD_LIBRARIES)
+
+         target_link_libraries( ${STANDALONE_NAME}
+            ${FORCE_STANDALONE_ALL_LOAD_LIBRARIES}
+         )
+
+         set( INSTALL_LIBRARY_TARGETS
+            ${INSTALL_LIBRARY_TARGETS}
+            ${STANDALONE_NAME}
+         )
+      endif()
    endif()
+
+   include( StandaloneCAux OPTIONAL)
+
 endif()

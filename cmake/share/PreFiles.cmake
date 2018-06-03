@@ -8,7 +8,7 @@ if( NOT __PRE_FILES__CMAKE__)
    #
    # Set Search Paths
    #
-   include( CMakeTweaks)
+   include( CMakeTweaksC)
 
 
    ### Additional search paths based on build style

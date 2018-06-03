@@ -1,5 +1,5 @@
-if( NOT __COMPILER_FLAGS__CMAKE__)
-   set( __COMPILER_FLAGS__CMAKE__ ON)
+if( NOT __COMPILER_FLAGS_C_CMAKE__)
+   set( __COMPILER_FLAGS_C_CMAKE__ ON)
 
    if( MULLE_TRACE_INCLUDE)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
