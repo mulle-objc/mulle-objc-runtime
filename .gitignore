@@ -66,3 +66,5 @@ tmp.*/
 
 *.sublime-workspace
 mulle-project/publisher-info.sh
+dox/inheritance/
+dox/super/calls-legacy.md
