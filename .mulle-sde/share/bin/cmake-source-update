@@ -90,6 +90,12 @@ emit_common_directories()
 
    if [ ! -z "${collection}" ]
    then
+      if [ "${PROJECT_SOURCE_DIR}" = "." ]
+      then
+         collection=".
+${collection}"
+      fi
+
       "${emitter}" "${parameter}" "${collection}"
    fi
 }
@@ -115,6 +121,7 @@ emit_by_category()
       # https://stackoverflow.com/questions/1773939/how-to-use-sed-to-return-something-from-first-line-which-matches-and-quit-early
       collectname="`sed -n -e '/\(^[^;]*\).*/{s//\1/p;q;}' <<< "${remainder}" `"
       collection="`egrep "^${collectname};" <<< "${remainder}" | cut -d ';' -f 2-`"
+
       "${emitter}" "${collectname}" "${collection}"
 
       remainder="`egrep -v "^${collectname};" <<< "${remainder}" `"
@@ -159,7 +166,7 @@ create_headers_file()
 
          text_hdr="${text_hdr1}
 
-      ${text_hdr2}"
+${text_hdr2}"
 
       ;;
    esac

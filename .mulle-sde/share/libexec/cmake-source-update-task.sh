@@ -33,5 +33,7 @@ cmake_source_update_task_run()
 {
    log_entry "mulle-sde/cmake::cmake_source_update_task_run" "$@"
 
+   log_info "Updating ${C_MAGENTA}${C_BOLD}${PROJECT_NAME}${C_INFO} source"
+
    exekutor cmake-source-update ${CMAKE_SOURCE_UPDATE_FLAGS} "$@"
 }
