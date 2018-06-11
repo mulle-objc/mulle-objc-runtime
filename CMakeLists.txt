@@ -77,7 +77,9 @@ add_library( mulle-objc-runtime-startup STATIC
 ${STARTUP_SOURCES}
 )
 
-set( STARTUP_LIBRARY mulle-objc-runtime-startup)
+set( STARTUP_LIBRARY
+mulle-objc-runtime-startup
+)
 
 set( INSTALL_LIBRARY_TARGETS
 "mulle-objc-runtime"

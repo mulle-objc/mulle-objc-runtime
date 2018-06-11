@@ -26,6 +26,7 @@ if( NOT __STANDALONE__CMAKE__)
       #
       set( STANDALONE_ALL_LOAD_LIBRARIES
          $<TARGET_FILE:mulle-objc-runtime>
+         $<TARGET_FILE:${STANDALONE_STARTUP_LIBRARY}>
          ${ALL_LOAD_DEPENDENCY_LIBRARIES}
          ${DEPENDENCY_LIBRARIES}
          ${OPTIONAL_DEPENDENCY_LIBRARIES}
@@ -128,11 +129,6 @@ and everybody will be happy")
          # are implicitly added.
          #
          # creates FORCE_STANDALONE_ALL_LOAD_LIBRARIES
-
-         set( STANDALONE_ALL_LOAD_LIBRARIES
-            ${STANDALONE_ALL_LOAD_LIBRARIES}
-            ${STANDALONE_STARTUP_LIBRARY}
-         )
 
          CreateForceAllLoadList( STANDALONE_ALL_LOAD_LIBRARIES FORCE_STANDALONE_ALL_LOAD_LIBRARIES)
 

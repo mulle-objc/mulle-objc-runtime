@@ -17,7 +17,7 @@ export MULLE_FETCH_SEARCH_PATH="${MULLE_VIRTUAL_ROOT}/.."
 #
 # Prefer symlinking to local git repositories found via MULLE_FETCH_SEARCH_PATH
 #
-export MULLE_SYMLINK="YES"
+export MULLE_SOURCETREE_SYMLINK="YES"
 
 #
 # Use common folder for sharable projects
