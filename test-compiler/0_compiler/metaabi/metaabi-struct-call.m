@@ -26,7 +26,7 @@ struct large_struct
 + (void) callLargeStruct:(struct large_struct) v
 {
    printf( "-callLargeStruct:{ INTPTR_MIN, INTPTR_MAX } %s\n",
-      (v.value1 == INTPTR_MIN && v.value2 == INTPTR_MIN) ? "PASS" : "FAIL");
+      (v.value1 == INTPTR_MIN && v.value2 == INTPTR_MAX) ? "PASS" : "FAIL");
 }
 
 @end
@@ -37,7 +37,7 @@ int main(int argc, const char * argv[])
    struct large_struct   ls;
 
    ls.value1 = INTPTR_MIN;
-   ls.value2 = INTPTR_MIN;
+   ls.value2 = INTPTR_MAX;
    [Foo callLargeStruct:ls];
    return( 0);
 }

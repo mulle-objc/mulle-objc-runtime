@@ -59,19 +59,20 @@ uname_to_cmake()
 
    local uname="$1"
 
-   case "${uname}" in
-      darwin)
-         echo "APPLE"
-      ;;
+   local systemname
 
+   case "${uname}" in
       "")
          fail "uname is empty"
       ;;
 
       *)
-         tr 'a-z' 'A-Z' <<< "${uname}"
+         systemname="`tr 'a-z' 'A-Z' <<< "${uname:0:1}"`"
+         systemname="${systemname}${uname:1}"
       ;;
    esac
+
+   echo "\${CMAKE_SYSTEM_NAME} MATCHES \"${systemname}\""
 }
 
 
@@ -104,6 +105,8 @@ osexclude_to_cmake_if()
          ;;
       esac
    done
+
+
    IFS="${DEFAULT_IFS}"; set +o noglob
 
    if [ ! -z "${onlys}" ]
@@ -361,7 +364,16 @@ emit_cmake_dependency()
 
    # first alias determines the identifier
    filename="`fast_basename "${aliases%%,*}"`"
-   identifier="` tr 'a-z-' 'A-Z_' <<< "${filename}" `"
+
+   if [ -z "${MULLE_CASE_SH}" ]
+   then
+      # shellcheck source=mulle-case.sh
+      . "${MULLE_BASHFUNCTIONS_LIBEXEC_DIR}/mulle-case.sh" || return 1
+   fi
+
+   identifier="`tweaked_de_camel_case "${filename}"`"
+   identifier="`printf "%s" "${identifier}" | tr -c 'a-zA-Z0-9' '_'`"
+   identifier="`tr 'a-z' 'A-Z' <<< "${identifier}"`"
 
    "${emitter}" "${aliases}" \
                 "${identifier}" \
@@ -383,9 +395,9 @@ emit_cmake_dependencies()
 {
    log_entry "emit_cmake_dependencies" "$@"
 
-   local dependencies="$1"
-   local emitter="$2"
-   local containername="$3"
+   local emitter="$1"
+   local containername="$2"
+   local dependencies="$3"
 
    local dependency
 
@@ -421,6 +433,61 @@ emit_cmake_dependencies()
 }
 
 
+emit_dependency_subproject()
+{
+   local dependency
+   local header
+
+   header="`exekutor "${MULLE_SOURCETREE}" -V ${MULLE_SOURCETREE_FLAGS} \
+                           list \
+                           --format '%a;%m;%i={aliases,,-------};%i={include,,}\n' \
+                           --marks dependency,header,no-link \
+                           --output-raw \
+                           --no-output-header`" || return 1
+   log_debug "header: ${header}"
+   emit_cmake_dependencies "_emit_cmake_header_only" \
+                           "HEADER_ONLY_LIBRARIES" \
+                           "${header}"
+
+   dependency="`exekutor "${MULLE_SOURCETREE}" -V ${MULLE_SOURCETREE_FLAGS} \
+                           list \
+                           --format '%a;%m;%i={aliases,,};%i={include,,}\n' \
+                           --marks 'dependency,link' \
+                           --output-raw \
+                           --no-output-header`" || return 1
+
+   log_debug "dependency: ${dependency}"
+   emit_cmake_dependencies "_emit_cmake_dependency" \
+                           "DEPENDENCY_LIBRARIES" \
+                           "${dependency}"
+}
+
+
+emit_library()
+{
+   local library
+   local header
+
+   header="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
+                                                      --marks header,no-link \
+                                                      -- \
+                                                      --output-raw \
+                                                      --output-no-header`" || return 1
+   log_debug "header: ${header}"
+   emit_cmake_dependencies "_emit_cmake_header_only" \
+                           "HEADER_ONLY_LIBRARIES" \
+                           "${header}"
+   library="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
+                                                      --marks link \
+                                                      -- \
+                                                      --output-raw \
+                                                      --output-no-header`"
+   log_debug "library: ${library}"
+   emit_cmake_dependencies "_emit_cmake_library" \
+                           "OS_SPECIFIC_LIBRARIES" \
+                           "${library}"
+}
+
 #
 # collect library and dependency, with routines in
 # mulle-sde-updatesupport.sh for reuse with stuff other than cmake
@@ -437,32 +504,8 @@ write_libraries_file()
 
       text_lib="# library generation turned off by MULLE_SDE_LIBRARIES_FILE"
    else
-      local library
-      local header
-      local text_header
-
-      header="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
-                                                         --marks header,no-link \
-                                                         -- \
-                                                         --output-raw \
-                                                         --output-no-header`" || return 1
-      log_debug "header: ${header}"
-      text_header="`emit_cmake_dependencies "${header}" \
-                                            "_emit_cmake_header_only" \
-                                            "HEADER_ONLY_LIBRARIES"`"
-
-      library="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
-                                                         --marks link \
-                                                         -- \
-                                                         --output-raw \
-                                                         --output-no-header`" || return 1
-      log_debug "library: ${library}"
-      text_lib="`emit_cmake_dependencies "${library}" \
-                                         "_emit_cmake_library" \
-                                         "OS_SPECIFIC_LIBRARIES"`" || return 1
-
-      text_lib="`add_line "${text_header}" "${text_lib}"`"
       #
+      text_dep="`emit_library`" || return 1
       if [ -z "${text_lib}" ]
       then
          text_lib="# there are no libraries in the sourcetree"
@@ -497,35 +540,10 @@ write_dependencies_file()
       MULLE_SDE_DEPENDENCIES_FILE=""
       text_dep="# dependency generation turned off by MULLE_SDE_DEPENDENCIES_FILE"
    else
-      local dependency
-      local header
-      local text_header
-
-      header="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} dependency list \
-                                                        --marks header,no-link \
-                                                        -- \
-                                                        --output-raw \
-                                                        --no-output-header`" || return 1
-      log_debug "header: ${header}"
-
-      text_header="`emit_cmake_dependencies "${header}" \
-                                            "_emit_cmake_header_only" \
-                                            "HEADER_ONLY_LIBRARIES"`"
-
-      dependency="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} dependency list \
-                                                        --marks link \
-                                                        -- \
-                                                        --output-raw \
-                                                        --no-output-header`" || return 1
-      log_debug "header: ${header}"
-      text_dep="`emit_cmake_dependencies "${dependency}" \
-                                         "_emit_cmake_dependency" \
-                                         "DEPENDENCY_LIBRARIES"`"
-      text_dep="`add_line "${text_header}" "${text_dep}"`"
-
+      text_dep="`emit_dependency_subproject`"  || return 1
       if [ -z "${text_dep}" ]
       then
-         text_dep="# there are no linkable dependencies in the sourcetree"
+         text_dep="# there are no applicable dependencies in the sourcetree"
       fi
    fi
 
@@ -546,34 +564,6 @@ ${text_dep}"
    exekutor chmod a+w "${MULLE_SDE_DEPENDENCIES_FILE}"  2> /dev/null
    redirect_exekutor "${MULLE_SDE_DEPENDENCIES_FILE}" echo "${text_dep}"
    exekutor chmod a-w "${MULLE_SDE_DEPENDENCIES_FILE}"
-}
-
-
-# should get results from mulle-sde subprojects here
-run_update_on_subproject()
-{
-   log_entry "write_dependencies_file" "$@"
-
-   local text_dep
-
-   if [ -z  "${MULLE_SDE_SUBPROJECTS}" -o "${MULLE_SDE_SUBPROJECTS}" = "NONE" ]
-   then
-      return
-   fi
-
-   set -f; IFS=":"
-   for i in ${MULLE_SDE_SUBPROJECTS}
-   do
-      set +f; IFS="${DEFAULT_IFS}"
-
-      [ ! -d "${i}" ] && log_error "Subproject \"${i}\" does not exist"
-
-      (
-         MULLE_SDE="${MULLE_SDE}" \
-            "${MULLE_SDE}" --subproject "${i}" ${MULLE_SDE_FLAGS} update
-      )
-   done
-   set +f; IFS="${DEFAULT_IFS}"
 }
 
 
@@ -612,7 +602,7 @@ main()
          ;;
 
          -p|--projectname)
-            [ "$#" -eq 1 ] && usage "missing argument to \"$1\""
+            [ "$#" -eq 1 ] && usage "Missing argument to \"$1\""
             shift
 
             PROJECT_NAME="$1"
@@ -637,6 +627,9 @@ main()
 
    MULLE_SDE="${MULLE_SDE:-`command -v mulle-sde`}"
    [ -z "${MULLE_SDE}" ] && fail "mulle-sde not in PATH"
+
+   MULLE_SOURCETREE="${MULLE_SOURCETREE:-`command -v mulle-sourcetree`}"
+   [ -z "${MULLE_SOURCETREE}" ] && fail "mulle-sourcetree not in PATH"
 
    options_setup_trace "${MULLE_TRACE}"
 
