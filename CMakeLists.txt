@@ -61,6 +61,7 @@ include( PreLibrary OPTIONAL)
 add_library( "mulle-objc-runtime"
 ${PROJECT_FILES}
 )
+set_property( TARGET "mulle-objc-runtime" PROPERTY CXX_STANDARD 11)
 
 if( BUILD_SHARED_LIBS)
    target_link_libraries( mulle-objc-runtime
@@ -76,6 +77,7 @@ PRIVATE ${MULLE_OBJC_RUNTIME_DEFINITIONS}
 add_library( mulle-objc-runtime-startup STATIC
 ${STARTUP_SOURCES}
 )
+set_property( TARGET "mulle-objc-runtime-startup" PROPERTY CXX_STANDARD 11)
 
 set( STARTUP_LIBRARY
 mulle-objc-runtime-startup
@@ -92,6 +94,7 @@ include( PostLibrary OPTIONAL)
 add_executable( mulle-objc-uniqueid
 ${UNIQUEID_SOURCES}
 )
+set_property( TARGET "mulle-objc-uniqueid" PROPERTY CXX_STANDARD 11)
 
 
 target_compile_definitions( mulle-objc-uniqueid
@@ -127,8 +130,5 @@ install( FILES ${PRIVATE_HEADERS} DESTINATION "include/mulle-objc-runtime/privat
 
 # definitions from cmake/share/Environment.cmake
 install( FILES ${CMAKE_INCLUDES}  DESTINATION "include/mulle-objc-runtime/cmake")
-
-# definitions from cmake/share/LinkManifest.cmake
-install( FILES ${LINK_MANIFEST_FILES}  DESTINATION "include/mulle-objc-runtime/link")
 
 include( PostInstall OPTIONAL)

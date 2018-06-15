@@ -288,7 +288,7 @@ main()
          ;;
 
          -*)
-            usage "unknown option \"$1\""
+            usage "Unknown option \"$1\""
          ;;
 
          *)
