@@ -60,5 +60,9 @@ if( NOT __LINK_MANIFEST_C_CMAKE__)
                          WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
                          COMMENT "Creating all-load-dependency-libraries.txt"
                          VERBATIM)
+
+    # definitions from cmake/share/LinkManifest.cmake
+    install( FILES ${LINK_MANIFEST_FILES}  DESTINATION "include/mulle-objc-runtime/link")
+
   endif()
 endif()

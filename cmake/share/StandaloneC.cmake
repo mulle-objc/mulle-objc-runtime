@@ -13,11 +13,6 @@ if( NOT __STANDALONE__CMAKE__)
       if( NOT STANDALONE_NAME)
          set( STANDALONE_NAME "mulle-objc-runtime-standalone")
       endif()
-
-      if( NOT STANDALONE_STARTUP_LIBRARY)
-         set( STANDALONE_STARTUP_LIBRARY ${STARTUP_LIBRARY})
-      endif()
-
       set( STANDALONE_DEFINITIONS ${MULLE_OBJC_RUNTIME_DEFINITIONS})
 
       #
@@ -26,12 +21,23 @@ if( NOT __STANDALONE__CMAKE__)
       #
       set( STANDALONE_ALL_LOAD_LIBRARIES
          $<TARGET_FILE:mulle-objc-runtime>
-         $<TARGET_FILE:${STANDALONE_STARTUP_LIBRARY}>
          ${ALL_LOAD_DEPENDENCY_LIBRARIES}
          ${DEPENDENCY_LIBRARIES}
          ${OPTIONAL_DEPENDENCY_LIBRARIES}
          ${OS_SPECIFIC_LIBRARIES}
       )
+
+      if( NOT STANDALONE_STARTUP_LIBRARY)
+         set( STANDALONE_STARTUP_LIBRARY ${STARTUP_LIBRARY})
+      endif()
+
+      if( STANDALONE_STARTUP_LIBRARY)
+         set( STANDALONE_ALL_LOAD_LIBRARIES
+            ${STANDALONE_ALL_LOAD_LIBRARIES}
+            $<TARGET_FILE:${STANDALONE_STARTUP_LIBRARY}>
+         )
+      endif()
+
 
       #
       # If the main library is built as a shared library, we can't do it
@@ -111,6 +117,7 @@ and everybody will be happy")
             ${STANDALONE_SOURCES}
             ${DEF_FILE}
          )
+         set_property( TARGET ${STANDALONE_NAME} PROPERTY CXX_STANDARD 11)
 
          add_dependencies( ${STANDALONE_NAME}
             mulle-objc-runtime
