@@ -38,7 +38,7 @@
 #define mulle_objc_uniqueidarray_h__
 
 #include "mulle-objc-uniqueid.h"
-#include "dependencies.h"
+#include "include.h"
 #include <assert.h>
 
 

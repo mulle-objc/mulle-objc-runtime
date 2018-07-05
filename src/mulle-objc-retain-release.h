@@ -42,7 +42,7 @@
 #include "mulle-objc-taggedpointer.h"
 #include "mulle-objc-call.h"
 
-#include "dependencies.h"
+#include "include.h"
 #include <limits.h>
 #include <assert.h>
 

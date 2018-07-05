@@ -145,7 +145,7 @@ create_headers_file()
       ;;
 
       "NONE")
-         text_hdr2="# Header generation disabled by MULLE_SDE_CMAKE_HEADERS_FILE=NONE"
+         text_hdr="# Header generation disabled by MULLE_SDE_CMAKE_HEADERS_FILE=NONE"
          MULLE_SDE_CMAKE_HEADERS_FILE=""
       ;;
 
@@ -206,7 +206,7 @@ create_sources_file()
       ;;
 
       "NONE")
-         text_hdr2="# Source generation disabled by MULLE_SDE_CMAKE_SOURCES_FILE=NONE"
+         text_src="# Source generation disabled by MULLE_SDE_CMAKE_SOURCES_FILE=NONE"
          MULLE_SDE_CMAKE_SOURCES_FILE=""
       ;;
 
@@ -269,6 +269,8 @@ main()
    local MULLE_TRACE_RESOLVER_FLIP_X="NO"
    local MULLE_TRACE_SETTINGS_FLIP_X="NO"
 
+   local OPTION_PARALLEL="YES"
+
    while [ $# -ne 0 ]
    do
       if options_technical_flags "$1"
@@ -280,6 +282,10 @@ main()
       case "$1" in
          -h*|--help|help)
             usage
+         ;;
+
+         --no-parallel)
+            OPTION_PARALLEL="NO"
          ;;
 
          --version)
@@ -317,7 +323,9 @@ main()
    #
    local categorized_files
 
-   if ! categorized_files="`exekutor "${MULLE_MATCH}" ${MULLE_MONITOR_FLAGS} \
+   if ! categorized_files="`exekutor "${MULLE_MATCH}" \
+                                 ${MULLE_TECHNICAL_FLAGS} \
+                                 ${MULLE_MATCH_FLAGS} \
                                  find --format "%C;%f\\n" \
                                       --match-filter "source"`"
    then
@@ -332,12 +340,18 @@ main()
 
    categorized_files="`LC_ALL=C rexekutor sort -d -t';' -k 1,2 <<< "${categorized_files}" `"
 
-   create_headers_file "${categorized_files}" &
-   create_sources_file "${categorized_files}" &
+   if [ "${OPTION_PARALLEL}" = "YES" ]
+   then
+      create_headers_file "${categorized_files}" &
+      create_sources_file "${categorized_files}" &
 
-   log_verbose "waiting..."
-   wait
-   log_verbose 'done!'
+      log_fluff "waiting..."
+      wait
+      log_fluff 'done!'
+   else
+      create_headers_file "${categorized_files}"
+      create_sources_file "${categorized_files}"
+   fi
 }
 
 

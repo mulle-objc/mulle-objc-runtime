@@ -47,7 +47,7 @@
 
 #include "mulle-objc-class-universe.h"
 
-#include "dependencies.h"
+#include "include.h"
 #include <assert.h>
 
 

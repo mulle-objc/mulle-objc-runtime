@@ -18,8 +18,12 @@ src/debug/mulle-objc-html.h
 src/debug/mulle-objc-lldb.h
 )
 
+set( PRIVATE_HEADERS
+src/include-private.h
+)
+
 set( PUBLIC_HEADERS
-src/dependencies.h
+src/include.h
 src/mulle-objc-atomicpointer.h
 src/mulle-objc-builtin.h
 src/mulle-objc-cache.h

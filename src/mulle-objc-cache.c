@@ -35,7 +35,7 @@
 //
 #include "mulle-objc-cache.h"
 
-#include "dependencies.h"
+#include "include-private.h"
 #include <assert.h>
 #include <string.h>
 

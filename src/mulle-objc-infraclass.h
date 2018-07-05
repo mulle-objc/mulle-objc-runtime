@@ -40,7 +40,7 @@
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-walktypes.h"
 
-#include "dependencies.h"
+#include "include.h"
 #include <assert.h>
 
 

@@ -35,7 +35,7 @@
 //
 #include "mulle-objc-classpair.h"
 
-#include "dependencies.h"
+#include "include-private.h"
 
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-universe.h"

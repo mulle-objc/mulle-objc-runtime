@@ -36,9 +36,10 @@
 #ifndef mulle_objc_method_h__
 #define mulle_objc_method_h__
 
+#include "include.h"
+
 #include "mulle-objc-uniqueid.h"
 
-#include "dependencies.h"
 #include <stddef.h>
 #include <assert.h>
 #include <errno.h>

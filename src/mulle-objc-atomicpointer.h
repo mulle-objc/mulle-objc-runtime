@@ -37,7 +37,7 @@
 #define mulle_objc_atomicpointer_h__
 
 
-#include "dependencies.h"
+#include "include.h"
 
 #include <stdio.h>
 

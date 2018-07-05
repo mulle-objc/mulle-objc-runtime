@@ -41,7 +41,7 @@
 #include "mulle-objc-method.h"
 #include "mulle-objc-methodidconstants.h"
 
-#include "dependencies.h"
+#include "include.h"
 
 
 

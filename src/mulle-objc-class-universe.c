@@ -38,7 +38,7 @@
 #include "mulle-objc-class.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-universe.h"
-#include "dependencies.h"
+#include "include-private.h"
 
 
 MULLE_C_CONST_NON_NULL_RETURN

@@ -36,7 +36,7 @@
 #ifndef mulle_objc_object_h__
 #define mulle_objc_object_h__
 
-#include "dependencies.h"
+#include "include.h"
 
 #include "mulle-objc-class.h"
 #include "mulle-objc-ivar.h"

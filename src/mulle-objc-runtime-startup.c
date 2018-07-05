@@ -35,7 +35,7 @@
 //
 #include "mulle-objc-runtime.h"
 
-#include "dependencies.h"
+#include "include-private.h"
 
 
 MULLE_C_CONST_RETURN  // always returns same value (in same thread)

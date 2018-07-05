@@ -36,7 +36,8 @@
 #ifndef mulle_objc_uniqueid_h__
 #define mulle_objc_uniqueid_h__
 
-#include "dependencies.h"
+#include "include.h"
+
 #include <stdint.h>
 #include <assert.h>
 #include <errno.h>

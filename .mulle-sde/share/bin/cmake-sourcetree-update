@@ -179,6 +179,9 @@ _emit_cmake_find_library()
       ;;
    esac
 
+#
+# this is getting unwieldy, should probably use a function
+#
    cat <<EOF
 ${indent}if( NOT ${identifier}_LIBRARY)
 ${indent}   find_library( ${identifier}_LIBRARY NAMES ${libraries})
@@ -213,6 +216,35 @@ ${indent}            )
 ${indent}            break()
 ${indent}         endif()
 ${indent}      endforeach()
+EOF
+
+   #
+   # for objective-c we find objc-loader.inc in the public include files
+   #
+   case ",${marks}," in
+      *,no-all-load,*)
+      ;;
+
+      *)
+         cat <<EOF
+${indent}
+${indent}      # search for objc-loader.inc in include directory
+${indent}      foreach( _TMP_${identifier}_NAME in ${aliases})
+${indent}         set( _TMP_${identifier}_FILE "\${_TMP_${identifier}_ROOT}/include/\${_TMP_${identifier}_NAME}/objc-loader.inc")
+${indent}         if( EXISTS "\${_TMP_${identifier}_FILE}")
+${indent}            set( INHERITED_OBJC_LOADERS
+${indent}               \${INHERITED_OBJC_LOADERS}
+${indent}               \${_TMP_${identifier}_FILE}
+${indent}               CACHE INTERNAL "need to cache this"
+${indent}            )
+${indent}            break()
+${indent}         endif()
+${indent}      endforeach()
+EOF
+      ;;
+   esac
+
+   cat <<EOF
 ${indent}   else()
 ${indent}      message( ${failstatus} "${failstring}")
 ${indent}   endif()
@@ -421,7 +453,7 @@ emit_cmake_dependencies()
 
       if [ ! -z "${address}" ]
       then
-         log_verbose "Emit statements for ${C_MAGENTA}${C_BOLD}${address}"
+         log_verbose "Emit cmake statements for ${C_MAGENTA}${C_BOLD}${address}"
          emit_cmake_dependency "${emitter}" \
                                "${containername}" \
                                "${address}" \
@@ -435,28 +467,32 @@ emit_cmake_dependencies()
 
 emit_dependency_subproject()
 {
+   log_entry "emit_dependency_subproject" "$@"
+
    local dependency
    local header
 
-   header="`exekutor "${MULLE_SOURCETREE}" -V ${MULLE_SOURCETREE_FLAGS} \
+   header="`exekutor "${MULLE_SOURCETREE}" -V \
+                           ${MULLE_TECHNICAL_FLAGS} \
+                           ${MULLE_SOURCETREE_FLAGS} \
                            list \
-                           --format '%a;%m;%i={aliases,,-------};%i={include,,}\n' \
-                           --marks dependency,header,no-link \
-                           --output-raw \
-                           --no-output-header`" || return 1
-   log_debug "header: ${header}"
+                              --format '%a;%m;%i={aliases,,-------};%i={include,,}\n' \
+                              --marks 'dependency,header,no-link' \
+                              --output-raw \
+                              --no-output-header`" || return 1
    emit_cmake_dependencies "_emit_cmake_header_only" \
                            "HEADER_ONLY_LIBRARIES" \
                            "${header}"
 
-   dependency="`exekutor "${MULLE_SOURCETREE}" -V ${MULLE_SOURCETREE_FLAGS} \
+   dependency="`exekutor "${MULLE_SOURCETREE}" -V \
+                           ${MULLE_TECHNICAL_FLAGS} \
+                           ${MULLE_SOURCETREE_FLAGS} \
                            list \
-                           --format '%a;%m;%i={aliases,,};%i={include,,}\n' \
-                           --marks 'dependency,link' \
-                           --output-raw \
-                           --no-output-header`" || return 1
+                              --format '%a;%m;%i={aliases,,};%i={include,,}\n' \
+                              --marks 'dependency,link' \
+                              --output-raw \
+                              --no-output-header`" || return 1
 
-   log_debug "dependency: ${dependency}"
    emit_cmake_dependencies "_emit_cmake_dependency" \
                            "DEPENDENCY_LIBRARIES" \
                            "${dependency}"
@@ -465,24 +501,31 @@ emit_dependency_subproject()
 
 emit_library()
 {
+   log_entry "emit_library" "$@"
+
    local library
    local header
 
-   header="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
-                                                      --marks header,no-link \
-                                                      -- \
-                                                      --output-raw \
-                                                      --output-no-header`" || return 1
-   log_debug "header: ${header}"
+   header="`exekutor "${MULLE_SDE}" \
+                        ${MULLE_TECHNICAL_FLAGS} \
+                        ${MULLE_SDE_FLAGS} \
+                        library list \
+                           --marks header,no-link \
+                           -- \
+                           --output-raw \
+                           --output-no-header`" || return 1
    emit_cmake_dependencies "_emit_cmake_header_only" \
                            "HEADER_ONLY_LIBRARIES" \
                            "${header}"
-   library="`exekutor "${MULLE_SDE}" ${MULLE_SDE_FLAGS} library list \
-                                                      --marks link \
-                                                      -- \
-                                                      --output-raw \
-                                                      --output-no-header`"
-   log_debug "library: ${library}"
+
+   library="`exekutor "${MULLE_SDE}" \
+                        ${MULLE_TECHNICAL_FLAGS} \
+                        ${MULLE_SDE_FLAGS} \
+                        library list \
+                           --marks link \
+                           -- \
+                           --output-raw \
+                           --output-no-header`" || return 1
    emit_cmake_dependencies "_emit_cmake_library" \
                            "OS_SPECIFIC_LIBRARIES" \
                            "${library}"
@@ -505,7 +548,7 @@ write_libraries_file()
       text_lib="# library generation turned off by MULLE_SDE_LIBRARIES_FILE"
    else
       #
-      text_dep="`emit_library`" || return 1
+      text_lib="`emit_library`" || return 1
       if [ -z "${text_lib}" ]
       then
          text_lib="# there are no libraries in the sourcetree"
@@ -588,6 +631,8 @@ main()
    local MULLE_TRACE_RESOLVER_FLIP_X="NO"
    local MULLE_TRACE_SETTINGS_FLIP_X="NO"
 
+   local OPTION_PARALLEL="YES"
+
    while [ $# -ne 0 ]
    do
       if options_technical_flags "$1"
@@ -606,6 +651,10 @@ main()
             shift
 
             PROJECT_NAME="$1"
+         ;;
+
+         --no-parallel)
+            OPTION_PARALLEL="NO"
          ;;
 
          --version)
@@ -633,12 +682,18 @@ main()
 
    options_setup_trace "${MULLE_TRACE}"
 
-   write_dependencies_file "${categorized_files}" &
-   write_libraries_file "${categorized_files}" &
+   if [ "${OPTION_PARALLEL}" = "YES" ]
+   then
+      write_dependencies_file "${categorized_files}" &
+      write_libraries_file "${categorized_files}" &
 
-   log_verbose "waiting..."
-   wait
-   log_verbose 'done!'
+      log_fluff "waiting..."
+      wait
+      log_fluff 'done!'
+   else
+      write_dependencies_file "${categorized_files}"
+      write_libraries_file "${categorized_files}"
+   fi
 }
 
 

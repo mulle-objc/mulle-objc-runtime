@@ -38,7 +38,7 @@
 
 #include "mulle-objc-uniqueid.h"
 
-#include "dependencies.h"
+#include "include.h"
 #include <stddef.h>
 #include <assert.h>
 
