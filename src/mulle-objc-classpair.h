@@ -36,7 +36,7 @@
 #ifndef mulle_objc_classpair_h__
 #define mulle_objc_classpair_h__
 
-#include "dependencies.h"
+#include "include.h"
 
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-objectheader.h"
@@ -44,7 +44,7 @@
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-uniqueidarray.h"
 #include "mulle-objc-walktypes.h"
-#include "dependencies.h"
+#include "include.h"
 
 struct _mulle_objc_protocollist;
 

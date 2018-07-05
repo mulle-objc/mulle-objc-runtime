@@ -39,7 +39,7 @@
 #include "mulle-objc-atomicpointer.h"
 
 #include <assert.h>
-#include "dependencies.h"
+#include "include.h"
 
 
 struct _mulle_objc_infraclass;

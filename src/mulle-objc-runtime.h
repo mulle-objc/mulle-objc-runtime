@@ -59,7 +59,7 @@
 # error "Use the mulle-clang 5.0.0.0 (or newer) compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FMC__ and __MULLE_OBJC_NO_FMC__)"
 #endif
 
-#include "dependencies.h"
+#include "include.h"
 
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-builtin.h"

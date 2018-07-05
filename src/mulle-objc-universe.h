@@ -47,7 +47,7 @@
 #include "mulle-objc-load.h"
 #include "mulle-objc-walktypes.h"
 
-#include "dependencies.h"
+#include "include.h"
 
 #include "mulle-objc-universe-struct.h"
 #include "mulle-objc-universe-global.h"

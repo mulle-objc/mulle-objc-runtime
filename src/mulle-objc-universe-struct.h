@@ -49,7 +49,7 @@
 #include "mulle-objc-super.h"
 #include "mulle-objc-version.h"
 
-#include "dependencies.h"
+#include "include.h"
 
 
 struct _mulle_objc_class;

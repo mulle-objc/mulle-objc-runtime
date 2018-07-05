@@ -35,7 +35,7 @@
 //
 #include "mulle-objc-universe-struct.h"
 
-#include "dependencies.h"
+#include "include-private.h"
 
 
 #define MULLE_OBJC_RUNTIME_GLOBAL   MULLE_C_GLOBAL

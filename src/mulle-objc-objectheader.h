@@ -36,7 +36,7 @@
 #ifndef mulle_objc_objectheader_h__
 #define mulle_objc_objectheader_h__
 
-#include "dependencies.h"
+#include "include.h"
 
 #include <assert.h>
 

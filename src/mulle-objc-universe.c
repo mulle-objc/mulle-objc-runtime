@@ -44,7 +44,7 @@
 #include "mulle-objc-object.h"
 #include "mulle-objc-signature.h"
 #include "mulle-objc-csvdump.h"
-#include "dependencies.h"
+#include "include-private.h"
 #include <assert.h>
 #include <errno.h>
 #include <setjmp.h>

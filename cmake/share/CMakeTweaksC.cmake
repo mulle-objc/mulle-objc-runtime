@@ -47,4 +47,6 @@ if( NOT __CMAKE_TWEAKS_C_CMAKE__)
       endif()
    endif()
 
+   include( CMakeTweaksCAux OPTIONAL)
+
 endif()

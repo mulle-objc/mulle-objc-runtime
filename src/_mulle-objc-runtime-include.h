@@ -3,8 +3,8 @@
    Edits will be lost.
 */
 
-#ifndef _mulle_objc_runtime__dependencies_h__
-#define _mulle_objc_runtime__dependencies_h__
+#ifndef _mulle_objc_runtime_include_h__
+#define _mulle_objc_runtime_include_h__
 
 # include <mulle-concurrent/mulle-concurrent.h>   // mulle-concurrent
 

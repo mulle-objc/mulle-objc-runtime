@@ -39,7 +39,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
-#include "dependencies.h"  // for alignment mulle_objc_vararg.hcode
+#include "include.h"  // for alignment mulle_objc_vararg.hcode
 
 
 // these defines are compatible to other universes

@@ -17,10 +17,6 @@ if( NOT __ENVIRONMENT__CMAKE__)
       set( ADDICTION_DIR "${MULLE_VIRTUAL_ROOT}/addiction")
    endif()
 
-   include_directories( BEFORE SYSTEM
-      ${DEPENDENCY_DIR}/include
-      ${ADDICTION_DIR}/include
-   )
    set( CMAKE_INCLUDE_PATH "${DEPENDENCY_DIR}/include"
       "${ADDICTION_DIR}/include"
       ${CMAKE_INCLUDE_PATH}
@@ -32,6 +28,32 @@ if( NOT __ENVIRONMENT__CMAKE__)
    set( CMAKE_FRAMEWORK_PATH "${DEPENDENCY_DIR}/Frameworks"
       "${ADDICTION_DIR}/Frameworks"
       ${CMAKE_FRAMEWORK_PATH}
+   )
+
+   ### Additional search paths based on build style
+
+   if( NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+      set( CMAKE_INCLUDE_PATH
+         "${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/include"
+         ${CMAKE_INCLUDE_PATH}
+      )
+      set( CMAKE_LIBRARY_PATH
+         "${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/lib"
+         ${CMAKE_LIBRARY_PATH}
+      )
+      set( CMAKE_FRAMEWORK_PATH
+         "${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/Frameworks"
+         ${CMAKE_FRAMEWORK_PATH}
+      )
+
+      include_directories( BEFORE SYSTEM
+         ${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/include
+      )
+   endif()
+
+   include_directories( BEFORE SYSTEM
+      ${DEPENDENCY_DIR}/include
+      ${ADDICTION_DIR}/include
    )
 
    set( CMAKE_INCLUDES

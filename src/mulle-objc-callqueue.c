@@ -38,7 +38,7 @@
 #include "mulle-objc-universe.h"
 #include "mulle-objc-class.h"
 
-#include "dependencies.h"
+#include "include-private.h"
 #include <stdlib.h>
 #include <errno.h>
 

@@ -14,8 +14,6 @@ if( NOT __POST_EXECUTABLE__CMAKE__)
       ${EXECUTABLE_LIBRARY_LIST}
    )
 
-   include( FinalOutputC)
-
    include( PostExecutableCAux OPTIONAL)
 
 endif()

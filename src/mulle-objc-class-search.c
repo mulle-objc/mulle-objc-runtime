@@ -49,7 +49,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
-#include "dependencies.h"
+#include "include-private.h"
 
 
 #define OFFSET_2_MODE      100

@@ -39,7 +39,7 @@
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
 #include "mulle-objc-universe.h"
-#include "dependencies.h"
+#include "include.h"
 
 
 // code not used in the universe, but useful for MulleObjC

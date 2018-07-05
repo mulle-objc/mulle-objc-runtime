@@ -40,7 +40,7 @@
 #include "mulle-objc-signature.h"
 #include "mulle-objc-uniqueid.h"
 
-#include "dependencies.h"
+#include "include-private.h"
 #include <string.h>
 
 

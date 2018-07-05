@@ -50,7 +50,7 @@
 #include "mulle-objc-universe.h"
 
 
-#include "dependencies.h"
+#include "include-private.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdarg.h>

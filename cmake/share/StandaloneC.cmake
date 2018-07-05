@@ -1,5 +1,5 @@
-if( NOT __STANDALONE__CMAKE__)
-   set( __STANDALONE__CMAKE__ ON)
+if( NOT __STANDALONE_C_CMAKE__)
+   set( __STANDALONE_C_CMAKE__ ON)
 
    if( MULLE_TRACE_INCLUDE)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
@@ -7,8 +7,11 @@ if( NOT __STANDALONE__CMAKE__)
 
    option( STANDALONE "Create standalone library for debugging" OFF)
 
-   if( STANDALONE)
+   # include before (!)
 
+   include( StandaloneCAux OPTIONAL)
+
+   if( STANDALONE)
 
       if( NOT STANDALONE_NAME)
          set( STANDALONE_NAME "mulle-objc-runtime-standalone")
@@ -27,6 +30,7 @@ if( NOT __STANDALONE__CMAKE__)
          ${OS_SPECIFIC_LIBRARIES}
       )
 
+      # STARTUP_LIBRARY is supposed to be a find_library definition
       if( NOT STANDALONE_STARTUP_LIBRARY)
          set( STANDALONE_STARTUP_LIBRARY ${STARTUP_LIBRARY})
       endif()
@@ -34,7 +38,7 @@ if( NOT __STANDALONE__CMAKE__)
       if( STANDALONE_STARTUP_LIBRARY)
          set( STANDALONE_ALL_LOAD_LIBRARIES
             ${STANDALONE_ALL_LOAD_LIBRARIES}
-            $<TARGET_FILE:${STANDALONE_STARTUP_LIBRARY}>
+            ${STANDALONE_STARTUP_LIBRARY}
          )
       endif()
 
@@ -119,10 +123,10 @@ and everybody will be happy")
          )
          set_property( TARGET ${STANDALONE_NAME} PROPERTY CXX_STANDARD 11)
 
-         add_dependencies( ${STANDALONE_NAME}
-            mulle-objc-runtime
-            ${STANDALONE_STARTUP_LIBRARY}
-         )
+         add_dependencies( ${STANDALONE_NAME} mulle-objc-runtime)
+         if( STARTUP_NAME)
+            add_dependencies( ${STANDALONE_NAME} ${STARTUP_NAME})
+         endif()
 
          # If STANDALONE_SOURCES were to be empty, this would be needed
          # set_target_properties( ${STANDALONE_NAME} PROPERTIES LINKER_LANGUAGE "C")
@@ -149,7 +153,5 @@ and everybody will be happy")
          )
       endif()
    endif()
-
-   include( StandaloneCAux OPTIONAL)
 
 endif()
