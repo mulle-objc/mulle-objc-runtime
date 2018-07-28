@@ -53,12 +53,16 @@ uname_to_cpp()
    local uname="$1"  # the part after only-os or no
 
    case "${uname}" in
-      "darwin")
+      'darwin')
          echo "__APPLE__"
       ;;
 
-      "freebsd")
+      'freebsd')
          echo "BSD4_3"  # guess
+      ;;
+
+      'mingw'*)
+         echo "_WIN32"
       ;;
 
       *)
@@ -119,7 +123,6 @@ _emit_c_include()
    local address="$1"
    local header="$2"
    local marks="$3"
-   local aliases="$4"
 
    local indent
    local ifstatement
@@ -183,8 +186,7 @@ emit_c_include_library()
 
    local address="$1"
    local marks="$2"
-   local aliases="$3"
-   local header="$4"
+   local header="$3"
 
    #
    # the default for libraries is old style <name.h> not <name/name.h>
@@ -197,7 +199,7 @@ emit_c_include_library()
       header="${name}.h"
    fi
 
-   _emit_c_include "${address}" "${header}" "${marks}" "${aliases}"
+   _emit_c_include "${address}" "${header}" "${marks}"
 
 }
 
@@ -208,8 +210,7 @@ emit_c_include_dependency()
 
    local address="$1"
    local marks="$2"
-   local aliases="$3"
-   local header="$4"
+   local header="$3"
 
    #
    # the default for dependencies is <name/name.h>
@@ -222,7 +223,7 @@ emit_c_include_dependency()
       header="${name}/${name}.h"
    fi
 
-   _emit_c_include "${address}" "${header}" "${marks}" "${aliases}"
+   _emit_c_include "${address}" "${header}" "${marks}"
 }
 
 
@@ -241,8 +242,7 @@ emit_c_header()
    local headers
 
    headers="`exekutor mulle-sourcetree list \
-                                       --format "%a;%m;%i={aliases,,-------};\
-%i={include,,-------}\\n" \
+                                       --format "%a;%m;%i={include,,-------}\\n" \
                                        --marks "${filter_marks}" \
                                        --output-raw \
                                        --no-output-header`" || return 1
@@ -259,7 +259,7 @@ emit_c_header()
       local marks
       local include
 
-      IFS=";" read address marks aliases include <<< "${header}"
+      IFS=";" read address marks include <<< "${header}"
 
       if [ -z "${address}" ]
       then
@@ -272,7 +272,6 @@ emit_c_header()
          *,no-dependency,*)
             emit_c_include_library "${address}" \
                                    "${marks}" \
-                                   "${aliases}" \
                                    "${include}" \
                                    "$@"
          ;;
@@ -280,7 +279,6 @@ emit_c_header()
          *)
             emit_c_include_dependency "${address}" \
                                       "${marks}" \
-                                      "${aliases}" \
                                       "${include}" \
                                       "$@"
          ;;

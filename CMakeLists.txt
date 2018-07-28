@@ -101,8 +101,12 @@ add_library( "mulle-objc-runtime"
    ${ALL_OBJECT_FILES}
 )
 
+include( Library OPTIONAL)
 
-set( INSTALL_LIBRARY_TARGETS "mulle-objc-runtime")
+set( INSTALL_LIBRARY_TARGETS
+   "mulle-objc-runtime"
+   ${INSTALL_LIBRARY_TARGETS}
+)
 
 include( PostLibrary OPTIONAL)
 

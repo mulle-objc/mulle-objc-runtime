@@ -1,3 +1,7 @@
+### 0.13.1
+
+* fix mingw, update sde
+
 ## 0.13.0
 
 * moved compiler test-suite back from MulleObjC

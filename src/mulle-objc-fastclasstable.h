@@ -45,6 +45,7 @@
 struct _mulle_objc_infraclass;
 
 
+// change compiler if you change this
 #define MULLE_OBJC_S_FASTCLASSES   64
 
 //

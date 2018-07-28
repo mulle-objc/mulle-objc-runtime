@@ -66,6 +66,10 @@ uname_to_cmake()
          fail "uname is empty"
       ;;
 
+      'mingw')
+         systemname="Windows"
+      ;;
+      
       *)
          systemname="`tr 'a-z' 'A-Z' <<< "${uname:0:1}"`"
          systemname="${systemname}${uname:1}"
@@ -136,7 +140,7 @@ _emit_cmake_find_library()
 
    local preference="$1"; shift
 
-   local aliases="$1"
+   local names="$1"
    local identifier="$2"
    local containername="$3"
    local marks="$4"
@@ -146,7 +150,7 @@ _emit_cmake_find_library()
    local i
 
    IFS=","; set -o noglob
-   for i in ${aliases}
+   for i in ${names}
    do
       case "${preference}" in
          "static")
@@ -167,10 +171,16 @@ _emit_cmake_find_library()
    local failstatus
 
    case ",${marks}," in
-      *,no-require-link,*)
+      *',no-require-link,'*)
 
          failstatus="STATUS"
-         failstring="${identifier}_LIBRARY is missing but it\'s \"no-require-link\""
+         failstring="${identifier}_LIBRARY is missing but it is marked as \\\"no-require-link\\\""
+      ;;
+
+      *',no-require,'*)
+
+         failstatus="STATUS"
+         failstring="${identifier}_LIBRARY is missing but it is marked as \\\"no-require\\\""
       ;;
 
       *)
@@ -200,7 +210,7 @@ ${indent}      get_filename_component( _TMP_${identifier}_ROOT "\${${identifier}
 ${indent}      get_filename_component( _TMP_${identifier}_ROOT "\${_TMP_${identifier}_ROOT}" DIRECTORY)
 ${indent}
 ${indent}      # search for DependenciesAndLibraries.cmake to include
-${indent}      foreach( _TMP_${identifier}_NAME in ${aliases})
+${indent}      foreach( _TMP_${identifier}_NAME in ${names})
 ${indent}         set( _TMP_${identifier}_DIR "\${_TMP_${identifier}_ROOT}/include/\${_TMP_${identifier}_NAME}/cmake")
 ${indent}         # use explicit path to avoid "surprises"
 ${indent}         if( EXISTS "\${_TMP_${identifier}_DIR}/DependenciesAndLibraries.cmake")
@@ -229,7 +239,7 @@ EOF
          cat <<EOF
 ${indent}
 ${indent}      # search for objc-loader.inc in include directory
-${indent}      foreach( _TMP_${identifier}_NAME in ${aliases})
+${indent}      foreach( _TMP_${identifier}_NAME in ${names})
 ${indent}         set( _TMP_${identifier}_FILE "\${_TMP_${identifier}_ROOT}/include/\${_TMP_${identifier}_NAME}/objc-loader.inc")
 ${indent}         if( EXISTS "\${_TMP_${identifier}_FILE}")
 ${indent}            set( INHERITED_OBJC_LOADERS
@@ -275,7 +285,7 @@ _emit_cmake_header_only()
 {
    log_entry "_emit_cmake_header_only" "$@"
 
-   local aliases="$1"
+   local names="$1"
    local identifier="$2"
    local containername="$3"
    local marks="$4"
@@ -285,7 +295,7 @@ _emit_cmake_header_only()
    local i
 
    IFS=","; set -o noglob
-   for i in ${aliases}
+   for i in ${names}
    do
       headers="`concat "${headers}" "${i}.h"`"
       headers="`concat "${headers}" "${i}/${i}.h"`"
@@ -293,10 +303,16 @@ _emit_cmake_header_only()
    IFS="${DEFAULT_IFS}"; set +o noglob
 
    case ",${marks}," in
-      *,no-require-link,*)
+      *',no-require-header,'*)
 
          failstatus="STATUS"
-         failstring="${identifier}_HEADER is missing but it\'s \"no-require-link\""
+         failstring="${identifier}_HEADER is missing but it is marked as \\\"no-require-header\\\""
+      ;;
+
+      *',no-require,'*)
+
+         failstatus="STATUS"
+         failstring="${identifier}_LIBRARY is missing but it is marked as \\\"no-require\\\""
       ;;
 
       *)
@@ -304,8 +320,11 @@ _emit_cmake_header_only()
          failstring="${identifier}_HEADER was not found"
       ;;
    esac
+
    #
-   # the idea here is that cmake should generate the proper -I option
+   # The idea here is that cmake should generate the proper -I option.
+   # The header find_file might be useful to copy it somewhere. Otherwise
+   # probably useless. (could leave it out)
    #
    cat <<EOF
 ${indent}if( NOT ${identifier}_HEADER)
@@ -388,14 +407,12 @@ emit_cmake_dependency()
 
    local identifier
    local filename
+   local names
 
-   if [ -z "${aliases}" ]
-   then
-      aliases="${address}"
-   fi
+   names="`comma_concat "${aliases}" "${address}" `"
 
    # first alias determines the identifier
-   filename="`fast_basename "${aliases%%,*}"`"
+   filename="`fast_basename "${names%%,*}"`"
 
    if [ -z "${MULLE_CASE_SH}" ]
    then
@@ -407,7 +424,7 @@ emit_cmake_dependency()
    identifier="`printf "%s" "${identifier}" | tr -c 'a-zA-Z0-9' '_'`"
    identifier="`tr 'a-z' 'A-Z' <<< "${identifier}"`"
 
-   "${emitter}" "${aliases}" \
+   "${emitter}" "${names}" \
                 "${identifier}" \
                 "${name}" \
                 "${marks}" \

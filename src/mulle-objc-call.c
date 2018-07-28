@@ -642,12 +642,12 @@ mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_no_forward( struct _mulle_objc_class *cls,
                                                        mulle_objc_methodid_t methodid)
 {
-   mulle_objc_implementation_t   imp;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   struct _mulle_objc_method           *method;
-   mulle_objc_cache_uint_t             offset;
+   mulle_objc_implementation_t     imp;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_method       *method;
+   mulle_objc_cache_uint_t         offset;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -967,10 +967,10 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
    }
    else
    {
-      cls->cachepivot.call2      = _mulle_objc_object_call2_empty_cache;
-      cls->call                  = _mulle_objc_object_noncachingcall_class;
-      cls->superlookup           = _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation;
-      cls->superlookup2          = _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation;
+      cls->cachepivot.call2 = _mulle_objc_object_call2_empty_cache;
+      cls->call             = _mulle_objc_object_noncachingcall_class;
+      cls->superlookup      = _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation;
+      cls->superlookup2     = _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation;
 
       if( universe->debug.trace.method_cache)
          fprintf( stderr, "mulle_objc_universe %p trace: use "
