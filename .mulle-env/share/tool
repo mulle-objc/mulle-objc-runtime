@@ -62,9 +62,6 @@ tr
 vi
 wc
 which
-curl
 column
 git
-uuidgen
 cmake
-make

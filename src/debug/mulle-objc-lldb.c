@@ -45,6 +45,7 @@
 
 # pragma mark - lldb support
 
+// DO NOT RENAME THESE FUNCTIONS, mulle-lldb looks for them
 mulle_objc_implementation_t
    mulle_objc_lldb_lookup_implementation( void *obj,
                                                 mulle_objc_methodid_t methodid,

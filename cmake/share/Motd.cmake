@@ -26,4 +26,6 @@ if( NOT __MOTD__CMAKE__)
       add_dependencies( __motd__ ${PROJECT_NAME})
    endif()
 
+   include( MotdAux OPTIONAL)
+
 endif()
