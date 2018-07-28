@@ -4,7 +4,15 @@
    echo "Your script needs to setup MULLE_VIRTUAL_ROOT \
 and MULLE_UNAME properly" >&2  && exit 1
 
-MULLE_HOSTNAME="`PATH=/bin:/usr/bin hostname -s`" # don't export it
+case "${MULLE_UNAME}" in
+   'mingw'*)
+      MULLE_HOSTNAME="`PATH=/bin:/usr/bin hostname`" # don't export it
+   ;;
+
+   *)
+      MULLE_HOSTNAME="`PATH=/bin:/usr/bin hostname -s`" # don't export it
+   ;;
+esac
 
 MULLE_ENV_SHARE_DIR="${MULLE_VIRTUAL_ROOT}/.mulle-env/share"
 MULLE_ENV_ETC_DIR="${MULLE_VIRTUAL_ROOT}/.mulle-env/etc"
