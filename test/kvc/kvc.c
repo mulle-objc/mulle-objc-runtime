@@ -249,9 +249,7 @@ static struct _mulle_objc_loadinfo  load_info =
 
 
 
-#if defined( __clang__) || defined( __GNUC__)
-__attribute__((constructor))
-#endif
+MULLE_C_CONSTRUCTOR( __load)
 static void  __load()
 {
    static int  has_loaded;
