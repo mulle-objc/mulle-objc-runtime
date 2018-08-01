@@ -111,7 +111,7 @@ MULLE_C_NO_RETURN
 static void   _mulle_objc_class_not_found_abort( struct _mulle_objc_universe *universe,
                                                  mulle_objc_classid_t missing_classid)
 {
-   _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing class %08x \"%s\"",
+   _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: unknown class %08x \"%s\"",
                                  universe,
                                  missing_classid,
                                  _mulle_objc_universe_string_for_classid( universe, missing_classid));
@@ -154,14 +154,14 @@ static void   _mulle_objc_method_not_found_abort( struct _mulle_objc_class *cls,
 
    // keep often seen output more user friendly
    if( ! methodname)
-      _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing %s "
+      _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: unknown %s "
                                 "method %08x in class %08x \"%s\"",
                                 universe,
                                 _mulle_objc_class_is_metaclass( cls) ? "class" : "instance",
                                 missing_method,
                                _mulle_objc_class_get_classid( cls),
                                 name);
-   _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing method "
+   _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: unknown method "
                              "%08x \"%c%s\" in class %08x \"%s\"",
                              universe,
                              missing_method,
@@ -248,7 +248,7 @@ static void   _mulle_objc_universe_set_debug_defaults_from_environment( struct _
 {
    universe->debug.warn.methodid_type          = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPE");
    universe->debug.warn.pedantic_methodid_type = getenv_yes_no( "MULLE_OBJC_WARN_PEDANTIC_METHODID_TYPE");
-   universe->debug.warn.protocolclass           = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
+   universe->debug.warn.protocolclass          = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
    universe->debug.warn.stuck_loadable         = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
 
 #if ! DEBUG
@@ -2001,7 +2001,7 @@ struct _NSConstantString
 
 
 void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *universe,
-                                             struct _mulle_objc_object *string)
+                                              struct _mulle_objc_object *string)
 {
    assert( universe);
    assert( string);

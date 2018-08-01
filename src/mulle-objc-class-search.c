@@ -145,8 +145,8 @@ static void   trace_method_done( struct _mulle_objc_class *cls,
 }
 
 
-static void   trace_method_fail( struct _mulle_objc_class *cls,
-                                 int error)
+static void   trace_method_search_fail( struct _mulle_objc_class *cls,
+                                        int error)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -154,10 +154,13 @@ static void   trace_method_fail( struct _mulle_objc_class *cls,
    switch( errno)
    {
    case ENOENT:
-      fprintf( stderr, "mulle_objc_universe %p trace: not found\n",
+      fprintf( stderr, "mulle_objc_universe %p trace: method not found\n",
+                        universe);
+   case EINVAL:
+      fprintf( stderr, "mulle_objc_universe %p trace: invalid search call\n",
                         universe);
    default :
-      fprintf( stderr, "mulle_objc_universe %p trace: error %d\n",
+      fprintf( stderr, "mulle_objc_universe %p trace: method search error %d\n",
                         universe,
                         error);
    }
@@ -617,7 +620,7 @@ struct _mulle_objc_method   *
    case search_super_method      :
    case search_overridden_method :
       if( trace)
-         trace_method_fail( cls, EINVAL);
+         trace_method_search_fail( cls, EINVAL);
       errno = EINVAL;
       return( NULL);
    }
@@ -636,7 +639,7 @@ struct _mulle_objc_method   *
 
       assert( errno == ENOENT);
       if( trace)
-         trace_method_fail( cls, ENOENT);
+         trace_method_search_fail( cls, ENOENT);
 
       return( NULL);
    }

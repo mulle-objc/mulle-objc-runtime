@@ -1,7 +1,3 @@
-### 0.13.1
-
-* fix mingw, update sde
-
 ## 0.13.0
 
 * moved compiler test-suite back from MulleObjC
@@ -16,7 +12,7 @@
 * Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
 * adapt search so that we a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
 * adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
-* add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking 
+* add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking
 * add searchcache functionality to the runtime
 * added _mulle_objc_signature_skip_extendedtypeinfo
 * expect propertyclasses now in declaration order from compiler
@@ -31,7 +27,7 @@
 * MULLE_OBJC_PRINT_RUNTIME_CONFIG renamed to MULLE_OBJC_PRINT_UNIVERSE_CONFIG
 * new super call with its own cache
 * property gains an ivarid
-* reduce initial method cache size to 4 
+* reduce initial method cache size to 4
 * rename _mulle_objc_uniqueid_is_sane to mulle_objc_uniqueid_is_sane
 * super struct now gains the selector name for introspection. The selector is now compatible to @selector
 * support newer mulle-tests
