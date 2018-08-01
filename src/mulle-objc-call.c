@@ -534,19 +534,25 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
 
    // [::] is just there to grep it
    if( desc)
-      fprintf( stderr, "[::] %c[%s %s] (%s@%p)\n",
+      fprintf( stderr, "[::] %c[%s %s] @%p %s (%p, %x, %p))\n",
             _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
             _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)),
             desc->name,
+            imp,
             _mulle_objc_class_get_name( cls),
-            imp);
+            obj,
+            methodid,
+            parameter);
    else
-      fprintf( stderr, "[::] %c[%s #%08x] (%s@%p)\n",
+      fprintf( stderr, "[::] %c[%s #%08x] @%p %s (%p, %x, %p)\n",
             _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
             _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)),
             methodid,
+            imp,
             _mulle_objc_class_get_name( cls),
-            imp);
+            obj,
+            methodid,
+            parameter);
 }
 
 

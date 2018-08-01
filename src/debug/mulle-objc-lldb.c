@@ -48,17 +48,17 @@
 // DO NOT RENAME THESE FUNCTIONS, mulle-lldb looks for them
 mulle_objc_implementation_t
    mulle_objc_lldb_lookup_implementation( void *obj,
-                                                mulle_objc_methodid_t methodid,
-                                                void *cls_or_classid,
-                                                int is_classid,
-                                                int is_meta,
-                                                int debug)
+                                          mulle_objc_methodid_t methodid,
+                                          void *cls_or_classid,
+                                          int is_classid,
+                                          int is_meta,
+                                          int debug)
 {
-   struct _mulle_objc_class            *cls;
-   struct _mulle_objc_universe          *universe;
-   struct _mulle_objc_infraclass       *found;
-   struct _mulle_objc_class            *call_cls;
-   mulle_objc_implementation_t   imp;
+   struct _mulle_objc_class       *cls;
+   struct _mulle_objc_universe    *universe;
+   struct _mulle_objc_infraclass  *found;
+   struct _mulle_objc_class       *call_cls;
+   mulle_objc_implementation_t    imp;
 
    if( debug)
       fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, cls_or_classid, is_classid);
@@ -111,9 +111,11 @@ struct _mulle_objc_descriptor  *
 
 
 // this is supposed to crash!
-void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel)
+void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class  *cls;
+
+   // fprintf( stderr, "check %p %08x %p (%d)\n", obj, methodid);
 
    if( ! obj)
       return;
@@ -121,18 +123,20 @@ void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel)
    cls = _mulle_objc_object_get_isa( obj);
    strlen( cls->name);    // try to crash here
 
-   if( ! _mulle_objc_class_lookup_implementation_no_forward( cls, sel))
+   if( ! _mulle_objc_class_lookup_implementation_no_forward( cls, methodid))
       *((volatile int *)0) = '1848'; // force crash
 }
 
 
 void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void)
 {
-   struct _mulle_objc_universe   *universe;
-   struct mulle_concurrent_hashmap *map;
+   struct _mulle_objc_universe      *universe;
+   struct mulle_concurrent_hashmap  *map;
+
+   // fprintf( stderr, "get class storage\n");
 
    universe = mulle_objc_get_universe();
-   map     = &universe->classtable;
+   map      = &universe->classtable;
    return( _mulle_atomic_pointer_read( &map->next_storage.pointer));
 }
 
