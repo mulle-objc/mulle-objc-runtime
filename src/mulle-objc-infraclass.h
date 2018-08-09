@@ -77,9 +77,9 @@ struct _mulle_objc_infraclass
 };
 
 
-void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
-                                         struct mulle_allocator *allocator);
-void    _mulle_objc_infraclass_plusdone( struct _mulle_objc_infraclass *infra);
+void   _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
+                                        struct mulle_allocator *allocator);
+void   _mulle_objc_infraclass_plusdone( struct _mulle_objc_infraclass *infra);
 
 
 

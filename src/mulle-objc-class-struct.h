@@ -68,8 +68,8 @@ struct _mulle_objc_universe;
 
 struct _mulle_objc_methodcachepivot
 {
-   struct _mulle_objc_cachepivot       pivot; // for atomic XCHG with pointer indirection
-   mulle_objc_implementation_t   call2;
+   struct _mulle_objc_cachepivot   pivot; // for atomic XCHG with pointer indirection
+   mulle_objc_implementation_t     call2;
 };
 
 

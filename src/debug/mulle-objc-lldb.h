@@ -57,4 +57,9 @@ mulle_objc_implementation_t
 void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void);
 
 
+void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
+                                             uint8_t *bytes,
+                                             intptr_t numBytes,
+                                             int encoding,
+                                             char isExternalRepresentation);
 #endif /* mulle_objc_lldb_h */
