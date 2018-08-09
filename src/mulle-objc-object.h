@@ -87,7 +87,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
 MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
 static inline struct _mulle_objc_class   *_mulle_objc_object_get_isa( void *obj)
 {
-   unsigned int                 index;
+   unsigned int                  index;
    struct _mulle_objc_universe   *universe;
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
@@ -112,6 +112,17 @@ static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_cl
       mulle_objc_raise_taggedpointer_exception( obj);
 
    _mulle_objc_objectheader_set_isa( _mulle_objc_object_get_objectheader( obj), cls);
+}
+
+
+static inline void  *_mulle_objc_object_get_extra( void *obj)
+{
+   struct _mulle_objc_class   *cls;
+   size_t                     size;
+
+   cls  = _mulle_objc_object_get_isa( obj);
+   size = _mulle_objc_class_get_allocationsize( cls) - sizeof( struct _mulle_objc_objectheader);
+   return(  &((char *)obj)[ size]);
 }
 
 
@@ -203,6 +214,13 @@ static inline void  mulle_objc_object_set_isa( void *obj, struct _mulle_objc_cla
 {
    if( obj)
       _mulle_objc_object_set_isa( obj, cls);
+}
+
+
+MULLE_C_ALWAYS_INLINE
+static inline void  *mulle_objc_object_get_extra( void *obj)
+{
+   return( obj ? _mulle_objc_object_get_extra( obj) : NULL);
 }
 
 #endif

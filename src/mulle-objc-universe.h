@@ -723,7 +723,13 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
 void   _mulle_objc_universe_staticstringclass_did_change( struct _mulle_objc_universe *universe);
 
 void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
-                                                 struct _mulle_objc_infraclass *infra);
+                                                  struct _mulle_objc_infraclass *infra);
+
+static inline struct _mulle_objc_infraclass  *_mulle_objc_universe_get_staticstringclass( struct _mulle_objc_universe *universe)
+{
+  return( universe->foundation.staticstringclass);
+}
+
 
 #pragma mark - hashnames (debug output only)
 

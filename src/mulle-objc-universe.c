@@ -2061,7 +2061,7 @@ void   _mulle_objc_universe_staticstringclass_did_change( struct _mulle_objc_uni
 
 
 void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
-                                                 struct _mulle_objc_infraclass *infra)
+                                                  struct _mulle_objc_infraclass *infra)
 {
    assert( universe);
    assert( infra);

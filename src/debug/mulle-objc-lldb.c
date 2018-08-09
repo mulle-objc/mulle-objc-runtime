@@ -37,9 +37,11 @@
 
 #include "mulle-objc-call.h"
 #include "mulle-objc-class.h"
+#include "mulle-objc-class-convenience.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-method.h"
+#include "mulle-objc-retain-release.h"
 #include "mulle-objc-universe.h"
 
 
@@ -140,3 +142,62 @@ void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void)
    return( _mulle_atomic_pointer_read( &map->next_storage.pointer));
 }
 
+
+// Build the function type:
+//
+// CFStringRef CFStringCreateWithBytes (
+//   CFAllocatorRef alloc,
+//   const UInt8 *bytes,
+//   CFIndex numBytes,
+//   CFStringEncoding encoding,
+//   Boolean isExternalRepresentation
+//
+void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
+                                             uint8_t *bytes,
+                                             intptr_t numBytes,
+                                             int encoding,
+                                             char isExternalRepresentation)
+{
+//   switch( encoding)
+//   {
+//   case 0x08000100 : // utf8
+//   case 0x0600     : // ASCII
+//      break;
+//
+//   case 0x0100     : // utf16
+//      return( null);
+//   case 0x0c000100 : // utf32
+//      return( null);
+//   }
+
+   struct _mulle_objc_universe   *universe;
+   struct mulle_objc_infraclass  *infra;
+   struct mulle_allocator        *allocator;
+   size_t                        size;
+   struct { void  *bytes; intptr_t len; }  *obj;
+   void                          *extra;
+
+   // fprintf( stderr, "create static string \"%.*s\"\n", (int) numBytes, bytes);
+
+   universe  = mulle_objc_get_universe();
+   infra     = _mulle_objc_universe_get_staticstringclass( universe);
+   allocator = _mulle_objc_infraclass_get_allocator( infra);
+   // this happens in a test
+   if( ! allocator || ! allocator->calloc)
+      allocator = &mulle_default_allocator;
+
+   obj = _mulle_objc_infraclass_alloc_instance_extra( infra, numBytes + 4, allocator);
+
+   // static string class has no release anyway
+   _mulle_objc_object_nonatomic_infiniteretain( obj);
+
+   extra = _mulle_objc_object_get_extra( obj);
+
+   memcpy( extra, bytes, numBytes);
+   memset( &((char *) extra)[ numBytes], 0, 4);
+
+   obj->bytes = extra;
+   obj->len   = numBytes;
+
+   return( obj);
+}
