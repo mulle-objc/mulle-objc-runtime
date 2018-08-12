@@ -40,51 +40,96 @@
 #endif
 
 
-int   main( int argc, char *argv[])
+static void   print_uniqueid( char *s, size_t len,
+                              unsigned long value,
+                              char *prefix, char *suffix)
 {
-   unsigned long   value;
-   char            *prefix;
-   char            *suffix;
-   size_t          len;
-
-   if( argc != 2 || ! (len = strlen( argv[ 1])))
-   {
-      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>\n"
-                       "      Based on fnv1%s32 with shift %d\n",
-                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A ? "a" : "",
-                       MULLE_OBJC_UNIQUEHASH_SHIFT);
-      return( -1);
-   }
-
-   value  = (unsigned long) mulle_objc_uniqueid_from_string( argv[ 1]);
-   prefix = getenv( "PREFIX");
-   suffix = getenv( "SUFFIX");
-   if( ! suffix)
-      suffix = "_METHODID";
-   if( prefix)
-   {
 #ifdef _WIN32
-      char   *buf = alloca( sizeof( char) * (len + 1));
+   char   *buf = alloca( sizeof( char) * (len + 1));
 #else
-      char   buf[ len + 1];
+   char   buf[ len + 1];
 #endif
-      char   *s1, *s2;
-      char   c;
+   char   *s1, *s2;
+   char   c;
 
-      s1 = argv[ 1];
-      s2 = buf;
-      while( c = *s1++)
-         *s2++ = (char) toupper( c);
-      *s2 = c;
+   s1 = s;
+   s2 = buf;
+   while( c = *s1++)
+      *s2++ = (char) toupper( c);
+   *s2 = c;
 
-      printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
+   printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
             prefix,
             buf,
             suffix,
             value,
-            argv[ 1]);
+            s);
+}
+
+//
+// grep through all words and get a CSV list of the hashes:
+//
+// grep -h -o -R --include "*.m" --include "*.h" -E '\w+' src \
+//    | sort \
+//    | sort -u \
+//    | CSV="" xargs dependency/bin/mulle-objc-uniqueid
+//
+// Not that useful, because grep doesn't grep selectors well
+//
+int   main( int argc, char *argv[])
+{
+   unsigned long   value;
+   char            **sentinel;
+   char            *csv;
+   char            *prefix;
+   char            *suffix;
+   char            *s;
+   size_t          len;
+
+   if( argc < 2 || ! strlen( argv[ 1]))
+   {
+      fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>*\n"
+                       "      Based on fnv1%s32 with shift %d\n"
+                       "\n"
+                       "Environment:\n"
+                       "   CSV:     output hash;name\n"
+                       "   PREFIX:  output a #define with prefix\n"
+                       "   SUFFIX:  suffix for #define (only if prefix is defined)\n"
+                       "\n",
+                       MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A
+                         ? "a" : "",
+                       MULLE_OBJC_UNIQUEHASH_SHIFT);
+      return( -1);
    }
-   else
-      printf( "%08lx\n", value);
-   return 0;
+
+   csv    = getenv( "CSV");
+   prefix = getenv( "PREFIX");
+   suffix = getenv( "SUFFIX");
+   if( ! suffix)
+      suffix = "_METHODID";
+
+   sentinel = &argv[ argc];
+   argv     = &argv[ 1];
+
+   while( argv < sentinel)
+   {
+      s     = *argv++;
+      len   = strlen( s);
+      value = (unsigned long) mulle_objc_uniqueid_from_string( s);
+      if( csv)
+      {
+         printf( "%08lx;%s\n", value, s);
+         continue;
+      }
+
+      if( ! prefix)
+      {
+         printf( "%08lx\n", value);
+         continue;
+      }
+
+      print_uniqueid( s, len, value, prefix, suffix);
+   }
+
+   return( 0);
 }
