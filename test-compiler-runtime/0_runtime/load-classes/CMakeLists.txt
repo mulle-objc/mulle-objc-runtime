@@ -11,11 +11,11 @@ Foo2.m
 main.m)
 
 
-if( DEPENDENCIES_DIR)
-   include_directories( ${DEPENDENCIES_DIR}/include)
+if( DEPENDENCY_DIR)
+   include_directories( ${DEPENDENCY_DIR}/include)
 endif()
-if( ADDICTIONS_DIR)
-   include_directories( ${ADDICTIONS_DIR}/include)
+if( ADDICTION_DIR)
+   include_directories( ${ADDICTION_DIR}/include)
 endif()
 
 add_executable( load-classes
@@ -34,5 +34,5 @@ ${TEST_LIBRARIES}
 message( "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 message( "CMAKE_C_FLAGS_DEBUG = ${CMAKE_C_FLAGS_DEBUG}")
 message( "CMAKE_C_FLAGS_RELEASE = ${CMAKE_C_FLAGS_RELEASE}")
-message( "ADDICTIONS_DIR = ${ADDICTIONS_DIR}")
-message( "DEPENDENCIES_DIR = ${DEPENDENCIES_DIR}")
+message( "ADDICTION_DIR = ${ADDICTION_DIR}")
+message( "DEPENDENCY_DIR = ${DEPENDENCY_DIR}")
