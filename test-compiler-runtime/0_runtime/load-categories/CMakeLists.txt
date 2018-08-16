@@ -13,11 +13,11 @@ Foo+C3.m
 ProtoClass2.m
 main.m)
 
-if( DEPENDENCIES_DIR)
-   include_directories( ${DEPENDENCIES_DIR}/include)
+if( DEPENDENCY_DIR)
+   include_directories( ${DEPENDENCY_DIR}/include)
 endif()
-if( ADDICTIONS_DIR)
-   include_directories( ${ADDICTIONS_DIR}/include)
+if( ADDICTION_DIR)
+   include_directories( ${ADDICTION_DIR}/include)
 endif()
 
 
