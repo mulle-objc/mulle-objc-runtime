@@ -41,7 +41,6 @@
 #include <string.h>
 #include "include.h"  // for alignment mulle_objc_vararg.hcode
 
-
 // these defines are compatible to other universes
 // but some aren't implemented in code yet
 #define _C_ARY_B        '['
@@ -76,7 +75,8 @@
 #define _C_UINT         'I'
 #define _C_ULNG         'L'
 #define _C_ULNG_LNG     'Q'
-#define _C_UNDEF        '?'
+#define _C_FUNCTION     '?'  // same as undef. undef meaning "undefined size"
+#define _C_UNDEF        '?'  // actually @? is a block, ^? is function pointer
 #define _C_UNION_B      '('
 #define _C_UNION_E      ')'
 #define _C_USHT         'S'
@@ -198,4 +198,42 @@ int   mulle_objc_signature_contains_object( char *type);
 int   mulle_objc_signature_contains_retainableobject( char *type);
 
 
+// returns strlen()! not sizeof()
+static inline size_t  mulle_objc_get_untypedsignature_length( unsigned int args)
+{
+   // "@@:[@]*n"
+   return( args + 3);
+}
+
+// size is sizeof( ) here not len
+static inline void   _mulle_objc_sprint_untypedsignature( char *buf, size_t size, unsigned int args)
+{
+   assert( mulle_objc_get_untypedsignature_length( args) + 1 <= size);
+
+   *buf++ = '@';
+   *buf++ = '@';
+   *buf++ = ':';
+
+   while( args)
+   {
+     *buf++ = '@';
+     --args;
+   }
+   *buf = 0;
+}
+
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */
+
+
+// Get type and encoding via compiler:
+//
+// #include <stdio.h>
+// 
+// #define show_encode( x)   printf( "%s=%s\n", #x, @encode( x))
+// 
+// 
+// int   main( void)
+// {
+//    show_encode( void (*)( void));
+//    return( 0);
+// }
