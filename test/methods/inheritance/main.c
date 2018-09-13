@@ -81,29 +81,39 @@ int main( int argc, const char * argv[])
 {
    reset_universe();
 
+   fprintf( stderr, "simple\n");
    test_class_simple();
    reset_universe();
+
+   fprintf( stderr, "simple_inheritance\n");
    test_simple_inheritance();
-
    reset_universe();
+
+   fprintf( stderr, "category_inheritance\n");
    test_category_inheritance();
-
    reset_universe();
+
+   fprintf( stderr, "protocol_inheritance\n");
    test_protocol_inheritance();
-
    reset_universe();
+
+   fprintf( stderr, "method\n");
    test_method();
-
    reset_universe();
+
+   fprintf( stderr, "message_sending\n");
    test_message_sending();
-
    reset_universe();
+
+   fprintf( stderr, "message_forwarding1\n");
    test_message_forwarding1();
-
    reset_universe();
+
+   fprintf( stderr, "message_forwarding2\n");
    test_message_forwarding2();
-
    reset_universe();
+
+   fprintf( stderr, "retain_releas\n");
    test_retain_release();
 
    reset_universe();

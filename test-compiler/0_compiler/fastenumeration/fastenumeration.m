@@ -67,7 +67,7 @@ typedef struct
 
 + (id) new
 {
-   return( mulle_objc_infraclass_alloc_instance( self, NULL));
+   return( mulle_objc_infraclass_alloc_instance( self));
 }
 
 @end

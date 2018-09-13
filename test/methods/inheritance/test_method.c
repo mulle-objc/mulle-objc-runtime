@@ -18,13 +18,24 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <errno.h>
+#include <setjmp.h>
 
+
+static jmp_buf  crashbuf;
+
+static void   crash_catch( char *format, va_list args)
+{
+   vfprintf( stderr, format, args);
+   fprintf( stderr, "\n");
+   longjmp( crashbuf, 1);
+}
 
 void   test_method( void)
 {
    int    rval;
    struct _mulle_objc_descriptor   clone;
-   struct _mulle_objc_universe           *universe;
+   struct _mulle_objc_universe     *universe;
+   void                            (*oldfail)( char *, va_list);
 
    universe = mulle_objc_get_or_create_universe();
    assert( universe);
@@ -36,15 +47,24 @@ void   test_method( void)
    rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor);
    assert( ! rval);
 
-   // check that duplicate ID is wrong if name doesn't match
-   clone           = A_foo_method->descriptor;
-   clone.name      = "x";
+// this is now hard to test, would need longjmp setjmp here
+   oldfail                 = universe->failures.fail;
+   universe->failures.fail = crash_catch;
+
+   if( ! setjmp( crashbuf))
+   {
+      // check that duplicate ID is wrong if name doesn't match
+      clone           = A_foo_method->descriptor;
+      clone.name      = "x";
 
 #if DEBUG
-   fprintf( stderr, "possibly following warning about x's different method id is expected\n");
+      fprintf( stderr, "possibly following warning about x's different method id is expected\n");
 #endif
-   rval = _mulle_objc_universe_add_descriptor( universe, &clone);
-   assert( rval && errno == EEXIST || errno == EINVAL);
+
+      rval = _mulle_objc_universe_add_descriptor( universe, &clone);
+      assert( 0 && "must not reach this");
+   }
+   universe->failures.fail = oldfail;
 
    // different signature is harmless
    clone           = A_foo_method->descriptor;

@@ -169,8 +169,8 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
          // but what if the type differs ?
          {
             ___a___methodid,
-            "a",
             "@:",
+            "a",
             0
          },
          (void *) Foo_setA_b_
@@ -178,8 +178,8 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
       {
          {
             ___init__methodid,
-            "init",
             "@:",
+            "init",
             0
          },
          (void *) Foo_init
@@ -190,8 +190,8 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
          // but what if the type differs ?
          {
             ___setA___methodid,
-            "setA:",
             "@:ii",
+            "setA:",
             0
          },
          (void *) Foo_setA_b_
@@ -342,7 +342,7 @@ int   main( int argc, const char * argv[])
    // obj = [[Foo alloc] init];
 
    infra = mulle_objc_unfailingfastlookup_infraclass( ___Foo_classid);
-   obj = mulle_objc_infraclass_alloc_instance( infra, NULL);
+   obj = mulle_objc_infraclass_alloc_instance( infra);
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 
    cls       = _mulle_objc_infraclass_as_class( infra);
@@ -380,7 +380,7 @@ int   main( int argc, const char * argv[])
       //  printf( "Internal inconsistency (%d sets vs. %d gets)n",  n_sets, n_gets);
    }
 
-   _mulle_objc_class_invalidate_all_kvcinfos( cls);
+   _mulle_objc_class_invalidate_kvccache( cls);
 
    n_gets = 0;
    for( i = 0; i < 32; i++)
@@ -399,7 +399,7 @@ int   main( int argc, const char * argv[])
    }
 
    // [obj release];
-   mulle_objc_object_free( obj, NULL);
+   mulle_objc_object_free( obj);
 
    return 0;
 }
