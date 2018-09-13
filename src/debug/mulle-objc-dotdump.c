@@ -590,7 +590,7 @@ static void   print_class( struct _mulle_objc_class *cls,
    }
 
    {
-      cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
+      cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
       if( _mulle_atomic_pointer_nonatomic_read( &cache->n))
       {
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
@@ -935,7 +935,7 @@ static void   _mulle_objc_dotdump_overview_to_file( char *directory, char *filen
    struct _mulle_objc_universe   *universe;
    FILE                         *fp;
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    if( ! universe)
    {
       fprintf( stderr, "No universe found!\n");
@@ -998,7 +998,7 @@ static void   mulle_objc_dotdump_universe_to_file( char *directory,
    struct _mulle_objc_universe   *universe;
    FILE                         *fp;
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    if( ! universe)
    {
       fprintf( stderr, "No universe found!\n");
