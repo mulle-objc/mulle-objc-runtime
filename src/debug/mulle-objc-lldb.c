@@ -170,23 +170,17 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
 //      return( null);
 //   }
 
-   struct _mulle_objc_universe   *universe;
-   struct mulle_objc_infraclass  *infra;
-   struct mulle_allocator        *allocator;
-   size_t                        size;
+   struct _mulle_objc_universe    *universe;
+   struct _mulle_objc_infraclass  *infra;
+   size_t                         size;
    struct { void  *bytes; intptr_t len; }  *obj;
-   void                          *extra;
+   void                           *extra;
 
    // fprintf( stderr, "create static string \"%.*s\"\n", (int) numBytes, bytes);
 
-   universe  = mulle_objc_get_universe();
-   infra     = _mulle_objc_universe_get_staticstringclass( universe);
-   allocator = _mulle_objc_infraclass_get_allocator( infra);
-   // this happens in a test
-   if( ! allocator || ! allocator->calloc)
-      allocator = &mulle_default_allocator;
-
-   obj = _mulle_objc_infraclass_alloc_instance_extra( infra, numBytes + 4, allocator);
+   universe = mulle_objc_get_universe();
+   infra    = _mulle_objc_universe_get_staticstringclass( universe);
+   obj      = (void *) _mulle_objc_infraclass_alloc_instance_extra( infra, numBytes + 4);
 
    // static string class has no release anyway
    _mulle_objc_object_nonatomic_infiniteretain( obj);

@@ -118,7 +118,7 @@ void  _mulle_objc_object_perform_finalize( void *obj)
 
       new_retaincount_1 = retaincount_1 + INTPTR_MIN + 1;
    }
-   while( ! _mulle_atomic_pointer_compare_and_swap( &header->_retaincount_1, (void *) new_retaincount_1,  (void *) retaincount_1));
+   while( ! _mulle_atomic_pointer_cas( &header->_retaincount_1, (void *) new_retaincount_1,  (void *) retaincount_1));
 
    _mulle_objc_object_finalize( obj);
 }

@@ -45,7 +45,7 @@ static void   objc_exception_throw( void *exception)  // familar name
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    universe->exceptionvectors.throw( universe, exception);
 }
 
@@ -60,7 +60,7 @@ void   mulle_objc_exception_try_enter( void *localExceptionData)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    universe->exceptionvectors.try_enter( universe, localExceptionData);
 }
 
@@ -69,7 +69,7 @@ void   mulle_objc_exception_try_exit( void *localExceptionData)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    universe->exceptionvectors.try_exit( universe, localExceptionData);
 }
 
@@ -78,7 +78,7 @@ void   *mulle_objc_exception_extract( void *localExceptionData)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    return( universe->exceptionvectors.extract( universe, localExceptionData));
 }
 
@@ -87,7 +87,7 @@ int   _mulle_objc_exception_match( mulle_objc_classid_t classid, void *exception
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    return( universe->exceptionvectors.match( universe, classid, exception));
 }
 

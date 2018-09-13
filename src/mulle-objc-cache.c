@@ -42,7 +42,8 @@
 
 #pragma mark - methodcache
 
-struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size, struct mulle_allocator *allocator)
+struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
+                                                  struct mulle_allocator *allocator)
 {
    struct _mulle_objc_cache  *cache;
 
@@ -205,7 +206,7 @@ mulle_objc_cache_uint_t
 }
 
 
-unsigned int  mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cache *cache)
+unsigned int   mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cache *cache)
 {
    intptr_t   n;
 
@@ -272,7 +273,10 @@ unsigned int   mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cach
 // this only works for a cache, that isn't active in the universe yet and that
 // has enough space (!)
 
-struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache, void *pointer, mulle_objc_uniqueid_t uniqueid)
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache,
+                                                      void *pointer,
+                                                      mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
@@ -292,7 +296,10 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_pointer_ent
 }
 
 
-struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_functionpointer_entry( struct _mulle_objc_cache *cache, mulle_functionpointer_t pointer, mulle_objc_uniqueid_t uniqueid)
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_cache_inactivecache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
+                                                              mulle_functionpointer_t pointer,
+                                                              mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
@@ -313,9 +320,10 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_inactivecache_add_functionpoi
 
 
 
-struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mulle_objc_cache *cache,
-                                                                      void *pointer,
-                                                                      mulle_objc_uniqueid_t uniqueid)
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_cache_add_pointer_entry( struct _mulle_objc_cache *cache,
+                                        void *pointer,
+                                        mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
@@ -337,7 +345,7 @@ struct _mulle_objc_cacheentry   *_mulle_objc_cache_add_pointer_entry( struct _mu
    // There is a time when the cache has actually n entries, but it's count
    // is < n. that's not fatal but one needs to know this
    //
-   if( ! _mulle_atomic_pointer_compare_and_swap( &entry->value.pointer, pointer, NULL))
+   if( ! _mulle_atomic_pointer_cas( &entry->value.pointer, pointer, NULL))
    {
       //
       // implementation set by someone else...
@@ -384,7 +392,7 @@ struct _mulle_objc_cacheentry   *
    // There is a time when the cache has actually n entries, but it's count
    // is < n. that's not fatal but one needs to know this
    //
-   if( ! _mulle_atomic_functionpointer_compare_and_swap( &entry->value.functionpointer, pointer, NULL))
+   if( ! _mulle_atomic_functionpointer_cas( &entry->value.functionpointer, pointer, NULL))
    {
       //
       // implementation set by someone else...
@@ -404,6 +412,8 @@ struct _mulle_objc_cacheentry   *
 
    return( entry);
 }
+
+
 
 // #1#
 // the atomicity of this.

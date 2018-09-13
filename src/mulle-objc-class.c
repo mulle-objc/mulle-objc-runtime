@@ -94,7 +94,7 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
       if( state == old)
          return( 0);
    }
-   while( ! _mulle_atomic_pointer_compare_and_swap( &cls->state, state, old));
+   while( ! _mulle_atomic_pointer_weakcas( &cls->state, state, old));
 
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.state_bit)
@@ -174,9 +174,9 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
 #endif
    _mulle_concurrent_pointerarray_done( &cls->methodlists);
 
-   _mulle_objc_class_invalidate_all_kvcinfos( cls);
+   _mulle_objc_class_invalidate_kvccache( cls);
 
-   cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
+   cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
    if( cache != &cls->universe->empty_cache)
       _mulle_objc_cache_free( cache, allocator);
 
@@ -184,7 +184,7 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
    {
       struct _mulle_objc_cache   *supercache;
 
-      supercache = _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot);
+      supercache = _mulle_objc_cachepivot_atomicget_cache( &cls->supercachepivot);
       if( supercache != &cls->universe->empty_cache)
          _mulle_objc_cache_free( supercache, allocator);
    }
@@ -270,15 +270,15 @@ int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
 
 # pragma mark - caches
 
-static int
-   _mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class *cls,
-                                             mulle_objc_uniqueid_t uniqueid)
+//
+// pass methodid = 0, to invalidate all
+//
+int   _mulle_objc_class_invalidate_methodcacheentry( struct _mulle_objc_class *cls,
+                                                     mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
    struct _mulle_objc_cache        *cache;
-
-   assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return( 0);
@@ -287,12 +287,17 @@ static int
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return( 0);
 
-   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
-   entry  = (void *) &((char *) cache->entries)[ offset];
+   if( methodid != MULLE_OBJC_NO_METHODID)
+   {
+      assert( mulle_objc_uniqueid_is_sane( methodid));
 
-   // no entry is matching, fine
-   if( ! entry->key.uniqueid)
-      return( 0);
+      offset = _mulle_objc_cache_find_entryoffset( cache, methodid);
+      entry  = (void *) &((char *) cache->entries)[ offset];
+
+      // no entry is matching, fine
+      if( ! entry->key.uniqueid)
+         return( 0);
+   }
 
    //
    // if we get NULL, from _mulle_objc_class_add_cacheentry_by_swapping_caches
@@ -301,7 +306,11 @@ static int
    for(;;)
    {
       // always break regardless of return value
-      _mulle_objc_class_add_cacheentry_by_swapping_methodcaches( cls, cache, NULL, MULLE_OBJC_NO_UNIQUEID);
+      _mulle_objc_class_add_cacheentry_by_swapping_methodcaches( cls,
+                                                                 cache,
+                                                                 NULL,
+                                                                 MULLE_OBJC_NO_METHODID,
+                                                                 MULLE_OBJC_CACHESIZE_STAGNATE);
       break;
    }
 
@@ -310,8 +319,7 @@ static int
 
 
 #ifdef HAVE_SUPERCACHE
-static int
-   _mulle_objc_class_invalidate_supercache( struct _mulle_objc_class *cls)
+int   _mulle_objc_class_invalidate_supercache( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_cache   *supercache;
 
@@ -329,7 +337,11 @@ static int
    for(;;)
    {
       // always break regardless of return value
-      _mulle_objc_class_add_cacheentry_by_swapping_supercaches( cls, supercache, NULL, MULLE_OBJC_NO_METHODID);
+      _mulle_objc_class_add_cacheentry_by_swapping_supercaches( cls,
+                                                                supercache,
+                                                                NULL,
+                                                                MULLE_OBJC_NO_METHODID,
+                                                                MULLE_OBJC_CACHESIZE_STAGNATE);
       break;
    }
 
@@ -338,12 +350,12 @@ static int
 #endif
 
 
-static int  invalidate_caches( struct _mulle_objc_universe *universe,
-                               struct _mulle_objc_class *cls,
-                               enum mulle_objc_walkpointertype_t type,
-                               char *key,
-                               void *parent,
-                               struct _mulle_objc_methodlist *list)
+static int  invalidate_methodcacheentries( struct _mulle_objc_universe *universe,
+                                           struct _mulle_objc_class *cls,
+                                           enum mulle_objc_walkpointertype_t type,
+                                           char *key,
+                                           void *parent,
+                                           struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;
    struct _mulle_objc_method                 *method;
@@ -352,7 +364,7 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
       return( mulle_objc_walk_ok);
 
-   _mulle_objc_class_invalidate_all_kvcinfos( cls);
+   _mulle_objc_class_invalidate_kvccache( cls);
 
 // not having a supercache is so much better (timing...)
 #ifdef HAVE_SUPERCACHE
@@ -363,7 +375,7 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
    // if caches have been cleaned for class, it's done
    rover = _mulle_objc_methodlist_enumerate( list);
    while( method = _mulle_objc_methodlistenumerator_next( &rover))
-      if( _mulle_objc_class_invalidate_methodcache( cls, method->descriptor.methodid))
+      if( _mulle_objc_class_invalidate_methodcacheentry( cls, method->descriptor.methodid))
          break;
    _mulle_objc_methodlistenumerator_done( &rover);
 
@@ -376,7 +388,7 @@ static int  invalidate_caches( struct _mulle_objc_universe *universe,
 //
 // The assumption on the runtime is, that you can only add but don't
 // interpose. In this regard caches might be outdated but not wrong.
-// TODO: What happens when a class gets adds a methodlist and
+// TODO: What happens when a class gets added a methodlist and
 // the a method expects the superclass to also have a methodlist added
 // already, which it hasn't. Solved by +dependencies!
 // A problem remains: the superclass gets an incompatible method added,
@@ -398,7 +410,7 @@ void   mulle_objc_class_did_add_methodlist( struct _mulle_objc_class *cls,
       // this optimization works as long as you are installing plain classes.
       //
       if( _mulle_atomic_pointer_read( &cls->universe->cachecount_1))
-         mulle_objc_universe_walk_classes( cls->universe, (mulle_objc_walkcallback_t) invalidate_caches, list);
+         mulle_objc_universe_walk_classes( cls->universe, (mulle_objc_walkcallback_t) invalidate_methodcacheentries, list);
    }
 }
 
@@ -408,11 +420,18 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_methodlistenumerator   rover;
    struct _mulle_objc_method                 *method;
+   struct _mulle_objc_universe               *universe;
    mulle_objc_uniqueid_t                     last;
    unsigned int                              n;
 
    if( ! list)
-      list = &cls->universe->empty_methodlist;
+   {
+      if( _mulle_concurrent_pointerarray_get_count( &cls->methodlists) != 0)
+         return( 0);
+
+      universe = _mulle_objc_class_get_universe( cls);
+      list     = &universe->empty_methodlist;
+   }
 
    /* register instance methods */
    n     = 0;
@@ -432,12 +451,8 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
       }
 
       last = method->descriptor.methodid;
-      if( _mulle_objc_universe_add_descriptor( cls->universe, &method->descriptor))
-      {
-         _mulle_objc_methodlistenumerator_done( &rover);
-         // errno = EEXIST; // errno set by _add_...
-         return( -1);
-      }
+      mulle_objc_universe_unfailingregister_descriptor( cls->universe, 
+                                                        &method->descriptor);
 
       if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
       {
@@ -471,7 +486,7 @@ int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
 
 
 void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
-                                                  struct _mulle_objc_methodlist *list)
+                                                 struct _mulle_objc_methodlist *list)
 {
    if( mulle_objc_class_add_methodlist( cls, list))
       _mulle_objc_universe_raise_errno_exception( cls->universe);
@@ -479,14 +494,15 @@ void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
 
 
 
-static int   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *cls,
-                                                      unsigned int inheritance,
-                                                      int (*f)( struct _mulle_objc_method *,
-                                                                struct _mulle_objc_class *,
-                                                                void *),
-                                                      void *userinfo)
+static mulle_objc_walkcommand_t   
+   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *cls,
+                                            unsigned int inheritance,
+                                            mulle_objc_walkcommand_t (*f)( struct _mulle_objc_method *,
+                                                                           struct _mulle_objc_class *,
+                                                                           void *),
+                                            void *userinfo)
 {
-   int                                          rval;
+   mulle_objc_walkcommand_t                     rval;
    struct _mulle_objc_class                     *walk_cls;
    struct _mulle_objc_infraclass                *infra;
    struct _mulle_objc_infraclass                *proto_cls;
@@ -518,7 +534,8 @@ static int   _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *
 }
 
 
-static unsigned int   _mulle_objc_class_count_protocolspreloadinstancemethods( struct _mulle_objc_class *cls)
+static unsigned int   
+   _mulle_objc_class_count_protocolspreloadinstancemethods( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_class                     *walk_cls;
    struct _mulle_objc_classpair                 *pair;
@@ -573,12 +590,20 @@ unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class 
    return( preloads);
 }
 
-// 0: continue
-typedef   int (*mulle_objc_walk_methods_callback)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *);
 
-int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned int inheritance , mulle_objc_walk_methods_callback f, void *userinfo)
+// 0: continue
+typedef mulle_objc_walkcommand_t 
+   (*mulle_objc_walk_methods_callback)( struct _mulle_objc_method *, 
+                                        struct _mulle_objc_class *, 
+                                        void *);
+
+mulle_objc_walkcommand_t
+   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, 
+                                   unsigned int inheritance, 
+                                   mulle_objc_walk_methods_callback f, 
+                                   void *userinfo)
 {
-   int                                                     rval;
+   mulle_objc_walkcommand_t                                rval;
    struct _mulle_objc_methodlist                           *list;
    struct mulle_concurrent_pointerarrayreverseenumerator   rover;
    unsigned int                                            n;
@@ -592,17 +617,15 @@ int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned in
    //  ->[n -1] : last category
 
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
-   assert( n);
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
       n = 1;
 
    rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
-
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
       if( rval = _mulle_objc_methodlist_walk( list, f, cls, userinfo))
       {
-         if( rval < 0)
+         if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
          return( rval);
       }
@@ -616,7 +639,7 @@ int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned in
 
       if( rval = _mulle_objc_class_protocol_walk_methods( cls, tmp, f, userinfo))
       {
-         if( rval < 0)
+         if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
          return( rval);
       }
@@ -629,6 +652,55 @@ int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned in
    }
 
    return( 0);
+}
+
+
+
+//
+// lookup a method in class and categories, do not look through protocol
+// class methodlists, as they are shared by other classes
+//
+struct lookup_method_ctxt
+{
+   mulle_objc_methodid_t      methodid;
+   struct _mulle_objc_method  *found;
+};
+
+
+static mulle_objc_walkcommand_t   find_method( struct _mulle_objc_method *method, 
+                                               struct _mulle_objc_class *cls, 
+                                               void *userinfo)
+{
+   struct lookup_method_ctxt   *ctxt = userinfo;
+
+   if( _mulle_objc_method_get_methodid( method) == ctxt->methodid)
+   {
+      ctxt->found = method;
+      return( mulle_objc_walk_done);
+   }
+   return( mulle_objc_walk_ok);
+}
+
+
+struct _mulle_objc_method  *
+   _mulle_objc_class_lookup_method( struct _mulle_objc_class *cls,
+                                    mulle_objc_methodid_t methodid)
+{
+   unsigned int                inheritance;
+   struct lookup_method_ctxt   ctxt;
+
+   assert( cls);
+
+   ctxt.found    = NULL;
+   ctxt.methodid = methodid;
+   inheritance   = MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS |
+                   MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS; 
+   if( _mulle_objc_class_walk_methods( cls, inheritance, find_method, &ctxt) == \
+       mulle_objc_walk_done)
+   {
+      return( ctxt.found);
+   }
+   return( NULL);
 }
 
 

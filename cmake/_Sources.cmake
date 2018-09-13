@@ -19,7 +19,6 @@ src/mulle-objc-callqueue.c
 src/mulle-objc-class.c
 src/mulle-objc-classpair.c
 src/mulle-objc-class-search.c
-src/mulle-objc-class-universe.c
 src/mulle-objc-fastenumeration.c
 src/mulle-objc-fastmethodtable.c
 src/mulle-objc-fnv1a.c
@@ -43,6 +42,7 @@ src/mulle-objc-try-catch-finally.c
 src/mulle-objc-uniqueidarray.c
 src/mulle-objc-uniqueid.c
 src/mulle-objc-universe.c
+src/mulle-objc-universe-class.c
 src/mulle-objc-universe-global.c
 )
 

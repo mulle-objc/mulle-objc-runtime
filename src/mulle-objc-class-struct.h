@@ -172,55 +172,66 @@ struct _mulle_objc_class
 # pragma mark - petty accessors
 
 
-static inline struct _mulle_objc_class   *_mulle_objc_class_get_superclass( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_class   *
+   _mulle_objc_class_get_superclass( struct _mulle_objc_class *cls)
 {
    return( cls->superclass);
 }
 
 
-static inline mulle_objc_classid_t   _mulle_objc_class_get_classid( struct _mulle_objc_class *cls)
+static inline mulle_objc_classid_t
+   _mulle_objc_class_get_classid( struct _mulle_objc_class *cls)
 {
    return( cls->classid);
 }
 
 
-static inline char   *_mulle_objc_class_get_name( struct _mulle_objc_class *cls)
+static inline char   *
+   _mulle_objc_class_get_name( struct _mulle_objc_class *cls)
 {
    return( cls->name);
 }
 
 
-static inline struct _mulle_objc_universe   *_mulle_objc_class_get_universe( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_universe   *
+   _mulle_objc_class_get_universe( struct _mulle_objc_class *cls)
 {
    return( cls->universe);
 }
 
 
-static inline size_t   _mulle_objc_class_get_allocationsize( struct _mulle_objc_class *cls)
+static inline size_t
+   _mulle_objc_class_get_allocationsize( struct _mulle_objc_class *cls)
 {
    return( cls->allocationsize);
 }
 
 
-static inline size_t   _mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
+static inline size_t
+   _mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
 {
    return( cls->allocationsize - sizeof( struct _mulle_objc_objectheader));
 }
 
 
 // deprecated
-static inline size_t   _mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
+static inline size_t
+   _mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
 {
    return( _mulle_objc_class_get_instancesize( cls));
 }
 
 
-static inline unsigned int   _mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
+static inline unsigned int
+   _mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
 {
    return( cls->inheritance);
 }
 
-static inline void   _mulle_objc_class_set_inheritance( struct _mulle_objc_class *cls, unsigned int inheritance)
+
+static inline void
+   _mulle_objc_class_set_inheritance( struct _mulle_objc_class *cls,
+                                      unsigned int inheritance)
 {
    assert( (unsigned short) inheritance == inheritance);
 
@@ -228,10 +239,12 @@ static inline void   _mulle_objc_class_set_inheritance( struct _mulle_objc_class
 }
 
 
-int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls, unsigned int bit);
+int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
+                                       unsigned int bit);
 
-static inline unsigned int   _mulle_objc_class_get_state_bit( struct _mulle_objc_class *cls,
-                                                              unsigned int bit)
+static inline unsigned int
+   _mulle_objc_class_get_state_bit( struct _mulle_objc_class *cls,
+                                    unsigned int bit)
 {
    void   *old;
 
@@ -240,13 +253,16 @@ static inline unsigned int   _mulle_objc_class_get_state_bit( struct _mulle_objc
 }
 
 
-static inline struct _mulle_objc_method   *_mulle_objc_class_get_forwardmethod( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_method   *
+   _mulle_objc_class_get_forwardmethod( struct _mulle_objc_class *cls)
 {
    return( cls->forwardmethod);
 }
 
 
-static inline void   _mulle_objc_class_set_forwardmethod( struct _mulle_objc_class *cls, struct _mulle_objc_method *method)
+static inline void
+   _mulle_objc_class_set_forwardmethod( struct _mulle_objc_class *cls,
+                                        struct _mulle_objc_method *method)
 {
    assert( ! method || (method->descriptor.methodid != MULLE_OBJC_NO_METHODID &&
                         method->descriptor.methodid != MULLE_OBJC_INVALID_METHODID));
@@ -258,13 +274,16 @@ static inline void   _mulle_objc_class_set_forwardmethod( struct _mulle_objc_cla
 //
 // if we are a metaclass, the infraclass is the "actual" ''infraclass''
 //
-static inline struct _mulle_objc_infraclass   *_mulle_objc_class_get_infraclass( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_infraclass   *
+   _mulle_objc_class_get_infraclass( struct _mulle_objc_class *cls)
 {
    return( cls->infraclass);
 }
 
 // only used during new_classpair
-static inline void   _mulle_objc_class_set_infraclass( struct _mulle_objc_class *cls,  struct _mulle_objc_infraclass *infra)
+static inline void
+   _mulle_objc_class_set_infraclass( struct _mulle_objc_class *cls,
+                                     struct _mulle_objc_infraclass *infra)
 {
    cls->infraclass = infra;
 }
@@ -282,7 +301,8 @@ static inline int   _mulle_objc_class_is_metaclass( struct _mulle_objc_class *cl
 }
 
 
-static inline struct _mulle_objc_metaclass   *_mulle_objc_class_get_metaclass( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_metaclass   *
+   _mulle_objc_class_get_metaclass( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_objectheader   *header;
 
@@ -295,6 +315,26 @@ static inline char   *_mulle_objc_class_get_classtypename( struct _mulle_objc_cl
 {
    return( _mulle_objc_class_is_metaclass( cls) ? "metaclass" : "infraclass");
 }
+
+
+# pragma mark - dangerous methods for the compatibility layer
+
+// to be used for class setup only
+
+
+static inline void
+   _mulle_objc_class_set_superclass( struct _mulle_objc_class *cls,
+                                     struct _mulle_objc_class *superclass)
+{
+   cls->superclass = superclass;
+}
+
+
+static inline size_t   _mulle_objc_class_get_methodlistscount( struct _mulle_objc_class *cls)
+{
+   return( mulle_concurrent_pointerarray_get_count( &cls->methodlists));
+}
+
 
 
 #endif /* mulle_objc_class_struct_h */

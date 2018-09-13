@@ -49,10 +49,18 @@
 void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
                                          struct mulle_allocator *allocator)
 {
+   struct _mulle_objc_universe   *universe;
+   struct mulle_allocator        *foundation_allocator;
+
    _mulle_concurrent_pointerarray_init( &infra->ivarlists, 0, allocator);
    _mulle_concurrent_pointerarray_init( &infra->propertylists, 0, allocator);
 
    _mulle_concurrent_hashmap_init( &infra->cvars, 0, allocator);
+
+   universe             = _mulle_objc_infraclass_get_universe( infra);
+   foundation_allocator = _mulle_objc_universe_get_foundation_allocator( universe);
+   infra->allocator     = foundation_allocator->calloc ? foundation_allocator
+                                                       : &mulle_default_allocator;
 }
 
 
@@ -163,8 +171,11 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 
    if( ! list)
    {
+      if( _mulle_concurrent_pointerarray_get_count( &infra->propertylists) != 0)
+         return( 0);
+
       universe = _mulle_objc_infraclass_get_universe( infra);
-      list    = &universe->empty_propertylist;
+      list     = &universe->empty_propertylist;
    }
 
    has_clearable_property = 0;
@@ -207,10 +218,10 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infraclass *infra,
                                                          struct _mulle_objc_propertylist *list)
 {
+   struct _mulle_objc_universe   *universe;
+
    if( mulle_objc_infraclass_add_propertylist( infra, list))
    {
-      struct _mulle_objc_universe   *universe;
-
       universe = _mulle_objc_infraclass_get_universe( infra);
       _mulle_objc_universe_raise_errno_exception( universe);
    }
@@ -222,18 +233,23 @@ void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infra
 int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
                                           struct _mulle_objc_ivarlist *list)
 {
+   struct _mulle_objc_universe   *universe;
+
    if( ! infra)
    {
       errno = EINVAL;
       return( -1);
    }
 
+   // only add empty list, if there is nothing there yet
    if( ! list)
    {
-      struct _mulle_objc_universe   *universe;
+
+      if( _mulle_concurrent_pointerarray_get_count( &infra->ivarlists) != 0)
+         return( 0);
 
       universe = _mulle_objc_infraclass_get_universe( infra);
-      list    = &universe->empty_ivarlist;
+      list     = &universe->empty_ivarlist;
    }
 
    _mulle_concurrent_pointerarray_add( &infra->ivarlists, list);
@@ -244,10 +260,10 @@ int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
 void   mulle_objc_infraclass_unfailingadd_ivarlist( struct _mulle_objc_infraclass *infra,
                                                      struct _mulle_objc_ivarlist *list)
 {
+   struct _mulle_objc_universe   *universe;
+
    if( mulle_objc_infraclass_add_ivarlist( infra, list))
    {
-      struct _mulle_objc_universe   *universe;
-
       universe = _mulle_objc_infraclass_get_universe( infra);
       _mulle_objc_universe_raise_errno_exception( universe);
    }
@@ -300,10 +316,11 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 
 # pragma mark - ivar walker
 
-int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
-                                         unsigned int inheritance,
-                                         mulle_objc_walkivarscallback *f,
-                                         void *userinfo)
+mulle_objc_walkcommand_t   
+	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
+                                      unsigned int inheritance,
+                                      mulle_objc_walkivarscallback *f,
+                                      void *userinfo)
 {
    int                                                    rval;
    struct _mulle_objc_ivarlist                            *list;
@@ -318,7 +335,6 @@ int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
    //  ->[n -1] : last category
 
    n = mulle_concurrent_pointerarray_get_count( &infra->ivarlists);
-   assert( n);
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
       n = 1;
 
@@ -328,7 +344,7 @@ int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
    {
       if( rval = _mulle_objc_ivarlist_walk( list, f, infra, userinfo))
       {
-         if( rval < 0)
+         if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
          return( rval);
       }
@@ -341,15 +357,16 @@ int   _mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
          return( _mulle_objc_infraclass_walk_ivars( superclass, inheritance, f, userinfo));
    }
 
-   return( 0);
+   return( mulle_objc_walk_ok);
 }
 
 # pragma mark - property walker
 
-int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
-                                             unsigned int inheritance,
-                                             mulle_objc_walkpropertiescallback *f,
-                                             void *userinfo)
+mulle_objc_walkcommand_t   
+	_mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
+                                           unsigned int inheritance,
+                                           mulle_objc_walkpropertiescallback *f,
+                                           void *userinfo)
 {
    int                                                     rval;
    struct _mulle_objc_propertylist                         *list;
@@ -365,7 +382,6 @@ int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *inf
    //  ->[n -1] : last category
 
    n = mulle_concurrent_pointerarray_get_count( &infra->propertylists);
-   assert( n);
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
       n = 1;
 
@@ -383,7 +399,7 @@ int   _mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *inf
          return( _mulle_objc_infraclass_walk_properties( superclass, inheritance, f, userinfo));
    }
 
-   return( 0);
+   return( mulle_objc_walk_ok);
 }
 
 
@@ -410,7 +426,7 @@ static char  footer[] = "(so it is not used as protocol class)\n";
 struct bouncy_info
 {
    void                          *userinfo;
-   struct _mulle_objc_universe    *universe;
+   struct _mulle_objc_universe   *universe;
    void                          *parent;
    mulle_objc_walkcallback_t     callback;
    mulle_objc_walkcommand_t      rval;
@@ -585,8 +601,9 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
 
             fprintf( stderr, "Categories:\n");
             _mulle_objc_classpair_walk_categoryids( pair,
-                                                   print_categoryid,
-                                                   NULL);
+                                                    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS,
+                                                    print_categoryid,
+                                                    NULL);
          }
       }
    }

@@ -81,7 +81,7 @@ static inline int  mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid)
    return( 1);
 }
 
-
+// sets errno
 int   mulle_objc_uniqueid_is_sane_string( mulle_objc_uniqueid_t uniqueid, char *s);
 
 // for compiler purposes it's better to typedef the various id types here

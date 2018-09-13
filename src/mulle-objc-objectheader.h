@@ -115,6 +115,10 @@ static inline struct _mulle_objc_class   *_mulle_objc_objectheader_get_isa( stru
 }
 
 
+//
+// this is not atomic! only do this when noone else has
+// access (like during initialization)
+//
 static inline void   _mulle_objc_objectheader_set_isa( struct _mulle_objc_objectheader *header, struct _mulle_objc_class *cls)
 {
    header->_isa = cls;

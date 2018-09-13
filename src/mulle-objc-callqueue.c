@@ -76,7 +76,8 @@ static inline void   queue_entry_execute( struct _queue_entry *q)
 #pragma mark - mulle_objc_callqueue
 
 
-int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *queue, struct mulle_allocator *allocator)
+int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *queue,
+                                 struct mulle_allocator *allocator)
 {
    if( ! queue || ! allocator)
    {

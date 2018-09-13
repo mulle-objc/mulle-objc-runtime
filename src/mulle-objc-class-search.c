@@ -37,7 +37,7 @@
 
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-struct.h"
-#include "mulle-objc-class-universe.h"
+#include "mulle-objc-universe-class.h"
 #include "mulle-objc-classpair.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-metaclass.h"
@@ -635,7 +635,8 @@ struct _mulle_objc_method   *
                               _mulle_objc_class_get_classid( cls),
                               _mulle_objc_class_get_name( cls),
                               search->args.methodid,
-                              _mulle_objc_universe_string_for_methodid( cls->universe, search->args.methodid));
+                              _mulle_objc_universe_string_for_methodid( cls->universe,
+                                                                        search->args.methodid));
 
       assert( errno == ENOENT);
       if( trace)
@@ -728,8 +729,7 @@ struct _mulle_objc_method    *
 }
 
 
-MULLE_C_NO_RETURN
-static void
+MULLE_C_NO_RETURN static void
    _mulle_objc_class_raise_fowardmethodnotfound( struct _mulle_objc_class *cls,
                                                  mulle_objc_methodid_t missing_method)
 {
@@ -741,23 +741,23 @@ static void
 
    if( errno != ENOENT)
       _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "mulle_objc_universe: \"forward:\" method has wrong id in %sclass \"%s\"",
-                                                         prefix,
-                                                         name);
+                                                          prefix,
+                                                          name);
    if( missing_method)
       _mulle_objc_class_raise_method_not_found_exception( cls, missing_method);
 
    _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "mulle_objc_universe: missing \"forward:\" method in %sclass \"%s\"",
-                                                      prefix,
-                                                      name);
+                                                       prefix,
+                                                       name);
 }
 
 
-MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_method    *
+MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_unfailinglazyget_forwardmethod( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t   missing_method)
+                                                     mulle_objc_methodid_t missing_method)
 {
-   struct _mulle_objc_method   *method;
+   struct _mulle_objc_universe  *universe;
+   struct _mulle_objc_method    *method;
 
    method = _mulle_objc_class_lazyget_forwardmethod( cls);
    if( method)
@@ -769,7 +769,7 @@ struct _mulle_objc_method    *
 
 // used by the debugger
 mulle_objc_implementation_t
-mulle_objc_class_get_forwardimplementation( struct _mulle_objc_class *cls)
+   mulle_objc_class_get_forwardimplementation( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
 

@@ -66,7 +66,7 @@ struct _mulle_objc_dependency
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   12
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   13
 
 
 struct _mulle_objc_loadclass
@@ -176,7 +176,7 @@ char   *_mulle_objc_loadhashedstring_search( struct _mulle_objc_loadhashedstring
 
 static inline char   *
    mulle_objc_loadhashedstringlist_search( struct _mulle_objc_loadhashedstringlist *map,
-                                            mulle_objc_uniqueid_t search)
+                                           mulle_objc_uniqueid_t search)
 {
    if( map)
       return( _mulle_objc_loadhashedstring_search( map->loadentries, map->n_loadentries, search));

@@ -100,7 +100,7 @@
 #include "mulle-objc-version.h"
 #include "mulle-objc-walktypes.h"
 
-#include "mulle-objc-class-universe.h"
+#include "mulle-objc-universe-class.h"
 
 
 // add some functions to mulle-vararg for ObjC

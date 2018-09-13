@@ -95,39 +95,45 @@ void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
 # pragma mark - petty accessors
 
 
-static inline struct _mulle_objc_infraclass   *_mulle_objc_classpair_get_infraclass( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_infraclass   *
+   _mulle_objc_classpair_get_infraclass( struct _mulle_objc_classpair *pair)
 {
    return( &pair->infraclass);
 }
 
 
-static inline struct _mulle_objc_metaclass   *_mulle_objc_classpair_get_metaclass( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_metaclass   *
+   _mulle_objc_classpair_get_metaclass( struct _mulle_objc_classpair *pair)
 {
    return( &pair->metaclass);
 }
 
 
-static inline struct _mulle_objc_infraclass   *mulle_objc_classpair_get_infraclass( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_infraclass   *
+   mulle_objc_classpair_get_infraclass( struct _mulle_objc_classpair *pair)
 {
    return( pair ? _mulle_objc_classpair_get_infraclass( pair) : NULL);
 }
 
 
 
-static inline struct _mulle_objc_metaclass   *mulle_objc_classpair_get_metaclass( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_metaclass   *
+   mulle_objc_classpair_get_metaclass( struct _mulle_objc_classpair *pair)
 {
    return( pair ? _mulle_objc_classpair_get_metaclass( pair) : NULL);
 }
 
 
-static inline void   _mulle_objc_classpair_set_origin( struct _mulle_objc_classpair *pair,
-                                                      char *name)
+static inline void
+   _mulle_objc_classpair_set_origin( struct _mulle_objc_classpair *pair,
+                                     char *name)
 {
    pair->origin = name;  // not copied gotta be a constant string
 }
 
 
-static inline char   *_mulle_objc_classpair_get_origin( struct _mulle_objc_classpair *pair)
+static inline char   *
+   _mulle_objc_classpair_get_origin( struct _mulle_objc_classpair *pair)
 {
    return( pair->origin);
 }
@@ -135,19 +141,22 @@ static inline char   *_mulle_objc_classpair_get_origin( struct _mulle_objc_class
 
 # pragma mark - conveniences
 
-static inline struct _mulle_objc_universe   *_mulle_objc_classpair_get_universe( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_universe   *
+   _mulle_objc_classpair_get_universe( struct _mulle_objc_classpair *pair)
 {
    return( _mulle_objc_infraclass_get_universe( _mulle_objc_classpair_get_infraclass( pair)));
 }
 
 
-static inline char   *_mulle_objc_classpair_get_name( struct _mulle_objc_classpair *pair)
+static inline char   *
+   _mulle_objc_classpair_get_name( struct _mulle_objc_classpair *pair)
 {
    return( _mulle_objc_infraclass_get_name( _mulle_objc_classpair_get_infraclass( pair)));
 }
 
 
-static inline mulle_objc_classid_t   _mulle_objc_classpair_get_classid( struct _mulle_objc_classpair *pair)
+static inline mulle_objc_classid_t
+   _mulle_objc_classpair_get_classid( struct _mulle_objc_classpair *pair)
 {
    return( _mulle_objc_infraclass_get_classid( _mulle_objc_classpair_get_infraclass( pair)));
 }
@@ -155,7 +164,8 @@ static inline mulle_objc_classid_t   _mulle_objc_classpair_get_classid( struct _
 
 # pragma mark - infra/metaclass reverse calculations
 
-static inline struct _mulle_objc_classpair   *_mulle_objc_infraclass_get_classpair( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_classpair   *
+   _mulle_objc_infraclass_get_classpair( struct _mulle_objc_infraclass *infra)
 {
    assert( infra->base.infraclass == NULL);
    return( (struct _mulle_objc_classpair *) _mulle_objc_object_get_objectheader( infra));
@@ -166,7 +176,8 @@ static inline struct _mulle_objc_classpair   *_mulle_objc_infraclass_get_classpa
 // this is faster than doing _mulle_objc_class_get_classpair_from_infraclass( cls->infraclass)
 // because the result is just an address offset, not a dereference
 //
-static inline struct _mulle_objc_classpair   *_mulle_objc_metaclass_get_classpair( struct _mulle_objc_metaclass *meta)
+static inline struct _mulle_objc_classpair   *
+   _mulle_objc_metaclass_get_classpair( struct _mulle_objc_metaclass *meta)
 {
    assert( meta->base.infraclass != NULL);
 
@@ -177,7 +188,8 @@ static inline struct _mulle_objc_classpair   *_mulle_objc_metaclass_get_classpai
 # pragma mark - infra/metaclass conveniences
 
 // code is here, because infraclass doesn't know about pair
-static inline struct _mulle_objc_metaclass   *_mulle_objc_infraclass_get_metaclass( struct _mulle_objc_infraclass *infra)
+static inline struct _mulle_objc_metaclass   *
+   _mulle_objc_infraclass_get_metaclass( struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair   *pair;
 
@@ -187,7 +199,8 @@ static inline struct _mulle_objc_metaclass   *_mulle_objc_infraclass_get_metacla
 
 
 // code is here, because metaclass doesn't know about pair
-static inline struct _mulle_objc_infraclass   *_mulle_objc_metaclass_get_infraclass( struct _mulle_objc_metaclass *cls)
+static inline struct _mulle_objc_infraclass   *
+   _mulle_objc_metaclass_get_infraclass( struct _mulle_objc_metaclass *cls)
 {
    struct _mulle_objc_classpair   *pair;
 
@@ -199,7 +212,8 @@ static inline struct _mulle_objc_infraclass   *_mulle_objc_metaclass_get_infracl
 # pragma mark - class reverse
 
 
-static inline struct _mulle_objc_classpair   *_mulle_objc_class_get_classpair( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_classpair   *
+   _mulle_objc_class_get_classpair( struct _mulle_objc_class *cls)
 {
    if( ! cls->infraclass)
       return( _mulle_objc_infraclass_get_classpair( (struct _mulle_objc_infraclass *) cls));
@@ -207,10 +221,18 @@ static inline struct _mulle_objc_classpair   *_mulle_objc_class_get_classpair( s
 }
 
 
+static inline struct _mulle_objc_classpair   *
+   mulle_objc_class_get_classpair( struct _mulle_objc_class *cls)
+{
+   return( cls ? _mulle_objc_class_get_classpair( cls) : NULL);
+}
+
+
 #pragma mark - categories
 
-static inline int   _mulle_objc_classpair_has_categoryid( struct _mulle_objc_classpair *pair,
-                                                          mulle_objc_categoryid_t categoryid)
+static inline int
+   _mulle_objc_classpair_has_categoryid( struct _mulle_objc_classpair *pair,
+                                         mulle_objc_categoryid_t categoryid)
 {
    struct _mulle_objc_uniqueidarray   *array;
 
@@ -225,11 +247,30 @@ void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
                                              mulle_objc_categoryid_t categoryid);
 
 
-int   _mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
-                                              int (*f)( mulle_objc_categoryid_t,
-                                                       struct _mulle_objc_classpair *,
-                                                       void *),
-                                              void *userinfo);
+static inline void
+   _mulle_objc_classpair_add_categoryids( struct _mulle_objc_classpair *pair,
+                                          unsigned int n,
+                                          mulle_objc_protocolid_t *categoryids)
+{
+   void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
+                                                      mulle_atomic_pointer_t *pointer,
+                                                      unsigned int n,
+                                                      mulle_objc_uniqueid_t *uniqueids);
+
+   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_categoryids.pointer, n, categoryids);
+}
+
+typedef mulle_objc_walkcommand_t
+   mulle_objc_walkcategoryidscallback( mulle_objc_categoryid_t,
+                                       struct _mulle_objc_classpair *,
+                                       void *);
+
+
+mulle_objc_walkcommand_t   
+	_mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
+                                           unsigned int inheritance,
+                                           mulle_objc_walkcategoryidscallback *f,
+                                           void *userinfo);
 
 
 void   mulle_objc_classpair_unfailingadd_categoryid( struct _mulle_objc_classpair *cls,
@@ -239,8 +280,9 @@ void   mulle_objc_classpair_unfailingadd_categoryid( struct _mulle_objc_classpai
 #pragma mark - protocolclasses
 
 
-static inline int   _mulle_objc_classpair_has_protocolclass( struct _mulle_objc_classpair *pair,
-                                                             struct _mulle_objc_infraclass *proto_cls)
+static inline int
+   _mulle_objc_classpair_has_protocolclass( struct _mulle_objc_classpair *pair,
+                                            struct _mulle_objc_infraclass *proto_cls)
 {
    return( _mulle_concurrent_pointerarray_find( &pair->protocolclasses, proto_cls));
 }
@@ -252,24 +294,31 @@ static inline unsigned int   _mulle_objc_classpair_get_protocolclasscount( struc
 }
 
 
-int   _mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
-                                                  int (*f)( struct _mulle_objc_infraclass *proto_cls,
-                                                            struct _mulle_objc_classpair *,
-                                                            void *),
-                                                   void *userinfo);
+typedef mulle_objc_walkcommand_t
+   mulle_objc_walkprotocolclassescallback( struct _mulle_objc_infraclass *,
+                                           struct _mulle_objc_classpair *,
+                                           void *);
+
+
+mulle_objc_walkcommand_t   
+	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
+                                               unsigned int inheritance,
+                                               mulle_objc_walkprotocolclassescallback *f,
+                                               void *userinfo);
 
 
 void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pair,
                                                 struct _mulle_objc_infraclass *proto_cls);
 
 void   mulle_objc_classpair_unfailingadd_protocolclassids( struct _mulle_objc_classpair *pair,
-                                                            mulle_objc_protocolid_t *protocolids);
+                                                           mulle_objc_protocolid_t *protocolids);
 
 #pragma mark - protocols
 
 // does not search deep!
-static inline int   _mulle_objc_classpair_has_protocolid( struct _mulle_objc_classpair *pair,
-                                                          mulle_objc_protocolid_t protocolid)
+static inline int
+   _mulle_objc_classpair_has_protocolid( struct _mulle_objc_classpair *pair,
+                                         mulle_objc_protocolid_t protocolid)
 {
    struct _mulle_objc_uniqueidarray   *array;
 
@@ -278,11 +327,17 @@ static inline int   _mulle_objc_classpair_has_protocolid( struct _mulle_objc_cla
 }
 
 
-int   _mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
-                                              int (*f)( mulle_objc_protocolid_t,
-                                                       struct _mulle_objc_classpair *,
-                                                       void *),
-                                              void *userinfo);
+typedef mulle_objc_walkcommand_t
+   mulle_objc_walkprotocolidscallback( mulle_objc_protocolid_t,
+                                       struct _mulle_objc_classpair *,
+                                       void *);
+
+
+mulle_objc_walkcommand_t   
+	_mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
+                                           unsigned int inheritance,
+                                           mulle_objc_walkprotocolidscallback *f,
+                                           void *userinfo);
 
 // searches hierarchy
 // need to re
@@ -290,16 +345,33 @@ int   _mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair 
                                                  mulle_objc_protocolid_t protocolid);
 
 
-static inline int   mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
-                                                              mulle_objc_protocolid_t protocolid)
+static inline int
+   mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
+                                               mulle_objc_protocolid_t protocolid)
 {
    if( ! pair)
       return( 0);
    return( _mulle_objc_classpair_conformsto_protocolid( pair, protocolid));
 }
 
+
+static inline void
+   _mulle_objc_classpair_add_protocolids( struct _mulle_objc_classpair *pair,
+                                          unsigned int n,
+                                          mulle_objc_protocolid_t *protocolids)
+{
+   void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
+                                                      mulle_atomic_pointer_t *pointer,
+                                                      unsigned int n,
+                                                      mulle_objc_uniqueid_t *uniqueids);
+
+   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_protocolids.pointer, n, protocolids);
+}
+
+
 void   mulle_objc_classpair_unfailingadd_protocollist( struct _mulle_objc_classpair *pair,
-                                                        struct _mulle_objc_protocollist *protocols);
+                                                       struct _mulle_objc_protocollist *protocols);
+
 
 # pragma mark - protocol class enumerator
 
@@ -321,19 +393,22 @@ static inline struct _mulle_objc_protocolclassenumerator
 }
 
 
-static inline void  _mulle_objc_protocolclassenumerator_done( struct _mulle_objc_protocolclassenumerator *rover)
+static inline void
+   _mulle_objc_protocolclassenumerator_done( struct _mulle_objc_protocolclassenumerator *rover)
 {
    mulle_concurrent_pointerarrayenumerator_done( &rover->list_rover);
 }
 
 
-static inline struct _mulle_objc_infraclass  *_mulle_objc_protocolclassenumerator_get_infraclass( struct _mulle_objc_protocolclassenumerator *rover)
+static inline struct _mulle_objc_infraclass  *
+   _mulle_objc_protocolclassenumerator_get_infraclass( struct _mulle_objc_protocolclassenumerator *rover)
 {
    return( rover->infra);
 }
 
 
-struct _mulle_objc_infraclass  *_mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover);
+struct _mulle_objc_infraclass  *
+   _mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover);
 
 
 # pragma mark - protocol class reverse enumerator
@@ -364,13 +439,15 @@ static inline void  _mulle_objc_protocolclassreverseenumerator_done( struct _mul
 }
 
 
-static inline struct _mulle_objc_infraclass  *_mulle_objc_protocolclassreverseenumerator_get_infraclass( struct _mulle_objc_protocolclassreverseenumerator *rover)
+static inline struct _mulle_objc_infraclass  *
+   _mulle_objc_protocolclassreverseenumerator_get_infraclass( struct _mulle_objc_protocolclassreverseenumerator *rover)
 {
    return( rover->infra);
 }
 
 
-struct _mulle_objc_infraclass  *_mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover);
+struct _mulle_objc_infraclass  *
+   _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover);
 
 
 #pragma mark - debug support
@@ -415,5 +492,48 @@ static inline int   mulle_objc_class_conforms_to_protocol( struct _mulle_objc_cl
 
 
 #endif
+
+#pragma mark - conveniences for compatibility layer
+
+// not recommended to use
+
+void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pair,
+                                               mulle_atomic_pointer_t *pointer,
+                                               struct _mulle_objc_uniqueidarray *array);
+
+static inline struct _mulle_objc_uniqueidarray *
+   _mulle_objc_classpair_get_protocolidarray( struct _mulle_objc_classpair *pair)
+{
+   return( _mulle_atomic_pointer_read( &pair->p_protocolids.pointer));
+}
+
+
+
+static inline  struct _mulle_objc_uniqueidarray *
+   _mulle_objc_classpair_get_categoryidarray( struct _mulle_objc_classpair *pair)
+{
+   return( _mulle_atomic_pointer_read( &pair->p_categoryids.pointer));
+}
+
+
+static inline void
+   _mulle_objc_classpair_set_protocolidarray( struct _mulle_objc_classpair *pair,
+                                              struct _mulle_objc_uniqueidarray *array)
+{
+   return( _mulle_objc_classpair_set_uniqueidarray( pair,
+                                                    &pair->p_protocolids.pointer,
+                                                    array));
+}
+
+
+static inline void
+   _mulle_objc_classpair_set_categoryidarray( struct _mulle_objc_classpair *pair,
+                                              struct _mulle_objc_uniqueidarray *array)
+{
+   return( _mulle_objc_classpair_set_uniqueidarray( pair,
+                                                    &pair->p_categoryids.pointer,
+                                                    array));
+}
+
 
 #endif /* mulle_objc_classpair_h */
