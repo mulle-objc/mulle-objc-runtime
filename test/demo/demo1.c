@@ -192,8 +192,8 @@ static struct _mulle_objc_methodlist  Object_instance_methodlist =
       {
          {
             ___init__methodid,	// descriptor.methodid
+            "@:",                // descriptor.signature
             "init",		         // descriptor.name
-            "@:",		            // descriptor.signature
             0			            // descriptor.bits
          },
          (mulle_objc_implementation_t) Object_init	// implementation
@@ -337,8 +337,8 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
       {
          {
             ___init__methodid,
-            "init",
             "@:",
+            "init",
             0
          },
          (mulle_objc_implementation_t) Foo_init
@@ -346,8 +346,8 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
       {
          {
             ___setA_b___methodid,
-            "setA:b:",
             "@:ii",
+            "setA:b:",
             0
          },
          (mulle_objc_implementation_t) Foo_setA_b_
@@ -401,8 +401,8 @@ static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
       {
          {
             ___print__methodid,
-            "print",
             "@:",
+            "print",
             0
          },
          (mulle_objc_implementation_t) Foo_Print_print
@@ -544,7 +544,7 @@ int   main( int argc, const char * argv[])
    cls = mulle_objc_unfailingfastlookup_infraclass( ___Foo_classid);
 
    fprintf( stderr, "-==> mulle_objc_infraclass_alloc_instance()\n");
-   obj = mulle_objc_infraclass_alloc_instance( cls, NULL);
+   obj = mulle_objc_infraclass_alloc_instance( cls);
 
    fprintf( stderr, "-==> mulle_objc_object_call( ... ___init__methodid ...)\n");
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
@@ -559,7 +559,7 @@ int   main( int argc, const char * argv[])
 
    // [obj release];
    fprintf( stderr, "-==> mulle_objc_object_free( ... )\n");
-   mulle_objc_object_free( obj, NULL);
+   mulle_objc_object_free( obj);
 
    return 0;
 }

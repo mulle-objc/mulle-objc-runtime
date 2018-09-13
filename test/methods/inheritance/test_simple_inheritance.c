@@ -68,8 +68,8 @@ struct _mulle_objc_methodlist  A_i_list =
       {
          {
             foo_methodid,
-            "foo",
             "@:",
+            "foo",
             0
          },
          (void *) A_foo
@@ -94,8 +94,8 @@ struct _mulle_objc_methodlist  B_i_list =
       {
          {
             bar_methodid,
-            "bar",
             "@:",
+            "bar",
             0
          },
          (void *) B_bar
@@ -121,8 +121,8 @@ struct _mulle_objc_methodlist  B_c_list =
       {
          {
             bar_methodid,
-            "bar",
             "@:",
+            "bar",
             0
          },
          (void *) B_meta_bar
@@ -147,8 +147,8 @@ struct _mulle_objc_methodlist  C_i_list =
       {
          {
             bar_methodid,
-            "bar",
             "@:",
+            "bar",
             0
          },
          (void *) C_bar

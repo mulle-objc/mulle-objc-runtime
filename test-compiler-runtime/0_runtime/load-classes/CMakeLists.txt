@@ -18,7 +18,7 @@ if( ADDICTION_DIR)
    include_directories( ${ADDICTION_DIR}/include)
 endif()
 
-add_executable( load-classes
+add_executable( load-classes.exe
 ${SOURCES}
 )
 
@@ -26,7 +26,7 @@ ${SOURCES}
 # and cmake prepends the flags and gcc then
 # has nothing to link against yet
 
-target_link_libraries( load-classes
+target_link_libraries( load-classes.exe
 ${TEST_LIBRARIES}
 )
 
