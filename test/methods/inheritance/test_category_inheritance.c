@@ -31,8 +31,8 @@ static struct _mulle_objc_methodlist  A_cat_list =
       {
          {
             foo_methodid,
-            "foo",
             "@:",
+            "foo",
             0
          },
          (void *) A_cat_foo
@@ -57,8 +57,8 @@ static  struct _mulle_objc_methodlist  B_cat_list =
       {
          {
             bar_methodid,
-            "bar",
             "@:",
+            "bar",
             0
          },
          (void *) B_cat_bar

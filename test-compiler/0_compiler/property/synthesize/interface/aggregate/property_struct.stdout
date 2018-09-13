@@ -1,0 +1,25 @@
+{
+   a = LONG_MIN,
+   b = 18.480000,
+   c = 0
+}
+{
+   a = 1848,
+   b = 0.000000,
+   c = -1848
+}
+{
+   a = 0,
+   b = -18.480000,
+   c = INTPTR_MAX
+}
+{
+   a = -1848,
+   b = DBL_MIN,
+   c = INTPTR_MIN
+}
+{
+   a = LONG_MAX,
+   b = DBL_MAX,
+   c = 1848
+}

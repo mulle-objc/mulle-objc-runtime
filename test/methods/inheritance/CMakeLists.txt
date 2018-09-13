@@ -11,7 +11,7 @@ test_retain_release.c
 test_simple_inheritance.c
 )
 
-add_executable( inheritance
+add_executable( inheritance.exe
 ${SOURCES}
 )
 
@@ -20,6 +20,6 @@ ${SOURCES}
 # and cmake prepends the flags and gcc then
 # has nothing to link against yet
 
-target_link_libraries( inheritance
+target_link_libraries( inheritance.exe
 ${TEST_LIBRARIES}
 )

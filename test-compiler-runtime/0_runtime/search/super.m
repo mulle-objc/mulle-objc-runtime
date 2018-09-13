@@ -26,7 +26,7 @@
 
 + (id) new
 {
-   return( (id) _mulle_objc_infraclass_alloc_instance( self, NULL));
+   return( (id) _mulle_objc_infraclass_alloc_instance( self));
 }
 - (Class) class
 {
@@ -34,7 +34,7 @@
 }
 - (void) dealloc
 {
-   _mulle_objc_object_free( self, NULL);
+   _mulle_objc_object_free( self);
 }
 + (void) foo
 {

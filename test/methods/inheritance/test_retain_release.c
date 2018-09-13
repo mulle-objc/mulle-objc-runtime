@@ -57,7 +57,7 @@ struct mulle_allocator  my_allocator =
 
 static void  *A_alloc( struct _mulle_objc_infraclass *self, mulle_objc_methodid_t _cmd)
 {
-   return( mulle_objc_infraclass_alloc_instance( self, &my_allocator));
+   return( __mulle_objc_infraclass_alloc_instance_extra( self, 0, &my_allocator));
 }
 
 
@@ -69,8 +69,8 @@ struct _mulle_objc_methodlist   A_alloc_methodlist =
       {
          {
             MULLE_OBJC_ALLOC_METHODID,
-            "alloc",
             "v@:",
+            "alloc",
             0
          },
          (void *) A_alloc
@@ -86,7 +86,7 @@ static void   test_simple_retain_release( struct _mulle_objc_infraclass *A_infra
    struct _mulle_objc_object   *b;
 
    assert( instances == 0);
-   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
+   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
    assert( instances == 1);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
@@ -97,7 +97,7 @@ static void   test_simple_retain_release( struct _mulle_objc_infraclass *A_infra
    mulle_objc_object_release( a);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
-   mulle_objc_object_free( a, &my_allocator);
+   __mulle_objc_object_free( a, &my_allocator);
    assert( instances == 0);
 }
 
@@ -107,7 +107,7 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
    struct _mulle_objc_object   *a;
    long                        retain_count;
 
-   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
+   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
    _mulle_objc_object_nonatomic_infiniteretain( a);
 
    retain_count = mulle_objc_object_get_retaincount( a);
@@ -121,7 +121,7 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
    assert( mulle_objc_object_get_retaincount( a) == retain_count);
    assert( instances == 1);
 
-   mulle_objc_object_free( a, &my_allocator);
+   __mulle_objc_object_free( a, &my_allocator);
    assert( instances == 0);
 }
 
@@ -143,7 +143,7 @@ static void    A_dealloc( void *self, mulle_objc_classid_t sel)
 {
    assert( get_retaincount( self) == -1);
    ++dealloced;
-   mulle_objc_object_free( self, &my_allocator);
+   __mulle_objc_object_free( self, &my_allocator);
 }
 
 
@@ -163,8 +163,8 @@ static struct _gnu_mulle_objc_methodlist   finalize_dealloc_methodlist =
       {
          {
             MULLE_OBJC_DEALLOC_METHODID,
-            "dealloc",
             "@:",
+            "dealloc",
             0
          },
          (void *) A_dealloc
@@ -172,8 +172,8 @@ static struct _gnu_mulle_objc_methodlist   finalize_dealloc_methodlist =
       {
          {
             MULLE_OBJC_FINALIZE_METHODID,
-            "finalize",
             "@:",
+            "finalize",
             0
          },
          (void *) A_finalize
@@ -190,7 +190,7 @@ static void   test_dealloc_finalize( struct _mulle_objc_infraclass  *A_infra)
 
    mulle_objc_infraclass_unfailingadd_methodlist( A_infra, (void *) &finalize_dealloc_methodlist);
 
-   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
+   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
 
    mulle_objc_object_release( a);
    assert( finalized == 1);
@@ -207,7 +207,7 @@ static void   test_perform_finalize( struct _mulle_objc_infraclass  *A_infra)
 
    assert( dealloced == 0);
 
-   a = mulle_objc_infraclass_alloc_instance( A_infra, &my_allocator);
+   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
    assert( get_retaincount( a) == 0);
 
    mulle_objc_object_perform_finalize( a);

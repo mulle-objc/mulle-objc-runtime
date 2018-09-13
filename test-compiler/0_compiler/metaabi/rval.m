@@ -84,7 +84,7 @@ static inline int   NSEqualRanges( NSRange range1, NSRange range2)
 
 + (id) new
 {
-   return( mulle_objc_infraclass_alloc_instance( self, NULL));
+   return( mulle_objc_infraclass_alloc_instance( self));
 }
 
 

@@ -130,8 +130,8 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
       {
          {
             ___conforms_to_protocol__methodid,
-            "conformsToProtocol:",
             "@:*i",
+            "conformsToProtocol:",
             0
          },
          (mulle_objc_implementation_t) Object_conforms_to_protocol
@@ -139,8 +139,8 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
       {
          {
             ___init__methodid,
-            "init",
             "@:",
+            "init",
             0
          },
          (mulle_objc_implementation_t) Object_init
@@ -258,7 +258,7 @@ int   main( int argc, const char * argv[])
    // obj = [[Object alloc] init];
 
    cls = mulle_objc_unfailingfastlookup_infraclass( ___Object_classid);
-   obj = mulle_objc_infraclass_alloc_instance( cls, NULL);
+   obj = mulle_objc_infraclass_alloc_instance( cls);
    obj = mulle_objc_object_call( obj, ___init__methodid, NULL);
 
    // if( [obj conformsToProtocol:@protocol( A)])
@@ -284,7 +284,7 @@ int   main( int argc, const char * argv[])
    // [obj print];
 
    // [obj release];
-   mulle_objc_object_free( obj, NULL);
+   mulle_objc_object_free( obj);
 
    return 0;
 }

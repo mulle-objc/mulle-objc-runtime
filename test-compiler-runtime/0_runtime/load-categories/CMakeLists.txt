@@ -21,7 +21,7 @@ if( ADDICTION_DIR)
 endif()
 
 
-add_executable( load-categories
+add_executable( load-categories.exe
 ${SOURCES}
 )
 
@@ -30,7 +30,7 @@ ${SOURCES}
 # and cmake prepends the flags and gcc then
 # has nothing to link against yet
 
-target_link_libraries( load-categories
+target_link_libraries( load-categories.exe
 ${TEST_LIBRARIES}
 )
 

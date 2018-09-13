@@ -93,7 +93,7 @@ void   test_message_sending()
    mulle_objc_infraclass_unfailingadd_propertylist( A_infra, NULL);
    mulle_objc_unfailingadd_infraclass( A_infra);
 
-   A_obj = mulle_objc_infraclass_alloc_instance( A_infra, NULL);
+   A_obj = mulle_objc_infraclass_alloc_instance( A_infra);
    A_cls = _mulle_objc_infraclass_as_class( A_infra);
    for( i = 0; i < 1000; i++)
    {

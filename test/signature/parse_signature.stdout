@@ -1,4 +1,4 @@
-# v40@0:8*16Q24^v32
+signature="v40@0:8*16Q24^v32"
 number of types = 6
 metaabi param type = _param
 metaabi return type = void
@@ -8,14 +8,14 @@ metaabi return type = void
 #3 = *16
 #4 = Q24
 #5 = ^v32
-# #16@0:8
+signature="#16@0:8"
 number of types = 3
 metaabi param type = void
 metaabi return type = void *
 #0 = #16
 #1 = @0
 #2 = :8
-# @24@0:8@"NSData"16
+signature="@24@0:8@"NSData"16"
 number of types = 4
 metaabi param type = void *
 metaabi return type = void *
@@ -23,7 +23,7 @@ metaabi return type = void *
 #1 = @0
 #2 = :8
 #3 = @"NSData"16
-# @"MulleScionObject"40@0:8@"<MulleScionOutput>"16@"NSMutableDictionary"24@"<MulleScionDataSource>"32
+signature="@"MulleScionObject"40@0:8@"<MulleScionOutput>"16@"NSMutableDictionary"24@"<MulleScionDataSource>"32"
 number of types = 6
 metaabi param type = _param
 metaabi return type = void *
@@ -33,3 +33,12 @@ metaabi return type = void *
 #3 = @"<MulleScionOutput>"16
 #4 = @"NSMutableDictionary"24
 #5 = @"<MulleScionDataSource>"32
+signature="@28@0:8i16@?<v@?>20"
+number of types = 5
+metaabi param type = _param
+metaabi return type = void *
+#0 = @28
+#1 = @0
+#2 = :8
+#3 = i16
+#4 = @?<v@?>20
