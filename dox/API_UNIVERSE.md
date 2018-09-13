@@ -19,7 +19,7 @@ This could be beneficial for plugins that get dynamically loaded and unloaded
 
 > **Warning:** The thread local setup hasn't been tested much.
 >
-> If you do this and use `mulle_objc_inlined_get_universe`, all Objective-C
+> If you do this and use `mulle_objc_inlineget_universe`, all Objective-C
 > code must be compiled with `-D__MULLE_OBJC_TRT__`.
 >
 
@@ -37,10 +37,10 @@ Returns the universe for the current thread. If this thread has no universe
 associated with it, this function may crash.
 
 
-### `mulle_objc_inlined_get_universe`
+### `mulle_objc_inlineget_universe`
 
 ```
-struct _mulle_objc_universe  * mulle_objc_inlined_get_universe( void);
+struct _mulle_objc_universe  * mulle_objc_inlineget_universe( void);
 ```
 
 A slightly faster version of above `mulle_objc_get_universe`. If you use it you

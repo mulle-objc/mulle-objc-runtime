@@ -34,7 +34,6 @@ src/mulle-objc-class.h
 src/mulle-objc-classpair.h
 src/mulle-objc-class-search.h
 src/mulle-objc-class-struct.h
-src/mulle-objc-class-universe.h
 src/mulle-objc-fastclasstable.h
 src/mulle-objc-fastenumeration.h
 src/mulle-objc-fastmethodtable.h
@@ -64,6 +63,7 @@ src/mulle-objc-taggedpointer.h
 src/mulle-objc-try-catch-finally.h
 src/mulle-objc-uniqueidarray.h
 src/mulle-objc-uniqueid.h
+src/mulle-objc-universe-class.h
 src/mulle-objc-universe-global.h
 src/mulle-objc-universe.h
 src/mulle-objc-universe-struct.h

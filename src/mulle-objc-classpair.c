@@ -38,7 +38,7 @@
 #include "include-private.h"
 
 #include "mulle-objc-class.h"
-#include "mulle-objc-class-universe.h"
+#include "mulle-objc-universe-class.h"
 #include "mulle-objc-universe.h"
 
 
@@ -53,8 +53,10 @@ void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
 
    _mulle_concurrent_pointerarray_init( &pair->protocolclasses, 0, allocator);
 
-   _mulle_atomic_pointer_nonatomic_write( &pair->p_protocolids.pointer, &universe->empty_uniqueidarray);
-   _mulle_atomic_pointer_nonatomic_write( &pair->p_categoryids.pointer, &universe->empty_uniqueidarray);
+   _mulle_atomic_pointer_nonatomic_write( &pair->p_protocolids.pointer,
+                                          &universe->empty_uniqueidarray);
+   _mulle_atomic_pointer_nonatomic_write( &pair->p_categoryids.pointer,
+                                          &universe->empty_uniqueidarray);
 }
 
 
@@ -80,16 +82,17 @@ void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
 
 
 void   _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
-                                      struct mulle_allocator *allocator)
+                                   struct mulle_allocator *allocator)
 {
    assert( pair);
    assert( allocator);
 
    _mulle_objc_infraclass_plusdone( &pair->infraclass);
-   _mulle_objc_class_done( _mulle_objc_infraclass_as_class( &pair->infraclass), allocator);
+   _mulle_objc_class_done( _mulle_objc_infraclass_as_class( &pair->infraclass),
+                                                            allocator);
    _mulle_objc_metaclass_plusdone( &pair->metaclass);
-   _mulle_objc_class_done( _mulle_objc_metaclass_as_class( &pair->metaclass), allocator);
-
+   _mulle_objc_class_done( _mulle_objc_metaclass_as_class( &pair->metaclass),
+                                                           allocator);
    _mulle_objc_classpair_plusdone( pair, allocator);
 
    _mulle_allocator_free( allocator, pair);
@@ -146,15 +149,38 @@ mulle_objc_walkcommand_t
 
 #pragma mark - protocolids, categories common
 
-static void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
-                                                          mulle_atomic_pointer_t *pointer,
-                                                          unsigned int n,
-                                                          mulle_objc_uniqueid_t *uniqueids)
+void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pair,
+                                               mulle_atomic_pointer_t *pointer,
+                                               struct _mulle_objc_uniqueidarray *array)
+{
+   mulle_atomic_pointer_t        old;
+   struct mulle_allocator        *allocator;
+   struct _mulle_objc_universe   *universe;
+   unsigned int                  i;
+
+   do
+      old = _mulle_atomic_pointer_read( pointer);
+   while( ! _mulle_atomic_pointer_weakcas( pointer, array, old));
+
+   if( array == &universe->empty_uniqueidarray)
+      return;
+
+   universe  = _mulle_objc_classpair_get_universe( pair);
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   mulle_objc_uniqueidarray_abafree( array, allocator);
+}
+
+
+void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
+                                                   mulle_atomic_pointer_t *pointer,
+                                                   unsigned int n,
+                                                   mulle_objc_uniqueid_t *uniqueids)
 {
    struct _mulle_objc_uniqueidarray   *array;
    struct _mulle_objc_uniqueidarray   *copy;
    struct mulle_allocator             *allocator;
    struct _mulle_objc_universe        *universe;
+   unsigned int                       i;
 
    universe   = _mulle_objc_classpair_get_universe( pair);
    allocator = _mulle_objc_universe_get_allocator( universe);
@@ -169,15 +195,13 @@ static void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_cla
       array = _mulle_atomic_pointer_read( pointer);
       copy  = _mulle_objc_uniqueidarray_by_adding_ids( array, n, uniqueids, allocator);
    }
-   while( ! _mulle_atomic_pointer_compare_and_swap( pointer, copy, array));
+   while( ! _mulle_atomic_pointer_weakcas( pointer, copy, array));
 
-   universe = _mulle_objc_classpair_get_universe( pair);
+   if( array != &universe->empty_uniqueidarray)
+      mulle_objc_uniqueidarray_abafree( array, allocator);
+
    if( universe->debug.trace.protocol_add)
-   {
-      unsigned int  i;
-
       for( i = 0; i < n; i++)
-      {
          fprintf( stderr, "mulle_objc_universe %p trace: add protocol %08x \"%s\""
                           " to class %08x \"%s\"\n",
               universe,
@@ -185,22 +209,10 @@ static void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_cla
               _mulle_objc_universe_string_for_categoryid( universe, uniqueids[ i]),
               _mulle_objc_classpair_get_classid( pair),
               _mulle_objc_classpair_get_name( pair));
-      }
-   }
-
-   if( array != &universe->empty_uniqueidarray)
-      mulle_objc_uniqueidarray_abafree( array, allocator);
 }
 
 
 #pragma mark - categories
-
-static inline void  _mulle_objc_classpair_add_categoryids( struct _mulle_objc_classpair *pair,
-                                                           unsigned int n,
-                                                           mulle_objc_protocolid_t *categoryids)
-{
-   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_categoryids.pointer, n, categoryids);
-}
 
 
 void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
@@ -224,16 +236,19 @@ static void   _mulle_objc_class_raise_einval_exception( void)
 }
 
 
-int   _mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
-                                              int (*f)( mulle_objc_categoryid_t,
-                                                        struct _mulle_objc_classpair *,
-                                                        void *),
-                                              void *userinfo)
+mulle_objc_walkcommand_t
+	_mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
+                                           unsigned int inheritance,
+                                           mulle_objc_walkcategoryidscallback *f,
+                                           void *userinfo)
 {
-   int                                rval;
+   mulle_objc_walkcommand_t           rval;
    mulle_objc_categoryid_t            *p;
    mulle_objc_categoryid_t            *sentinel;
    struct _mulle_objc_uniqueidarray   *array;
+   struct _mulle_objc_infraclass      *infra;
+   struct _mulle_objc_infraclass      *superclass;
+   struct _mulle_objc_classpair       *superpair;
 
    array    = _mulle_atomic_pointer_read( &pair->p_categoryids.pointer);
    p        = array->entries;
@@ -242,17 +257,29 @@ int   _mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair
    {
       if( rval = (*f)( *p++, pair, userinfo))
       {
-         if( rval < 0)
+         if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
          return( rval);
       }
    }
+
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   {
+      infra      = _mulle_objc_classpair_get_infraclass( pair);
+      superclass = _mulle_objc_infraclass_get_superclass( infra);
+      if( superclass && superclass != infra)
+      {
+         superpair = _mulle_objc_infraclass_get_classpair( superclass);
+         return( _mulle_objc_classpair_walk_categoryids( superpair, inheritance, f, userinfo));
+      }
+   }
+
    return( 0);
 }
 
 
 void   mulle_objc_classpair_unfailingadd_categoryid( struct _mulle_objc_classpair *pair,
-                                                    mulle_objc_categoryid_t categoryid)
+                                                     mulle_objc_categoryid_t categoryid)
 {
    struct _mulle_objc_universe    *universe;
    struct _mulle_objc_infraclass  *infra;
@@ -339,37 +366,52 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
 }
 
 
-int   _mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
-                                                  int (*f)( struct _mulle_objc_infraclass *,
-                                                        struct _mulle_objc_classpair *,
-                                                        void *) ,
-                                                  void *userinfo)
+mulle_objc_walkcommand_t
+	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
+                                               unsigned int inheritance,
+                                               mulle_objc_walkprotocolclassescallback *f,
+                                               void *userinfo)
 {
-   int                                              rval;
+   mulle_objc_walkcommand_t                         rval;
    struct _mulle_objc_infraclass                    *proto_cls;
    struct mulle_concurrent_pointerarrayenumerator   rover;
+   struct _mulle_objc_infraclass                    *infra;
+   struct _mulle_objc_infraclass                    *superclass;
+   struct _mulle_objc_classpair                     *superpair;
 
    rover = mulle_concurrent_pointerarray_enumerate( &pair->protocolclasses);
    while( proto_cls = _mulle_concurrent_pointerarrayenumerator_next( &rover))
    {
       if( rval = (*f)( proto_cls, pair, userinfo))
       {
-         if( rval < 0)
+         if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
          return( rval);
       }
    }
-   return( 0);
+
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   {
+      infra      = _mulle_objc_classpair_get_infraclass( pair);
+      superclass = _mulle_objc_infraclass_get_superclass( infra);
+      if( superclass && superclass != infra)
+      {
+         superpair = _mulle_objc_infraclass_get_classpair( superclass);
+         return( _mulle_objc_classpair_walk_protocolclasses( superpair, inheritance, f, userinfo));
+      }
+   }
+
+   return( mulle_objc_walk_ok);
 }
 
 
 void   mulle_objc_classpair_unfailingadd_protocolclassids( struct _mulle_objc_classpair *pair,
-                                                            mulle_objc_protocolid_t *protocolclassids)
+                                                           mulle_objc_protocolid_t *protocolclassids)
 {
-   mulle_objc_protocolid_t          protocolclassid;
-   struct _mulle_objc_infraclass    *proto_cls;
-   struct _mulle_objc_universe      *universe;
-   mulle_objc_classid_t             classid;
+   mulle_objc_protocolid_t         protocolclassid;
+   struct _mulle_objc_infraclass   *proto_cls;
+   struct _mulle_objc_universe     *universe;
+   mulle_objc_classid_t            classid;
 
    if( ! pair)
       _mulle_objc_class_raise_einval_exception();
@@ -419,10 +461,11 @@ void   mulle_objc_classpair_unfailingadd_protocolclassids( struct _mulle_objc_cl
 }
 
 
-struct _mulle_objc_infraclass  *_mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
+struct _mulle_objc_infraclass  *
+   _mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
 {
-   struct _mulle_objc_infraclass    *infra;
-   struct _mulle_objc_infraclass    *proto_cls;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_infraclass   *proto_cls;
 
    infra = _mulle_objc_protocolclassenumerator_get_infraclass( rover);
    while( proto_cls = _mulle_concurrent_pointerarrayenumerator_next( &rover->list_rover))
@@ -432,10 +475,11 @@ struct _mulle_objc_infraclass  *_mulle_objc_protocolclassenumerator_next( struct
 }
 
 
-struct _mulle_objc_infraclass  *_mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover)
+struct _mulle_objc_infraclass  *
+   _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover)
 {
-   struct _mulle_objc_infraclass    *infra;
-   struct _mulle_objc_infraclass    *proto_cls;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_infraclass   *proto_cls;
 
    infra = _mulle_objc_protocolclassreverseenumerator_get_infraclass( rover);
    while( proto_cls = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover->list_rover))
@@ -447,24 +491,19 @@ struct _mulle_objc_infraclass  *_mulle_objc_protocolclassreverseenumerator_next(
 
 #pragma mark - protocols
 
-static inline void  _mulle_objc_classpair_add_protocolids( struct _mulle_objc_classpair *pair,
-                                                           unsigned int n,
-                                                           mulle_objc_protocolid_t *protocolids)
+mulle_objc_walkcommand_t
+	_mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
+                                           unsigned int inheritance,
+                                           mulle_objc_walkprotocolidscallback *f,
+                                           void *userinfo)
 {
-   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_protocolids.pointer, n, protocolids);
-}
-
-
-int   _mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
-                                              int (*f)( mulle_objc_protocolid_t,
-                                                        struct _mulle_objc_classpair *,
-                                                        void *),
-                                              void *userinfo)
-{
-   int                                rval;
+   mulle_objc_walkcommand_t           rval;
    mulle_objc_categoryid_t            *p;
    mulle_objc_categoryid_t            *sentinel;
    struct _mulle_objc_uniqueidarray   *array;
+   struct _mulle_objc_infraclass      *infra;
+   struct _mulle_objc_infraclass      *superclass;
+   struct _mulle_objc_classpair       *superpair;
 
    array    = _mulle_atomic_pointer_read( &pair->p_protocolids.pointer);
    p        = array->entries;
@@ -473,12 +512,23 @@ int   _mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair
    {
       if( rval = (*f)( *p++, pair, userinfo))
       {
-         if( rval < 0)
+         if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
          return( rval);
       }
    }
-   return( 0);
+
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   {
+      infra      = _mulle_objc_classpair_get_infraclass( pair);
+      superclass = _mulle_objc_infraclass_get_superclass( infra);
+      if( superclass && superclass != infra)
+      {
+         superpair = _mulle_objc_infraclass_get_classpair( superclass);
+         return( _mulle_objc_classpair_walk_protocolids( superpair, inheritance, f, userinfo));
+      }
+   }
+   return( mulle_objc_walk_ok);
 }
 
 

@@ -6,3 +6,5 @@ mulle-c/c-cmake;buildtool
 mulle-sde/c-cmake;buildtool
 mulle-sde/cmake;buildtool
 mulle-c/travis;extra
+mulle-sde/vs-code-clang;extra
+mulle-sde/vs-code;extra

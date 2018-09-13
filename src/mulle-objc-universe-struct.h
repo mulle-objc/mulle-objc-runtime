@@ -240,8 +240,6 @@ struct _mulle_objc_universefriend
 typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_universe *,
                                                 struct _mulle_objc_loadinfo *);
 
-
-
 struct _mulle_objc_foundation
 {
    struct _mulle_objc_universefriend    universefriend;
@@ -398,6 +396,7 @@ static inline int   _mulle_objc_universe_is_uninitialized( struct _mulle_objc_un
    return( (int32_t) _mulle_objc_universe_get_version( universe) == mulle_objc_universe_is_uninitialized);
 }
 
+
 // transitioning is "ready for init/dealloc code" danger!
 static inline int   _mulle_objc_universe_is_transitioning( struct _mulle_objc_universe *universe)
 {
@@ -411,7 +410,17 @@ static inline int   _mulle_objc_universe_is_transitioning( struct _mulle_objc_un
 }
 
 
+#pragma mark - non concurrent memory allocation
 
+// use for universe stuff, like classes, methods, properties, ivars
+MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator *
+   _mulle_objc_universe_get_allocator( struct _mulle_objc_universe *universe)
+{
+   return( &universe->memory.allocator);
+}
+
+
+//
 // #1#: whenever a caches contents change, this variable should be incremented
 //      if that is adhered to, then we can checkout the value before a
 //      methodlist update and afterwards, and deduce if a costly cache flush

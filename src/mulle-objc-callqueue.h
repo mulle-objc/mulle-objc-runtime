@@ -62,7 +62,8 @@ struct _mulle_objc_callqueue
 # pragma mark init/destroy
 
 
-int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *p, struct mulle_allocator *allocator);
+int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *p,
+                                 struct mulle_allocator *allocator);
 void   mulle_objc_callqueue_done( struct _mulle_objc_callqueue *p);
 
 

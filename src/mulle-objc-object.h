@@ -77,7 +77,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
    if( ! index)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    return( universe->taggedpointers.pointerclass[ index]);
 }
 
@@ -95,7 +95,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_get_isa( void *obj)
    if( __builtin_expect( ! index, 1))
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   universe = mulle_objc_inlined_get_universe();
+   universe = mulle_objc_inlineget_universe();
    assert( universe->taggedpointers.pointerclass[ index] && "tagged pointer class not configured");
    return( universe->taggedpointers.pointerclass[ index]);
 }

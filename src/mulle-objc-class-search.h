@@ -332,7 +332,7 @@ struct _mulle_objc_method   *
    _mulle_objc_class_lazyget_forwardmethod( struct _mulle_objc_class *cls);
 
 
-struct _mulle_objc_method   *
+MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_unfailinglazyget_forwardmethod(
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
@@ -342,10 +342,9 @@ struct _mulle_objc_method  *
                                                  mulle_objc_methodid_t methodid);
 
 
-MULLE_C_NON_NULL_RETURN
-static inline struct _mulle_objc_method   *
+MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_method *
    mulle_objc_class_unfailingsearch_method( struct _mulle_objc_class *cls,
-                                             mulle_objc_methodid_t methodid)
+                                            mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *method;
 

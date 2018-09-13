@@ -48,87 +48,78 @@
 
 MULLE_C_NON_NULL_RETURN
 static inline struct mulle_allocator   *
-    _mulle_objc_class_get_allocator( struct _mulle_objc_class *cls)
+    _mulle_objc_class_get_universe_allocator( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_universe     *universe;
-   struct _mulle_objc_foundation   *foundation;
 
-   universe   = _mulle_objc_class_get_universe( cls);
-   foundation = _mulle_objc_universe_get_foundation( universe);
-   return( _mulle_objc_foundation_get_allocator( foundation));
+   universe = _mulle_objc_class_get_universe( cls);
+   return( _mulle_objc_universe_get_allocator( universe));
 }
 
 
-MULLE_C_NON_NULL_RETURN
-static inline struct mulle_allocator   *
-   _mulle_objc_infraclass_get_allocator( struct _mulle_objc_infraclass *infra)
-{
-   return( _mulle_objc_class_get_allocator( _mulle_objc_infraclass_as_class( infra)));
-}
-
-
-// free with mulle_allocator_free
 static inline struct _mulle_objc_object   *
-    _mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra,
-                                           struct mulle_allocator *allocator)
+    __mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
+                                                  size_t extra,
+                                                  struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
    struct _mulle_objc_object        *obj;
 
-   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_infraclass_get_allocationsize( infra));
+   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_infraclass_get_allocationsize( infra) + extra);
    obj    = _mulle_objc_objectheader_get_object( header);
    _mulle_objc_object_set_isa( obj, _mulle_objc_infraclass_as_class( infra));
    return( obj);
 }
 
 
-static inline struct _mulle_objc_object   *
+static inline struct _mulle_objc_object *
     _mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
-                                                 size_t extra,
-                                                 struct mulle_allocator *allocator)
+                                                 size_t extra)
 {
-   struct _mulle_objc_objectheader  *header;
-   struct _mulle_objc_object        *obj;
+   struct mulle_allocator   *allocator;
 
-   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_infraclass_get_allocationsize( infra) + extra);
-   if( ! header)
-      return( NULL);
-
-   obj = _mulle_objc_objectheader_get_object( header);
-   _mulle_objc_object_set_isa( obj, _mulle_objc_infraclass_as_class( infra));
-   return( obj);
+   allocator = _mulle_objc_infraclass_get_allocator( infra);
+   return( __mulle_objc_infraclass_alloc_instance_extra( infra, extra, allocator));
 }
 
 
-static inline struct _mulle_objc_object   *
-   mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra,
-                                         struct mulle_allocator *allocator)
+// free with mulle_allocator_free
+static inline struct _mulle_objc_object *
+    _mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra)
 {
+   struct mulle_allocator   *allocator;
+
+   allocator = _mulle_objc_infraclass_get_allocator( infra);
+   return( __mulle_objc_infraclass_alloc_instance_extra( infra, 0, allocator));
+}
+
+
+
+static inline struct _mulle_objc_object *
+   mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra)
+{
+   struct mulle_allocator   *allocator;
+
    if( ! infra)
-      abort();
-   if( ! allocator)
-      allocator = &mulle_default_allocator;
-   return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0, allocator));
+      return( NULL);
+   return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));
 }
 
 
 static inline struct _mulle_objc_object   *
    mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
-                                               size_t extra,
-                                               struct mulle_allocator *allocator)
+                                               size_t extra)
 {
    if( ! infra)
-      abort();
-   if( ! allocator)
-      allocator = &mulle_default_allocator;
-   return( _mulle_objc_infraclass_alloc_instance_extra( infra, extra, allocator));
+      return( NULL);
+   return( _mulle_objc_infraclass_alloc_instance_extra( infra, extra));
 }
 
 
 #pragma mark - instance deletion
 
-static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj,
-                                              struct mulle_allocator *allocator)
+static inline void   __mulle_objc_object_free( struct _mulle_objc_object *obj,
+                                               struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
 
@@ -137,14 +128,25 @@ static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj,
 }
 
 
-static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj,
-                                             struct mulle_allocator *allocator)
+static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj)
+{
+   struct mulle_allocator          *allocator;
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *infra;
+
+   cls       = _mulle_objc_object_get_isa( obj);
+   infra     = _mulle_objc_class_as_infraclass( cls);
+   allocator = _mulle_objc_infraclass_get_allocator( infra);
+   __mulle_objc_object_free( obj, allocator);
+}
+
+
+static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj)
 {
    if( ! obj)
       return;
-   if( ! allocator)
-      allocator = &mulle_default_allocator;
-   _mulle_objc_object_free( obj, allocator);
+
+   _mulle_objc_object_free( obj);
 }
 
 

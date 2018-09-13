@@ -46,13 +46,12 @@
 #include <stdlib.h>
 
 
-
 # pragma mark - exceptions
 
 void   _mulle_objc_class_raise_null_exception( void)   _MULLE_C_NO_RETURN;
 
 
-# pragma mark - method alloc / free
+# pragma mark - class alloc / free
 
 void  _mulle_objc_class_init( struct _mulle_objc_class *cls,
                               char *name,
@@ -96,37 +95,51 @@ static inline unsigned int   _mulle_objc_class_count_depth( struct _mulle_objc_c
 
 # pragma mark - method caches
 
-static inline struct _mulle_objc_cache   *_mulle_objc_class_get_methodcache( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_cache *
+   _mulle_objc_class_get_methodcache( struct _mulle_objc_class *cls)
 {
-   return( _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot));
+   return( _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot));
+}
+
+
+int   _mulle_objc_class_invalidate_methodcacheentry( struct _mulle_objc_class *cls,
+                                                     mulle_objc_methodid_t methodid);
+
+static inline void
+   mulle_objc_class_invalidate_methodcache( struct _mulle_objc_class *cls)
+{
+   if( ! cls)
+      return;
+   _mulle_objc_class_invalidate_methodcacheentry( cls, MULLE_OBJC_NO_METHODID);
 }
 
 
 //static inline struct _mulle_objc_cache   *_mulle_objc_class_get_supercache( struct _mulle_objc_class *cls)
 //{
-//   return( _mulle_objc_cachepivot_atomic_get_cache( &cls->supercachepivot));
+//   return( _mulle_objc_cachepivot_atomicget_cache( &cls->supercachepivot));
 //}
 
 # pragma mark - kvc caches
 
-static inline struct _mulle_objc_kvccachepivot   *_mulle_objc_class_get_kvccachepivot( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_kvccachepivot *
+   _mulle_objc_class_get_kvccachepivot( struct _mulle_objc_class *cls)
 {
    return( &cls->kvc);
 }
 
 
-static inline struct mulle_allocator   *
+static inline struct mulle_allocator *
    _mulle_objc_class_get_kvcinfo_allocator( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_universe   *universe;
 
    universe = _mulle_objc_class_get_universe( cls);
-   return( &universe->memory.allocator);
+   return( _mulle_objc_universe_get_allocator( universe));
 }
 
 
-static inline struct _mulle_objc_kvccache   *
-_mulle_objc_class_get_empty_kvccache( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_kvccache *
+   _mulle_objc_class_get_empty_kvccache( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -151,20 +164,20 @@ static inline int    _mulle_objc_class_set_kvcinfo( struct _mulle_objc_class *cl
 
 
 static inline struct _mulle_objc_kvcinfo  *
-_mulle_objc_class_lookup_kvcinfo( struct _mulle_objc_class *cls,
-                                  char  *key)
+   _mulle_objc_class_lookup_kvcinfo( struct _mulle_objc_class *cls,
+                                     char  *key)
 {
    struct _mulle_objc_kvccachepivot   *pivot;
    struct _mulle_objc_kvccache        *cache;
 
    pivot = _mulle_objc_class_get_kvccachepivot( cls);
-   cache = _mulle_objc_kvccachepivot_atomic_get_cache( pivot);
+   cache = _mulle_objc_kvccachepivot_atomicget_cache( pivot);
    return( _mulle_objc_kvccache_lookup_kvcinfo( cache, key));
 }
 
 
 static inline void
-   _mulle_objc_class_invalidate_all_kvcinfos( struct _mulle_objc_class *cls)
+   _mulle_objc_class_invalidate_kvccache( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_kvccache        *empty_cache;
    struct _mulle_objc_kvccachepivot   *pivot;
@@ -178,7 +191,7 @@ static inline void
 }
 
 
-# pragma mark - methods
+# pragma mark - methodlists
 
 // this function doesn't invalidate caches!
 int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
@@ -192,12 +205,13 @@ void   mulle_objc_class_did_add_methodlist( struct _mulle_objc_class *cls,
 
 
 void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
-                                                  struct _mulle_objc_methodlist *list);
+                                                 struct _mulle_objc_methodlist *list);
 
 
 // the way to find a category
-struct _mulle_objc_methodlist   *mulle_objc_class_find_methodlist( struct _mulle_objc_class *cls,
-                                                                   mulle_objc_categoryid_t categoryid);
+struct _mulle_objc_methodlist *
+   mulle_objc_class_find_methodlist( struct _mulle_objc_class *cls,
+                                     mulle_objc_categoryid_t categoryid);
 
 
 
@@ -205,6 +219,19 @@ unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class 
 
 
 #pragma mark - walking
+
+struct _mulle_objc_method  *
+   _mulle_objc_class_lookup_method( struct _mulle_objc_class *cls,
+                                    mulle_objc_methodid_t methodid);
+
+
+static inline struct _mulle_objc_method  *
+   mulle_objc_class_lookup_method( struct _mulle_objc_class *cls,
+                                   mulle_objc_methodid_t methodid)
+{
+   return( cls ? _mulle_objc_class_lookup_method( cls, methodid) : NULL);
+}
+
 
 // use it like this, for finding something by name (though this will be slow)
 //
@@ -229,12 +256,18 @@ unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class 
 // if( _mulle_objc_class_walk_methods( cls, -1, (void *) find, &info))
 //    return( info.found);
 //
-int   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls, unsigned int inheritance , int (*f)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *), void *userinfo);
+mulle_objc_walkcommand_t   
+   _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls,
+                                   unsigned int inheritance ,
+                                   mulle_objc_walkcommand_t (*f)( struct _mulle_objc_method *,
+   							                                          struct _mulle_objc_class *,
+                        						                        void *),
+                                   void *userinfo);
 
 
 static inline int
    _mulle_objc_class_is_forwardimplementation( struct _mulle_objc_class *cls,
-                                                     mulle_objc_implementation_t  imp)
+                                               mulle_objc_implementation_t  imp)
 {
    if( ! cls->forwardmethod)
       return( 0);
@@ -245,13 +278,15 @@ static inline int
 # pragma mark - API class
 
 
-static inline struct _mulle_objc_class   *mulle_objc_class_get_superclass( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_class   *
+   mulle_objc_class_get_superclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_superclass( cls) : NULL);
 }
 
 
-static inline mulle_objc_classid_t   mulle_objc_class_get_classid( struct _mulle_objc_class *cls)
+static inline mulle_objc_classid_t   
+   mulle_objc_class_get_classid( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_classid( cls) : MULLE_OBJC_NO_CLASSID);
 }
@@ -263,43 +298,50 @@ static inline char   *mulle_objc_class_get_name( struct _mulle_objc_class *cls)
 }
 
 
-static inline struct _mulle_objc_universe   *mulle_objc_class_get_universe( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_universe *
+   mulle_objc_class_get_universe( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_universe( cls) : NULL);
 }
 
 
-static inline size_t   mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
+static inline size_t   
+   mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_instancesize( cls) : (size_t) -1);
 }
 
 // deprecated
-static inline size_t   mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
+static inline size_t   
+   mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
 {
    return( mulle_objc_class_get_instancesize( cls));
 }
 
 
-static inline unsigned int   mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
+static inline unsigned int   
+   mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_inheritance( cls) : ~0);
 }
 
 
-static inline struct _mulle_objc_method   *mulle_objc_class_get_forwardmethod( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_method *
+   mulle_objc_class_get_forwardmethod( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_forwardmethod( cls) : NULL);
 }
 
 
-static inline int   mulle_objc_class_is_infraclass( struct _mulle_objc_class *cls)
+static inline int   
+   mulle_objc_class_is_infraclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_is_infraclass( cls) : 0);
 }
 
 
-static inline int   mulle_objc_class_is_metaclass( struct _mulle_objc_class *cls)
+static inline int   
+   mulle_objc_class_is_metaclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_is_metaclass( cls) : 0);
 }
@@ -307,13 +349,15 @@ static inline int   mulle_objc_class_is_metaclass( struct _mulle_objc_class *cls
 //
 // if we are a metaclass, the infraclass is the "actual" ''infraclass''
 // if we are a infraclass, the result is NULL!
-static inline struct _mulle_objc_infraclass   *mulle_objc_class_get_infraclass( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_infraclass   *
+   mulle_objc_class_get_infraclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_infraclass( cls) : NULL);
 }
 
 
-static inline struct _mulle_objc_metaclass   *mulle_objc_class_get_metaclass( struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_metaclass   *
+   mulle_objc_class_get_metaclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_metaclass( cls) : 0);
 }

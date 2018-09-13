@@ -52,6 +52,18 @@ struct _mulle_objc_propertylist
 };
 
 
+static inline unsigned int   _mulle_objc_propertylist_get_count( struct _mulle_objc_propertylist *list)
+{
+   return( list->n_properties);
+}
+
+
+static inline size_t   mulle_objc_sizeof_propertylist( unsigned int n_properties)
+{
+   return( sizeof( struct _mulle_objc_propertylist) + (n_properties - 1) * sizeof( struct _mulle_objc_property));
+}
+
+
 int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
                                    int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
                                    struct _mulle_objc_infraclass *infra,

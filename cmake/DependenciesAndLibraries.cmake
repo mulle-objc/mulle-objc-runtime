@@ -18,3 +18,4 @@ include( _Libraries)
 # Add OS specific dependencies to OS_SPECIFIC_LIBRARIES
 # Add all other dependencies (rest) to DEPENDENCIES_LIBRARIES
 #
+set( STARTUP_LIBRARY_NAME "mulle-objc-runtime-startup")

@@ -102,7 +102,8 @@ static inline int   mulle_objc_thread_key_is_intitialized( void)
 }
 
 
-static inline struct _mulle_objc_threadconfig  *_mulle_objc_get_threadconfig( void)
+static inline struct _mulle_objc_threadconfig  *
+   _mulle_objc_get_threadconfig( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;
@@ -115,8 +116,9 @@ static inline struct _mulle_objc_threadconfig  *_mulle_objc_get_threadconfig( vo
 }
 
 
-MULLE_C_CONST_NON_NULL_RETURN  // always returns same value (in same thread)
-static inline struct _mulle_objc_threadconfig  *mulle_objc_get_threadconfig( void)
+// always returns same value (in same thread)
+MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_threadconfig *
+   mulle_objc_get_threadconfig( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;

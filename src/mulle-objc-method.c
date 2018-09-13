@@ -119,3 +119,21 @@ int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p)
 
    return( 1);
 }
+
+
+#pragma mark - descriptor
+
+unsigned int   mulle_objc_count_selector_arguments( char *s)
+{
+   char           *p;
+   unsigned int   n;
+   char           c;
+   if( ! s)
+      return( (unsigned int) -1);
+
+   n = 0;
+   while( c = *s++)
+      if( c == ':')
+         ++n;
+   return( n);
+}

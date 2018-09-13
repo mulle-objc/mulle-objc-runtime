@@ -36,7 +36,7 @@
 
 #include "mulle-objc-cache.h"
 #include "mulle-objc-class.h"
-#include "mulle-objc-class-universe.h"
+#include "mulle-objc-universe-class.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-classpair.h"
@@ -141,7 +141,7 @@ void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *
       mulle_objc_raise_errno_exception();
    }
 
-   cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
+   cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return;
 

@@ -40,7 +40,7 @@
 #include "mulle-objc-callqueue.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
-#include "mulle-objc-class-universe.h"
+#include "mulle-objc-universe-class.h"
 #include "mulle-objc-dotdump.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-metaclass.h"
@@ -330,9 +330,10 @@ static struct _mulle_objc_dependency
       {
          if( universe->debug.trace.dependency)
          {
-            loadclass_trace( info, universe, "superclass %08x \"%s\" is not present yet",
-                    info->superclassid,
-                    info->superclassname);
+            loadclass_trace( info, universe, "superclass %08x \"%s\" is "
+                                             "not present yet",
+                                             info->superclassid,
+                                             info->superclassname);
          }
 
          dependency.classid    = info->superclassid;
@@ -341,17 +342,26 @@ static struct _mulle_objc_dependency
       }
 
       if( strcmp( info->superclassname, superclass->base.name))
-         _mulle_objc_universe_raise_generic_exception( universe, "error in mulle_objc_universe %p: hash collision %08x for classnames \"%s\" \"%s\"",
-                                                  universe,
-                                                  info->superclassid,
-                                                  info->superclassname,
-                                                  superclass->base.name);
+         _mulle_objc_universe_raise_generic_exception( universe,
+             "error in mulle_objc_universe %p: hash collision %08x "
+             "for classnames \"%s\" \"%s\"",
+             universe,
+             info->superclassid,
+             info->superclassname,
+             superclass->base.name);
    }
 
    if( superclass && superclass->ivarhash != info->superclassivarhash)
    {
       if( ! universe->config.ignore_ivarhash_mismatch)
-         _mulle_objc_universe_raise_generic_exception( universe, "error in mulle_objc_universe %p: superclass \"%s\" of \"%s\" has changed. Recompile \"%s\" (%s).\n", universe, info->superclassname, info->classname, info->classname, info->origin ? info->origin : "<unknown file>");
+         _mulle_objc_universe_raise_generic_exception( universe,
+              "error in mulle_objc_universe %p: superclass \"%s\" of \"%s\" "
+              "has changed. Recompile \"%s\" (%s).\n",
+              universe,
+              info->superclassname,
+              info->classname,
+              info->classname,
+              info->origin ? info->origin : "<unknown file>");
    }
 
    // protocol classes present ?
@@ -368,7 +378,8 @@ static struct _mulle_objc_dependency
          {
             if( universe->debug.trace.dependency)
             {
-               loadclass_trace( info, universe, "protocolclass %08x \"%s\" is not present yet",
+               loadclass_trace( info, universe, "protocolclass %08x \"%s\" is "
+                                                "not present yet",
                                *classid_p,
                                _mulle_objc_universe_string_for_classid( universe, *classid_p));
             }
@@ -598,9 +609,10 @@ static void   loadmethod_dump( struct _mulle_objc_method *method, char *prefix, 
 
 static void   loadivar_dump( struct _mulle_objc_ivar *ivar, char *prefix)
 {
-   fprintf( stderr, "%s    %s; // id=%08x signature=\"%s\"\n",
+   fprintf( stderr, "%s    %s; // @%ld id=%08x signature=\"%s\"\n",
            prefix,
            ivar->descriptor.name,
+           (long) ivar->offset,
            ivar->descriptor.ivarid,
            ivar->descriptor.signature);
 }

@@ -40,6 +40,7 @@
 
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-search.h"
+#include "mulle-objc-class-convenience.h"
 
 
 // methods on class shortcuts
@@ -62,7 +63,7 @@ static inline mulle_objc_implementation_t
 
 static inline mulle_objc_implementation_t
     _mulle_objc_object_lookup_implementation( void *obj,
-                                                    mulle_objc_methodid_t methodid)
+                                              mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
@@ -90,6 +91,18 @@ static inline struct _mulle_objc_method   *
 
    cls  = _mulle_objc_object_get_isa( obj);
    return( mulle_objc_class_defaultsearch_method( cls, methodid));
+}
+
+
+MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
+    _mulle_objc_object_get_allocator( void *obj)
+{
+   struct _mulle_objc_class       *cls;
+   struct _mulle_objc_infraclass   *infra;
+
+   cls   = _mulle_objc_object_get_isa( obj);
+   infra = _mulle_objc_class_as_infraclass( cls);
+   return( _mulle_objc_infraclass_get_allocator( infra));
 }
 
 #endif

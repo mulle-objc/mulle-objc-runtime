@@ -602,7 +602,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
 
    fprintf( fp, "\n<DIV CLASS=\"class_cache\">\n");
    {
-      cache = _mulle_objc_cachepivot_atomic_get_cache( &cls->cachepivot.pivot);
+      cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
       label = mulle_objc_cache_html_description( cache, universe, &cachetable_style);
       print_to_body( "Cache", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
