@@ -76,21 +76,27 @@ static mulle_objc_implementation_t
 
 # pragma mark - class cache
 
-static mulle_objc_cache_uint_t  _mulle_objc_class_search_minmethodcachesize( struct _mulle_objc_class *cls)
+static mulle_objc_cache_uint_t
+   _mulle_objc_class_search_minmethodcachesize( struct _mulle_objc_class *cls)
 {
    mulle_objc_cache_uint_t   preloads;
 
    // these are definitely in the cache
-   preloads = _mulle_objc_class_count_preloadmethods( cls) + _mulle_objc_universe_get_numberofpreloadmethods( cls->universe);
+   preloads = _mulle_objc_class_count_preloadmethods( cls) +
+              _mulle_objc_universe_get_numberofpreloadmethods( cls->universe);
    return( preloads);
 }
 
 
-static void   _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( struct _mulle_objc_class *cls, struct _mulle_objc_cache *cache, mulle_objc_methodid_t *methodids, unsigned int n)
+static void
+   _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodids( struct _mulle_objc_class *cls,
+                                                                         struct _mulle_objc_cache *cache,
+                                                                         mulle_objc_methodid_t *methodids, unsigned int n)
 {
-   mulle_objc_methodid_t      *p;
-   mulle_objc_methodid_t      *sentinel;
-   struct _mulle_objc_method   *method;
+   mulle_objc_methodid_t        *p;
+   mulle_objc_methodid_t        *sentinel;
+   struct _mulle_objc_method    *method;
+   mulle_objc_implementation_t  imp;
 
    p        = methodids;
    sentinel = &p[ n];
@@ -98,7 +104,12 @@ static void   _mulle_objc_class_fill_inactivecache_with_preload_array_of_methodi
    {
       method = mulle_objc_class_defaultsearch_method( cls, *p++);
       if( method)
-         _mulle_objc_cache_inactivecache_add_pointer_entry( cache, _mulle_objc_method_get_implementation( method), method->descriptor.methodid);
+      {
+         imp = _mulle_objc_method_get_implementation( method);
+         _mulle_objc_cache_inactivecache_add_pointer_entry( cache,
+                                                            imp,
+                                                            method->descriptor.methodid);
+      }
    }
 }
 
@@ -723,13 +734,13 @@ mulle_objc_implementation_t
    _mulle_objc_class_noncachinglookup_implementation( struct _mulle_objc_class *cls,
                                                       mulle_objc_methodid_t methodid)
 {
-   mulle_objc_cache_uint_t             offset;
-   mulle_objc_implementation_t         imp;
-   mulle_atomic_functionpointer_t      p;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   struct _mulle_objc_method           *method;
+   mulle_objc_cache_uint_t          offset;
+   mulle_objc_implementation_t      imp;
+   mulle_atomic_functionpointer_t   p;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   struct _mulle_objc_method        *method;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -760,13 +771,13 @@ mulle_objc_implementation_t
     _mulle_objc_class_lookup_implementation( struct _mulle_objc_class *cls,
                                              mulle_objc_methodid_t methodid)
 {
-   mulle_objc_cache_uint_t             offset;
-   mulle_objc_implementation_t         imp;
-   mulle_atomic_functionpointer_t      p;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   struct _mulle_objc_method           *method;
+   mulle_objc_cache_uint_t          offset;
+   mulle_objc_implementation_t      imp;
+   mulle_atomic_functionpointer_t   p;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   struct _mulle_objc_method        *method;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -852,13 +863,13 @@ void   *_mulle_objc_object_call_class( void *obj,
                                        void *parameter,
                                        struct _mulle_objc_class *cls)
 {
-   mulle_objc_implementation_t         imp;
-   mulle_atomic_functionpointer_t      p;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   mulle_objc_cache_uint_t             mask;
-   mulle_objc_cache_uint_t             offset;
+   mulle_objc_implementation_t      imp;
+   mulle_atomic_functionpointer_t   p;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   mulle_objc_cache_uint_t          mask;
+   mulle_objc_cache_uint_t          offset;
 
    assert( obj);
    assert( mulle_objc_uniqueid_is_sane( methodid));
@@ -894,14 +905,14 @@ void   *_mulle_objc_object_call_class( void *obj,
 //
 void   *_mulle_objc_object_call2( void *obj, mulle_objc_methodid_t methodid, void *parameter)
 {
-   mulle_objc_implementation_t         imp;
-   mulle_atomic_functionpointer_t      p;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   struct _mulle_objc_class            *cls;
-   mulle_objc_cache_uint_t             mask;
-   mulle_objc_cache_uint_t             offset;
+   mulle_objc_implementation_t      imp;
+   mulle_atomic_functionpointer_t   p;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   struct _mulle_objc_class         *cls;
+   mulle_objc_cache_uint_t          mask;
+   mulle_objc_cache_uint_t          offset;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -1048,7 +1059,8 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
 }
 
 
-static void   _mulle_objc_class_setup_initial_cache_if_needed( struct _mulle_objc_class *cls)
+static void
+   _mulle_objc_class_setup_initial_cache_if_needed( struct _mulle_objc_class *cls)
 {
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
       return;
@@ -1080,17 +1092,29 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
    struct _mulle_objc_metaclass    *meta;
    mulle_objc_implementation_t     imp;
    int                             flag;
+   char                            *name;
 
-   meta = _mulle_objc_infraclass_get_metaclass( infra);
+   meta     = _mulle_objc_infraclass_get_metaclass( infra);
+   name     = _mulle_objc_infraclass_get_name( infra);
+   universe = _mulle_objc_infraclass_get_universe( infra);
 
    assert( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE));
    assert( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE));
 
+   // always set meta bit first!
+   // must be 1 as a return value
+   flag = _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZING);
+   if( flag != 1)
+   {
+      if( universe->debug.trace.initialize)
+         fprintf( stderr, "mulle_objc_universe %p trace: recusive +[%s initialize] ignored\n",
+                 universe, name);
+      return;
+   }
+
    // grab code from superclass
    // this is useful for MulleObjCSingleton
    initialize = mulle_objc_class_defaultsearch_method( &meta->base, MULLE_OBJC_INITIALIZE_METHODID);
-
-   universe = _mulle_objc_infraclass_get_universe( infra);
    if( initialize)
    {
       if( universe->debug.trace.initialize)
@@ -1099,27 +1123,34 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
 
       imp   = _mulle_objc_method_get_implementation( initialize);
       if( universe->debug.trace.method_call)
-         mulle_objc_class_trace_method_call( &infra->base, MULLE_OBJC_INITIALIZE_METHODID, infra, NULL, imp);
-      (*imp)( (struct _mulle_objc_object *) infra, MULLE_OBJC_INITIALIZE_METHODID, NULL);
+         mulle_objc_class_trace_method_call( &infra->base,
+                                             MULLE_OBJC_INITIALIZE_METHODID,
+                                             infra,
+                                             NULL,
+                                             imp);
+      (*imp)( (struct _mulle_objc_object *) infra,
+              MULLE_OBJC_INITIALIZE_METHODID,
+              NULL);
    }
    else
    {
       if( universe->debug.trace.initialize)
          fprintf( stderr, "mulle_objc_universe %p trace: "
                           "no +[%s initialize] found\n",
-                 universe, _mulle_objc_metaclass_get_name( meta));
+                 universe, name);
    }
 
    // always set meta bit first!
    // must be 1 as a return value
    flag = _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE);
    if( flag != 1)
-      mulle_objc_raise_inconsistency_exception( "someone else initialized the same class");
-
+      mulle_objc_raise_inconsistency_exception( "someone else initialized metaclass \"%s\"",
+                                                name);
    // must be 1 as a return value
    flag = _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
    if( flag != 1)
-      mulle_objc_raise_inconsistency_exception( "someone else initialized the same class");
+      mulle_objc_raise_inconsistency_exception( "someone else initialized infraclass \"%s\"",
+                                                name);
 }
 
 
@@ -1317,7 +1348,10 @@ void   *_mulle_objc_object_supercall( void *obj,
 
 #pragma mark - multiple objects call
 
-void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_methodid_t methodid, void *params)
+void   mulle_objc_objects_call( void **objects,
+                                unsigned int n,
+                                mulle_objc_methodid_t methodid,
+                                void *params)
 {
    mulle_objc_implementation_t   (*lookup)( struct _mulle_objc_class *, mulle_objc_methodid_t);
    mulle_objc_implementation_t   imp;
@@ -1363,7 +1397,7 @@ void   mulle_objc_objects_call( void **objects, unsigned int n, mulle_objc_metho
 
 mulle_objc_implementation_t
    _mulle_objc_object_unfailinglookup_superimplementation( void *obj,
-                                                         mulle_objc_superid_t superid)
+                                                           mulle_objc_superid_t superid)
 {
    return( _mulle_objc_object_inline_unfailinglookup_superimplementation( obj, superid));
 }

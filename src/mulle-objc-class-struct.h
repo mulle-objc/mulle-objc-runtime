@@ -99,7 +99,8 @@ enum _mulle_objc_class_state
    _MULLE_OBJC_CLASS_WARN_PROTOCOL           = 0x0100,
    _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        = 0x0200,
    _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  = 0x0400,
-   _MULLE_OBJC_CLASS_LOAD_SCHEDULED          = 0x4000, // only if a class +load existed
+   _MULLE_OBJC_CLASS_LOAD_SCHEDULED          = 0x1000, // only if a class +load existed
+   MULLE_OBJC_CLASS_INITIALIZING             = 0x4000,  // no _, can be used on its own
    MULLE_OBJC_CLASS_INITIALIZE_DONE          = 0x8000,  // no _, can be used on its own
 
    MULLE_OBJC_CLASS_FOUNDATION_BIT0    = 0x00010000,

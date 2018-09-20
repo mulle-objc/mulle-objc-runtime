@@ -266,7 +266,7 @@ typedef mulle_objc_walkcommand_t
                                        void *);
 
 
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
                                            unsigned int inheritance,
                                            mulle_objc_walkcategoryidscallback *f,
@@ -300,7 +300,7 @@ typedef mulle_objc_walkcommand_t
                                            void *);
 
 
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
                                                unsigned int inheritance,
                                                mulle_objc_walkprotocolclassescallback *f,
@@ -333,25 +333,37 @@ typedef mulle_objc_walkcommand_t
                                        void *);
 
 
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
-                                           unsigned int inheritance,
-                                           mulle_objc_walkprotocolidscallback *f,
-                                           void *userinfo);
+                                          unsigned int inheritance,
+                                          mulle_objc_walkprotocolidscallback *f,
+                                          void *userinfo);
 
-// searches hierarchy
-// need to re
-int   _mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
+int
+   __mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
+                                                 unsigned int inheritance,
                                                  mulle_objc_protocolid_t protocolid);
+
+static inline int
+   _mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
+                                                mulle_objc_protocolid_t protocolid)
+{
+   struct _mulle_objc_infraclass   *infra;
+   unsigned int                    inheritance;
+
+   infra       = _mulle_objc_classpair_get_infraclass( pair);
+   inheritance = _mulle_objc_infraclass_get_inheritance( infra);
+   return( __mulle_objc_classpair_conformsto_protocolid( pair,
+                                                         inheritance,
+                                                         protocolid));
+}
 
 
 static inline int
    mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
                                                mulle_objc_protocolid_t protocolid)
 {
-   if( ! pair)
-      return( 0);
-   return( _mulle_objc_classpair_conformsto_protocolid( pair, protocolid));
+   return( pair ? _mulle_objc_classpair_conformsto_protocolid( pair, protocolid) : 0);
 }
 
 

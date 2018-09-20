@@ -56,8 +56,7 @@
 
 # pragma mark - errors
 
-MULLE_C_NO_RETURN static void
-   _mulle_objc_perror_abort( char *s)
+MULLE_C_NO_RETURN static void   _mulle_objc_perror_abort( char *s)
 {
    perror( s);
    abort();
@@ -67,8 +66,15 @@ MULLE_C_NO_RETURN static void
 MULLE_C_NO_RETURN static void
    _mulle_objc_vprintf_abort( char *format, va_list args)
 {
+   extern void   mulle_objc_dotdump_to_tmp( void);
+
    vfprintf( stderr, format, args);
    fprintf( stderr, "\n");
+
+#if DEBUG
+   mulle_objc_dotdump_to_tmp();
+#endif
+
    abort();
 }
 
@@ -76,21 +82,26 @@ MULLE_C_NO_RETURN static void
 MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE static void
    _mulle_objc_printf_abort( char *format, ...)
 {
-   extern void   mulle_objc_dotdump_to_tmp( void);
-
    va_list   args;
 
    va_start( args, format);
-
-   vfprintf( stderr, format, args);
-   fprintf( stderr, "\n");
-
+   _mulle_objc_vprintf_abort( format, args);
    va_end( args);
 
-#if DEBUG
-   mulle_objc_dotdump_to_tmp();
-#endif
    abort();
+}
+
+
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_raise_generic_exceptionv( struct _mulle_objc_universe *universe,
+                                                  char *format,
+                                                  va_list args)
+{
+   if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
+      _mulle_objc_vprintf_abort( format, args);
+   (*universe->failures.fail)( format, args);
+
+   abort();  // just make sure if fail returns
 }
 
 
@@ -101,13 +112,7 @@ MULLE_C_NO_RETURN void
    va_list   args;
 
    va_start( args, format);
-
-   if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
-      _mulle_objc_vprintf_abort( format, args);
-   (*universe->failures.fail)( format, args);
-   va_end( args);
-
-   abort();  // just make sure if fail returns
+   _mulle_objc_universe_raise_generic_exceptionv( universe, format, args);
 }
 
 
@@ -165,6 +170,7 @@ MULLE_C_NO_RETURN static void
                                 missing_method,
                                _mulle_objc_class_get_classid( cls),
                                 name);
+
    _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: unknown method "
                              "%08x \"%c%s\" in class %08x \"%s\"",
                              universe,
@@ -754,7 +760,10 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
    if( ! index || index > mulle_objc_get_taggedpointer_mask())
       return( -1);
 
-   assert( ! universe->taggedpointers.pointerclass[ index]);
+   if( universe->taggedpointers.pointerclass[ index])
+      mulle_objc_raise_inconsistency_exception( "Another class is hogging "
+                                                "tagged pointer index already "
+                                                "until the end of the universe");
    if( universe->debug.trace.tagged_pointer)
       fprintf( stderr, "mulle_objc_universe %p trace: set tagged pointers with "
                        "index %d to isa %p (class %08x \"%s\" )\n",
@@ -1185,13 +1194,10 @@ MULLE_C_NO_RETURN void
 
 
 MULLE_C_NO_RETURN void
-   _mulle_objc_universe_raise_inconsistency_exception( struct _mulle_objc_universe *universe,
-                                                       char *format, ...)
+   _mulle_objc_universe_raise_inconsistency_exceptionv( struct _mulle_objc_universe *universe,
+                                                        char *format,
+                                                        va_list args)
 {
-   va_list   args;
-
-   va_start( args, format);
-
    //
    // inconsistency ? even universe might not be setup properly. This is the only
    // exception doing this check
@@ -1202,9 +1208,19 @@ MULLE_C_NO_RETURN void
       abort();;
    }
    (*universe->failures.inconsistency)( format, args);
-   va_end( args);
 
    abort();  // just make sure if fail returns
+}
+
+
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_raise_inconsistency_exception( struct _mulle_objc_universe *universe,
+                                                        char *format, ...)
+{
+   va_list   args;
+
+   va_start( args, format);
+   _mulle_objc_universe_raise_inconsistency_exceptionv( universe, format, args);
 }
 
 
@@ -1361,7 +1377,7 @@ void   mulle_objc_raise_generic_exception( char *format, ...)
    va_list   args;
 
    va_start( args, format);
-   _mulle_objc_universe_raise_generic_exception( mulle_objc_get_universe(), format, args);
+   _mulle_objc_universe_raise_generic_exceptionv( mulle_objc_get_universe(), format, args);
    va_end( args);
 }
 
@@ -1377,7 +1393,7 @@ void   mulle_objc_raise_inconsistency_exception( char *format, ...)
    va_list   args;
 
    va_start( args, format);
-   _mulle_objc_universe_raise_inconsistency_exception( mulle_objc_get_universe(), format, args);
+   _mulle_objc_universe_raise_inconsistency_exceptionv( mulle_objc_get_universe(), format, args);
    va_end( args);
 }
 
