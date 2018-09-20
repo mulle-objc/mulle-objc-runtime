@@ -59,8 +59,14 @@ mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
    mulle_objc_uniqueid_t  value;
    unsigned int           len;
 
+   if( ! s)
+   {
+      errno = EINVAL;
+      return( MULLE_OBJC_INVALID_UNIQUEID);
+   }
+
    len = (unsigned int) strlen( s);
-   if( ! s || ! len)
+   if( ! len)
    {
       errno = EINVAL;
       return( MULLE_OBJC_INVALID_UNIQUEID);

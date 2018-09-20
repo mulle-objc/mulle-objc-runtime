@@ -287,13 +287,15 @@ int  _mulle_objc_universe_match_exception( struct _mulle_objc_universe *universe
                                            void *exception);
 
 MULLE_C_NO_RETURN void
-   _mulle_objc_universe_raise_generic_exception( struct _mulle_objc_universe *universe,
-                                                 char *format, ...);
+   _mulle_objc_universe_raise_generic_exceptionv( struct _mulle_objc_universe *universe,
+                                                  char *format,
+                                                  va_list args);
 MULLE_C_NO_RETURN void
    _mulle_objc_universe_raise_errno_exception( struct _mulle_objc_universe *universe);
 MULLE_C_NO_RETURN void
-   _mulle_objc_universe_raise_inconsistency_exception( struct _mulle_objc_universe *universe,
-                                                       char *format, ...);
+   _mulle_objc_universe_raise_inconsistency_exceptionv( struct _mulle_objc_universe *universe,
+                                                       char *format,
+                                                       va_list args);
 MULLE_C_NO_RETURN void
    _mulle_objc_universe_raise_class_not_found_exception( struct _mulle_objc_universe *universe,
                                                          mulle_objc_classid_t classid);
@@ -303,6 +305,14 @@ MULLE_C_NO_RETURN void
 MULLE_C_NO_RETURN void
    _mulle_objc_class_raise_method_not_found_exception( struct _mulle_objc_class *class,
                                                        mulle_objc_methodid_t methodid);
+
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_raise_generic_exception( struct _mulle_objc_universe *universe,
+                                                 char *format, ...);
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_raise_inconsistency_exception( struct _mulle_objc_universe *universe,
+                                                       char *format, ...);
+
 
 // exceptions
 
@@ -698,9 +708,9 @@ void    mulle_objc_universe_unfailingadd_protocol( struct _mulle_objc_universe *
 struct _mulle_objc_protocol  *mulle_objc_lookup_protocol( mulle_objc_protocolid_t protocolid);
 
 
-typedef mulle_objc_walkcommand_t 
-   (*mulle_objc_walk_protocols_callback)( struct _mulle_objc_universe *, 
-                                          struct _mulle_objc_protocol *, 
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walk_protocols_callback)( struct _mulle_objc_universe *,
+                                          struct _mulle_objc_protocol *,
                                           void *);
 
 mulle_objc_walkcommand_t

@@ -288,8 +288,11 @@ static struct _mulle_objc_dependency
 
    dependencies = (*imp)( NULL, MULLE_OBJC_DEPENDENCIES_METHODID, NULL);
    if( ! dependencies)
-      _mulle_objc_universe_raise_generic_exception( universe, "error in mulle_objc_universe %p: %s returned NULL for +dependencies\n",
-                                               universe, info->classname);
+      _mulle_objc_universe_raise_generic_exception( universe,
+                                                    "error in mulle_objc_universe %p: %s "
+                                                    "returned NULL for +dependencies\n",
+                                                    universe,
+                                                    info->classname);
 
    return( _mulle_objc_universe_fulfill_dependencies( universe, NULL, dependencies));
 }

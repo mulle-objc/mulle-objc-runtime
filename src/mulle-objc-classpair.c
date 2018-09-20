@@ -532,8 +532,9 @@ mulle_objc_walkcommand_t
 }
 
 
-int   _mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
-                                                   mulle_objc_protocolid_t protocolid)
+int   __mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
+                                                    unsigned int inheritance,
+                                                    mulle_objc_protocolid_t protocolid)
 {
    int                             rval;
    struct _mulle_objc_classpair    *superpair;
@@ -544,9 +545,9 @@ int   _mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair 
    if( rval)
       return( rval);
 
-   infra = _mulle_objc_classpair_get_infraclass( pair);
-   if( ! (_mulle_objc_infraclass_get_inheritance( infra) & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
    {
+      infra      = _mulle_objc_classpair_get_infraclass( pair);
       superclass = _mulle_objc_infraclass_get_superclass( infra);
       if( superclass && superclass != infra)
       {

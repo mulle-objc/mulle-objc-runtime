@@ -36,6 +36,11 @@
 #ifndef mulle_objc_runtime_h__
 #define mulle_objc_runtime_h__
 
+/*
+ * If you want to include <mulle-objc-runtime/mulle-objc-runtime.h> you
+ * should be compiling with an Objective-C compiler, that defines the
+ * following defines properly. Do not use .c  use .m with mulle-objc-runtime.h
+ */
 
 // catch this early
 #if ! defined( __MULLE_OBJC_TPS__) && ! defined( __MULLE_OBJC_NO_TPS__)
@@ -89,6 +94,7 @@
 #include "mulle-objc-propertylist.h"
 #include "mulle-objc-retain-release.h"
 #include "mulle-objc-universe.h"
+#include "mulle-objc-universe-class.h"
 #include "mulle-objc-universe-global.h"
 #include "mulle-objc-universe-struct.h"
 #include "mulle-objc-signature.h"
@@ -100,7 +106,6 @@
 #include "mulle-objc-version.h"
 #include "mulle-objc-walktypes.h"
 
-#include "mulle-objc-universe-class.h"
 
 
 // add some functions to mulle-vararg for ObjC

@@ -100,6 +100,8 @@ static inline void
    else
       mulle_objc_object_retain( value);
 
+   assert( ! value || _mulle_objc_object_get_universe( value) == _mulle_objc_object_get_universe( self));
+
    if( is_atomic)
    {
       old = _mulle_atomic_pointer_set( (mulle_atomic_pointer_t *) ivar, value);
