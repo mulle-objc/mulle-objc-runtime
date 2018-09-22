@@ -1,5 +1,3 @@
-[ "${TRACE}" = "YES" ] && set -x  && : "$0" "$@"
-
 [ -z "${MULLE_VIRTUAL_ROOT}" -o -z "${MULLE_UNAME}"  ] && \
    echo "Your script needs to setup MULLE_VIRTUAL_ROOT \
 and MULLE_UNAME properly" >&2  && exit 1
