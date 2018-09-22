@@ -149,17 +149,4 @@ static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj)
    _mulle_objc_object_free( obj);
 }
 
-
-#pragma mark - classpair conveniences
-
-static inline int
-   _mulle_objc_infraclass_conformsto_protocolid( struct _mulle_objc_infraclass *infra,
-                                                 mulle_objc_protocolid_t protocolid)
-{
-   struct _mulle_objc_classpair   *pair;
-
-   pair = _mulle_objc_infraclass_get_classpair( infra);
-   return( _mulle_objc_classpair_conformsto_protocolid( pair, protocolid));
-}
-
 #endif /* mulle_objc_class_universe_h */

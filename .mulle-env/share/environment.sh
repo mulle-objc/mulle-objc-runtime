@@ -1,4 +1,7 @@
-[ "${TRACE}" = "YES" -o "${MULLE_ENVIRONMENT_TRACE}" = "YES" ] && set -x  && : "$0" "$@"
+#######
+### none startup
+#######
+[ "${TRACE}" = "YES" -o "${ENVIRONMENT_SH_TRACE}" = "YES" ] && set -x  && : "$0" "$@"
 
 #
 # If mulle-env is broken, sometimes its nice just to source this file.
@@ -22,8 +25,14 @@ then
 your convenience" >&2
 fi
 
-alias mulle-env-reload='. "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/include-environment.sh"'
+#
+# now read in custom envionment (required)
+#
+. "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/include-environment.sh"
 
+#
+# basic setup for interactive shells
+#
 case "${MULLE_SHELL_MODE}" in
    *INTERACTIVE*)
       #
@@ -51,23 +60,14 @@ case "${MULLE_SHELL_MODE}" in
       . "${MULLE_ENV_LIBEXEC_DIR}/mulle-env-cd.sh"
       unset MULLE_ENV_LIBEXEC_DIR
 
-      mulle-env-reload
-   ;;
+      # install mulle-env-reload
 
-   *)
-      set -a ; mulle-env-reload     # export all definitions for command
-      eval ${COMMAND}  # must eval this so ls -1 ${MULLE_VIRTUAL_ROOT} works
-      exit $?
-   ;;
-esac
+      alias mulle-env-reload='. "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/include-environment.sh"'
 
 
-#
-# Source in bash completion if available
-# Assumed is, that they are not user modifiable
-#
-case "${MULLE_SHELL_MODE}" in
-   *INTERACTIVE*)
+      #
+      # source in any bash completion files
+      #
       DEFAULT_IFS="${IFS}"
       shopt -s nullglob; IFS="
 "
@@ -79,24 +79,51 @@ case "${MULLE_SHELL_MODE}" in
 
       unset FILENAME
       unset DEFAULT_IFS
+
+
+      #
+      # show motd, if any
+      #
+      if [ -z "${NO_MOTD}" ]
+      then
+         if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd" ]
+         then
+            cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd"
+         else
+            if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd" ]
+            then
+               cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd"
+            fi
+         fi
+      else
+         unset NO_MOTD
+      fi
    ;;
 esac
 
-#
-#
-# show motd, if any
-#
-if [ -z "${NO_MOTD}" ]
-then
-   if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd" ]
-   then
-      cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/etc/motd"
-   else
-      if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd" ]
+#######
+### mulle startup
+#######
+
+case "${MULLE_SHELL_MODE}" in
+   *INTERACTIVE*)
+      if [ -z "" ]
       then
-         cat "${MULLE_VIRTUAL_ROOT}/.mulle-env/share/motd"
+         alias buildorder="mulle-sde buildorder"
+         alias clean="mulle-sde clean"
+         alias craft="mulle-sde craft"
+         alias dependency="mulle-sde dependency"
+         alias environment="mulle-sde environment"
+         alias extension="mulle-sde extension"
+         alias fetch="mulle-sde show"
+         alias show="mulle-sde find"
+         alias library="mulle-sde library"
+         alias log="mulle-sde log"
+         alias match="mulle-sde match"
+         alias monitor="mulle-sde monitor"
+         alias patternfile="mulle-sde patternfile"
+         alias subproject="mulle-sde subproject"
+         alias update="mulle-sde update"
       fi
-   fi
-else
-   unset NO_MOTD
-fi
+   ;;
+esac

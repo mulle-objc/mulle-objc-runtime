@@ -471,10 +471,22 @@ mulle_objc_walkcommand_t
 
 
 
-#pragma mark - conveniences for class
+#pragma mark - conveniences for infraclass
+
+static inline int
+   _mulle_objc_infraclass_conformsto_protocolid( struct _mulle_objc_infraclass *infra,
+                                                 mulle_objc_protocolid_t protocolid)
+{
+   struct _mulle_objc_classpair   *pair;
+
+   pair = _mulle_objc_infraclass_get_classpair( infra);
+   return( _mulle_objc_classpair_conformsto_protocolid( pair, protocolid));
+}
 
 
 #if 0
+
+#pragma mark - conveniences for class
 static inline int   _mulle_objc_class_has_categoryid( struct _mulle_objc_class *cls,
                                                       mulle_objc_categoryid_t categoryid)
 {
