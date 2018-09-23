@@ -140,12 +140,12 @@ struct _mulle_objc_threadconfig
 
 
 // only __mulle_objc_get_universe should use this
-static inline struct _mulle_objc_universe  *__mulle_objc_get_thread_universe( void)
+static inline struct _mulle_objc_universe  *__mulle_objc_threadget_universe( void)
 {
    struct _mulle_objc_universe       *universe;
    struct _mulle_objc_threadconfig   *config;
 
-   config  = mulle_objc_get_threadconfig();
+   config  = _mulle_objc_threadget_threadconfig();
    if( ! config)
       return( NULL);
 
@@ -161,8 +161,8 @@ MULLE_C_CONST_NON_NULL_RETURN  static inline struct _mulle_objc_universe *
    struct _mulle_objc_universe       *universe;
    struct _mulle_objc_threadconfig   *config;
 
-   config  = mulle_objc_get_threadconfig();
-   assert( config && "thread not configure for mulle_objc");
+   config  = mulle_objc_threadget_threadconfig();
+   assert( config && "thread not configured for mulle_objc");
 
    universe = config->universe;
    assert( ! _mulle_objc_universe_is_uninitialized( universe) && "universe not initialized yet");
@@ -171,7 +171,7 @@ MULLE_C_CONST_NON_NULL_RETURN  static inline struct _mulle_objc_universe *
 }
 
 
-void   mulle_objc_set_thread_universe( struct _mulle_objc_universe *universe);
+void   mulle_objc_threadset_universe( struct _mulle_objc_universe *universe);
 
 static inline void *
    _mulle_objc_threadconfig_get_foundationspace( struct _mulle_objc_threadconfig  *config)
