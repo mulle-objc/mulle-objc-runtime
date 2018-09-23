@@ -93,7 +93,7 @@ static inline int _mulle_objc_is_global_universe( struct _mulle_objc_universe *u
 // this is used by NSAutoreleasePool only
 // to lazily setup a universe thread if missing
 //
-static inline int   mulle_objc_thread_key_is_intitialized( void)
+static inline int   mulle_objc_thread_key_is_initialized( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;
@@ -103,14 +103,14 @@ static inline int   mulle_objc_thread_key_is_intitialized( void)
 
 
 static inline struct _mulle_objc_threadconfig  *
-   _mulle_objc_get_threadconfig( void)
+   _mulle_objc_threadget_threadconfig( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;
    struct _mulle_objc_threadconfig  *config;
 
    /* if you crash here [^1] */
-   assert( mulle_objc_thread_key_is_intitialized());
+   assert( mulle_objc_thread_key_is_initialized());
    config = mulle_thread_tss_get( mulle_objc_thread_key);
    return( config);
 }
@@ -118,14 +118,14 @@ static inline struct _mulle_objc_threadconfig  *
 
 // always returns same value (in same thread)
 MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_threadconfig *
-   mulle_objc_get_threadconfig( void)
+   mulle_objc_threadget_threadconfig( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;
    struct _mulle_objc_threadconfig  *config;
 
    /* if you crash here [^1] */
-   assert( mulle_objc_thread_key_is_intitialized());
+   assert( mulle_objc_thread_key_is_initialized());
    config = mulle_thread_tss_get( mulle_objc_thread_key);
    assert( config);
    return( config);

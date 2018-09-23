@@ -83,6 +83,7 @@
 #include "mulle-objc-ivarlist.h"
 #include "mulle-objc-kvccache.h"
 #include "mulle-objc-load.h"
+#include "mulle-objc-metaabi.h"
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-method.h"
 #include "mulle-objc-methodidconstants.h"

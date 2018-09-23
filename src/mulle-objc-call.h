@@ -445,39 +445,6 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 #endif
 }
 
-
-/* if you need to "manually" call a MetaABI function with a _param block
-   use mulle_objc_metaabi_param_block to generate it.
-
-   ex.
-
-   mulle_objc_metaabi_param_block( NSRange, NSUInteger)   _param;
-
-   _param.p = NSMakeRange( 1, 1);
-   mulle_objc_object_call( obj, sel, &_param);
-   return( _param.rval);
-*/
-
-#define mulle_objc_void_5_pointers( size)  \
-   (((size) +  sizeof( void *[ 5]) - 1) /  sizeof( void *[ 5]))
-
-#define mulle_objc_metaabi_param_block( param_type, rval_type) \
-   union                   \
-   {                       \
-      rval_type    r;      \
-      param_type   p;      \
-      void         *space[ 5][ sizeof( rval_type) > sizeof( param_type)        \
-                         ?  mulle_objc_void_5_pointers( sizeof( rval_type))    \
-                         :  mulle_objc_void_5_pointers( sizeof( param_type))]; \
-   }
-
-#define mulle_objc_metaabi_param_block_void_return( param_type) \
-   mulle_objc_metaabi_param_block( param_type, void *)
-
-#define mulle_objc_metaabi_param_block_void_parameter( return_type) \
-   mulle_objc_metaabi_param_block( void *, return_type)
-
-
 # pragma mark - compat layer support
 
 // don't use it yourself, it's supposed to be called automatically

@@ -449,7 +449,7 @@ void   __mulle_objc_universe_setup( struct _mulle_objc_universe *universe,
    mulle_thread_mutex_init( &universe->lock);
    universe->thread = mulle_thread_self();
 
-   mulle_objc_set_thread_universe( universe);
+   mulle_objc_threadset_universe( universe);
    _mulle_objc_universe_register_current_thread_if_needed( universe);
 }
 
@@ -473,7 +473,7 @@ struct _mulle_objc_universe  *__mulle_objc_get_universe( void)
 #if __MULLE_OBJC_TRT__
    if( mulle_objc_thread_key)
    {
-      universe = __mulle_objc_get_thread_universe();
+      universe = __mulle_objc_threadget_universe();
       if( ! universe)
          universe = mulle_objc_alloc_universe();
    }
@@ -734,7 +734,7 @@ void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
 # pragma mark - TPS and Loadbits
 
 void  _mulle_objc_universe_set_loadbit( struct _mulle_objc_universe *universe,
-                                       uintptr_t bit)
+                                        uintptr_t bit)
 {
    uintptr_t   oldbits;
    uintptr_t   newbits;
@@ -754,8 +754,8 @@ void  _mulle_objc_universe_set_loadbit( struct _mulle_objc_universe *universe,
 // it's assumed that there are no competing classes for the spot
 //
 int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_universe  *universe,
-                                                          struct _mulle_objc_infraclass *infra,
-                                                          unsigned int index)
+                                                           struct _mulle_objc_infraclass *infra,
+                                                           unsigned int index)
 {
    if( ! index || index > mulle_objc_get_taggedpointer_mask())
       return( -1);
@@ -781,7 +781,7 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
 
 # pragma mark - thread local
 
-static void   mulle_objc_thread_universe_destructor( struct _mulle_objc_threadconfig *config)
+static void   mulle_objc_threadconfig_free( struct _mulle_objc_threadconfig *config)
 {
    _mulle_allocator_free( &config->universe->memory.allocator, config);
 }
@@ -792,9 +792,9 @@ mulle_thread_tss_t   mulle_objc_unfailingget_or_create_threadkey( void)
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;
 
-   if( ! mulle_objc_thread_key_is_intitialized())
+   if( ! mulle_objc_thread_key_is_initialized())
    {
-      if( mulle_thread_tss_create( (void *) mulle_objc_thread_universe_destructor,
+      if( mulle_thread_tss_create( (void *) mulle_objc_threadconfig_free,
                                    &mulle_objc_thread_key))
       {
          _mulle_objc_perror_abort( "mulle_objc_unfailingget_or_create_threadkey");
@@ -804,13 +804,13 @@ mulle_thread_tss_t   mulle_objc_unfailingget_or_create_threadkey( void)
 }
 
 
-static void   mulle_objc_unset_thread_universe( void)
+static void   mulle_objc_threadunset_universe( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;
    struct _mulle_objc_threadconfig *config;
 
-   if( ! mulle_objc_thread_key_is_intitialized())
+   if( ! mulle_objc_thread_key_is_initialized())
       return;
 
    config = mulle_thread_tss_get( mulle_objc_thread_key);
@@ -818,7 +818,7 @@ static void   mulle_objc_unset_thread_universe( void)
    if( config)
    {
       mulle_thread_tss_set( mulle_objc_thread_key, NULL);
-      mulle_objc_thread_universe_destructor( config);
+      mulle_objc_threadconfig_free( config);
    }
 }
 
@@ -829,7 +829,7 @@ void   mulle_objc_delete_threadkey( void)
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
       mulle_thread_tss_t   mulle_objc_thread_key;
 
-   if( mulle_objc_thread_key_is_intitialized())
+   if( mulle_objc_thread_key_is_initialized())
       return;
 
    assert( ! mulle_thread_tss_get( mulle_objc_thread_key));
@@ -1046,7 +1046,7 @@ void   _mulle_objc_universe_dealloc( struct _mulle_objc_universe *universe)
    if( universe->callbacks.will_dealloc)
       (*universe->callbacks.will_dealloc)( universe);
 
-   mulle_objc_set_thread_universe( NULL);
+   mulle_objc_threadset_universe( NULL);
 
    // do it like this, because we are not initialized anymore
    gc = _mulle_objc_universe_get_garbagecollection( universe);
@@ -1282,7 +1282,7 @@ void   _mulle_objc_universe_throw( struct _mulle_objc_universe *universe, void *
    struct _mulle_objc_exceptionstackentry  *entry;
    struct _mulle_objc_threadconfig         *config;
 
-   config = mulle_objc_get_threadconfig();
+   config = mulle_objc_threadget_threadconfig();
    entry  = config->exception_stack;
    if( ! entry)
    {
@@ -1315,7 +1315,7 @@ void   _mulle_objc_universe_try_enter( struct _mulle_objc_universe *universe,
    struct _mulle_objc_exceptionstackentry  *top;
    struct _mulle_objc_threadconfig         *config;
 
-   config                  = mulle_objc_get_threadconfig();
+   config                  = mulle_objc_threadget_threadconfig();
    top                     = config->exception_stack;
    entry->exception        = NULL;
    entry->previous         = top;
@@ -1333,7 +1333,7 @@ void   _mulle_objc_universe_try_exit( struct _mulle_objc_universe *universe,
    struct _mulle_objc_exceptionstackentry *entry = data;
    struct _mulle_objc_threadconfig        *config;
 
-   config                  = mulle_objc_get_threadconfig();
+   config                  = mulle_objc_threadget_threadconfig();
    config->exception_stack = entry->previous;
 }
 
@@ -1421,14 +1421,14 @@ struct _mulle_objc_universe  *mulle_objc_get_universe( void)
 }
 
 
-void  mulle_objc_set_thread_universe( struct _mulle_objc_universe *universe)
+void  mulle_objc_threadset_universe( struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_threadconfig   *config;
    struct mulle_allocator            *allocator;
 
    if( ! universe)
    {
-      mulle_objc_unset_thread_universe();
+      mulle_objc_threadunset_universe();
       return;
    }
 
