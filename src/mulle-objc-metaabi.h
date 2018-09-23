@@ -1,11 +1,11 @@
 //
-//  minimal.h
+//  mulle_objc_call.h
 //  mulle-objc-runtime
 //
-//  Copyright (c) 2018 Nat! - Mulle kybernetiK.
-//  Copyright (c) 2018 Codeon GmbH.
+//  Created by Nat! on 16/11/14.
+//  Copyright (c) 2014 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2014 Codeon GmbH.
 //  All rights reserved.
-//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -33,19 +33,38 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-// don't bother if big one is included
-#if ! defined( mulle_objc_runtime_minimal__h__) && ! defined( mulle_objc_runtime_h__)
+#ifndef mulle_objc_metaabi_h__
+#define mulle_objc_metaabi_h__
 
-#define mulle_objc_runtime_minimal__h__
+/* if you need to "manually" call a MetaABI function with a _param block
+   use mulle_objc_metaabi_param_block to generate it.
 
-//
-// These are minimal runtime definitions for MulleObjC.
-// So that MulleObjC doesn't have to expose the complete API
-// and pollute the completion space. Not quite there yet...
-// They are therefore safe to be included by .c files without the need to
-// define __MULLE_TPS__ and friends.
-//
-#include "mulle-objc-c-types.h"
-#include "mulle-metaabi.h"
+   ex.
+
+   mulle_objc_metaabi_param_block( NSRange, NSUInteger)   _param;
+
+   _param.p = NSMakeRange( 1, 1);
+   mulle_objc_object_call( obj, sel, &_param);
+   return( _param.rval);
+*/
+
+#define mulle_objc_void_5_pointers( size)  \
+   (((size) +  sizeof( void *[ 5]) - 1) /  sizeof( void *[ 5]))
+
+#define mulle_objc_metaabi_param_block( param_type, rval_type) \
+   union                   \
+   {                       \
+      rval_type    r;      \
+      param_type   p;      \
+      void         *space[ 5][ sizeof( rval_type) > sizeof( param_type)        \
+                         ?  mulle_objc_void_5_pointers( sizeof( rval_type))    \
+                         :  mulle_objc_void_5_pointers( sizeof( param_type))]; \
+   }
+
+#define mulle_objc_metaabi_param_block_void_return( param_type) \
+   mulle_objc_metaabi_param_block( param_type, void *)
+
+#define mulle_objc_metaabi_param_block_void_parameter( return_type) \
+   mulle_objc_metaabi_param_block( void *, return_type)
 
 #endif

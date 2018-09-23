@@ -24,6 +24,7 @@ src/include-private.h
 
 set( PUBLIC_HEADERS
 src/include.h
+src/minimal.h
 src/mulle-objc-atomicpointer.h
 src/mulle-objc-builtin.h
 src/mulle-objc-cache.h
@@ -44,6 +45,7 @@ src/mulle-objc-ivar.h
 src/mulle-objc-ivarlist.h
 src/mulle-objc-kvccache.h
 src/mulle-objc-load.h
+src/mulle-objc-metaabi.h
 src/mulle-objc-metaclass.h
 src/mulle-objc-method.h
 src/mulle-objc-methodidconstants.h
