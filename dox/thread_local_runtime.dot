@@ -7,8 +7,8 @@ digraph local_concept
 
   "thread (1)" -> "_mulle_objc_runtime (1)"
   "thread (n)" -> "_mulle_objc_runtime (n)"
-  "thread (1)" -> "_mulle_objc_threadconfig (1)"
-  "thread (n)" -> "_mulle_objc_threadconfig (n)"
+  "thread (1)" -> "_mulle_objc_thread_config (1)"
+  "thread (n)" -> "_mulle_objc_thread_config (n)"
 
    node [shape="note"];
 

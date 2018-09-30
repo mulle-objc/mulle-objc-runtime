@@ -64,104 +64,104 @@ struct _mulle_objc_htmltablestyle
    int   colspan;       // optional
 };
 
-char   *mulle_objc_universe_html_description( struct _mulle_objc_universe *universe,
+char   *mulle_objc_universe_describe_html( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring *string,
+char  *mulle_objc_staticstring_describe_html( struct _mulle_objc_staticstring *string,
                                                 struct _mulle_objc_htmltablestyle *styling);
-char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticstring *string,
-                                                     struct _mulle_objc_htmltablestyle *styling);
-char  *mulle_objc_staticstring_html_row_description( void *value,
+char  *mulle_objc_staticstring_describe_hor_html( struct _mulle_objc_staticstring *string,
+                                                  struct _mulle_objc_htmltablestyle *styling);
+char  *mulle_objc_staticstring_describe_row_html( void *value,
                                                      struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_infraclass_html_row_description( intptr_t  classid,
+char   *mulle_objc_infraclass_describe_row_html( intptr_t  classid,
                                                     void *cls,
                                                     struct _mulle_objc_htmltablestyle *styling);
-char  *mulle_objc_fastclassentry_html_row_description( unsigned int i,
+char  *mulle_objc_fastclassentry_describe_row_html( unsigned int i,
                                                        struct _mulle_objc_infraclass *infra,
                                                        struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_classestoload_row_description( intptr_t classid,
+char  *mulle_objc_classestoload_describe_row( intptr_t classid,
                                                  void *cls,
                                                  struct _mulle_objc_htmltablestyle *styling);
-char  *mulle_objc_categoriestoload_row_description( intptr_t classid,
+char  *mulle_objc_categoriestoload_describe_row( intptr_t classid,
                                                     void *cls,
                                                     struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_class_html_description( struct _mulle_objc_class *cls,
+char  *mulle_objc_class_describe_html( struct _mulle_objc_class *cls,
                                           struct _mulle_objc_htmltablestyle *styling);
-char  *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls,
+char  *mulle_objc_class_describe_html_short( struct _mulle_objc_class *cls,
                                                 struct _mulle_objc_htmltablestyle *styling);
-char   *mulle_objc_class_html_tiny_description( struct _mulle_objc_class *cls,
+char   *mulle_objc_class_describe_html_tiny( struct _mulle_objc_class *cls,
                                                struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_class_html_row_description( intptr_t classid,
+char  *mulle_objc_class_describe_row_html( intptr_t classid,
                                               void *cls,
                                               struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list,
+char   *mulle_objc_ivarlist_describe_html( struct _mulle_objc_ivarlist *list,
                                               struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *list,
+char  *mulle_objc_ivarlist_describe_hor_html( struct _mulle_objc_ivarlist *list,
                                                  struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list,
+char  *mulle_objc_propertylist_describe_html( struct _mulle_objc_propertylist *list,
                                                  struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
+char   *mulle_objc_cache_describe_html( struct _mulle_objc_cache *cache,
                                            struct _mulle_objc_universe *universe,
                                            struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_descriptor_html_description( struct _mulle_objc_descriptor *desc,
+char   *mulle_objc_descriptor_describe_html( struct _mulle_objc_descriptor *desc,
                                                 struct _mulle_objc_htmltablestyle *styling);
-char  *mulle_objc_descriptor_html_hor_description( struct _mulle_objc_descriptor *desc);
-char  *mulle_objc_descriptor_html_row_description( intptr_t  methodid,
+char  *mulle_objc_descriptor_describe_hor_html( struct _mulle_objc_descriptor *desc);
+char  *mulle_objc_descriptor_describe_row_html( intptr_t  methodid,
                                                          void *descriptor,
                                                          struct _mulle_objc_htmltablestyle *styling);
-char   *mulle_objc_category_html_row_description( intptr_t  categoryid,
+char   *mulle_objc_category_describe_row_html( intptr_t  categoryid,
                                                   void *value,
                                                   struct _mulle_objc_htmltablestyle *styling);
-char   *mulle_objc_protocol_html_row_description( intptr_t  methodid,
+char   *mulle_objc_protocol_describe_row_html( intptr_t  methodid,
                                                   void *value,
                                                   struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_super_html_row_description( intptr_t  superid,
+char   *mulle_objc_super_describe_row_html( intptr_t  superid,
                                                void *value,
                                                struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list,
+char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list,
                                                 struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling);
 
-char  *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list,
+char  *mulle_objc_methodlist_describe_hor_html( struct _mulle_objc_methodlist *list,
                                                    struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray *array,
+char   *mulle_objc_protocols_describe_html( struct _mulle_objc_uniqueidarray *array,
                                                struct _mulle_objc_universe *universe,
                                                struct _mulle_objc_htmltablestyle *styling);
-char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray *array,
+char   *mulle_objc_categories_describe_html( struct _mulle_objc_uniqueidarray *array,
                                                 struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_loadclass_html_row_description( void *value,
+char   *mulle_objc_loadclass_describe_row_html( void *value,
                                                    struct _mulle_objc_htmltablestyle *styling);
-char   *mulle_objc_loadcategory_html_row_description( void *value,
+char   *mulle_objc_loadcategory_describe_row_html( void *value,
                                                       struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_fastclasstable_html_description( struct _mulle_objc_fastclasstable *fastclasstable,
+char   *mulle_objc_fastclasstable_describe_html( struct _mulle_objc_fastclasstable *fastclasstable,
                                                      char *(row_description)( unsigned int i,
                                                         struct _mulle_objc_infraclass *,
                                                         struct _mulle_objc_htmltablestyle *),
                                                      struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_concurrent_pointerarray_html_description( struct   mulle_concurrent_pointerarray *list,
+char   *mulle_concurrent_pointerarray_describe_html( struct   mulle_concurrent_pointerarray *list,
                                                         char *(row_description)( void *,                struct _mulle_objc_htmltablestyle *),
                                                         struct _mulle_objc_htmltablestyle *styling);
-char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashmap *map,
+char   *mulle_concurrent_hashmap_describe_html( struct mulle_concurrent_hashmap *map,
                                                    char *(row_description)( intptr_t, void *, struct _mulle_objc_htmltablestyle *),
                                                    struct _mulle_objc_htmltablestyle *styling);
 
-char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidarray *array,
+char   *mulle_objc_uniqueidarray_describe_html( struct _mulle_objc_uniqueidarray *array,
                                                    char *(row_description)( void *, struct _mulle_objc_universe *, struct _mulle_objc_htmltablestyle *),
                                                    struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_htmltablestyle *styling);

@@ -73,7 +73,7 @@ static inline struct _mulle_objc_infraclass *
 
 MULLE_C_CONST_NON_NULL_RETURN MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_infraclass  *
-     mulle_objc_fastclasstable_unfailingget_infraclass( struct _mulle_objc_fastclasstable *table,
+     mulle_objc_fastclasstable_get_infraclass_nofail( struct _mulle_objc_fastclasstable *table,
                                                         unsigned int i)
 {
    extern int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);

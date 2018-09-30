@@ -1,25 +1,25 @@
 # LoadInfo : Loading Classes, Categories, Strings
 
 Classes, categories, static strings are all added with the same function
-`mulle_objc_loadinfo_unfailing_enqueue`. Usually the compiler produces these calls automatically for you.
+`mulle_objc_loadinfo_enqueue_nofail`. Usually the compiler produces these calls automatically for you.
 
 ## Functions
 
-### `mulle_objc_loadinfo_unfailing_enqueue`
+### `mulle_objc_loadinfo_enqueue_nofail`
 
 ```
-void   mulle_objc_loadinfo_unfailing_enqueue( struct _mulle_objc_loadinfo *info)
+void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
 ```
 
 Take `info` and queue the contained classes, categories, strings up for inclusion into the runtime. If the base class of a class or category is already present, it will be added immediately to the runtime. Otherwise the inclusion will be delayed until the base class appears.
 
-The **unfailing** in `mulle_objc_loadinfo_unfailing_enqueue` indicates, that the function will throw an exception or abort, if the runtime is not properly setup or if it detects errors in `info`.
+The **unfailing** in `mulle_objc_loadinfo_enqueue_nofail` indicates, that the function will throw an exception or abort, if the runtime is not properly setup or if it detects errors in `info`.
 
-This information is usually created by the compiler, but if you want to add a class at runtime, you would also do it via `mulle_objc_loadinfo_unfailing_enqueue`.
+This information is usually created by the compiler, but if you want to add a class at runtime, you would also do it via `mulle_objc_loadinfo_enqueue_nofail`.
 
 Checkout [demo1.c](../tests/demo/demo1.c) for a fairly well documented example, how to do this.
 
-> `mulle_objc_loadinfo_unfailing_enqueue` will treat the contents of
+> `mulle_objc_loadinfo_enqueue_nofail` will treat the contents of
 >  `_mulle_objc_loadinfo` as if they are in read only memory, with all
 > its implications, with respect to lifetime and mutability.
 

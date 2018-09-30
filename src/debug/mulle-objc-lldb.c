@@ -78,7 +78,7 @@ mulle_objc_implementation_t
    if( is_classid)
    {
       universe  = _mulle_objc_class_get_universe( cls);
-      found    = _mulle_objc_universe_unfailingfastlookup_infraclass( universe,
+      found    = _mulle_objc_universe_fastlookup_infraclass_nofail( universe,
                                                                         (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
       if( is_meta)
          call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));
@@ -88,7 +88,7 @@ mulle_objc_implementation_t
    else
       call_cls = cls_or_classid;
 
-   imp = _mulle_objc_class_noncachinglookup_implementation_no_forward( call_cls, methodid);
+   imp = _mulle_objc_class_lookup_implementation_nocache_noforward( call_cls, methodid);
    if( debug)
    {
       char   buf[ s_mulle_objc_sprintf_functionpointer_buffer];
@@ -125,7 +125,7 @@ void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t methodid)
    cls = _mulle_objc_object_get_isa( obj);
    strlen( cls->name);    // try to crash here
 
-   if( ! _mulle_objc_class_lookup_implementation_no_forward( cls, methodid))
+   if( ! _mulle_objc_class_lookup_implementation_noforward( cls, methodid))
       *((volatile int *)0) = '1848'; // force crash
 }
 
@@ -183,7 +183,7 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
    obj      = (void *) _mulle_objc_infraclass_alloc_instance_extra( infra, numBytes + 4);
 
    // static string class has no release anyway
-   _mulle_objc_object_nonatomic_infiniteretain( obj);
+   _mulle_objc_object_infiniteretain_noatomic( obj);
 
    extra = _mulle_objc_object_get_extra( obj);
 

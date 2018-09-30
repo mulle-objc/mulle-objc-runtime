@@ -124,7 +124,7 @@ static char  *inheritance_description( unsigned int inheritance)
 }
 
 
-static char  *categoryid_html_row_description( void *value,
+static char  *categoryid_describe_row_html( void *value,
                                                struct _mulle_objc_universe *universe,
                                                struct _mulle_objc_htmltablestyle *styling)
 {
@@ -133,7 +133,7 @@ static char  *categoryid_html_row_description( void *value,
    char                      *result;
 
    categoryid = (mulle_objc_categoryid_t) (intptr_t) value;
-   s          = _mulle_objc_universe_string_for_categoryid( universe,
+   s          = _mulle_objc_universe_describe_categoryid( universe,
                                                            categoryid);
 
    mulle_objc_asprintf( &result, "<TR><TD>\"%s\"</TD><TD>%08x</TD></TR>\n",
@@ -142,7 +142,7 @@ static char  *categoryid_html_row_description( void *value,
 }
 
 
-static char  *protocolid_html_row_description( void *value,
+static char  *protocolid_describe_row_html( void *value,
                                                struct _mulle_objc_universe *universe,
                                                struct _mulle_objc_htmltablestyle *styling)
 {
@@ -151,7 +151,7 @@ static char  *protocolid_html_row_description( void *value,
    char                      *result;
 
    protocolid = (mulle_objc_protocolid_t) (intptr_t) value;
-   s          = _mulle_objc_universe_string_for_protocolid( universe, protocolid);
+   s          = _mulle_objc_universe_describe_protocolid( universe, protocolid);
 
    mulle_objc_asprintf( &result, "<TR><TD>\"%s\"</TD><TD>%08x</TD></TR>\n",
          s, protocolid);
@@ -237,7 +237,7 @@ static char  *final_concat_auto_tmp( char **tmp, unsigned int n)
 }
 
 
-char   *mulle_objc_universe_html_description( struct _mulle_objc_universe *universe,
+char   *mulle_objc_universe_describe_html( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_htmltablestyle *styling)
 {
    char           *tmp[ 3];
@@ -259,7 +259,7 @@ char   *mulle_objc_universe_html_description( struct _mulle_objc_universe *unive
 #pragma mark - static strings
 
 
-char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring *string,
+char  *mulle_objc_staticstring_describe_html( struct _mulle_objc_staticstring *string,
                                                  struct _mulle_objc_htmltablestyle *styling)
 {
    char   *tmp[ 4];
@@ -284,7 +284,7 @@ char  *mulle_objc_staticstring_html_description( struct _mulle_objc_staticstring
 }
 
 
-char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticstring *string,
+char  *mulle_objc_staticstring_describe_hor_html( struct _mulle_objc_staticstring *string,
                                                      struct _mulle_objc_htmltablestyle *styling)
 {
    char *s;
@@ -295,7 +295,7 @@ char  *mulle_objc_staticstring_hor_html_description( struct _mulle_objc_staticst
 }
 
 
-char  *mulle_objc_staticstring_html_row_description( void *value,
+char  *mulle_objc_staticstring_describe_row_html( void *value,
                                                      struct _mulle_objc_htmltablestyle *styling)
 {
    struct _mulle_objc_staticstring *string = value;
@@ -311,7 +311,7 @@ char  *mulle_objc_staticstring_html_row_description( void *value,
 }
 
 
-char  *mulle_objc_fastclassentry_html_row_description( unsigned int i,
+char  *mulle_objc_fastclassentry_describe_row_html( unsigned int i,
                                                        struct _mulle_objc_infraclass *infra,
                                                        struct _mulle_objc_htmltablestyle *styling)
 {
@@ -330,7 +330,7 @@ char  *mulle_objc_fastclassentry_html_row_description( unsigned int i,
 
 #pragma mark - classes
 
-char   *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls,
+char   *mulle_objc_class_describe_html_short( struct _mulle_objc_class *cls,
                                                  struct _mulle_objc_htmltablestyle *styling)
 {
    char  *s;
@@ -344,7 +344,7 @@ char   *mulle_objc_class_short_html_description( struct _mulle_objc_class *cls,
 }
 
 
-char   *mulle_objc_class_html_row_description( intptr_t  classid,
+char   *mulle_objc_class_describe_row_html( intptr_t  classid,
                                                void *cls,
                                                struct _mulle_objc_htmltablestyle *styling)
 {
@@ -364,7 +364,7 @@ char   *mulle_objc_class_html_row_description( intptr_t  classid,
 }
 
 
-char   *mulle_objc_infraclass_html_row_description( intptr_t  classid,
+char   *mulle_objc_infraclass_describe_row_html( intptr_t  classid,
                                                     void *cls,
                                                     struct _mulle_objc_htmltablestyle *styling)
 {
@@ -379,7 +379,7 @@ char   *mulle_objc_infraclass_html_row_description( intptr_t  classid,
 }
 
 
-char   *mulle_objc_class_html_tiny_description( struct _mulle_objc_class *cls,
+char   *mulle_objc_class_describe_html_tiny( struct _mulle_objc_class *cls,
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
    char          *tmp[ 2];
@@ -395,7 +395,7 @@ char   *mulle_objc_class_html_tiny_description( struct _mulle_objc_class *cls,
 }
 
 
-char   *mulle_objc_class_html_description( struct _mulle_objc_class *cls,
+char   *mulle_objc_class_describe_html( struct _mulle_objc_class *cls,
                                            struct _mulle_objc_htmltablestyle *styling)
 {
    char           *s;
@@ -452,7 +452,7 @@ char   *mulle_objc_class_html_description( struct _mulle_objc_class *cls,
 
 #pragma mark - ivarlist
 
-char   *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list,
+char   *mulle_objc_ivarlist_describe_html( struct _mulle_objc_ivarlist *list,
                                               struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
@@ -501,7 +501,7 @@ char   *mulle_objc_ivarlist_html_description( struct _mulle_objc_ivarlist *list,
 }
 
 
-char   *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *list,
+char   *mulle_objc_ivarlist_describe_hor_html( struct _mulle_objc_ivarlist *list,
                                                   struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
@@ -549,7 +549,7 @@ char   *mulle_objc_ivarlist_html_hor_description( struct _mulle_objc_ivarlist *l
 #pragma mark - descriptor
 
 
-char   *mulle_objc_descriptor_html_description( struct _mulle_objc_descriptor *desc,
+char   *mulle_objc_descriptor_describe_html( struct _mulle_objc_descriptor *desc,
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
    char   *tmp[ 2];
@@ -577,7 +577,7 @@ char   *mulle_objc_descriptor_html_description( struct _mulle_objc_descriptor *d
 }
 
 
-char   *mulle_objc_descriptor_html_hor_description( struct _mulle_objc_descriptor *desc)
+char   *mulle_objc_descriptor_describe_hor_html( struct _mulle_objc_descriptor *desc)
 {
    char   *s;
 
@@ -597,7 +597,7 @@ char   *mulle_objc_descriptor_html_hor_description( struct _mulle_objc_descripto
 }
 
 
-char   *mulle_objc_descriptor_html_row_description( intptr_t  methodid,
+char   *mulle_objc_descriptor_describe_row_html( intptr_t  methodid,
                                                     void *value,
                                                     struct _mulle_objc_htmltablestyle *styling)
 {
@@ -622,7 +622,7 @@ char   *mulle_objc_descriptor_html_row_description( intptr_t  methodid,
 
 #pragma mark - categories
 
-char   *mulle_objc_category_html_row_description( intptr_t  categoryid,
+char   *mulle_objc_category_describe_row_html( intptr_t  categoryid,
                                                   void *value,
                                                   struct _mulle_objc_htmltablestyle *styling)
 {
@@ -641,7 +641,7 @@ char   *mulle_objc_category_html_row_description( intptr_t  categoryid,
 
 #pragma mark - supers
 
-char   *mulle_objc_super_html_row_description( intptr_t  superid,
+char   *mulle_objc_super_describe_row_html( intptr_t  superid,
                                                void *value,
                                                struct _mulle_objc_htmltablestyle *styling)
 {
@@ -662,7 +662,7 @@ char   *mulle_objc_super_html_row_description( intptr_t  superid,
 
 #pragma mark - protocols
 
-char   *mulle_objc_protocol_html_row_description( intptr_t  protocolid,
+char   *mulle_objc_protocol_describe_row_html( intptr_t  protocolid,
                                                   void *value,
                                                   struct _mulle_objc_htmltablestyle *styling)
 {
@@ -684,7 +684,7 @@ char   *mulle_objc_protocol_html_row_description( intptr_t  protocolid,
 
 #pragma mark - propertylist
 
-char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylist *list,
+char   *mulle_objc_propertylist_describe_html( struct _mulle_objc_propertylist *list,
                                                   struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
@@ -741,7 +741,7 @@ char   *mulle_objc_propertylist_html_description( struct _mulle_objc_propertylis
 
 #pragma mark - cache
 
-char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
+char   *mulle_objc_cache_describe_html( struct _mulle_objc_cache *cache,
                                            struct _mulle_objc_universe *universe,
                                            struct _mulle_objc_htmltablestyle *styling)
 {
@@ -784,7 +784,7 @@ char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
                "<TR><TD>#%ld</TD><TD>%08x</TD><TD>%s</TD><TD>%p</TD><TD>%d (%x)</TD></TR>\n",
                j,
                sel,
-               _mulle_objc_universe_string_for_methodid( universe, sel),
+               _mulle_objc_universe_describe_methodid( universe, sel),
                cache->entries[ j].value.functionpointer,
                index,
                sel & cache->mask);
@@ -805,7 +805,7 @@ char   *mulle_objc_cache_html_description( struct _mulle_objc_cache *cache,
 
 #pragma mark - methodlist
 
-char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *list,
+char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list,
                                                 struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
@@ -829,7 +829,7 @@ char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *l
    if( universe)
    {
       asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%s</TD></TR>",
-                           _mulle_objc_universe_string_for_categoryid( universe,
+                           _mulle_objc_universe_describe_categoryid( universe,
                                                                       (mulle_objc_categoryid_t) (uintptr_t) list->owner));
    }
    else
@@ -876,7 +876,7 @@ char   *mulle_objc_methodlist_html_description( struct _mulle_objc_methodlist *l
 }
 
 
-char   *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlist *list,
+char   *mulle_objc_methodlist_describe_hor_html( struct _mulle_objc_methodlist *list,
                                                     struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
@@ -954,7 +954,7 @@ char   *mulle_objc_methodlist_html_hor_description( struct _mulle_objc_methodlis
 
 #pragma mark - loadclass
 
-char   *mulle_objc_loadclass_html_row_description( void *value,
+char   *mulle_objc_loadclass_describe_row_html( void *value,
                                                    struct _mulle_objc_htmltablestyle *styling)
 {
    struct _mulle_objc_loadclass   *loadcls = value;
@@ -969,7 +969,7 @@ char   *mulle_objc_loadclass_html_row_description( void *value,
 
 #pragma mark - loadcategory
 
-char   *mulle_objc_loadcategory_html_row_description( void *value,
+char   *mulle_objc_loadcategory_describe_row_html( void *value,
                                                       struct _mulle_objc_htmltablestyle *styling)
 {
    struct _mulle_objc_loadcategory   *loadcat = value;
@@ -986,12 +986,12 @@ char   *mulle_objc_loadcategory_html_row_description( void *value,
 
 #pragma mark - protocols
 
-char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray *array,
+char   *mulle_objc_protocols_describe_html( struct _mulle_objc_uniqueidarray *array,
                                                struct _mulle_objc_universe *universe,
                                                struct _mulle_objc_htmltablestyle *styling)
 {
-   return( mulle_objc_uniqueidarray_html_description( array,
-                                                      protocolid_html_row_description,
+   return( mulle_objc_uniqueidarray_describe_html( array,
+                                                      protocolid_describe_row_html,
                                                       universe,
                                                       styling));
 }
@@ -999,12 +999,12 @@ char   *mulle_objc_protocols_html_description( struct _mulle_objc_uniqueidarray 
 
 #pragma mark - categories
 
-char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray *array,
+char   *mulle_objc_categories_describe_html( struct _mulle_objc_uniqueidarray *array,
                                                 struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_htmltablestyle *styling)
 {
-   return( mulle_objc_uniqueidarray_html_description( array,
-                                                      categoryid_html_row_description,
+   return( mulle_objc_uniqueidarray_describe_html( array,
+                                                      categoryid_describe_row_html,
                                                       universe,
                                                       styling));
 }
@@ -1012,7 +1012,7 @@ char   *mulle_objc_categories_html_description( struct _mulle_objc_uniqueidarray
 
 #pragma mark - fastclasses
 
-char   *mulle_objc_fastclasstable_html_description( struct _mulle_objc_fastclasstable *fastclasstable,
+char   *mulle_objc_fastclasstable_describe_html( struct _mulle_objc_fastclasstable *fastclasstable,
                                                      char *(row_description)( unsigned int i,
                                                         struct _mulle_objc_infraclass *,
                                                         struct _mulle_objc_htmltablestyle *),
@@ -1067,7 +1067,7 @@ char   *mulle_objc_fastclasstable_html_description( struct _mulle_objc_fastclass
 
 #pragma mark - pointerarray
 
-char   *mulle_concurrent_pointerarray_html_description( struct mulle_concurrent_pointerarray *list,
+char   *mulle_concurrent_pointerarray_describe_html( struct mulle_concurrent_pointerarray *list,
                                                         char *(row_description)( void *, struct _mulle_objc_htmltablestyle *),
                                                         struct _mulle_objc_htmltablestyle *styling)
 
@@ -1125,7 +1125,7 @@ char   *mulle_concurrent_pointerarray_html_description( struct mulle_concurrent_
 
 #pragma mark - hashmap
 
-char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashmap *map,
+char   *mulle_concurrent_hashmap_describe_html( struct mulle_concurrent_hashmap *map,
                                                    char *(row_description)( intptr_t, void *, struct _mulle_objc_htmltablestyle *),
                                                    struct _mulle_objc_htmltablestyle *styling)
 {
@@ -1183,7 +1183,7 @@ char   *mulle_concurrent_hashmap_html_description( struct mulle_concurrent_hashm
 
 #pragma mark - uniqueidarray
 
-char   *mulle_objc_uniqueidarray_html_description( struct _mulle_objc_uniqueidarray *array,
+char   *mulle_objc_uniqueidarray_describe_html( struct _mulle_objc_uniqueidarray *array,
                                                    char *(row_description)( void *, struct _mulle_objc_universe *, struct _mulle_objc_htmltablestyle *),
                                                    struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_htmltablestyle *styling)

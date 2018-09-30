@@ -54,5 +54,5 @@ struct _mulle_objc_universe   mulle_objc_global_universe =
 // must be initialized because of windows
 //
 MULLE_OBJC_RUNTIME_GLOBAL
-mulle_thread_tss_t   mulle_objc_thread_key = -1;
+mulle_thread_tss_t   mulle_objc_threadkey = -1;
 

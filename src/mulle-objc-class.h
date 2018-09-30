@@ -200,11 +200,11 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
 int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
                                        struct _mulle_objc_methodlist *list);
 
-void   mulle_objc_class_did_add_methodlist( struct _mulle_objc_class *cls,
+void   mulle_objc_class_didadd_methodlist( struct _mulle_objc_class *cls,
                                            struct _mulle_objc_methodlist *list);
 
 
-void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
+void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                  struct _mulle_objc_methodlist *list);
 
 
@@ -256,7 +256,7 @@ static inline struct _mulle_objc_method  *
 // if( _mulle_objc_class_walk_methods( cls, -1, (void *) find, &info))
 //    return( info.found);
 //
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
    _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls,
                                    unsigned int inheritance ,
                                    mulle_objc_walkcommand_t (*f)( struct _mulle_objc_method *,
@@ -285,7 +285,7 @@ static inline struct _mulle_objc_class   *
 }
 
 
-static inline mulle_objc_classid_t   
+static inline mulle_objc_classid_t
    mulle_objc_class_get_classid( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_classid( cls) : MULLE_OBJC_NO_CLASSID);
@@ -305,21 +305,21 @@ static inline struct _mulle_objc_universe *
 }
 
 
-static inline size_t   
+static inline size_t
    mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_instancesize( cls) : (size_t) -1);
 }
 
 // deprecated
-static inline size_t   
+static inline size_t
    mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
 {
    return( mulle_objc_class_get_instancesize( cls));
 }
 
 
-static inline unsigned int   
+static inline unsigned int
    mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_get_inheritance( cls) : ~0);
@@ -333,14 +333,14 @@ static inline struct _mulle_objc_method *
 }
 
 
-static inline int   
+static inline int
    mulle_objc_class_is_infraclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_is_infraclass( cls) : 0);
 }
 
 
-static inline int   
+static inline int
    mulle_objc_class_is_metaclass( struct _mulle_objc_class *cls)
 {
    return( cls ? _mulle_objc_class_is_metaclass( cls) : 0);

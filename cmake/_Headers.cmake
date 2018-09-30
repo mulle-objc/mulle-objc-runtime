@@ -43,6 +43,7 @@ src/mulle-objc-fnv1.h
 src/mulle-objc-infraclass.h
 src/mulle-objc-ivar.h
 src/mulle-objc-ivarlist.h
+src/mulle-objc-jit.inc
 src/mulle-objc-kvccache.h
 src/mulle-objc-load.h
 src/mulle-objc-metaabi.h

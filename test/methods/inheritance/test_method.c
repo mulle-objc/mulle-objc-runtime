@@ -37,7 +37,7 @@ void   test_method( void)
    struct _mulle_objc_universe     *universe;
    void                            (*oldfail)( char *, va_list);
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_register_universe();
    assert( universe);
 
    rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor);

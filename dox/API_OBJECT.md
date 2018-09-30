@@ -24,28 +24,28 @@ The non-inlining variant of sending a message to an object (calling an objects m
 `obj` must be a pointer to a valid object or NULL.
 
 
-### `mulle_objc_object_constant_methodid_call`
+### `mulle_objc_object_partialinlinecall_constantmethodid`
 
 ```
-void  *mulle_objc_object_constant_methodid_call( void *obj,
-                                                 mulle_objc_methodid_t methodid,
-                                                 void *parameter)
+void  *mulle_objc_object_partialinlinecall_constantmethodid( void *obj,
+                                                             mulle_objc_methodid_t methodid,
+                                                             void *parameter)
 ```
 
 This is an optimized variant of `mulle_objc_object_call` in cases, where
 `methodid` is a known constant. The compiler uses this method when optimizing
 with -O1.
 
-Right: `mulle_objc_object_constant_methodid_call( self, 0x1848, NULL)`,
-Wrong: `mulle_objc_object_constant_methodid_call( self, _cmd, NULL)
+Right: `mulle_objc_object_partialinlinecall_constantmethodid( self, 0x1848, NULL)`,
+Wrong: `mulle_objc_object_partialinlinecall_constantmethodid( self, _cmd, NULL)
 
 
-### `mulle_objc_object_inline_constant_methodid_call`
+### `mulle_objc_object_inlinecall_constantmethodid`
 
 ```
-void  *mulle_objc_object_inline_constant_methodid_call( void *obj,
-                                                        mulle_objc_methodid_t methodid,
-                                                        void *parameter)
+void  *mulle_objc_object_inlinecall_constantmethodid( void *obj,
+                                                      mulle_objc_methodid_t methodid,
+                                                      void *parameter)
 ```
 
 This is an even further optimized variant of `mulle_objc_object_call` in cases,
@@ -53,8 +53,8 @@ where `methodid` is a known constant. The compiler uses this method when
 optimized with -O2 and up. Frequent use of this function can increase the size
 of your executable by quite a bit.
 
-Right: `mulle_objc_object_inline_constant_methodid_call( self, 0x1848, NULL)`,
-Wrong: `mulle_objc_object_inline_constant_methodid_call( self, _cmd, NULL)
+Right: `mulle_objc_object_inlinecall_constantmethodid( self, 0x1848, NULL)`,
+Wrong: `mulle_objc_object_inlinecall_constantmethodid( self, _cmd, NULL)
 
 
 ### `mulle_objc_object_call_classid`

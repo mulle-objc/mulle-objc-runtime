@@ -56,7 +56,7 @@ void   mulle_objc_exception_throw( void *exception)
 }
 
 
-void   mulle_objc_exception_try_enter( void *localExceptionData)
+void   mulle_objc_exception_tryenter( void *localExceptionData)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -65,7 +65,7 @@ void   mulle_objc_exception_try_enter( void *localExceptionData)
 }
 
 
-void   mulle_objc_exception_try_exit( void *localExceptionData)
+void   mulle_objc_exception_tryexit( void *localExceptionData)
 {
    struct _mulle_objc_universe   *universe;
 

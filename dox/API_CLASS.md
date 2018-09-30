@@ -31,7 +31,7 @@ int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
                                        struct _mulle_objc_methodlist *list)
 ```
 
-Add methodlist `list` to `cls`. The methodlist isn't copied, so be sure that is sticks around for the lifetime of the runtime. (Check out `mulle_objc_runtime_unfailing_add_gift`)
+Add methodlist `list` to `cls`. The methodlist isn't copied, so be sure that is sticks around for the lifetime of the runtime. (Check out `mulle_objc_universe_add_gift_nofail`)
 
 
 ### `mulle_objc_classpair_add_protocolid`

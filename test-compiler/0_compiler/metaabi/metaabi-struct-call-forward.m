@@ -5,9 +5,13 @@
 //  Created by Nat! on 31.10.15.
 //  Copyright © 2015 Mulle kybernetiK. All rights reserved.
 //
-#include <mulle-objc-runtime/mulle-objc-runtime.h>
+#ifdef __MULLE_OBJC__
+# include <mulle-objc-runtime/mulle-objc-runtime.h>
+#endif
+
 #include <limits.h>
 #include <stdio.h>
+#include <stdint.h>
 
 
 struct large_struct
@@ -20,6 +24,9 @@ struct large_struct
 @interface Foo
 @end
 
+
+// plain clang on darwin: 
+// mulle-clang -isysroot `xcrun --show-sdk-path` -c test-compiler/0_compiler/metaabi/metaabi-struct-call-forward.m 
 
 int main(int argc, const char * argv[])
 {

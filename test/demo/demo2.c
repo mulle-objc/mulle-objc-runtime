@@ -227,11 +227,11 @@ static void  __load()
       return;
    has_loaded = 1;
 
-   mulle_objc_loadinfo_unfailingenqueue( &load_info);
+   mulle_objc_loadinfo_enqueue_nofail( &load_info);
 }
 
 
-struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void)
+struct _mulle_objc_universe  *__register_mulle_objc_universe( void)
 {
    struct _mulle_objc_universe    *universe;
 
@@ -257,7 +257,7 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Object alloc] init];
 
-   cls = mulle_objc_unfailingfastlookup_infraclass( ___Object_classid);
+   cls = mulle_objc_fastlookup_infraclass_nofail( ___Object_classid);
    obj = mulle_objc_infraclass_alloc_instance( cls);
    obj = mulle_objc_object_call( obj, ___init__methodid, NULL);
 

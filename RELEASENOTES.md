@@ -8,7 +8,7 @@
 ## 0.12.1
 
 * _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY replaces _MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY
-* _mulle_objc_object_nonatomic_infiniteretain replaces _mulle_objc_object_nonatomic_infinite_retain
+* _mulle_objc_object_infiniteretain_noatomic replaces _mulle_objc_object_nonatomic_infinite_retain
 * Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
 * adapt search so that we a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
 * adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
@@ -87,7 +87,7 @@ It should now be possible to initialize a global universe from multiple threads.
 It should not be necessary to set the global universe up from a single thread,
 before starting other threads.
 
-Only use `mulle_objc_get_or_create_universe` during loading. Makes it easier.
+Only use `mulle_objc_register_universe` during loading. Makes it easier.
 
 Also distribute mulle-objc-uniqueid.
 
@@ -134,7 +134,7 @@ collisions
 * renamed _size_of_ functions to _sizeof_ as its more c like
 * renamed has_category/has_protocol and related functions to has_categoryid/has_protocolid,
 because it is less confusing
-* removed misleading mulle_objc_string_for_ivarid and friends (use class to get
+* removed misleading mulle_objc_describe_ivarid and friends (use class to get
 the names)
 
 ## 0.7.1
@@ -144,7 +144,7 @@ the names)
 * moved some more call functions into "...call.c" (duh)
 * moved version and new "path" up for easier debugging and easier version
 checks its kinda useful if version is at a fixed offset
-* `__get_or_create_objc_runtime` has been renamed to `__get_or_create_mulle_objc_runtime`
+* `__get_or_create_objc_runtime` has been renamed to `__register_mulle_objc_universe`
 for clarity in the debugger and multi-universe code.
 * moved forward into a fixed position in the class structure for a future
 debugger

@@ -108,7 +108,7 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
    long                        retain_count;
 
    a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
-   _mulle_objc_object_nonatomic_infiniteretain( a);
+   _mulle_objc_object_infiniteretain_noatomic( a);
 
    retain_count = mulle_objc_object_get_retaincount( a);
    mulle_objc_object_retain( a);
@@ -188,7 +188,7 @@ static void   test_dealloc_finalize( struct _mulle_objc_infraclass  *A_infra)
 
    assert( dealloced == 0);
 
-   mulle_objc_infraclass_unfailingadd_methodlist( A_infra, (void *) &finalize_dealloc_methodlist);
+   mulle_objc_infraclass_add_methodlist_nofail( A_infra, (void *) &finalize_dealloc_methodlist);
 
    a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
 
@@ -230,17 +230,17 @@ void   test_retain_release( void)
    struct _mulle_objc_infraclass   *A_infra;
    struct _mulle_objc_metaclass    *A_meta;
 
-   pair = mulle_objc_unfailingnew_classpair( A_classid, "A", 0, NULL);
+   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
    assert( pair);
    A_infra = _mulle_objc_classpair_get_infraclass( pair);
    A_meta = _mulle_objc_classpair_get_metaclass( pair);
 
-   mulle_objc_infraclass_unfailingadd_methodlist( A_infra, NULL);
-   mulle_objc_metaclass_unfailingadd_methodlist( A_meta, NULL);
-   mulle_objc_infraclass_unfailingadd_ivarlist( A_infra, NULL);
-   mulle_objc_infraclass_unfailingadd_propertylist( A_infra, NULL);
+   mulle_objc_infraclass_add_methodlist_nofail( A_infra, NULL);
+   mulle_objc_metaclass_add_methodlist_nofail( A_meta, NULL);
+   mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
+   mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
 
-   mulle_objc_unfailingadd_infraclass( A_infra);
+   mulle_objc_add_infraclass_nofail( A_infra);
 
    test_simple_retain_release( A_infra);
    test_permanent_retain_release( A_infra);

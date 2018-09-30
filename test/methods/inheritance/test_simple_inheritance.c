@@ -20,21 +20,21 @@ void  create_ABC_classes( struct abc_classes *classes)
 {
    struct _mulle_objc_classpair   *pair;
 
-   pair = mulle_objc_unfailingnew_classpair( A_classid, "A", 0, NULL);
+   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
    assert( pair);
    classes->A_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->A_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_infra);
    assert( classes->A_meta);
 
-   pair = mulle_objc_unfailingnew_classpair( B_classid, "B", 0, classes->A_infra);
+   pair = mulle_objc_new_classpair_nofail( B_classid, "B", 0, classes->A_infra);
    assert( pair);
    classes->B_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->B_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->B_infra);
    assert( classes->B_meta);
 
-   pair = mulle_objc_unfailingnew_classpair( C_classid, "C", 0, classes->B_infra);
+   pair = mulle_objc_new_classpair_nofail( C_classid, "C", 0, classes->B_infra);
    assert( pair);
    classes->C_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->C_meta  = _mulle_objc_classpair_get_metaclass( pair);
@@ -45,9 +45,9 @@ void  create_ABC_classes( struct abc_classes *classes)
 
 void  add_ABC_classes( struct abc_classes *classes)
 {
-   mulle_objc_unfailingadd_infraclass( classes->A_infra);
-   mulle_objc_unfailingadd_infraclass( classes->B_infra);
-   mulle_objc_unfailingadd_infraclass( classes->C_infra);
+   mulle_objc_add_infraclass_nofail( classes->A_infra);
+   mulle_objc_add_infraclass_nofail( classes->B_infra);
+   mulle_objc_add_infraclass_nofail( classes->C_infra);
 }
 
 
@@ -165,24 +165,24 @@ void   add_simple_methods( struct abc_classes  *classes)
    int   rval;
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_register_universe();
 
-   mulle_objc_infraclass_unfailingadd_methodlist( classes->A_infra, &A_i_list);
-   mulle_objc_metaclass_unfailingadd_methodlist( classes->A_meta, &universe->empty_methodlist);
-   mulle_objc_infraclass_unfailingadd_methodlist( classes->B_infra, &B_i_list);
-   mulle_objc_metaclass_unfailingadd_methodlist( classes->B_meta, &B_c_list);
-   mulle_objc_infraclass_unfailingadd_methodlist( classes->C_infra, &C_i_list);
+   mulle_objc_infraclass_add_methodlist_nofail( classes->A_infra, &A_i_list);
+   mulle_objc_metaclass_add_methodlist_nofail( classes->A_meta, &universe->empty_methodlist);
+   mulle_objc_infraclass_add_methodlist_nofail( classes->B_infra, &B_i_list);
+   mulle_objc_metaclass_add_methodlist_nofail( classes->B_meta, &B_c_list);
+   mulle_objc_infraclass_add_methodlist_nofail( classes->C_infra, &C_i_list);
 
    // this is OK it's like adding an empty list
-   mulle_objc_metaclass_unfailingadd_methodlist( classes->C_meta, NULL);
+   mulle_objc_metaclass_add_methodlist_nofail( classes->C_meta, NULL);
 
-   mulle_objc_infraclass_unfailingadd_ivarlist( classes->A_infra, NULL);
-   mulle_objc_infraclass_unfailingadd_ivarlist( classes->B_infra, NULL);
-   mulle_objc_infraclass_unfailingadd_ivarlist( classes->C_infra, NULL);
+   mulle_objc_infraclass_add_ivarlist_nofail( classes->A_infra, NULL);
+   mulle_objc_infraclass_add_ivarlist_nofail( classes->B_infra, NULL);
+   mulle_objc_infraclass_add_ivarlist_nofail( classes->C_infra, NULL);
 
-   mulle_objc_infraclass_unfailingadd_propertylist( classes->A_infra, NULL);
-   mulle_objc_infraclass_unfailingadd_propertylist( classes->B_infra, NULL);
-   mulle_objc_infraclass_unfailingadd_propertylist( classes->C_infra, NULL);
+   mulle_objc_infraclass_add_propertylist_nofail( classes->A_infra, NULL);
+   mulle_objc_infraclass_add_propertylist_nofail( classes->B_infra, NULL);
+   mulle_objc_infraclass_add_propertylist_nofail( classes->C_infra, NULL);
 }
 
 

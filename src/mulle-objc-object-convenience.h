@@ -57,7 +57,7 @@ static inline mulle_objc_implementation_t
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   return( _mulle_objc_class_cacheonlylookup_implementation( cls, methodid));
+   return( _mulle_objc_class_lookup_implementation_cacheonly( cls, methodid));
 }
 
 
@@ -79,7 +79,7 @@ static inline mulle_objc_implementation_t
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   return( _mulle_objc_class_lookup_implementation_no_forward( cls, methodid));
+   return( _mulle_objc_class_lookup_implementation_noforward( cls, methodid));
 }
 
 

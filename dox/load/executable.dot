@@ -15,11 +15,11 @@ digraph executable
    }
 
 
-   "executable"     -> "a.o"    -> "__attribute_constructor( a.o)"    -> "mulle_objc_loadinfo_unfailing_enqueue( &a.loadinfo)";
-   "executable"     -> "b.o"    -> "__attribute_constructor( b.o)"    -> "mulle_objc_loadinfo_unfailing_enqueue( &b.loadinfo)";
-   "executable"     -> "main.o" -> "__attribute_constructor( main.o)" -> "mulle_objc_loadinfo_unfailing_enqueue( &main.loadinfo)";
+   "executable"     -> "a.o"    -> "__attribute_constructor( a.o)"    -> "mulle_objc_loadinfo_enqueue_nofail( &a.loadinfo)";
+   "executable"     -> "b.o"    -> "__attribute_constructor( b.o)"    -> "mulle_objc_loadinfo_enqueue_nofail( &b.loadinfo)";
+   "executable"     -> "main.o" -> "__attribute_constructor( main.o)" -> "mulle_objc_loadinfo_enqueue_nofail( &main.loadinfo)";
    "executable"     -> "shared library"
-   "shared library" -> "c.o"    -> "__attribute_constructor( c.o)"    -> "mulle_objc_loadinfo_unfailing_enqueue( &c.loadinfo)";
+   "shared library" -> "c.o"    -> "__attribute_constructor( c.o)"    -> "mulle_objc_loadinfo_enqueue_nofail( &c.loadinfo)";
 
    { rank = same; "int main( argc, argv)" }
 

@@ -58,9 +58,9 @@ struct mulle_objc_loadversion;
 
 
 //
-// Configure the universe. Don't change after intialization
+// Settings of the universe. Don't change after intialization
 //
-struct _mulle_objc_universeconfig
+struct _mulle_objc_universesettings
 {
    unsigned   forget_strings           : 1;  // don't keep track of static strings
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
@@ -344,7 +344,7 @@ struct _mulle_objc_universe
 
    struct _mulle_objc_universefailures       failures;
    struct _mulle_objc_universeexceptionvectors   exceptionvectors;
-   struct _mulle_objc_universeconfig         config;
+   struct _mulle_objc_universesettings         config;
    struct _mulle_objc_universedebug          debug;
 
    // It's all zeroes, so save some space with a union.

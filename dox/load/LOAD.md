@@ -61,8 +61,8 @@ GNUStep basically guarantees nothing. `+load`s are performed as they are coming 
 
 ## Call `+load` before or after addition to runtime ?
 
-One question is, if `+load` should be called before the class or category 
-is added to the runtime system or after. If the `+load` is called before 
+One question is, if `+load` should be called before the class or category
+is added to the runtime system or after. If the `+load` is called before
 the addition, the following functionality is unavailable in `+load`:
 
 #### For classes
@@ -78,9 +78,9 @@ This is not desirable and expected by the user (class programmer). Is it avoidab
 
 ## +load in mulle-objc-runtime
 
-The **mulle-objc-runtime** allows classes and categories to specify arbitrary dependencies on other classes and categories for `+load` calls. It is the 
+The **mulle-objc-runtime** allows classes and categories to specify arbitrary dependencies on other classes and categories for `+load` calls. It is the
 burden of the `+load` author to ensure, that there are no cycles.
- 
+
 The **mulle-objc-runtime** automatically detects dependencies on superclasses and
 protocolclasses for classes. It detects dependencies on its base class and protocolclasses for categories.
 
@@ -111,7 +111,7 @@ Each dependency either specifies the missing classid for a class, or the missing
 5. A class or category who's dependencies are not satisfied, is not added to
    the runtime system immediately. Instead its addition is postponed, until
    the requirements are met.
-   
+
 ### Other consequence of this design
 
 Other C `__attribute__(constructor)` code and C++ initializers are unsequenced in relationship to `+load`. Shared libraries do not impose a sequencing order nor do they imply `+load` execution guarantees for contained loadable.
@@ -123,7 +123,7 @@ If a category does override `+initialize`, it should query the state bit with `_
 The MulleObjCFoundation for example guarantees, that its classes or categories
 do not trigger `+initialize` during `+load`.
 
-   
+
 ## How classes and categories are loaded in mulle-objc-runtime
 
 
@@ -132,7 +132,7 @@ do not trigger `+initialize` during `+load`.
 > is called a loadable for short.
 
 
-If we assume, that the executable is composed of a complete set of loadcategories and loadclasses without missing dependencies, then all classes and categories will be installed ahead of `main`. They get installed via `__attribute__((constructor))` function calls to `mulle_objc_loadinfo_unfailing_enqueue`, the **mulle-clang** compiler emits:
+If we assume, that the executable is composed of a complete set of loadcategories and loadclasses without missing dependencies, then all classes and categories will be installed ahead of `main`. They get installed via `__attribute__((constructor))` function calls to `mulle_objc_loadinfo_enqueue_nofail`, the **mulle-clang** compiler emits:
 
 ![Excecutable](executable.svg)
 

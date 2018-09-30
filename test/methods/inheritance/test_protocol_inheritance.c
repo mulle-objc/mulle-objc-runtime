@@ -28,21 +28,21 @@ static void  create_ABC_PROTO_classes( struct abc_classes *classes)
    struct _mulle_objc_protocollist    *protocollist;
    struct _mulle_objc_runtime         *runtime;
 
-   pair = mulle_objc_unfailingnew_classpair( A_classid, "A", 0, NULL);
+   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
    assert( pair);
    classes->A_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->A_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_meta);
    assert( classes->A_meta == _mulle_objc_class_get_metaclass( _mulle_objc_infraclass_as_class( classes->A_infra)));
 
-   pair = mulle_objc_unfailingnew_classpair( B_classid, "B", 0, classes->A_infra);
+   pair = mulle_objc_new_classpair_nofail( B_classid, "B", 0, classes->A_infra);
    assert( pair);
    classes->B_infra = _mulle_objc_classpair_get_infraclass( pair);
    assert( classes->B_infra);
    classes->B_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_meta);
 
-   pair = mulle_objc_unfailingnew_classpair( C_classid, "C", 0, NULL);
+   pair = mulle_objc_new_classpair_nofail( C_classid, "C", 0, NULL);
    assert( pair);
    classes->C_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->C_meta  = _mulle_objc_classpair_get_metaclass( pair);
@@ -54,7 +54,7 @@ static void  create_ABC_PROTO_classes( struct abc_classes *classes)
    protocollist->protocols[ 0].protocolid = C_classid;
    protocollist->protocols[ 0].name       = "C";
 
-   mulle_objc_classpair_unfailingadd_protocollist( pair, protocollist);
+   mulle_objc_classpair_add_protocollist_nofail( pair, protocollist);
 }
 
 
@@ -64,9 +64,9 @@ static void  add_ABC_PROTO_classes( struct abc_classes *classes)
    struct _mulle_objc_classpair       *pair;
    struct _mulle_objc_protocollist    *protocollist;
 
-   mulle_objc_unfailingadd_infraclass( classes->A_infra);
-   mulle_objc_unfailingadd_infraclass( classes->B_infra);
-   mulle_objc_unfailingadd_infraclass( classes->C_infra);
+   mulle_objc_add_infraclass_nofail( classes->A_infra);
+   mulle_objc_add_infraclass_nofail( classes->B_infra);
+   mulle_objc_add_infraclass_nofail( classes->C_infra);
 
    pair = _mulle_objc_infraclass_get_classpair( classes->B_infra);
 
@@ -75,8 +75,8 @@ static void  add_ABC_PROTO_classes( struct abc_classes *classes)
    protocollist->protocols[ 0].protocolid = C_classid;
    protocollist->protocols[ 0].name       = "C";
 
-   mulle_objc_classpair_unfailingadd_protocollist( pair, protocollist);
-   mulle_objc_classpair_unfailingadd_protocolclassids( pair, classprotocolids);
+   mulle_objc_classpair_add_protocollist_nofail( pair, protocollist);
+   mulle_objc_classpair_add_protocolclassids_nofail( pair, classprotocolids);
 }
 
 
@@ -214,8 +214,8 @@ void   test_protocol_inheritance( void)
    add_ABC_PROTO_classes( &classes);
 
    // add foo too A meta (!) class
-   mulle_objc_infraclass_unfailingadd_methodlist( classes.A_infra, &A_cat_list);
-   mulle_objc_infraclass_unfailingadd_methodlist( classes.B_infra, &B_cat_list);
+   mulle_objc_infraclass_add_methodlist_nofail( classes.A_infra, &A_cat_list);
+   mulle_objc_infraclass_add_methodlist_nofail( classes.B_infra, &B_cat_list);
 
    test_normal_foo_inheritance( &classes);
    test_normal_bar_inheritance( &classes);

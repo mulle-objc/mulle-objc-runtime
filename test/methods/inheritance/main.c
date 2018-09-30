@@ -59,7 +59,7 @@ static void   reset_universe()
 
    mulle_objc_release_universe();
 
-   universe = mulle_objc_get_or_create_universe();
+   universe = mulle_objc_register_universe();
 
    // tests were written at an earlier time...
    universe->classdefaults.inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;

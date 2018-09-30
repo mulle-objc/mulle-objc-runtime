@@ -96,7 +96,7 @@ int   mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist
                                                    struct _mulle_objc_metaclass *cls,
                                                    struct _mulle_objc_callqueue *loads);
 
-void   mulle_objc_methodlist_unfailingadd_load_to_callqueue( struct _mulle_objc_methodlist *list,
+void   mulle_objc_methodlist_add_load_to_callqueue_nofail( struct _mulle_objc_methodlist *list,
                                                              struct _mulle_objc_metaclass *cls,
                                                              struct _mulle_objc_callqueue *loads);
 
@@ -110,7 +110,7 @@ struct _mulle_objc_methodlistenumerator
 };
 
 
-static inline struct  _mulle_objc_methodlistenumerator   
+static inline struct  _mulle_objc_methodlistenumerator
    _mulle_objc_methodlist_enumerate( struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;
@@ -160,7 +160,7 @@ static inline int   mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *l
 }
 
 
-static inline struct  _mulle_objc_methodlistenumerator   
+static inline struct  _mulle_objc_methodlistenumerator
    mulle_objc_methodlist_enumerate( struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;

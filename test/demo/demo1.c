@@ -507,15 +507,15 @@ static void  __load()
       return;
    has_loaded = 1;
 
-   mulle_objc_loadinfo_unfailingenqueue( &load_info);
+   mulle_objc_loadinfo_enqueue_nofail( &load_info);
 }
 
 
-struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void)
+struct _mulle_objc_universe  *__register_mulle_objc_universe( void)
 {
    struct _mulle_objc_universe    *universe;
 
-   fprintf( stderr, "--> __get_or_create_mulle_objc_universe\n");
+   fprintf( stderr, "--> __register_mulle_objc_universe\n");
    universe = __mulle_objc_get_universe();
    if( ! _mulle_objc_universe_is_initialized( universe))
    {
@@ -540,8 +540,8 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Foo alloc] init];
 
-   fprintf( stderr, "-==> mulle_objc_unfailingfastlookup_infraclass()\n");
-   cls = mulle_objc_unfailingfastlookup_infraclass( ___Foo_classid);
+   fprintf( stderr, "-==> mulle_objc_fastlookup_infraclass_nofail()\n");
+   cls = mulle_objc_fastlookup_infraclass_nofail( ___Foo_classid);
 
    fprintf( stderr, "-==> mulle_objc_infraclass_alloc_instance()\n");
    obj = mulle_objc_infraclass_alloc_instance( cls);

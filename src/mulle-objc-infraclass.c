@@ -58,7 +58,7 @@ void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
    _mulle_concurrent_hashmap_init( &infra->cvars, 0, allocator);
 
    universe             = _mulle_objc_infraclass_get_universe( infra);
-   foundation_allocator = _mulle_objc_universe_get_foundation_allocator( universe);
+   foundation_allocator = _mulle_objc_universe_get_foundationallocator( universe);
    infra->allocator     = foundation_allocator->calloc ? foundation_allocator
                                                        : &mulle_default_allocator;
 }
@@ -215,7 +215,7 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 }
 
 
-void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_add_propertylist_nofail( struct _mulle_objc_infraclass *infra,
                                                          struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_universe   *universe;
@@ -257,7 +257,7 @@ int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
 }
 
 
-void   mulle_objc_infraclass_unfailingadd_ivarlist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_add_ivarlist_nofail( struct _mulle_objc_infraclass *infra,
                                                      struct _mulle_objc_ivarlist *list)
 {
    struct _mulle_objc_universe   *universe;
@@ -316,7 +316,7 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 
 # pragma mark - ivar walker
 
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
                                       unsigned int inheritance,
                                       mulle_objc_walkivarscallback *f,
@@ -362,7 +362,7 @@ mulle_objc_walkcommand_t
 
 # pragma mark - property walker
 
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
                                            unsigned int inheritance,
                                            mulle_objc_walkpropertiescallback *f,
@@ -414,7 +414,7 @@ static int  print_categoryid( mulle_objc_protocolid_t categoryid,
    universe = _mulle_objc_classpair_get_universe( pair);
    fprintf( stderr, "\t%08x \"%s\"\n",
             categoryid,
-           _mulle_objc_universe_string_for_categoryid( universe, categoryid));
+           _mulle_objc_universe_describe_categoryid( universe, categoryid));
    return( 0);
 }
 

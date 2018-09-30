@@ -28,6 +28,6 @@ This may be of interest if you are writing a compiler for the runtime.
 Relevant links:
 
 [clang](//github.com/llvm-mirror/clang/blob/master/lib/CodeGen/CGObjCMac.cpp#L4020)
-[mulle_objc_exception_try_enter.h](../src/mulle_objc_exception_try_enter.h)
-[mulle_objc_exception_try_enter.c](../src/mulle_objc_exception_try_enter.c)
+[mulle_objc_exception_tryenter.h](../src/mulle_objc_exception_tryenter.h)
+[mulle_objc_exception_tryenter.c](../src/mulle_objc_exception_tryenter.c)
 
