@@ -49,7 +49,7 @@
 //
 // Your root class MUST implement -finalize and -dealloc.
 //
-void  _mulle_objc_object_try_finalize_try_dealloc( void *obj);
+void  _mulle_objc_object_tryfinalizetrydealloc( void *obj);
 void  _mulle_objc_object_perform_finalize( void *obj);
 
 
@@ -93,7 +93,7 @@ static inline void   _mulle_objc_object_increment_retaincount( void *obj)
 }
 
 
-static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj)
+static inline int   _mulle_objc_object_decrement_retaincount_waszero( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
@@ -116,7 +116,7 @@ static inline int   _mulle_objc_object_decrement_retaincount_was_zero( void *obj
 // You should only use it when creating an object, not "on the fly"
 // therefore it's nonatomic
 //
-static inline void   _mulle_objc_object_nonatomic_infiniteretain( void *obj)
+static inline void   _mulle_objc_object_infiniteretain_noatomic( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
@@ -147,7 +147,7 @@ static inline int   _mulle_objc_object_is_constant( void *obj)
 // __builtin_expect( --header->retaincount_1 < 0, 0)
 // didnt do anything for me
 //
-static inline void   _mulle_objc_object_release( void *obj)
+static inline void   _mulle_objc_object_inlinerelease( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
@@ -164,33 +164,29 @@ static inline void   _mulle_objc_object_release( void *obj)
    if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
    {
       if( __builtin_expect( (intptr_t) _mulle_atomic_pointer_decrement( &header->_retaincount_1) <= 0, 0)) // atomic decrement needed
-         _mulle_objc_object_try_finalize_try_dealloc( obj);
+         _mulle_objc_object_tryfinalizetrydealloc( obj);
    }
 }
 
 
-static inline void   _mulle_objc_object_retain( void *obj)
+static inline void   _mulle_objc_object_inlineretain( void *obj)
 {
    _mulle_objc_object_increment_retaincount( obj);
 }
 
 
-void   _mulle_objc_objects_call_retain( void **objects, size_t n);
-void   _mulle_objc_objects_call_release( void **objects, size_t n);
-void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n);
-
 # pragma mark - API, compiler uses this code too
 
 // must be void *, for compiler
-static inline void   *mulle_objc_object_retain( void *obj)
+static inline void   *mulle_objc_object_inlineretain( void *obj)
 {
    if( obj)
-      _mulle_objc_object_retain( obj);
+      _mulle_objc_object_inlineretain( obj);
    return( obj);
 }
 
 
-static inline void   mulle_objc_object_release( void *obj)
+static inline void   mulle_objc_object_inlinerelease( void *obj)
 {
    if( ! obj)
       return;
@@ -200,44 +196,54 @@ static inline void   mulle_objc_object_release( void *obj)
    cls = _mulle_objc_object_get_isa( obj);
    (*cls->call)( obj, MULLE_OBJC_RELEASE_METHODID, NULL, cls);
 #else
-   _mulle_objc_object_release( obj);
+   _mulle_objc_object_inlinerelease( obj);
 #endif
 }
+
+
+// must be void *, for compiler
+void   *mulle_objc_object_retain( void *obj);
+void   mulle_objc_object_release( void *obj);
 
 
 # pragma mark - API
 
 
-static inline void   mulle_objc_objects_call_retain( void **objects, size_t n)
+void   _mulle_objc_objects_retain( void **objects, size_t n);
+void   _mulle_objc_objects_release( void **objects, size_t n);
+void   _mulle_objc_objects_releaseandzero( void **objects, size_t n);
+
+
+static inline void   mulle_objc_objects_retain( void **objects, size_t n)
 {
    if( ! objects)
    {
       assert( ! n);
       return;
    }
-   _mulle_objc_objects_call_retain( objects, n);
+   _mulle_objc_objects_retain( objects, n);
 }
 
 
-static inline void   mulle_objc_objects_call_release( void **objects, size_t n)
+static inline void   mulle_objc_objects_release( void **objects, size_t n)
 {
    if( ! objects)
    {
       assert( ! n);
       return;
    }
-   _mulle_objc_objects_call_release( objects, n);
+   _mulle_objc_objects_release( objects, n);
 }
 
 
-static inline void   mulle_objc_objects_call_release_and_zero( void **objects, size_t n)
+static inline void   mulle_objc_objects_releaseandzero( void **objects, size_t n)
 {
    if( ! objects)
    {
       assert( ! n);
       return;
    }
-   _mulle_objc_objects_call_release_and_zero( objects, n);
+   _mulle_objc_objects_releaseandzero( objects, n);
 }
 
 #endif

@@ -57,13 +57,13 @@
  * this will be declared by the Foundation (or the test program)
  *
  */
-mulle_thread_tss_t   mulle_objc_unfailingget_or_create_threadkey( void);
-void   mulle_objc_delete_threadkey( void);
+mulle_thread_tss_t   mulle_objc_global_register_threadkey_nofail( void);
+void   mulle_objc_global_delete_threadkey( void);
 
 
 // this is defined by the user
-extern MULLE_C_CONST_RETURN
-struct _mulle_objc_universe  *__get_or_create_mulle_objc_universe( void);
+extern MULLE_C_CONST_RETURN struct _mulle_objc_universe  *
+   __register_mulle_objc_universe( void);
 
 #pragma mark - stuff to be used in _get_or_create
 
@@ -91,8 +91,8 @@ void   _mulle_objc_universe_defaultexitus( void);
 // if it returns 1, put a teardown function (mulle_objc_release_universe) into
 // atexit (pedantic exit)
 //
-void   __mulle_objc_universe_setup( struct _mulle_objc_universe *universe,
-                                    struct mulle_allocator *allocator);
+void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
+                                  struct mulle_allocator *allocator);
 void   _mulle_objc_universe_assert_version( struct _mulle_objc_universe  *universe,
                                             struct mulle_objc_loadversion *version);
 
@@ -129,7 +129,7 @@ static inline void  _mulle_objc_universe_release( struct _mulle_objc_universe *u
 
 struct _mulle_objc_exceptionstackentry;
 
-struct _mulle_objc_threadconfig
+struct _mulle_objc_threadinfo
 {
    struct _mulle_objc_universe              *universe;
    struct _mulle_objc_exceptionstackentry   *exception_stack;
@@ -140,12 +140,12 @@ struct _mulle_objc_threadconfig
 
 
 // only __mulle_objc_get_universe should use this
-static inline struct _mulle_objc_universe  *__mulle_objc_threadget_universe( void)
+static inline struct _mulle_objc_universe  *__mulle_objc_thread_get_universe( void)
 {
-   struct _mulle_objc_universe       *universe;
-   struct _mulle_objc_threadconfig   *config;
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_threadinfo   *config;
 
-   config  = _mulle_objc_threadget_threadconfig();
+   config  = _mulle_objc_thread_get_threadinfo();
    if( ! config)
       return( NULL);
 
@@ -156,12 +156,12 @@ static inline struct _mulle_objc_universe  *__mulle_objc_threadget_universe( voi
 
 // always returns same value (in same thread)
 MULLE_C_CONST_NON_NULL_RETURN  static inline struct _mulle_objc_universe *
-   mulle_objc_get_thread_universe( void)
+   mulle_objc_thread_get_universe( void)
 {
    struct _mulle_objc_universe       *universe;
-   struct _mulle_objc_threadconfig   *config;
+   struct _mulle_objc_threadinfo   *config;
 
-   config  = mulle_objc_threadget_threadconfig();
+   config  = mulle_objc_thread_get_threadinfo();
    assert( config && "thread not configured for mulle_objc");
 
    universe = config->universe;
@@ -171,17 +171,17 @@ MULLE_C_CONST_NON_NULL_RETURN  static inline struct _mulle_objc_universe *
 }
 
 
-void   mulle_objc_threadset_universe( struct _mulle_objc_universe *universe);
+void   mulle_objc_thread_set_universe( struct _mulle_objc_universe *universe);
 
 static inline void *
-   _mulle_objc_threadconfig_get_foundationspace( struct _mulle_objc_threadconfig  *config)
+   _mulle_objc_threadinfo_get_foundationspace( struct _mulle_objc_threadinfo  *config)
 {
    return( &config->foundationspace[ 0]);
 }
 
 
 static inline void   *
-   _mulle_objc_threadconfig_get_userspace( struct _mulle_objc_threadconfig  *config)
+   _mulle_objc_threadinfo_get_userspace( struct _mulle_objc_threadinfo  *config)
 {
    return( &config->userspace[ 0]);
 }
@@ -226,14 +226,14 @@ MULLE_C_CONST_NON_NULL_RETURN  static inline struct _mulle_objc_universe *
    mulle_objc_inlineget_universe( void)
 {
 #if __MULLE_OBJC_TRT__
-   return( mulle_objc_get_thread_universe());
+   return( mulle_objc_thread_get_universe());
 #else
-   return( mulle_objc_get_global_universe());
+   return( mulle_objc_global_get_universe());
 #endif
 }
 
 
-// use this only during mulle_objc_get_or_create_universe
+// use this only during mulle_objc_register_universe
 // always returns same value (in same thread)
 MULLE_C_CONST_NON_NULL_RETURN
 struct _mulle_objc_universe   *__mulle_objc_get_universe( void);
@@ -247,8 +247,9 @@ struct _mulle_objc_universe   *__mulle_objc_get_universe( void);
 //
 // It is not CONST, so you can reinitialize a universe with this function.
 //
-MULLE_C_NON_NULL_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_universe   *mulle_objc_get_or_create_universe( void);
+MULLE_C_NON_NULL_RETURN struct _mulle_objc_universe   *
+  mulle_objc_register_universe( void);
+
 //
 // "convenience" use this in test cases to tear down all objects
 // and check for leaks
@@ -268,17 +269,17 @@ struct _mulle_concurrent_pointerarray  *
 #pragma mark - exceptions
 
 /* the default implementation for handling exceptions */
-mulle_thread_tss_t   mulle_objc_unfailingget_or_create_exceptionstack_key( void);
+mulle_thread_tss_t   mulle_objc_register_exceptionstackkey_nofail( void);
 
 MULLE_C_NO_RETURN void
-   mulle_objc_allocator_fail( void *block, size_t size);
+   mulle_objc_fail_allocation( void *block, size_t size);
 
 MULLE_C_NO_RETURN void
    _mulle_objc_universe_throw( struct _mulle_objc_universe *universe,
                                void *exception);
-void   _mulle_objc_universe_try_enter( struct _mulle_objc_universe *universe,
+void   _mulle_objc_universe_tryenter( struct _mulle_objc_universe *universe,
                                      void *data);
-void   _mulle_objc_universe_try_exit( struct _mulle_objc_universe *universe,
+void   _mulle_objc_universe_tryexit( struct _mulle_objc_universe *universe,
                                       void *data);
 void   *_mulle_objc_universe_extract_exception( struct _mulle_objc_universe *universe,
                                                 void *data);
@@ -336,7 +337,7 @@ MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
 
 
 MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
-   _mulle_objc_universe_get_foundation_allocator( struct _mulle_objc_universe *universe)
+   _mulle_objc_universe_get_foundationallocator( struct _mulle_objc_universe *universe)
 {
    return( _mulle_objc_foundation_get_allocator( &universe->foundation));
 }
@@ -355,7 +356,7 @@ static inline void  _mulle_objc_universe_add_gift( struct _mulle_objc_universe *
 }
 
 
-static inline void   mulle_objc_universe_unfailingadd_gift( struct _mulle_objc_universe *universe,
+static inline void   mulle_objc_universe_add_gift_nofail( struct _mulle_objc_universe *universe,
                                                             void *gift)
 {
    if( ! universe || ! gift)
@@ -448,19 +449,19 @@ static inline void   mulle_objc_universe_set_path( struct _mulle_objc_universe *
 
 #pragma mark - load lock
 
-static inline int   _mulle_objc_universe_waitqueues_lock( struct _mulle_objc_universe  *universe)
+static inline int   _mulle_objc_universe_lock_waitqueues( struct _mulle_objc_universe  *universe)
 {
    return( mulle_thread_mutex_lock( &universe->waitqueues.lock));
 }
 
 
-static inline int   _mulle_objc_universe_waitqueues_trylock( struct _mulle_objc_universe  *universe)
+static inline int   _mulle_objc_universe_trylock_waitqueues( struct _mulle_objc_universe  *universe)
 {
    return( mulle_thread_mutex_trylock( &universe->waitqueues.lock));
 }
 
 
-static inline int   _mulle_objc_universe_waitqueues_unlock( struct _mulle_objc_universe  *universe)
+static inline int   _mulle_objc_universe_unlock_waitqueues( struct _mulle_objc_universe  *universe)
 {
    return( mulle_thread_mutex_unlock( &universe->waitqueues.lock));
 }
@@ -512,7 +513,7 @@ void   _mulle_objc_universe_unregister_current_thread( struct _mulle_objc_univer
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
 // if you are using threads with ObjC, you should create your threads with
-// mulle_objc_create_thread or register them with mulle_objc_thread_register.
+// mulle_objc_create_thread or register them with mulle_objc_thread__register.
 
 int   mulle_objc_create_thread( mulle_thread_rval_t (*f)(void *), void *arg, mulle_thread_t *thread);
 
@@ -579,7 +580,7 @@ struct _mulle_objc_classpair   *
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
 struct _mulle_objc_classpair *
-   mulle_objc_unfailingnew_classpair( mulle_objc_classid_t  classid,
+   mulle_objc_new_classpair_nofail( mulle_objc_classid_t  classid,
                                       char *name,
                                       size_t instancesize,
                                       struct _mulle_objc_infraclass *superclass);
@@ -595,7 +596,7 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
                                           struct _mulle_objc_infraclass *infra);
 
 
-void   mulle_objc_universe_unfailingadd_infraclass( struct _mulle_objc_universe *universe,
+void   mulle_objc_universe_add_infraclass_nofail( struct _mulle_objc_universe *universe,
                                                     struct _mulle_objc_infraclass *infra);
 
 
@@ -606,7 +607,7 @@ int   mulle_objc_universe_remove_infraclass( struct _mulle_objc_universe *univer
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 // used in some tests
-void   mulle_objc_unfailingadd_infraclass( struct _mulle_objc_infraclass *pair);
+void   mulle_objc_add_infraclass_nofail( struct _mulle_objc_infraclass *pair);
 #endif
 
 void  _mulle_objc_universe_set_fastclass( struct _mulle_objc_universe *universe,
@@ -635,11 +636,11 @@ static inline int   mulle_objc_universe_add_descriptor( struct _mulle_objc_unive
                                                         struct _mulle_objc_descriptor *p);
 
 struct _mulle_objc_descriptor *
-    _mulle_objc_universe_unfailingregister_descriptor( struct _mulle_objc_universe *universe,
+    _mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
                                                        struct _mulle_objc_descriptor *p);
 
 struct _mulle_objc_descriptor *
-   mulle_objc_universe_unfailingregister_descriptor( struct _mulle_objc_universe *universe,
+   mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
                                                      struct _mulle_objc_descriptor *p);
 
 // get name from methodid for example
@@ -670,12 +671,12 @@ struct _mulle_objc_super   *
                                       mulle_objc_superid_t superid);
 
 struct _mulle_objc_super   *
-   _mulle_objc_universe_unfailinglookup_super( struct _mulle_objc_universe *universe,
+   _mulle_objc_universe_lookup_super_nofail( struct _mulle_objc_universe *universe,
                                                mulle_objc_superid_t superid);
 
 int   _mulle_objc_universe_add_super( struct _mulle_objc_universe *universe,
                                       struct _mulle_objc_super *p);
-void    mulle_objc_universe_unfailingadd_super( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_add_super_nofail( struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_super *p);
 struct _mulle_objc_super   *mulle_objc_lookup_super( mulle_objc_superid_t superid);
 
@@ -702,7 +703,7 @@ static inline int   mulle_objc_universe_add_protocol( struct _mulle_objc_univers
 }
 
 
-void    mulle_objc_universe_unfailingadd_protocol( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_add_protocol_nofail( struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_protocol *protocol);
 
 struct _mulle_objc_protocol  *mulle_objc_lookup_protocol( mulle_objc_protocolid_t protocolid);
@@ -746,7 +747,7 @@ int   _mulle_objc_universe_add_category( struct _mulle_objc_universe *universe,
                                         mulle_objc_categoryid_t categoryid,
                                         char *name);
 
-void    mulle_objc_universe_unfailingadd_category( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_add_category_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_categoryid_t categoryid,
                                                    char *name);
 
@@ -810,7 +811,7 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
                                               struct _mulle_objc_object *string);
 
 // this changes the class of ALL (!) static strings to -> foundation.staticstringclass
-void   _mulle_objc_universe_staticstringclass_did_change( struct _mulle_objc_universe *universe);
+void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe);
 
 void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
                                                   struct _mulle_objc_infraclass *infra);
@@ -840,44 +841,44 @@ char   *mulle_objc_search_debughashname( mulle_objc_uniqueid_t uniqueid);
 # pragma mark - uniqueid to string conversions
 
 MULLE_C_NON_NULL_RETURN
-char   *_mulle_objc_universe_string_for_uniqueid( struct _mulle_objc_universe *universe,
+char   *_mulle_objc_universe_describe_uniqueid( struct _mulle_objc_universe *universe,
                                                   mulle_objc_uniqueid_t uniqueid);
 MULLE_C_NON_NULL_RETURN
-char   *_mulle_objc_universe_string_for_classid( struct _mulle_objc_universe *universe,
+char   *_mulle_objc_universe_describe_classid( struct _mulle_objc_universe *universe,
                                                  mulle_objc_classid_t classid);
 MULLE_C_NON_NULL_RETURN
-char   *_mulle_objc_universe_string_for_methodid( struct _mulle_objc_universe *universe,
+char   *_mulle_objc_universe_describe_methodid( struct _mulle_objc_universe *universe,
                                                   mulle_objc_methodid_t methodid);
 MULLE_C_NON_NULL_RETURN
-char   *_mulle_objc_universe_string_for_protocolid( struct _mulle_objc_universe *universe,
+char   *_mulle_objc_universe_describe_protocolid( struct _mulle_objc_universe *universe,
                                                     mulle_objc_protocolid_t protocolid);
 MULLE_C_NON_NULL_RETURN
-char   *_mulle_objc_universe_string_for_categoryid( struct _mulle_objc_universe *universe,
+char   *_mulle_objc_universe_describe_categoryid( struct _mulle_objc_universe *universe,
                                                     mulle_objc_categoryid_t categoryid);
 MULLE_C_NON_NULL_RETURN
-char   *_mulle_objc_universe_string_for_superid( struct _mulle_objc_universe *universe,
+char   *_mulle_objc_universe_describe_superid( struct _mulle_objc_universe *universe,
                                                  mulle_objc_superid_t classid);
 
 
 #ifndef MULLE_OBJC_NO_CONVENIENCES
 
 MULLE_C_NON_NULL_RETURN
-char   *mulle_objc_string_for_uniqueid( mulle_objc_uniqueid_t classid);
+char   *mulle_objc_describe_uniqueid( mulle_objc_uniqueid_t classid);
 
 MULLE_C_NON_NULL_RETURN
-char   *mulle_objc_string_for_classid( mulle_objc_classid_t classid);
+char   *mulle_objc_describe_classid( mulle_objc_classid_t classid);
 
 MULLE_C_NON_NULL_RETURN
-char   *mulle_objc_string_for_methodid( mulle_objc_methodid_t methodid);
+char   *mulle_objc_describe_methodid( mulle_objc_methodid_t methodid);
 
 MULLE_C_NON_NULL_RETURN
-char   *mulle_objc_string_for_protocolid( mulle_objc_protocolid_t protocolid);
+char   *mulle_objc_describe_protocolid( mulle_objc_protocolid_t protocolid);
 
 MULLE_C_NON_NULL_RETURN
-char   *mulle_objc_string_for_categoryid( mulle_objc_categoryid_t categoryid);
+char   *mulle_objc_describe_categoryid( mulle_objc_categoryid_t categoryid);
 
 MULLE_C_NON_NULL_RETURN
-char   *mulle_objc_string_for_superid( mulle_objc_superid_t superid);
+char   *mulle_objc_describe_superid( mulle_objc_superid_t superid);
 
 #endif
 
@@ -1014,8 +1015,8 @@ static inline void   mulle_objc_checkin_current_thread( void)
 
 #pragma mark - getenv
 
-int  mulle_objc_getenv_yes_no_default( char *name, int default_value);
-int  mulle_objc_getenv_yes_no( char *name);
+int  mulle_objc_environment_get_yes_no_default( char *name, int default_value);
+int  mulle_objc_environment_get_yes_no( char *name);
 
 
 #endif /* mulle_objc_universe_h__*/

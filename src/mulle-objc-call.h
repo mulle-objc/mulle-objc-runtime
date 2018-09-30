@@ -58,10 +58,10 @@
 //
 // use this for -O3
 //
-MULLE_C_ALWAYS_INLINE
-   static inline void  *mulle_objc_object_inline_constant_methodid_call( void *obj,
-                                                                         mulle_objc_methodid_t methodid,
-                                                                         void *parameter)
+MULLE_C_ALWAYS_INLINE static inline void  *
+   mulle_objc_object_inlinecall_constantmethodid( void *obj,
+                                                  mulle_objc_methodid_t methodid,
+                                                  void *parameter)
 {
 #ifdef __MULLE_OBJC_FMC__
    int                             index;
@@ -112,10 +112,10 @@ MULLE_C_ALWAYS_INLINE
 //
 // use this for -O -O1
 //
-MULLE_C_ALWAYS_INLINE
-static inline void   *mulle_objc_object_constant_methodid_call( void *obj,
-                                                                mulle_objc_methodid_t methodid,
-                                                                void *parameter)
+MULLE_C_ALWAYS_INLINE static inline void  *
+   mulle_objc_object_partialinlinecall_constantmethodid( void *obj,
+                                                         mulle_objc_methodid_t methodid,
+                                                         void *parameter)
 {
 #ifdef __MULLE_OBJC_FMC__
    int                        index;
@@ -140,18 +140,18 @@ static inline void   *mulle_objc_object_constant_methodid_call( void *obj,
 //
 // this is the method to use, when the selector is variable
 //
-MULLE_C_ALWAYS_INLINE
-static inline void  *mulle_objc_object_inline_variable_methodid_call( void *obj,
-                                                                      mulle_objc_methodid_t methodid,
-                                                                      void *parameter)
+MULLE_C_ALWAYS_INLINE static inline void  *
+   mulle_objc_object_inlinecall_variablemethodid( void *obj,
+                                                  mulle_objc_methodid_t methodid,
+                                                  void *parameter)
 {
-   mulle_objc_implementation_t   f;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   struct _mulle_objc_class            *cls;
-   mulle_objc_cache_uint_t             mask;
-   mulle_objc_cache_uint_t             offset;
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
 
    if( __builtin_expect( ! obj, 0))
       return( obj);
@@ -178,10 +178,10 @@ static inline void  *mulle_objc_object_inline_variable_methodid_call( void *obj,
 // use this when you know methodid is not a constant and you want to keep
 // the call size down
 //
-MULLE_C_ALWAYS_INLINE
-static inline void   *mulle_objc_object_variable_methodid_call( void *obj,
-                                                                mulle_objc_methodid_t methodid,
-                                                                void *parameter)
+MULLE_C_ALWAYS_INLINE static inline void   *
+   mulle_objc_object_call_variablemethodid( void *obj,
+                                            mulle_objc_methodid_t methodid,
+                                            void *parameter)
 {
    struct _mulle_objc_class   *cls;
 
@@ -206,12 +206,12 @@ void   mulle_objc_objects_call( void **objects,
 #pragma mark - calls for super
 
 mulle_objc_implementation_t
-   _mulle_objc_object_unfailinglookup_superimplementation( void *obj,
+   _mulle_objc_object_superlookup_implementation_nofail( void *obj,
                                                          mulle_objc_superid_t superid);
 
 static inline mulle_objc_implementation_t
-   _mulle_objc_object_inline_unfailinglookup_superimplementation( void *obj,
-                                                                  mulle_objc_superid_t superid)
+   _mulle_objc_object_inlinesuperlookup_implementation_nofail( void *obj,
+                                                               mulle_objc_superid_t superid)
 {
    struct _mulle_objc_class      *cls;
    mulle_objc_implementation_t   imp;
@@ -226,28 +226,28 @@ static inline mulle_objc_implementation_t
 // infraclasses. The superid is hash( <classname> ';' <methodname>)
 // Since it is a super call, obj is known to be non-nil. So there is
 // no corresponding mulle_objc_object_inline_supercall.
-// Will call _mulle_objc_class_unfailinglookup_superimplementation
+// Will call _mulle_objc_class_superlookup_implementation
 //
 
 static inline void   *
-   _mulle_objc_object_partialinline_supercall( void *obj,
-                                               mulle_objc_methodid_t methodid,
-                                               void *parameter,
-                                               mulle_objc_superid_t superid)
+   _mulle_objc_object_partialinlinesupercall( void *obj,
+                                              mulle_objc_methodid_t methodid,
+                                              void *parameter,
+                                              mulle_objc_superid_t superid)
 {
    mulle_objc_implementation_t   imp;
 
-   imp = _mulle_objc_object_unfailinglookup_superimplementation( obj, superid);
+   imp = _mulle_objc_object_superlookup_implementation_nofail( obj, superid);
    return( (*imp)( obj, methodid, parameter));
 }
 
 
 
 MULLE_C_ALWAYS_INLINE
-   static inline void  *_mulle_objc_object_inline_supercall( void *obj,
-                                                             mulle_objc_methodid_t methodid,
-                                                             void *parameter,
-                                                              mulle_objc_superid_t superid)
+   static inline void  *_mulle_objc_object_inlinesupercall( void *obj,
+                                                            mulle_objc_methodid_t methodid,
+                                                            void *parameter,
+                                                            mulle_objc_superid_t superid)
 {
    mulle_objc_implementation_t     f;
    struct _mulle_objc_cache        *cache;
@@ -289,58 +289,56 @@ void   *_mulle_objc_object_supercall( void *obj,
                                       void *parameter,
                                       mulle_objc_superid_t superid);
 
-MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN
-struct _mulle_objc_method *
-   _mulle_objc_class_unfailinguncachedlookup_supermethod( struct _mulle_objc_class *cls,
-                                                          mulle_objc_superid_t superid);
+MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
+   _mulle_objc_class_superlookup_method_nofail( struct _mulle_objc_class *cls,
+                                                mulle_objc_superid_t superid);
 
-MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN
-mulle_objc_implementation_t
-   _mulle_objc_class_unfailinguncachedlookup_supermethodimplementation( struct _mulle_objc_class *cls,
-                                                                        mulle_objc_superid_t superid);
+MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN mulle_objc_implementation_t
+   _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
+                                                        mulle_objc_superid_t superid);
 
 
 # pragma mark - API Calls
 
 // compiler uses this for -O0, -Os, it does no fast calls
 void   *mulle_objc_object_call( void *obj,
-                               mulle_objc_methodid_t methodid,
-                               void *parameter);
+                                mulle_objc_methodid_t methodid,
+                                void *parameter);
 
 
 # pragma mark - special initial setup calls
 
-void   *_mulle_objc_object_call_class_needs_cache( void *obj,
-                                                   mulle_objc_methodid_t methodid,
-                                                   void *parameter,
-                                                   struct _mulle_objc_class *cls);
+void   *_mulle_objc_object_call_class_needcache( void *obj,
+                                                 mulle_objc_methodid_t methodid,
+                                                 void *parameter,
+                                                 struct _mulle_objc_class *cls);
 
 
 # pragma mark  -
 # pragma mark cache support
 
 // internal, call
-struct _mulle_objc_cacheentry
-   *_mulle_objc_class_add_cacheentry_by_swapping_methodcaches( struct _mulle_objc_class *cls,
-                                                         struct _mulle_objc_cache *cache,
-                                                         struct _mulle_objc_method *method,
-                                                         mulle_objc_methodid_t methodid,
-                                                         enum mulle_objc_cachesizing_t sizing);
+struct _mulle_objc_cacheentry *
+   _mulle_objc_class_add_cacheentry_swappmethodcache( struct _mulle_objc_class *cls,
+                                                      struct _mulle_objc_cache *cache,
+                                                      struct _mulle_objc_method *method,
+                                                      mulle_objc_methodid_t methodid,
+                                                      enum mulle_objc_cachesizing_t sizing);
 
 MULLE_C_NEVER_INLINE
 struct _mulle_objc_cacheentry   *
-   _mulle_objc_class_add_cacheentry_by_swapping_supercaches( struct _mulle_objc_class *cls,
-                                                             struct _mulle_objc_cache *cache,
-                                                             struct _mulle_objc_method *method,
-                                                             mulle_objc_superid_t superid,
-                                                             enum mulle_objc_cachesizing_t sizing);
+   _mulle_objc_class_add_cacheentry_swapsupercache( struct _mulle_objc_class *cls,
+                                                    struct _mulle_objc_cache *cache,
+                                                    struct _mulle_objc_method *method,
+                                                    mulle_objc_superid_t superid,
+                                                    enum mulle_objc_cachesizing_t sizing);
 
 
-void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
-                                           mulle_objc_methodid_t methodid,
-                                           void *obj,
-                                           void *parameter,
-                                           mulle_objc_implementation_t imp);
+void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
+                                    mulle_objc_methodid_t methodid,
+                                    void *obj,
+                                    void *parameter,
+                                    mulle_objc_implementation_t imp);
 
 
 
@@ -349,33 +347,34 @@ void   mulle_objc_class_trace_method_call( struct _mulle_objc_class *cls,
 
 // this will not update the cache
 mulle_objc_implementation_t
-   _mulle_objc_class_noncachinglookup_implementation_no_forward( struct _mulle_objc_class *cls,
+   _mulle_objc_class_lookup_implementation_nocache_noforward( struct _mulle_objc_class *cls,
                                                                  mulle_objc_methodid_t methodid);
 
 mulle_objc_implementation_t
-   _mulle_objc_class_noncachinglookup_implementation( struct _mulle_objc_class *cls,
-                                                      mulle_objc_methodid_t methodid);
+   _mulle_objc_class_lookup_implementation_nocache( struct _mulle_objc_class *cls,
+                                                    mulle_objc_methodid_t methodid);
 
 // convenience
 static inline mulle_objc_implementation_t
-   _mulle_objc_object_noncachinglookup_implementation_no_forward( struct _mulle_objc_object *obj,
-                                                                  mulle_objc_methodid_t methodid)
+   _mulle_objc_object_lookup_implementation_nocache_noforward( struct _mulle_objc_object *obj,
+                                                               mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   return( _mulle_objc_class_noncachinglookup_implementation_no_forward( cls, methodid));
+   return( _mulle_objc_class_lookup_implementation_nocache_noforward( cls, methodid));
 }
+
 
 // convenience
 static inline mulle_objc_implementation_t
-   _mulle_objc_object_noncachinglookup_implementation( struct _mulle_objc_object *obj,
+   _mulle_objc_object_lookup_implementation_nocache( struct _mulle_objc_object *obj,
                                                        mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   return( _mulle_objc_class_noncachinglookup_implementation( cls, methodid));
+   return( _mulle_objc_class_lookup_implementation_nocache( cls, methodid));
 }
 
 
@@ -388,27 +387,27 @@ mulle_objc_implementation_t
 
 // goes through cache returns an implementation if cached, NULL otherwise
 mulle_objc_implementation_t
-   _mulle_objc_class_cacheonlylookup_implementation( struct _mulle_objc_class *cls,
+   _mulle_objc_class_lookup_implementation_cacheonly( struct _mulle_objc_class *cls,
                                                      mulle_objc_methodid_t methodid);
 
 // goes through cache returns an implementation if cached, trys to fill cache otherwise
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_no_forward( struct _mulle_objc_class *cls,
-                                                       mulle_objc_methodid_t methodid);
+   _mulle_objc_class_lookup_implementation_noforward( struct _mulle_objc_class *cls,
+                                                      mulle_objc_methodid_t methodid);
 
 // knows about trace and empty cache, forwards
 mulle_objc_implementation_t
-   _mulle_objc_class_unfailinglookup_implementation( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t methodid);
+   _mulle_objc_class_lookup_implementation_nofail( struct _mulle_objc_class *cls,
+                                                   mulle_objc_methodid_t methodid);
 
 mulle_objc_implementation_t
-    mulle_objc_class_unfailinglookup_implementation( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t methodid);
+    mulle_objc_class_lookup_implementation_nofail( struct _mulle_objc_class *cls,
+                                                   mulle_objc_methodid_t methodid);
 
 
 mulle_objc_implementation_t
-   _mulle_objc_class_unfailinglookup_superimplementation( struct _mulle_objc_class *cls,
-                                                          mulle_objc_superid_t superid);
+   _mulle_objc_class_superlookup_implementation( struct _mulle_objc_class *cls,
+                                                 mulle_objc_superid_t superid);
 
 
 #pragma mark - low level support

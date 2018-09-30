@@ -140,8 +140,8 @@ void   test_category_inheritance( void)
    add_ABC_classes( &classes);
 
    // add foo too A meta (!) class
-   mulle_objc_infraclass_unfailingadd_methodlist( classes.A_infra, &A_cat_list);
-   mulle_objc_infraclass_unfailingadd_methodlist( classes.B_infra, &B_cat_list);
+   mulle_objc_infraclass_add_methodlist_nofail( classes.A_infra, &A_cat_list);
+   mulle_objc_infraclass_add_methodlist_nofail( classes.B_infra, &B_cat_list);
    test_normal_foo_inheritance( &classes);
    test_normal_bar_inheritance( &classes);
 

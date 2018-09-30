@@ -46,15 +46,15 @@ void   test_message_sending()
    unsigned int                           i;
    void                                   *rval;
 
-   universe    = mulle_objc_get_or_create_universe();
+   universe    = mulle_objc_register_universe();
 
-   pair = mulle_objc_unfailingnew_classpair( A_classid, "A", 0, NULL);
+   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
    assert( pair);
    A_infra = _mulle_objc_classpair_get_infraclass( pair);
    A_meta  = _mulle_objc_classpair_get_metaclass( pair);
 
    // now fix up classes with empty method lists, so they are OK to be added
-   mulle_objc_metaclass_unfailingadd_methodlist( A_meta, NULL);
+   mulle_objc_metaclass_add_methodlist_nofail( A_meta, NULL);
 
    storage = mulle_objc_universe_calloc( universe, 1, sizeof( struct _1000_8_chars));
 
@@ -87,21 +87,21 @@ void   test_message_sending()
    //   printf( "#%04d: %s -> %llx\n", i, methodlist->methods[ i]->descriptor.name, (int64_t) methodlist->methods[ i]->descriptor.methodid);
 
    methodlist->n_methods = 1000;
-   mulle_objc_infraclass_unfailingadd_methodlist( A_infra, methodlist);
-   mulle_objc_metaclass_unfailingadd_methodlist( A_meta, NULL);
-   mulle_objc_infraclass_unfailingadd_ivarlist( A_infra, NULL);
-   mulle_objc_infraclass_unfailingadd_propertylist( A_infra, NULL);
-   mulle_objc_unfailingadd_infraclass( A_infra);
+   mulle_objc_infraclass_add_methodlist_nofail( A_infra, methodlist);
+   mulle_objc_metaclass_add_methodlist_nofail( A_meta, NULL);
+   mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
+   mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
+   mulle_objc_add_infraclass_nofail( A_infra);
 
    A_obj = mulle_objc_infraclass_alloc_instance( A_infra);
    A_cls = _mulle_objc_infraclass_as_class( A_infra);
    for( i = 0; i < 1000; i++)
    {
-      assert( i == 500 || ! _mulle_objc_class_cacheonlylookup_implementation( (void *) A_cls, methodlist->methods[ i].descriptor.methodid));
+      assert( i == 500 || ! _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_cls, methodlist->methods[ i].descriptor.methodid));
       desc = _mulle_objc_universe_lookup_descriptor( universe, methodlist->methods[ i].descriptor.methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
       rval = mulle_objc_object_call( A_obj, methodlist->methods[ i].descriptor.methodid, NULL);
-      assert( _mulle_objc_class_cacheonlylookup_implementation( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
+      assert( _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
       assert( rval == (void *) (uintptr_t) methodlist->methods[ i].descriptor.methodid);
    }
 

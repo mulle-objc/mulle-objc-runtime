@@ -126,43 +126,43 @@
 <path fill="none" stroke="black" d="M296.524,-59.4624C307.382,-54.5904 320.156,-49.1867 332,-45 339.773,-42.2522 347.974,-39.6081 356.186,-37.1213"/>
 <polygon fill="black" stroke="black" points="357.209,-40.4687 365.807,-34.2776 355.225,-33.7557 357.209,-40.4687"/>
 </g>
-<!-- mulle_objc_loadinfo_unfailing_enqueue( &amp;a.loadinfo) -->
-<g id="node10" class="node"><title>mulle_objc_loadinfo_unfailing_enqueue( &amp;a.loadinfo)</title>
+<!-- mulle_objc_loadinfo_enqueue_nofail( &amp;a.loadinfo) -->
+<g id="node10" class="node"><title>mulle_objc_loadinfo_enqueue_nofail( &amp;a.loadinfo)</title>
 <polygon fill="none" stroke="black" points="900.911,-198 577.089,-198 577.089,-162 900.911,-162 900.911,-198"/>
-<text text-anchor="middle" x="739" y="-174.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_unfailing_enqueue( &amp;a.loadinfo)</text>
+<text text-anchor="middle" x="739" y="-174.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_enqueue_nofail( &amp;a.loadinfo)</text>
 </g>
-<!-- __attribute_constructor( a.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;a.loadinfo) -->
-<g id="edge3" class="edge"><title>__attribute_constructor( a.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;a.loadinfo)</title>
+<!-- __attribute_constructor( a.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;a.loadinfo) -->
+<g id="edge3" class="edge"><title>__attribute_constructor( a.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;a.loadinfo)</title>
 <path fill="none" stroke="black" d="M519.278,-180C534.272,-180 550.307,-180 566.624,-180"/>
 <polygon fill="black" stroke="black" points="566.814,-183.5 576.814,-180 566.814,-176.5 566.814,-183.5"/>
 </g>
-<!-- mulle_objc_loadinfo_unfailing_enqueue( &amp;b.loadinfo) -->
-<g id="node11" class="node"><title>mulle_objc_loadinfo_unfailing_enqueue( &amp;b.loadinfo)</title>
+<!-- mulle_objc_loadinfo_enqueue_nofail( &amp;b.loadinfo) -->
+<g id="node11" class="node"><title>mulle_objc_loadinfo_enqueue_nofail( &amp;b.loadinfo)</title>
 <polygon fill="none" stroke="black" points="901.197,-144 576.803,-144 576.803,-108 901.197,-108 901.197,-144"/>
-<text text-anchor="middle" x="739" y="-120.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_unfailing_enqueue( &amp;b.loadinfo)</text>
+<text text-anchor="middle" x="739" y="-120.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_enqueue_nofail( &amp;b.loadinfo)</text>
 </g>
-<!-- __attribute_constructor( b.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;b.loadinfo) -->
-<g id="edge6" class="edge"><title>__attribute_constructor( b.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;b.loadinfo)</title>
+<!-- __attribute_constructor( b.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;b.loadinfo) -->
+<g id="edge6" class="edge"><title>__attribute_constructor( b.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;b.loadinfo)</title>
 <path fill="none" stroke="black" d="M519.687,-126C534.532,-126 550.386,-126 566.519,-126"/>
 <polygon fill="black" stroke="black" points="566.593,-129.5 576.593,-126 566.593,-122.5 566.593,-129.5"/>
 </g>
-<!-- mulle_objc_loadinfo_unfailing_enqueue( &amp;c.loadinfo) -->
-<g id="node14" class="node"><title>mulle_objc_loadinfo_unfailing_enqueue( &amp;c.loadinfo)</title>
+<!-- mulle_objc_loadinfo_enqueue_nofail( &amp;c.loadinfo) -->
+<g id="node14" class="node"><title>mulle_objc_loadinfo_enqueue_nofail( &amp;c.loadinfo)</title>
 <polygon fill="none" stroke="black" points="900.911,-252 577.089,-252 577.089,-216 900.911,-216 900.911,-252"/>
-<text text-anchor="middle" x="739" y="-228.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_unfailing_enqueue( &amp;c.loadinfo)</text>
+<text text-anchor="middle" x="739" y="-228.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_enqueue_nofail( &amp;c.loadinfo)</text>
 </g>
-<!-- __attribute_constructor( c.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;c.loadinfo) -->
-<g id="edge13" class="edge"><title>__attribute_constructor( c.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;c.loadinfo)</title>
+<!-- __attribute_constructor( c.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;c.loadinfo) -->
+<g id="edge13" class="edge"><title>__attribute_constructor( c.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;c.loadinfo)</title>
 <path fill="none" stroke="black" d="M519.278,-234C534.272,-234 550.307,-234 566.624,-234"/>
 <polygon fill="black" stroke="black" points="566.814,-237.5 576.814,-234 566.814,-230.5 566.814,-237.5"/>
 </g>
-<!-- mulle_objc_loadinfo_unfailing_enqueue( &amp;main.loadinfo) -->
-<g id="node13" class="node"><title>mulle_objc_loadinfo_unfailing_enqueue( &amp;main.loadinfo)</title>
+<!-- mulle_objc_loadinfo_enqueue_nofail( &amp;main.loadinfo) -->
+<g id="node13" class="node"><title>mulle_objc_loadinfo_enqueue_nofail( &amp;main.loadinfo)</title>
 <polygon fill="none" stroke="black" points="911.691,-90 566.309,-90 566.309,-54 911.691,-54 911.691,-90"/>
-<text text-anchor="middle" x="739" y="-66.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_unfailing_enqueue( &amp;main.loadinfo)</text>
+<text text-anchor="middle" x="739" y="-66.4" font-family="Times,serif" font-size="14.00">mulle_objc_loadinfo_enqueue_nofail( &amp;main.loadinfo)</text>
 </g>
-<!-- __attribute_constructor( main.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;main.loadinfo) -->
-<g id="edge9" class="edge"><title>__attribute_constructor( main.o)&#45;&gt;mulle_objc_loadinfo_unfailing_enqueue( &amp;main.loadinfo)</title>
+<!-- __attribute_constructor( main.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;main.loadinfo) -->
+<g id="edge9" class="edge"><title>__attribute_constructor( main.o)&#45;&gt;mulle_objc_loadinfo_enqueue_nofail( &amp;main.loadinfo)</title>
 <path fill="none" stroke="black" d="M530.083,-72C538.529,-72 547.233,-72 556.07,-72"/>
 <polygon fill="black" stroke="black" points="556.098,-75.5001 566.098,-72 556.098,-68.5001 556.098,-75.5001"/>
 </g>

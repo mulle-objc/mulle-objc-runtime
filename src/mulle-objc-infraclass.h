@@ -178,13 +178,13 @@ static inline  int
 
 
 static inline void
-   mulle_objc_infraclass_unfailingadd_methodlist( struct _mulle_objc_infraclass *infra,
+   mulle_objc_infraclass_add_methodlist_nofail( struct _mulle_objc_infraclass *infra,
                                                   struct _mulle_objc_methodlist *list)
 {
-   extern void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
+   extern void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                            struct _mulle_objc_methodlist *list);
 
-   mulle_objc_class_unfailingadd_methodlist( &infra->base, list);
+   mulle_objc_class_add_methodlist_nofail( &infra->base, list);
 }
 
 
@@ -220,10 +220,10 @@ static inline mulle_objc_implementation_t
                                                       mulle_objc_superid_t superid)
 {
    extern mulle_objc_implementation_t
-      _mulle_objc_class_lookup_superimplementation( struct _mulle_objc_class *cls,
+      _mulle_objc_class_superlookup_implementation( struct _mulle_objc_class *cls,
                                                     mulle_objc_superid_t superid);
 
-   return( _mulle_objc_class_lookup_superimplementation( &infra->base, superid));
+   return( _mulle_objc_class_superlookup_implementation( &infra->base, superid));
 }
 
 
@@ -392,7 +392,7 @@ static inline struct mulle_concurrent_hashmapenumerator
 int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
                                               struct _mulle_objc_propertylist *list);
 
-void   mulle_objc_infraclass_unfailingadd_propertylist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_add_propertylist_nofail( struct _mulle_objc_infraclass *infra,
                                                         struct _mulle_objc_propertylist *list);
 
 struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
@@ -407,7 +407,7 @@ struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mul
 int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
                                           struct _mulle_objc_ivarlist *list);
 
-void   mulle_objc_infraclass_unfailingadd_ivarlist( struct _mulle_objc_infraclass *infra,
+void   mulle_objc_infraclass_add_ivarlist_nofail( struct _mulle_objc_infraclass *infra,
                                                     struct _mulle_objc_ivarlist *list);
 
 
@@ -432,18 +432,18 @@ typedef mulle_objc_walkcommand_t
                                  void *);
 
 
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *cls,
                                       unsigned int inheritance,
                                       mulle_objc_walkivarscallback *f,
                                       void *userinfo);
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
                                            unsigned int inheritance,
                                            mulle_objc_walkpropertiescallback *f,
                                            void *userinfo);
 
-mulle_objc_walkcommand_t   
+mulle_objc_walkcommand_t
 	mulle_objc_infraclass_walk( struct _mulle_objc_infraclass   *infra,
                                enum mulle_objc_walkpointertype_t  type,
                                mulle_objc_walkcallback_t   callback,

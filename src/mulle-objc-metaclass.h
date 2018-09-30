@@ -148,20 +148,20 @@ static inline mulle_objc_implementation_t
                                                            mulle_objc_superid_t superid)
 {
    extern mulle_objc_implementation_t
-      _mulle_objc_class_lookup_superimplementation( struct _mulle_objc_class *cls,
+      _mulle_objc_class_superlookup_implementation( struct _mulle_objc_class *cls,
                                                           mulle_objc_superid_t superid);
 
-   return( _mulle_objc_class_lookup_superimplementation( &meta->base, superid));
+   return( _mulle_objc_class_superlookup_implementation( &meta->base, superid));
 }
 
 
-static inline void   mulle_objc_metaclass_unfailingadd_methodlist( struct _mulle_objc_metaclass *meta,
+static inline void   mulle_objc_metaclass_add_methodlist_nofail( struct _mulle_objc_metaclass *meta,
                                                                     struct _mulle_objc_methodlist *list)
 {
-   extern void   mulle_objc_class_unfailingadd_methodlist( struct _mulle_objc_class *cls,
+   extern void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                             struct _mulle_objc_methodlist *list);
 
-   mulle_objc_class_unfailingadd_methodlist( &meta->base, list);
+   mulle_objc_class_add_methodlist_nofail( &meta->base, list);
 }
 
 

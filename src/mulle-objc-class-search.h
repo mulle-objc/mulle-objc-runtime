@@ -333,7 +333,7 @@ struct _mulle_objc_method   *
 
 
 MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
-   _mulle_objc_class_unfailinglazyget_forwardmethod(
+   _mulle_objc_class_get_forwardmethod_lazy_nofail(
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
 
@@ -343,7 +343,7 @@ struct _mulle_objc_method  *
 
 
 MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_method *
-   mulle_objc_class_unfailingsearch_method( struct _mulle_objc_class *cls,
+   mulle_objc_class_search_method_nofail( struct _mulle_objc_class *cls,
                                             mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *method;
@@ -351,7 +351,7 @@ MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_method *
    method = mulle_objc_class_defaultsearch_method( cls, methodid);
    assert( ! method || method->descriptor.methodid == methodid);
    if( ! method)
-      method = _mulle_objc_class_unfailinglazyget_forwardmethod( cls, methodid);
+      method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, methodid);
    return( method);
 }
 
@@ -360,7 +360,7 @@ MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_method *
 
 // will return NULL when not found and not forward!
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_superimplementation( struct _mulle_objc_class *cls,
-                                                       mulle_objc_superid_t superid);
+   _mulle_objc_class_superlookup_implementation( struct _mulle_objc_class *cls,
+                                                 mulle_objc_superid_t superid);
 
 #endif /* mulle_objc_class_search_h */

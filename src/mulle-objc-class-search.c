@@ -91,7 +91,7 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
    char                          *name;
 
    universe = _mulle_objc_class_get_universe( cls);
-   name     = _mulle_objc_universe_string_for_methodid( universe, search->args.methodid);
+   name     = _mulle_objc_universe_describe_methodid( universe, search->args.methodid);
    fprintf( stderr, "mulle_objc_universe %p trace: start search for "
                     "methodid %08x \"%s\" in %s %08x \"%s\"",
            universe,
@@ -635,7 +635,7 @@ struct _mulle_objc_method   *
                               _mulle_objc_class_get_classid( cls),
                               _mulle_objc_class_get_name( cls),
                               search->args.methodid,
-                              _mulle_objc_universe_string_for_methodid( cls->universe,
+                              _mulle_objc_universe_describe_methodid( cls->universe,
                                                                         search->args.methodid));
 
       assert( errno == ENOENT);
@@ -753,7 +753,7 @@ MULLE_C_NO_RETURN static void
 
 
 MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
-   _mulle_objc_class_unfailinglazyget_forwardmethod( struct _mulle_objc_class *cls,
+   _mulle_objc_class_get_forwardmethod_lazy_nofail( struct _mulle_objc_class *cls,
                                                      mulle_objc_methodid_t missing_method)
 {
    struct _mulle_objc_universe  *universe;

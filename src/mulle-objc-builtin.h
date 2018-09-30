@@ -47,7 +47,7 @@
 
 static inline void   *mulle_objc_object_call_copy( void *self)
 {
-   return( mulle_objc_object_inline_constant_methodid_call( self,
+   return( mulle_objc_object_inlinecall_constantmethodid( self,
                                                             MULLE_OBJC_COPY_METHODID,
                                                             self));
 }
@@ -55,7 +55,7 @@ static inline void   *mulle_objc_object_call_copy( void *self)
 
 static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 {
-   return( mulle_objc_object_inline_constant_methodid_call( self,
+   return( mulle_objc_object_inlinecall_constantmethodid( self,
                                                             MULLE_OBJC_MUTABLECOPY_METHODID,
                                                             self));
 }
@@ -66,7 +66,7 @@ static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 //
 static inline void   *mulle_objc_object_call_autorelease( void *self)
 {
-   return( mulle_objc_object_inline_constant_methodid_call( self,
+   return( mulle_objc_object_inlinecall_constantmethodid( self,
                                                             MULLE_OBJC_AUTORELEASE_METHODID,
                                                             self));
 }

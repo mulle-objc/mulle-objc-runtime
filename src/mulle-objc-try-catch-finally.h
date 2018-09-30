@@ -45,8 +45,8 @@
 // these methods are known as builtins by the compiler
 //
 void   mulle_objc_exception_throw( void *exception);
-void   mulle_objc_exception_try_enter( void *localExceptionData);
-void   mulle_objc_exception_try_exit( void *localExceptionData);
+void   mulle_objc_exception_tryenter( void *localExceptionData);
+void   mulle_objc_exception_tryexit( void *localExceptionData);
 void   *mulle_objc_exception_extract( void *localExceptionData);
 int    _mulle_objc_exception_match( mulle_objc_classid_t classid, void *exception);
 

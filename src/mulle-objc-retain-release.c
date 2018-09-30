@@ -68,7 +68,7 @@ uintptr_t  __mulle_objc_object_get_retaincount( void *obj)
    when we reach INTPTR_MIN again
  */
 
-void  _mulle_objc_object_try_finalize_try_dealloc( void *obj)
+void  _mulle_objc_object_tryfinalizetrydealloc( void *obj)
 {
    struct _mulle_objc_objectheader     *header;
    volatile intptr_t                   retaincount_1;  // volatile vooodo ?
@@ -105,9 +105,9 @@ void  _mulle_objc_object_try_finalize_try_dealloc( void *obj)
 //
 void  _mulle_objc_object_perform_finalize( void *obj)
 {
-   struct _mulle_objc_objectheader     *header;
-   volatile intptr_t                    retaincount_1;  // volatile vooodo ?
-   intptr_t                             new_retaincount_1;
+   struct _mulle_objc_objectheader  *header;
+   volatile intptr_t                retaincount_1;  // volatile vooodo ?
+   intptr_t                         new_retaincount_1;
 
    header = _mulle_objc_object_get_objectheader( obj);
    do
@@ -118,13 +118,15 @@ void  _mulle_objc_object_perform_finalize( void *obj)
 
       new_retaincount_1 = retaincount_1 + INTPTR_MIN + 1;
    }
-   while( ! _mulle_atomic_pointer_cas( &header->_retaincount_1, (void *) new_retaincount_1,  (void *) retaincount_1));
+   while( ! _mulle_atomic_pointer_cas( &header->_retaincount_1,
+   	                                 (void *) new_retaincount_1,
+   	                                 (void *) retaincount_1));
 
    _mulle_objc_object_finalize( obj);
 }
 
 
-void   _mulle_objc_objects_call_retain( void **objects, size_t n)
+void   _mulle_objc_objects_retain( void **objects, size_t n)
 {
    void   **sentinel;
    void   *p;
@@ -136,12 +138,12 @@ void   _mulle_objc_objects_call_retain( void **objects, size_t n)
    {
       p = *objects++;
       if( p)
-         _mulle_objc_object_retain( p);
+         _mulle_objc_object_inlineretain( p);
    }
 }
 
 
-void   _mulle_objc_objects_call_release( void **objects, size_t n)
+void   _mulle_objc_objects_release( void **objects, size_t n)
 {
    void   **sentinel;
    void   *p;
@@ -153,12 +155,12 @@ void   _mulle_objc_objects_call_release( void **objects, size_t n)
    {
       p = *objects++;
       if( p)
-         _mulle_objc_object_release( p);
+         _mulle_objc_object_inlinerelease( p);
    }
 }
 
 
-void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n)
+void   _mulle_objc_objects_releaseandzero( void **objects, size_t n)
 {
    void   **sentinel;
    void   *p;
@@ -172,8 +174,20 @@ void   _mulle_objc_objects_call_release_and_zero( void **objects, size_t n)
       if( p)
       {
          objects[ -1] = 0;
-         _mulle_objc_object_release( p);
+         _mulle_objc_object_inlinerelease( p);
       }
    }
+}
+
+
+void   *mulle_objc_object_retain( void *obj)
+{
+	return( mulle_objc_object_inlineretain( obj));
+}
+
+
+void   mulle_objc_object_release( void *obj)
+{
+	mulle_objc_object_inlinerelease( obj);
 }
 

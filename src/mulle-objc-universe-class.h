@@ -58,7 +58,7 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 // yet. (therefore it doesn't forward)
 //
 static inline struct _mulle_objc_infraclass *
-   __mulle_objc_universe_uncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+   __mulle_objc_universe_lookup_infraclass_nocache( struct _mulle_objc_universe *universe,
                                                     mulle_objc_classid_t classid)
 {
    return( _mulle_concurrent_hashmap_lookup( &universe->classtable, classid));
@@ -72,7 +72,7 @@ static inline struct _mulle_objc_infraclass *
 // use this method to not fill up the cache uselessy.
 //
 struct _mulle_objc_infraclass *
-    _mulle_objc_universe_uncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+    _mulle_objc_universe_lookup_infraclass_nocache( struct _mulle_objc_universe *universe,
                                                     mulle_objc_classid_t classid);
 
 //
@@ -80,7 +80,7 @@ struct _mulle_objc_infraclass *
 // a delegate may provide a class "in time"
 //
 MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass *
-   _mulle_objc_universe_unfailinguncachedlookup_infraclass( struct _mulle_objc_universe *universe,
+   _mulle_objc_universe_lookup_infraclass_nocache_nofail( struct _mulle_objc_universe *universe,
                                                             mulle_objc_classid_t classid);
 
 
@@ -117,13 +117,13 @@ static inline struct _mulle_objc_infraclass  *
 
 // this is the method to use for looking up classes
 MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_infraclass *
-   _mulle_objc_universe_unfailingfastlookup_infraclass( struct _mulle_objc_universe *universe,
-                                                        mulle_objc_classid_t classid)
+   _mulle_objc_universe_fastlookup_infraclass_nofail( struct _mulle_objc_universe *universe,
+                                                      mulle_objc_classid_t classid)
 {
    int                             index;
    struct _mulle_objc_infraclass   *infra;
    MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass *
-       _mulle_objc_universe_unfailinglookup_infraclass( struct _mulle_objc_universe *universe,
+       _mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
                                                         mulle_objc_classid_t classid);
 
    assert( universe);
@@ -133,25 +133,25 @@ MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_infraclass *
    index = mulle_objc_get_fastclasstable_index( classid);
    if( index >= 0)
    {
-      infra = mulle_objc_fastclasstable_unfailingget_infraclass( &universe->fastclasstable, index);
+      infra = mulle_objc_fastclasstable_get_infraclass_nofail( &universe->fastclasstable, index);
       return( infra);
    }
-   return( _mulle_objc_universe_unfailinglookup_infraclass( universe, classid));
+   return( _mulle_objc_universe_lookup_infraclass_nofail( universe, classid));
 }
 
 
 MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_infraclass *
-   mulle_objc_inline_unfailingfastlookup_infraclass( mulle_objc_classid_t classid)
+   mulle_objc_inlinefastlookup_infraclass_nofail( mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
 
    universe = mulle_objc_inlineget_universe();
-   return( _mulle_objc_universe_unfailingfastlookup_infraclass( universe, classid));
+   return( _mulle_objc_universe_fastlookup_infraclass_nofail( universe, classid));
 }
 
 
 MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
-   mulle_objc_unfailingfastlookup_infraclass( mulle_objc_classid_t classid);
+   mulle_objc_fastlookup_infraclass_nofail( mulle_objc_classid_t classid);
 
 
 // do not use, it's used by compat

@@ -65,7 +65,7 @@ other.
 
 Parametername       |  Description
 --------------------|----------------------
-`universe`          | Pointer to the universe, must not be NULL. Use `__get_or_create_mulle_objc_universe` (not `mulle_objc_get_universe`) to get the proper one for your thread
+`universe`          | Pointer to the universe, must not be NULL. Use `__register_mulle_objc_universe` (not `mulle_objc_get_universe`) to get the proper one for your thread
 `classid`           | Compute the `classid` from `name` with `mulle_objc_classid_from_string`
 `name`              | The name of the class, this must be a non-empty ASCII string. This string is not copied. It must remain alive for the duration of the class's existence.
 `instance_size`     | The space needed for instance variables (don't add the header size)
@@ -97,7 +97,7 @@ struct _mulle_objc_class       *cls;
 char                           *name;
 mulle_objc_classid_t           classid;
 
-universe =  __get_or_create_mulle_objc_universe();
+universe =  __register_mulle_objc_universe();
 name    = "Foo";
 classid = mulle_objc_classid_from_string( name);
 pair    = mulle_objc_universe_new_classpair( universe, classid, name, 0, NULL);

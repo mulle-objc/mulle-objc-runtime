@@ -273,7 +273,7 @@ mulle_objc_walkcommand_t
                                            void *userinfo);
 
 
-void   mulle_objc_classpair_unfailingadd_categoryid( struct _mulle_objc_classpair *cls,
+void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair *cls,
                                                     mulle_objc_categoryid_t categoryid);
 
 
@@ -310,7 +310,7 @@ mulle_objc_walkcommand_t
 void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pair,
                                                 struct _mulle_objc_infraclass *proto_cls);
 
-void   mulle_objc_classpair_unfailingadd_protocolclassids( struct _mulle_objc_classpair *pair,
+void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_classpair *pair,
                                                            mulle_objc_protocolid_t *protocolids);
 
 #pragma mark - protocols
@@ -381,7 +381,7 @@ static inline void
 }
 
 
-void   mulle_objc_classpair_unfailingadd_protocollist( struct _mulle_objc_classpair *pair,
+void   mulle_objc_classpair_add_protocollist_nofail( struct _mulle_objc_classpair *pair,
                                                        struct _mulle_objc_protocollist *protocols);
 
 

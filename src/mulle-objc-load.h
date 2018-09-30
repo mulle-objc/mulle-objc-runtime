@@ -275,7 +275,7 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info);
 // all method lists referenced by load_categories and loadclasses by
 // their methodid
 //
-void   mulle_objc_loadinfo_unfailingenqueue( struct _mulle_objc_loadinfo *info);
+void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info);
 
 // checks that loadinfo is compatibly compiled
 void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *universe,
@@ -287,7 +287,7 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
 // use this function to determine, if the universe is ready to load this class
 // yet. Returns the class, that's not yet loaded.
 //
-void   mulle_objc_loadclass_unfailingenqueue( struct _mulle_objc_loadclass *info,
+void   mulle_objc_loadclass_enqueue_nofail( struct _mulle_objc_loadclass *info,
                                                struct _mulle_objc_callqueue *loads);
 
 void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loadclass *info,
@@ -302,7 +302,7 @@ int   mulle_objc_loadcategory_is_categorycomplete( struct _mulle_objc_loadcatego
 
 int    mulle_objc_loadcategory_enqueue( struct _mulle_objc_loadcategory *info,
                                         struct _mulle_objc_callqueue *loads);
-void   mulle_objc_loadcategory_unfailingenqueue( struct _mulle_objc_loadcategory *info,
+void   mulle_objc_loadcategory_enqueue_nofail( struct _mulle_objc_loadcategory *info,
                                                   struct _mulle_objc_callqueue *loads);
 
 void   mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_loadcategory *info,
