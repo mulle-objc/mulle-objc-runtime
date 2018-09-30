@@ -92,7 +92,7 @@ static void   mulle_objc_searchresult_csvdump( struct _mulle_objc_searchresult  
    classname  = _mulle_objc_class_get_name( result->class);
    if( categoryid)
    {
-      categoryname = _mulle_objc_universe_string_for_categoryid( universe, categoryid);
+      categoryname = _mulle_objc_universe_describe_categoryid( universe, categoryid);
       fprintf( fp, "%08x;%s;%08x;%s;",
               _mulle_objc_class_get_classid( result->class),
               classname,

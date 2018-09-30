@@ -38,7 +38,7 @@ static char   *string_for_paramtype( enum mulle_objc_metaabiparamtype type)
 }
 
 
-static void test( char *s)
+static int   test( char *s)
 {
    unsigned int  i, n;
    char          *next;
@@ -52,7 +52,7 @@ static void test( char *s)
    for( i = 0; i < n; i++)
    {
       next = mulle_objc_signature_next_type( s);
-      printf( "#%d = %.*s\n", i, next ? next - s : 255, s);
+      printf( "#%d = %.*s\n", i, next ? (int) (next - s) : 255, s);
       s    = next;
    }
 
@@ -61,6 +61,7 @@ static void test( char *s)
       printf( "unexpected tail\n");
       return( 1);
    }
+   return( 0);
 }
 
 
@@ -69,7 +70,8 @@ int   main( int argc, const char * argv[])
    char  **p;
 
    for( p = signatures; *p; p++)
-      test( *p);
+      if( test( *p))
+         return( 1);
 
    return 0;
 }

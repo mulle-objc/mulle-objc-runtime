@@ -272,7 +272,7 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
 
    fprintf( fp, "\n<DIV CLASS=\"universe_values\">\n");
    {
-      label = mulle_objc_universe_html_description( universe, &universe_style);
+      label = mulle_objc_universe_describe_html( universe, &universe_style);
       print_to_body( "Values", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
    }
@@ -281,8 +281,8 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
    // need to sort this in the future
    fprintf( fp, "\n<DIV CLASS=\"universe_classes\">\n");
    {
-      label = mulle_concurrent_hashmap_html_description( &universe->classtable,
-                                                      mulle_objc_class_html_row_description,
+      label = mulle_concurrent_hashmap_describe_html( &universe->classtable,
+                                                      mulle_objc_class_describe_row_html,
                                                           &classtable_style);
       print_to_body( "Classes", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -305,7 +305,7 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
             if( _mulle_atomic_pointer_nonatomic_read( &universe->fastclasstable.classes[ i].pointer))
             {
                cls = _mulle_atomic_pointer_nonatomic_read( &universe->fastclasstable.classes[ i].pointer);
-               label = mulle_objc_class_short_html_description( cls, &classtable_style);
+               label = mulle_objc_class_describe_html_short( cls, &classtable_style);
                fprintf( fp, "<TR><TH>%u</TH><TD>%s</TD></TR>\n", i, label);
                mulle_allocator_free( &mulle_stdlib_allocator, label);
             }
@@ -319,8 +319,8 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
       if( mulle_concurrent_hashmap_count( &universe->descriptortable))
       {
          fprintf( fp, "<TABLE CLASS=\"universe_descriptor_table\">\n");
-         label = mulle_concurrent_hashmap_html_description( &universe->descriptortable,
-                                                           mulle_objc_descriptor_html_row_description,
+         label = mulle_concurrent_hashmap_describe_html( &universe->descriptortable,
+                                                           mulle_objc_descriptor_describe_row_html,
                                                            &descriptortable_style);
          print_to_body( "Method Descriptors", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -335,8 +335,8 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
       if( mulle_concurrent_hashmap_count( &universe->protocoltable))
       {
          fprintf( fp, "<TABLE CLASS=\"universe_protocol_table\">\n");
-         label = mulle_concurrent_hashmap_html_description( &universe->protocoltable,
-                                                           mulle_objc_protocol_html_row_description,
+         label = mulle_concurrent_hashmap_describe_html( &universe->protocoltable,
+                                                           mulle_objc_protocol_describe_row_html,
                                                            &protocoltable_style);
          print_to_body( "Protocols", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -350,8 +350,8 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
       if( mulle_concurrent_hashmap_count( &universe->categorytable))
       {
          fprintf( fp, "<TABLE CLASS=\"universe_category_table\">\n");
-         label = mulle_concurrent_hashmap_html_description( &universe->categorytable,
-                                                           mulle_objc_category_html_row_description,
+         label = mulle_concurrent_hashmap_describe_html( &universe->categorytable,
+                                                           mulle_objc_category_describe_row_html,
                                                            &categorytable_style);
          print_to_body( "Categories", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -370,7 +370,7 @@ static void   _print_universe( struct _mulle_objc_universe *universe, FILE *fp)
          rover = mulle_concurrent_pointerarray_enumerate( &universe->staticstrings);
          while( string = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
-            label = mulle_objc_staticstring_html_description( string, &stringtable_style);
+            label = mulle_objc_staticstring_describe_html( string, &stringtable_style);
             fprintf( fp, "<li>%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
@@ -444,7 +444,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          superclass = _mulle_objc_infraclass_get_superclass( infra);
          if( superclass)
          {
-            label = mulle_objc_class_short_html_description( _mulle_objc_infraclass_as_class( superclass),
+            label = mulle_objc_class_describe_html_short( _mulle_objc_infraclass_as_class( superclass),
                                                             &classtable_style);
             print_to_body( "Superclass", label, fp);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -466,7 +466,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          prover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
          while( prop_cls = _mulle_objc_protocolclassenumerator_next( &prover))
          {
-            label = mulle_objc_class_short_html_description( _mulle_objc_infraclass_as_class( prop_cls),
+            label = mulle_objc_class_describe_html_short( _mulle_objc_infraclass_as_class( prop_cls),
                                                             &classtable_style);
             fprintf( fp, "<LI>%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -482,7 +482,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    {
       style       = infraclass_style;
       style.title = cls->name;
-      label = mulle_objc_class_html_description( cls, &style);
+      label = mulle_objc_class_describe_html( cls, &style);
 
       print_to_body( "Values", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -498,7 +498,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          rover = mulle_concurrent_pointerarray_enumerate( &infra->propertylists);
          while( propertylist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
-            label = mulle_objc_propertylist_html_description( propertylist, &propertytable_style);
+            label = mulle_objc_propertylist_describe_html( propertylist, &propertytable_style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
@@ -517,7 +517,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          rover = mulle_concurrent_pointerarray_enumerate( &infra->ivarlists);
          while( ivarlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
-            label = mulle_objc_ivarlist_html_hor_description( ivarlist, &ivartable_style);
+            label = mulle_objc_ivarlist_describe_hor_html( ivarlist, &ivartable_style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
@@ -539,10 +539,10 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
             style       = methodlisttable_style;
             categoryid  = (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner;
             if( categoryid)
-               style.title = _mulle_objc_universe_string_for_categoryid( universe, categoryid);
+               style.title = _mulle_objc_universe_describe_categoryid( universe, categoryid);
             else
                style.title = "";
-            label       = mulle_objc_methodlist_html_hor_description( methodlist, &methodlisttable_style);
+            label       = mulle_objc_methodlist_describe_hor_html( methodlist, &methodlisttable_style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
@@ -561,8 +561,8 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             style = methodlisttable_style;
-            style.title = _mulle_objc_universe_string_for_categoryid( universe, (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
-            label = mulle_objc_methodlist_html_hor_description( methodlist, &methodlisttable_style);
+            style.title = _mulle_objc_universe_describe_categoryid( universe, (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
+            label = mulle_objc_methodlist_describe_hor_html( methodlist, &methodlisttable_style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
@@ -576,7 +576,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       array = _mulle_atomic_pointer_read( &pair->p_protocolids.pointer);
       if( array->n)
       {
-         label = mulle_objc_protocols_html_description( array,
+         label = mulle_objc_protocols_describe_html( array,
                                                         universe,
                                                         &protocoltable_style);
          print_to_body( "Protocols", label, fp);
@@ -590,7 +590,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       array = _mulle_atomic_pointer_read( &pair->p_categoryids.pointer);
       if( array->n)
       {
-         label = mulle_objc_categories_html_description( array,
+         label = mulle_objc_categories_describe_html( array,
                                                          universe,
                                                          &categorytable_style);
 
@@ -603,7 +603,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    fprintf( fp, "\n<DIV CLASS=\"class_cache\">\n");
    {
       cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
-      label = mulle_objc_cache_html_description( cache, universe, &cachetable_style);
+      label = mulle_objc_cache_describe_html( cache, universe, &cachetable_style);
       print_to_body( "Cache", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
    }
