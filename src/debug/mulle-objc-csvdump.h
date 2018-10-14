@@ -42,39 +42,30 @@ struct _mulle_objc_universe;
 struct _mulle_objc_loadinfo;
 
 
-void   mulle_objc_universe_csvdump_classcoverage( struct _mulle_objc_universe *universe,
-                                                FILE *fp);
-void   mulle_objc_class_csvdump_methodcoverage( struct _mulle_objc_class *cls,
-                                               FILE *fp);
-void   mulle_objc_class_csvdump_cachedmethodcoverage( struct _mulle_objc_class *cls,
-                                                FILE *fp);
-void   mulle_objc_universe_csvdump_methodcoverage( struct _mulle_objc_universe *universe,
-                                                  FILE *fp);
-void   mulle_objc_universe_csvdump_cachedmethodcoverage( struct _mulle_objc_universe *universe,
+void   mulle_objc_universe_csvdump_classcoverage_to_fp( struct _mulle_objc_universe *universe,
+                                                        FILE *fp);
+void   mulle_objc_universe_csvdump_methodcoverage_to_fp( struct _mulle_objc_universe *universe,
                                                          FILE *fp);
-void   mulle_objc_class_csvdump_cachesizes( struct _mulle_objc_class *cls,
-                                            FILE *fp);
+void   mulle_objc_universe_csvdump_cachedmethodcoverage_to_fp( struct _mulle_objc_universe *universe,
+                                                               FILE *fp);
+void   mulle_objc_universe_csvdump_cachesizes_to_fp( struct _mulle_objc_universe *universe,
+                                                     FILE *fp);
 
-void   mulle_objc_loadinfo_csvdump_terse( struct _mulle_objc_loadinfo *info, FILE *fp);
+void   mulle_objc_class_csvdump_methodcoverage_to_fp( struct _mulle_objc_class *cls,
+                                                      FILE *fp);
+void   mulle_objc_class_csvdump_cachedmethodcoverage_to_fp( struct _mulle_objc_class *cls,
+                                                            FILE *fp);
+void   mulle_objc_class_csvdump_cachesizes_to_fp( struct _mulle_objc_class *cls,
+                                                  FILE *fp);
 
-// conveniences, appends to existing files
-void   mulle_objc_csvdump_methodcoverage_to_file( char *filename);
-void   mulle_objc_csvdump_classcoverage_to_file( char *filename);
-void   mulle_objc_csvdump_cachesizes_to_file( char *filename);
+void   mulle_objc_loadinfo_csvdump_terse_to_fp( struct _mulle_objc_loadinfo *info, FILE *fp);
 
-// dump to /tmp, appends to existing files
+// appends to existing files
+void   mulle_objc_universe_csvdump_methodcoverage_to_filename( struct _mulle_objc_universe *universe,
+                                                               char *filename);
+void   mulle_objc_universe_csvdump_classcoverage_to_filename( struct _mulle_objc_universe *universe,
+                                                              char *filename);
+void   mulle_objc_universe_csvdump_cachesizes_to_filename( struct _mulle_objc_universe *universe,
+                                                           char *filename);
 
-void   mulle_objc_csvdump_methodcoverage_to_tmp( void);
-void   mulle_objc_csvdump_classcoverage_to_tmp( void);
-void   mulle_objc_csvdump_cachesizes_to_tmp( void);
-
-//
-// dump to working directory, appends to existing files
-// specify files to dump to with MULLE_OBJC_METHOD_COVERAGE_FILENAME
-// and MULLE_OBJC_METHOD_CLASS_FILENAME environment variables
-//
-void   mulle_objc_csvdump_methodcoverage( void);
-void   mulle_objc_csvdump_classcoverage( void);
-void   mulle_objc_csvdump_cachesizes( void);
-
-#endif 
+#endif

@@ -91,7 +91,8 @@
 
 int  main( void)
 {
-   mulle_objc_check_universe();
+   if( mulle_objc_global_check_universe( __MULLE_OBJC_UNIVERSENAME__) != mulle_objc_universe_is_ok)
+      return( 1);
 
    printf( "A:\n");
    [A a0];

@@ -5,10 +5,6 @@
 //  Created by Nat! on 10.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
-
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 #include "test_runtime_ids.h"
@@ -26,10 +22,10 @@ void   test_class_simple( void)
    int                             rval;
    struct _mulle_objc_universe     *universe;
 
-   universe = mulle_objc_register_universe();
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
    assert( universe);
 
-   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
+   pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    A_infra = _mulle_objc_classpair_get_infraclass( pair);
    A_meta  = _mulle_objc_classpair_get_metaclass( pair);
@@ -37,7 +33,7 @@ void   test_class_simple( void)
    assert( (void *) A_infra != (void *) A_meta);
    assert( _mulle_objc_class_get_metaclass( _mulle_objc_infraclass_as_class( A_infra)) == (void *) A_meta);
 
-   pair = mulle_objc_new_classpair_nofail( B_classid, "B", 0, A_infra);
+   pair = mulle_objc_universe_new_classpair( universe, B_classid, "B", 0, 0, A_infra);
    assert( pair);
    B_meta  = _mulle_objc_classpair_get_metaclass( pair);
    B_infra = _mulle_objc_classpair_get_infraclass( pair);

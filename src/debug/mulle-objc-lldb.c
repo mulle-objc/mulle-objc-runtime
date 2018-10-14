@@ -43,6 +43,7 @@
 #include "mulle-objc-method.h"
 #include "mulle-objc-retain-release.h"
 #include "mulle-objc-universe.h"
+#include "mulle-objc-universe-global.h"
 
 
 # pragma mark - lldb support
@@ -77,9 +78,9 @@ mulle_objc_implementation_t
 
    if( is_classid)
    {
-      universe  = _mulle_objc_class_get_universe( cls);
-      found    = _mulle_objc_universe_fastlookup_infraclass_nofail( universe,
-                                                                        (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
+      universe = _mulle_objc_class_get_universe( cls);
+      found    = _mulle_objc_universe_lookup_infraclass_nofail( universe,
+                                                                (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
       if( is_meta)
          call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));
       else
@@ -103,12 +104,15 @@ mulle_objc_implementation_t
 struct _mulle_objc_descriptor  *
    mulle_objc_lldb_lookup_descriptor_by_name( char *name)
 {
-   mulle_objc_methodid_t        methodid;
-   struct _mulle_objc_universe   *universe;
+   mulle_objc_methodid_t           methodid;
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_descriptor   *descriptor;
 
-   methodid = mulle_objc_uniqueid_from_string( name);
-   universe = mulle_objc_get_universe();
-   return( _mulle_objc_universe_lookup_descriptor( universe, methodid));
+   methodid   = mulle_objc_uniqueid_from_string( name);
+   universe   = __mulle_objc_global_getany_universe();
+   descriptor = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+
+   return( descriptor);
 }
 
 
@@ -137,8 +141,11 @@ void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void)
 
    // fprintf( stderr, "get class storage\n");
 
-   universe = mulle_objc_get_universe();
-   map      = &universe->classtable;
+   universe = __mulle_objc_global_getany_universe();
+//   if( ! universe)
+//      return( NULL);
+
+   map = &universe->classtable;
    return( _mulle_atomic_pointer_read( &map->next_storage.pointer));
 }
 
@@ -178,7 +185,7 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
 
    // fprintf( stderr, "create static string \"%.*s\"\n", (int) numBytes, bytes);
 
-   universe = mulle_objc_get_universe();
+   universe = __mulle_objc_global_getany_universe();
    infra    = _mulle_objc_universe_get_staticstringclass( universe);
    obj      = (void *) _mulle_objc_infraclass_alloc_instance_extra( infra, numBytes + 4);
 

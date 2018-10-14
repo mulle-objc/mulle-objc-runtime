@@ -58,18 +58,17 @@ struct mulle_objc_loadversion;
 
 
 //
-// Settings of the universe. Don't change after intialization
+// Config of the universe. Don't change after intialization
 //
-struct _mulle_objc_universesettings
+struct _mulle_objc_universeconfig
 {
    unsigned   forget_strings           : 1;  // don't keep track of static strings
    unsigned   ignore_ivarhash_mismatch : 1;  // do not check for fragility problems
    unsigned   max_optlevel             : 3;  // max compiler optimization level: (7)
    unsigned   min_optlevel             : 3;  // min compiler optimization level: (0)
    unsigned   no_tagged_pointer        : 1;  // don't use tagged pointers
-   unsigned   no_fast_method_call      : 1;  // don't use fast method calls
+   unsigned   no_fast_call             : 1;  // don't use fast method calls
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
-   unsigned   thread_local_rt          : 1;  // use thread local universes
 
    int        cache_fillrate;                // default is (0) can be 0-90
 };
@@ -103,11 +102,12 @@ struct _mulle_objc_universedebug
       unsigned   dump_universe        : 1;  // hefty, set manually
       unsigned   fastclass_add        : 1;
       unsigned   initialize           : 1;
+      unsigned   hashstrings          : 1;
       unsigned   load_call            : 1; // +initialize, +load, +categoryDependencies
       unsigned   loadinfo             : 1;
       unsigned   method_cache         : 1;
       unsigned   method_call          : 1;
-      unsigned   descriptor_add : 1;
+      unsigned   descriptor_add       : 1;
       unsigned   protocol_add         : 1;
       unsigned   state_bit            : 1;
       unsigned   string_add           : 1;
@@ -158,14 +158,15 @@ struct _mulle_objc_universefailures
    // unexpected happening -> abort
    void   (*inconsistency)( char *format, va_list args)  _MULLE_C_NO_RETURN;
    // class not found -> abort
-   void   (*class_not_found)( struct _mulle_objc_universe *universe,
-                              mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
+   void   (*classnotfound)( struct _mulle_objc_universe *universe,
+                            mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
    // method not found -> abort
-   void   (*method_not_found)( struct _mulle_objc_class *cls,
-                               mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
+   void   (*methodnotfound)( struct _mulle_objc_universe *universe,
+                             struct _mulle_objc_class *cls,
+                             mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
    // super not found -> abort
-   void   (*super_not_found)( struct _mulle_objc_universe *universe,
-                              mulle_objc_superid_t missing_super)  _MULLE_C_NO_RETURN;
+   void   (*supernotfound)( struct _mulle_objc_universe *universe,
+                            mulle_objc_superid_t missing_super)  _MULLE_C_NO_RETURN;
 };
 
 
@@ -214,8 +215,8 @@ struct _mulle_objc_garbagecollection
 
 typedef void   mulle_objc_universefriend_destructor_t( struct _mulle_objc_universe *, void *);
 typedef void   mulle_objc_universefriend_versionassert_t( struct _mulle_objc_universe *,
-                                                         void *,
-                                                         struct mulle_objc_loadversion *);
+                                                          void *,
+                                                          struct mulle_objc_loadversion *);
 
 
 //
@@ -272,6 +273,7 @@ struct _mulle_objc_waitqueues
    struct mulle_concurrent_hashmap   categoriestoload;
 };
 
+// size in bytes
 #define S_MULLE_OBJC_UNIVERSE_FOUNDATION_SPACE   1024
 
 /*
@@ -327,6 +329,11 @@ struct _mulle_objc_universe
    mulle_atomic_pointer_t                   cachecount_1; // #1#
    mulle_atomic_pointer_t                   loadbits;
    mulle_thread_mutex_t                     lock;
+   mulle_thread_tss_t                       threadkey;
+
+   // these are 0 and NULL respectively for global and thread local
+   mulle_objc_universeid_t                  universeid;
+   char                                     *universename;
 
    //
    // B: the rest is intended to be read only (setup at init time)
@@ -342,10 +349,10 @@ struct _mulle_objc_universe
    struct _mulle_objc_garbagecollection     garbage;
    struct _mulle_objc_preloadmethodids      methodidstopreload;
 
-   struct _mulle_objc_universefailures       failures;
+   struct _mulle_objc_universefailures      failures;
    struct _mulle_objc_universeexceptionvectors   exceptionvectors;
-   struct _mulle_objc_universesettings         config;
-   struct _mulle_objc_universedebug          debug;
+   struct _mulle_objc_universeconfig        config;
+   struct _mulle_objc_universedebug         debug;
 
    // It's all zeroes, so save some space with a union.
    // it would be "nicer" to have these in a const global
@@ -360,45 +367,78 @@ struct _mulle_objc_universe
       struct _mulle_objc_propertylist    empty_propertylist;
       struct _mulle_objc_superlist       empty_superlist;
       struct _mulle_objc_uniqueidarray   empty_uniqueidarray;
-   };   //
+   };
+
+   //
    // this allows the foundation to come up during load without having to do
    // a malloc
    //
    struct _mulle_objc_universefriend     userinfo;    // for user programs
-   struct _mulle_objc_foundation         foundation;  // for foundation
 
+   //
+   // it must be assured that foundationspace always trails foundation
+   //
+   struct _mulle_objc_foundation         foundation;  // for foundation
    intptr_t                              foundationspace[ S_MULLE_OBJC_UNIVERSE_FOUNDATION_SPACE / sizeof( intptr_t)];
 };
 
 
-static inline uint32_t   _mulle_objc_universe_get_version( struct _mulle_objc_universe *universe)
+static inline uint32_t
+	_mulle_objc_universe_get_version( struct _mulle_objc_universe *universe)
 {
    return( (uint32_t) (uintptr_t) _mulle_atomic_pointer_read( &universe->version));
 }
 
 
-static inline char   *_mulle_objc_universe_get_path( struct _mulle_objc_universe *universe)
+static inline char   *
+	_mulle_objc_universe_get_path( struct _mulle_objc_universe *universe)
 {
    return( universe->path);
 }
 
+static inline char   *
+	mulle_objc_universe_get_name( struct _mulle_objc_universe *universe)
+{
+	if( ! universe)
+		return( "NULL");
+   return( universe->universename ? universe->universename : "DEFAULT");
+}
+
+
+static inline mulle_objc_universeid_t
+	_mulle_objc_universe_get_universeid( struct _mulle_objc_universe *universe)
+{
+   return( universe->universeid);
+}
+
+
+
+static inline mulle_thread_tss_t
+   _mulle_objc_universe_get_threadkey( struct _mulle_objc_universe *universe)
+{
+   return( universe->threadkey);
+}
 
 // initialized is "ready for user code"
 // this is what you use in __get_or_create should query
-static inline int   _mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe)
+static inline int
+	_mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe)
 {
    return( (int32_t) _mulle_objc_universe_get_version( universe) >= 0);
 }
 
 // uninitialized is "ready for no code"
-static inline int   _mulle_objc_universe_is_uninitialized( struct _mulle_objc_universe *universe)
+static inline int
+	_mulle_objc_universe_is_uninitialized( struct _mulle_objc_universe *universe)
 {
-   return( (int32_t) _mulle_objc_universe_get_version( universe) == mulle_objc_universe_is_uninitialized);
+   return( (int32_t) _mulle_objc_universe_get_version( universe) ==
+   						mulle_objc_universe_is_uninitialized);
 }
 
 
 // transitioning is "ready for init/dealloc code" danger!
-static inline int   _mulle_objc_universe_is_transitioning( struct _mulle_objc_universe *universe)
+static inline int
+	_mulle_objc_universe_is_transitioning( struct _mulle_objc_universe *universe)
 {
    switch( _mulle_objc_universe_get_version( universe))
    {

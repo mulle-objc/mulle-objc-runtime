@@ -70,6 +70,7 @@ struct _mulle_objc_classpair
    union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
    char                                      *origin;      // a start of shared info
+   double                                    *_classextra[ 1];
 };
 
 
@@ -85,15 +86,18 @@ void    _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
                                     struct mulle_allocator *allocator);
 
 
-
 void   _mulle_objc_classpair_call_class_finalize( struct _mulle_objc_classpair *pair);
 void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
-                                     struct mulle_allocator *allocator);
+                                  struct mulle_allocator *allocator);
 
+
+static inline size_t   mulle_objc_classpair_size( size_t extrasize)
+{
+   return( sizeof( struct _mulle_objc_classpair) - sizeof( double) + extrasize);
+}
 
 
 # pragma mark - petty accessors
-
 
 static inline struct _mulle_objc_infraclass   *
    _mulle_objc_classpair_get_infraclass( struct _mulle_objc_classpair *pair)
@@ -115,14 +119,11 @@ static inline struct _mulle_objc_infraclass   *
    return( pair ? _mulle_objc_classpair_get_infraclass( pair) : NULL);
 }
 
-
-
 static inline struct _mulle_objc_metaclass   *
    mulle_objc_classpair_get_metaclass( struct _mulle_objc_classpair *pair)
 {
    return( pair ? _mulle_objc_classpair_get_metaclass( pair) : NULL);
 }
-
 
 static inline void
    _mulle_objc_classpair_set_origin( struct _mulle_objc_classpair *pair,
@@ -139,12 +140,27 @@ static inline char   *
 }
 
 
+
+static inline void   *
+   _mulle_objc_classpair_get_classextra( struct _mulle_objc_classpair *pair)
+{
+   return( pair->_classextra);
+}
+
+
 # pragma mark - conveniences
 
 static inline struct _mulle_objc_universe   *
    _mulle_objc_classpair_get_universe( struct _mulle_objc_classpair *pair)
 {
    return( _mulle_objc_infraclass_get_universe( _mulle_objc_classpair_get_infraclass( pair)));
+}
+
+
+static inline struct _mulle_objc_universe   *
+   mulle_objc_classpair_get_universe( struct _mulle_objc_classpair *pair)
+{
+   return( pair ? _mulle_objc_classpair_get_universe( pair) : NULL);
 }
 
 
@@ -179,9 +195,12 @@ static inline struct _mulle_objc_classpair   *
 static inline struct _mulle_objc_classpair   *
    _mulle_objc_metaclass_get_classpair( struct _mulle_objc_metaclass *meta)
 {
+   int   offset;
+
    assert( meta->base.infraclass != NULL);
 
-   return( (struct _mulle_objc_classpair *) &((char *) meta)[ - (int) offsetof( struct _mulle_objc_classpair, metaclass)]);
+   offset = - (int) offsetof( struct _mulle_objc_classpair, metaclass);
+   return( (struct _mulle_objc_classpair *) &((char *) meta)[ offset]);
 }
 
 
@@ -273,8 +292,8 @@ mulle_objc_walkcommand_t
                                            void *userinfo);
 
 
-void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair *cls,
-                                                    mulle_objc_categoryid_t categoryid);
+void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair *pair,
+                                                   mulle_objc_categoryid_t categoryid);
 
 
 #pragma mark - protocolclasses
@@ -311,7 +330,7 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
                                                 struct _mulle_objc_infraclass *proto_cls);
 
 void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_classpair *pair,
-                                                           mulle_objc_protocolid_t *protocolids);
+                                                         mulle_objc_protocolid_t *protocolids);
 
 #pragma mark - protocols
 
@@ -382,7 +401,7 @@ static inline void
 
 
 void   mulle_objc_classpair_add_protocollist_nofail( struct _mulle_objc_classpair *pair,
-                                                       struct _mulle_objc_protocollist *protocols);
+                                                     struct _mulle_objc_protocollist *protocols);
 
 
 # pragma mark - protocol class enumerator

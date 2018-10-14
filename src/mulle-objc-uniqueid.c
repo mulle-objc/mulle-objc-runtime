@@ -43,17 +43,6 @@
 #include <stdlib.h>
 
 
-// I had picked fnv1 because it less collision lowercase in this article
-// https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed
-//
-// But I think the randomness improvement of fnv1a is actually more important
-// for improved cache spread, so I am moving to fnv1a here
-//
-
-const int  MULLE_OBJC_UNIQUEHASH_SHIFT     = 4;
-const int  MULLE_OBJC_UNIQUEHASH_ALGORITHM = MULLE_OBJC_UNIQUEHASH_FNV1A;
-
-
 mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
 {
    mulle_objc_uniqueid_t  value;

@@ -5,9 +5,11 @@
 //  Created by Nat! on 19/11/14.
 //  Copyright (c) 2014 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
+#ifndef __MULLE_OBJC__
+# define __MULLE_OBJC_NO_TPS__
+# define __MULLE_OBJC_FCS__
+#endif
+
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
@@ -232,6 +234,22 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 };
 
 
+
+
+#ifdef __MULLE_OBJC_NO_TPS__
+# define TPS_BIT   0x4
+#else
+# define TPS_BIT   0
+#endif
+
+#ifdef __MULLE_OBJC_NO_FCS__
+# define FCS_BIT   0x8
+#else
+# define FCS_BIT   0
+#endif
+
+
+
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
@@ -239,8 +257,9 @@ static struct _mulle_objc_loadinfo  load_info =
       MULLE_OBJC_RUNTIME_VERSION,
       0,
       0,
-      0
+      TPS_BIT | FCS_BIT
    },
+   NULL,
    (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
    NULL,
    NULL,
@@ -265,14 +284,16 @@ static void  __load()
 }
 
 
-struct _mulle_objc_universe  *__register_mulle_objc_universe( void)
+struct _mulle_objc_universe  *
+   __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
+                                   char *universename)
 {
    struct _mulle_objc_universe    *universe;
 
-   universe = __mulle_objc_get_universe();
+   universe = __mulle_objc_global_get_universe( universeid, universename);
    if( ! _mulle_objc_universe_is_initialized( universe))
    {
-      _mulle_objc_universe_bang( universe, 0, 0, NULL);
+      _mulle_objc_universe_bang( universe, 0, NULL);
       universe->config.ignore_ivarhash_mismatch = 1;
    }
    return( universe);
@@ -341,7 +362,7 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Foo alloc] init];
 
-   infra = mulle_objc_fastlookup_infraclass_nofail( ___Foo_classid);
+   infra = mulle_objc_global_lookup_infraclass_nofail( MULLE_OBJC_DEFAULTUNIVERSEID, ___Foo_classid);
    obj = mulle_objc_infraclass_alloc_instance( infra);
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 

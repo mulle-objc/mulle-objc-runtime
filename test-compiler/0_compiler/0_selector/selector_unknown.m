@@ -5,5 +5,5 @@
 main()
 {
    printf( "Unknown selectors have no name: %s\n",
-      mulle_objc_lookup_methodname( @selector( foo)));
+      mulle_objc_global_lookup_methodname( 0, @selector( foo)));
 }

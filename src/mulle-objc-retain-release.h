@@ -190,14 +190,7 @@ static inline void   mulle_objc_object_inlinerelease( void *obj)
 {
    if( ! obj)
       return;
-#if DEBUG
-   struct _mulle_objc_class  *cls;
-
-   cls = _mulle_objc_object_get_isa( obj);
-   (*cls->call)( obj, MULLE_OBJC_RELEASE_METHODID, NULL, cls);
-#else
    _mulle_objc_object_inlinerelease( obj);
-#endif
 }
 
 

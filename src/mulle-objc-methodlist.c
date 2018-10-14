@@ -39,6 +39,7 @@
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-universe.h"
 #include "mulle-objc-callqueue.h"
+#include "mulle-objc-methodidconstants.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -119,16 +120,22 @@ int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist 
       imp   = _mulle_objc_method_get_implementation( method);
       _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_LOAD_SCHEDULED);  // debugging help
 
-      if( mulle_objc_callqueue_add( loads, (struct _mulle_objc_object *) meta, MULLE_OBJC_LOAD_METHODID, imp))
+      if( mulle_objc_callqueue_add( loads,
+                                    (struct _mulle_objc_object *) meta,
+                                    MULLE_OBJC_LOAD_METHODID,
+                                    imp))
          return( -1);
    }
    return( 0);
 }
 
 
-void   mulle_objc_methodlist_add_load_to_callqueue_nofail( struct _mulle_objc_methodlist *list, struct _mulle_objc_metaclass *meta, struct _mulle_objc_callqueue *loads)
+void
+   mulle_objc_methodlist_add_load_to_callqueue_nofail( struct _mulle_objc_methodlist *list,
+                                                       struct _mulle_objc_metaclass *meta,
+                                                       struct _mulle_objc_callqueue *loads)
 {
    if( mulle_objc_methodlist_add_load_to_callqueue( list, meta, loads))
-      _mulle_objc_universe_raise_errno_exception( _mulle_objc_metaclass_get_universe( meta));
+      mulle_objc_universe_fail_errno( _mulle_objc_metaclass_get_universe( meta));
 }
 

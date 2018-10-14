@@ -22,6 +22,6 @@ if( NOT __COMPILER_DETECTION_C_CMAKE__)
       endif()
    endif()
 
-   include( CompilerDetectionCAux OPTIONAL)
+   include( CompilerDetectionAuxC OPTIONAL)
 
 endif()

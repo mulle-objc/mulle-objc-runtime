@@ -1,0 +1,14 @@
+{
+  "files.associations": {
+    "list": "cpp"
+  },
+  "files.exclude": {
+    "__error": "Not found",
+    ".mulle-sourcetree": true,
+    ".mulle-sde": true,
+    ".mulle-env": true,
+    "build": true,
+    "dependency": true,
+    "stash": true
+  }
+}

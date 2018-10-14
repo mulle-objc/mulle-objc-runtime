@@ -806,8 +806,8 @@ char   *mulle_objc_cache_describe_html( struct _mulle_objc_cache *cache,
 #pragma mark - methodlist
 
 char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list,
-                                                struct _mulle_objc_universe *universe,
-                                                struct _mulle_objc_htmltablestyle *styling)
+                                             struct _mulle_objc_universe *universe,
+                                             struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
    char           **tmp;

@@ -47,6 +47,9 @@ main()
 {
    Foo     *foo;
    Class   cls;
+   struct _mulle_objc_universe    *universe;
+
+   universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
 
    foo = [Foo new];
    cls =  mulle_objc_object_get_infraclass( foo);
@@ -65,5 +68,6 @@ main()
    printf( "E: %s\n",
        _mulle_objc_infraclass_conformsto_protocolid( cls,
                                               @protocol( E)) ? "YES" : "NO");
-   mulle_objc_dotdump_universe_to_tmp();
+
+   mulle_objc_universe_dotdump_to_directory( universe, ".");
 }

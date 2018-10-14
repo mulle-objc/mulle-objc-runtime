@@ -31,7 +31,10 @@
 int   main( int argc, char *argv[])
 {
    // we happy if we don't crash
-   mulle_objc_htmldump_universe_to_tmp();
-   mulle_objc_dotdump_universe_to_tmp();
+   struct _mulle_objc_universe  *universe;
+
+   universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
+   mulle_objc_universe_htmldump_to_directory( universe, ".");
+   mulle_objc_universe_dotdump_to_directory( universe, ".");
    return( 0);
 }

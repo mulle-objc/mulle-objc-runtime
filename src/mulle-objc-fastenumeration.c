@@ -36,9 +36,10 @@
 #include "mulle-objc-fastenumeration.h"
 
 #include "mulle-objc-universe.h"
+#include "mulle-objc-universe-fail.h"
 
-MULLE_C_NO_RETURN
-void   mulle_objc_enumeration_mutation( void *collection)
+MULLE_C_NO_RETURN void
+   mulle_objc_enumeration_mutation( void *collection)
 {
-   mulle_objc_raise_inconsistency_exception( "collection %p mutated while enumerating", collection);
+   mulle_objc_universe_fail_inconsistency( NULL, "collection %p mutated while enumerating", collection);
 }

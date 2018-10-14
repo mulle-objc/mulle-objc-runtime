@@ -37,6 +37,7 @@
 #define mulle_objc_try_catch_finally_h__
 
 #include "mulle-objc-class.h"
+#include "mulle-objc-uniqueid.h"
 #include <setjmp.h>
 
 //
@@ -44,21 +45,19 @@
 // for better or worse
 // these methods are known as builtins by the compiler
 //
-void   mulle_objc_exception_throw( void *exception);
-void   mulle_objc_exception_tryenter( void *localExceptionData);
-void   mulle_objc_exception_tryexit( void *localExceptionData);
-void   *mulle_objc_exception_extract( void *localExceptionData);
-int    _mulle_objc_exception_match( mulle_objc_classid_t classid, void *exception);
+void   mulle_objc_exception_throw( void *exception, mulle_objc_universeid_t universe);
+void   mulle_objc_exception_tryenter( void *localExceptionData, mulle_objc_universeid_t universe);
+void   mulle_objc_exception_tryexit( void *localExceptionData, mulle_objc_universeid_t universe);
+void   *mulle_objc_exception_extract( void *localExceptionData, mulle_objc_universeid_t universe);
+int    _mulle_objc_exception_match( void *exception, mulle_objc_universeid_t universe, mulle_objc_classid_t classid);
 
 
-static inline int  mulle_objc_exception_match( mulle_objc_classid_t classId, void *exception)
+static inline int  mulle_objc_exception_match( void *exception, mulle_objc_universeid_t universeid, mulle_objc_classid_t classid)
 {
-   extern int  _mulle_objc_exception_match( mulle_objc_classid_t classId, void *exception);
-
-   // short circuit, if classID is NSException
-   if( classId == MULLE_OBJC_CLASSID( 0xa41284db))
+   // short circuit, if classid is NSException
+   if( classid == MULLE_OBJC_CLASSID( 0xa41284db))
       return( 1);
-   return( _mulle_objc_exception_match( classId, exception));
+   return( _mulle_objc_exception_match( exception, universeid, classid));
 }
 
 #endif

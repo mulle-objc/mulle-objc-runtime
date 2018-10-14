@@ -4,38 +4,37 @@
 # code by Nat!
 #
 
-#
-# Search through sources to find a string for the given hash.
-# It can be useful for optimized builds, where you do not have a reverse
-# table in the runtime and the error message is just gives the uniqueid.
-#
-
 usage()
 {
    cat <<EOF >&2
-USAGE
+Usage:
+   mulle-objc-reverse-uniqueid.sh <uniqueid|command> [pattern] [paths]
 
-mulle-objc-reverse-uniqueid.sh <uniqueid|command> [pattern] [paths]
+   Search through sources to find a string for the given hash.
+   It can be useful for optimized builds, where you do not have a reverse
+   table in the runtime and the error message is just gives the uniqueid.
+   This can take a while though...
 
-uniqueid   the uniqueid to search, it may be partial
+Example:
+   mulle-objc-reverse-uniqueid e37f0136 "*.h" /usr/local/include .
 
-command    'words' or 'hashed-words', where
-           'words' lists all words found in [paths] files matching [pattern]
-           'hashed-words' is like 'words' but prefixes each line with
-           the 64 bit uniqueid
+   check if the string "init" (hash e37f0136) appears anywhere in the header
+   files in /usr/local/include or the current directory.
 
-pattern    filename pattern to search through, default is *.[hcm]
+Arguments:
+   uniqueid : the uniqueid to search, it may be partial
 
-paths      paths to search *recursively* for files matching [pattern].
-           It defaults to '.'. You can also use this to add more grep
-           patterns and other grep flags.
+   command  : 'words' or 'hashed-words', where
+              'words' lists all words found in [paths] files matching [pattern]
+              'hashed-words' is like 'words' but prefixes each line with
+              the 64 bit uniqueid
 
+   pattern  : filename pattern to search through, default is *.[hcm]
 
-EXAMPLE
-           mulle-objc-reverse-uniqueid e37f0136 "*.h" /usr/local/include .
+   paths    : paths to search *recursively* for files matching [pattern].
+              It defaults to '.'. You can also use this to add more grep
+              patterns and other grep flags.
 
-           check if the string "init" appears anywhere in the header
-           files in /usr/local/include or the current directory.
 EOF
    exit 1
 }
@@ -43,7 +42,7 @@ EOF
 
 
 HASH=$1
-[ -z "$#" ] || shift
+[ "$#" -ne 0 ] && shift
 
 case "$HASH" in
    0x*)
@@ -54,7 +53,7 @@ esac
 
 
 PATTERN="${1:-*.[hcm]}"
-[ -z "$#" ] || shift
+[ "$#" -ne 0 ] && shift
 
 
 PATHS="$*"
@@ -63,29 +62,31 @@ then
    PATHS="."
 fi
 
+MULLE_OBJC_UNIQUEID="${MULLE_OBJC_UNIQUEID:-`command -v mulle-objc-uniqueid`}"
+[ -z "${MULLE_OBJC_UNIQUEID}" ] && echo "mulle-objc-uniqueid not in PATH" >&2 && exit 1
+
 
 grep -h -s -o -E '\w+' -r --include "${PATTERN}" ${PATHS} | \
    egrep -v '^[0-9]' | \
-   sort | \
    sort -u | \
 while read -r word
 do
-   hash="`mulle-objc-uniqueid "${word}" | head -1 | awk '{ print $3 }'`"
+   hash="`"${MULLE_OBJC_UNIQUEID}" "${word}"`"
    case "${HASH}" in
       words)
          echo "${word}"
-         ;;
+      ;;
 
       hashed-words)
          echo "${hash} ${word}"
-         ;;
+      ;;
 
       *)
          case "${hash}" in
             "${HASH}"*)
-             echo "${word}"
+               echo "${word}"
             ;;
          esac
-         ;;
+      ;;
    esac
 done

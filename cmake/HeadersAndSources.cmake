@@ -11,17 +11,11 @@ include( _Sources)
 # === MULLE-SDE END ===
 #
 
-# add ignored headers back in
-set( PUBLIC_HEADERS
-"src/_mulle-objc-runtime-include.h"
-${PUBLIC_HEADERS}
-)
-
-set( PRIVATE_HEADERS
-"src/_mulle-objc-runtime-include-private.h"
-${PRIVATE_HEADERS}
-)
-
 #
 # You can put more source and resource file definitions here.
+# If you don't like the "automatic" way of generating _Headers
+# and/or _Sources:
+#
+# MULLE_SDE_CMAKE_HEADERS_FILE="DISABLE" # or NONE
+# MULLE_SDE_CMAKE_SOURCES_FILE="DISABLE" # or NONE
 #

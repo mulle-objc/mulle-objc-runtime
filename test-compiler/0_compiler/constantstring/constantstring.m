@@ -43,14 +43,12 @@ SomeString  *bar = @"bar";
 
 main()
 {
-   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_universe    *universe;
 
-
-   universe = mulle_objc_get_universe();
-
+   universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
    _mulle_objc_universe_set_staticstringclass( universe, [SomeString class]);
 
-   mulle_objc_dotdump_universe_to_tmp();
+   mulle_objc_universe_dotdump_to_directory( universe, ".");
 
    [foo print];
    [bar print];

@@ -59,11 +59,11 @@
 // use this for -O3
 //
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_inlinecall_constantmethodid( void *obj,
-                                                  mulle_objc_methodid_t methodid,
-                                                  void *parameter)
+   mulle_objc_object_inlinecall( void *obj,
+                                 mulle_objc_methodid_t methodid,
+                                 void *parameter)
 {
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    int                             index;
 #endif
    mulle_objc_implementation_t     f;
@@ -83,7 +83,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    //
    cls = _mulle_objc_object_get_isa( obj);
 
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    //
    // try to simplify to return( (*cls->vtab.methods[ index])( obj, methodid, parameter)
    //
@@ -113,11 +113,11 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // use this for -O -O1
 //
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_partialinlinecall_constantmethodid( void *obj,
-                                                         mulle_objc_methodid_t methodid,
-                                                         void *parameter)
+   mulle_objc_object_partialinlinecall( void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter)
 {
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    int                        index;
 #endif
    struct _mulle_objc_class   *cls;
@@ -127,7 +127,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
    cls   = _mulle_objc_object_get_isa( obj);
 
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    index = mulle_objc_get_fastmethodtable_index( methodid);
    if( __builtin_expect( index >= 0, 1))
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
@@ -348,7 +348,7 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 // this will not update the cache
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache_noforward( struct _mulle_objc_class *cls,
-                                                                 mulle_objc_methodid_t methodid);
+                                                              mulle_objc_methodid_t methodid);
 
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache( struct _mulle_objc_class *cls,
@@ -369,7 +369,7 @@ static inline mulle_objc_implementation_t
 // convenience
 static inline mulle_objc_implementation_t
    _mulle_objc_object_lookup_implementation_nocache( struct _mulle_objc_object *obj,
-                                                       mulle_objc_methodid_t methodid)
+                                                     mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
@@ -388,7 +388,7 @@ mulle_objc_implementation_t
 // goes through cache returns an implementation if cached, NULL otherwise
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_cacheonly( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t methodid);
+                                                      mulle_objc_methodid_t methodid);
 
 // goes through cache returns an implementation if cached, trys to fill cache otherwise
 mulle_objc_implementation_t
@@ -423,7 +423,7 @@ static inline void   _mulle_objc_object_finalize( void *obj)
 
    isa = _mulle_objc_object_get_isa( obj);
    assert( isa);
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    _mulle_objc_fastmethodtable_invoke( obj, MULLE_OBJC_FINALIZE_METHODID, NULL, &isa->vtab, 2);
 #else
    _mulle_objc_object_call_class( obj, MULLE_OBJC_FINALIZE_METHODID, obj, isa);
@@ -437,7 +437,7 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 
    isa = _mulle_objc_object_get_isa( obj);
    assert( isa);
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    _mulle_objc_fastmethodtable_invoke( obj, MULLE_OBJC_DEALLOC_METHODID, NULL, &isa->vtab, 3);
 #else
    _mulle_objc_object_call_class( obj, MULLE_OBJC_DEALLOC_METHODID, obj, isa);

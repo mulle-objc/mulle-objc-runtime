@@ -72,8 +72,8 @@ struct _mulle_objc_objectheader
 };
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_objectheader   *_mulle_objc_object_get_objectheader( void *obj)
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
+   _mulle_objc_object_get_objectheader( void *obj)
 {
    struct _mulle_objc_objectheader   *header;
 
@@ -84,23 +84,25 @@ static inline struct _mulle_objc_objectheader   *_mulle_objc_object_get_objecthe
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_object   *_mulle_objc_objectheader_get_object( struct _mulle_objc_objectheader *header)
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_object *
+   _mulle_objc_objectheader_get_object( struct _mulle_objc_objectheader *header)
 {
    assert( header);
    return( (void *) (header + 1));
 }
 
 
-static inline intptr_t  _mulle_objc_objectheader_get_retaincount_1( struct _mulle_objc_objectheader *header)
+static inline intptr_t  
+   _mulle_objc_objectheader_get_retaincount_1( struct _mulle_objc_objectheader *header)
 {
    return( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1));
 }
 
 
-static inline struct _mulle_objc_object   *_mulle_objc_objectheader_init( struct _mulle_objc_objectheader *header, struct _mulle_objc_class *cls)
+static inline struct _mulle_objc_object *
+   _mulle_objc_objectheader_init( struct _mulle_objc_objectheader *header, struct _mulle_objc_class *cls)
 {
-   header->_isa   = cls;
+   header->_isa = cls;
    assert( ! _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1));
    return( (void *) (header + 1));
 }
@@ -108,8 +110,8 @@ static inline struct _mulle_objc_object   *_mulle_objc_objectheader_init( struct
 
 # pragma mark - object / header
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_class   *_mulle_objc_objectheader_get_isa( struct _mulle_objc_objectheader *header)
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class *
+   _mulle_objc_objectheader_get_isa( struct _mulle_objc_objectheader *header)
 {
    return( header->_isa);
 }
@@ -119,7 +121,9 @@ static inline struct _mulle_objc_class   *_mulle_objc_objectheader_get_isa( stru
 // this is not atomic! only do this when noone else has
 // access (like during initialization)
 //
-static inline void   _mulle_objc_objectheader_set_isa( struct _mulle_objc_objectheader *header, struct _mulle_objc_class *cls)
+static inline void   
+   _mulle_objc_objectheader_set_isa( struct _mulle_objc_objectheader *header, 
+   	                               struct _mulle_objc_class *cls)
 {
    header->_isa = cls;
 }

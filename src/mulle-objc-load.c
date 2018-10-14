@@ -37,6 +37,7 @@
 
 #include "mulle-objc-load.h"
 
+#include "mulle-objc-builtin.h"
 #include "mulle-objc-callqueue.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
@@ -59,12 +60,6 @@
 #include <stdlib.h>
 
 
-static void  trace_preamble( struct _mulle_objc_universe *universe)
-{
-   fprintf( stderr, "mulle_objc_universe %p trace: ", universe);
-}
-
-
 static struct _mulle_objc_dependency  no_dependency =
 {
    MULLE_OBJC_NO_CLASSID,
@@ -72,16 +67,29 @@ static struct _mulle_objc_dependency  no_dependency =
 };
 
 
+static void
+   mulle_objc_loadcategory_enqueue_nofail( struct _mulle_objc_loadcategory *info,
+                                           struct _mulle_objc_callqueue *loads,
+                                           struct _mulle_objc_universe *universe);
+
+static void
+   mulle_objc_loadclass_enqueue_nofail( struct _mulle_objc_loadclass *info,
+                                        struct _mulle_objc_callqueue *loads,
+                                        struct _mulle_objc_universe *universe);
+
+
 // this is destructive
 static void    map_f( struct mulle_concurrent_hashmap *table,
                       mulle_objc_uniqueid_t uniqueid,
                       void (*f)( void *,
-                                 struct _mulle_objc_callqueue *),
+                                 struct _mulle_objc_callqueue *,
+                                 struct _mulle_objc_universe *),
                       struct _mulle_objc_callqueue *loads,
-                      struct mulle_allocator *allocator)
+                      struct _mulle_objc_universe *universe)
 {
    struct mulle_concurrent_pointerarray            *list;
    struct mulle_concurrent_pointerarrayenumerator  rover;
+   struct mulle_allocator                          *allocator;
    void                                            *value;
 
    if( ! table)
@@ -97,10 +105,12 @@ static void    map_f( struct mulle_concurrent_hashmap *table,
 
    rover = mulle_concurrent_pointerarray_enumerate( list);
    while( value = mulle_concurrent_pointerarrayenumerator_next( &rover))
-      (*f)( value, loads);
+      (*f)( value, loads, universe);
    mulle_concurrent_pointerarrayenumerator_done( &rover);
 
    _mulle_concurrent_pointerarray_done( list);
+
+   allocator = _mulle_objc_universe_get_allocator( universe);
    _mulle_allocator_free( allocator, list);
 }
 
@@ -133,15 +143,15 @@ static struct _mulle_objc_dependency
    {
       if( ! infra || (_mulle_objc_infraclass_get_classid( infra) != dependencies->classid))
       {
-         infra = _mulle_objc_universe_fastlookup_infraclass( universe, dependencies->classid);
+         infra = _mulle_objc_universe_lookup_infraclass( universe, dependencies->classid);
          if( ! infra)
          {
             if( universe->debug.trace.dependency)
             {
-               trace_preamble( universe);
-               fprintf( stderr, "class %08x \"%s\" is not present yet\n",
-                       dependencies->classid,
-                       _mulle_objc_universe_describe_classid( universe, dependencies->classid));
+               mulle_objc_universe_trace( universe,
+                                          "class %08x \"%s\" is not present yet",
+                                            dependencies->classid,
+                                            _mulle_objc_universe_describe_classid( universe, dependencies->classid));
             }
             return( *dependencies);
          }
@@ -154,12 +164,12 @@ static struct _mulle_objc_dependency
          {
             if( universe->debug.trace.dependency)
             {
-               trace_preamble( universe);
-               fprintf( stderr, "category %08x,%08x \"%s( %s)\" is not present yet\n",
-                       dependencies->classid,
-                       dependencies->categoryid,
-                       _mulle_objc_universe_describe_classid( universe, dependencies->classid),
-                       _mulle_objc_universe_describe_categoryid( universe, dependencies->categoryid));
+               mulle_objc_universe_trace( universe,
+                                          "category %08x,%08x \"%s( %s)\" is not present yet",
+                                          dependencies->classid,
+                                          dependencies->categoryid,
+                                          _mulle_objc_universe_describe_classid( universe, dependencies->classid),
+                                          _mulle_objc_universe_describe_categoryid( universe, dependencies->categoryid));
             }
             return( *dependencies);
          }
@@ -187,7 +197,7 @@ static void  loadclass_trace( struct _mulle_objc_loadclass *info,
 {
    va_list   args;
 
-   trace_preamble( universe);
+   mulle_objc_universe_trace_nolf( universe, "");
    loadclass_fprintf( stderr, info);
    fputc( ' ', stderr);
 
@@ -245,7 +255,7 @@ static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info
    if( ! info)
    {
       errno = EINVAL;
-      _mulle_objc_universe_raise_errno_exception( universe);
+      mulle_objc_universe_fail_errno( universe);
    }
 
    assert( info->classid != missingclassid);
@@ -255,7 +265,7 @@ static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info
                                        info,
                                        &universe->memory.allocator);
    if( ! list)
-      _mulle_objc_universe_raise_errno_exception( universe);
+      mulle_objc_universe_fail_errno( universe);
 
    if( universe->debug.trace.dependency)
       loadclass_trace( info, universe,
@@ -288,7 +298,7 @@ static struct _mulle_objc_dependency
 
    dependencies = (*imp)( NULL, MULLE_OBJC_DEPENDENCIES_METHODID, NULL);
    if( ! dependencies)
-      _mulle_objc_universe_raise_generic_exception( universe,
+      mulle_objc_universe_fail_generic( universe,
                                                     "error in mulle_objc_universe %p: %s "
                                                     "returned NULL for +dependencies\n",
                                                     universe,
@@ -326,7 +336,7 @@ static struct _mulle_objc_dependency
 
    if( info->superclassid)
    {
-      superclass    = _mulle_objc_universe_fastlookup_infraclass( universe, info->superclassid);
+      superclass    = _mulle_objc_universe_lookup_infraclass( universe, info->superclassid);
       *p_superclass = superclass;
 
       if( ! superclass)
@@ -345,7 +355,7 @@ static struct _mulle_objc_dependency
       }
 
       if( strcmp( info->superclassname, superclass->base.name))
-         _mulle_objc_universe_raise_generic_exception( universe,
+         mulle_objc_universe_fail_generic( universe,
              "error in mulle_objc_universe %p: hash collision %08x "
              "for classnames \"%s\" \"%s\"",
              universe,
@@ -357,7 +367,7 @@ static struct _mulle_objc_dependency
    if( superclass && superclass->ivarhash != info->superclassivarhash)
    {
       if( ! universe->config.ignore_ivarhash_mismatch)
-         _mulle_objc_universe_raise_generic_exception( universe,
+         mulle_objc_universe_fail_generic( universe,
               "error in mulle_objc_universe %p: superclass \"%s\" of \"%s\" "
               "has changed. Recompile \"%s\" (%s).\n",
               universe,
@@ -376,7 +386,7 @@ static struct _mulle_objc_dependency
          if( *classid_p == info->superclassid || *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_universe_fastlookup_infraclass( universe, *classid_p);
+         protocolclass = _mulle_objc_universe_lookup_infraclass( universe, *classid_p);
          if( ! protocolclass)
          {
             if( universe->debug.trace.dependency)
@@ -398,8 +408,9 @@ static struct _mulle_objc_dependency
 }
 
 
-void   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loadclass *info,
-                                                          struct _mulle_objc_universe *universe)
+void
+   mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loadclass *info,
+                                                      struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_dependency   dependency;
    struct _mulle_objc_infraclass   *infra;
@@ -443,6 +454,30 @@ static int  mulle_objc_loadclass_is_sane( struct _mulle_objc_loadclass *info)
    return( 1);
 }
 
+//
+// We call a method classExtraSize which should just return a size_t value
+// it must not call any Objective-C code and in fact self is also passes as
+// nil.
+//
+static size_t    call_classExtraSize( struct _mulle_objc_methodlist  *list)
+{
+   size_t                        extrasize;
+   mulle_objc_implementation_t   imp;
+   struct _mulle_objc_method     *method;
+
+   extrasize = 0;
+   if( list)
+   {
+      method = _mulle_objc_methodlist_search( list, 0x185d8c27); // classExtraSize
+      if( method)
+      {
+         imp       = _mulle_objc_method_get_implementation( method);
+         extrasize = ((size_t (*)( void *, mulle_objc_uniqueid_t)) imp)( NULL, 0x185d8c27);
+      }
+   }
+   return( extrasize);
+}
+
 
 static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_loadclass *info,
                                                              struct _mulle_objc_callqueue *loads,
@@ -453,6 +488,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_infraclass   *superclass;
    struct _mulle_objc_dependency   dependency;
+   size_t                          extrasize;
 
    // root ?
    superclass = NULL;
@@ -467,9 +503,16 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    // this callqueue mechanism does the "right" thing
    //
    // ready to install
-   pair = mulle_objc_universe_new_classpair( universe, info->classid, info->classname, info->instancesize, superclass);
+
+   extrasize = call_classExtraSize( info->classmethods);
+
+   pair = mulle_objc_universe_new_classpair( universe, info->classid,
+                                                       info->classname,
+                                                       info->instancesize,
+                                                       extrasize,
+                                                       superclass);
    if( ! pair)
-      _mulle_objc_universe_raise_errno_exception( universe);  // unfailing vectors through there
+      mulle_objc_universe_fail_errno( universe);  // unfailing vectors through there
 
    _mulle_objc_classpair_set_origin( pair, info->origin);
    mulle_objc_classpair_add_protocollist_nofail( pair, info->protocols);
@@ -493,7 +536,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
       _mulle_objc_universe_set_fastclass( universe, infra, info->fastclassindex);
 
    if( mulle_objc_universe_add_infraclass( universe, infra))
-      _mulle_objc_universe_raise_generic_exception( universe,
+      mulle_objc_universe_fail_generic( universe,
             "error in mulle_objc_universe %p: "
             "duplicate class %08x \"%s\".\n",
              universe, infra->base.classid, infra->base.name);
@@ -505,39 +548,40 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
          info->classid,
          (void (*)()) mulle_objc_loadcategory_enqueue_nofail,
          loads,
-          &universe->memory.allocator);
+         universe);
    map_f( &universe->waitqueues.classestoload,
          info->classid,
          (void (*)()) mulle_objc_loadclass_enqueue_nofail,
          loads,
-         &universe->memory.allocator);
+         universe);
 
    return( MULLE_OBJC_NO_CLASSID);
 }
 
 
-void   mulle_objc_loadclass_enqueue_nofail( struct _mulle_objc_loadclass *info,
-                                              struct _mulle_objc_callqueue *loads)
+static void
+   mulle_objc_loadclass_enqueue_nofail( struct _mulle_objc_loadclass *info,
+                                        struct _mulle_objc_callqueue *loads,
+                                        struct _mulle_objc_universe *universe)
 {
-   struct _mulle_objc_universe    *universe;
-   mulle_objc_classid_t           missingclassid;
+   mulle_objc_classid_t   missingclassid;
 
    // possibly get or create universe..
 
-   universe = mulle_objc_register_universe();
    if( ! mulle_objc_loadclass_is_sane( info))
    {
       errno = EINVAL;
-      _mulle_objc_universe_raise_errno_exception( universe);
+      mulle_objc_universe_fail_errno( universe);
    }
 
    missingclassid = _mulle_objc_loadclass_enqueue( info, loads, universe);
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
       if( mulle_objc_loadclass_delayedadd( info, missingclassid, universe))
-         _mulle_objc_universe_raise_errno_exception( universe);
-
+         mulle_objc_universe_fail_errno( universe);
+#ifdef MULLE_OBJC_DEBUG_SUPPORT
    if( universe->debug.trace.dump_universe)
-      mulle_objc_dotdump_universe_frame_to_tmp();
+      mulle_objc_universe_dotdump_frame_to_directory( universe, ".");
+#endif
 }
 
 
@@ -719,8 +763,9 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
 #pragma mark - classlists
 
 static void   mulle_objc_loadclasslist_enqueue_nofail( struct _mulle_objc_loadclasslist *list,
-                                                          int need_sort,
-                                                          struct _mulle_objc_callqueue *loads)
+                                                       int need_sort,
+                                                       struct _mulle_objc_callqueue *loads,
+                                                       struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_loadclass   **p_class;
    struct _mulle_objc_loadclass   **sentinel;
@@ -735,7 +780,7 @@ static void   mulle_objc_loadclasslist_enqueue_nofail( struct _mulle_objc_loadcl
       if( need_sort)
          _mulle_objc_loadclass_sort_lists( *p_class);
 
-      mulle_objc_loadclass_enqueue_nofail( *p_class, loads);
+      mulle_objc_loadclass_enqueue_nofail( *p_class, loads, universe);
       p_class++;
    }
 }
@@ -775,7 +820,7 @@ static void  loadcategory_trace( struct _mulle_objc_loadcategory *info,
 {
    va_list   args;
 
-   trace_preamble( universe);
+   mulle_objc_universe_trace_nolf( universe, "");
    loadcategory_fprintf( stderr, info);
    fputc( ' ', stderr);
 
@@ -807,7 +852,7 @@ static int  mulle_objc_loadcategory_delayedadd( struct _mulle_objc_loadcategory 
                                        info,
                                        &universe->memory.allocator);
    if( ! list)
-      _mulle_objc_universe_raise_errno_exception( universe);
+      mulle_objc_universe_fail_errno( universe);
 
    if( universe->debug.trace.dependency)
       loadcategory_trace( info, universe, "waits for class %08x \"%s\" to load "
@@ -846,7 +891,7 @@ static struct _mulle_objc_dependency
 
    dependencies = (*imp)( infra, MULLE_OBJC_DEPENDENCIES_METHODID, infra);
    if( ! dependencies)
-      _mulle_objc_universe_raise_generic_exception( universe,
+      mulle_objc_universe_fail_generic( universe,
                                                "error in mulle_objc_universe %p: "
                                                "%s(%s) returned NULL for "
                                                "+dependencies\n",
@@ -876,7 +921,7 @@ static struct _mulle_objc_dependency
       loadcategory_trace( info, universe, "dependency check ...");
 
    // check class
-   infra    = _mulle_objc_universe_fastlookup_infraclass( universe, info->classid);
+   infra    = _mulle_objc_universe_lookup_infraclass( universe, info->classid);
    *p_class = infra;
 
 
@@ -903,7 +948,7 @@ static struct _mulle_objc_dependency
          if( *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_universe_fastlookup_infraclass( universe, *classid_p);
+         protocolclass = _mulle_objc_universe_lookup_infraclass( universe, *classid_p);
          if( ! protocolclass)
          {
             if( universe->debug.trace.dependency)
@@ -1000,7 +1045,7 @@ static int  mulle_objc_loadcategory_is_sane( struct _mulle_objc_loadcategory *in
 }
 
 
-static void  raise_duplicate_category_exception( struct _mulle_objc_classpair *pair,
+static void  fail_duplicate_category( struct _mulle_objc_classpair *pair,
                                                  struct _mulle_objc_loadcategory *info)
 {
    struct _mulle_objc_universe    *universe;
@@ -1016,7 +1061,7 @@ static void  raise_duplicate_category_exception( struct _mulle_objc_classpair *p
    if( ! info_origin)
       info_origin = "<unknown origin>";
 
-   _mulle_objc_universe_raise_generic_exception( universe,
+   mulle_objc_universe_fail_generic( universe,
       "error in mulle_objc_universe %p: category %08x \"%s( %s)\" (%s) "
       "is already present in class %08x \"%s\" (%s).\n",
           universe,
@@ -1028,6 +1073,7 @@ static void  raise_duplicate_category_exception( struct _mulle_objc_classpair *p
           _mulle_objc_classpair_get_name( pair),
           pair_origin);
 }
+
 
 
 static mulle_objc_classid_t
@@ -1046,12 +1092,12 @@ static mulle_objc_classid_t
       return( dependency.classid);
 
    if( strcmp( info->classname, infra->base.name))
-      _mulle_objc_universe_raise_generic_exception( universe,
+      mulle_objc_universe_fail_generic( universe,
          "error in mulle_objc_universe %p: hashcollision %08x "
          "for classnames \"%s\" and \"%s\"\n",
             universe, info->classid, info->classname, infra->base.name);
    if( info->classivarhash != infra->ivarhash)
-      _mulle_objc_universe_raise_generic_exception( universe,
+      mulle_objc_universe_fail_generic( universe,
          "error in mulle_objc_universe %p: class %08x \"%s\" of "
          "category %08x \"%s( %s)\" has changed. Recompile %s\n",
             universe,
@@ -1066,7 +1112,7 @@ static mulle_objc_classid_t
    meta = _mulle_objc_classpair_get_metaclass( pair);
 
    if( info->categoryid && _mulle_objc_classpair_has_categoryid( pair, info->categoryid))
-      raise_duplicate_category_exception( pair, info);
+      fail_duplicate_category( pair, info);
 
    // checks for hash collisions
    mulle_objc_universe_add_category_nofail( universe, info->categoryid, info->categoryname);
@@ -1076,18 +1122,18 @@ static mulle_objc_classid_t
    {
       info->instancemethods->owner = (void *) (uintptr_t) info->categoryid;
       if( mulle_objc_class_add_methodlist( &infra->base, info->instancemethods))
-         _mulle_objc_universe_raise_errno_exception( universe);
+         mulle_objc_universe_fail_errno( universe);
    }
    if( info->classmethods && info->classmethods->n_methods)
    {
       info->classmethods->owner = (void *) (uintptr_t) info->categoryid;
       if( mulle_objc_class_add_methodlist( &meta->base, info->classmethods))
-         _mulle_objc_universe_raise_errno_exception( universe);
+         mulle_objc_universe_fail_errno( universe);
    }
 
    if( info->properties && info->properties->n_properties)
       if( mulle_objc_infraclass_add_propertylist( infra, info->properties))
-         _mulle_objc_universe_raise_errno_exception( universe);
+         mulle_objc_universe_fail_errno( universe);
 
    //
    // TODO need to check that protocolids name are actually correct
@@ -1109,39 +1155,40 @@ static mulle_objc_classid_t
           info->classid,
           (void (*)()) mulle_objc_loadcategory_enqueue_nofail,
           loads,
-          &universe->memory.allocator);
+          universe);
    map_f( &universe->waitqueues.classestoload,
           info->classid,
           (void (*)()) mulle_objc_loadclass_enqueue_nofail,
           loads,
-          &universe->memory.allocator);
+          universe);
 
    return( MULLE_OBJC_NO_CLASSID);
 }
 
 
 
-void   mulle_objc_loadcategory_enqueue_nofail( struct _mulle_objc_loadcategory *info,
-                                               struct _mulle_objc_callqueue *loads)
+static void
+   mulle_objc_loadcategory_enqueue_nofail( struct _mulle_objc_loadcategory *info,
+                                           struct _mulle_objc_callqueue *loads,
+                                           struct _mulle_objc_universe *universe)
 {
-   mulle_objc_classid_t          missingclassid;
-   struct _mulle_objc_universe   *universe;
-
-   universe = mulle_objc_register_universe();
+   mulle_objc_classid_t   missingclassid;
 
    if( ! mulle_objc_loadcategory_is_sane( info))
    {
       errno = EINVAL;
-      _mulle_objc_universe_raise_errno_exception( universe);
+      mulle_objc_universe_fail_errno( universe);
    }
 
    missingclassid = _mulle_objc_loadcategory_enqueue( info, loads, universe);
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
       if( mulle_objc_loadcategory_delayedadd( info, missingclassid, universe))
-         _mulle_objc_universe_raise_errno_exception( universe);
+         mulle_objc_universe_fail_errno( universe);
 
+#ifdef MULLE_OBJC_DEBUG_SUPPORT
    if( universe->debug.trace.dump_universe)
-      mulle_objc_dotdump_universe_frame_to_tmp();
+      mulle_objc_universe_dotdump_frame_to_directory( universe, ".");
+#endif
 }
 
 
@@ -1208,7 +1255,8 @@ static void   _mulle_objc_loadcategory_sort_lists( struct _mulle_objc_loadcatego
 
 static void   mulle_objc_loadcategorylist_enqueue_nofail( struct _mulle_objc_loadcategorylist *list,
                                                           int need_sort,
-                                                          struct _mulle_objc_callqueue *loads)
+                                                          struct _mulle_objc_callqueue *loads,
+                                                          struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_loadcategory   **p_category;
    struct _mulle_objc_loadcategory   **sentinel;
@@ -1223,7 +1271,7 @@ static void   mulle_objc_loadcategorylist_enqueue_nofail( struct _mulle_objc_loa
       if( need_sort)
          _mulle_objc_loadcategory_sort_lists( *p_category);
 
-      mulle_objc_loadcategory_enqueue_nofail( *p_category, loads);
+      mulle_objc_loadcategory_enqueue_nofail( *p_category, loads, universe);
       p_category++;
    }
 }
@@ -1247,16 +1295,14 @@ static void   loadcategorylist_dump( struct _mulle_objc_loadcategorylist *list,
 
 # pragma mark - stringlists
 
-static void   mulle_objc_loadstringlist_enqueue_nofail( struct _mulle_objc_loadstringlist *list)
+static void   mulle_objc_loadstringlist_enqueue_nofail( struct _mulle_objc_loadstringlist *list,
+                                                        struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_object     **p_string;
    struct _mulle_objc_object     **sentinel;
-   struct _mulle_objc_universe   *universe;
 
    if( ! list)
       return;
-
-   universe = mulle_objc_register_universe();
 
    p_string = list->loadstrings;
    sentinel = &p_string[ list->n_loadstrings];
@@ -1274,8 +1320,8 @@ static void   mulle_objc_loadstringlist_enqueue_nofail( struct _mulle_objc_loads
 # pragma mark - hashedstring
 
 char   *_mulle_objc_loadhashedstring_bsearch( struct _mulle_objc_loadhashedstring *buf,
-                                             unsigned int n,
-                                             mulle_objc_uniqueid_t search)
+                                              unsigned int n,
+                                              mulle_objc_uniqueid_t search)
 {
    int   first;
    int   last;
@@ -1370,16 +1416,15 @@ int  mulle_objc_loadhashedstring_is_sane( struct _mulle_objc_loadhashedstring *p
 
 # pragma mark - loadsuperlist
 
-static void   mulle_objc_loadsuperlist_enqueue_nofail( struct _mulle_objc_superlist *list)
+static void   mulle_objc_loadsuperlist_enqueue_nofail( struct _mulle_objc_superlist *list,
+                                                       struct _mulle_objc_universe *universe)
 {
-   struct _mulle_objc_universe   *universe;
+   ;
    struct _mulle_objc_super      *p;
    struct _mulle_objc_super      *sentinel;
 
    if( ! list)
       return;
-
-   universe = mulle_objc_register_universe();
 
    p        = &list->supers[ 0];
    sentinel = &p[ list->n_supers];
@@ -1393,20 +1438,18 @@ static void   mulle_objc_loadsuperlist_enqueue_nofail( struct _mulle_objc_superl
 
 static void   loadsuper_dump( struct _mulle_objc_super *p,
                               char *prefix,
-                              struct _mulle_objc_loadhashedstringlist *strings)
+                              struct _mulle_objc_loadhashedstringlist *strings,
+                              struct _mulle_objc_universe *universe)
 {
-   struct _mulle_objc_universe   *universe;
    char   *classname;
    char   *methodname;
-
-   universe = mulle_objc_register_universe();
 
    // because we aren't sorted necessarily use slow search
    classname  = mulle_objc_loadhashedstringlist_search( strings, p->classid);
    if( ! classname)
       classname = _mulle_objc_universe_describe_classid( universe, p->superid);
    methodname = mulle_objc_loadhashedstringlist_search( strings, p->methodid);
-   if( ! methodname)
+   if( ! methodname && universe)
       methodname = _mulle_objc_universe_describe_methodid( universe, p->superid);
 
    fprintf( stderr, "%s // super %08x \"%s\" is class %08x \"%s\" "
@@ -1421,7 +1464,8 @@ static void   loadsuper_dump( struct _mulle_objc_super *p,
 
 static void   loadsuperlist_dump( struct _mulle_objc_superlist *list,
                                   char *prefix,
-                                  struct _mulle_objc_loadhashedstringlist *strings)
+                                  struct _mulle_objc_loadhashedstringlist *strings,
+                                  struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_super   *p;
    struct _mulle_objc_super   *sentinel;
@@ -1432,23 +1476,41 @@ static void   loadsuperlist_dump( struct _mulle_objc_superlist *list,
    p        = list->supers;
    sentinel = &p[ list->n_supers];
    while( p < sentinel)
-      loadsuper_dump( p++, prefix, strings);
+      loadsuper_dump( p++, prefix, strings, universe);
 }
 
 # pragma mark - hashedstringlists
 
 static void   mulle_objc_loadhashedstringlist_enqueue_nofail( struct _mulle_objc_loadhashedstringlist *map,
-   int need_sort)
+                                                              struct _mulle_objc_universe   *universe,
+                                                              int need_sort)
 {
-   struct _mulle_objc_universe   *universe;
-
    if( ! map)
       return;
 
-   universe = mulle_objc_register_universe();
-
    if( need_sort)
       mulle_objc_loadhashedstringlist_sort( map);
+
+   if( universe->debug.trace.hashstrings)
+   {
+      struct _mulle_objc_loadhashedstring  *p;
+      struct _mulle_objc_loadhashedstring  *sentinel;
+      unsigned int                         i;
+
+      p        = map->loadentries;
+      sentinel = &p[ map->n_loadentries];
+      i        = 0;
+      while( p < sentinel)
+      {
+         mulle_objc_universe_trace( universe,
+                                   "#%d: %x is \"%s\"",
+                                   i++,
+                                   p->uniqueid,
+                                   p->string);
+         ++p;
+      }
+
+   }
 
    _mulle_objc_universe_add_loadhashedstringlist( universe, map);
 }
@@ -1469,25 +1531,19 @@ static void  dump_bits( unsigned int bits)
 
    if( bits & _mulle_objc_loadinfo_aaomode)
    {
-      fprintf( stderr, "%sAAM", delim);
+      fprintf( stderr, "%s.aam", delim);
       delim=", ";
    }
 
    if( bits & _mulle_objc_loadinfo_notaggedptrs)
    {
-      fprintf( stderr, "%sno tagged pointers", delim);
+      fprintf( stderr, "%s-fobjc-no-tps", delim);
       delim=", ";
    }
 
-   if( bits & _mulle_objc_loadinfo_nofastmethods)
+   if( bits & _mulle_objc_loadinfo_nofastcalls)
    {
-      fprintf( stderr, "%sno fast methods", delim);
-      delim=", ";
-   }
-
-   if( bits & _mulle_objc_loadinfo_threadlocalrt)
-   {
-      fprintf( stderr, "%sthread local universe", delim);
+      fprintf( stderr, "%s-fobjc-no-fcs", delim);
       delim=", ";
    }
 
@@ -1504,10 +1560,12 @@ static void   print_version( char *prefix, uint32_t version)
 }
 
 
-static void   loadinfo_dump( struct _mulle_objc_loadinfo *info, char *prefix)
+static void   loadinfo_dump( struct _mulle_objc_loadinfo *info,
+                             char *prefix,
+                             struct _mulle_objc_universe *universe)
 {
    fprintf( stderr, "%s", prefix);
-   print_version( "universe", info->version.universe);
+   print_version( "universe", info->version.runtime);
    print_version( ", foundation", info->version.foundation);
    print_version( ", user", info->version.user);
    fprintf( stderr, " (");
@@ -1516,7 +1574,7 @@ static void   loadinfo_dump( struct _mulle_objc_loadinfo *info, char *prefix)
 
    loadclasslist_dump( info->loadclasslist, prefix);
    loadcategorylist_dump( info->loadcategorylist, prefix);
-   loadsuperlist_dump( info->loadsuperlist, prefix, info->loadhashedstringlist);
+   loadsuperlist_dump( info->loadsuperlist, prefix, info->loadhashedstringlist, universe);
 }
 
 
@@ -1528,13 +1586,11 @@ static void   call_load( struct _mulle_objc_metaclass *meta,
    struct _mulle_objc_infraclass   *infra;
 
    if( universe->debug.trace.load_call)
-   {
-      trace_preamble( universe);
-      fprintf( stderr, "%08x \"%s\" call +[%s load]\n",
-              _mulle_objc_metaclass_get_classid( meta),
-              _mulle_objc_metaclass_get_name( meta),
-              _mulle_objc_metaclass_get_name( meta));
-   }
+     mulle_objc_universe_trace( universe,
+                                "%08x \"%s\" call +[%s load]",
+                                _mulle_objc_metaclass_get_classid( meta),
+                                _mulle_objc_metaclass_get_name( meta),
+                                _mulle_objc_metaclass_get_name( meta));
 
    // the "meta" class is not the object passed
    infra = _mulle_objc_metaclass_get_infraclass( meta);
@@ -1554,12 +1610,12 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
 
    if( info->version.load != MULLE_OBJC_RUNTIME_LOAD_VERSION)
    {
-      loadinfo_dump( info, "loadinfo:   ");
+      loadinfo_dump( info, "loadinfo:   ", universe);
       //
       // if you reach this, and you go huh ? it may mean, that an older
       // shared library version of the Foundation was loaded.
       //
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      mulle_objc_universe_fail_inconsistency( universe,
          "mulle_objc_universe %p: the loaded binary was produced for "
          "load version %d, but this universe %u.%u.%u (%s) supports "
          "load version %d only",
@@ -1575,8 +1631,8 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    {
       if( ! universe->foundation.universefriend.versionassert)
       {
-         loadinfo_dump( info, "loadinfo:   ");
-         _mulle_objc_universe_raise_inconsistency_exception( universe,
+         loadinfo_dump( info, "loadinfo:   ", universe);
+         mulle_objc_universe_fail_inconsistency( universe,
             "mulle_objc_universe %p: foundation version set (0x%x), but "
             "universe foundation provides no versionassert",
                universe, info->version.foundation);
@@ -1588,8 +1644,8 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    {
       if( ! universe->userinfo.versionassert)
       {
-         loadinfo_dump( info, "loadinfo:   ");
-         _mulle_objc_universe_raise_inconsistency_exception( universe,
+         loadinfo_dump( info, "loadinfo:   ", universe);
+         mulle_objc_universe_fail_inconsistency( universe,
             "mulle_objc_universe %p: loadinfo user version set (0x%x), but "
             "universe userinfo provides no versionassert",
                universe, info->version.user);
@@ -1615,47 +1671,50 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    load_tps = ! (info->version.bits & _mulle_objc_loadinfo_notaggedptrs);
 
    bits     = _mulle_objc_universe_get_loadbits( universe);
+
+   if( universe->debug.trace.universe)
+   {
+      mulle_objc_universe_trace( universe, "universe load bits : %lx\n", bits);
+      mulle_objc_universe_trace( universe, "load_tps           : %lx\n", load_tps);
+      mulle_objc_universe_trace( universe, "universe config    : %lx\n", universe->config.no_tagged_pointer);
+   }
+
    mismatch = (load_tps && (bits & MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS)) ||
               (! load_tps && (bits & MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS));
    mismatch |= universe->config.no_tagged_pointer && load_tps;
    if( mismatch)
    {
-      loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      loadinfo_dump( info, "loadinfo:   ", universe);
+      mulle_objc_universe_fail_inconsistency( universe,
          "mulle_objc_universe %p: the universe is %sconfigured for "
          "tagged pointers, but classes are compiled differently",
              universe,
              universe->config.no_tagged_pointer ? "not " : "");
    }
-   _mulle_objc_universe_set_loadbit( universe, load_tps ? MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS
-                                   : MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS);
+
+   _mulle_objc_universe_set_loadbit( universe,
+                                     load_tps
+                                        ? MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS
+                                        : MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS);
 
    //
-   // check for thread local universe
+   // check that if a universename is given, that tps is off
    //
-   // universe | Code   | Description
-   // ---------|--------|--------------
-   // Global   | Global | Default
-   // Global   | TRT    | Works, but slower. Mixes with "Global Code" too
-   // TRT      | Global | Crashes
-   // TRT      | TRT    | Works
-   //
-   if( universe->config.thread_local_rt)
-      if( ! (info->version.bits & _mulle_objc_loadinfo_threadlocalrt))
-      {
-         loadinfo_dump( info, "loadinfo:   ");
-         _mulle_objc_universe_raise_inconsistency_exception( universe,
-            "mulle_objc_universe %p: the universe is thead local, but classes "
-            "are compiled for a global universe");
-      }
+   if( info->loaduniverse && ! universe->config.no_tagged_pointer)
+   {
+      loadinfo_dump( info, "loadinfo:   ", universe);
+      mulle_objc_universe_fail_inconsistency( universe,
+            "mulle_objc_universe %p: the universe is not the default universe "
+            "but TPS is enabled", universe);
+   }
 
    // make sure everything is compiled with say -O0 (or -O1 at least)
    // if u want to...
    optlevel = ((info->version.bits >> 16) & 0x7);
    if( optlevel < universe->config.min_optlevel || optlevel > universe->config.max_optlevel)
    {
-      loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      loadinfo_dump( info, "loadinfo:   ", universe);
+      mulle_objc_universe_fail_inconsistency( universe,
           "mulle_objc_universe %p: loadinfo was compiled with optimization "
           "level %d but universe requires between (%d and %d)",
                universe,
@@ -1672,26 +1731,26 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    //
    // universe | Code   | Description
    // ---------|--------|--------------
-   // No-FMC   | No-FMC | Works
-   // No-FMC   | FMC    | Crashes
-   // FMC      | No-FMC | Crashes (wrong class size messes up classpair code)
-   // FMC      | FMC    | Works
+   // No-FCS   | No-FCS | Works
+   // No-FCS   | FCS    | Crashes
+   // FCS      | No-FCS | Crashes (wrong class size messes up classpair code)
+   // FCS      | FCS    | Works
    //
-#ifdef __MULLE_OBJC_FMC__
-   if( info->version.bits & _mulle_objc_loadinfo_nofastmethods)
+#ifdef __MULLE_OBJC_FCS__
+   if( info->version.bits & _mulle_objc_loadinfo_nofastcalls)
    {
-      loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      loadinfo_dump( info, "loadinfo:   ", universe);
+      mulle_objc_universe_fail_inconsistency( universe,
          "mulle_objc_universe %p: the universe is compiled for fast methods, "
          "but classes and categories are not.", universe);
    }
 #endif
 
-#ifdef __MULLE_OBJC_NO_FMC__
-   if( ! (info->version.bits & _mulle_objc_loadinfo_nofastmethods))
+#ifdef __MULLE_OBJC_NO_FCS__
+   if( ! (info->version.bits & _mulle_objc_loadinfo_nofastcalls))
    {
-      loadinfo_dump( info, "loadinfo:   ");
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      loadinfo_dump( info, "loadinfo:   ", universe);
+      mulle_objc_universe_fail_inconsistency( universe,
          "mulle_objc_universe %p: the universe can't handle fast methods, "
          "but classes and categories use them.", universe);
    }
@@ -1699,14 +1758,14 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
 }
 
 
-char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
+char   *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
 {
    char  *s;
 
    if( ! info)
    {
       errno = EINVAL;
-      mulle_objc_raise_errno_exception();
+      mulle_objc_universe_fail_errno( NULL);
    }
 
    s = NULL;
@@ -1724,35 +1783,49 @@ char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
 //
 void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
 {
-   struct _mulle_objc_universe   *universe;
-   int                           need_sort;
+   struct _mulle_objc_universe             *universe;
+   int                                     need_sort;
+   static struct _mulle_objc_loaduniverse  empty;
+   struct _mulle_objc_loaduniverse         *loaduniverse;
 
    // allow NULL input so mulle_objc_list can call this once, so the
    // linker can't optimize it away
    if( ! info)
       return;
 
-   universe = mulle_objc_register_universe();
+   loaduniverse = info->loaduniverse;
+   if( ! info->loaduniverse)
+       loaduniverse = &empty;
+   else
+   {
+      if( info->loaduniverse->universeid == MULLE_OBJC_DEFAULTUNIVERSEID)
+         mulle_objc_universe_fail_inconsistency( universe,
+            "mulle_objc_universe %p: loaduniverse uses default id 0 "
+            "(don't emit loaduniverse for 0)", universe);
+   }
+
+   universe = mulle_objc_global_register_universe( loaduniverse->universeid,
+                                                   loaduniverse->universename);
    assert( universe);
 
    if( _mulle_objc_universe_is_uninitialized( universe))
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      mulle_objc_universe_fail_inconsistency( universe,
          "mulle_objc_universe %p: universe was not properly initialized "
          "by `__register_mulle_objc_universe`.", universe);
 
    if( ! universe->memory.allocator.calloc)
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      mulle_objc_universe_fail_inconsistency( universe,
          "mulle_objc_universe %p: Has no allocator installed.", universe);
 
-   if( ! mulle_objc_class_is_current_thread_registered( NULL))
+   if( ! _mulle_objc_thread_isregistered_universe_gc( universe))
    {
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      mulle_objc_universe_fail_inconsistency( universe,
          "mulle_objc_universe %p: The function "
          "\"mulle_objc_loadinfo_enqueue_nofail\" is called from a "
          "non-registered thread.", universe, info->version.foundation);
    }
 
-   _mulle_objc_universe_assert_version( universe, &info->version);
+   _mulle_objc_universe_assert_runtimeversion( universe, &info->version);
 
    if( universe->callbacks.should_load_loadinfo)
    {
@@ -1760,9 +1833,10 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
       {
          if( universe->debug.trace.loadinfo)
          {
-            trace_preamble( universe);
-            fprintf( stderr, "loadinfo %p ignored on request\n", info);
-            loadinfo_dump( info, "   ");
+            mulle_objc_universe_trace( universe,
+                                       "loadinfo %p ignored on request\n",
+                                       info);
+            loadinfo_dump( info, "   ", universe);
          }
          return;
       }
@@ -1772,56 +1846,63 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
 
    if( universe->debug.trace.loadinfo)
    {
-      trace_preamble( universe);
-      fprintf( stderr, "loads loadinfo %p\n", info);
-      loadinfo_dump( info, "   ");
+      mulle_objc_universe_trace( universe,
+                                 "loads loadinfo %p in thread %p",
+                                 info,
+                                 (void *) mulle_thread_self());
+      loadinfo_dump( info, "   ", universe);
    }
 
+#ifdef MULLE_OBJC_DEBUG_SUPPORT
    if( universe->debug.trace.dump_universe)
-      mulle_objc_dotdump_universe_frame_to_tmp();
+      mulle_objc_universe_dotdump_frame_to_directory( universe, ".");
+#endif
 
    if( universe->debug.trace.loadinfo)
    {
-      trace_preamble( universe);
-      fprintf( stderr, "loading strings...\n");
+      mulle_objc_universe_trace( universe, "loading strings...");
    }
 
    // load strings in first, can be done unlocked
-   mulle_objc_loadstringlist_enqueue_nofail( info->loadstringlist);
+   mulle_objc_loadstringlist_enqueue_nofail( info->loadstringlist, universe);
 
-   if( universe->debug.trace.loadinfo)
+   if( universe->debug.trace.loadinfo || universe->debug.trace.hashstrings)
    {
-      trace_preamble( universe);
-      fprintf( stderr, "loading hashes...\n");
+      char   *s;
+      char   *sep;
+
+      s = mulle_objc_loadinfo_get_originator( info);
+      sep = ": ";
+      if( ! s || !strlen( s))
+         s = sep = "";
+      mulle_objc_universe_trace( universe, "%s%sloading hashed strings...", s, sep);
    }
 
    // pass universe thru...
    need_sort = info->version.bits & _mulle_objc_loadinfo_unsorted;
 
    mulle_objc_loadhashedstringlist_enqueue_nofail( info->loadhashedstringlist,
-                                                     need_sort);
+                                                   universe,
+                                                   need_sort);
 
    if( universe->debug.trace.loadinfo)
    {
-      trace_preamble( universe);
-      fprintf( stderr, "loading super strings...\n");
+      mulle_objc_universe_trace( universe, "loading super strings...");
    }
 
    // super strings are unproblematic also
-   mulle_objc_loadsuperlist_enqueue_nofail( info->loadsuperlist);
+   mulle_objc_loadsuperlist_enqueue_nofail( info->loadsuperlist, universe);
 
    if( universe->debug.trace.loadinfo)
    {
-      trace_preamble( universe);
-      fprintf( stderr, "locking waitqueues...\n");
+      mulle_objc_universe_trace( universe, "locking waitqueues...");
    }
 
    _mulle_objc_universe_lock_waitqueues( universe);
    {
       if( universe->debug.trace.loadinfo)
       {
-         trace_preamble( universe);
-         fprintf( stderr, "lock successful\n");
+         mulle_objc_universe_trace( universe,  "lock successful");
       }
 
       //
@@ -1836,7 +1917,7 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
       struct _mulle_objc_callqueue   loads;
 
       if( mulle_objc_callqueue_init( &loads, &universe->memory.allocator))
-         _mulle_objc_universe_raise_errno_exception( universe);
+         mulle_objc_universe_fail_errno( universe);
 
       //
       // the wait-queues are maintained in the universe
@@ -1845,47 +1926,34 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
       //
 
       if( universe->debug.trace.loadinfo)
-      {
-         trace_preamble( universe);
-         fprintf( stderr, "loading classes...\n");
-      }
+         mulle_objc_universe_trace( universe,  "loading classes...");
 
       mulle_objc_loadclasslist_enqueue_nofail( info->loadclasslist,
-                                                 need_sort,
-                                                 &loads);
+                                               need_sort,
+                                               &loads,
+                                               universe);
       if( universe->debug.trace.loadinfo)
-      {
-         trace_preamble( universe);
-         fprintf( stderr, "loading categories...\n");
-      }
+         mulle_objc_universe_trace( universe,  "loading categories...");
 
       mulle_objc_loadcategorylist_enqueue_nofail( info->loadcategorylist,
-                                                    need_sort,
-                                                    &loads);
+                                                  need_sort,
+                                                  &loads,
+                                                  universe);
 
       if( universe->debug.trace.loadinfo)
-      {
-         trace_preamble( universe);
-         fprintf( stderr, "performing +load calls...\n");
-      }
+         mulle_objc_universe_trace( universe,  "performing +load calls...");
 
       mulle_objc_callqueue_walk( &loads, (void (*)()) call_load, universe);
       mulle_objc_callqueue_done( &loads);
    }
 
    if( universe->debug.trace.loadinfo)
-   {
-      trace_preamble( universe);
-      fprintf( stderr, "unlocking waitqueues...\n");
-   }
+      mulle_objc_universe_trace( universe, "unlocking waitqueues...");
 
    _mulle_objc_universe_unlock_waitqueues( universe);
 
 
    if( universe->debug.trace.loadinfo)
-   {
-      trace_preamble( universe);
-      fprintf( stderr, "finished with loadinfo %p\n", info);
-   }
+      mulle_objc_universe_trace( universe, "finished with loadinfo %p", info);
 }
 

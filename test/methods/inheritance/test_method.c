@@ -5,9 +5,6 @@
 //  Created by Nat! on 16.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
@@ -37,7 +34,7 @@ void   test_method( void)
    struct _mulle_objc_universe     *universe;
    void                            (*oldfail)( char *, va_list);
 
-   universe = mulle_objc_register_universe();
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
    assert( universe);
 
    rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor);

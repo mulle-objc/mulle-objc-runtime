@@ -46,91 +46,75 @@
 #endif
 
 
-#ifdef __MULLE_OBJC_NO_TRT__
+#pragma mark - default universe (0)
 
 // always returns same value (in same thread)
 MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_universe *
-   mulle_objc_global_get_universe( void)
+   mulle_objc_global_get_defaultuniverse( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
-      struct _mulle_objc_universe   mulle_objc_global_universe;
+      struct _mulle_objc_universe   mulle_objc_defaultuniverse;
 
-   assert( ! _mulle_objc_universe_is_uninitialized( &mulle_objc_global_universe) && "universe not initialized yet");
-   return( &mulle_objc_global_universe);
+   assert( ! _mulle_objc_universe_is_uninitialized( &mulle_objc_defaultuniverse) \
+               && "universe not initialized yet");
+   return( &mulle_objc_defaultuniverse);
 }
 
+// only __mulle_objc_global_get_universe should use this
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_universe  *
+   __mulle_objc_global_get_defaultuniverse( void)
+{
+   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+      struct _mulle_objc_universe   mulle_objc_defaultuniverse;
 
-// only __mulle_objc_get_universe should use this
+   return( &mulle_objc_defaultuniverse);
+}
+
+#pragma mark - named universes
+
+// only __mulle_objc_global_get_universe should use this
 static inline struct _mulle_objc_universe  *
-   __mulle_objc_global_get_universe( void)
+   __mulle_objc_global_lookup_universe( mulle_objc_universeid_t universeid)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
-      struct _mulle_objc_universe   mulle_objc_global_universe;
+      struct mulle_concurrent_hashmap   mulle_objc_universetable;
 
-   return( &mulle_objc_global_universe);
+   return( mulle_concurrent_hashmap_lookup( &mulle_objc_universetable, universeid));
 }
 
 
-static inline int _mulle_objc_universe_is_global( struct _mulle_objc_universe *universe)
+static inline struct _mulle_objc_universe  *
+   mulle_objc_global_lookup_universe( mulle_objc_universeid_t universeid)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
-      struct _mulle_objc_universe   mulle_objc_global_universe;
+      struct mulle_concurrent_hashmap   mulle_objc_universetable;
+   struct _mulle_objc_universe  *universe;
 
-   return( universe == &mulle_objc_global_universe);
+   universe = mulle_concurrent_hashmap_lookup( &mulle_objc_universetable, universeid);
+   assert( ! universe || ! _mulle_objc_universe_is_uninitialized( universe) \
+               && "universe not initialized yet");
+   return( universe);
 }
 
 
-#else
+struct _mulle_objc_universe  *
+   __mulle_objc_global_register_universe( mulle_objc_universeid_t universeid,
+                                          struct _mulle_objc_universe *universe);
 
 
-static inline int _mulle_objc_universe_is_global( struct _mulle_objc_universe *universe)
+MULLE_C_ALWAYS_INLINE static inline int
+   _mulle_objc_universe_is_default( struct _mulle_objc_universe *universe)
 {
-   return( 0);
-}
-
-#endif
-
-
-//
-// this is used by NSAutoreleasePool only
-// to lazily setup a universe thread if missing
-//
-static inline int   mulle_objc_global_is_threadkey_initialized( void)
-{
-   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
-      mulle_thread_tss_t   mulle_objc_threadkey;
-
-   return( mulle_objc_threadkey != (mulle_thread_tss_t) -1);
+   return( universe->universeid == MULLE_OBJC_DEFAULTUNIVERSEID);
 }
 
 
-static inline struct _mulle_objc_threadinfo  *
-   _mulle_objc_thread_get_threadinfo( void)
-{
-   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
-      mulle_thread_tss_t   mulle_objc_threadkey;
-   struct _mulle_objc_threadinfo  *config;
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL long   __mulle_objc_personality_v0;   // no idea what this is used for
 
-   /* if you crash here [^1] */
-   assert( mulle_objc_global_is_threadkey_initialized());
-   config = mulle_thread_tss_get( mulle_objc_threadkey);
-   return( config);
-}
+// useful for the debugger only
+struct _mulle_objc_universe  *__mulle_objc_global_getany_universe( void);
 
-
-// always returns same value (in same thread)
-MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_threadinfo *
-   mulle_objc_thread_get_threadinfo( void)
-{
-   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
-      mulle_thread_tss_t   mulle_objc_threadkey;
-   struct _mulle_objc_threadinfo  *config;
-
-   /* if you crash here [^1] */
-   assert( mulle_objc_global_is_threadkey_initialized());
-   config = mulle_thread_tss_get( mulle_objc_threadkey);
-   assert( config);
-   return( config);
-}
+size_t  __mulle_objc_global_get_alluniverses( struct _mulle_objc_universe **p,
+                                              size_t n);
 
 #endif

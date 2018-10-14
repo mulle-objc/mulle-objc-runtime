@@ -79,7 +79,7 @@ static char   *dot_filename_for_name( char *name, char *directory)
 
 //
 // just don't output stuff with ampersands for now
-// What is this used for ?
+// What is this used for ? (apparently the debugger ?)
 //
 void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list)
 {
@@ -273,23 +273,23 @@ static struct _mulle_objc_htmltablestyle    universe_style =
 
 # pragma mark - walker universe callback
 
-static char  *mulle_objc_loadclasslist_describe_row_html( intptr_t  classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
+static char  *mulle_objc_loadclasslist_describe_row_html( intptr_t classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_pointerarray   *array = value;
 
    return( mulle_concurrent_pointerarray_describe_html( array,
-                                                           mulle_objc_loadclass_describe_row_html,
-                                                           NULL));
+                                                        mulle_objc_loadclass_describe_row_html,
+                                                        NULL));
 }
 
 
-static char  *mulle_objc_loadcategorylist_describe_row_html( intptr_t  classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
+static char  *mulle_objc_loadcategorylist_describe_row_html( intptr_t classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_pointerarray   *array = value;
 
    return( mulle_concurrent_pointerarray_describe_html( array,
-                                                           mulle_objc_loadcategory_describe_row_html,
-                                                           NULL));
+                                                        mulle_objc_loadcategory_describe_row_html,
+                                                        NULL));
 }
 
 
@@ -313,7 +313,12 @@ static void   print_universe( struct _mulle_objc_universe *universe,
    int    i;
 
    label = mulle_objc_universe_describe_html( universe, &universe_style);
-   fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\", URL=\"file:///%s/overview.dot\"  ];\n", universe, label, "component", info->directory);
+   fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\", "
+                      "URL=\"file:///%s/overview.dot\"  ];\n",
+                      universe,
+                      label,
+                      "component",
+                      info->directory);
    free( label);
 
    if( ! info->omit_selectors)
@@ -794,6 +799,7 @@ static mulle_objc_walkcommand_t   callback( struct _mulle_objc_universe *univers
 
 # pragma mark - class dump
 
+
 static void   _mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
                                                  char *directory,
                                                  char *filename)
@@ -848,69 +854,28 @@ static void   mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
 }
 
 
-static void   _mulle_objc_dotdump_classname_to_file( char *classname,
-                                                     char  *directory,
-                                                     char *filename)
+static void   _mulle_objc_class_dotdump_to_directory( struct _mulle_objc_class *cls,
+                                                      char *directory)
 {
-   struct _mulle_objc_universe     *universe;
-   struct _mulle_objc_class        *cls;
-   struct _mulle_objc_infraclass   *infra;
-   mulle_objc_classid_t            classid;
+   char   *path;
 
-   if( ! classname || ! *classname)
-   {
-      fprintf( stderr, "Invalid classname\n");
+   if( ! cls)
       return;
-   }
 
-   universe = mulle_objc_get_universe();
-   classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_universe_fastlookup_infraclass( universe, classid);
-   if( ! infra)
-   {
-      fprintf( stderr, "Class \"%s\" is unknown to the universe\n", classname);
-      return;
-   }
-
-   cls = _mulle_objc_infraclass_as_class( infra);
-   _mulle_objc_class_dotdump_to_file( cls, directory, filename);
+   path = dot_filename_for_name( _mulle_objc_class_get_name( cls), directory);
+   mulle_objc_class_dotdump_to_file( cls, directory, path);
+   mulle_allocator_free( &mulle_stdlib_allocator, path);
 }
 
 
-static void   mulle_objc_dotdump_classname_to_file( char *classname,
-                                                    char *directory,
-                                                    char *filename)
-{
-   _mulle_objc_dotdump_classname_to_file( classname, directory, filename);
-   fprintf( stderr, "Written dot file \"%s\"\n", filename);
-}
-
-
-static void   __mulle_objc_dotdump_classes( void (*dump)( char *, char *, char *),
-                                            char *directory)
-{
-   char                                        *path;
-   intptr_t                                    classid;
-   struct _mulle_objc_infraclass               *infra;
-   struct _mulle_objc_universe                 *universe;
-   struct mulle_concurrent_hashmapenumerator   rover;
-
-   universe = mulle_objc_get_universe();
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
-   {
-      path = dot_filename_for_name( infra->base.name, directory);
-      (*dump)( infra->base.name, directory, path);
-      mulle_allocator_free( &mulle_stdlib_allocator, path);
-   }
-   mulle_concurrent_hashmapenumerator_done( &rover);
-}
 
 # pragma mark - overview dump
 
-static void   _mulle_objc_universe_dotdump_overview( struct _mulle_objc_universe *universe,
-                                                    char *directory,
-                                                    FILE *fp)
+
+static void
+   _mulle_objc_universe_dotdump_overview_to_fp( struct _mulle_objc_universe *universe,
+                                                char *directory,
+                                                FILE *fp)
 {
    struct dump_info   info;
 
@@ -930,12 +895,40 @@ static void   _mulle_objc_universe_dotdump_overview( struct _mulle_objc_universe
 }
 
 
-static void   _mulle_objc_dotdump_overview_to_file( char *directory, char *filename)
-{
-   struct _mulle_objc_universe   *universe;
-   FILE                         *fp;
+#pragma mark - dump universe classes
 
-   universe = mulle_objc_inlineget_universe();
+
+static void   _mulle_objc_universe_dotdump_classes_to_directory( struct _mulle_objc_universe *universe,
+                                                                 char *directory)
+{
+   char                                        *path;
+   intptr_t                                    classid;
+   struct _mulle_objc_infraclass               *infra;
+   struct mulle_concurrent_hashmapenumerator   rover;
+
+   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
+   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+   {
+      path = dot_filename_for_name( infra->base.name, directory);
+      _mulle_objc_class_dotdump_to_file( _mulle_objc_infraclass_as_class( infra),
+                                         directory,
+                                         path);
+      mulle_allocator_free( &mulle_stdlib_allocator, path);
+   }
+   mulle_concurrent_hashmapenumerator_done( &rover);
+}
+
+
+#pragma mark - dump universe overview
+
+
+static void
+   _mulle_objc_universe_dotdump_overview_to_file( struct _mulle_objc_universe *universe,
+                                                  char *directory,
+                                                  char *filename)
+{
+   FILE                          *fp;
+
    if( ! universe)
    {
       fprintf( stderr, "No universe found!\n");
@@ -949,28 +942,30 @@ static void   _mulle_objc_dotdump_overview_to_file( char *directory, char *filen
       return;
    }
 
-   _mulle_objc_universe_dotdump_overview( universe, directory, fp);
+   _mulle_objc_universe_dotdump_overview_to_fp( universe, directory, fp);
    fclose( fp);
 
    fprintf( stderr, "Written dot file \"%s\"\n", filename);
 }
 
 
-static void   _mulle_objc_dotdump_overview( char *directory)
+static void   _mulle_objc_universe_dotdump_overview_to_directory( struct _mulle_objc_universe *universe,
+                                                                  char *directory)
 {
    char   *path;
 
    path = dot_filename_for_name( "overview", directory);
-   _mulle_objc_dotdump_overview_to_file( directory, path);
+   _mulle_objc_universe_dotdump_overview_to_file( universe, directory, path);
    mulle_allocator_free( &mulle_stdlib_allocator, path);
 }
 
 
+
 # pragma mark - universe dump
 
-static void   _mulle_objc_universe_dotdump( struct _mulle_objc_universe *universe,
-                                           char *directory,
-                                           FILE *fp)
+static void   _mulle_objc_universe_dotdump_to_fp( struct _mulle_objc_universe *universe,
+                                                  char *directory,
+                                                  FILE *fp)
 {
    struct dump_info   info;
 
@@ -991,14 +986,13 @@ static void   _mulle_objc_universe_dotdump( struct _mulle_objc_universe *univers
 }
 
 
-static void   mulle_objc_dotdump_universe_to_file( char *directory,
+static void   mulle_objc_universe_dotdump_to_file( struct _mulle_objc_universe *universe,
+                                                   char *directory,
                                                    char *filename,
                                                    int log)
 {
-   struct _mulle_objc_universe   *universe;
-   FILE                         *fp;
+   FILE   *fp;
 
-   universe = mulle_objc_inlineget_universe();
    if( ! universe)
    {
       fprintf( stderr, "No universe found!\n");
@@ -1012,7 +1006,7 @@ static void   mulle_objc_dotdump_universe_to_file( char *directory,
       return;
    }
 
-   _mulle_objc_universe_dotdump( universe, directory, fp);
+   _mulle_objc_universe_dotdump_to_fp( universe, directory, fp);
    fclose( fp);
 
    if( log)
@@ -1020,24 +1014,29 @@ static void   mulle_objc_dotdump_universe_to_file( char *directory,
 }
 
 
-static void   _mulle_objc_dotdump_universe( char *directory, int log)
+static void   _mulle_objc_universe_dotdump_to_directory( struct _mulle_objc_universe *universe,
+                                                         char *directory,
+                                                         int log)
 {
    char   *path;
 
    path = dot_filename_for_name( "universe", directory);
-   mulle_objc_dotdump_universe_to_file( directory, path, log);
+   mulle_objc_universe_dotdump_to_file( universe, directory, path, log);
    mulle_allocator_free( &mulle_stdlib_allocator, path);
 }
 
-# pragma mark - classes dump
 
-static void   _mulle_objc_dotdump_classes( char *directory)
+void   mulle_objc_universe_dotdump_to_directory( struct _mulle_objc_universe *universe,
+                                                 char *directory)
 {
-   __mulle_objc_dotdump_classes( _mulle_objc_dotdump_classname_to_file, directory);
+   _mulle_objc_universe_dotdump_overview_to_directory( universe, directory);
+   _mulle_objc_universe_dotdump_to_directory( universe, directory, 0);
+   _mulle_objc_universe_dotdump_classes_to_directory( universe, directory);
 }
 
 
-static void   _mulle_objc_class_dotdump( struct _mulle_objc_class *cls, char *directory)
+void   mulle_objc_class_dotdump_to_directory( struct _mulle_objc_class *cls,
+                                              char *directory)
 {
    char   *path;
 
@@ -1050,112 +1049,9 @@ static void   _mulle_objc_class_dotdump( struct _mulle_objc_class *cls, char *di
 }
 
 
-static void   _mulle_objc_dotdump_classname( char *classname, char *directory)
-{
-   char   *path;
-
-   path = dot_filename_for_name( classname, directory);
-   mulle_objc_dotdump_classname_to_file( classname, directory, path);
-   mulle_allocator_free( &mulle_stdlib_allocator, path);
-}
-
-
-#pragma mark - dump to /tmp
-
-extern char   *_mulle_objc_get_tmpdir( void);
-
-
-void   mulle_objc_dotdump_overview_to_tmp( void)
-{
-   _mulle_objc_dotdump_overview( _mulle_objc_get_tmpdir());
-}
-
-
-void   mulle_objc_dotdump_universe_to_tmp()
-{
-   _mulle_objc_dotdump_universe( _mulle_objc_get_tmpdir(), 1);
-}
-
-
-void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls)
-{
-   _mulle_objc_class_dotdump( cls, _mulle_objc_get_tmpdir());
-}
-
-
-void   mulle_objc_dotdump_classname_to_tmp( char *classname)
-{
-   _mulle_objc_dotdump_classname( classname, _mulle_objc_get_tmpdir());
-}
-
-
-void   mulle_objc_dotdump_classes_to_tmp( void)
-{
-   __mulle_objc_dotdump_classes( mulle_objc_dotdump_classname_to_file, _mulle_objc_get_tmpdir());
-}
-
-
-#pragma mark - dump to working directory
-
-static char  *get_pwd( void)
-{
-   char   *pwd;
-
-   // don't use OS specifica!
-   pwd = getenv( "PWD");
-   if( ! pwd)
-      pwd = ".";
-   return( pwd);
-}
-
-void   mulle_objc_dotdump_overview( void)
-{
-   _mulle_objc_dotdump_overview( get_pwd());
-}
-
-
-void   mulle_objc_dotdump_universe()
-{
-   _mulle_objc_dotdump_universe( get_pwd(), 1);
-}
-
-
-void   mulle_objc_class_dotdump( struct _mulle_objc_class *cls)
-{
-   char   *path;
-   char   *directory;
-
-   if( ! cls)
-      return;
-
-   directory = get_pwd();
-   path = dot_filename_for_name( _mulle_objc_class_get_name( cls), get_pwd());
-   mulle_objc_class_dotdump_to_file( cls, directory, path);
-   mulle_allocator_free( &mulle_stdlib_allocator, path);
-}
-
-
-void   mulle_objc_dotdump_classname( char *classname)
-{
-   char   *path;
-   char   *directory;
-
-   directory = get_pwd();
-   path = dot_filename_for_name( classname, directory);
-   mulle_objc_dotdump_classname_to_file( classname, directory, path);
-   mulle_allocator_free( &mulle_stdlib_allocator, path);
-}
-
-
-void   mulle_objc_dotdump_classes( void)
-{
-   __mulle_objc_dotdump_classes( mulle_objc_dotdump_classname_to_file, get_pwd());
-}
-
-
-#pragma mark - conveniences
-
-void   mulle_objc_dotdump_universe_frame_to_tmp()
+void
+   mulle_objc_universe_dotdump_frame_to_directory( struct _mulle_objc_universe *universe,
+                                                   char *directory)
 {
    static mulle_atomic_pointer_t   counter;
    auto char                       buf[ 32];
@@ -1164,7 +1060,7 @@ void   mulle_objc_dotdump_universe_frame_to_tmp()
    char                            *s;
 
    nr = (int) (intptr_t) _mulle_atomic_pointer_increment( &counter);
-   s = getenv( "MULLE_OBJC_DOTDUMP_MAX");
+   s  = getenv( "MULLE_OBJC_DOTDUMP_MAX");
    if( s)
    {
       max = atoi( s);
@@ -1172,25 +1068,7 @@ void   mulle_objc_dotdump_universe_frame_to_tmp()
          return;
    }
 
-   sprintf( buf, "/tmp/universe_%06d.dot", nr);
-   mulle_objc_dotdump_universe_to_file( _mulle_objc_get_tmpdir(), buf, 0);
+   sprintf( buf, "universe_%06d.dot", nr);
+   mulle_objc_universe_dotdump_to_file( universe, directory, buf, 0);
 }
 
-
-void   mulle_objc_dotdump( void)
-{
-   char   *pwd;
-
-   pwd = get_pwd();
-   _mulle_objc_dotdump_overview( pwd);
-   _mulle_objc_dotdump_universe( pwd, 0);
-   _mulle_objc_dotdump_classes( pwd);
-}
-
-
-void   mulle_objc_dotdump_to_tmp( void)
-{
-   _mulle_objc_dotdump_overview( _mulle_objc_get_tmpdir());
-   _mulle_objc_dotdump_universe( _mulle_objc_get_tmpdir(), 0);
-   _mulle_objc_dotdump_classes( _mulle_objc_get_tmpdir());
-}

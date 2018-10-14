@@ -32,6 +32,7 @@
 main()
 {
    NSException   *exception;
+
    @try
    {
       printf( "@try\n");

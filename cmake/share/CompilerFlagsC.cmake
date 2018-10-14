@@ -5,23 +5,13 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
-   if( CMAKE_BUILD_STYLE STREQUAL "Debug")
-      if( MULLE_C_COMPILER_ID MATCHES "^(Intel|MSVC|MSVC-Clang|MSVC-MulleClang)$")
-         set( OTHER_C_FLAGS "${OTHER_C_FLAGS} /DDEBUG=1")
-      else()
-         set( OTHER_C_FLAGS "${OTHER_C_FLAGS} -DDEBUG")
-      endif()
-   else()
-      if( MULLE_C_COMPILER_ID MATCHES "^(Intel|MSVC|MSVC-Clang|MSVC-MulleClang)$")
-         set( OTHER_C_FLAGS "${OTHER_C_FLAGS} /DNDEBUG=1")
-      else()
-         set( OTHER_C_FLAGS "${OTHER_C_FLAGS} -DNDEBUG=1")
-      endif()
+   string( TOUPPER "${CMAKE_BUILD_TYPE}" TMP_CONFIGURATION_NAME)
+   add_definitions( "-D${TMP_CONFIGURATION_NAME}" )
+
+   if( NOT TMP_CONFIGURATION_NAME STREQUAL "DEBUG")
+      add_definitions( "-DNDEBUG" )
    endif()
 
    set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OTHER_C_FLAGS} ${UNWANTED_C_WARNINGS}")
    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OTHER_C_FLAGS} ${UNWANTED_C_WARNINGS}")
-
-   include( CompilerFlagsCAux OPTIONAL)
-
 endif()

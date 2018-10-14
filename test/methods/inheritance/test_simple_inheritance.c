@@ -5,7 +5,6 @@
 //  Created by Nat! on 10.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-
 #include "test_simple_inheritance.h"
 
 #include "test_runtime_ids.h"
@@ -19,22 +18,25 @@
 void  create_ABC_classes( struct abc_classes *classes)
 {
    struct _mulle_objc_classpair   *pair;
+   struct _mulle_objc_universe    *universe;
 
-   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
+
+   pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    classes->A_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->A_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_infra);
    assert( classes->A_meta);
 
-   pair = mulle_objc_new_classpair_nofail( B_classid, "B", 0, classes->A_infra);
+   pair = mulle_objc_universe_new_classpair( universe, B_classid, "B", 0, 0, classes->A_infra);
    assert( pair);
    classes->B_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->B_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->B_infra);
    assert( classes->B_meta);
 
-   pair = mulle_objc_new_classpair_nofail( C_classid, "C", 0, classes->B_infra);
+   pair = mulle_objc_universe_new_classpair( universe, C_classid, "C", 0, 0, classes->B_infra);
    assert( pair);
    classes->C_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->C_meta  = _mulle_objc_classpair_get_metaclass( pair);
@@ -45,9 +47,13 @@ void  create_ABC_classes( struct abc_classes *classes)
 
 void  add_ABC_classes( struct abc_classes *classes)
 {
-   mulle_objc_add_infraclass_nofail( classes->A_infra);
-   mulle_objc_add_infraclass_nofail( classes->B_infra);
-   mulle_objc_add_infraclass_nofail( classes->C_infra);
+   struct _mulle_objc_universe    *universe;
+
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
+
+   mulle_objc_universe_add_infraclass_nofail( universe, classes->A_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, classes->B_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, classes->C_infra);
 }
 
 
@@ -165,7 +171,7 @@ void   add_simple_methods( struct abc_classes  *classes)
    int   rval;
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_register_universe();
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
    mulle_objc_infraclass_add_methodlist_nofail( classes->A_infra, &A_i_list);
    mulle_objc_metaclass_add_methodlist_nofail( classes->A_meta, &universe->empty_methodlist);

@@ -24,10 +24,10 @@ The non-inlining variant of sending a message to an object (calling an objects m
 `obj` must be a pointer to a valid object or NULL.
 
 
-### `mulle_objc_object_partialinlinecall_constantmethodid`
+### `mulle_objc_object_partialinlinecall`
 
 ```
-void  *mulle_objc_object_partialinlinecall_constantmethodid( void *obj,
+void  *mulle_objc_object_partialinlinecall( void *obj,
                                                              mulle_objc_methodid_t methodid,
                                                              void *parameter)
 ```
@@ -36,14 +36,14 @@ This is an optimized variant of `mulle_objc_object_call` in cases, where
 `methodid` is a known constant. The compiler uses this method when optimizing
 with -O1.
 
-Right: `mulle_objc_object_partialinlinecall_constantmethodid( self, 0x1848, NULL)`,
-Wrong: `mulle_objc_object_partialinlinecall_constantmethodid( self, _cmd, NULL)
+Right: `mulle_objc_object_partialinlinecall( self, 0x1848, NULL)`,
+Wrong: `mulle_objc_object_partialinlinecall( self, _cmd, NULL)
 
 
-### `mulle_objc_object_inlinecall_constantmethodid`
+### `mulle_objc_object_inlinecall`
 
 ```
-void  *mulle_objc_object_inlinecall_constantmethodid( void *obj,
+void  *mulle_objc_object_inlinecall( void *obj,
                                                       mulle_objc_methodid_t methodid,
                                                       void *parameter)
 ```
@@ -53,8 +53,8 @@ where `methodid` is a known constant. The compiler uses this method when
 optimized with -O2 and up. Frequent use of this function can increase the size
 of your executable by quite a bit.
 
-Right: `mulle_objc_object_inlinecall_constantmethodid( self, 0x1848, NULL)`,
-Wrong: `mulle_objc_object_inlinecall_constantmethodid( self, _cmd, NULL)
+Right: `mulle_objc_object_inlinecall( self, 0x1848, NULL)`,
+Wrong: `mulle_objc_object_inlinecall( self, _cmd, NULL)
 
 
 ### `mulle_objc_object_call_classid`

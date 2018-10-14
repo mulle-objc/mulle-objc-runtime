@@ -5,10 +5,6 @@
 //  Created by Nat! on 13.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
-
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 #include "test_runtime_ids.h"
@@ -46,9 +42,9 @@ void   test_message_sending()
    unsigned int                           i;
    void                                   *rval;
 
-   universe    = mulle_objc_register_universe();
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
-   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
+   pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    A_infra = _mulle_objc_classpair_get_infraclass( pair);
    A_meta  = _mulle_objc_classpair_get_metaclass( pair);
@@ -60,7 +56,7 @@ void   test_message_sending()
 
    srand( 0x1848);
 
-   methodlist = mulle_objc_alloc_methodlist( 1000);
+   methodlist = mulle_objc_universe_alloc_methodlist( universe, 1000);
 
    // create 1000 methods names, unlikely that their are duplicates
    for( i = 0; i < 1000; i++)
@@ -91,7 +87,7 @@ void   test_message_sending()
    mulle_objc_metaclass_add_methodlist_nofail( A_meta, NULL);
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
-   mulle_objc_add_infraclass_nofail( A_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
 
    A_obj = mulle_objc_infraclass_alloc_instance( A_infra);
    A_cls = _mulle_objc_infraclass_as_class( A_infra);

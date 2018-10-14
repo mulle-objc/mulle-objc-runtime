@@ -44,7 +44,7 @@
 
 enum _mulle_objc_metaclass_state
 {
-   MULLE_OBJC_METACLASS_LOAD_SCHEDULED  = _MULLE_OBJC_CLASS_LOAD_SCHEDULED, // only if a class +load existed
+   MULLE_OBJC_METACLASS_LOAD_SCHEDULED  = _MULLE_OBJC_CLASS_LOAD_SCHEDULED,
    MULLE_OBJC_METACLASS_INITIALIZE_DONE = MULLE_OBJC_CLASS_INITIALIZE_DONE,
    MULLE_OBJC_METACLASS_INITIALIZING    = MULLE_OBJC_CLASS_INITIALIZING
 };
@@ -156,7 +156,7 @@ static inline mulle_objc_implementation_t
 
 
 static inline void   mulle_objc_metaclass_add_methodlist_nofail( struct _mulle_objc_metaclass *meta,
-                                                                    struct _mulle_objc_methodlist *list)
+                                                                struct _mulle_objc_methodlist *list)
 {
    extern void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                             struct _mulle_objc_methodlist *list);

@@ -3,7 +3,8 @@
 
 int   main( int argc, char *argv[])
 {
-   mulle_objc_check_universe();
+   if( mulle_objc_global_check_universe( __MULLE_OBJC_UNIVERSENAME__) != mulle_objc_universe_is_ok)
+      return( 1);
    // just look for +load output
    return( 0);
 }

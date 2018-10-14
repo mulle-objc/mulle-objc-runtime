@@ -9,41 +9,37 @@ most efficient setup.
 
 ![global setup](global_universe.png)
 
-But the universe library can also be compiled with `-D__MULLE_OBJC_TRT__` so
-that each thread has its own universe.
+But the universe library can also be compiled with `-fobjc-universename=<universename>`
+so that multiple universes with different class hierarchies can coexist
+(but not message each other).
 
 This could be beneficial for plugins that get dynamically loaded and unloaded
 (e.g. Apache Web Server)
 
-![thread local setup](thread_local_universe.png)
+There is a limitation. Only the global universe can be compiled with TPS (tagged pointer support).
 
-> **Warning:** The thread local setup hasn't been tested much.
->
-> If you do this and use `mulle_objc_inlineget_universe`, all Objective-C
-> code must be compiled with `-D__MULLE_OBJC_TRT__`.
->
 
 
 ## Functions
 
 
-### `mulle_objc_get_universe`
+### `mulle_objc_global_get_universe`
 
 ```
-struct _mulle_objc_universe  *mulle_objc_get_universe( void);
+struct _mulle_objc_universe  *mulle_objc_global_get_universe( void);
 ```
 
 Returns the universe for the current thread. If this thread has no universe
 associated with it, this function may crash.
 
 
-### `mulle_objc_inlineget_universe`
+### `mulle_objc_global_inlineget_universe`
 
 ```
-struct _mulle_objc_universe  * mulle_objc_inlineget_universe( void);
+struct _mulle_objc_universe  * mulle_objc_global_inlineget_universe( void);
 ```
 
-A slightly faster version of above `mulle_objc_get_universe`. If you use it you
+A slightly faster version of above `mulle_objc_global_get_universe`. If you use it you
 should be aware that your compiled code is committed to using either the global
 or the thread local universe scheme.
 
@@ -65,7 +61,7 @@ other.
 
 Parametername       |  Description
 --------------------|----------------------
-`universe`          | Pointer to the universe, must not be NULL. Use `__register_mulle_objc_universe` (not `mulle_objc_get_universe`) to get the proper one for your thread
+`universe`          | Pointer to the universe, must not be NULL. Use `__register_mulle_objc_universe` (not `mulle_objc_global_get_universe`) to get the proper one for your thread
 `classid`           | Compute the `classid` from `name` with `mulle_objc_classid_from_string`
 `name`              | The name of the class, this must be a non-empty ASCII string. This string is not copied. It must remain alive for the duration of the class's existence.
 `instance_size`     | The space needed for instance variables (don't add the header size)
@@ -97,10 +93,10 @@ struct _mulle_objc_class       *cls;
 char                           *name;
 mulle_objc_classid_t           classid;
 
-universe =  __register_mulle_objc_universe();
+universe =  __register_mulle_objc_universe( MULLE_OBJC_UNIVERSEID, NULL);
 name    = "Foo";
 classid = mulle_objc_classid_from_string( name);
-pair    = mulle_objc_universe_new_classpair( universe, classid, name, 0, NULL);
+pair    = mulle_objc_universe_new_classpair( universe, classid, name, 0, 0, NULL);
 cls     = mulle_objc_classpair_get_infraclass( pair);
 mulle_objc_universe_add_class( universe, cls);
 ```

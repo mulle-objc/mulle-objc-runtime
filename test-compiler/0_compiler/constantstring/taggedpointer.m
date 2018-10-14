@@ -202,7 +202,7 @@ main()
    struct _mulle_objc_universe  *universe;
    struct _mulle_objc_class     *cls;
 
-   universe = mulle_objc_get_universe();
+   universe = mulle_objc_global_get_universe( 0);
    cls      = [SomeString class];
    _mulle_objc_universe_set_staticstringclass( universe, cls);
 

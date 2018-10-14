@@ -26,7 +26,7 @@ except where indicated otherwise.
 
 ### `mulle_objc_class_add_methodlist`
 
-```
+```c
 int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
                                        struct _mulle_objc_methodlist *list)
 ```
@@ -47,7 +47,7 @@ Add `protocolid` to class `cls`. The protocolid should be added to the infraclas
 
 ### `mulle_objc_infraclass_is_protocol_class`
 
-```
+```c
 int  mulle_objc_infraclass_is_protocol_class( struct _mulle_objc_infraclass *cls);
 ```
 
@@ -60,7 +60,7 @@ classid (which means both names are the same)
 
 Example:
 
-```
+```objc
 @protocol Foo
 @end
 
@@ -70,7 +70,7 @@ Example:
 
 ### `mulle_objc_class_get_superclass`
 
-```
+```c
 struct _mulle_objc_class   *mulle_objc_class_get_superclass( struct _mulle_objc_class *cls)
 ```
 
@@ -79,7 +79,7 @@ Return the superclass of `cls`. If `cls` is a root class, it will return NULL.
 
 ### `mulle_objc_class_get_classid`
 
-```
+```c
 mulle_objc_classid_t   mulle_objc_class_get_classid( struct _mulle_objc_class *cls)
 ```
 
@@ -90,7 +90,7 @@ name of the class.
 
 ### `mulle_objc_class_get_name`
 
-```
+```c
 char   *mulle_objc_class_get_name( struct _mulle_objc_class *cls)
 ```
 
@@ -99,7 +99,7 @@ Get the name of the class.
 
 ### `mulle_objc_class_get_runtime`
 
-```
+```c
 struct _mulle_objc_runtime   *mulle_objc_class_get_runtime( struct _mulle_objc_class *cls)
 ```
 
@@ -110,7 +110,7 @@ getting access to the runtime pointer.
 
 ### `mulle_objc_class_get_instance_size`
 
-```
+```c
 size_t   mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
 ```
 
@@ -122,7 +122,7 @@ A class with no instance variables with return 0.
 
 Example:
 
-```
+```c
 cls = mulle_objc_object_get_class( obj);
 printf( "Instance size: %ld\n", (long) mulle_objc_class_get_instance_size( cls));
 ```
@@ -130,14 +130,14 @@ printf( "Instance size: %ld\n", (long) mulle_objc_class_get_instance_size( cls))
 
 ### `mulle_objc_class_get_inheritance`
 
-```
+```c
 unsigned int   mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
 ```
 
 Returns the way **methods** are inherited from superclasses and categories.
 The returned value is a combination of the following bits:
 
-```
+```c
 enum
 {
    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS          = 0x01,
@@ -151,7 +151,7 @@ Returns ~0 (all unsigned int bits set) if `cls` is NULL.
 
 ### `mulle_objc_class_get_forwardmethod`
 
-```
+```c
 struct _mulle_objc_method   *mulle_objc_class_get_forwardmethod( struct _mulle_objc_class *cls)
 ```
 
@@ -162,7 +162,7 @@ is called.
 
 ### `mulle_objc_class_is_infraclass`
 
-```
+```c
 int   mulle_objc_class_is_infraclass( struct _mulle_objc_class *cls)
 ```
 
@@ -172,7 +172,7 @@ call `mulle_objc_object_get_class`.
 
 ### `mulle_objc_class_is_metaclass`
 
-```
+```c
 int   mulle_objc_class_is_metaclass( struct _mulle_objc_class *cls)
 ```
 
@@ -181,7 +181,7 @@ Returns 1 if `cls` is a metaclass.
 
 ### `mulle_objc_class_get_infraclass`
 
-```
+```c
 struct _mulle_objc_class   *mulle_objc_class_get_infraclass( struct _mulle_objc_class *cls)
 ```
 
@@ -190,7 +190,7 @@ Given any class of a classpair, returns the infraclass.
 
 ### `mulle_objc_class_get_metaclass`
 
-```
+```c
 struct _mulle_objc_class   *mulle_objc_class_get_metaclass( struct _mulle_objc_class *cls)
 ```
 
@@ -199,7 +199,7 @@ Given any class of a classpair, returns the metaclass.
 
 ### `mulle_objc_class_conformsto_protocol`
 
-```
+```c
 int   mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid)
 ```
 
@@ -211,7 +211,7 @@ off the metaclass and the infraclass with the same result.  You can get the
 
 ### `mulle_objc_class_search_property`
 
-```
+```c
 struct _mulle_objc_property  *mulle_objc_class_search_property(
                                  struct _mulle_objc_class *cls,
                                  mulle_objc_propertyid_t propertyid);
@@ -224,7 +224,7 @@ returned property can then be used for further introspection.
 
 ### `mulle_objc_class_search_ivar`
 
-```
+```c
 struct _mulle_objc_ivar  *mulle_objc_class_search_ivar( struct _mulle_objc_class *cls,
                                                         mulle_objc_ivarid_t ivarid);
 ```

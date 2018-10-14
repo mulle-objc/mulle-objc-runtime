@@ -49,17 +49,15 @@
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   13
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   14
 
 
 #ifndef __TEST_VERSION
 
 // #define __MULLE_OBJC_TPS__
 // //#define __MULLE_OBJC_NO_TPS__
-// #define __MULLE_OBJC_FMC__
-// //#define __MULLE_OBJC_NO_FMC__
-// // #define __MULLE_OBJC_TRT__
-// #define __MULLE_OBJC_NO_TRT__
+// #define __MULLE_OBJC_FCS__
+// //#define __MULLE_OBJC_NO_FCS__
 
 
 //
@@ -75,17 +73,18 @@ typedef int    mulle_objc_uniqueid_t;  // ** MUST BE 32 bit (on the stack) **
 
 
 static inline struct _mulle_objc_infraclass *
-   mulle_objc_inlinefastlookup_infraclass_nofail( mulle_objc_uniqueid_t classid)
+   mulle_objc_inlinelookup_infraclass_nofail( mulle_objc_uniqueid_t universeid,
+                                              mulle_objc_uniqueid_t classid)
 {
 	extern struct _mulle_objc_infraclass *
-		mulle_objc_fastlookup_infraclass_nofail( mulle_objc_uniqueid_t classid);
+		mulle_objc_lookup_infraclass_nofail( mulle_objc_uniqueid_t universeid, mulle_objc_uniqueid_t classid);
 
-   return( mulle_objc_fastlookup_infraclass_nofail( classid));
+   return( mulle_objc_lookup_infraclass_nofail( universeid, classid));
 }
 
 
 static inline void  *
-	mulle_objc_object_inlinecall_constantmethodid( void *obj,
+	mulle_objc_object_inlinecall( void *obj,
                                                  mulle_objc_uniqueid_t methodid,
                                                  void *parameter)
 {
@@ -132,13 +131,13 @@ static inline void   mulle_objc_object_inlinerelease( void *obj)
 /*
 -O1
 
-    mulle_objc_inlinefastlookup_infraclass_nofail
-    mulle_objc_object_partialinlinecall_constantmethodid
+    mulle_objc_lookup_infraclass_nofail
+    mulle_objc_object_partialinlinecall
     _mulle_objc_object_partialinlinesupercall
 */
 
 static inline void  *
-	mulle_objc_object_partialinlinecall_constantmethodid( void *obj,
+	mulle_objc_object_partialinlinecall( void *obj,
                                              mulle_objc_uniqueid_t methodid,
                                              void *parameter)
 {
