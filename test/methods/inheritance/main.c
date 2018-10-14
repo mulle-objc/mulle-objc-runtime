@@ -11,12 +11,8 @@
 #undef NDEBUG
 #endif
 
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
-
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-#include <mulle-test-allocator/mulle-test-allocator.h>
+#include <mulle-testallocator/mulle-testallocator.h>
 
 #include "test_simple_inheritance.h"
 #include "pointerarray.h"
@@ -57,9 +53,9 @@ static void   reset_universe()
 {
    struct _mulle_objc_universe   *universe;
 
-   mulle_objc_release_universe();
+   mulle_objc_global_release_defaultuniverse();
 
-   universe = mulle_objc_register_universe();
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
    // tests were written at an earlier time...
    universe->classdefaults.inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
@@ -113,8 +109,10 @@ int main( int argc, const char * argv[])
    test_message_forwarding2();
    reset_universe();
 
-   fprintf( stderr, "retain_releas\n");
+   fprintf( stderr, "retain_release\n");
    test_retain_release();
+
+   fprintf( stderr, "cleanup\n");
 
    reset_universe();
 

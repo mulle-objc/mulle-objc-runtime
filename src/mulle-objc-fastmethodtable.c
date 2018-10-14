@@ -35,7 +35,7 @@
 //
 #include "mulle-objc-fastmethodtable.h"
 
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
 
 #include "mulle-objc-call.h"
 #include "mulle-objc-class.h"

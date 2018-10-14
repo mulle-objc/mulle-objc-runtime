@@ -59,38 +59,33 @@ Like a lesser variation of traces, either prints just once or modified a trace.
 
 ## Dumps
 
-You can dump the runtime in HTML or [Graphviz](//www.graphviz.org/) format to the filesystem. The Graphviz format is graphical whereas zhe HTML format is text only.
+You can dump the runtime in HTML or [Graphviz](//www.graphviz.org/) format to
+the filesystem. The Graphviz format is graphical whereas the HTML format is
+text only.
 
 
-### `mulle_objc_htmldump_runtime_to_tmp`
-
-```
-void   mulle_objc_htmldump_runtime_to_tmp( void);
-```
-
-Use `mulle_objc_htmldump_runtime_to_tmp` to dump the current runtime
-system to "/tmp/" as HTML files. It will produce a lot of files.
-
-
-### `mulle_objc_dotdump_runtime_to_tmp`
+### `mulle_objc_universe_htmldump_to_directory`
 
 ```
-void   mulle_objc_dotdump_runtime_to_tmp( void)
+void mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *u,
+                                                char *directory);
 ```
 
-Use `mulle_objc_dotdump_runtime_to_tmp` to dump the current runtime
-system into a `.dot` file. Then maybe convert the .dot file into PDF with
+Use `mulle_objc_universe_htmldump_to_directory` to dump a universe to any
+directory as HTML files. It will produce a lot of files, detailing all the
+classes, protocols and so forth.
+
+
+### `mulle_objc_universe_dotdump_to_directory`
+
+```
+void  mulle_objc_universe_dotdump_to_directory( struct _mulle_objc_universe *u,
+                                                char *directory);
+```
+
+Use `mulle_objc_universe_dotdump_to_directory` to dump a universe into `.dot`
+files. Then maybe convert the .dot files into PDF with
 `dot -Tpdf debug.dot -o debug.pdf`.
-
-
-### `mulle_objc_dotdump_classname_to_tmp`
-
-```
-void   mulle_objc_dotdump_classname_to_tmp( char *s)
-```
-
-Use `mulle_objc_dotdump_classname_to_tmp` to dump a class into a `.dot` file. Then maybe convert the .dot file into SVG with `dot -Tsvg debug.dot -o debug.dvg`.
-
 
 
 # Debugging the mulle-objc runtime itself

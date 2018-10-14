@@ -213,7 +213,7 @@ static FILE  *open_and_print_start( char *name, char *title)
    if( ! fp)
    {
       perror( "fopen");
-      abort();
+   	return( fp);
    }
 
    cssurl = getenv( "MULLE_OBJC_CSS_URL");
@@ -391,9 +391,11 @@ static void   print_universe( struct _mulle_objc_universe *universe,
    path = filename_for_universe( universe, directory);
 
    fp = open_and_print_start( path, "universe");
-   _print_universe( universe, fp);
-   print_end_and_close( fp);
-
+   if( fp)
+   {
+   	_print_universe( universe, fp);
+   	print_end_and_close( fp);
+	}
    mulle_allocator_free( &mulle_stdlib_allocator, path);
 }
 
@@ -619,9 +621,11 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra, char *dire
    path = html_filename_for_name( infra->base.name, directory);
 
    fp = open_and_print_start( path, infra->base.name);
-   _print_infraclass( infra, fp);
-   print_end_and_close( fp);
-
+   if( fp)
+   {
+   	_print_infraclass( infra, fp);
+   	print_end_and_close( fp);
+   }
    mulle_allocator_free( &mulle_stdlib_allocator, path);
 }
 
@@ -679,8 +683,9 @@ static mulle_objc_walkcommand_t   callback( struct _mulle_objc_universe *univers
 
 # pragma mark - universe dump
 
-void   mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *universe,
-                                                  char *directory)
+void
+   mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *universe,
+                                              char *directory)
 {
    struct dump_info  info;
 
@@ -695,19 +700,12 @@ void   mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *u
 }
 
 
-void   mulle_objc_htmldump_universe_to_directory( char *directory)
-{
-   struct _mulle_objc_universe   *universe;
-
-   universe = mulle_objc_get_universe();
-   mulle_objc_universe_htmldump_to_directory( universe, directory);
-}
-
 
 #pragma mark - class dump
 
-void   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
-                                                   char *directory)
+void
+   mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
+                                               char *directory)
 {
    struct dump_info               info;
 
@@ -736,96 +734,35 @@ void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
 }
 
 
-void   mulle_objc_htmldump_classname_to_directory( char *classname, char *directory)
-{
-   struct _mulle_objc_universe     *universe;
-   struct _mulle_objc_class       *cls;
-   struct _mulle_objc_infraclass  *infra;
-   mulle_objc_classid_t           classid;
 
-   if( ! classname || ! *classname)
-   {
-      fprintf( stderr, "Invalid classname\n");
-      return;
-   }
-
-   universe = mulle_objc_get_universe();
-   classid = mulle_objc_classid_from_string( classname);
-   infra   = _mulle_objc_universe_lookup_infraclass( universe, classid);
-   if( ! infra)
-   {
-      fprintf( stderr, "Class \"%s\" is unknown to the universe\n", classname);
-      return;
-   }
-
-   cls = _mulle_objc_infraclass_as_class( infra);
-   mulle_objc_class_htmldump_to_directory( cls, directory);
-}
-
-#pragma mark - dump to /tmp
-
-
-char   *_mulle_objc_get_tmpdir( void);
-
-char   *_mulle_objc_get_tmpdir( void)
-{
-   char  *s;
-
-   s = getenv( "TMPDIR");
-   if( s)
-      return( s);
-   s = getenv( "TMP");
-   if( s)
-      return( s);
-   s = getenv( "TEMP");
-   if( s)
-      return( s);
-   s = getenv( "TEMPDIR");
-   if( s)
-      return( s);
-
-#ifdef _WIN32
-   return( ".");
-#else
-   return( "/tmp");
-#endif
-}
-
-
-void   mulle_objc_class_htmldump_to_tmp( struct _mulle_objc_class *cls)
-{
-   mulle_objc_class_htmldump_to_directory( cls, _mulle_objc_get_tmpdir());
-}
-
-
-void   mulle_objc_htmldump_classname_to_tmp( char *classname)
-{
-   mulle_objc_htmldump_classname_to_directory( classname, _mulle_objc_get_tmpdir());
-}
-
-
-// we have no mkdir, chdir getcwd just
-void   mulle_objc_htmldump_universe_to_tmp( void)
-{
-   mulle_objc_htmldump_universe_to_directory( _mulle_objc_get_tmpdir());
-}
-
-
-#pragma mark - dump to working directory
-
-void   mulle_objc_htmldump_universe( void)
-{
-   mulle_objc_htmldump_universe_to_directory( ".");
-}
-
-
-void   mulle_objc_class_htmldump( struct _mulle_objc_class *cls)
-{
-   mulle_objc_class_htmldump_to_directory( cls, ".");
-}
-
-
-void   mulle_objc_htmldump_classname( char *classname)
-{
-   mulle_objc_htmldump_classname_to_directory( classname, ".");
-}
+// void   mulle_objc_htmldump_universes_to_directory( char *directory)
+// {
+//    struct _mulle_objc_universe   *universe;
+//    size_t                        n_universes;
+//
+//    n_universes = __mulle_objc_global_get_alluniverses( NULL, 0);
+//    {
+//       struct _mulle_objc_universe   *universes[ n_universes];
+//       struct _mulle_objc_universe   **p;
+//       struct _mulle_objc_universe   **sentinel;
+//
+//
+//       _mulle_objc_global_get_alluniverses( universes, n_universes);
+//
+//       p        = universes;
+//       sentinel = &p[ n_universes];
+//       while( p < sentinel)
+//       {
+//          universe = *p;
+//          if( universe)
+//          {
+//             if( ! _mulle_objc_universe_is_default( universe))
+//             {
+//
+//             }
+//             mulle_objc_universe_htmldump_to_directory( universe, directory);
+//          }
+//          ++p;
+//       }
+//    }
+// }

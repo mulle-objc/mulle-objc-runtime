@@ -41,53 +41,53 @@
 // these functions vector throught the universe,
 // usually into a Foundation
 //
-static void   objc_exception_throw( void *exception)  // familar name
+static void   objc_exception_throw( void *exception, struct _mulle_objc_universe *universe)  // familar name
 {
-   struct _mulle_objc_universe   *universe;
-
-   universe = mulle_objc_inlineget_universe();
    universe->exceptionvectors.throw( universe, exception);
 }
 
 
-void   mulle_objc_exception_throw( void *exception)
-{
-   objc_exception_throw( exception);
-}
-
-
-void   mulle_objc_exception_tryenter( void *localExceptionData)
+void   mulle_objc_exception_throw( void *exception, mulle_objc_classid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlineget_universe();
+   universe = mulle_objc_global_inlineget_universe( universeid);
+   objc_exception_throw( exception, universe);
+}
+
+
+void   mulle_objc_exception_tryenter( void *localExceptionData, mulle_objc_classid_t universeid)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = mulle_objc_global_inlineget_universe( universeid);
    universe->exceptionvectors.try_enter( universe, localExceptionData);
 }
 
 
-void   mulle_objc_exception_tryexit( void *localExceptionData)
+void   mulle_objc_exception_tryexit( void *localExceptionData, mulle_objc_classid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlineget_universe();
+   universe = mulle_objc_global_inlineget_universe( universeid);
    universe->exceptionvectors.try_exit( universe, localExceptionData);
 }
 
 
-void   *mulle_objc_exception_extract( void *localExceptionData)
+void   *mulle_objc_exception_extract( void *localExceptionData, mulle_objc_classid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlineget_universe();
+   universe = mulle_objc_global_inlineget_universe( universeid);
    return( universe->exceptionvectors.extract( universe, localExceptionData));
 }
 
 
-int   _mulle_objc_exception_match( mulle_objc_classid_t classid, void *exception)
+int   _mulle_objc_exception_match( void *exception, mulle_objc_classid_t universeid, mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_inlineget_universe();
+   universe = mulle_objc_global_inlineget_universe( universeid);
    return( universe->exceptionvectors.match( universe, classid, exception));
 }
 

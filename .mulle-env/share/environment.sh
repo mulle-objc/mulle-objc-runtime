@@ -1,7 +1,7 @@
 #######
 ### none startup
 #######
-[ "${TRACE}" = "YES" -o "${ENVIRONMENT_SH_TRACE}" = "YES" ] && set -x  && : "$0" "$@"
+[ "${TRACE}" = 'YES' -o "${ENVIRONMENT_SH_TRACE}" = 'YES' ] && set -x  && : "$0" "$@"
 
 #
 # If mulle-env is broken, sometimes its nice just to source this file.

@@ -74,11 +74,11 @@ union _mulle_objc_uniqueidarraypointer_t
 #if ! defined(__LITTLE_ENDIAN__) && ! defined(__BIG_ENDIAN__)
 # if defined( __BYTE_ORDER__) && defined( __ORDER_LITTLE_ENDIAN__) && defined( __ORDER_LITTLE_ENDIAN__)
 #  if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#   define __LITTLE_ENDIAN__  1
-#   define __BIG_ENDIAN__     0
-#  else
 #   define __LITTLE_ENDIAN__  0
 #   define __BIG_ENDIAN__     1
+#  else
+#   define __LITTLE_ENDIAN__  1
+#   define __BIG_ENDIAN__     0
 #  endif
 # else
 #  if defined( __LITTE_ENDIAN__) && defined( __BIG_ENDIAN__)
@@ -96,9 +96,12 @@ union _mulle_objc_uniqueidarraypointer_t
 
 #define s_mulle_objc_sprintf_functionpointer_buffer (2 + sizeof( mulle_functionpointer_t) * 2 + 1)
 
+//
 // TODO: would be nice to skip empty leading zeroes
-
-static inline void   mulle_objc_sprintf_functionpointer( char *buf, mulle_functionpointer_t fp)
+// Why is this inline ?
+//
+static inline void   mulle_objc_sprintf_functionpointer( char *buf,
+                                                         mulle_functionpointer_t fp)
 {
    uint8_t   *p;
    uint8_t   *sentinel;

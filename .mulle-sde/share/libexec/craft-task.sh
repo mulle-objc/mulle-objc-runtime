@@ -44,7 +44,7 @@ craft_task_run()
    # remove running test jobs, as they are invalid now
    # but only if we restart them
    #
-   if [ "${MULLE_SDE_TEST_AFTER_CRAFT}" = "YES" ]
+   if [ "${MULLE_SDE_TEST_AFTER_CRAFT}" = 'YES' ]
    then
       remove_task_job "test"
    fi
@@ -56,7 +56,7 @@ craft_task_run()
       return 1
    fi
 
-   if [ "${MULLE_SDE_TEST_AFTER_CRAFT}" = "YES" ]
+   if [ "${MULLE_SDE_TEST_AFTER_CRAFT}" = 'YES' ]
    then
       run_task_main "test"
    fi

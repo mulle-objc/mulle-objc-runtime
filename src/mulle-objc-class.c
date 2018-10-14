@@ -100,12 +100,13 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
    if( universe->debug.trace.state_bit)
    {
       bitname = lookup_bitname( bit);
-      fprintf( stderr, "mulle_objc_universe %p trace: %s %08x \"%s\" (%p) "
-                       "gained the 0x%x bit (%s)\n",
-                       universe, _mulle_objc_class_get_classtypename( cls),
-                       cls->classid, cls->name,
-                       cls,
-                       bit, bitname ? bitname : "???");
+      mulle_objc_universe_trace( universe,
+                                 "%s %08x \"%s\" (%p) "
+                                 "gained the 0x%x bit (%s)",
+                                 _mulle_objc_class_get_classtypename( cls),
+                                 cls->classid, cls->name,
+                                 cls,
+                                 bit, bitname ? bitname : "???");
    }
    return( 1);
 }
@@ -155,7 +156,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 
    _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &universe->memory.allocator);
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    _mulle_objc_fastmethodtable_init( &cls->vtab);
 #endif
 }
@@ -169,7 +170,7 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
    assert( cls);
    assert( allocator);
 
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
    _mulle_objc_fastmethodtable_done( &cls->vtab);
 #endif
    _mulle_concurrent_pointerarray_done( &cls->methodlists);
@@ -489,7 +490,7 @@ void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                  struct _mulle_objc_methodlist *list)
 {
    if( mulle_objc_class_add_methodlist( cls, list))
-      _mulle_objc_universe_raise_errno_exception( cls->universe);
+      mulle_objc_universe_fail_errno( cls->universe);
 }
 
 

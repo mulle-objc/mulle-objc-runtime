@@ -102,7 +102,9 @@ int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *queue,
       errno = EINVAL;
       return( -1);
    }
-   entry = _mulle_allocator_calloc( queue->list.allocator, 1, sizeof( struct _queue_entry));
+   entry = _mulle_allocator_calloc( queue->list.allocator,
+                                    1,
+                                    sizeof( struct _queue_entry));
 
    queue_entry_set( entry, obj, methodid, imp);
    _mulle_concurrent_pointerarray_add( &queue->list, entry);
@@ -123,12 +125,13 @@ void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *queue)
 }
 
 
-void   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
-                                  void (*callback)( struct _mulle_objc_object *obj,
-                                                    mulle_objc_methodid_t methodid,
-                                                    mulle_objc_implementation_t imp,
-                                                    void *userinfo),
-                                  void *userinfo)
+void
+   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
+                              void (*callback)( struct _mulle_objc_object *obj,
+                                                mulle_objc_methodid_t methodid,
+                                                mulle_objc_implementation_t imp,
+                                                void *userinfo),
+                              void *userinfo)
 {
    struct mulle_concurrent_pointerarrayenumerator   rover;
    struct _queue_entry                              *entry;

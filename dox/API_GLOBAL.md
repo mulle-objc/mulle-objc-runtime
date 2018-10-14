@@ -109,7 +109,7 @@ thread you must call `mulle_objc_unregister_current_thread`.
 ### `mulle_objc_register_current_thread`
 
 ```
-void   mulle_objc_register_current_thread( void)
+void   mulle_objc_register_current_thread( mulle_objc_universeid_t universeid)
 ```
 
 Register the current thread in the global runtime. If you are using multiple
@@ -119,7 +119,7 @@ runtimes, check the source code for more details.
 ### `mulle_objc_unregister_current_thread`
 
 ```
-void   mulle_objc_unregister_current_thread( void)
+void   mulle_objc_unregister_current_thread( mulle_objc_universeid_t universeid)
 ```
 
 Unregister the current thread from the global runtime. Do not access the
@@ -131,7 +131,7 @@ runtime or any of its classes or objects afterwards.
 ### `mulle_objc_checkin_current_thread`
 
 ```
-void   mulle_objc_checkin_current_thread( void)
+void   mulle_objc_checkin_current_thread( mulle_objc_universeid_t universeid)
 ```
 
 Check in the current thread. Failing to do this often enough can result in

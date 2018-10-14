@@ -49,20 +49,28 @@
 #if defined( __MULLE_OBJC_TPS__) && defined( __MULLE_OBJC_NO_TPS__)
 # error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_TPS__ and __MULLE_OBJC_NO_TPS__)"
 #endif
+#if ! defined( __MULLE_OBJC_FCS__) && ! defined( __MULLE_OBJC_NO_FCS__)
+# error "Use the mulle-clang 7.0.0.0 (or newer) compiler to compile mulle-objc code (or define either __MULLE_OBJC_FCS__ or __MULLE_OBJC_NO_FCS__)"
+#endif
+#if defined( __MULLE_OBJC_FCS__) && defined( __MULLE_OBJC_NO_FCS__)
+# error "Use the mulle-clang 7.0.0.0 (or newer) compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FCS__ and __MULLE_OBJC_NO_FCS__)"
+#endif
 
-#if ! defined( __MULLE_OBJC_TRT__) && ! defined( __MULLE_OBJC_NO_TRT__)
-# error "Use the mulle-clang compiler to compile mulle-objc code (or define either __MULLE_OBJC_TRT__ or __MULLE_OBJC_NO_TRT__)"
+//
+// these should have been defined by the compiler already, but for
+// mulle-objc-runtime testing with gcc its convenient to add these if missing.
+//
+#ifndef __MULLE_OBJC_UNIVERSEID__
+# define __MULLE_OBJC_UNIVERSEID__  0
 #endif
-#if defined( __MULLE_OBJC_TRT__) && defined( __MULLE_OBJC_NO_TRT__)
-# error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_TRT__ and __MULLE_OBJC_NO_TRT__)"
+#ifndef __MULLE_OBJC_UNIVERSENAME__
+# define __MULLE_OBJC_UNIVERSENAME__  NULL
 #endif
 
-#if ! defined( __MULLE_OBJC_FMC__) && ! defined( __MULLE_OBJC_NO_FMC__)
-# error "Use the mulle-clang 5.0.0.0 (or newer) compiler to compile mulle-objc code (or define either __MULLE_OBJC_FMC__ or __MULLE_OBJC_NO_FMC__)"
+#if defined( __MULLE_OBJC_TPS__) && __MULLE_OBJC_UNIVERSEID__ != 0
+# error "TPS can only be used in the default universe not in " #__MULLE_OBJC_UNIVERSENAME__
 #endif
-#if defined( __MULLE_OBJC_FMC__) && defined( __MULLE_OBJC_NO_FMC__)
-# error "Use the mulle-clang 5.0.0.0 (or newer) compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FMC__ and __MULLE_OBJC_NO_FMC__)"
-#endif
+
 
 #include "include.h"
 
@@ -96,6 +104,8 @@
 #include "mulle-objc-retain-release.h"
 #include "mulle-objc-universe.h"
 #include "mulle-objc-universe-class.h"
+#include "mulle-objc-universe-exception.h"
+#include "mulle-objc-universe-fail.h"
 #include "mulle-objc-universe-global.h"
 #include "mulle-objc-universe-struct.h"
 #include "mulle-objc-signature.h"
@@ -125,7 +135,7 @@
 #if MULLE_ABA_VERSION < ((1 << 20) | (4 << 8) | 0)
 # error "mulle_aba is too old"
 #endif
-#if MULLE_ALLOCATOR_VERSION < ((2 << 20) | (1 << 8) | 0)
+#if MULLE_ALLOCATOR_VERSION < ((4 << 20) | (0 << 8) | 0)
 # error "mulle_allocator is too old"
 #endif
 #if MULLE_CONCURRENT_VERSION < ((1 << 20) | (3 << 8) | 0)

@@ -14,17 +14,17 @@
 
 + (char *) :(id) minimal
 {
-   return( mulle_objc_lookup_methodname( _cmd));
+   return( mulle_objc_global_lookup_methodname( 0, _cmd));
 }
 
 + (char *) _:(id) minimal;
 {
-   return( mulle_objc_lookup_methodname( _cmd));
+   return( mulle_objc_global_lookup_methodname( 0, _cmd));
 }
 
 + (char *) $:(id) minimal;
 {
-   return( mulle_objc_lookup_methodname( _cmd));
+   return( mulle_objc_global_lookup_methodname( 0, _cmd));
 }
 
 @end
@@ -33,12 +33,12 @@
 main()
 {
    printf( "%s = %s\n",
-      mulle_objc_lookup_methodname( @selector( :)),
+      mulle_objc_global_lookup_methodname( 0, @selector( :)),
       [Foo  :0]);
    printf( "%s = %s\n",
-      mulle_objc_lookup_methodname( @selector( _:)),
+      mulle_objc_global_lookup_methodname( 0, @selector( _:)),
       [Foo _:0]);
    printf( "%s = %s\n",
-      mulle_objc_lookup_methodname( @selector( $:)),
+      mulle_objc_global_lookup_methodname( 0, @selector( $:)),
       [Foo $:0]);
 }

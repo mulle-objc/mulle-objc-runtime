@@ -13,15 +13,15 @@ endif()
 
 # include before (!)
 
-include( StandaloneCAux OPTIONAL)
+include( StandaloneAuxC OPTIONAL)
 
 if( STANDALONE)
    if( NOT LIBRARY_NAME)
-      set( LIBRARY_NAME "mulle-objc-runtime")
+      set( LIBRARY_NAME "${PROJECT_NAME}")
    endif()
 
    if( NOT STANDALONE_NAME)
-      set( STANDALONE_NAME "mulle-objc-runtime-standalone")
+      set( STANDALONE_NAME "${LIBRARY_NAME}-standalone")
    endif()
 
    if( NOT STANDALONE_DEFINITIONS)
@@ -30,15 +30,16 @@ if( STANDALONE)
 
    #
    # A standalone library has all symbols and nothing is optimized away
-   # sorta like a big static library, just shared
+   # sorta like a big static library, just shared, The OS specific stuff
+   # should be shared libraries, otherwise they are only normally
+   # linked against (only required symbols.
    #
    if( NOT STANDALONE_ALL_LOAD_LIBRARIES)
       set( STANDALONE_ALL_LOAD_LIBRARIES
-         $<TARGET_FILE:mulle-objc-runtime>
+         $<TARGET_FILE:${LIBRARY_NAME}>
          ${ALL_LOAD_DEPENDENCY_LIBRARIES}
          ${DEPENDENCY_LIBRARIES}
          ${OPTIONAL_DEPENDENCY_LIBRARIES}
-         ${OS_SPECIFIC_LIBRARIES}
       )
    endif()
 
@@ -157,6 +158,8 @@ and everybody will be happy")
 
       target_link_libraries( ${STANDALONE_NAME}
          ${FORCE_STANDALONE_ALL_LOAD_LIBRARIES}
+         ${OS_SPECIFIC_LIBRARIES}
+         ${STARTUP_LIBRARY}
       )
 
       set( INSTALL_LIBRARY_TARGETS

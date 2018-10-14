@@ -8,6 +8,6 @@ if( NOT __PRE_FILES__CMAKE__)
    include( CMakeTweaksC)
 
    # a place to add stuff for ObjC or C++
-   include( PreFilesCAux OPTIONAL)
+   include( PreFilesAuxC OPTIONAL)
 
 endif()

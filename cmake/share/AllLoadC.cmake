@@ -37,6 +37,6 @@ if( NOT __ALL_LOAD_C_CMAKE__)
       set( ${outputname} "${list}" PARENT_SCOPE)
    endfunction()
 
-   include( AllLoadCAux OPTIONAL)
+   include( AllLoadAuxC OPTIONAL)
 
 endif()

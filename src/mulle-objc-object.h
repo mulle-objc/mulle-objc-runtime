@@ -53,7 +53,7 @@ struct _mulle_objc_method;
 
 # pragma mark - isa handling
 
-static inline int  mulle_objc_object_get_taggedpointer_index( struct _mulle_objc_object *obj)
+static inline int  mulle_objc_object_get_taggedpointerindex( struct _mulle_objc_object *obj)
 {
 #ifdef __MULLE_OBJC_TPS__
    return( mulle_objc_taggedpointer_get_index( obj));
@@ -73,11 +73,32 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
    struct _mulle_objc_universe   *universe;
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
-   index = mulle_objc_object_get_taggedpointer_index( obj);
+   index = mulle_objc_object_get_taggedpointerindex( obj);
    if( ! index)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   universe = mulle_objc_inlineget_universe();
+   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   return( universe->taggedpointers.pointerclass[ index]);
+}
+
+
+//
+// don't use isa in most cases, use get_class (defined elsewhere)
+//
+MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
+static inline struct _mulle_objc_class *
+   _mulle_objc_object_get_isa( void *obj)
+{
+   unsigned int                  index;
+   struct _mulle_objc_universe   *universe;
+
+   // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
+   index = mulle_objc_object_get_taggedpointerindex( obj);
+   if( __builtin_expect( ! index, 1))
+      return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
+
+   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   assert( universe->taggedpointers.pointerclass[ index] && "tagged pointer class not configured");
    return( universe->taggedpointers.pointerclass[ index]);
 }
 
@@ -85,31 +106,28 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
 // don't use isa in most cases, use get_class (defined elsewhere)
 //
 MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
-static inline struct _mulle_objc_class   *_mulle_objc_object_get_isa( void *obj)
+static inline struct _mulle_objc_class *
+   _mulle_objc_object_get_isa_universe( void *obj, struct _mulle_objc_universe *universe)
 {
-   unsigned int                  index;
-   struct _mulle_objc_universe   *universe;
+   unsigned int   index;
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
-   index = mulle_objc_object_get_taggedpointer_index( obj);
+   index = mulle_objc_object_get_taggedpointerindex( obj);
    if( __builtin_expect( ! index, 1))
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   universe = mulle_objc_inlineget_universe();
    assert( universe->taggedpointers.pointerclass[ index] && "tagged pointer class not configured");
    return( universe->taggedpointers.pointerclass[ index]);
 }
 
-
 static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_class *cls)
 {
    unsigned int   index;
-   extern void    mulle_objc_raise_taggedpointer_exception( void *obj);
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
-   index = mulle_objc_object_get_taggedpointer_index( obj);
+   index = mulle_objc_object_get_taggedpointerindex( obj);
    if( index)
-      mulle_objc_raise_taggedpointer_exception( obj);
+      mulle_objc_universe_fail_inconsistency( NULL, "set isa on tagged pointer %p", obj);
 
    _mulle_objc_objectheader_set_isa( _mulle_objc_object_get_objectheader( obj), cls);
 }
@@ -120,15 +138,17 @@ static inline void  *_mulle_objc_object_get_extra( void *obj)
    struct _mulle_objc_class   *cls;
    size_t                     size;
 
-   cls  = _mulle_objc_object_get_isa( obj);
+   assert( ! mulle_objc_object_get_taggedpointerindex( obj));
+
+   cls  = _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj));
    size = _mulle_objc_class_get_allocationsize( cls) - sizeof( struct _mulle_objc_objectheader);
    return(  &((char *)obj)[ size]);
 }
 
 
 // legacy support and no zone support anyway
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_object   *_mulle_objc_object_get_zone( void *obj)
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_object   *
+   _mulle_objc_object_get_zone( void *obj)
 {
    return( (void *) 0);
 }
@@ -136,20 +156,61 @@ static inline struct _mulle_objc_object   *_mulle_objc_object_get_zone( void *ob
 
 # pragma mark - convenience
 
-// convenience for object
-static inline struct _mulle_objc_universe   *_mulle_objc_object_get_universe( void *obj)
+MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_class *
+	__mulle_objc_object_get_isa_notps( void *obj)
 {
-   struct _mulle_objc_class   *cls;
+	struct _mulle_objc_class  *cls;
 
-   cls = _mulle_objc_object_get_isa( obj);
+   assert( ! mulle_objc_object_get_taggedpointerindex( obj));
+
+   cls = _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj));
+   return( cls);
+}
+
+MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_universe *
+	__mulle_objc_object_get_universe_notps( void *obj)
+{
+	struct _mulle_objc_class     *cls;
+
+   cls = __mulle_objc_object_get_isa_notps( obj);
    return( _mulle_objc_class_get_universe( cls));
+}
+
+
+/* obj can not be nil here */
+MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_universe *
+	_mulle_objc_object_get_universe( void *obj)
+{
+   assert( obj);
+
+	if( mulle_objc_object_get_taggedpointerindex( obj))
+      return( mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID));
+   return( __mulle_objc_object_get_universe_notps( obj));
+}
+
+
+/*
+ * this function also deals with obj being NULL
+ * therefore we need the universeid
+ */
+MULLE_C_CONST_NON_NULL_RETURN MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_universe *
+	__mulle_objc_object_get_universe_nofail( void *obj,
+	       							        		  mulle_objc_universeid_t universeid)
+{
+	if( ! obj ||  mulle_objc_object_get_taggedpointerindex( obj))
+      return( mulle_objc_global_inlineget_universe( universeid));
+   return( __mulle_objc_object_get_universe_notps( obj));
 }
 
 
 # pragma mark - get_class
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_infraclass   *_mulle_objc_object_get_infraclass( void *obj)
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_infraclass   *
+   _mulle_objc_object_get_infraclass( void *obj)
 {
    struct _mulle_objc_class   *cls;
 
@@ -163,25 +224,38 @@ static inline struct _mulle_objc_infraclass   *_mulle_objc_object_get_infraclass
 # pragma mark - ivar access
 
 // these are not calculating the size from the signature
-static inline void  _mulle_objc_object_get_value_for_ivar( void *obj, struct _mulle_objc_ivar *ivar, void *buf, size_t length)
+static inline void
+   _mulle_objc_object_get_value_for_ivar( void *obj,
+                                          struct _mulle_objc_ivar *ivar,
+                                          void *buf,
+                                          size_t length)
 {
    memcpy( buf, &((char *) obj)[ ivar->offset], length);
 }
 
 
-static inline void  _mulle_objc_object_set_value_for_ivar( void *obj, struct _mulle_objc_ivar *ivar, void *buf, size_t length)
+static inline void
+   _mulle_objc_object_set_value_for_ivar( void *obj,
+                                          struct _mulle_objc_ivar *ivar,
+                                          void *buf,
+                                          size_t length)
 {
    memcpy( buf, &((char *) obj)[ ivar->offset], length);
 }
 
 
-static inline void  *_mulle_objc_object_get_pointervalue_for_ivar( void *obj, struct _mulle_objc_ivar *ivar)
+static inline void  *
+   _mulle_objc_object_get_pointervalue_for_ivar( void *obj,
+                                                 struct _mulle_objc_ivar *ivar)
 {
    return( *(void **) &((char *) obj)[ ivar->offset]);
 }
 
 
-static inline void  _mulle_objc_object_set_pointervalue_for_ivar( void *obj, struct _mulle_objc_ivar *ivar, void *value)
+static inline void
+   _mulle_objc_object_set_pointervalue_for_ivar( void *obj,
+                                                 struct _mulle_objc_ivar *ivar,
+                                                 void *value)
 {
    *(void **) &((char *) obj)[ ivar->offset] = value;
 }
@@ -189,36 +263,36 @@ static inline void  _mulle_objc_object_set_pointervalue_for_ivar( void *obj, str
 
 # pragma mark - API
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_class   *mulle_objc_object_get_isa( void *obj)
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class   *
+   mulle_objc_object_get_isa( void *obj)
 {
-   return( obj ? _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)) : NULL);
+   return( obj ? _mulle_objc_object_get_isa( obj)  : NULL);
 }
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_infraclass   *mulle_objc_object_get_infraclass( void *obj)
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_infraclass   *
+   mulle_objc_object_get_infraclass( void *obj)
 {
    return( obj ? _mulle_objc_object_get_infraclass( obj) : NULL);
 }
 
-// convenience for object
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_universe   *mulle_objc_object_get_universe( void *obj)
+// convenience for object, will return null if its a tagged pointer though
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_universe   *
+   mulle_objc_object_get_universe( void *obj)
 {
    return( obj ? _mulle_objc_object_get_universe( obj) : NULL);
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void  mulle_objc_object_set_isa( void *obj, struct _mulle_objc_class *cls)
+MULLE_C_ALWAYS_INLINE static inline void
+   mulle_objc_object_set_isa( void *obj, struct _mulle_objc_class *cls)
 {
    if( obj)
       _mulle_objc_object_set_isa( obj, cls);
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void  *mulle_objc_object_get_extra( void *obj)
+MULLE_C_ALWAYS_INLINE static inline void  *
+   mulle_objc_object_get_extra( void *obj)
 {
    return( obj ? _mulle_objc_object_get_extra( obj) : NULL);
 }

@@ -48,8 +48,17 @@ typedef uint32_t   mulle_objc_uniqueid_t;
 #define MULLE_OBJC_UNIQUEHASH_FNV1     0
 #define MULLE_OBJC_UNIQUEHASH_FNV1A    1
 
-extern const int  MULLE_OBJC_UNIQUEHASH_SHIFT;
-extern const int  MULLE_OBJC_UNIQUEHASH_ALGORITHM;
+// I had picked fnv1 because it less collision lowercase in this article
+// https://softwareengineering.stackexchange.com/questions/49550/which-hashing-algorithm-is-best-for-uniqueness-and-speed
+//
+// But I think the randomness improvement of fnv1a is actually more important
+// for improved cache spread, so I am moving to fnv1a here
+//
+
+// use defines again, because we don't need that in the linker
+#define MULLE_OBJC_UNIQUEHASH_SHIFT       4
+#define MULLE_OBJC_UNIQUEHASH_ALGORITHM   MULLE_OBJC_UNIQUEHASH_FNV1A
+
 
 #define MULLE_OBJC_NO_UNIQUEID         ((mulle_objc_uniqueid_t) 0)
 #define MULLE_OBJC_INVALID_UNIQUEID    ((mulle_objc_uniqueid_t) -1)
@@ -192,6 +201,19 @@ static inline int  mulle_objc_protocolid_is_sane( mulle_objc_protocolid_t unique
 }
 
 
+#pragma mark - mulle_objc_universeid_t
+
+typedef mulle_objc_uniqueid_t   mulle_objc_universeid_t;
+
+#define MULLE_OBJC_UNIVERSEID( x)           MULLE_OBJC_UNIQUEID( x)
+#define MULLE_OBJC_DEFAULTUNIVERSEID       0
+
+static inline int  mulle_objc_universeid_is_sane( mulle_objc_classid_t uniqueid)
+{
+   return( mulle_objc_universeid_is_sane( uniqueid));
+}
+
+
 
 #pragma mark - mulle_objc_hash_t
 
@@ -233,6 +255,14 @@ static inline mulle_objc_protocolid_t   mulle_objc_protocolid_from_string( char 
 
 static inline mulle_objc_superid_t   mulle_objc_superid_from_string( char *s)
 {
+   return( mulle_objc_uniqueid_from_string( s));
+}
+
+
+static inline mulle_objc_universeid_t   mulle_objc_universeid_from_string( char *s)
+{
+   if( ! s || ! *s)
+      return( MULLE_OBJC_DEFAULTUNIVERSEID);
    return( mulle_objc_uniqueid_from_string( s));
 }
 

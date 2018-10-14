@@ -122,10 +122,16 @@ int   main()
    B      *b;
    struct _mulle_objc_infraclass  *infraclass;
    struct _mulle_objc_metaclass   *metaclass;
+   struct _mulle_objc_universe    *universe;
 
-   mulle_objc_htmldump_universe();
+#ifdef __MULLE_OBJC_UNIVERSEID__
+   universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
+#else
+   universe = mulle_objc_global_get_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+#endif
+   mulle_objc_universe_htmldump_to_directory( universe, ".");
 
-   b = [B new];
+   b          = [B new];
    infraclass = [B class];
    metaclass  = _mulle_objc_infraclass_get_metaclass( infraclass);
 

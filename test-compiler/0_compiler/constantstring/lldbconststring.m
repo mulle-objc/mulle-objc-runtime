@@ -52,7 +52,7 @@ main()
    struct _mulle_objc_universe   *universe;
    SomeString   *s;
 
-   universe = mulle_objc_get_universe();
+   universe = mulle_objc_global_get_universe( 0);
 
    _mulle_objc_universe_set_staticstringclass( universe, [SomeString class]);
 

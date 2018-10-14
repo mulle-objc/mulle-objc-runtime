@@ -41,7 +41,7 @@
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-class-convenience.h"
-
+#include "mulle-objc-call.h"
 
 // methods on class shortcuts
 

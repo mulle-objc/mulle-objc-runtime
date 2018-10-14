@@ -48,12 +48,12 @@
 #include <errno.h>
 
 
-static void   *_mulle_objc_object_noncachingcall_class( void *obj,
+static void   *_mulle_objc_object_call_class_nocache( void *obj,
                                                        mulle_objc_methodid_t methodid,
                                                        void *parameter,
                                                        struct _mulle_objc_class *cls);
 
-static void   *_mulle_objc_object_call2_empty_cache( void *obj,
+static void   *_mulle_objc_object_call2_emptycache( void *obj,
                                                      mulle_objc_methodid_t methodid,
                                                      void *parameter);
 static void   *_mulle_objc_object_call2( void *obj,
@@ -65,10 +65,10 @@ void   *_mulle_objc_object_call_class( void *obj,
                                        void *parameter,
                                        struct _mulle_objc_class *cls);
 
-static void   *_mulle_objc_object_call_methodid_nofail( void *obj,
-                                                           mulle_objc_methodid_t methodid,
-                                                           void *parameter,
-                                                           struct  _mulle_objc_class *cls);
+static void   *_mulle_objc_object_call_class_nofail( void *obj,
+                                                         mulle_objc_methodid_t methodid,
+                                                         void *parameter,
+                                                         struct  _mulle_objc_class *cls);
 
 static mulle_objc_implementation_t
    _mulle_objc_class_superlookup2_implementation_nofail( struct _mulle_objc_class *cls,
@@ -122,7 +122,9 @@ static int  preload( struct _mulle_objc_method *method,
    assert( cache);
 
    if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
-      _mulle_objc_cache_inactivecache_add_pointer_entry( cache, _mulle_objc_method_get_implementation( method), method->descriptor.methodid);
+      _mulle_objc_cache_inactivecache_add_pointer_entry( cache,
+                                                         _mulle_objc_method_get_implementation( method),
+                                                         method->descriptor.methodid);
 
    return( 0);
 }
@@ -206,7 +208,7 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
    // an empty_cache ? this is getting called too early
    //
    assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries)
-            != mulle_objc_get_universe()->empty_cache.entries);
+            != universe->empty_cache.entries);
 
    if( _mulle_objc_cachepivot_atomiccas_entries( &cls->cachepivot.pivot,
                                                  cache->entries,
@@ -217,15 +219,15 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
    }
 
    if( universe->debug.trace.method_cache)
-      fprintf( stderr, "mulle_objc_universe %p trace: new method cache %p "
-                       "(%u of %u used) for %s %08x \"%s\"\n",
-                       universe,
-                       cache,
-                       _mulle_objc_cache_get_count( cache),
-                       old_cache->size,
-                       _mulle_objc_class_get_classtypename( cls),
-                       _mulle_objc_class_get_classid( cls),
-                       _mulle_objc_class_get_name( cls));
+      mulle_objc_universe_trace( universe,
+                                 "new method cache %p "
+                                 "(%u of %u used) for %s %08x \"%s\"",
+                                 cache,
+                                 _mulle_objc_cache_get_count( cache),
+                                 old_cache->size,
+                                 _mulle_objc_class_get_classtypename( cls),
+                                 _mulle_objc_class_get_classid( cls),
+                                 _mulle_objc_class_get_name( cls));
 
    if( &old_cache->entries[ 0] != &cls->universe->empty_cache.entries[ 0])
    {
@@ -250,15 +252,14 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
       }
 
       if( universe->debug.trace.method_cache)
-         fprintf( stderr, "mulle_objc_universe %p trace: free old method "
-                          "cache %p (%u of %u used) for %s %08x \"%s\"\n",
-                          universe,
-                          old_cache,
-                           _mulle_objc_cache_get_count( cache),
-                           old_cache->size,
-                          _mulle_objc_class_get_classtypename( cls),
-                          _mulle_objc_class_get_classid( cls),
-                          _mulle_objc_class_get_name( cls));
+         mulle_objc_universe_trace( universe, "free old method cache "
+                                     "%p (%u of %u used) for %s %08x \"%s\"",
+                                    old_cache,
+                                     _mulle_objc_cache_get_count( cache),
+                                     old_cache->size,
+                                    _mulle_objc_class_get_classtypename( cls),
+                                    _mulle_objc_class_get_classid( cls),
+                                    _mulle_objc_class_get_name( cls));
 
       _mulle_objc_cache_abafree( old_cache, allocator);
    }
@@ -284,7 +285,7 @@ static struct _mulle_objc_cacheentry   *
    universe = _mulle_objc_class_get_universe( cls);
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
    {
-      _mulle_objc_universe_raise_inconsistency_exception( universe,
+      mulle_objc_universe_fail_inconsistency( universe,
                "Method call %08x \"%s\" comes too early, "
                "the cache of %s \"%s\" hasn't been initialized yet.",
                methodid, _mulle_objc_method_get_name( method),
@@ -332,7 +333,7 @@ static struct _mulle_objc_cacheentry   *
    // need to check that we are initialized
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
    {
-      _mulle_objc_universe_raise_inconsistency_exception( cls->universe,
+      mulle_objc_universe_fail_inconsistency( cls->universe,
                   "Method call %08x \"%s\" comes too early, "
                   "the cache of %s \"%s\" hasn't been initialized yet.",
                   methodid, _mulle_objc_method_get_name( method),
@@ -397,26 +398,24 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
    }
 
    if( universe->debug.trace.method_cache)
-      fprintf( stderr, "mulle_objc_universe %p trace: new search cache %p for "
-                       "%s %08x \"%s\" with %u entries\n",
-                       universe,
-                       cache,
-                       _mulle_objc_class_get_classtypename( cls),
-                       _mulle_objc_class_get_classid( cls),
-                       _mulle_objc_class_get_name( cls),
-                       cache->size);
+      mulle_objc_universe_trace( universe, "new search cache %p for "
+                                 "%s %08x \"%s\" with %u entries",
+                                 cache,
+                                 _mulle_objc_class_get_classtypename( cls),
+                                 _mulle_objc_class_get_classid( cls),
+                                 _mulle_objc_class_get_name( cls),
+                                 cache->size);
 
    if( &old_cache->entries[ 0] != &universe->empty_cache.entries[ 0])
    {
       if( universe->debug.trace.method_cache)
-         fprintf( stderr, "mulle_objc_universe %p trace: free old search "
-                          "cache %p for %s %08x \"%s\" with %u entries\n",
-                          universe,
-                          cache,
-                          _mulle_objc_class_get_classtypename( cls),
-                          _mulle_objc_class_get_classid( cls),
-                          _mulle_objc_class_get_name( cls),
-                          cache->size);
+         mulle_objc_universe_trace( universe, "free old search cache %p "
+                                    "for %s %08x \"%s\" with %u entries",
+                                    cache,
+                                    _mulle_objc_class_get_classtypename( cls),
+                                    _mulle_objc_class_get_classid( cls),
+                                    _mulle_objc_class_get_name( cls),
+                                    cache->size);
 
       _mulle_objc_cache_abafree( old_cache, allocator);
    }
@@ -585,7 +584,7 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
    if( desc)
       fprintf( stderr, "[::] %c[%s %s] @%p %s (%p, %x, %p))\n",
             _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-            _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)),
+            _mulle_objc_class_get_name( _mulle_objc_object_get_isa_universe( obj, universe)),
             desc->name,
             imp,
             _mulle_objc_class_get_name( cls),
@@ -595,7 +594,7 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
    else
       fprintf( stderr, "[::] %c[%s #%08x] @%p %s (%p, %x, %p)\n",
             _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-            _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)),
+            _mulle_objc_class_get_name( _mulle_objc_object_get_isa_universe( obj, universe)),
             methodid,
             imp,
             _mulle_objc_class_get_name( cls),
@@ -612,7 +611,7 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 // most general case
 //
 MULLE_C_NEVER_INLINE static void *
-   _mulle_objc_object_call_methodid_nofail( void *obj,
+   _mulle_objc_object_call_class_nofail( void *obj,
                                             mulle_objc_methodid_t methodid,
                                             void *parameter,
                                             struct  _mulle_objc_class *cls)
@@ -852,8 +851,8 @@ mulle_objc_implementation_t
    if( ! cls || ! mulle_objc_uniqueid_is_sane( methodid))
    {
       errno = EINVAL;
-      //  _mulle_objc_universe_raise_errno_exception( mulle_objc_get_universe());
-      mulle_objc_raise_errno_exception();
+      //  mulle_objc_universe_fail_errno( mulle_objc_global_get_universe());
+      mulle_objc_universe_fail_errno( NULL);
    }
 
    return( _mulle_objc_class_lookup_implementation_nofail( cls, methodid));
@@ -896,7 +895,7 @@ void   *_mulle_objc_object_call_class( void *obj,
       }
 
       if( ! entry->key.uniqueid)
-/*->*/   return( _mulle_objc_object_call_methodid_nofail( obj, methodid, parameter, cls));
+/*->*/   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
 
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
@@ -941,7 +940,7 @@ void   *_mulle_objc_object_call2( void *obj,
       }
 
       if( ! entry->key.uniqueid)
-/*->*/   return( _mulle_objc_object_call_methodid_nofail( obj, methodid, parameter, cls));
+/*->*/   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
    }
 }
 
@@ -987,7 +986,7 @@ static mulle_objc_implementation_t
 
 
 static void   *
-   _mulle_objc_object_noncachingcall_class( void *obj,
+   _mulle_objc_object_call_class_nocache( void *obj,
                                             mulle_objc_methodid_t methodid,
                                             void *parameter,
                                             struct _mulle_objc_class *cls)
@@ -1025,7 +1024,7 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
 
       assert( cache);
       assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) ==
-              mulle_objc_get_universe()->empty_cache.entries);
+              universe->empty_cache.entries);
 
       _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
       cls->cachepivot.call2 = _mulle_objc_object_call2;
@@ -1034,31 +1033,29 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
       cls->superlookup2     = _mulle_objc_class_superlookup2_implementation_nofail;
 
       if( universe->debug.trace.method_cache)
-         fprintf( stderr, "mulle_objc_universe %p trace: new initial cache %p "
-                 "on %s %08x \"%s\" (%p) with %u entries\n",
-                 universe,
-                 cache,
-                 _mulle_objc_class_get_classtypename( cls),
-                 _mulle_objc_class_get_classid( cls),
-                 _mulle_objc_class_get_name( cls),
-                 cls,
-                 cache->size);
+         mulle_objc_universe_trace( universe, "new initial cache %p "
+                                    "on %s %08x \"%s\" (%p) with %u entries",
+                                    cache,
+                                    _mulle_objc_class_get_classtypename( cls),
+                                    _mulle_objc_class_get_classid( cls),
+                                    _mulle_objc_class_get_name( cls),
+                                    cls,
+                                    cache->size);
    }
    else
    {
-      cls->cachepivot.call2 = _mulle_objc_object_call2_empty_cache;
-      cls->call             = _mulle_objc_object_noncachingcall_class;
+      cls->cachepivot.call2 = _mulle_objc_object_call2_emptycache;
+      cls->call             = _mulle_objc_object_call_class_nocache;
       cls->superlookup      = _mulle_objc_class_superlookup_implementation_nofail;
       cls->superlookup2     = _mulle_objc_class_superlookup_implementation_nofail;
 
       if( universe->debug.trace.method_cache)
-         fprintf( stderr, "mulle_objc_universe %p trace: use "
-                 "\"always empty cache\" on %s %08x \"%s\" (%p)\n",
-                 universe,
-                 _mulle_objc_class_get_classtypename( cls),
-                 _mulle_objc_class_get_classid( cls),
-                 _mulle_objc_class_get_name( cls),
-                 cls);
+         mulle_objc_universe_trace( universe, "use \"always empty cache\" on "
+                                    "%s %08x \"%s\" (%p)",
+                                    _mulle_objc_class_get_classtypename( cls),
+                                    _mulle_objc_class_get_classid( cls),
+                                    _mulle_objc_class_get_name( cls),
+                                    cls);
 
       //
       // count #caches, if there are zero caches yet, the universe can be much
@@ -1095,7 +1092,8 @@ static void   _mulle_objc_class_wait_for_setup(  struct _mulle_objc_class *cls)
 }
 
 
-static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infraclass *infra)
+static void
+   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_method       *initialize;
    struct _mulle_objc_universe     *universe;
@@ -1117,8 +1115,8 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
    if( flag != 1)
    {
       if( universe->debug.trace.initialize)
-         fprintf( stderr, "mulle_objc_universe %p trace: recusive +[%s initialize] ignored\n",
-                 universe, name);
+         mulle_objc_universe_trace( universe, "recusive +[%s initialize] ignored",
+                 name);
       return;
    }
 
@@ -1128,8 +1126,9 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
    if( initialize)
    {
       if( universe->debug.trace.initialize)
-         fprintf( stderr, "mulle_objc_universe %p trace: call +[%s initialize]\n",
-                 universe, _mulle_objc_metaclass_get_name( meta));
+         mulle_objc_universe_trace( universe,
+                                    "call +[%s initialize]",
+                                    _mulle_objc_metaclass_get_name( meta));
 
       imp   = _mulle_objc_method_get_implementation( initialize);
       if( universe->debug.trace.method_call)
@@ -1145,21 +1144,19 @@ static void   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infracl
    else
    {
       if( universe->debug.trace.initialize)
-         fprintf( stderr, "mulle_objc_universe %p trace: "
-                          "no +[%s initialize] found\n",
-                 universe, name);
+         mulle_objc_universe_trace( universe, "no +[%s initialize] found", name);
    }
 
    // always set meta bit first!
    // must be 1 as a return value
    flag = _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE);
    if( flag != 1)
-      mulle_objc_raise_inconsistency_exception( "someone else initialized metaclass \"%s\"",
+      mulle_objc_universe_fail_inconsistency( universe, "someone else initialized metaclass \"%s\"",
                                                 name);
    // must be 1 as a return value
    flag = _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
    if( flag != 1)
-      mulle_objc_raise_inconsistency_exception( "someone else initialized infraclass \"%s\"",
+      mulle_objc_universe_fail_inconsistency( universe, "someone else initialized infraclass \"%s\"",
                                                 name);
 }
 
@@ -1313,9 +1310,9 @@ mulle_objc_implementation_t
 
 #pragma mark - empty cache calls
 
-static void   *_mulle_objc_object_call2_empty_cache( void *obj,
-                                                     mulle_objc_methodid_t methodid,
-                                                     void *parameter)
+static void   *_mulle_objc_object_call2_emptycache( void *obj,
+                                                    mulle_objc_methodid_t methodid,
+                                                    void *parameter)
 {
    struct _mulle_objc_class    *cls;
    struct _mulle_objc_method   *method;

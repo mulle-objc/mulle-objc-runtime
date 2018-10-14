@@ -20,8 +20,8 @@ before_install:
    - sudo apt-get update
    - sudo apt-get -y install mulle-clang mulle-sde mulle-test
 
-script: 
-   - mulle-sde -vvv craft
+script:
+   - mulle-sde -v craft
    - mulle-test -v
-   - mulle-test -v --dir-name test-compiler --project-dialect objc
-   - mulle-test -v --dir-name test-compiler-runtime --project-dialect objc
+   - mulle-test -v --dir-name test-compiler
+   - mulle-test -v --dir-name test-compiler-runtime

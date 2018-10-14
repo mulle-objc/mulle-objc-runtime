@@ -35,6 +35,7 @@
 //
 #include "mulle-objc-class-search.h"
 
+#include "mulle-objc-builtin.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-universe-class.h"
@@ -92,14 +93,14 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
 
    universe = _mulle_objc_class_get_universe( cls);
    name     = _mulle_objc_universe_describe_methodid( universe, search->args.methodid);
-   fprintf( stderr, "mulle_objc_universe %p trace: start search for "
-                    "methodid %08x \"%s\" in %s %08x \"%s\"",
-           universe,
-           search->args.methodid,
-           name,
-           _mulle_objc_class_get_classtypename( cls),
-           _mulle_objc_class_get_classid( cls),
-           _mulle_objc_class_get_name( cls));
+   mulle_objc_universe_trace_nolf( universe,
+                                   "start search for "
+                                   "methodid %08x \"%s\" in %s %08x \"%s\"",
+                                   search->args.methodid,
+                                   name,
+                                   _mulle_objc_class_get_classtypename( cls),
+                                   _mulle_objc_class_get_classid( cls),
+                                   _mulle_objc_class_get_name( cls));
 
    switch( search->args.mode)
    {
@@ -139,9 +140,7 @@ static void   trace_method_done( struct _mulle_objc_class *cls,
 
    universe = _mulle_objc_class_get_universe( cls);
    mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
-   fprintf( stderr, "mulle_objc_universe %p trace: found method IMP %s\n",
-           universe,
-           buf);
+   mulle_objc_universe_trace( universe, "found method IMP %s", buf);
 }
 
 
@@ -154,15 +153,11 @@ static void   trace_method_search_fail( struct _mulle_objc_class *cls,
    switch( errno)
    {
    case ENOENT:
-      fprintf( stderr, "mulle_objc_universe %p trace: method not found\n",
-                        universe);
+      mulle_objc_universe_trace( universe, "method not found");
    case EINVAL:
-      fprintf( stderr, "mulle_objc_universe %p trace: invalid search call\n",
-                        universe);
+      mulle_objc_universe_trace( universe, "invalid search call");
    default :
-      fprintf( stderr, "mulle_objc_universe %p trace: method search error %d\n",
-                        universe,
-                        error);
+      mulle_objc_universe_trace( universe, "method search error %d", error);
    }
 }
 
@@ -179,9 +174,9 @@ static void   trace_method_found( struct _mulle_objc_class *cls,
    char                          *s;
 
    universe = _mulle_objc_class_get_universe( cls);
-   fprintf( stderr, "mulle_objc_universe %p trace:   found in %s ",
-           universe,
-           _mulle_objc_class_get_classtypename( cls));
+   mulle_objc_universe_trace_nolf( universe,
+                                   "found in %s ",
+                                   _mulle_objc_class_get_classtypename( cls));
 
    // it's a category ?
    if( list->owner)
@@ -216,12 +211,12 @@ static void   trace_search( struct _mulle_objc_class *cls,
    struct _mulle_objc_universe   *universe;
 
    universe = _mulle_objc_class_get_universe( cls);
-   fprintf( stderr, "mulle_objc_universe %p trace:   search %s %08x \"%s\" (0x%x)\n",
-           universe,
-           _mulle_objc_class_get_classtypename( cls),
-           cls->classid,
-           cls->name,
-           inheritance);
+   mulle_objc_universe_trace( universe,
+                              "search %s %08x \"%s\" (0x%x)",
+                              _mulle_objc_class_get_classtypename( cls),
+                              cls->classid,
+                              cls->name,
+                              inheritance);
 }
 
 
@@ -630,7 +625,7 @@ struct _mulle_objc_method   *
    if( method == MULLE_OBJC_METHOD_SEARCH_FAIL)
    {
       if( errno == EEXIST)
-         _mulle_objc_universe_raise_inconsistency_exception( cls->universe,
+         mulle_objc_universe_fail_inconsistency( cls->universe,
                               "class %08x \"%s\" hidden method override of %08x \"%s\"",
                               _mulle_objc_class_get_classid( cls),
                               _mulle_objc_class_get_name( cls),
@@ -730,25 +725,27 @@ struct _mulle_objc_method    *
 
 
 MULLE_C_NO_RETURN static void
-   _mulle_objc_class_raise_fowardmethodnotfound( struct _mulle_objc_class *cls,
+   _mulle_objc_class_fail_fowardmethodnotfound( struct _mulle_objc_class *cls,
                                                  mulle_objc_methodid_t missing_method)
 {
    char   *prefix;
    char   *name;
+   struct _mulle_objc_universe   *universe;
 
    prefix = _mulle_objc_class_is_metaclass( cls) ? "meta-" : "";
    name   = _mulle_objc_class_get_name( cls);
 
-   if( errno != ENOENT)
-      _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "mulle_objc_universe: \"forward:\" method has wrong id in %sclass \"%s\"",
-                                                          prefix,
-                                                          name);
+   universe = _mulle_objc_class_get_universe( cls);
+   if (errno != ENOENT)
+       mulle_objc_universe_fail_inconsistency( universe, "mulle_objc_universe: \"forward:\" method has wrong id in %sclass \"%s\"",
+                                               prefix,
+                                               name);
    if( missing_method)
-      _mulle_objc_class_raise_method_not_found_exception( cls, missing_method);
+      mulle_objc_universe_fail_methodnotfound( universe, cls, missing_method);
 
-   _mulle_objc_universe_raise_inconsistency_exception( cls->universe, "mulle_objc_universe: missing \"forward:\" method in %sclass \"%s\"",
-                                                       prefix,
-                                                       name);
+   mulle_objc_universe_fail_inconsistency( universe, "mulle_objc_universe: missing \"forward:\" method in %sclass \"%s\"",
+                                                     prefix,
+                                                     name);
 }
 
 
@@ -763,7 +760,7 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
    if( method)
       return( method);
 
-   _mulle_objc_class_raise_fowardmethodnotfound( cls, missing_method);
+   _mulle_objc_class_fail_fowardmethodnotfound( cls, missing_method);
 }
 
 

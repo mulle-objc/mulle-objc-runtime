@@ -14,4 +14,4 @@ set( SHARED_LIBRARY_LIST
    ${SHARED_LIBRARY_LIST}
 )
 
-include( SharedLibraryCAux OPTIONAL)
+include( PostSharedLibraryAuxC OPTIONAL)

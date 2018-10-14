@@ -9,7 +9,7 @@
 
 * _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY replaces _MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY
 * _mulle_objc_object_infiniteretain_noatomic replaces _mulle_objc_object_nonatomic_infinite_retain
-* Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
+* Adapt runtime to __MULLE_OBJC_FCS__ to compile without fast methods
 * adapt search so that we a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
 * adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
 * add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking
@@ -51,7 +51,7 @@
 * add MULLE_OBJC_CLASS_HAS_RELEASABLE_PROPERTY bit for the sake of benchmarking
 * improve superfunctions some more by inlining first stage also. Put everything into the methodcache
 * super struct now gains the selector name for introspection. The selector is now compatible to @selector
-* Adapt runtime to __MULLE_OBJC_FMC__ to compile without fast methods
+* Adapt runtime to __MULLE_OBJC_FCS__ to compile without fast methods
 * expect propertyclasses now in declaration order from compiler
 * adapt search so that a root class inheriting from protocolclasses, also inherits the infraclass methods from the first protocolclass
 * adapted call functions to the new way of calling super, where the classid of the calling class is passed (no longer the superclassid)
@@ -87,7 +87,7 @@ It should now be possible to initialize a global universe from multiple threads.
 It should not be necessary to set the global universe up from a single thread,
 before starting other threads.
 
-Only use `mulle_objc_register_universe` during loading. Makes it easier.
+Only use `mulle_objc_global_register_universe` during loading. Makes it easier.
 
 Also distribute mulle-objc-uniqueid.
 
@@ -226,7 +226,7 @@ added compiler support for it
 * added `__MULLE_OBJC_NO_TRT__`, `__MULLE_OBJC_NO_TPS__`, `__MULLE_OBJC_NO_AAM__`,
 this helps to find problems, when mulle-objc code is compiled with a C compiler
 only
-* renamed `mulle_objc_object_get_taggedpointer_index` to `mulle_objc_object_get_taggedpointer_index`
+* renamed `mulle_objc_object_get_taggedpointerindex` to `mulle_objc_object_get_taggedpointerindex`
 * new trace flag `MULLE_OBJC_TRACE_RUNTIME_CONFIG`
 * `CMakeLists.txt` sets `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_NO_TRT__` by
 default. Since the universe is  built by the standard host compiler, this

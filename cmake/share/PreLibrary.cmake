@@ -4,4 +4,8 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
-include( PreLibraryCAux OPTIONAL)
+include( UnwantedWarningsC)
+include( CompilerDetectionC)
+include( CompilerFlagsC)
+
+include( PreLibraryAuxC OPTIONAL)

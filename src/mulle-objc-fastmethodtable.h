@@ -36,7 +36,7 @@
 #ifndef mulle_objc_fastmethodtable_h__
 #define mulle_objc_fastmethodtable_h__
 
-#ifdef __MULLE_OBJC_FMC__
+#ifdef __MULLE_OBJC_FCS__
 
 #include "mulle-objc-method.h"
 #include "mulle-objc-methodidconstants.h"

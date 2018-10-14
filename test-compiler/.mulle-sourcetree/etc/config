@@ -1,0 +1,2 @@
+mulle-objc-runtime;tar;no-all-load,no-import,only-standalone;A31B1C8E-A7DD-4086-80B3-DA383DDCF7CA;${MULLE_OBJC_RUNTIME_URL:-https://github.com/nat/mulle-objc-runtime/archive/${MULLE_OBJC_RUNTIME_BRANCH:-latest}.tar.gz};;;;
+mulle-testallocator;tar;no-all-load,no-import;E862794E-BED7-4B8A-BB2D-71CCC58B6D0C;${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TESTALLOCATOR_BRANCH:-latest}.tar.gz};;;;

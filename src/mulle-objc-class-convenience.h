@@ -116,6 +116,16 @@ static inline struct _mulle_objc_object   *
 }
 
 
+static inline void *
+   _mulle_objc_infraclass_get_classextra( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_classpair   *pair;
+
+   pair = _mulle_objc_infraclass_get_classpair( infra);
+   return( _mulle_objc_classpair_get_classextra( pair));
+}
+
+
 #pragma mark - instance deletion
 
 static inline void   __mulle_objc_object_free( struct _mulle_objc_object *obj,

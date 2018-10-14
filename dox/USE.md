@@ -15,13 +15,15 @@ Here is a minimal implementation:
 
 ```
 MULLE_C_CONST_RETURN  // always returns same value (in same thread)
-struct _mulle_objc_universe  *__register_mulle_objc_universe( void)
+struct _mulle_objc_universe  *
+   __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
+                                   char *universename)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = __mulle_objc_get_universe();
+   universe = __mulle_objc_global_get_universe( universeid, universename);
    if( ! _mulle_objc_universe_is_initialized( universe))
-      _mulle_objc_universe_bang( universe, bang, NULL, NULL);
+      _mulle_objc_universe_bang( universe, bang, NULL);
 
    return( universe);
 }

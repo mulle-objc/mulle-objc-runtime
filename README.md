@@ -38,7 +38,7 @@ only locks during `+initialize` on a per class basis.
 
 * Protections against the fragile base class problem
 
-* Multiple runtimes can coexist.
+* Multiple runtimes can coexist in differently named "universes".
 
 ## Required Libraries and Tools
 
@@ -88,10 +88,11 @@ could be a good starting point.
 
 > #### C Caveat
 >
-> It you use `.c` files that include `<mulle_objc/mulle_objc.h>` make sure
-> that you compile with `__MULLE_OBJC_TPS__` and `__MULLE_OBJC_TRT__` as
-> they were defined when compiling the runtime. Since C-only compilations do
-> not emit runtime information, mismatches can not be checked by the runtime.
+> It you use `.c` files that include `<mulle-objc-runtime/mulle-objc-runtime.h>`
+> make sure that you compile with `__MULLE_OBJC_TPS__`, `__MULLE_OBJC_NO_TPS__`
+> `__MULLE_OBJC_FCS__`  `__MULLE_OBJC_NO_FCS__` as defined when compiling the
+> runtime. Since C-only compilations do not emit runtime information,
+> mismatches can not be checked by the runtime.
 > Easy fix: rename `.c` to `.m` and use **mulle-clang**
 
 

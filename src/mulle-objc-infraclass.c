@@ -216,14 +216,14 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 
 
 void   mulle_objc_infraclass_add_propertylist_nofail( struct _mulle_objc_infraclass *infra,
-                                                         struct _mulle_objc_propertylist *list)
+                                                      struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_universe   *universe;
 
    if( mulle_objc_infraclass_add_propertylist( infra, list))
    {
       universe = _mulle_objc_infraclass_get_universe( infra);
-      _mulle_objc_universe_raise_errno_exception( universe);
+      mulle_objc_universe_fail_errno( universe);
    }
 }
 
@@ -265,7 +265,7 @@ void   mulle_objc_infraclass_add_ivarlist_nofail( struct _mulle_objc_infraclass 
    if( mulle_objc_infraclass_add_ivarlist( infra, list))
    {
       universe = _mulle_objc_infraclass_get_universe( infra);
-      _mulle_objc_universe_raise_errno_exception( universe);
+      mulle_objc_universe_fail_errno( universe);
    }
 }
 

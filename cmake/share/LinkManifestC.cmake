@@ -1,4 +1,4 @@
-# can be included multiple times
+# can probably not be included multiple times but not sure
 
 if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
@@ -21,7 +21,7 @@ endif()
 if( LINK_MANIFEST)
 
    if( NOT LIBRARY_NAME)
-      set( LIBRARY_NAME "mulle-objc-runtime")
+      set( LIBRARY_NAME "${PROJECT_NAME}")
    endif()
 
    set( LINK_MANIFEST_FILES
@@ -78,4 +78,4 @@ if( LINK_MANIFEST)
 
 endif()
 
-include( LinkManifestCAux OPTIONAL)
+include( LinkManifestAuxC OPTIONAL)
