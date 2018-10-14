@@ -5,12 +5,8 @@
 //  Created by Nat! on 14.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
-
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-#include <mulle-test-allocator/mulle-test-allocator.h>
+#include <mulle-testallocator/mulle-testallocator.h>
 
 #include "test_runtime_ids.h"
 
@@ -30,14 +26,14 @@ static unsigned int   instances;
 static void  *my_calloc( size_t n, size_t size)
 {
    ++instances;
-   return( mulle_allocator_calloc( &mulle_test_allocator, n, size));
+   return( mulle_allocator_calloc( &mulle_testallocator, n, size));
 }
 
 
 static void  my_free( void *p)
 {
    --instances;
-   mulle_allocator_free( &mulle_test_allocator, p);
+   mulle_allocator_free( &mulle_testallocator, p);
 }
 
 
@@ -60,8 +56,42 @@ static void  *A_alloc( struct _mulle_objc_infraclass *self, mulle_objc_methodid_
    return( __mulle_objc_infraclass_alloc_instance_extra( self, 0, &my_allocator));
 }
 
+struct _gnu_mulle_objc_methodlist
+{
+   unsigned int                n_methods; // must be #0 and same as struct _mulle_objc_ivarlist
+   void                        *owner;
+   struct _mulle_objc_method   methods[];
+};
 
-struct _mulle_objc_methodlist   A_alloc_methodlist =
+
+struct _gnu_mulle_objc_methodlist   A_infra_methodlist =
+{
+   2,
+   NULL,
+   {
+      {
+         {
+            MULLE_OBJC_RELEASE_METHODID,
+            "v@:",
+            "release",
+            0
+         },
+         (void *) mulle_objc_object_release
+      },
+      {
+         {
+            MULLE_OBJC_RETAIN_METHODID,
+            "@@:",
+            "retain",
+            0
+         },
+         (void *) mulle_objc_object_retain
+      },
+   }
+};
+
+
+struct _gnu_mulle_objc_methodlist   A_meta_methodlist =
 {
    1,
    NULL,
@@ -147,14 +177,6 @@ static void    A_dealloc( void *self, mulle_objc_classid_t sel)
 }
 
 
-struct _gnu_mulle_objc_methodlist
-{
-   unsigned int                n_methods; // must be #0 and same as struct _mulle_objc_ivarlist
-   void                        *owner;
-   struct _mulle_objc_method   methods[];
-};
-
-
 static struct _gnu_mulle_objc_methodlist   finalize_dealloc_methodlist =
 {
    2,
@@ -229,18 +251,21 @@ void   test_retain_release( void)
    struct _mulle_objc_classpair    *pair;
    struct _mulle_objc_infraclass   *A_infra;
    struct _mulle_objc_metaclass    *A_meta;
+   struct _mulle_objc_universe     *universe;
 
-   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
+
+   pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    A_infra = _mulle_objc_classpair_get_infraclass( pair);
    A_meta = _mulle_objc_classpair_get_metaclass( pair);
 
-   mulle_objc_infraclass_add_methodlist_nofail( A_infra, NULL);
-   mulle_objc_metaclass_add_methodlist_nofail( A_meta, NULL);
+   mulle_objc_infraclass_add_methodlist_nofail( A_infra, (void *) &A_infra_methodlist);
+   mulle_objc_metaclass_add_methodlist_nofail( A_meta, (void *) &A_meta_methodlist);
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
 
-   mulle_objc_add_infraclass_nofail( A_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
 
    test_simple_retain_release( A_infra);
    test_permanent_retain_release( A_infra);

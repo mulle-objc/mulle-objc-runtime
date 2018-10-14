@@ -5,10 +5,6 @@
 //  Created by Nat! on 13.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
-
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 #include "test_runtime_ids.h"
 
@@ -63,7 +59,9 @@ void   test_message_forwarding1()
    void                            *rval;
    struct _mulle_objc_universe      *universe;
 
-   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
+
+   pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    A_infra      = _mulle_objc_classpair_get_infraclass( pair);
    A_meta = _mulle_objc_class_get_metaclass( _mulle_objc_infraclass_as_class( A_infra));
@@ -74,10 +72,9 @@ void   test_message_forwarding1()
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
 
-   universe = mulle_objc_register_universe();
    universe->classdefaults.forwardmethod = &forward_list.methods[ 0];
 
-   mulle_objc_add_infraclass_nofail( A_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
 
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) == NULL);
@@ -103,7 +100,9 @@ void   test_message_forwarding2()
    struct _mulle_objc_universe       *universe;
    void                             *rval;
 
-   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
+
+   pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    A_infra      = _mulle_objc_classpair_get_infraclass( pair);
    A_meta = _mulle_objc_classpair_get_metaclass( pair);
@@ -114,9 +113,8 @@ void   test_message_forwarding2()
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
 
-   mulle_objc_add_infraclass_nofail( A_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
 
-   universe = mulle_objc_register_universe();
    assert( universe->classdefaults.forwardmethod == NULL);
 
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);

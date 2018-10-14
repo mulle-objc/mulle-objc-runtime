@@ -20,9 +20,11 @@ static int JIT_PATCH        = MULLE_OBJC_RUNTIME_VERSION_PATCH;
 #undef MULLE_OBJC_RUNTIME_VERSION_MINOR
 #undef MULLE_OBJC_RUNTIME_VERSION_PATCH
 
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
+#ifndef __MULLE_OBJC__
+# define __MULLE_OBJC_NO_TPS__
+# define __MULLE_OBJC_FCS__
+#endif
+
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 #include <stdio.h>
@@ -39,16 +41,16 @@ int   main( int argc, const char * argv[])
    }
 
    if( MULLE_OBJC_RUNTIME_VERSION != ((JIT_MAJOR << 20) | \
-      		                          (JIT_MINOR << 8) | \
-				                          JIT_PATCH))
+      		                            (JIT_MINOR << 8) | \
+				                              JIT_PATCH))
    {
-      fprintf( stderr, "JIT/Runtime header runtime version mismatch");
+      fprintf( stderr, "JIT/Runtime header runtime version mismatch\n");
       return( 1);
    }
 
    if( MULLE_OBJC_RUNTIME_LOAD_VERSION != JIT_LOAD_VERSION)
    {
-      fprintf( stderr, "JIT/Runtime header load version mismatch");
+      fprintf( stderr, "JIT/Runtime header load version mismatch\n");
       return( 1);
    }
    return 0;

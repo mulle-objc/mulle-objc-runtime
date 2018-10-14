@@ -43,42 +43,20 @@ struct _mulle_objc_classpair;
 struct _mulle_objc_universe;
 struct _mulle_objc_methodlist;
 
-//
-// mulle_objc_dotdump_to_tmp is what you want: it dumps the universe and all
-// classes and the classes are linked from the universe
-// .dot file
-//
 
-#pragma mark - dump to /tmp (simpler)
+#pragma mark - preferred ABI
 
-void   mulle_objc_dotdump_to_tmp( void);
+void   mulle_objc_universe_dotdump_to_directory( struct _mulle_objc_universe *universe,
+                                                 char *directory);
+void   mulle_objc_class_dotdump_to_directory( struct _mulle_objc_class *cls,
+                                              char *directory);
 
-void   mulle_objc_dotdump_universe_to_tmp( void);
-void   mulle_objc_dotdump_overview_to_tmp( void);
-void   mulle_objc_class_dotdump_to_tmp( struct _mulle_objc_class *cls);
-void   mulle_objc_dotdump_classname_to_tmp( char *classname);
-void   mulle_objc_dotdump_classes_to_tmp( void);
-
-
-#pragma mark - dump to working directory (safer)
-
-void   mulle_objc_dotdump( void);
-
-void   mulle_objc_dotdump_overview( void);
-void   mulle_objc_dotdump_universe( void);
-void   mulle_objc_class_dotdump( struct _mulle_objc_class *cls);
-void   mulle_objc_dotdump_classname( char *classname);
-void   mulle_objc_dotdump_classes( void);
-
+void   mulle_objc_class_dotdump_to_directory( struct _mulle_objc_class *cls,
+                                              char *directory);
 
 #pragma mark - "movie" support
 
-void   mulle_objc_dotdump_universe_frame_to_tmp( void);
-
-
-#pragma mark - stuff for the debugger
-
-void   mulle_objc_methodlist_dump( struct _mulle_objc_methodlist *list);
-
+void   mulle_objc_universe_dotdump_frame_to_directory( struct _mulle_objc_universe *universe,
+                                                       char *directory);
 
 #endif

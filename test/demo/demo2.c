@@ -5,9 +5,10 @@
 //  Created by Nat! on 04.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
+#ifndef __MULLE_OBJC__
+# define __MULLE_OBJC_NO_TPS__
+# define __MULLE_OBJC_FCS__
+#endif
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
@@ -154,13 +155,13 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
 
 // enum is wrong if sizeof( int) ! sizeof( mulle_objc_protocolid_t)
 
-struct _gnu_mulle_objc_protcollist
+struct _gnu_mulle_objc_protocollist
 {
    unsigned int                  n_protocols;
    struct _mulle_objc_protocol   protocols[];
 };
 
-static struct _gnu_mulle_objc_protcollist   Object_protocollist =
+static struct _gnu_mulle_objc_protocollist   Object_protocollist =
 {
    5,
    {
@@ -202,6 +203,30 @@ struct _mulle_objc_loadclasslist class_list =
 };
 
 
+#ifdef __MULLE_OBJC_NO_TPS__
+# define TPS_BIT   0x4
+#else
+# define TPS_BIT   0
+#endif
+
+#ifdef __MULLE_OBJC_NO_FCS__
+# define FCS_BIT   0x8
+#else
+# define FCS_BIT   0
+#endif
+
+
+
+#define UNIVERSE_ID   0x7c5f7f6b
+#define UNIVERSE_NAME "toy universe"
+
+static struct _mulle_objc_loaduniverse  universe_info =
+{
+   UNIVERSE_ID,
+   UNIVERSE_NAME
+};
+
+
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
@@ -209,8 +234,9 @@ static struct _mulle_objc_loadinfo  load_info =
       MULLE_OBJC_RUNTIME_VERSION,
       0,
       0,
-      0
+      TPS_BIT | FCS_BIT
    },
+   &universe_info,
    &class_list
 };
 
@@ -231,14 +257,16 @@ static void  __load()
 }
 
 
-struct _mulle_objc_universe  *__register_mulle_objc_universe( void)
+struct _mulle_objc_universe  *
+   __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
+                                   char *universename)
 {
    struct _mulle_objc_universe    *universe;
 
-   universe = __mulle_objc_get_universe();
+   universe = __mulle_objc_global_get_universe( universeid, universename);
    if( ! _mulle_objc_universe_is_initialized( universe))
    {
-      _mulle_objc_universe_bang( universe, 0, 0, NULL);
+      _mulle_objc_universe_bang( universe, 0, NULL);
       universe->config.ignore_ivarhash_mismatch = 1;
    }
    return( universe);
@@ -249,6 +277,7 @@ int   main( int argc, const char * argv[])
 {
    struct _mulle_objc_infraclass    *cls;
    struct _mulle_objc_object        *obj;
+   struct _mulle_objc_universe      *universe;
 
    // windows...
 #if ! defined( __clang__) && ! defined( __GNUC__)
@@ -257,14 +286,15 @@ int   main( int argc, const char * argv[])
 
    // obj = [[Object alloc] init];
 
-   cls = mulle_objc_fastlookup_infraclass_nofail( ___Object_classid);
+   cls = mulle_objc_global_lookup_infraclass_nofail( UNIVERSE_ID, ___Object_classid);
    obj = mulle_objc_infraclass_alloc_instance( cls);
    obj = mulle_objc_object_call( obj, ___init__methodid, NULL);
 
    // if( [obj conformsToProtocol:@protocol( A)])
    //    printf( "A\n");
 
-   mulle_objc_dotdump_to_tmp();
+   universe = mulle_objc_global_get_universe( UNIVERSE_ID);
+   mulle_objc_universe_dotdump_to_directory( universe, ".");
 
    if( mulle_objc_object_call( obj, ___conforms_to_protocol__methodid, &(struct { mulle_objc_protocolid_t a;  }){ .a = ___A__protocolid } ))
       printf( "A\n");

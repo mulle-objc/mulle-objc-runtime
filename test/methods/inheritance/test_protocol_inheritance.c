@@ -5,10 +5,6 @@
 //  Created by Nat! on 13.03.15.
 //  Copyright (c) 2015 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
-
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 #include "test_runtime_ids.h"
@@ -26,30 +22,32 @@ static void  create_ABC_PROTO_classes( struct abc_classes *classes)
 {
    struct _mulle_objc_classpair       *pair;
    struct _mulle_objc_protocollist    *protocollist;
-   struct _mulle_objc_runtime         *runtime;
+   struct _mulle_objc_universe        *universe;
 
-   pair = mulle_objc_new_classpair_nofail( A_classid, "A", 0, NULL);
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
+
+   pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    classes->A_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->A_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_meta);
    assert( classes->A_meta == _mulle_objc_class_get_metaclass( _mulle_objc_infraclass_as_class( classes->A_infra)));
 
-   pair = mulle_objc_new_classpair_nofail( B_classid, "B", 0, classes->A_infra);
+   pair = mulle_objc_universe_new_classpair( universe, B_classid, "B", 0, 0, classes->A_infra);
    assert( pair);
    classes->B_infra = _mulle_objc_classpair_get_infraclass( pair);
    assert( classes->B_infra);
    classes->B_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->A_meta);
 
-   pair = mulle_objc_new_classpair_nofail( C_classid, "C", 0, NULL);
+   pair = mulle_objc_universe_new_classpair( universe, C_classid, "C", 0, 0, NULL);
    assert( pair);
    classes->C_infra = _mulle_objc_classpair_get_infraclass( pair);
    classes->C_meta  = _mulle_objc_classpair_get_metaclass( pair);
    assert( classes->C_meta);
 
    // must conform to own protocol
-   protocollist  = mulle_objc_alloc_protocollist( 1);
+   protocollist  = mulle_objc_universe_alloc_protocollist( universe, 1);
    protocollist->n_protocols = 1;
    protocollist->protocols[ 0].protocolid = C_classid;
    protocollist->protocols[ 0].name       = "C";
@@ -63,14 +61,17 @@ static void  add_ABC_PROTO_classes( struct abc_classes *classes)
    static mulle_objc_protocolid_t     classprotocolids[] = { C_classid, MULLE_OBJC_NO_PROTOCOLID };
    struct _mulle_objc_classpair       *pair;
    struct _mulle_objc_protocollist    *protocollist;
+   struct _mulle_objc_universe        *universe;
 
-   mulle_objc_add_infraclass_nofail( classes->A_infra);
-   mulle_objc_add_infraclass_nofail( classes->B_infra);
-   mulle_objc_add_infraclass_nofail( classes->C_infra);
+   universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
+
+   mulle_objc_universe_add_infraclass_nofail( universe, classes->A_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, classes->B_infra);
+   mulle_objc_universe_add_infraclass_nofail( universe, classes->C_infra);
 
    pair = _mulle_objc_infraclass_get_classpair( classes->B_infra);
 
-   protocollist  = mulle_objc_alloc_protocollist( 1);
+   protocollist  = mulle_objc_universe_alloc_protocollist( universe, 1);
    protocollist->n_protocols = 1;
    protocollist->protocols[ 0].protocolid = C_classid;
    protocollist->protocols[ 0].name       = "C";
@@ -112,8 +113,6 @@ static void   *B_cat_bar( struct _mulle_objc_object *self, mulle_objc_methodid_t
 {
    return( NULL);
 }
-
-
 
 
 struct _mulle_objc_methodlist  B_cat_list =

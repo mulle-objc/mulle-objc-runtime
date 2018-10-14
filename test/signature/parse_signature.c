@@ -5,9 +5,12 @@
 //  Created by Nat! on 19/11/14.
 //  Copyright (c) 2014 Mulle kybernetiK. All rights reserved.
 //
-#define __MULLE_OBJC_NO_TPS__
-#define __MULLE_OBJC_NO_TRT__
-#define __MULLE_OBJC_FMC__
+#ifndef __MULLE_OBJC__
+# define __MULLE_OBJC_NO_TPS__
+# define __MULLE_OBJC_FCS__
+#endif
+
+
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 

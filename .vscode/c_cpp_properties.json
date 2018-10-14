@@ -6,7 +6,7 @@
          "includePath": [
                "${workspaceFolder}/**"
          ],
-         "defines": [],
+         "defines": [ "__MULLE_OBJC_TPS__=1", "__MULLE_OBJC_FCS__=1" ],
          "compilerPath": "/usr/bin/clang",
          "cStandard": "c11",
          "intelliSenseMode": "clang-x64"
@@ -16,7 +16,7 @@
          "includePath": [
                "${workspaceFolder}/**"
          ],
-         "defines": [],
+         "defines": [ "__MULLE_OBJC_TPS__=1", "__MULLE_OBJC_FCS__=1" ],
          "compilerPath": "/usr/bin/clang",
          "cStandard": "c11",
          "intelliSenseMode": "clang-x64"
@@ -26,7 +26,7 @@
          "includePath": [
                "${workspaceFolder}/**"
          ],
-         "defines": [],
+         "defines": [ "__MULLE_OBJC_TPS__=1", "__MULLE_OBJC_FCS__=1" ],
          "compilerPath": "\\mingw64\\bin\\clang.exe",
          "cStandard": "c11",
          "intelliSenseMode": "clang-x64"
