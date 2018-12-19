@@ -153,7 +153,7 @@ void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pai
                                                mulle_atomic_pointer_t *pointer,
                                                struct _mulle_objc_uniqueidarray *array)
 {
-   mulle_atomic_pointer_t        old;
+   void                          *old;
    struct mulle_allocator        *allocator;
    struct _mulle_objc_universe   *universe;
    unsigned int                  i;
