@@ -240,7 +240,7 @@ static inline mulle_objc_implementation_t
                                           mulle_objc_implementation_t oldimp)
 
 {
-   mulle_atomic_functionpointer_t   f;
+   mulle_functionpointer_t   f;
 
    f = __mulle_atomic_functionpointer_cas( &method->implementation,
                                            (mulle_functionpointer_t) newimp,
