@@ -704,7 +704,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_method        *method;
    mulle_objc_cache_uint_t          offset;
    mulle_objc_implementation_t      imp;
-   mulle_atomic_functionpointer_t   p;
+   mulle_functionpointer_t          p;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -739,7 +739,7 @@ mulle_objc_implementation_t
 {
    mulle_objc_cache_uint_t          offset;
    mulle_objc_implementation_t      imp;
-   mulle_atomic_functionpointer_t   p;
+   mulle_functionpointer_t          p;
    struct _mulle_objc_cache         *cache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
@@ -776,7 +776,7 @@ mulle_objc_implementation_t
 {
    mulle_objc_cache_uint_t          offset;
    mulle_objc_implementation_t      imp;
-   mulle_atomic_functionpointer_t   p;
+   mulle_functionpointer_t          p;
    struct _mulle_objc_cache         *cache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
@@ -867,7 +867,7 @@ void   *_mulle_objc_object_call_class( void *obj,
                                        struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t      imp;
-   mulle_atomic_functionpointer_t   p;
+   mulle_functionpointer_t          p;
    struct _mulle_objc_cache         *cache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
@@ -911,7 +911,7 @@ void   *_mulle_objc_object_call2( void *obj,
                                   void *parameter)
 {
    mulle_objc_implementation_t      imp;
-   mulle_atomic_functionpointer_t   p;
+   mulle_functionpointer_t          p;
    struct _mulle_objc_cache         *cache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
@@ -953,13 +953,13 @@ static mulle_objc_implementation_t
    _mulle_objc_class_superlookup2_implementation_nofail( struct _mulle_objc_class *cls,
                                                          mulle_objc_superid_t superid)
 {
-   mulle_objc_implementation_t         imp;
-   struct _mulle_objc_cache            *cache;
-   struct _mulle_objc_cacheentry       *entries;
-   struct _mulle_objc_cacheentry       *entry;
-   mulle_objc_cache_uint_t             mask;
-   mulle_objc_cache_uint_t             offset;
-   mulle_atomic_functionpointer_t      p;
+   mulle_objc_implementation_t     imp;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
+   mulle_functionpointer_t         p;
 
    entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
