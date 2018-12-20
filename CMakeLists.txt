@@ -68,7 +68,7 @@ set( DEPENDENCY_LIBRARIES
    ${DEPENDENCY_LIBRARIES}
 )
 
-add_dependencies( ${STANDALONE_LIBRARY_NAME} mulle-objc-runtime)
+add_dependencies( ${EXECUTABLE_NAME} mulle-objc-runtime)
 
 include( Executable)
 include( InstallExecutable)
