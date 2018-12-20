@@ -63,14 +63,14 @@ endif()
 
 set( EXECUTABLE_NAME mulle-objc-uniqueid)
 set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES})
+set( EXECUTABLE_DEPENDENCY_NAMES mulle-objc-runtime)
 set( DEPENDENCY_LIBRARIES
    $<TARGET_FILE:mulle-objc-runtime>
    ${DEPENDENCY_LIBRARIES}
 )
 
-add_dependencies( ${EXECUTABLE_NAME} mulle-objc-runtime)
-
 include( Executable)
 include( InstallExecutable)
+
 
 include( FinalOutput OPTIONAL)

@@ -37,7 +37,10 @@ if( LINK_PHASE)
       ${CMAKE_EDITABLE_FILES}
    )
 
-   add_dependencies( "${EXECUTABLE_NAME}" "_1_${EXECUTABLE_NAME}")
+   add_dependencies( "${EXECUTABLE_NAME}"
+      "_1_${EXECUTABLE_NAME}"
+      ${EXECUTABLE_DEPENDENCY_NAMES}
+   )
 
    # useful for mulle-c, but can be commented out
    set_property( TARGET "${EXECUTABLE_NAME}" PROPERTY CXX_STANDARD 11)

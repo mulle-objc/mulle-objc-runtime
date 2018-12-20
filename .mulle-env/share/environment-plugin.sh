@@ -38,9 +38,3 @@ export ADDICTION_DIR="${MULLE_VIRTUAL_ROOT}/addiction"
 # Use common build directory
 #
 export BUILD_DIR="${MULLE_VIRTUAL_ROOT}/build"
-
-#
-# Modify path so that dependency and addictions executables are found and
-# preferred.
-#
-export PATH="${DEPENDENCY_DIR}/bin:${ADDICTION_DIR}/bin:$PATH"
