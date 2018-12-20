@@ -64,9 +64,9 @@ endif()
 set( EXECUTABLE_NAME mulle-objc-uniqueid)
 set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES})
 set( EXECUTABLE_DEPENDENCY_NAMES mulle-objc-runtime)
-set( DEPENDENCY_LIBRARIES
+# only need the hash function
+set( EXECUTABLE_LIBRARY_LIST
    $<TARGET_FILE:mulle-objc-runtime>
-   ${DEPENDENCY_LIBRARIES}
 )
 
 include( Executable)
