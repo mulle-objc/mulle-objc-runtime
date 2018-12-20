@@ -1,6 +1,38 @@
-### 0.14.1
+## 0.14.0
 
-* fix travis
+* for release 7.0.0.0 of the mulle-clang compiler
+* the mulle-objc runtime can now handle multiple universes
+* most if not all of the runtime convenience functions had to be purged or renamed
+* the threadlocal runtime is gone, superseded by universes with names
+* there is now a clean distinction between ObjC exceptions and runtime errors called fails
+* the compiler now needs to emit universeids to properly lookup classes
+* for class lookups inside a method, there should be a considerable speedup
+* improved universe trace facility
+* moved debug conveniences to MulleObjC
+* RENAMED: too many methods to list
+* did some work on the big bang, for MulleObjC benefit
+* use new verbs threadset and threadget and rename some functions
+* add minimal.h for MulleObjC C includes
+* BREAKING: renamed `_mulle_objc_universe_get_allocator` to `_mulle_objc_universe_get_foundation_allocator`
+* RENAMED: `mulle_objc_inlined_get_universe` to `mulle_objc_inlineget_universe`
+* RENAMED: `_mulle_objc_cachepivot_atomic_get_cache` to `_mulle_objc_cachepivot_atomicget_cache`
+* RENAMED: `mulle_objc_object_copy` to `mulle_objc_object_call_copy`
+* RENAMED: `mulle_objc_object_autorelease` to `mulle_objc_object_call_autorelease`
+* RENAMED: `mulle_objc_object_copy` to `mulle_objc_object_call_copy`
+* ADDED: `mulle_objc_invalidate_class_caches`
+* BREAKING: `mulle_objc_infraclass_alloc_instance` now has no allocator parameter, use `__mulle_objc_infraclass_alloc_instance` if you must
+* ADDED: `_mulle_objc_class_lookup_method` to search in a class without recursion for a method
+* ADDED: `_mulle_objc_infraclass_get_allocator`
+* BREAKING: Load version set to 13, as the ivar order in methods changed
+* ADDED: `_mulle_objc_object_get_allocator,` get the allocator of the class
+* signature is now aware of function pointers and blocks
+* BREAKING: `mulle_objc_signature_next_type` will now always return NULL if there is no next type, and not an empty string.
+* mulle-objc-uniqueid can now deal with multiple arguments and can output CSV
+* changes for mulle-lldb 6.0.0.5
+* improve trace output for methods
+* fix mingw, update sde
+* fix DEBUGGING.md variable names
+
 
 ## 0.13.0
 
@@ -247,7 +279,6 @@ matches the current default of the  mulle-clang compiler
 * improved super calls
 
 
->>>>>>> Stashed changes
 ## 0.2.1
 
 * add support for char5-encoding check
