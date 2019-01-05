@@ -1,4 +1,0 @@
-# files that have user edits
-CMakeLists.txt
-CMakePackage.cmake
-cmake/*.cmake

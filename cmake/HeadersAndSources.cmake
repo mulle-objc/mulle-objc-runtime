@@ -16,6 +16,6 @@ include( _Sources)
 # If you don't like the "automatic" way of generating _Headers
 # and/or _Sources:
 #
-# MULLE_SDE_CMAKE_HEADERS_FILE="DISABLE" # or NONE
-# MULLE_SDE_CMAKE_SOURCES_FILE="DISABLE" # or NONE
+# MULLE_MATCH_TO_CMAKE_HEADERS_FILE="DISABLE" # or NONE
+# MULLE_MATCH_TO_CMAKE_SOURCES_FILE="DISABLE" # or NONE
 #

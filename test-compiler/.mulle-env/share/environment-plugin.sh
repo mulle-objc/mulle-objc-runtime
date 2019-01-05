@@ -22,7 +22,7 @@ export MULLE_SOURCETREE_SYMLINK="YES"
 #
 # Use common folder for sharable projects
 #
-export MULLE_SOURCETREE_SHARE_DIR="${MULLE_VIRTUAL_ROOT}/stash"
+export MULLE_SOURCETREE_SHARE_DIR="stash"
 
 #
 # Share dependency directory (absolute for ease of use)

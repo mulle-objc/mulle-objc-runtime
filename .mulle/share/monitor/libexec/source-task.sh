@@ -29,17 +29,14 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
-[ "${TRACE}" = 'YES' ] && set -x && : "$0" "$@"
-
-
-main()
+source_task_run()
 {
-   local action="$1"     # unused
-   local filename="$2"
-   local category="$3"
+   log_entry "mulle-sde/c-cmake::source_task_run" "$@"
 
-   echo "none"
+   log_info "Updating ${C_MAGENTA}${C_BOLD}${PROJECT_NAME}${C_INFO} source"
+
+   exekutor mulle-match-to-cmake \
+               ${MULLE_TECHNICAL_FLAGS} \
+               ${MULLE_MATCH_TO_CMAKE_FLAGS} \
+               "$@"
 }
-
-main "$@"
-

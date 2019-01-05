@@ -13,7 +13,7 @@ include( _Headers)
 #
 # If you don't like the "automatic" way of generating _Headers
 #
-# MULLE_SDE_CMAKE_HEADERS_FILE="DISABLE" # or NONE
+# MULLE_MATCH_TO_CMAKE_HEADERS_FILE="DISABLE" # or NONE
 #
 
 #
