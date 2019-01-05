@@ -1,3 +1,7 @@
+### 0.14.1
+
+* modernized mulle-sde with .mulle folder
+
 ## 0.14.0
 
 * for release 7.0.0.0 of the mulle-clang compiler

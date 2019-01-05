@@ -6,9 +6,6 @@ endif()
 
 
 if( LINK_PHASE)
-
-
-
 ### Install
 
    include( PreInstallExecutable OPTIONAL)

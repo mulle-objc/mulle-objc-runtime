@@ -139,7 +139,9 @@ and everybody will be happy")
 
       add_dependencies( ${STANDALONE_LIBRARY_NAME} ${LIBRARY_NAME})
       if( STANDALONE_STARTUP_LIBRARY_NAME)
-         add_dependencies( ${STANDALONE_LIBRARY_NAME} ${STANDALONE_STARTUP_LIBRARY_NAME})
+         if( TARGET ${STANDALONE_STARTUP_LIBRARY_NAME})
+            add_dependencies( ${STANDALONE_LIBRARY_NAME} ${STANDALONE_STARTUP_LIBRARY_NAME})
+         endif()
       endif()
 
       # If STANDALONE_SOURCES were to be empty, this would be needed

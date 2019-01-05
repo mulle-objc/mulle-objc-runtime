@@ -10,7 +10,8 @@ if( NOT __ALL_LOAD_C_CMAKE__)
    # a link
    #
    # This is either done by prefixing a library or enclosing
-   # link statements
+   # link statements. Sometimes it seemed as if Apple needed
+   # -lx -force_load x though. ?
    #
    if( APPLE)
       set( FORCE_LOAD_PREFIX "-force_load ")

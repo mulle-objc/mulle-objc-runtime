@@ -143,14 +143,18 @@ struct _mulle_objc_class
 
    uintptr_t                               extensionoffset;  // 4 later #1#
 
-
+   //
+   // TODO: we could have a pointer to the load class and get the id
+   //       information that way. (wouldn't save a lot though)
+   //       or move to classpair
+   //
    mulle_objc_classid_t                    classid;
    mulle_objc_classid_t                    superclassid;
 
    mulle_atomic_pointer_t                  thread;          // protects the empty cache
    mulle_atomic_pointer_t                  state;
 
-   // general storage mechanism for KVC, needed in meta ?
+   // TODO: general storage mechanism for KVC, needed in meta ? move to classpair ?
    struct _mulle_objc_kvccachepivot        kvc;
 
    uint16_t                                inheritance;

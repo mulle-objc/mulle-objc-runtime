@@ -15,8 +15,11 @@ if( NOT FRAMEWORK_FILES)
    set( FRAMEWORK_FILES "${PROJECT_FILES}")
 endif()
 
-
 include( PreFramework OPTIONAL)
+
+if( NOT SOURCES)
+   message( FATAL_ERROR "There are no sources to compile for framework ${FRAMEWORK_NAME}. Did mulle-sde update run yet ?")
+endif()
 
 add_library( "${FRAMEWORK_NAME}" SHARED
    ${FRAMEWORK_FILES}
