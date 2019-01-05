@@ -1672,13 +1672,6 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
 
    bits     = _mulle_objc_universe_get_loadbits( universe);
 
-   if( universe->debug.trace.universe)
-   {
-      mulle_objc_universe_trace( universe, "universe load bits : %lx\n", bits);
-      mulle_objc_universe_trace( universe, "load_tps           : %lx\n", load_tps);
-      mulle_objc_universe_trace( universe, "universe config    : %lx\n", universe->config.no_tagged_pointer);
-   }
-
    mismatch = (load_tps && (bits & MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS)) ||
               (! load_tps && (bits & MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS));
    mismatch |= universe->config.no_tagged_pointer && load_tps;

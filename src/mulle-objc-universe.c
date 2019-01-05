@@ -189,9 +189,9 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
 #endif
    {
-      universe->debug.warn.methodid_type   = 1;
-      universe->debug.warn.protocolclass    = 1;
-      universe->debug.warn.stuck_loadable  = 1;
+      universe->debug.warn.methodid_type  = 1;
+      universe->debug.warn.protocolclass  = 1;
+      universe->debug.warn.stuck_loadable = 1;
    }
 
    universe->debug.trace.category_add    = getenv_yes_no( "MULLE_OBJC_TRACE_CATEGORY_ADD");
@@ -202,7 +202,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.dump_universe   = getenv_yes_no( "MULLE_OBJC_TRACE_DUMP_RUNTIME");
    universe->debug.trace.fastclass_add   = getenv_yes_no( "MULLE_OBJC_TRACE_FASTCLASS_ADD");
    universe->debug.trace.initialize      = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");
-   universe->debug.trace.hashstrings     = getenv_yes_no( "MULLE_OBJC_TRACE_HASHSTRINGS");  
+   universe->debug.trace.hashstrings     = getenv_yes_no( "MULLE_OBJC_TRACE_HASHSTRINGS");
    universe->debug.trace.load_call       = getenv_yes_no( "MULLE_OBJC_TRACE_LOAD_CALL");
    universe->debug.trace.loadinfo        = getenv_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
@@ -426,8 +426,17 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    mulle_objc_thread_setup_threadinfo( universe);
    _mulle_objc_thread_register_universe_gc_if_needed( universe);
 
+
    if( universe->debug.trace.universe)
+   {
+      uintptr_t   bits;
+
+      bits  = _mulle_objc_universe_get_loadbits( universe);
+
+      mulle_objc_universe_trace( universe, "universe load bits : %lx", bits);
+      mulle_objc_universe_trace( universe, "universe tps       : %lx", universe->config.no_tagged_pointer ? 0 : 1);
       mulle_objc_universe_trace( universe, "init done");
+   }
 }
 
 
@@ -632,6 +641,10 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
 }
 
 
+//
+// if you use MULLE_TESTALLOCATOR your are leak checking everything
+// if you want to leak check only ObjC use MULLE_OBJC_TESTALLOCATOR
+//
 struct mulle_allocator  *
    __mulle_objc_universe_get_testallocator_ifneeded( struct _mulle_objc_universe  *universe)
 {
@@ -677,7 +690,7 @@ static void   mulle_objc_global_atexit( void)
 
 
 void
-   __mulle_objc_universe_atexit_ifneeded( struct _mulle_objc_universe  *universe,
+   __mulle_objc_universe_atexit_ifneeded( struct _mulle_objc_universe *universe,
                                           struct mulle_allocator *test_allocator)
 {
    static int   did_it;
@@ -693,6 +706,9 @@ void
          did_it = 1;
          if( atexit( mulle_objc_global_atexit))
             mulle_objc_universe_fail_perror( universe, "atexit:");
+         if( universe->debug.trace.universe)
+            mulle_objc_universe_trace( universe,
+                                       "atexit installed");
       }
    }
 }

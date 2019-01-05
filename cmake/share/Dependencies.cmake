@@ -10,6 +10,6 @@ if( NOT __DEPENDENCIES___CMAKE__)
 
    include( PreDependencies OPTIONAL)
 
-   include( "cmake/DependenciesAndLibraries.cmake" OPTIONAL)
+   include( DependenciesAndLibraries OPTIONAL)
 
 endif()

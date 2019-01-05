@@ -10,14 +10,12 @@ if( NOT __MOTD__CMAKE__)
    # But if create-build-motd doesn't exist, it's no biggy
    #
    if( MSVC)
-      find_program( CREATE_MOTD_EXE create-build-motd.bat
-         PATHS "${MULLE_VIRTUAL_ROOT}/.mulle-sde/bin"
-               "${MULLE_VIRTUAL_ROOT}/.mulle-sde/share/bin"
+      find_program( CREATE_MOTD_EXE mulle-create-build-motd.bat
+         PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/var/$ENV{MULLE_HOSTNAME}/bin"
       )
    else()
-      find_program( CREATE_MOTD_EXE create-build-motd
-         PATHS "${MULLE_VIRTUAL_ROOT}/.mulle-sde/bin"
-               "${MULLE_VIRTUAL_ROOT}/.mulle-sde/share/bin"
+      find_program( CREATE_MOTD_EXE mulle-create-build-motd
+         PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/var/$ENV{MULLE_HOSTNAME}/bin"
       )
    endif()
 
