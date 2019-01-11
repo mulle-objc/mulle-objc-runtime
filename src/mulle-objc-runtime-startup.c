@@ -47,7 +47,7 @@ MULLE_C_CONST_RETURN struct _mulle_objc_universe  *
 
    universe = __mulle_objc_global_get_universe( universeid, universename);
    if( _mulle_objc_universe_is_uninitialized( universe))
-      _mulle_objc_universe_bang( universe, 0, NULL);
+      _mulle_objc_universe_bang( universe, 0, NULL, NULL);
 
    return( universe);
 }

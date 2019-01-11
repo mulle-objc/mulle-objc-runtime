@@ -29,7 +29,7 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
-[ "${TRACE}" = "YES" ] && set -x && : "$0" "$@"
+[ "${TRACE}" = 'YES' -o "${MULLE_ENV_BASH_COMPLETION_SH_TRACE}" = 'YES' ] && set -x && : "$0" "$@"
 
 
 _mulle_env_style_complete()
@@ -80,7 +80,7 @@ _mulle_env_complete()
       tool)
          case "$prev" in
             remove)
-               list="`mulle-env -e tool list`"
+               list="`mulle-env tool list`"
                COMPREPLY=( $( compgen -W "${list}" -- "$cur" ) )
             ;;
 
@@ -98,7 +98,7 @@ _mulle_env_complete()
 
       environment)
          case "$prev" in
-            get|set)
+            get|remove|set)
                list="`mulle-env -s environment list | sed 's/^\([^=]*\).*/\1/'`"
                COMPREPLY=( $( compgen -W "${list}" -- "$cur" ) )
             ;;
@@ -107,7 +107,7 @@ _mulle_env_complete()
             ;;
 
             --scope)
-               list="`mulle-env -s environment scopes`"
+               list="`mulle-env -s environment scope`"
                COMPREPLY=( $( compgen -W "${list}" -- "$cur" ) )
             ;;
 
@@ -118,7 +118,7 @@ _mulle_env_complete()
                   ;;
 
                   *)
-                     COMPREPLY=( $( compgen -W "get list set scopes" -- "$cur" ) )
+                     COMPREPLY=( $( compgen -W "get list set scope" -- "$cur" ) )
                   ;;
                esac
             ;;

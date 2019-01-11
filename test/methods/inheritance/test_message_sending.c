@@ -30,17 +30,17 @@ struct _1000_8_chars
 
 void   test_message_sending()
 {
-   struct _1000_8_chars                   *storage;
-   struct _mulle_objc_class               *A_cls;
-   struct _mulle_objc_classpair           *pair;
-   struct _mulle_objc_infraclass          *A_infra;
-   struct _mulle_objc_metaclass           *A_meta;
-   struct _mulle_objc_descriptor    *desc;
-   struct _mulle_objc_methodlist          *methodlist;
-   struct _mulle_objc_object              *A_obj;
-   struct _mulle_objc_universe             *universe;
-   unsigned int                           i;
-   void                                   *rval;
+   struct _1000_8_chars            *storage;
+   struct _mulle_objc_class        *A_cls;
+   struct _mulle_objc_classpair    *pair;
+   struct _mulle_objc_infraclass   *A_infra;
+   struct _mulle_objc_metaclass    *A_meta;
+   struct _mulle_objc_descriptor   *desc;
+   struct _mulle_objc_methodlist   *methodlist;
+   struct _mulle_objc_object       *A_obj;
+   struct _mulle_objc_universe     *universe;
+   unsigned int                    i;
+   void                            *rval;
 
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
@@ -140,4 +140,5 @@ void   test_message_sending()
       }
    }
 #endif
+   mulle_objc_object_free( A_obj);
 }

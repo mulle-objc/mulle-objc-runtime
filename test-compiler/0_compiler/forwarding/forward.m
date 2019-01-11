@@ -17,6 +17,11 @@
 }
 
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
 
 - (long long) doit:(double) value
 {
@@ -48,4 +53,5 @@ main()
 
    foo = [Foo new];
    printf( "%lld\n", [foo dontDoit:0.6]);
+   [foo dealloc];
 }

@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.1)
 
 # make the order inconvenient
 set( SOURCES
@@ -26,10 +27,11 @@ ${SOURCES}
 )
 
 
+#
 # needed to do it like this, because gcc is old
 # and cmake prepends the flags and gcc then
 # has nothing to link against yet
-
+#
 target_link_libraries( load-categories.exe
 ${TEST_LIBRARIES}
 )
