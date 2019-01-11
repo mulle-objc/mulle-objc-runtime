@@ -328,15 +328,16 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
                     _mulle_objc_universe_describe_categoryid( universe, categoryid));
    }
 
+   _mulle_objc_classpair_add_categoryid( pair, categoryid);
+
    if( universe->debug.trace.category_add || universe->debug.trace.dependency)
       mulle_objc_universe_trace( universe,
-                                 "add category %08x \"%s\" to class %08x \"%s\"",
+                                 "added category %08x \"%s\" to class %08x \"%s\"",
                                  categoryid,
                                  _mulle_objc_universe_describe_categoryid( universe, categoryid),
                                  _mulle_objc_classpair_get_classid( pair),
                                  _mulle_objc_classpair_get_name( pair));
 
-   _mulle_objc_classpair_add_categoryid( pair, categoryid);
 }
 
 
@@ -357,17 +358,18 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
 
    if( ! _mulle_objc_classpair_has_protocolclass( pair, proto_infra))
    {
+      _mulle_concurrent_pointerarray_add( &pair->protocolclasses, proto_infra);
+
       universe = _mulle_objc_classpair_get_universe( pair);
       if( universe->debug.trace.protocol_add || universe->debug.trace.dependency)
          mulle_objc_universe_trace( universe,
-                                    "add protcolclass %08x \"%s\" "
+                                    "added protcolclass %08x \"%s\" "
                                     "to class %08x \"%s\"",
                                     proto_infra->base.classid,
                                     proto_infra->base.name,
                                     _mulle_objc_classpair_get_classid( pair),
                                     _mulle_objc_classpair_get_name( pair));
 
-      _mulle_concurrent_pointerarray_add( &pair->protocolclasses, proto_infra);
    }
 }
 
@@ -461,7 +463,7 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
          if( universe->debug.trace.protocol_add)
             mulle_objc_universe_trace( universe,
                                        "class %08x \"%s\" "
-                                       "has become a protocolclass\n",
+                                       "has become a protocolclass",
                                        _mulle_objc_infraclass_get_classid( proto_cls),
                                        _mulle_objc_infraclass_get_name( proto_cls));
       }

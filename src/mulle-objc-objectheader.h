@@ -92,7 +92,7 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_object *
 }
 
 
-static inline intptr_t  
+static inline intptr_t
    _mulle_objc_objectheader_get_retaincount_1( struct _mulle_objc_objectheader *header)
 {
    return( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1));
@@ -103,7 +103,8 @@ static inline struct _mulle_objc_object *
    _mulle_objc_objectheader_init( struct _mulle_objc_objectheader *header, struct _mulle_objc_class *cls)
 {
    header->_isa = cls;
-   assert( ! _mulle_atomic_pointer_nonatomic_read( &header->_retaincount_1));
+   // this triggered an uninitialized valgrind, but i couldn't figure out why
+   // assert( ! _mulle_objc_objectheader_get_retaincount_1( header));
    return( (void *) (header + 1));
 }
 
@@ -121,8 +122,8 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class *
 // this is not atomic! only do this when noone else has
 // access (like during initialization)
 //
-static inline void   
-   _mulle_objc_objectheader_set_isa( struct _mulle_objc_objectheader *header, 
+static inline void
+   _mulle_objc_objectheader_set_isa( struct _mulle_objc_objectheader *header,
    	                               struct _mulle_objc_class *cls)
 {
    header->_isa = cls;

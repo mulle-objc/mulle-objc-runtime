@@ -16,6 +16,11 @@
    return( [mulle_objc_infraclass_alloc_instance( self) init]);
 }
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
 
 - (id) init
 {
@@ -40,15 +45,18 @@ main()
    @catch( NSOtherException *exception)
    {
       printf( "@catch NSOtherException\n");
+      [exception dealloc];
    }
    @catch( NSException *exception)
    {
       printf( "@catch NSException\n");
+      [exception dealloc];
    }
    @finally
    {
       printf( "@finally\n");
    }
+   return( 0);
 }
 
 

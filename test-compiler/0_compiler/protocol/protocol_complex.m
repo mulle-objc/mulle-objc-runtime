@@ -40,6 +40,12 @@
    return( mulle_objc_infraclass_alloc_instance( self));
 }
 
+
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
 @end
 
 
@@ -69,5 +75,8 @@ main()
        _mulle_objc_infraclass_conformsto_protocolid( cls,
                                               @protocol( E)) ? "YES" : "NO");
 
-   mulle_objc_universe_dotdump_to_directory( universe, ".");
+//   mulle_objc_universe_dotdump_to_directory( universe, ".");
+
+   [foo dealloc];
+   return( 0);
 }

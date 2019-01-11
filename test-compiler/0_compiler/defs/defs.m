@@ -36,6 +36,12 @@
 }
 
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
+
 - (void) takeFooDefs:(struct { @defs( Foo); } *) defs
 {
    [super takeBarDefs:(struct { @defs( Bar); } *) defs];
@@ -53,4 +59,6 @@ main()
 
    foo = [Foo new];
    [foo takeFooDefs:&( struct { @defs( Foo); }){ .x = 1, .y = 2, ._z = 3 }];
+   [foo dealloc];
+   return( 0);
 }

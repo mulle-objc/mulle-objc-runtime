@@ -20,6 +20,11 @@
    return( [mulle_objc_infraclass_alloc_instance( self) init]);
 }
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
 
 - (id) init
 {
@@ -32,7 +37,7 @@
 
 main()
 {
-   Foo  *foo;
+   Foo                            *foo;
    struct _mulle_objc_universe    *universe;
 
    universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
@@ -42,4 +47,6 @@ main()
    mulle_objc_universe_dotdump_to_directory( universe, ".");
 
    foo = [Foo new];
+   [foo dealloc];
+   return( 0);
 }

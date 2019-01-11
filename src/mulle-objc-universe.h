@@ -73,13 +73,16 @@ extern MULLE_C_CONST_RETURN struct _mulle_objc_universe  *
 //
 void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
                                   void (*bang)( struct _mulle_objc_universe  *universe,
+                                                struct mulle_allocator *allocator,
                                                 void *userinfo),
+                                  struct mulle_allocator *allocator,
                                   void *userinfo);
 
 void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
                                     void (*crunch)( struct _mulle_objc_universe  *universe));
 
 void   _mulle_objc_universe_defaultbang( struct _mulle_objc_universe  *universe,
+                                         struct mulle_allocator *allocator,
                                          void *userinfo);
 
 //
@@ -89,7 +92,7 @@ void   _mulle_objc_universe_defaultbang( struct _mulle_objc_universe  *universe,
 void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
                                   struct mulle_allocator *allocator);
 void   _mulle_objc_universe_assert_runtimeversion( struct _mulle_objc_universe  *universe,
-                                            struct mulle_objc_loadversion *version);
+                                                   struct mulle_objc_loadversion *version);
 
 
 struct _mulle_objc_universe  *
@@ -133,6 +136,7 @@ struct _mulle_objc_threadinfo
 };
 
 void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe);
+void   mulle_objc_thread_unset_threadinfo( struct _mulle_objc_universe *universe);
 
 
 static inline void *
@@ -254,7 +258,7 @@ MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
 //
 # pragma mark - gifts (externally allocated memory)
 
-static inline void  
+static inline void
   _mulle_objc_universe_add_gift( struct _mulle_objc_universe *universe,
                                  void *gift)
 {
@@ -262,7 +266,7 @@ static inline void
 }
 
 
-static inline void   
+static inline void
   mulle_objc_universe_add_gift_nofail( struct _mulle_objc_universe *universe,
                                        void *gift)
 {
@@ -400,8 +404,12 @@ static inline int   _mulle_objc_universe_unlock( struct _mulle_objc_universe  *u
 
 // don't use this too much
 
-struct _mulle_objc_garbagecollection  *
-   _mulle_objc_universe_get_garbagecollection( struct _mulle_objc_universe *universe);
+static inline struct _mulle_objc_garbagecollection  *
+   _mulle_objc_universe_get_gc( struct _mulle_objc_universe *universe)
+{
+   assert( _mulle_aba_is_setup( &universe->garbage.aba));
+   return( &universe->garbage);
+}
 
 //
 // Manages the current thread with ABA gc

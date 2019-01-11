@@ -55,7 +55,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <mulle-testallocator/mulle-testallocator.h> // only used once in project
 
 
 
@@ -201,6 +200,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.dependency      = getenv_yes_no( "MULLE_OBJC_TRACE_DEPENDENCY");
    universe->debug.trace.dump_universe   = getenv_yes_no( "MULLE_OBJC_TRACE_DUMP_RUNTIME");
    universe->debug.trace.fastclass_add   = getenv_yes_no( "MULLE_OBJC_TRACE_FASTCLASS_ADD");
+   universe->debug.trace.instance        = getenv_yes_no( "MULLE_OBJC_TRACE_INSTANCE");
    universe->debug.trace.initialize      = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");
    universe->debug.trace.hashstrings     = getenv_yes_no( "MULLE_OBJC_TRACE_HASHSTRINGS");
    universe->debug.trace.load_call       = getenv_yes_no( "MULLE_OBJC_TRACE_LOAD_CALL");
@@ -226,10 +226,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
       universe->debug.trace.load_call  = 1;
       universe->debug.trace.loadinfo   = 1;
       universe->debug.trace.dependency = 1;
-      universe->debug.trace.initialize = 1;
-      universe->debug.trace.state_bit  = 1;
    }
-
 
    // don't trace method search and calls, per default... too expensive
    // don't trace caches either, usually that's too boring
@@ -239,11 +236,8 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
       universe->debug.trace.category_add         = 1;
       universe->debug.trace.class_add            = 1;
       universe->debug.trace.class_free           = 1;
-      universe->debug.trace.dependency           = 1;
       universe->debug.trace.fastclass_add        = 1;
       universe->debug.trace.initialize           = 1;
-      universe->debug.trace.load_call            = 1;
-      universe->debug.trace.loadinfo             = 1;
       universe->debug.trace.protocol_add         = 1;
       universe->debug.trace.state_bit            = 1;
       universe->debug.trace.tagged_pointer       = 1;
@@ -285,6 +279,9 @@ void   mulle_objc_thread_unset_threadinfo( struct _mulle_objc_universe *universe
    struct _mulle_objc_threadinfo   *config;
    mulle_thread_tss_t              threadkey;
 
+   if( ! universe)
+      return;
+
    threadkey = _mulle_objc_universe_get_threadkey( universe);
    config    = mulle_thread_tss_get( threadkey);
    assert( config);
@@ -300,6 +297,7 @@ void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe
 {
    struct _mulle_objc_threadinfo   *config;
    struct mulle_allocator          *allocator;
+   mulle_thread_tss_t              threadkey;
 
    if( ! universe)
       return;
@@ -310,7 +308,9 @@ void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe
    config    = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_threadinfo));
 
    config->allocator = allocator;
-   mulle_thread_tss_set( _mulle_objc_universe_get_threadkey( universe), config);
+   threadkey         = _mulle_objc_universe_get_threadkey( universe);
+   assert( mulle_thread_tss_get( threadkey) == NULL);
+   mulle_thread_tss_set( threadkey, config);
 }
 
 
@@ -359,10 +359,12 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
                                           universe->empty_cache.entries);
 
    universe->memory.allocator         = *allocator;
-   mulle_allocator_set_fail( &universe->memory.allocator, mulle_objc_fail_allocation);
-
    universe->memory.allocator.aba     = &universe->garbage.aba;
    universe->memory.allocator.abafree = abafree_nofail;
+   mulle_allocator_set_fail( &universe->memory.allocator, mulle_objc_fail_allocation);
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "allocator: %p", allocator);
 
    _mulle_objc_universe_init_fail( universe);
    _mulle_objc_universe_init_exception( universe);
@@ -374,6 +376,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    _mulle_concurrent_pointerarray_init( &universe->hashnames, 0, &universe->memory.allocator);
    _mulle_concurrent_pointerarray_init( &universe->gifts, 0, &universe->memory.allocator);
 
+   universe->path                = NULL;
    universe->config.max_optlevel = 0x7;
 
    _mulle_objc_universe_get_environment( universe);
@@ -396,6 +399,10 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
 }
 
 
+static void   _mulle_objc_universe_done_gc( struct _mulle_objc_universe *universe);
+static void   _mulle_objc_universe_init_gc( struct _mulle_objc_universe *universe);
+
+
 void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
                                   struct mulle_allocator *allocator)
 {
@@ -409,6 +416,14 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_objc_universe_set_defaults( universe, allocator);
 
    allocator = &universe->memory.allocator;
+
+   _mulle_objc_universe_init_gc( universe);
+   _mulle_objc_thread_register_universe_gc_if_needed( universe);
+
+   mulle_thread_mutex_init( &universe->lock);
+   universe->thread = mulle_thread_self();
+   mulle_objc_thread_setup_threadinfo( universe);
+
    _mulle_concurrent_hashmap_init( &universe->categorytable, 128, allocator);
    _mulle_concurrent_hashmap_init( &universe->classtable, 128, allocator);
    _mulle_concurrent_hashmap_init( &universe->descriptortable, 2048, allocator);
@@ -418,14 +433,6 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    mulle_thread_mutex_init( &universe->waitqueues.lock);
    _mulle_concurrent_hashmap_init( &universe->waitqueues.classestoload, 64, allocator);
    _mulle_concurrent_hashmap_init( &universe->waitqueues.categoriestoload, 32, allocator);
-
-
-   mulle_thread_mutex_init( &universe->lock);
-   universe->thread = mulle_thread_self();
-
-   mulle_objc_thread_setup_threadinfo( universe);
-   _mulle_objc_thread_register_universe_gc_if_needed( universe);
-
 
    if( universe->debug.trace.universe)
    {
@@ -479,7 +486,7 @@ struct _mulle_objc_universe  *
    if( universe->debug.trace.universe)
    {
       mulle_objc_universe_trace( universe, "allocated universe %x \"%s\"\n", universeid, universename);
-      mulle_objc_universe_trace( universe, "allocated universe set to no tagged pointers");
+      mulle_objc_universe_trace( universe, "allocated universe set to: no tagged pointers");
    }
    return( universe);
 }
@@ -567,6 +574,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
 {
    void  *actual;
    int   trace;
+   void  (*callback)( struct _mulle_objc_universe  *universe);
 
    trace = universe->debug.trace.universe;
    if( trace)
@@ -601,6 +609,11 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
                                  "[%p] crunch of the universe is in progress",
                                  (void *) mulle_thread_self());
 
+   callback = universe->callbacks.will_crunch;
+   if( callback)
+      (*callback)( universe);
+   callback = universe->callbacks.did_crunch;
+
    (*crunch)( universe);
 
    if( trace)
@@ -619,17 +632,24 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    {
       actual = __mulle_atomic_pointer_cas( &universe->version,
                                            (void *) mulle_objc_universe_is_uninitialized,
-                                           (void *) mulle_objc_universe_is_deinitializing);
+                                           (void *) mulle_objc_universe_is_deallocating);
 
-      if( actual == (void *) mulle_objc_universe_is_deinitializing)
+      if( actual == (void *) mulle_objc_universe_is_deallocating)
       {
          if( trace)
             mulle_objc_universe_trace( universe,
                                        "[%p] unlocked the universe",
                                        (void *) mulle_thread_self());
 
+
+         if( callback)
+            (*callback)( universe);
+
          if( ! _mulle_objc_universe_is_default( universe))
+         {
+            __mulle_objc_global_unregister_universe( universe->universeid, universe);
             free( universe);
+         }
          return;
       }
 
@@ -641,87 +661,67 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
 }
 
 
-//
-// if you use MULLE_TESTALLOCATOR your are leak checking everything
-// if you want to leak check only ObjC use MULLE_OBJC_TESTALLOCATOR
-//
-struct mulle_allocator  *
-   __mulle_objc_universe_get_testallocator_ifneeded( struct _mulle_objc_universe  *universe)
-{
-   struct mulle_allocator   *allocator;
-   int                      is_test;
-   int                      is_pedantic;
-
-   allocator = NULL;
-   is_test   = getenv_yes_no( "MULLE_OBJC_TESTALLOCATOR");
-   if( is_test)
-   {
-      // call this because we are probably also in +load here
-      mulle_testallocator_initialize();
-      allocator = &mulle_testallocator;
-#if DEBUG
-      fprintf( stderr, "mulle_objc_universe uses \"mulle_testallocator\" to "
-                       "detect leaks.\n");
-#endif
-   }
-   return( allocator);
-}
-
-
 static void   mulle_objc_global_atexit( void)
 {
    struct _mulle_objc_universe  *universe;
 
    universe = __mulle_objc_global_get_defaultuniverse();
    if( ! universe)
-      return;
-
-   if( _mulle_objc_universe_is_initialized( universe))
    {
-      if( universe->debug.trace.universe)
-         mulle_objc_universe_trace( universe, "atexit releases the universe");
-      _mulle_objc_universe_release( universe);
+      mulle_objc_universe_trace( universe, "atexit does nothing as there is no default universe");
+      return;
    }
-   else
-      if( universe->debug.trace.universe)
+
+   if( ! _mulle_objc_universe_is_initialized( universe))
+   {
+      //if( universe->debug.trace.universe)
          mulle_objc_universe_trace( universe,
                                     "atexit skips release of uninitialized universe");
+      return;
+   }
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "atexit releases the universe");
+   _mulle_objc_universe_release( universe);
 }
 
 
 void
-   __mulle_objc_universe_atexit_ifneeded( struct _mulle_objc_universe *universe,
-                                          struct mulle_allocator *test_allocator)
+   __mulle_objc_universe_atexit_ifneeded( struct _mulle_objc_universe *universe)
 {
    static int   did_it;
 
-   if( ! _mulle_objc_universe_is_default( universe))
+
+   universe->config.pedantic_exit = getenv_yes_no( "MULLE_OBJC_PEDANTIC_EXIT");
+   if( ! universe->config.pedantic_exit)
       return;
 
-   if( test_allocator || getenv_yes_no( "MULLE_OBJC_PEDANTIC_EXIT"))
+   if( ! _mulle_objc_universe_is_default( universe))
    {
-      // these atexit functions could pile up though, so inhibit it
-      if( ! did_it)
-      {
-         did_it = 1;
-         if( atexit( mulle_objc_global_atexit))
-            mulle_objc_universe_fail_perror( universe, "atexit:");
-         if( universe->debug.trace.universe)
-            mulle_objc_universe_trace( universe,
-                                       "atexit installed");
-      }
+      if( universe->debug.trace.universe)
+         mulle_objc_universe_trace( universe,
+                                    "atexit not installed as universe is not default. use mulle_objc_global_main_finish");
+      return;
+   }
+
+   // these atexit functions could pile up though, so inhibit it
+   if( ! did_it)
+   {
+      did_it = 1;
+      if( atexit( mulle_objc_global_atexit))
+         mulle_objc_universe_fail_perror( universe, "atexit:");
+      if( universe->debug.trace.universe)
+         mulle_objc_universe_trace( universe,
+                                    "atexit \"mulle_objc_global_atexit\" installed");
    }
 }
 
 void   _mulle_objc_universe_defaultbang( struct _mulle_objc_universe  *universe,
+                                         struct mulle_allocator *allocator,
                                          void *userinfo)
 {
-   struct mulle_allocator   *allocator;
-
-   allocator = __mulle_objc_universe_get_testallocator_ifneeded( universe);
-
    _mulle_objc_universe_init( universe, allocator);
-   __mulle_objc_universe_atexit_ifneeded( universe, allocator);
+   __mulle_objc_universe_atexit_ifneeded( universe);
 }
 
 
@@ -742,7 +742,9 @@ static void   universe_trace( struct _mulle_objc_universe *universe, char *s)
 static void
    __mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
                                void (*setup)( struct _mulle_objc_universe *universe,
+                                              struct mulle_allocator *allocator,
                                               void *userinfo),
+                               struct mulle_allocator *allocator,
                                void *userinfo)
 {
    void   *actual;
@@ -775,7 +777,7 @@ static void
    if( trace)
       universe_trace( universe, "bang of the universe in progress");
 
-   (*setup)( universe, userinfo);
+   (*setup)( universe, allocator, userinfo);
 
    if( trace)
       universe_trace( universe, "bang of the universe done");
@@ -784,7 +786,7 @@ static void
    // END OF LOCKED
 
    // __mulle_atomic_pointer_cas is weak and allowed to fail
-   // don't want to bload the CAS api though
+   // don't want to bloat the CAS api though
    for(;;)
    {
       actual = __mulle_atomic_pointer_cas( &universe->version,
@@ -805,7 +807,9 @@ static void
 
 void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
                                   void (*bang)( struct _mulle_objc_universe *universe,
+                                                struct mulle_allocator *allocator,
                                                 void *userinfo),
+                                  struct mulle_allocator *allocator,
                                   void *userinfo)
 {
    universe->debug.trace.universe = getenv_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
@@ -813,7 +817,7 @@ void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
    if( ! bang)
       bang = _mulle_objc_universe_defaultbang;
 
-   __mulle_objc_universe_bang( universe, bang, userinfo);
+   __mulle_objc_universe_bang( universe, bang, allocator, userinfo);
 }
 
 
@@ -1103,6 +1107,14 @@ static void
 }
 
 
+static int   fake_aba_free( void *aba, void (*free)( void *), void *block)
+{
+   (*free)( block);
+   return( 0);
+}
+
+
+// this is called by release, when all retainers are gone
 void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_cache               *cache;
@@ -1110,45 +1122,60 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
    struct mulle_allocator                 *allocator;
 
    if( universe->debug.trace.universe)
-      fprintf( stderr, "mulle_objc_universe %p: deallocs\n", universe);
+      fprintf( stderr, "mulle_objc_universe %p: universe starts freeing everything\n", universe);
 
    if( universe->thread && universe->thread != mulle_thread_self())
       mulle_objc_universe_fail_inconsistency( universe,
          "universe must be deallocated by the same thread that created it (sorry)");
 
-   if( universe->callbacks.will_dealloc)
-      (*universe->callbacks.will_dealloc)( universe);
-
-   // do it like this, because we are not initialized anymore
-   gc = _mulle_objc_universe_get_garbagecollection( universe);
-   if( ! _mulle_aba_is_current_thread_registered( &gc->aba))
-   {
-      if( _mulle_aba_register_current_thread( &gc->aba))
-         mulle_objc_universe_fail_perror( universe, "_mulle_aba_register_current_thread");
-   }
-
-   _mulle_objc_universe_free_classgraph( universe);
+   // the friends are freed first, and everything is still fairly fine
+   // you can still message around
 
    _mulle_objc_universe_free_friend( universe, &universe->userinfo);
    _mulle_objc_universe_free_friend( universe, &universe->foundation.universefriend);
 
-   cache = _mulle_objc_cachepivot_atomicget_cache( &universe->cachepivot);
-   if( cache != &universe->empty_cache)
+   // this can't really fail, but keep it atomic anyway
+   if( ! _mulle_atomic_pointer_cas( &universe->version,
+                                    (void *) mulle_objc_universe_is_deallocating,
+                                    (void *) mulle_objc_universe_is_deinitializing))
    {
-      allocator = _mulle_objc_universe_get_allocator( universe);
-      _mulle_objc_cache_free( cache, allocator);
+      mulle_objc_universe_fail_inconsistency( universe,
+         "someone is messing around with the universe");
    }
 
-   if( _mulle_aba_unregister_current_thread( &gc->aba))
-      mulle_objc_universe_fail_perror( universe, "_mulle_aba_unregister_current_thread");
-   _mulle_aba_done( &_mulle_objc_universe_get_garbagecollection( universe)->aba);
+   if( universe->callbacks.will_dealloc)
+      (*universe->callbacks.will_dealloc)( universe);
+
+   // ******* END OF USABLE UNIVERSE, JUST FREE STUFF NOW *****
+
+   // do it like this, because we are not initialized anymore
+   // every universe has its own aba
+   //
+   _mulle_objc_universe_done_gc( universe);
+
+   //
+   // because we are winding the universe down, its useless to abafree stuff
+   // so we change the allocator to unsafe
+   //
+   allocator          = _mulle_objc_universe_get_allocator( universe);
+   allocator->abafree = fake_aba_free;
+   allocator->aba     = NULL;
+
+   _mulle_objc_universe_free_classgraph( universe);
+
+   cache = _mulle_objc_cachepivot_atomicget_cache( &universe->cachepivot);
+   if( cache != &universe->empty_cache)
+      _mulle_objc_cache_free( cache, allocator);
+
+   if( universe->debug.trace.universe)
+      fprintf( stderr, "mulle_objc_universe %p: deallocing aba\n", universe);
+
+   if( universe->debug.trace.universe)
+      fprintf( stderr, "mulle_objc_universe %p: deallocing threadlocal\n", universe);
 
    mulle_objc_thread_unset_threadinfo( universe);
    mulle_thread_tss_free( universe->threadkey);
    mulle_thread_mutex_done( &universe->lock);
-
-   if( mulle_objc_environment_get_yes_no( "MULLE_OBJC_TESTALLOCATOR"))
-      mulle_testallocator_reset();
 
    if( _mulle_objc_universe_is_default( universe))
    {
@@ -1156,8 +1183,6 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
       // but don't clobber version
       memset( &universe->cachepivot, 0, sizeof( universe->cachepivot));
       memset( &universe->path, 0, sizeof( *universe) - offsetof( struct _mulle_objc_universe, path));
-
-      return;
    }
 }
 
@@ -1176,18 +1201,25 @@ void  mulle_objc_global_release_defaultuniverse( void)
 
 # pragma mark - garbage collection
 
-struct _mulle_objc_garbagecollection  *
-   _mulle_objc_universe_get_garbagecollection( struct _mulle_objc_universe *universe)
+static void   _mulle_objc_universe_init_gc( struct _mulle_objc_universe *universe)
 {
-   struct mulle_allocator   *allocator;
+   struct mulle_allocator  *allocator;
 
-   if( ! _mulle_aba_is_setup( &universe->garbage.aba))
-   {
-      allocator = _mulle_objc_universe_get_allocator( universe);
-      if( _mulle_aba_init( &universe->garbage.aba, allocator))
-         mulle_objc_universe_fail_perror( universe, "_mulle_aba_init");
-   }
-   return( &universe->garbage);
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   if( _mulle_aba_init( &universe->garbage.aba, allocator))
+      mulle_objc_universe_fail_perror( universe, "_mulle_aba_init");
+}
+
+
+static void   _mulle_objc_universe_done_gc( struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_garbagecollection   *gc;
+
+   gc = _mulle_objc_universe_get_gc( universe);
+   if( _mulle_aba_unregister_current_thread( &gc->aba))
+      mulle_objc_universe_fail_perror( universe, "_mulle_aba_unregister_current_thread");
+
+   _mulle_aba_done( &gc->aba);
 }
 
 
@@ -1197,7 +1229,7 @@ void   _mulle_objc_thread_register_universe_gc( struct _mulle_objc_universe *uni
 
    assert( _mulle_objc_universe_is_initialized( universe));
 
-   gc = _mulle_objc_universe_get_garbagecollection( universe);
+   gc = _mulle_objc_universe_get_gc( universe);
    if( _mulle_aba_register_current_thread( &gc->aba))
       mulle_objc_universe_fail_perror( universe, "_mulle_aba_register_current_thread");
 }
@@ -1209,7 +1241,7 @@ int    _mulle_objc_thread_isregistered_universe_gc( struct _mulle_objc_universe 
 
    assert( _mulle_objc_universe_is_initialized( universe));
 
-   gc = _mulle_objc_universe_get_garbagecollection( universe);
+   gc = _mulle_objc_universe_get_gc( universe);
    return( _mulle_aba_is_current_thread_registered( &gc->aba));
 }
 
@@ -1221,7 +1253,7 @@ void   _mulle_objc_thread_register_universe_gc_if_needed( struct _mulle_objc_uni
 // don't assert here as its called by the "bang"s
 //   assert( _mulle_objc_universe_is_initialized( universe));
 
-   gc = _mulle_objc_universe_get_garbagecollection( universe);
+   gc = _mulle_objc_universe_get_gc( universe);
    if( _mulle_aba_is_current_thread_registered( &gc->aba))
       return;
 
@@ -1236,7 +1268,7 @@ void   _mulle_objc_thread_remove_universe_gc( struct _mulle_objc_universe *unive
 
    assert( _mulle_objc_universe_is_initialized( universe));
 
-   gc = _mulle_objc_universe_get_garbagecollection( universe);
+   gc = _mulle_objc_universe_get_gc( universe);
    if( _mulle_aba_unregister_current_thread( &gc->aba))
       mulle_objc_universe_fail_perror( universe, "_mulle_aba_unregister_current_thread");
 }
@@ -1248,7 +1280,7 @@ void   _mulle_objc_thread_checkin_universe_gc( struct _mulle_objc_universe *univ
 
    assert( _mulle_objc_universe_is_initialized( universe));
 
-   gc = _mulle_objc_universe_get_garbagecollection( universe);
+   gc = _mulle_objc_universe_get_gc( universe);
    if( _mulle_aba_checkin_current_thread( &gc->aba))
       mulle_objc_universe_fail_perror( universe, "_mulle_aba_checkin_current_thread");
 }
@@ -1371,9 +1403,10 @@ struct _mulle_objc_classpair *
    size = mulle_objc_classpair_size( classextra);
    pair = _mulle_allocator_calloc( allocator, 1, size);
 
-   _mulle_objc_objectheader_init( &pair->metaclassheader,
-                                  super_meta_isa ? &super_meta_isa->base : &pair->infraclass.base);
    _mulle_objc_objectheader_init( &pair->infraclassheader, &pair->metaclass.base);
+   _mulle_objc_objectheader_init( &pair->metaclassheader,
+                                  super_meta_isa ? _mulle_objc_metaclass_as_class( super_meta_isa)
+                                                 : _mulle_objc_infraclass_as_class( &pair->infraclass));
 
    _mulle_objc_class_init( &pair->infraclass.base,
                            name,
@@ -1456,7 +1489,7 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
    if( universe->debug.trace.class_add || universe->debug.trace.dependency)
    {
       mulle_objc_universe_trace_nolf( universe,
-                                      "add class %08x \"%s\"",
+                                      "added class %08x \"%s\"",
                                       _mulle_objc_infraclass_get_classid( infra),
                                       _mulle_objc_infraclass_get_name( infra));
       if( superclass)
@@ -1864,7 +1897,7 @@ int   _mulle_objc_universe_add_protocol( struct _mulle_objc_universe *universe,
    {
       if( universe->debug.trace.protocol_add)
          mulle_objc_universe_trace( universe,
-                                    "add protocol %08x \"%s\" (%p)",
+                                    "added protocol %08x \"%s\" (%p)",
                                     p->protocolid,
                                     p->name,
                                     p);

@@ -50,9 +50,9 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
       return( 0);
 
    universe = mulle_objc_class_get_universe( cls);
-   assert( _mulle_objc_universe_is_initialized( universe));
+   assert( ! _mulle_objc_universe_is_uninitialized( universe));
 
-   gc = _mulle_objc_universe_get_garbagecollection( universe);
+   gc = _mulle_objc_universe_get_gc( universe);
    return( _mulle_aba_is_current_thread_registered( &gc->aba));
 }
 
@@ -239,7 +239,7 @@ MULLE_C_CONST_NON_NULL_RETURN static struct _mulle_objc_cacheentry *
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   infra   = _mulle_objc_universe_lookup_infraclass_nocache_nofast_nofail( universe, classid);
+   infra   = _mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast( universe, classid);
    assert( mulle_objc_class_is_current_thread_registered( (void *)  infra));
 
    entry = _mulle_objc_universe_fill_classcache_class( universe, infra);
@@ -276,7 +276,7 @@ struct _mulle_objc_infraclass   *
 
 
 MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass   *
-   _mulle_objc_universe_lookup_infraclass_nocache_nofast_nofail( struct _mulle_objc_universe *universe,
+   _mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast( struct _mulle_objc_universe *universe,
                                                                  mulle_objc_classid_t classid)
 {
    struct _mulle_objc_infraclass   *infra;
@@ -289,6 +289,16 @@ MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass   *
 
    mulle_objc_universe_fail_classnotfound( universe, classid);
 }
+
+
+// used by the debugger
+MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
+   mulle_objc_global_lookup_infraclass_nofail_nofast( mulle_objc_universeid_t universeid,
+                                                            mulle_objc_classid_t classid)
+{
+   return( mulle_objc_global_inlinelookup_infraclass_nofail_nofast( universeid, classid));
+}
+
 
 
 //
@@ -340,7 +350,7 @@ struct _mulle_objc_infraclass  *
 // will place class into cache, will not check for fastclass
 //
 MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass  *
-    _mulle_objc_universe_lookup_infraclass_nofast_nofail( struct _mulle_objc_universe *universe,
+    _mulle_objc_universe_lookup_infraclass_nofail_nofast( struct _mulle_objc_universe *universe,
                                                           mulle_objc_classid_t classid)
 {
    struct _mulle_objc_cache        *cache;
@@ -390,7 +400,7 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
                                                    mulle_objc_classid_t classid)
 {
    if( universe->config.no_fast_call)
-      return( _mulle_objc_universe_lookup_infraclass_nofast_nofail( universe, classid));
+      return( _mulle_objc_universe_lookup_infraclass_nofail_nofast( universe, classid));
    return( _mulle_objc_universe_inlinelookup_infraclass_nofail( universe, classid));
 }
 
@@ -434,13 +444,13 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
 
 
 MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
-   mulle_objc_object_lookup_infraclass_nofast_nofail( void *obj,
+   mulle_objc_object_lookup_infraclass_nofail_nofast( void *obj,
                                                       mulle_objc_universeid_t universeid,
                                                       mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
 
    universe = __mulle_objc_object_get_universe_nofail( obj, universeid);
-   return( _mulle_objc_universe_lookup_infraclass_nofast_nofail( universe,
+   return( _mulle_objc_universe_lookup_infraclass_nofail_nofast( universe,
                                                                  classid));
 }

@@ -70,6 +70,11 @@ typedef struct
    return( mulle_objc_infraclass_alloc_instance( self));
 }
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
 @end
 
 
@@ -81,4 +86,7 @@ main()
    foo = [Foo new];
    for( bar in foo)
       [bar print];
+   [foo dealloc];
+
+   return( 0);
 }

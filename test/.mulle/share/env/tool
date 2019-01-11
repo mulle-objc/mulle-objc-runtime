@@ -8,7 +8,6 @@ chgrp
 chmod
 chown
 clear
-command
 cp
 cut
 date
@@ -17,7 +16,6 @@ df
 dirname
 dmesg
 echo
-ed
 egrep
 env
 expr
@@ -52,12 +50,13 @@ stty
 su
 sync
 tail
+tee
 test
+touch
 tr
 true
 umount
 uname
 uuidgen
-vi
 wc
 which

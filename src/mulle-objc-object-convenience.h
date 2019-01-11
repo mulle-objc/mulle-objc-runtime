@@ -105,4 +105,58 @@ MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
    return( _mulle_objc_infraclass_get_allocator( infra));
 }
 
+#pragma mark - instance deletion
+
+static inline void  __mulle_objc_object_will_free( struct _mulle_objc_object *obj)
+{
+// too slow for non debug
+#if DEBUG
+   {
+      struct _mulle_objc_universe    *universe;
+
+      universe = _mulle_objc_object_get_universe( obj);
+      if( universe->debug.trace.instance)
+      {
+         void   _mulle_objc_object_trace_free( void *obj);
+
+         _mulle_objc_object_trace_free( obj);
+      }
+   }
+#endif
+}
+
+
+static inline void   __mulle_objc_object_free( struct _mulle_objc_object *obj,
+                                               struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_objectheader  *header;
+
+   __mulle_objc_object_will_free( obj);
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   mulle_allocator_free( allocator, header);
+}
+
+
+static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj)
+{
+   struct mulle_allocator          *allocator;
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *infra;
+
+   cls       = _mulle_objc_object_get_isa( obj);
+   infra     = _mulle_objc_class_as_infraclass( cls);
+   allocator = _mulle_objc_infraclass_get_allocator( infra);
+   __mulle_objc_object_free( obj, allocator);
+}
+
+
+static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj)
+{
+   if( ! obj)
+      return;
+
+   _mulle_objc_object_free( obj);
+}
+
 #endif

@@ -35,7 +35,6 @@ set_property( TARGET "_1_${EXECUTABLE_NAME}" PROPERTY CXX_STANDARD 11)
 
 
 if( LINK_PHASE)
-
    add_executable( "${EXECUTABLE_NAME}"
       ${ALL_OBJECT_FILES}
       ${PROJECT_HEADERS}
