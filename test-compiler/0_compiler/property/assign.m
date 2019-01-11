@@ -22,6 +22,12 @@
    return( mulle_objc_infraclass_alloc_instance( self));
 }
 
+
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
 @end
 
 
@@ -43,4 +49,7 @@ main()
    printf( "%.2f\n", [foo d]);
    printf( "%lld\n", [foo q]);
    printf( "%s\n", [foo s]);
+
+   [foo dealloc];
+   return( 0);
 }

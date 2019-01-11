@@ -64,10 +64,25 @@ static inline struct _mulle_objc_object   *
 {
    struct _mulle_objc_objectheader  *header;
    struct _mulle_objc_object        *obj;
+   struct _mulle_objc_class         *cls;
 
    header = mulle_allocator_calloc( allocator, 1, _mulle_objc_infraclass_get_allocationsize( infra) + extra);
    obj    = _mulle_objc_objectheader_get_object( header);
-   _mulle_objc_object_set_isa( obj, _mulle_objc_infraclass_as_class( infra));
+   cls    = _mulle_objc_infraclass_as_class( infra);
+   _mulle_objc_object_set_isa( obj, cls);
+// only add this trace query for debugging because it slows things down!
+#if DEBUG
+   {
+      extern void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
+                                                            void *obj,
+                                                            size_t extra);
+      struct _mulle_objc_universe   *universe;
+
+      universe = _mulle_objc_class_get_universe( cls);
+      if( universe->debug.trace.instance)
+         _mulle_objc_class_trace_alloc_instance( cls, obj, extra);
+   }
+#endif
    return( obj);
 }
 
@@ -123,40 +138,6 @@ static inline void *
 
    pair = _mulle_objc_infraclass_get_classpair( infra);
    return( _mulle_objc_classpair_get_classextra( pair));
-}
-
-
-#pragma mark - instance deletion
-
-static inline void   __mulle_objc_object_free( struct _mulle_objc_object *obj,
-                                               struct mulle_allocator *allocator)
-{
-   struct _mulle_objc_objectheader  *header;
-
-   header = _mulle_objc_object_get_objectheader( obj);
-   mulle_allocator_free( allocator, header);
-}
-
-
-static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj)
-{
-   struct mulle_allocator          *allocator;
-   struct _mulle_objc_class        *cls;
-   struct _mulle_objc_infraclass   *infra;
-
-   cls       = _mulle_objc_object_get_isa( obj);
-   infra     = _mulle_objc_class_as_infraclass( cls);
-   allocator = _mulle_objc_infraclass_get_allocator( infra);
-   __mulle_objc_object_free( obj, allocator);
-}
-
-
-static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj)
-{
-   if( ! obj)
-      return;
-
-   _mulle_objc_object_free( obj);
 }
 
 #endif /* mulle_objc_class_universe_h */

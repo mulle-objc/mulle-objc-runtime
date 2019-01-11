@@ -132,6 +132,20 @@
    mulle_vararg_next_pointer( (args), id)
 
 
+//
+// add this before return of int main( argc, char **argc) when running
+// named universes and leak checking
+//
+static inline void  mulle_objc_global_finish( void)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = mulle_objc_global_inlineget_universe( __MULLE_OBJC_UNIVERSEID__);
+   if( universe && ! _mulle_objc_universe_is_default( universe) && universe->config.pedantic_exit)
+      _mulle_objc_universe_release( universe);
+}
+
+
 #if MULLE_ABA_VERSION < ((2 << 20) | (0 << 8) | 7)
 # error "mulle_aba is too old"
 #endif

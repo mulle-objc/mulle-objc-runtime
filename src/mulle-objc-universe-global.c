@@ -93,13 +93,16 @@ struct _mulle_objc_universe  *
    __mulle_objc_global_register_universe( mulle_objc_universeid_t universeid,
                                           struct _mulle_objc_universe *universe)
 {
-   assert( universeid != MULLE_OBJC_DEFAULTUNIVERSEID);
    struct mulle_allocator   *allocator;
 
+   assert( universeid != MULLE_OBJC_DEFAULTUNIVERSEID);
    allocator = _mulle_atomic_pointer_read( &mulle_objc_universetable.map.allocator);
    if( ! allocator)
    {
-	   allocator = &mulle_default_allocator;
+      //
+      // use stdlib allocator for this, since we leak here
+      //
+	   allocator = &mulle_stdlib_allocator;
 	   assert( allocator->abafree && allocator->abafree != (int (*)()) abort);
 
 	   _mulle_atomic_pointer_cas( &mulle_objc_universetable.map.allocator, allocator, NULL);
@@ -107,6 +110,18 @@ struct _mulle_objc_universe  *
    return( mulle_concurrent_hashmap_register( &mulle_objc_universetable.map,
                                               universeid,
                                               universe));
+}
+
+
+
+void
+   __mulle_objc_global_unregister_universe( mulle_objc_universeid_t universeid,
+                                            struct _mulle_objc_universe *universe)
+{
+   assert( universeid != MULLE_OBJC_DEFAULTUNIVERSEID);
+   mulle_concurrent_hashmap_remove( &mulle_objc_universetable.map,
+                                    universeid,
+                                    universe);
 }
 
 
@@ -191,5 +206,21 @@ retry:
       memset( p, 0, (sentinel - p) * sizeof( struct _mulle_objc_universe *));
 
    return( i + j);
+}
+
+
+void   mulle_objc_global_reset_universetable( void)
+{
+   struct _mulle_objc_universe                 *universe;
+   struct mulle_concurrent_hashmapenumerator   rover;
+   intptr_t                                    hash;
+   int                                         rval;
+
+   assert( mulle_concurrent_hashmap_count( &mulle_objc_universetable.map) == 0);
+   mulle_concurrent_hashmap_done( &mulle_objc_universetable.map);
+
+   mulle_objc_universetable.map.storage.storage      =
+   mulle_objc_universetable.map.next_storage.storage =
+      (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage;
 }
 

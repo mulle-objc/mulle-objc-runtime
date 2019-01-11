@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.1)
 
 # make the order inconvenient
 set( SOURCES

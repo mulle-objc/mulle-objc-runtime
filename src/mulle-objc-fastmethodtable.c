@@ -60,12 +60,8 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
    {
       imp = _mulle_objc_class_lookup_implementation_nocache( cls, methodid);
 
-      if( universe->debug.trace.method_call)
-      {
-         // trace but don't cache it
-         mulle_objc_class_trace_call( cls, methodid, obj, param, imp);
-      }
-      else
+      // don't cache it when tracing
+      if( ! universe->debug.trace.method_call)
          _mulle_atomic_pointer_write( &cls->vtab.methods[ index].pointer, imp);
    }
 

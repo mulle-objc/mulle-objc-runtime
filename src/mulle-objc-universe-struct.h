@@ -69,6 +69,7 @@ struct _mulle_objc_universeconfig
    unsigned   no_tagged_pointer        : 1;  // don't use tagged pointers
    unsigned   no_fast_call             : 1;  // don't use fast method calls
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
+   unsigned   pedantic_exit            : 1;  // useful for leak checks
 
    int        cache_fillrate;                // default is (0) can be 0-90
 };
@@ -102,6 +103,7 @@ struct _mulle_objc_universedebug
       unsigned   dump_universe        : 1;  // hefty, set manually
       unsigned   fastclass_add        : 1;
       unsigned   initialize           : 1;
+      unsigned   instance             : 1;
       unsigned   hashstrings          : 1;
       unsigned   load_call            : 1; // +initialize, +load, +categoryDependencies
       unsigned   loadinfo             : 1;
@@ -202,7 +204,16 @@ struct _mulle_objc_universecallbacks
    mulle_objc_cache_uint_t   (*will_init_cache)(  struct _mulle_objc_universe *,
                                                   struct _mulle_objc_class *,
                                                   mulle_objc_cache_uint_t n_entries);
-   void   (*will_dealloc)(  struct _mulle_objc_universe *);
+   // universe will dealloc data stuctures
+   // no more messaging possible
+   void   (*will_dealloc)( struct _mulle_objc_universe *);
+
+   // universe will be freed afterwards (before will_dealloc)
+   // already "locked" but messaging singlethreaded is OK
+
+   void   (*will_crunch)(  struct _mulle_objc_universe *);
+   // universe will be freed afterwards (after will_dealloc)
+   void   (*did_crunch)(  struct _mulle_objc_universe *);
 };
 
 //
@@ -287,9 +298,10 @@ struct _mulle_objc_waitqueues
  */
 enum
 {
-   mulle_objc_universe_is_uninitialized  = -3,
-   mulle_objc_universe_is_initializing   = -2,
-   mulle_objc_universe_is_deinitializing = -1
+   mulle_objc_universe_is_uninitialized  = -4,
+   mulle_objc_universe_is_initializing   = -3,
+   mulle_objc_universe_is_deinitializing = -2,
+   mulle_objc_universe_is_deallocating   = -1
 };
 
 
@@ -427,12 +439,24 @@ static inline int
    return( (int32_t) _mulle_objc_universe_get_version( universe) >= 0);
 }
 
+static inline int
+   _mulle_objc_universe_is_messaging( struct _mulle_objc_universe *universe)
+{
+   int32_t   version;
+
+   version = _mulle_objc_universe_get_version( universe);
+   return( version >= 0 || version == mulle_objc_universe_is_deinitializing);
+}
+
+
 // uninitialized is "ready for no code"
 static inline int
 	_mulle_objc_universe_is_uninitialized( struct _mulle_objc_universe *universe)
 {
-   return( (int32_t) _mulle_objc_universe_get_version( universe) ==
-   						mulle_objc_universe_is_uninitialized);
+   int32_t   version;
+
+   version = _mulle_objc_universe_get_version( universe);
+   return( version == mulle_objc_universe_is_uninitialized);
 }
 
 

@@ -41,9 +41,9 @@
 // (say during deployment) but the content of the file at the top of your
 // JIT code.
 //
-#define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0  // max 511
+#define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0   // max 511
 #define MULLE_OBJC_RUNTIME_VERSION_MINOR  14  // max 1023
-#define MULLE_OBJC_RUNTIME_VERSION_PATCH  0  // max 255
+#define MULLE_OBJC_RUNTIME_VERSION_PATCH  1   // max 255
 
 //
 // up the number if binary loads are incompatible

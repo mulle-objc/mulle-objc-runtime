@@ -266,9 +266,10 @@ struct _mulle_objc_universe  *
    universe = __mulle_objc_global_get_universe( universeid, universename);
    if( ! _mulle_objc_universe_is_initialized( universe))
    {
-      _mulle_objc_universe_bang( universe, 0, NULL);
+      _mulle_objc_universe_bang( universe, 0, NULL, NULL);
       universe->config.ignore_ivarhash_mismatch = 1;
    }
+   fprintf( stderr, "__register_mulle_objc_universe done");
    return( universe);
 }
 
@@ -315,6 +316,7 @@ int   main( int argc, const char * argv[])
 
    // [obj release];
    mulle_objc_object_free( obj);
+   _mulle_objc_universe_release( universe); // since its not default
 
    return 0;
 }

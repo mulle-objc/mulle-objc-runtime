@@ -88,6 +88,12 @@ static inline int   NSEqualRanges( NSRange range1, NSRange range2)
 }
 
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
+
 - (char) returnAChar          { return( CHAR_MAX); }
 - (short) returnAShort        { return( SHRT_MIN); }
 - (int) returnAnInt           { return( INT_MAX); }
@@ -158,6 +164,8 @@ int main(int argc, const char * argv[])
    print_assert( MulleObjCEqualMemoryRegions( [foo returnAMemoryRegion], MulleObjCMakeMemoryRegion( (void *) 1848, LONG_MIN)));
    print_assert( MulleObjCEqualMemoryRegions( [foo returnSameMemoryRegion:MulleObjCMakeMemoryRegion( (void *) 1848, LONG_MAX)], MulleObjCMakeMemoryRegion( (void *)  1848, LONG_MAX)));
    print_assert( MulleObjCEqualMemoryRegions( [foo returnJuxtaposedMemoryRegion:MulleObjCMakeMemoryRegion( (void *) 1848, LONG_MIN)], MulleObjCMakeMemoryRegion( (void *)  LONG_MIN, 1848)));
+
+   [foo dealloc];
 
    return 0;
 }

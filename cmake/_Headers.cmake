@@ -8,7 +8,7 @@ endif()
 set( INCLUDE_DIRS
 src
 src/debug
-) 
+)
 
 set( DEBUG_HEADERS
 src/debug/c-set.inc
@@ -75,5 +75,5 @@ src/mulle-objc-universe.h
 src/mulle-objc-universe-struct.h
 src/mulle-objc-version.h
 src/mulle-objc-walktypes.h
-) 
+)
 

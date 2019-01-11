@@ -20,6 +20,11 @@
    return( mulle_objc_infraclass_alloc_instance( self));
 }
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
 
 - (void) whatever
 {
@@ -36,6 +41,8 @@ main()
    printf( "%d\n", mulle_objc_get_fastmethodtable_index( MULLE_OBJC_FASTMETHODID_15));
    foo = [Foo new];
    mulle_objc_object_call( foo, MULLE_OBJC_FASTMETHODID_15, foo);
+   [foo dealloc];
+   return( 0);
 }
 
 

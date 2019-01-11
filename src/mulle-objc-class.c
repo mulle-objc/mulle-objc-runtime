@@ -756,3 +756,29 @@ mulle_objc_walkcommand_t
    return( cmd);
 }
 
+
+
+void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
+                                               void *obj,
+                                               size_t extra)
+{
+   fprintf( stderr, "[==] allocated \"%s\" (%p) instance %p",
+                     _mulle_objc_class_get_name( cls),
+                     cls,
+                     obj);
+   if( extra)
+      fprintf( stderr, " (+%ld)", extra);
+   fputc( '\n', stderr);
+}
+
+
+void   _mulle_objc_object_trace_free( void *obj)
+{
+   struct _mulle_objc_class   *cls;
+
+   cls = _mulle_objc_object_get_isa( cls);
+   fprintf( stderr, "[==] free \"%s\" instance %p\n",
+                     _mulle_objc_class_get_name( cls),
+                     obj);
+}
+

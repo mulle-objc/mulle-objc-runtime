@@ -102,11 +102,23 @@ struct _mulle_objc_universe  *
                                           struct _mulle_objc_universe *universe);
 
 
+void
+   __mulle_objc_global_unregister_universe( mulle_objc_universeid_t universeid,
+                                            struct _mulle_objc_universe *universe);
+
 MULLE_C_ALWAYS_INLINE static inline int
    _mulle_objc_universe_is_default( struct _mulle_objc_universe *universe)
 {
    return( universe->universeid == MULLE_OBJC_DEFAULTUNIVERSEID);
 }
+
+
+//
+// only call this before exiting main, if you use valgrind and dislike the
+// leak, when using universes other than MULLE_OBJC_DEFAULTUNIVERSEID
+// Remove the universe before calling this!
+//
+void   mulle_objc_global_reset_universetable( void);
 
 
 MULLE_OBJC_RUNTIME_EXTERN_GLOBAL long   __mulle_objc_personality_v0;   // no idea what this is used for

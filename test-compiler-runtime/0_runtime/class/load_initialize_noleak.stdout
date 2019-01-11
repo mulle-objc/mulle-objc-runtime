@@ -1,0 +1,4 @@
++[Foo load]
++[Foobar load]
++[Foo initialize]
++[Foobar(Whatevs) initialize]

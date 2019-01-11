@@ -18,6 +18,15 @@ then
                   PATH=/bin:/usr/bin tr 'A-Z' 'a-z'`"
    export MULLE_UNAME
 fi
+if [ -z "${MULLE_HOSTNAME}" ]
+then
+   MULLE_HOSTNAME="`PATH=/bin:/usr/bin:/sbin:/usr/sbin hostname -s`"
+   if [ "t" = '.' ]
+   then
+      MULLE_HOSTNAME="_terodde"
+   fi
+   export MULLE_HOSTNAME
+fi
 if [ -z "${MULLE_VIRTUAL_ROOT}" ]
 then
    MULLE_VIRTUAL_ROOT="`PATH=/bin:/usr/bin pwd -P`"
@@ -95,11 +104,13 @@ case "${MULLE_SHELL_MODE}" in
                cat "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/motd"
             fi
          fi
-      else
-         unset NO_MOTD
       fi
    ;;
 esac
+
+# remove some uglies
+unset NO_MOTD
+unset TRACE
 
 #######
 ### mulle startup

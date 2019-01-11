@@ -80,7 +80,7 @@ _mulle_env_complete()
       tool)
          case "$prev" in
             remove)
-               list="`mulle-env -e tool list`"
+               list="`mulle-env tool list`"
                COMPREPLY=( $( compgen -W "${list}" -- "$cur" ) )
             ;;
 

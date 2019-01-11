@@ -293,7 +293,7 @@ struct _mulle_objc_universe  *
    universe = __mulle_objc_global_get_universe( universeid, universename);
    if( ! _mulle_objc_universe_is_initialized( universe))
    {
-      _mulle_objc_universe_bang( universe, 0, NULL);
+      _mulle_objc_universe_bang( universe, 0, NULL, NULL);
       universe->config.ignore_ivarhash_mismatch = 1;
    }
    return( universe);

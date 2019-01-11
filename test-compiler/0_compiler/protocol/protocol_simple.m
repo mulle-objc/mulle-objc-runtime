@@ -21,6 +21,12 @@
 }
 
 
+- (void) dealloc
+{
+   _mulle_objc_object_free( self);
+}
+
+
 - (void) baz
 {
 }
@@ -41,4 +47,6 @@ main()
    printf( "Bar: %s\n",
        _mulle_objc_infraclass_conformsto_protocolid( cls,
                                               @protocol( Bar)) ? "YES" : "NO");
+   [foo dealloc];
+   return( 0);
 }

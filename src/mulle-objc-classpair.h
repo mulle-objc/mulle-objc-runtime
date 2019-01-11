@@ -70,7 +70,7 @@ struct _mulle_objc_classpair
    union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
    char                                      *origin;      // a start of shared info
-   double                                    *_classextra[ 1];
+   double                                    *_classextra[ 1]; // will not exist if classextra is 0
 };
 
 
