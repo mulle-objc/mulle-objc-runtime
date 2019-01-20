@@ -5,7 +5,9 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
-   option( UNWANTED_WARNINGS "Turn off some unwanted compiler warnings" ON)
+   if( NOT DEFINED UNWANTED_WARNINGS)
+      option( UNWANTED_WARNINGS "Turn off some unwanted compiler warnings" ON)
+   endif()
 
    if( UNWANTED_WARNINGS)
       #

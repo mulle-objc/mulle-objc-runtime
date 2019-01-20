@@ -98,7 +98,7 @@ static inline struct _mulle_objc_class *
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
-   assert( universe->taggedpointers.pointerclass[ index] && "tagged pointer class not configured");
+   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");
    return( universe->taggedpointers.pointerclass[ index]);
 }
 
@@ -116,7 +116,7 @@ static inline struct _mulle_objc_class *
    if( __builtin_expect( ! index, 1))
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   assert( universe->taggedpointers.pointerclass[ index] && "tagged pointer class not configured");
+   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");
    return( universe->taggedpointers.pointerclass[ index]);
 }
 
