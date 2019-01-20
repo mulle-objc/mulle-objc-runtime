@@ -14,3 +14,7 @@ export MULLE_MATCH_PATH="${PROJECT_SOURCE_DIR}:CMakeLists.txt:cmake"
 export MULLE_MATCH_IGNORE_PATH=
 
 
+# tell mulle-sde to keep files protected from read/write changes
+export MULLE_SDE_PROTECT_PATH="cmake/share"
+
+

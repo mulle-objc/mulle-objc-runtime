@@ -7,7 +7,9 @@ endif()
 if( NOT __STANDALONE_C_CMAKE__)
    set( __STANDALONE_C_CMAKE__ ON)
 
-   option( STANDALONE "Create standalone library for debugging" OFF)
+   if( NOT DEFINED STANDALONE)
+      option( STANDALONE "Create standalone library for debugging" OFF)
+   endif()
 endif()
 
 

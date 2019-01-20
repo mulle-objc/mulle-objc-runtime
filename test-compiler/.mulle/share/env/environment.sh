@@ -21,6 +21,10 @@ fi
 if [ -z "${MULLE_HOSTNAME}" ]
 then
    MULLE_HOSTNAME="`PATH=/bin:/usr/bin:/sbin:/usr/sbin hostname -s`"
+   if [ "${MULLE_HOSTNAME:0:1}" = '.' ]
+   then
+      MULLE_HOSTNAME="_terodde"
+   fi
    export MULLE_HOSTNAME
 fi
 if [ -z "${MULLE_VIRTUAL_ROOT}" ]
@@ -122,8 +126,9 @@ case "${MULLE_SHELL_MODE}" in
          alias dependency="mulle-sde dependency"
          alias environment="mulle-sde environment"
          alias extension="mulle-sde extension"
-         alias fetch="mulle-sde show"
-         alias show="mulle-sde find"
+         alias fetch="mulle-sde fetch"
+         alias show="mulle-sde show"
+         alias list="mulle-sde list"
          alias library="mulle-sde library"
          alias log="mulle-sde log"
          alias match="mulle-sde match"

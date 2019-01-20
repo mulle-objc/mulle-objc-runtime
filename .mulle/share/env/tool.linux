@@ -1,0 +1,11 @@
+ar
+as
+cc;optional
+clang;optional
+diff
+gcc;optional
+ld
+nm
+valgrind;optional
+vgdb;optional
+valgrind.bin;optional

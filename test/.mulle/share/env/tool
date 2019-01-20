@@ -16,7 +16,9 @@ df
 dirname
 dmesg
 echo
+ed;optional
 egrep
+emacs;optional
 env
 expr
 false
@@ -36,6 +38,7 @@ more
 mount
 mudo
 mv
+nano;optional
 ps
 pwd
 readlink
@@ -58,5 +61,7 @@ true
 umount
 uname
 uuidgen
+vi;optional
 wc
 which
+xargs;optional

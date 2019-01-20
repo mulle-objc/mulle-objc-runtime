@@ -38,9 +38,3 @@ export ADDICTION_DIR="${MULLE_VIRTUAL_ROOT}/addiction"
 # Use common build directory
 #
 export BUILD_DIR="${MULLE_VIRTUAL_ROOT}/build"
-#
-#
-#
-export MULLE_SDE_INSTALLED_VERSION="0.35.0"
-
-
