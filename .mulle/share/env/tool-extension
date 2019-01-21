@@ -1,9 +1,10 @@
 column
-mulle-cmake-graphviz-include
-mulle-create-build-motd
+mulle-cmake-graphviz-include;optional
+mulle-create-build-motd;optional
 curl;optional
 git;optional
 gzip;optional
+id;optional
 inotifywait;optional
 ssh;optional
 tar;optional
@@ -11,8 +12,8 @@ tty;optional
 wget;optional
 zip;optional
 mulle-sourcetree-to-c
-mulle-match-to-cmake
-mulle-sourcetree-to-cmake
+mulle-match-to-cmake;optional
+mulle-sourcetree-to-cmake;optional
 cmake
 ninja;optional
 make;optional
