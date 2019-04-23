@@ -225,6 +225,7 @@ struct _mulle_objc_garbagecollection
 
 
 typedef void   mulle_objc_universefriend_destructor_t( struct _mulle_objc_universe *, void *);
+typedef void   mulle_objc_universefriend_finalizer_t( struct _mulle_objc_universe *, void *);
 typedef void   mulle_objc_universefriend_versionassert_t( struct _mulle_objc_universe *,
                                                           void *,
                                                           struct mulle_objc_loadversion *);
@@ -238,6 +239,7 @@ typedef void   mulle_objc_universefriend_versionassert_t( struct _mulle_objc_uni
 struct _mulle_objc_universefriend
 {
    void                                         *data;
+   mulle_objc_universefriend_finalizer_t        *finalizer;
    mulle_objc_universefriend_destructor_t       *destructor;
    mulle_objc_universefriend_versionassert_t    *versionassert;
 };
@@ -263,7 +265,7 @@ struct _mulle_objc_foundation
 
 struct _mulle_objc_memorymanagement
 {
-   struct mulle_allocator   allocator;
+   struct mulle_allocator   allocator;    //  for classes, universe tables...
 };
 
 
@@ -273,7 +275,7 @@ struct _mulle_objc_memorymanagement
 //
 struct _mulle_objc_taggedpointers
 {
-   struct _mulle_objc_class    *pointerclass[ 8];         // only 1 ... are really used
+   struct _mulle_objc_infraclass    *pointerclass[ 8];         // only 1 ... are really used
 };
 
 
@@ -340,6 +342,7 @@ struct _mulle_objc_universe
    mulle_atomic_pointer_t                   retaincount_1;
    mulle_atomic_pointer_t                   cachecount_1; // #1#
    mulle_atomic_pointer_t                   loadbits;
+   mulle_atomic_pointer_t                   classindex;
    mulle_thread_mutex_t                     lock;
    mulle_thread_tss_t                       threadkey;
 

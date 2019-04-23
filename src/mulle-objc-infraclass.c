@@ -36,10 +36,12 @@
 #include "mulle-objc-infraclass.h"
 
 #include "mulle-objc-class.h"
+#include "mulle-objc-class-search.h"
 #include "mulle-objc-classpair.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-ivar.h"
 #include "mulle-objc-ivarlist.h"
+#include "mulle-objc-object-convenience.h"
 #include "mulle-objc-property.h"
 #include "mulle-objc-propertylist.h"
 #include "mulle-objc-signature.h"
@@ -50,22 +52,24 @@ void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
                                          struct mulle_allocator *allocator)
 {
    struct _mulle_objc_universe   *universe;
-   struct mulle_allocator        *foundation_allocator;
+   struct mulle_allocator        *objectallocator;
 
    _mulle_concurrent_pointerarray_init( &infra->ivarlists, 0, allocator);
    _mulle_concurrent_pointerarray_init( &infra->propertylists, 0, allocator);
 
    _mulle_concurrent_hashmap_init( &infra->cvars, 0, allocator);
 
-   universe             = _mulle_objc_infraclass_get_universe( infra);
-   foundation_allocator = _mulle_objc_universe_get_foundationallocator( universe);
-   infra->allocator     = foundation_allocator->calloc ? foundation_allocator
-                                                       : &mulle_default_allocator;
+   universe          = _mulle_objc_infraclass_get_universe( infra);
+   objectallocator   = _mulle_objc_universe_get_foundationallocator( universe);
+   infra->allocator  = objectallocator->calloc
+                          ? objectallocator
+                          : _mulle_objc_universe_get_allocator( universe);
 }
 
 
 void    _mulle_objc_infraclass_plusdone( struct _mulle_objc_infraclass *infra)
 {
+   // this is done earlier now
    _mulle_concurrent_hashmap_done( &infra->cvars);
 
    _mulle_concurrent_pointerarray_done( &infra->ivarlists);
@@ -154,31 +158,13 @@ struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mul
 }
 
 
-int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
-                                              struct _mulle_objc_propertylist *list)
+static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
+                                                      struct _mulle_objc_propertylist *list)
 {
    mulle_objc_propertyid_t                     last;
    struct _mulle_objc_property                 *property;
    struct _mulle_objc_propertylistenumerator   rover;
    struct _mulle_objc_universe                 *universe;
-   int                                         has_clearable_property;
-
-   if( ! infra)
-   {
-      errno = EINVAL;
-      return( -1);
-   }
-
-   if( ! list)
-   {
-      if( _mulle_concurrent_pointerarray_get_count( &infra->propertylists) != 0)
-         return( 0);
-
-      universe = _mulle_objc_infraclass_get_universe( infra);
-      list     = &universe->empty_propertylist;
-   }
-
-   has_clearable_property = 0;
 
    /* register instance methods */
    last  = MULLE_OBJC_MIN_UNIQUEID - 1;
@@ -197,21 +183,43 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
       }
       last = property->propertyid;
 
-      if( ! property->clearer)
-         continue;
-
-      has_clearable_property = 1;
-      break;
+      if( property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear))
+      {
+         _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY);
+         break;
+      }
    }
    _mulle_objc_propertylistenumerator_done( &rover);
-
-   // add before, its harmless and more foolproof
-   if( has_clearable_property)
-      _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY);
 
    _mulle_concurrent_pointerarray_add( &infra->propertylists, list);
 
    return( 0);
+}
+
+
+int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
+                                              struct _mulle_objc_propertylist *list)
+{
+   struct _mulle_objc_universe   *universe;
+
+   if( ! infra)
+   {
+      errno = EINVAL;
+      return( -1);
+   }
+
+   if( ! list)
+   {
+      if( _mulle_concurrent_pointerarray_get_count( &infra->propertylists) != 0)
+         return( 0);
+
+      universe = _mulle_objc_infraclass_get_universe( infra);
+      list     = &universe->empty_propertylist;
+      _mulle_concurrent_pointerarray_add( &infra->propertylists, list);
+      return( 0);
+   }
+
+   return( _mulle_objc_infraclass_add_propertylist( infra, list));
 }
 
 
@@ -470,27 +478,32 @@ static int   bouncy_ivar( struct _mulle_objc_ivar *ivar,
 mulle_objc_walkcommand_t
    mulle_objc_infraclass_walk( struct _mulle_objc_infraclass   *infra,
                                enum mulle_objc_walkpointertype_t  type,
-                               mulle_objc_walkcallback_t   callback,
+                               mulle_objc_walkcallback_t callback,
                                void *parent,
                                void *userinfo)
 {
    mulle_objc_walkcommand_t     cmd;
    struct bouncy_info           info;
+   unsigned int                 inheritance;
 
-   cmd = mulle_objc_class_walk( _mulle_objc_infraclass_as_class( infra), type, callback, parent, userinfo);
+   cmd = mulle_objc_class_walk( _mulle_objc_infraclass_as_class( infra),
+                                 type,
+                                 callback,
+                                 parent,
+                                 userinfo);
    if( cmd != mulle_objc_walk_ok)
       return( cmd);
 
    info.callback = callback;
    info.parent   = parent;
    info.userinfo = userinfo;
-   info.universe  = _mulle_objc_infraclass_get_universe( infra);
-
-   cmd = _mulle_objc_infraclass_walk_properties( infra, _mulle_objc_infraclass_get_inheritance( infra), bouncy_property, &info);
+   info.universe = _mulle_objc_infraclass_get_universe( infra);
+   inheritance   = _mulle_objc_infraclass_get_inheritance( infra);
+   cmd = _mulle_objc_infraclass_walk_properties( infra, inheritance, bouncy_property, &info);
    if( cmd != mulle_objc_walk_ok)
       return( cmd);
 
-   cmd = _mulle_objc_infraclass_walk_ivars( infra, _mulle_objc_infraclass_get_inheritance( infra), bouncy_ivar, &info);
+   cmd = _mulle_objc_infraclass_walk_ivars( infra, inheritance, bouncy_ivar, &info);
    return( cmd);
 }
 
@@ -609,5 +622,91 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    }
 
    return( 1);
+}
+
+
+
+static struct _mulle_objc_method  *
+   _mulle_objc_infraclass_search_method_noinherit( struct _mulle_objc_infraclass *infra,
+                                                   mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_metaclass         *meta;
+
+   _mulle_objc_searcharguments_defaultinit( &search, methodid);
+   meta   = _mulle_objc_infraclass_get_metaclass( infra);
+   method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
+                                            &search,
+                                            -1,  // inherit nothing
+                                            NULL);
+   return( method);
+}
+
+
+static void   _mulle_objc_infraclass_call_unloadmethod( struct _mulle_objc_infraclass *infra,
+                                                        struct _mulle_objc_method *method,
+                                                        char *name)
+{
+   struct _mulle_objc_universe     *universe;
+   mulle_objc_implementation_t     imp;
+
+   universe = _mulle_objc_infraclass_get_universe( infra);
+   if( universe->debug.trace.initialize)
+      mulle_objc_universe_trace( universe,
+                                 "call +%s on class #%ld %s",
+                                 name,
+                                 _mulle_objc_classpair_get_classindex( _mulle_objc_infraclass_get_classpair( infra)),
+                                 _mulle_objc_infraclass_get_name( infra));
+
+   imp = _mulle_objc_method_get_implementation( method);
+   (*imp)( infra, _mulle_objc_method_get_methodid( method), infra);
+}
+
+
+void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_method     *method;
+
+   if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
+      return;
+
+   method = _mulle_objc_infraclass_search_method_noinherit( infra,
+                                                            MULLE_OBJC_DEINITIALIZE_METHODID);
+   if( ! method)
+      return;
+
+   _mulle_objc_infraclass_call_unloadmethod( infra, method, "deinitialize");
+}
+
+
+// in reverse order
+void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_metaclass        *meta;
+   struct _mulle_objc_class             *cls;
+   struct _mulle_objc_method            *method;
+   int                                  inheritance;
+   struct _mulle_objc_searcharguments   search;
+   mulle_objc_implementation_t          imp;
+
+   meta = _mulle_objc_infraclass_get_metaclass( infra);
+   cls  = _mulle_objc_metaclass_as_class( meta);
+
+   inheritance = MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS|MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
+
+   // search will find last recently added category first
+   // but we need to call all
+   _mulle_objc_searcharguments_defaultinit( &search, MULLE_OBJC_UNLOAD_METHODID);
+   for(;;)
+   {
+      method = mulle_objc_class_search_method( cls, &search, inheritance, NULL);
+      if( ! method)
+         break;
+
+      _mulle_objc_infraclass_call_unloadmethod( infra, method, "unload");
+      _mulle_objc_searcharguments_previousmethodinit( &search, method);
+   }
 }
 

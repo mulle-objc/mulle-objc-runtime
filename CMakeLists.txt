@@ -70,7 +70,15 @@ set( EXECUTABLE_LIBRARY_LIST
 )
 
 include( Executable)
-include( InstallExecutable)
 
+set( EXECUTABLE_NAME mulle-objc-signature)
+set( EXECUTABLE_SOURCES  ${SIGNATURE_SOURCES})
+set( EXECUTABLE_LIBRARY_LIST
+   $<TARGET_FILE:mulle-objc-runtime>
+)
+
+include( Executable)
+
+include( InstallExecutable)
 
 include( FinalOutput OPTIONAL)

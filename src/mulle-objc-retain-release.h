@@ -40,7 +40,6 @@
 #include "mulle-objc-method.h"
 #include "mulle-objc-object.h"
 #include "mulle-objc-taggedpointer.h"
-#include "mulle-objc-call.h"
 
 #include "include.h"
 #include <limits.h>
@@ -112,11 +111,11 @@ static inline int   _mulle_objc_object_decrement_retaincount_waszero( void *obj)
 }
 
 //
-// Try not to use it, it obscures bugs and will disturb leak detection
+// Try not to use it, it obscures bugs and could disturb leak detection.
 // You should only use it when creating an object, not "on the fly"
 // therefore it's nonatomic
 //
-static inline void   _mulle_objc_object_infiniteretain_noatomic( void *obj)
+static inline void   _mulle_objc_object_constantify_noatomic( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
@@ -125,6 +124,21 @@ static inline void   _mulle_objc_object_infiniteretain_noatomic( void *obj)
 
    header = _mulle_objc_object_get_objectheader( obj);
    _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
+}
+
+
+//
+// only use this when deallocating a placeholder
+//
+static inline void   _mulle_objc_object_deconstantify_noatomic( void *obj)
+{
+   struct _mulle_objc_objectheader    *header;
+
+   if( mulle_objc_taggedpointer_get_index( obj))
+      return;
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) 0);
 }
 
 
@@ -138,7 +152,6 @@ static inline int   _mulle_objc_object_is_constant( void *obj)
    header = _mulle_objc_object_get_objectheader( obj);
    return( _mulle_atomic_pointer_read( &header->_retaincount_1) == (void *) MULLE_OBJC_NEVER_RELEASE);
 }
-
 
 
 //

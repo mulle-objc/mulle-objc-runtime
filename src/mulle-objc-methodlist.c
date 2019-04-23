@@ -46,7 +46,7 @@
 
 
 int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
-                                   int (*f)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *),
+                                   mulle_objc_method_walkcallback_t callback,
                                    struct _mulle_objc_class *cls,
                                    void *userinfo)
 {
@@ -61,7 +61,7 @@ int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
 
    while( p < sentinel)
    {
-      if( rval = (*f)( p, cls, userinfo))
+      if( rval = (*callback)( p, list, cls, userinfo))
          return( rval);
       ++p;
    }

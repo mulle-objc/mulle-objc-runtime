@@ -36,8 +36,8 @@
 #ifndef mulle_objc_infraclass_h__
 #define mulle_objc_infraclass_h__
 
-#include "mulle-objc-class-struct.h"
 #include "mulle-objc-atomicpointer.h"
+#include "mulle-objc-class-struct.h"
 #include "mulle-objc-walktypes.h"
 
 #include "include.h"
@@ -72,7 +72,7 @@ struct _mulle_objc_infraclass
 
    struct mulle_concurrent_hashmap           cvars;
    union _mulle_objc_atomicobjectpointer_t   placeholder;
-   union _mulle_objc_atomicobjectpointer_t   auxplaceholder;
+   union _mulle_objc_atomicobjectpointer_t   singleton;
 
    struct mulle_allocator                    *allocator;
 };
@@ -247,28 +247,28 @@ static inline int
    if( ! obj)
       return( 1);
    return( _mulle_atomic_pointer_cas( &infra->placeholder.pointer,
-                                                   obj,
-                                                   NULL));
+                                      obj,
+                                      NULL));
 }
 
 
 static inline struct _mulle_objc_object *
-   _mulle_objc_infraclass_get_auxplaceholder( struct _mulle_objc_infraclass *infra)
+   _mulle_objc_infraclass_get_singleton( struct _mulle_objc_infraclass *infra)
 {
-   return( _mulle_atomic_pointer_read( &infra->auxplaceholder.pointer));
+   return( _mulle_atomic_pointer_read( &infra->singleton.pointer));
 }
 
 
 // 1: it has worked, 0: someone else was faster
 static inline int
-   _mulle_objc_infraclass_set_auxplaceholder( struct _mulle_objc_infraclass *infra,
+   _mulle_objc_infraclass_set_singleton( struct _mulle_objc_infraclass *infra,
                                               struct _mulle_objc_object *obj)
 {
    if( ! obj)
       return( 0);
-   return( _mulle_atomic_pointer_cas( &infra->auxplaceholder.pointer,
-                                                   obj,
-                                                   NULL));
+   return( _mulle_atomic_pointer_cas( &infra->singleton.pointer,
+                                      obj,
+                                      NULL));
 }
 
 //
@@ -407,7 +407,7 @@ int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
                                           struct _mulle_objc_ivarlist *list);
 
 void   mulle_objc_infraclass_add_ivarlist_nofail( struct _mulle_objc_infraclass *infra,
-                                                    struct _mulle_objc_ivarlist *list);
+                                                  struct _mulle_objc_ivarlist *list);
 
 
 # pragma mark - ivars
@@ -444,10 +444,10 @@ mulle_objc_walkcommand_t
 
 mulle_objc_walkcommand_t
 	mulle_objc_infraclass_walk( struct _mulle_objc_infraclass   *infra,
-                               enum mulle_objc_walkpointertype_t  type,
-                               mulle_objc_walkcallback_t   callback,
-                               void *parent,
-                               void *userinfo);
+                              enum mulle_objc_walkpointertype_t  type,
+                              mulle_objc_walkcallback_t   callback,
+                              void *parent,
+                              void *userinfo);
 
 #pragma mark - some other methods, that are only defined on infraclass
 
@@ -460,5 +460,10 @@ static inline void
 {
    infra->base.allocationsize = sizeof( struct _mulle_objc_objectheader) + size;
 }
+
+
+void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra);
+void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra);
+void   _mulle_objc_infraclass_call_categories_unload( struct _mulle_objc_infraclass *infra);
 
 #endif /* mulle_objc_infraclass_h */

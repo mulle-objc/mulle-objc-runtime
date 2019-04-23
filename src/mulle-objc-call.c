@@ -116,6 +116,7 @@ static void
 
 
 static int  preload( struct _mulle_objc_method *method,
+                     struct _mulle_objc_methodlist *list,
                      struct _mulle_objc_class *cls,
                      struct _mulle_objc_cache *cache)
 {
@@ -134,7 +135,10 @@ static void
    _class_fill_inactivecache_with_preload_methods( struct _mulle_objc_class *cls,
                                                   struct _mulle_objc_cache *cache)
 {
-   _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), (int(*)()) preload, cache);
+   unsigned int   inheritance;
+
+   inheritance = _mulle_objc_class_get_inheritance( cls);
+   _mulle_objc_class_walk_methods( cls, inheritance, (int(*)()) preload, cache);
 }
 
 
@@ -442,6 +446,9 @@ MULLE_C_NEVER_INLINE static struct _mulle_objc_cacheentry *
    // when we trace method calls, we don't cache ever
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.method_call)
+      return( NULL);
+   // some special classes may choose to never cache
+   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return( NULL);
 
    //

@@ -168,9 +168,35 @@ void   _mulle_objc_universe_set_loadbit( struct _mulle_objc_universe *universe,
 //
 // returns 1 if index is out of bounds for this cpu
 //
+static inline struct _mulle_objc_infraclass *
+   _mulle_objc_universe_get_taggedpointerclass_at_index( struct _mulle_objc_universe  *universe,
+                                                         unsigned int index)
+{
+   if( ! index || index > mulle_objc_get_taggedpointer_mask())
+      return( (void *) -1);
+
+   return( universe->taggedpointers.pointerclass[ index]);
+}
+
+
 int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_universe  *universe,
                                                            struct _mulle_objc_infraclass *infra,
                                                            unsigned int index);
+
+
+static inline int
+  mulle_objc_universe_search_free_taggedpointerclass( struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_infraclass   *infra;
+   unsigned int                    i;
+
+   if( universe)
+      for( i = 1; i <= 7; i++)
+         if( ! _mulle_objc_universe_get_taggedpointerclass_at_index( universe, i))
+            return( i);
+
+   return( 0);  // no index available
+}
 
 //
 // this method is used by API consumers. It is generally assumed that the
@@ -551,20 +577,6 @@ struct _mulle_objc_descriptor *
 struct _mulle_objc_descriptor   *
    _mulle_objc_universe_lookup_descriptor( struct _mulle_objc_universe *universe,
                                            mulle_objc_methodid_t methodid);
-
-
-// this function automatically gifts the methodlist to the
-// universe, do not free it yourself!
-
-static inline struct _mulle_objc_method  *
-   mulle_objc_universe_alloc_array_of_methods( struct _mulle_objc_universe *universe,
-                                               unsigned int count_methods)
-{
-   return( _mulle_objc_universe_calloc( universe,
-                                        count_methods,
-                                        sizeof( struct _mulle_objc_method)));
-}
-
 
 char   *mulle_objc_universe_lookup_methodname( struct _mulle_objc_universe *universe,
                                                mulle_objc_methodid_t methodid);

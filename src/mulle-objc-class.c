@@ -71,7 +71,10 @@ static char   *lookup_bitname( unsigned int bit)
    case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        : return( "IS_PROTOCOLCLASS");
    case _MULLE_OBJC_CLASS_LOAD_SCHEDULED          : return( "LOAD_SCHEDULED");
    case _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  : return( "HAS_CLEARABLE_PROPERTY");
+   case MULLE_OBJC_CLASS_INITIALIZING             : return( "INITIALIZING");
    case MULLE_OBJC_CLASS_INITIALIZE_DONE          : return( "INITIALIZE_DONE");
+   case MULLE_OBJC_CLASS_FOUNDATION_BIT0          : return( "FOUNDATION #0");
+   case MULLE_OBJC_CLASS_FOUNDATION_BIT1          : return( "FOUNDATION #1");
    }
    return( 0);
 }
@@ -487,7 +490,7 @@ int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
 
 
 void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
-                                                 struct _mulle_objc_methodlist *list)
+                                               struct _mulle_objc_methodlist *list)
 {
    if( mulle_objc_class_add_methodlist( cls, list))
       mulle_objc_universe_fail_errno( cls->universe);
@@ -498,14 +501,13 @@ void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
 static mulle_objc_walkcommand_t
    _mulle_objc_class_protocol_walk_methods( struct _mulle_objc_class *cls,
                                             unsigned int inheritance,
-                                            mulle_objc_walkcommand_t (*f)( struct _mulle_objc_method *,
-                                                                           struct _mulle_objc_class *,
-                                                                           void *),
+                                            mulle_objc_method_walkcallback_t f,
                                             void *userinfo)
 {
    mulle_objc_walkcommand_t                     rval;
    struct _mulle_objc_class                     *walk_cls;
    struct _mulle_objc_infraclass                *infra;
+   struct _mulle_objc_metaclass                 *meta_proto_cls;
    struct _mulle_objc_infraclass                *proto_cls;
    struct _mulle_objc_classpair                 *pair;
    struct _mulle_objc_protocolclassenumerator   rover;
@@ -524,9 +526,15 @@ static mulle_objc_walkcommand_t
 
       walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
       if( is_meta)
-         walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
+      {
+         meta_proto_cls = _mulle_objc_infraclass_get_metaclass( proto_cls);
+         walk_cls       = _mulle_objc_metaclass_as_class( meta_proto_cls);
+      }
 
-      if( rval = _mulle_objc_class_walk_methods( walk_cls, inheritance | walk_cls->inheritance, f, userinfo))
+      if( rval = _mulle_objc_class_walk_methods( walk_cls,
+                                                 inheritance | walk_cls->inheritance,
+                                                 f,
+                                                 userinfo))
          break;
    }
    _mulle_objc_protocolclassenumerator_done( &rover);
@@ -542,6 +550,7 @@ static unsigned int
    struct _mulle_objc_classpair                 *pair;
    struct _mulle_objc_infraclass                *proto_cls;
    struct _mulle_objc_infraclass                *infra;
+   struct _mulle_objc_metaclass                 *meta_proto_cls;
    struct _mulle_objc_protocolclassenumerator   rover;
    unsigned int                                 preloads;
    int                                          is_meta;
@@ -560,7 +569,10 @@ static unsigned int
 
       walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
       if( is_meta)
-         walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
+      {
+         meta_proto_cls = _mulle_objc_infraclass_get_metaclass( proto_cls);
+         walk_cls       = _mulle_objc_metaclass_as_class( meta_proto_cls);
+      }
 
       preloads += _mulle_objc_class_count_preloadmethods( walk_cls);
    }
@@ -593,15 +605,10 @@ unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class 
 
 
 // 0: continue
-typedef mulle_objc_walkcommand_t
-   (*mulle_objc_walk_methods_callback)( struct _mulle_objc_method *,
-                                        struct _mulle_objc_class *,
-                                        void *);
-
 mulle_objc_walkcommand_t
    _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls,
                                    unsigned int inheritance,
-                                   mulle_objc_walk_methods_callback f,
+                                   mulle_objc_method_walkcallback_t f,
                                    void *userinfo)
 {
    mulle_objc_walkcommand_t                                rval;
@@ -669,6 +676,7 @@ struct lookup_method_ctxt
 
 
 static mulle_objc_walkcommand_t   find_method( struct _mulle_objc_method *method,
+                                               struct _mulle_objc_methodlist *list,
                                                struct _mulle_objc_class *cls,
                                                void *userinfo)
 {
@@ -717,14 +725,24 @@ struct bouncy_info
 };
 
 
+
 static int   bouncy_method( struct _mulle_objc_method *method,
+                            struct _mulle_objc_methodlist *list,
                             struct _mulle_objc_class *cls,
                             void *userinfo)
 {
-   struct bouncy_info   *info;
+   struct bouncy_info               *info;
+   struct _mulle_objc_methodparent  parent;
 
-   info       = userinfo;
-   info->rval = (info->callback)( info->universe, method, mulle_objc_walkpointer_is_method, NULL, cls, info->userinfo);
+   parent.cls  = cls;
+   parent.list = list;
+   info        = userinfo;
+   info->rval  = (info->callback)( info->universe,
+                                   method,
+                                   mulle_objc_walkpointer_is_method,
+                                   NULL,
+                                   &parent,
+                                   info->userinfo);
    return( mulle_objc_walkcommand_is_stopper( info->rval));
 }
 
@@ -734,25 +752,30 @@ static int   bouncy_method( struct _mulle_objc_method *method,
 mulle_objc_walkcommand_t
    mulle_objc_class_walk( struct _mulle_objc_class   *cls,
                           enum mulle_objc_walkpointertype_t  type,
-                          mulle_objc_walkcallback_t   callback,
+                          mulle_objc_walkcallback_t callback,
                           void *parent,
                           void *userinfo)
 {
    struct _mulle_objc_universe   *universe;
    mulle_objc_walkcommand_t      cmd;
    struct bouncy_info            info;
+   unsigned int                  inheritance;
 
    universe = _mulle_objc_class_get_universe( cls);
-   cmd     = (*callback)( universe, cls, type, NULL, parent, userinfo);
+   cmd      = (*callback)( universe, cls, type, NULL, parent, userinfo);
    if( cmd != mulle_objc_walk_ok)
       return( cmd);
 
    info.callback = callback;
    info.parent   = parent;
    info.userinfo = userinfo;
-   info.universe  = universe;
+   info.universe = universe;
 
-   cmd = _mulle_objc_class_walk_methods( cls, _mulle_objc_class_get_inheritance( cls), bouncy_method, &info);
+   // assume this is a universe walk, and protocols and superclass
+   // will be visited anyway
+   inheritance = MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS|MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+
+   cmd = _mulle_objc_class_walk_methods( cls, inheritance, bouncy_method, &info);
    return( cmd);
 }
 
@@ -776,7 +799,7 @@ void   _mulle_objc_object_trace_free( void *obj)
 {
    struct _mulle_objc_class   *cls;
 
-   cls = _mulle_objc_object_get_isa( cls);
+   cls = _mulle_objc_object_get_isa( obj);
    fprintf( stderr, "[==] free \"%s\" instance %p\n",
                      _mulle_objc_class_get_name( cls),
                      obj);

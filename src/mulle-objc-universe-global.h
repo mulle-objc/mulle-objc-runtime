@@ -90,6 +90,8 @@ static inline struct _mulle_objc_universe  *
       struct mulle_concurrent_hashmap   mulle_objc_universetable;
    struct _mulle_objc_universe  *universe;
 
+   assert( universeid && "lookup would fail for default universe (use mulle_objc_global_get_universe)");
+
    universe = mulle_concurrent_hashmap_lookup( &mulle_objc_universetable, universeid);
    assert( ! universe || ! _mulle_objc_universe_is_uninitialized( universe) \
                && "universe not initialized yet");
@@ -122,9 +124,6 @@ void   mulle_objc_global_reset_universetable( void);
 
 
 MULLE_OBJC_RUNTIME_EXTERN_GLOBAL long   __mulle_objc_personality_v0;   // no idea what this is used for
-
-// useful for the debugger only
-struct _mulle_objc_universe  *__mulle_objc_global_getany_universe( void);
 
 size_t  __mulle_objc_global_get_alluniverses( struct _mulle_objc_universe **p,
                                               size_t n);

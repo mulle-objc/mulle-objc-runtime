@@ -141,6 +141,11 @@ static struct _mulle_objc_dependency
 
    while( dependencies->classid)
    {
+       if( universe->debug.trace.dependency)
+            mulle_objc_universe_trace( universe, "+dependencies check class %08x \"%s\" ...",
+                             dependencies->classid,
+                             _mulle_objc_universe_describe_classid( universe, dependencies->classid));
+
       if( ! infra || (_mulle_objc_infraclass_get_classid( infra) != dependencies->classid))
       {
          infra = _mulle_objc_universe_lookup_infraclass( universe, dependencies->classid);
@@ -149,7 +154,7 @@ static struct _mulle_objc_dependency
             if( universe->debug.trace.dependency)
             {
                mulle_objc_universe_trace( universe,
-                                          "class %08x \"%s\" is not present yet",
+                                          "+dependencies class %08x \"%s\" is not present yet",
                                             dependencies->classid,
                                             _mulle_objc_universe_describe_classid( universe, dependencies->classid));
             }
@@ -159,13 +164,20 @@ static struct _mulle_objc_dependency
 
       if( dependencies->categoryid)
       {
+       if( universe->debug.trace.dependency)
+            mulle_objc_universe_trace( universe, "+dependencies check category %08x,%08x \"%s( %s)\" ....",
+                                          dependencies->classid,
+                                          dependencies->categoryid,
+                                          _mulle_objc_universe_describe_classid( universe, dependencies->classid),
+                                          _mulle_objc_universe_describe_categoryid( universe, dependencies->categoryid));
+
          pair = _mulle_objc_infraclass_get_classpair( infra);
          if( ! _mulle_objc_classpair_has_categoryid( pair, dependencies->categoryid))
          {
             if( universe->debug.trace.dependency)
             {
                mulle_objc_universe_trace( universe,
-                                          "category %08x,%08x \"%s( %s)\" is not present yet",
+                                          "+dependencies category %08x,%08x \"%s( %s)\" is not present yet",
                                           dependencies->classid,
                                           dependencies->categoryid,
                                           _mulle_objc_universe_describe_classid( universe, dependencies->classid),
@@ -379,6 +391,11 @@ static struct _mulle_objc_dependency
          // avoid duplication and waiting for seld
          if( *classid_p == info->superclassid || *classid_p == info->classid)
             continue;
+
+         if( universe->debug.trace.dependency)
+            loadclass_trace( info, universe, "dependency check protocolclass %08x \"%s\" ...",
+                             *classid_p,
+                             _mulle_objc_universe_describe_classid( universe, *classid_p));
 
          protocolclass = _mulle_objc_universe_lookup_infraclass( universe, *classid_p);
          if( ! protocolclass)
@@ -660,7 +677,7 @@ static void   loadivar_dump( struct _mulle_objc_ivar *ivar, char *prefix)
 
 static void   loadproperty_dump( struct _mulle_objc_property *property, char *prefix)
 {
-   fprintf( stderr, "%s @property %s; // id=%08x ivarid=%08x signature=\"%s\" get=%08x set=%08x clr=%08x\n",
+   fprintf( stderr, "%s @property %s; // id=%08x ivarid=%08x signature=\"%s\" get=%08x set=%08x bits=0x%x\n",
            prefix,
            property->name,
            property->propertyid,
@@ -668,7 +685,7 @@ static void   loadproperty_dump( struct _mulle_objc_property *property, char *pr
            property->signature,
            property->getter,
            property->setter,
-           property->clearer);
+           property->bits);
 }
 
 

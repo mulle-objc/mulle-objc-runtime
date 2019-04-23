@@ -44,17 +44,37 @@
 #include <stddef.h>
 
 
+enum
+{
+   _mulle_objc_property_readonly          = 0x00001,
+//   _mulle_objc_property_assign            = 0x00002,
+//   _mulle_objc_property_readwrite         = 0x00004,
+   _mulle_objc_property_retain            = 0x00008,
+   _mulle_objc_property_copy              = 0x00010,
+//   _mulle_objc_property_nullability       = 0x00020,
+//   _mulle_objc_property_null_resettable   = 0x00040,
+   _mulle_objc_property_nonnull           = 0x00080,
+//   _mulle_objc_property_nullable          = 0x00100,
+   _mulle_objc_property_class             = 0x00200,  // unused
+   _mulle_objc_property_dynamic           = 0x00400,
+   _mulle_objc_property_nonserializable   = 0x00800,
+
+   _mulle_objc_property_setterclear       = 0x10000,  // setter clear
+   _mulle_objc_property_autoreleaseclear  = 0x20000   // autorelease clear
+};
+
+
 // properties have no descriptor (why ?)
 
 struct _mulle_objc_property
 {
    mulle_objc_propertyid_t    propertyid;
-   mulle_objc_ivarid_t        ivarid;      // name prefixed with _
+   mulle_objc_propertyid_t    ivarid;
    char                       *name;
    char                       *signature;  // hmmm...
    mulle_objc_methodid_t      getter;
    mulle_objc_methodid_t      setter;
-   mulle_objc_methodid_t      clearer;     // for pointers/objects
+   uint32_t                   bits;        // for pointers/objects
 };
 
 
@@ -94,6 +114,12 @@ static inline mulle_objc_methodid_t    _mulle_objc_property_get_getter( struct _
 static inline mulle_objc_methodid_t    _mulle_objc_property_get_setter( struct _mulle_objc_property *property)
 {
    return( property->setter);
+}
+
+
+static inline uint32_t   _mulle_objc_property_get_bits( struct _mulle_objc_property *property)
+{
+   return( property->bits);
 }
 
 
@@ -157,6 +183,11 @@ static inline mulle_objc_methodid_t    mulle_objc_property_get_getter( struct _m
 static inline mulle_objc_methodid_t    mulle_objc_property_get_setter( struct _mulle_objc_property *property)
 {
    return( property ? _mulle_objc_property_get_setter( property) : MULLE_OBJC_NO_METHODID);
+}
+
+static inline uint32_t    mulle_objc_property_get_bits( struct _mulle_objc_property *property)
+{
+   return( property ? _mulle_objc_property_get_bits( property) : MULLE_OBJC_NO_METHODID);
 }
 
 

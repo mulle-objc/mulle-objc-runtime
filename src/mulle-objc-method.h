@@ -47,9 +47,9 @@
 
 
 // tough decision, but I type self as void
-typedef void    *(*mulle_objc_implementation_t)( void *, mulle_objc_methodid_t, void *);
-
-
+typedef void   *(*mulle_objc_implementation_t)( void *, 
+                                                mulle_objc_methodid_t, 
+                                                void *);
 //
 // idea... add a bit to this _mulle_objc_descriptor, that the compiler
 // sets, if this method is expected to override a method (maybe differentiate
@@ -77,6 +77,7 @@ enum
    _mulle_objc_method_aam                       = 0x04,
    _mulle_objc_method_variadic                  = 0x08,
    _mulle_objc_method_guessed_signature         = 0x10,
+   _mulle_objc_method_designated_initializer    = 0x20,
 
    // this "coverage" bit gets set, when a method has been searched and found.
    // Should setting the bit be atomic, though it will never be cleared ?

@@ -241,15 +241,13 @@ static struct _mulle_objc_method  *
    struct _mulle_objc_method                           *method;
    int                                                 is_meta;
 
-   found   = MULLE_OBJC_METHOD_SEARCH_FAIL;
-   pair    = _mulle_objc_class_get_classpair( cls);
-   infra   = _mulle_objc_classpair_get_infraclass( pair);
-   is_meta = _mulle_objc_class_is_metaclass( cls);
-
-   inheritance   |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+   found        = MULLE_OBJC_METHOD_SEARCH_FAIL;
+   pair         = _mulle_objc_class_get_classpair( cls);
+   infra        = _mulle_objc_classpair_get_infraclass( pair);
+   is_meta      = _mulle_objc_class_is_metaclass( cls);
+   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
 
    rover          = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
-
    next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
    while( proto_cls = next_proto_cls)
    {
@@ -432,6 +430,14 @@ static struct _mulle_objc_method   *
 
       switch( *mode)
       {
+      case search_overridden_method_3 :
+         // as protocolclasses can appear multiple times, ensure that
+         // we didn't hit "self" again
+         if( search->args.classid == cls->classid &&
+             (void *) (intptr_t) search->args.categoryid == list->owner)
+            continue;
+         break;
+
       case search_specific_method_3 :
          return( method);
 

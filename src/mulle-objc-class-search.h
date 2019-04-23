@@ -110,9 +110,9 @@ static inline uintptr_t
 
 static inline int
    _mulle_objc_searchargumentscachable_equals( struct _mulle_objc_searchargumentscachable
-                                          *a,
+                                               *a,
                                                struct _mulle_objc_searchargumentscachable
-                                                 *b)
+                                               *b)
 {
    // in estimated order of likeliness of difference
    return( a->methodid   == b->methodid &&
@@ -247,6 +247,16 @@ static inline void
 
 
 static inline void
+   _mulle_objc_searcharguments_defaultinit( struct _mulle_objc_searcharguments *p,
+                                            mulle_objc_methodid_t methodid)
+{
+   p->args.mode     = MULLE_OBJC_SEARCH_DEFAULT;
+   p->args.methodid = methodid;
+}
+
+
+
+static inline void
    _mulle_objc_searcharguments_previousmethodinit( struct _mulle_objc_searcharguments *p,
                                                    struct _mulle_objc_method *method)
 {
@@ -256,40 +266,30 @@ static inline void
 }
 
 
-
 static inline void
-   _mulle_objc_searcharguments_defaultinit( struct _mulle_objc_searcharguments *p,
-                                            mulle_objc_methodid_t methodid)
-{
-   p->args.mode     = MULLE_OBJC_SEARCH_DEFAULT;
-   p->args.methodid = methodid;
-}
-
-
-static inline void   _mulle_objc_searcharguments_superinit( struct _mulle_objc_searcharguments *p,
-                                                             mulle_objc_methodid_t methodid,
-
-                                                             mulle_objc_classid_t classid)
+   _mulle_objc_searcharguments_superinit( struct _mulle_objc_searcharguments *p,
+                                          mulle_objc_methodid_t methodid,
+                                          mulle_objc_classid_t classid)
 {
    _mulle_objc_searchargumentscacheable_superinit( &p->args, methodid, classid);
 }
 
 
-static inline void   _mulle_objc_searcharguments_overriddeninit( struct _mulle_objc_searcharguments *p,
-                                                             mulle_objc_methodid_t methodid,
-
-                                                             mulle_objc_classid_t classid,
-                                                             mulle_objc_classid_t category)
+static inline void
+   _mulle_objc_searcharguments_overriddeninit( struct _mulle_objc_searcharguments *p,
+                                               mulle_objc_methodid_t methodid,
+                                               mulle_objc_classid_t classid,
+                                               mulle_objc_classid_t category)
 {
    _mulle_objc_searchargumentscacheable_overriddeninit( &p->args, methodid, classid, category);
 }
 
 
-static inline void   _mulle_objc_searcharguments_specificinit( struct _mulle_objc_searcharguments *p,
-                                                             mulle_objc_methodid_t methodid,
-
-                                                             mulle_objc_classid_t classid,
-                                                             mulle_objc_classid_t category)
+static inline void
+   _mulle_objc_searcharguments_specificinit( struct _mulle_objc_searcharguments *p,
+                                             mulle_objc_methodid_t methodid,
+                                             mulle_objc_classid_t classid,
+                                             mulle_objc_classid_t category)
 {
    _mulle_objc_searchargumentscacheable_specificinit( &p->args, methodid, classid, category);
 }
@@ -348,7 +348,7 @@ struct _mulle_objc_method  *
 
 MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_method *
    mulle_objc_class_search_method_nofail( struct _mulle_objc_class *cls,
-                                            mulle_objc_methodid_t methodid)
+                                          mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *method;
 

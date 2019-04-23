@@ -39,6 +39,7 @@
 #include "include.h"
 
 #include "mulle-objc-class.h"
+#include "mulle-objc-infraclass.h"
 #include "mulle-objc-ivar.h"
 #include "mulle-objc-objectheader.h"
 #include "mulle-objc-universe.h"

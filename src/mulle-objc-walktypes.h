@@ -74,6 +74,37 @@ typedef mulle_objc_walkcommand_t
                                     void *userinfo);
 
 
+struct _mulle_objc_class;
+struct _mulle_objc_methodlist;
+
+
+struct _mulle_objc_methodparent
+{
+   struct _mulle_objc_class       *cls;
+   struct _mulle_objc_methodlist  *list;
+}; 
+
+typedef   mulle_objc_walkcommand_t 
+   (*mulle_objc_method_walkcallback_t)( struct _mulle_objc_method *,
+                                        struct _mulle_objc_methodlist *,
+                                        struct _mulle_objc_class *,
+                                        void *);
+
+
+static inline struct _mulle_objc_methodlist  *
+   _mulle_objc_methodparent_get_methodlist( struct _mulle_objc_methodparent *parent)
+{
+   return( parent->list);
+}
+
+
+static inline struct _mulle_objc_class  *
+   _mulle_objc_methodparent_get_class( struct _mulle_objc_methodparent *parent)
+{
+   return( parent->cls);
+}
+
+
 static inline int   mulle_objc_walkcommand_is_stopper( mulle_objc_walkcommand_t cmd)
 {
    switch( cmd)

@@ -335,6 +335,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
                                                  struct mulle_allocator *allocator)
 {
    void    mulle_objc_vprintf_abort( char *format, va_list args);
+   char *kind;
 
    assert( universe);
    assert( MULLE_THREAD_VERSION    >= ((2 << 20) | (2 << 8) | 0));
@@ -345,8 +346,29 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    if( sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1))
       abort();
 
+   kind = "custom";
    if( ! allocator)
-      allocator = &mulle_default_allocator;
+   {
+      //
+      // The "universe" standard is mulle_stdlib_allocator which is not tracked
+      // when running with the testallocator.
+      // Reason being, that bugs are expected in the user code more often than
+      // in the runtime. The lesser visible allocations mean less usually
+      // superflous output.
+      //
+      if( mulle_objc_environment_get_yes_no( "MULLE_OBJC_UNIVERSE_DEFAULT_ALLOCATOR"))
+      {
+         allocator = &mulle_default_allocator;
+         kind      = "default";
+      }
+      else
+      {
+         allocator = &mulle_stdlib_allocator;
+         kind      = "stdlib";
+      }
+   }
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "use %s allocator: %p", kind, allocator);
 
    strncpy( universe->compilation, __DATE__ " "__TIME__ " " __FILE__, 128);
 
@@ -612,8 +634,8 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    callback = universe->callbacks.will_crunch;
    if( callback)
       (*callback)( universe);
-   callback = universe->callbacks.did_crunch;
 
+   callback = universe->callbacks.did_crunch;
    (*crunch)( universe);
 
    if( trace)
@@ -865,7 +887,7 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
                                  _mulle_objc_infraclass_get_classid( infra),
                                  _mulle_objc_infraclass_get_name( infra));
 
-   universe->taggedpointers.pointerclass[ index] = _mulle_objc_infraclass_as_class( infra);
+   universe->taggedpointers.pointerclass[ index] = infra;
 
    _mulle_objc_universe_set_loadbit( universe, MULLE_OBJC_UNIVERSE_HAVE_TPS_CLASSES);
 
@@ -874,6 +896,19 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
 
 
 # pragma mark - dealloc
+
+static void
+   _mulle_objc_universe_finalize_friend( struct _mulle_objc_universe *universe,
+                                         struct _mulle_objc_universefriend *pfriend)
+{
+   /* we don't mind if pfriend->friend is NULL */
+   if( ! pfriend->finalizer)
+      return;
+
+   (*pfriend->finalizer)( universe, pfriend->data);
+}
+
+
 
 static void
    _mulle_objc_universe_free_friend( struct _mulle_objc_universe *universe,
@@ -903,65 +938,219 @@ static void   pointerarray_in_hashmap_map( struct _mulle_objc_universe *universe
 }
 
 
-static int  compare_depth_deeper_first( struct _mulle_objc_class **a,
-                                        struct _mulle_objc_class **b)
+static int  reverse_compare_classindex( struct _mulle_objc_infraclass **p_a,
+                                        struct _mulle_objc_infraclass **p_b)
 {
-   int   depth_a;
-   int   depth_b;
+   struct _mulle_objc_classpair   *a;
+   struct _mulle_objc_classpair   *b;
+   int                            classindex_a;
+   int                            classindex_b;
 
-   depth_a = (int) _mulle_objc_class_count_depth( *a);
-   depth_b = (int) _mulle_objc_class_count_depth( *b);
-   return( depth_b - depth_a);
+   a = _mulle_objc_infraclass_get_classpair( *p_a);
+   b = _mulle_objc_infraclass_get_classpair( *p_b);
+
+   classindex_a = (int) _mulle_objc_classpair_get_classindex( a);
+   classindex_b = (int) _mulle_objc_classpair_get_classindex( b);
+
+   return( classindex_b - classindex_a);
 }
 
 
 static void
-   _mulle_objc_universe_sort_classes_by_depth( struct _mulle_objc_class **array,
-                                               unsigned int n_classes)
+   _mulle_objc_universe_reversesort_infraclasses_by_classindex( struct _mulle_objc_infraclass **array,
+                                                                unsigned int n_classes)
 {
    qsort( array,
           n_classes,
-          sizeof( struct _mulle_objc_class *),
-          (int (*)()) compare_depth_deeper_first);
+          sizeof( struct _mulle_objc_infraclass *),
+          (int (*)()) reverse_compare_classindex);
 }
 
 
-static struct _mulle_objc_class **
-   _mulle_objc_universe_all_classes( struct _mulle_objc_universe *universe,
-                                     unsigned int *n_classes,
-                                    struct mulle_allocator *allocator)
+static struct _mulle_objc_infraclass **
+   _mulle_objc_universe_all_infraclasses( struct _mulle_objc_universe *universe,
+                                          unsigned int *n_classes,
+                                          struct mulle_allocator *allocator)
 {
-   struct _mulle_objc_class                    **p_cls;
-   struct _mulle_objc_class                    **array;
+   struct _mulle_objc_infraclass               **p_cls;
+   struct _mulle_objc_infraclass               **array;
+   struct _mulle_objc_infraclass               **sentinel;
    struct mulle_concurrent_hashmapenumerator   rover;
+   unsigned int                                n;
 
-   *n_classes = mulle_concurrent_hashmap_count( &universe->classtable);
-   array      = mulle_allocator_calloc( allocator,
-                                        *n_classes,
-                                        sizeof( struct _mulle_objc_classpair *));
+   n = mulle_concurrent_hashmap_count( &universe->classtable);
+   if( ! n)
+   {
+      *n_classes = 0;
+      return( NULL);
+   }
 
-   p_cls = array;
+   array = mulle_allocator_calloc( allocator,
+                                   n,
+                                   sizeof( struct _mulle_objc_classpair *));
+
+   sentinel = &array[ n];
+   p_cls    = array;
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) p_cls))
-      p_cls++;
+   {
+      assert( *p_cls);
+      if( ++p_cls >= sentinel)
+         break;
+   }
    mulle_concurrent_hashmapenumerator_done( &rover);
 
+   *n_classes = p_cls - array;
    return( array);
+}
+
+
+static void   _mulle_objc_constantobject_dealloc( struct _mulle_objc_object *obj,
+                                                  mulle_objc_methodid_t deallocSel)
+{
+   mulle_objc_implementation_t     imp;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_class        *cls;
+
+   cls   = _mulle_objc_object_get_isa( obj);
+   infra = _mulle_objc_class_as_infraclass( cls);
+   imp   = _mulle_objc_class_lookup_implementation_noforward( cls, deallocSel);
+   if ( _mulle_objc_object_is_constant( obj))
+      _mulle_objc_object_deconstantify_noatomic( obj);
+
+   if( imp)
+     (*imp)( obj, deallocSel, obj);
+   else
+     mulle_objc_object_call( obj, 0x9929eb3d /* @selector( dealloc) */, NULL);
+}
+
+
+
+static inline void   _mulle_objc_singleton_dealloc( struct _mulle_objc_object *singleton)
+{
+   _mulle_objc_constantobject_dealloc( singleton, 0xcdfeb729); // @selector( __deallocSingleton));
+}
+
+
+static void
+   _mulle_objc_universe_dealloc_singletons( struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_infraclass               *infra;
+   struct mulle_concurrent_hashmapenumerator   rover;
+   struct _mulle_objc_object                   *obj;
+
+   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
+   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &infra))
+   {
+      obj = _mulle_objc_infraclass_get_singleton( infra);
+      if( obj)
+      {
+         _mulle_objc_infraclass_set_singleton( infra, NULL);
+        _mulle_objc_singleton_dealloc( obj);
+      }
+   }
+   mulle_concurrent_hashmapenumerator_done( &rover);
+}
+
+
+static inline void   _mulle_objc_placeholder_dealloc( struct _mulle_objc_object *placeholder)
+{
+   _mulle_objc_constantobject_dealloc( placeholder, 0x777f40ac); // @selector( __deallocPlaceholder));
+}
+
+
+static void
+   _mulle_objc_universe_dealloc_placeholders( struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_infraclass               *infra;
+   struct mulle_concurrent_hashmapenumerator   rover;
+   struct _mulle_objc_object                   *obj;
+
+   //
+   // dealloc placeholders and singletons, these have been permanently
+   // retained. Call -__deallocPlaceholder if its defined otherwise -dealloc
+   //
+   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
+   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &infra))
+   {
+      obj = _mulle_objc_infraclass_get_placeholder( infra);
+      if( obj)
+      {
+         _mulle_objc_infraclass_set_placeholder( infra, NULL);
+         _mulle_objc_placeholder_dealloc( obj);
+      }
+   }
+   mulle_concurrent_hashmapenumerator_done( &rover);
+}
+
+
+static void
+   _mulle_objc_universe_deinitialize_infraclasses( struct _mulle_objc_universe *universe)
+{
+   unsigned int                    n_classes;
+   struct _mulle_objc_infraclass   **array;
+   struct _mulle_objc_infraclass   **p;
+   struct _mulle_objc_infraclass   **sentinel;
+   struct _mulle_objc_infraclass   *infra;
+   struct mulle_allocator          *allocator;
+
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   array     = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
+   _mulle_objc_universe_reversesort_infraclasses_by_classindex( array, n_classes);
+
+   // then call deinitalize to get rid of static cvars
+   p        = array;
+   sentinel = &p[ n_classes];
+   while( p < sentinel)
+   {
+      infra = *p++;
+      _mulle_objc_infraclass_call_deinitialize( infra);
+   }
+   mulle_allocator_free( allocator, array);
+}
+
+
+static void
+   _mulle_objc_universe_unload_infraclasses( struct _mulle_objc_universe *universe)
+{
+   unsigned int                    n_classes;
+   struct _mulle_objc_infraclass   **array;
+   struct _mulle_objc_infraclass   **p;
+   struct _mulle_objc_infraclass   **sentinel;
+   struct _mulle_objc_infraclass   *infra;
+   struct mulle_allocator          *allocator;
+
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   array     = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
+   _mulle_objc_universe_reversesort_infraclasses_by_classindex( array, n_classes);
+
+   //
+   // call unload after all deinitializes have run . this will include
+   // categories
+   //
+   p        = array;
+   sentinel = &p[ n_classes];
+   while( p < sentinel)
+   {
+      infra = *p++;
+      _mulle_objc_infraclass_call_unload( infra);
+   }
+   mulle_allocator_free( allocator, array);
 }
 
 
 static void
    _mulle_objc_universe_free_classpairs( struct _mulle_objc_universe *universe)
 {
-   unsigned int               n_classes;
-   struct _mulle_objc_class   **array;
-   struct _mulle_objc_class   **p;
-   struct _mulle_objc_class   **sentinel;
-   struct mulle_allocator     *allocator;
+   unsigned int                    n_classes;
+   struct _mulle_objc_infraclass   **array;
+   struct _mulle_objc_infraclass   **p;
+   struct _mulle_objc_infraclass   **sentinel;
+   struct mulle_allocator          *allocator;
+   struct _mulle_objc_metaclass    *meta;
 
    allocator = _mulle_objc_universe_get_allocator( universe);
-   array     = _mulle_objc_universe_all_classes( universe, &n_classes, allocator);
-   _mulle_objc_universe_sort_classes_by_depth( array, n_classes);
+   array     = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
 
    p        = array;
    sentinel = &p[ n_classes];
@@ -970,10 +1159,10 @@ static void
       if( universe->debug.trace.class_free)
          mulle_objc_universe_trace( universe,
                                     "destroying classpair %p \"%s\"",
-                                    _mulle_objc_class_get_classpair( *p),
-                                    _mulle_objc_class_get_name( *p));
+                                    _mulle_objc_infraclass_get_classpair( *p),
+                                    _mulle_objc_infraclass_get_name( *p));
 
-      _mulle_objc_classpair_free( _mulle_objc_class_get_classpair( *p),
+      _mulle_objc_classpair_free( _mulle_objc_infraclass_get_classpair( *p),
                                   allocator);
       ++p;
    }
@@ -1122,7 +1311,7 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
    struct mulle_allocator                 *allocator;
 
    if( universe->debug.trace.universe)
-      fprintf( stderr, "mulle_objc_universe %p: universe starts freeing everything\n", universe);
+      mulle_objc_universe_trace( universe, "universe is winding down");
 
    if( universe->thread && universe->thread != mulle_thread_self())
       mulle_objc_universe_fail_inconsistency( universe,
@@ -1131,9 +1320,61 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
    // the friends are freed first, and everything is still fairly fine
    // you can still message around
 
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe finalizes userinfo");
+   _mulle_objc_universe_finalize_friend( universe, &universe->userinfo);
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe finalizes foundation");
+   // say goodbye to root classes here
+   _mulle_objc_universe_finalize_friend( universe, &universe->foundation.universefriend);
+
+   // call +deinitialize on classes
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe deinitializes classes");
+   _mulle_objc_universe_deinitialize_infraclasses( universe);
+
+   // call +unload on classes
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe unloads classes");
+   _mulle_objc_universe_unload_infraclasses( universe);
+
+   //
+   // dealloc singletons now
+   //
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe removes singletons");
+   _mulle_objc_universe_dealloc_singletons( universe);
+
+   //
+   // dealloc placeholders, they should not care about +unload having run
+   //
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe removes placeholders");
+   _mulle_objc_universe_dealloc_placeholders( universe);
+
+   // the after the unload we tell the friends to suicide
+   // the last autoreleasepool will be gone then
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe frees userinfo");
    _mulle_objc_universe_free_friend( universe, &universe->userinfo);
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe frees foundation (last autoreleasepool dies)");
+   // this should put down the last autoreleasepool of the main thread
    _mulle_objc_universe_free_friend( universe, &universe->foundation.universefriend);
 
+   if( universe->callbacks.will_dealloc)
+      (*universe->callbacks.will_dealloc)( universe);
+
+   // ******* END OF USABLE CLASSES IN UNIVERSE *****
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe stops messaging. Noone can message anymore from this point");
    // this can't really fail, but keep it atomic anyway
    if( ! _mulle_atomic_pointer_cas( &universe->version,
                                     (void *) mulle_objc_universe_is_deallocating,
@@ -1143,10 +1384,12 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
          "someone is messing around with the universe");
    }
 
-   if( universe->callbacks.will_dealloc)
-      (*universe->callbacks.will_dealloc)( universe);
 
-   // ******* END OF USABLE UNIVERSE, JUST FREE STUFF NOW *****
+   // ******* JUST FREE STUFF NOW *****
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe is now unusable and freeing stuff");
 
    // do it like this, because we are not initialized anymore
    // every universe has its own aba
@@ -1168,10 +1411,10 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
       _mulle_objc_cache_free( cache, allocator);
 
    if( universe->debug.trace.universe)
-      fprintf( stderr, "mulle_objc_universe %p: deallocing aba\n", universe);
+      mulle_objc_universe_trace( universe, "deallocing aba");
 
    if( universe->debug.trace.universe)
-      fprintf( stderr, "mulle_objc_universe %p: deallocing threadlocal\n", universe);
+      mulle_objc_universe_trace( universe, "deallocing threadlocal");
 
    mulle_objc_thread_unset_threadinfo( universe);
    mulle_thread_tss_free( universe->threadkey);
@@ -1408,6 +1651,9 @@ struct _mulle_objc_classpair *
                                   super_meta_isa ? _mulle_objc_metaclass_as_class( super_meta_isa)
                                                  : _mulle_objc_infraclass_as_class( &pair->infraclass));
 
+   _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);
+   _mulle_objc_object_constantify_noatomic( &pair->metaclass.base);
+
    _mulle_objc_class_init( &pair->infraclass.base,
                            name,
                            instancesize,
@@ -1475,12 +1721,15 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
       }
    }
 
+   classindex = (uintptr_t) _mulle_atomic_pointer_increment( &universe->classindex);
+   pair       = _mulle_objc_infraclass_get_classpair( infra);
+   _mulle_objc_classpair_set_classindex( pair, (uint32_t) classindex);
+
    dup = _mulle_concurrent_hashmap_register( &universe->classtable,
                                              infra->base.classid,
                                              infra);
    if( dup == MULLE_CONCURRENT_INVALID_POINTER)
       return( -1);
-
    if( dup)
    {
       errno = EEXIST;
@@ -1490,7 +1739,8 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
    if( universe->debug.trace.class_add || universe->debug.trace.dependency)
    {
       mulle_objc_universe_trace_nolf( universe,
-                                      "added class %08x \"%s\"",
+                                      "added class #%ld %08x \"%s\"",
+                                      (long) classindex,
                                       _mulle_objc_infraclass_get_classid( infra),
                                       _mulle_objc_infraclass_get_name( infra));
       if( superclass)
@@ -1677,7 +1927,10 @@ struct _mulle_objc_descriptor *_mulle_objc_universe_register_descriptor_nofail(
             "mulle_objc_universe %p error: duplicate selectors \"%s\" and \"%s\" "
             "with same id %08lx\n", universe, dup->name, p->name, (long) p->methodid);
 
-   if( universe->debug.warn.methodid_type)
+   //
+   // f0cb86d3 is ':', which we use as a "shortcut" selector for access
+   //
+   if( universe->debug.warn.methodid_type && p->methodid != MULLE_OBJC_GENERIC_GETTER_METHODID)
    {
       int   comparison;
 
@@ -1741,7 +1994,10 @@ int   _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe
             "mulle_objc_universe %p error: duplicate methods \"%s\" and \"%s\" "
             "with same id %08lx\n", universe, dup->name, p->name, (long) p->methodid);
 
-   if( universe->debug.warn.methodid_type)
+   //
+   // hack: so ':' can be used without warning as a shortcut selector
+   //
+   if( universe->debug.warn.methodid_type && p->methodid != 0xf0cb86d3)
    {
       int   comparison;
 

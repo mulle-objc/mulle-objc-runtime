@@ -46,6 +46,7 @@
 #include <stdlib.h>
 
 
+
 # pragma mark - exceptions
 
 void   _mulle_objc_class_raise_null_exception( void)   _MULLE_C_NO_RETURN;
@@ -256,12 +257,11 @@ static inline struct _mulle_objc_method  *
 // if( _mulle_objc_class_walk_methods( cls, -1, (void *) find, &info))
 //    return( info.found);
 //
+
 mulle_objc_walkcommand_t
    _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls,
-                                   unsigned int inheritance ,
-                                   mulle_objc_walkcommand_t (*f)( struct _mulle_objc_method *,
-   							                                          struct _mulle_objc_class *,
-                        						                        void *),
+                                   unsigned int inheritance,
+                                   mulle_objc_method_walkcallback_t callback,
                                    void *userinfo);
 
 
