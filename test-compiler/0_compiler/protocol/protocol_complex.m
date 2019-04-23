@@ -43,7 +43,7 @@
 
 - (void) dealloc
 {
-   _mulle_objc_object_free( self);
+   _mulle_objc_object_free( (struct _mulle_objc_object *) self);
 }
 
 @end
@@ -51,14 +51,14 @@
 
 main()
 {
-   Foo     *foo;
-   Class   cls;
+   Foo                            *foo;
+   struct _mulle_objc_infraclass  *cls;
    struct _mulle_objc_universe    *universe;
 
    universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
 
    foo = [Foo new];
-   cls =  mulle_objc_object_get_infraclass( foo);
+   cls = mulle_objc_object_get_infraclass( foo);
    printf( "A: %s\n",
        _mulle_objc_infraclass_conformsto_protocolid( cls,
                                               @protocol( A)) ? "YES" : "NO");

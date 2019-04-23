@@ -505,7 +505,7 @@ static struct _mulle_objc_loadinfo  load_info =
    NULL,
    (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
    &category_list,
-   &super_list
+   (struct _mulle_objc_superlist *) &super_list
 };
 
 

@@ -20,6 +20,7 @@
 
 static jmp_buf  crashbuf;
 
+MULLE_C_NO_RETURN
 static void   crash_catch( char *format, va_list args)
 {
    vfprintf( stderr, format, args);
@@ -27,12 +28,13 @@ static void   crash_catch( char *format, va_list args)
    longjmp( crashbuf, 1);
 }
 
+
 void   test_method( void)
 {
    int    rval;
    struct _mulle_objc_descriptor   clone;
    struct _mulle_objc_universe     *universe;
-   void                            (*oldfail)( char *, va_list);
+   void                            (*oldfail)( char *, va_list) MULLE_C_NO_RETURN;
 
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
    assert( universe);

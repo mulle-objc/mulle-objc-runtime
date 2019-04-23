@@ -192,7 +192,7 @@ static struct _mulle_objc_loadclass  Object_loadclass =
    &Object_class_methodlist,
    (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
    NULL,
-   (struct _mulle_objc_protcollist *) &Object_protocollist
+   (struct _mulle_objc_protocollist *) &Object_protocollist
 };
 
 

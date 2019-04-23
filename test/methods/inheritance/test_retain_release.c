@@ -138,7 +138,7 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
    long                        retain_count;
 
    a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
-   _mulle_objc_object_infiniteretain_noatomic( a);
+   _mulle_objc_object_constantify_noatomic( a);
 
    retain_count = mulle_objc_object_get_retaincount( a);
    mulle_objc_object_retain( a);
