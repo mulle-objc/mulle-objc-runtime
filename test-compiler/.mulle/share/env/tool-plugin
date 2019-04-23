@@ -8,7 +8,9 @@ chgrp
 chmod
 chown
 clear
+column;optional
 cp
+curl;optional
 cut
 date
 dd
@@ -32,6 +34,7 @@ less
 ln
 login
 ls
+make;optional
 mkdir
 mknod
 more
@@ -39,6 +42,7 @@ mount
 mudo
 mv
 nano;optional
+ninja;optional
 ps
 pwd
 readlink
@@ -51,6 +55,7 @@ sort
 stat
 stty
 su
+sw_vers;optional
 sync
 tail
 tee
@@ -63,5 +68,8 @@ uname
 uuidgen
 vi;optional
 wc
+wget;optional
 which
 xargs;optional
+xcodebuild;optional
+xcrun;optional

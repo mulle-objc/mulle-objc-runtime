@@ -24,6 +24,7 @@ static char   *signatures[] =
    "@24@0:8@\"NSData\"16",
    "@\"MulleScionObject\"40@0:8@\"<MulleScionOutput>\"16@\"NSMutableDictionary\"24@\"<MulleScionDataSource>\"32",
    "@28@0:8i16@?<v@?>20",
+   "i28@0:8q16f24",
    0
 };
 
@@ -59,11 +60,107 @@ static int   test( char *s)
       s    = next;
    }
 
-   if( s)
+   if( ! s)
    {
-      printf( "unexpected tail\n");
+      fprintf( stderr, "unexpected NULL in %s\n", __PRETTY_FUNCTION__);
       return( 1);
    }
+   if( *s)
+   {
+      fprintf( stderr, "unexpected tail in %s\n", __PRETTY_FUNCTION__);
+      return( 1);
+   }
+   return( 0);
+}
+
+
+static int   test_info( char *s)
+{
+   unsigned int  i, n;
+   char          *next;
+   struct mulle_objc_typeinfo   info;
+
+   n = mulle_objc_signature_count_typeinfos( s);
+
+   printf( "signature=\"%s\"\n", s);
+   printf( "number of types = %u\n", n);
+
+   for( i = 0; i < n; i++)
+   {
+      next = mulle_objc_signature_supply_next_typeinfo( s, &info);
+
+      printf( "#%d type= %s\n", i, info.type ? info.type : "NULL");
+      printf( "#%d pure_type_end= %s\n", i, info.pure_type_end ? info.pure_type_end : "NULL");
+      printf( "#%d name= %s\n", i, info.name ? info.name : "NULL");
+      printf( "#%d offset= %d\n", i, info.offset);
+      printf( "#%d n_members= %d\n", i, info.n_members);
+      printf( "#%d has_object= %d\n", i, info.has_object);
+      printf( "#%d has_object= %d\n", i, info.has_object);
+
+      s = next;
+   }
+
+   if( ! s)
+   {
+      fprintf( stderr, "unexpected NULL in %s\n", __PRETTY_FUNCTION__);
+      return( 1);
+   }
+   if( *s)
+   {
+      fprintf( stderr, "unexpected tail in %s\n", __PRETTY_FUNCTION__);
+      return( 1);
+   }
+   return( 0);
+}
+
+
+
+static int   test_while( char *s)
+{
+   unsigned int   i, n;
+   char           *next;
+
+   n = mulle_objc_signature_count_typeinfos( s);
+   i = 0;
+   while( next = mulle_objc_signature_next_type( s))
+   {
+      printf( "#%d = %.*s\n", i, next ? (int) (next - s) : 255, s);
+      s = next;
+      ++i;
+   }
+
+   if( i != n)
+   {
+      fprintf( stderr, "unexpected loop mismatch in %s\n", __PRETTY_FUNCTION__);
+      return( 1);
+   }
+
+   return( 0);
+}
+
+
+static int   test_while_info( char *s)
+{
+   struct mulle_objc_typeinfo   info;
+   unsigned int                 i, n;
+   char                        *next;
+
+   n = mulle_objc_signature_count_typeinfos( s);
+   i = 0;
+
+   while( next = mulle_objc_signature_supply_next_typeinfo( s, &info))
+   {
+      printf( "#%d: type=%s\n", i, info.type ? info.type : "NULL");
+      s = next;
+      ++i;
+   }
+
+   if( i != n)
+   {
+      fprintf( stderr, "unexpected loop mismatch in %s\n", __PRETTY_FUNCTION__);
+      return( 1);
+   }
+
    return( 0);
 }
 
@@ -73,8 +170,23 @@ int   main( int argc, const char * argv[])
    char  **p;
 
    for( p = signatures; *p; p++)
+   {
       if( test( *p))
          return( 1);
+      putchar( '\n');
+
+      if( test_while( *p))
+         return( 1);
+      putchar( '\n');
+
+      if( test_info( *p))
+         return( 1);
+      putchar( '\n');
+
+      if( test_while_info( *p))
+         return( 1);
+      putchar( '\n');
+   }
 
    return 0;
 }
