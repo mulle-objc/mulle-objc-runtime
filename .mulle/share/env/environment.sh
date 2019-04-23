@@ -78,8 +78,7 @@ case "${MULLE_SHELL_MODE}" in
       # source in any bash completion files
       #
       DEFAULT_IFS="${IFS}"
-      shopt -s nullglob; IFS="
-"
+      shopt -s nullglob; IFS=$'\n'
       for FILENAME in "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/libexec"/*-bash-completion.sh
       do
          . "${FILENAME}"
