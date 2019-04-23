@@ -5,105 +5,167 @@ if( NOT __ENVIRONMENT__CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
+   #
+   #
+   #
    set( MULLE_VIRTUAL_ROOT "$ENV{MULLE_VIRTUAL_ROOT}")
-   set( DEPENDENCY_DIR "$ENV{DEPENDENCY_DIR}")
-   set( ADDICTION_DIR "$ENV{ADDICTION_DIR}")
-
    if( NOT MULLE_VIRTUAL_ROOT)
       set( MULLE_VIRTUAL_ROOT "${PROJECT_SOURCE_DIR}")
    endif()
-   if( NOT DEPENDENCY_DIR)
-      set( DEPENDENCY_DIR "${MULLE_VIRTUAL_ROOT}/dependency")
-   endif()
-   if( NOT ADDICTION_DIR)
-      set( ADDICTION_DIR "${MULLE_VIRTUAL_ROOT}/addiction")
+
+   # get MULLE_SDK_PATH into cmake list form
+   # MULLE_SDK_PATH is set my mulle-craft and usually looks like the
+   # default set below. But! If you are using --sdk --platform
+   # distictions the paths will be different
+   #
+   string( REPLACE ":" ";" MULLE_SDK_PATH "$ENV{MULLE_SDK_PATH}")
+
+   if( NOT MULLE_SDK_PATH)
+      set( MULLE_SDK_PATH
+         "${MULLE_VIRTUAL_ROOT}/dependency"
+         "${MULLE_VIRTUAL_ROOT}/addiction"
+      )
    endif()
 
-   set( CMAKE_INCLUDE_PATH "${DEPENDENCY_DIR}/include"
-      "${ADDICTION_DIR}/include"
+   set( TMP_INCLUDE_DIRS)
+   set( TMP_CMAKE_INCLUDE_PATH)
+   set( TMP_CMAKE_LIBRARY_PATH)
+   set( TMP_CMAKE_FRAMEWORK_PATH)
+
+   ###
+   ### If you build DEBUG buildorder, but want RELEASE interspersed, so that
+   ### the debugger doesn't trace through too much fluff then set the
+   ### FALLBACK_BUILD_TYPE (for lack of a better name)
+   ###
+   ### TODO: reenable later
+   ###
+   # if( NOT FALLBACK_BUILD_TYPE)
+   #    set( FALLBACK_BUILD_TYPE "$ENV{ORACLE_EO_ADAPTOR_FALLBACK_BUILD_TYPE}")
+   #    if( NOT FALLBACK_BUILD_TYPE)
+   #       set( FALLBACK_BUILD_TYPE "$ENV{FALLBACK_BUILD_TYPE}")
+   #    endif()
+   #    if( NOT FALLBACK_BUILD_TYPE)
+   #       set( FALLBACK_BUILD_TYPE "Debug")
+   #    endif()
+   # endif()
+#
+   # if( FALLBACK_BUILD_TYPE STREQUAL "Release")
+   #    unset( FALLBACK_BUILD_TYPE)
+   # endif()
+   message( STATUS "MULLE_SDK_PATH=${MULLE_SDK_PATH}")
+
+   foreach( TMP_SDK_PATH ${MULLE_SDK_PATH})
+      message( STATUS "TMP_SDK_PATH=${TMP_SDK_PATH}")
+      #
+      # Add build-type includes/libs first
+      # Add Release as a fallback afterwards
+      #
+      # The CMAKE_INCLUDE_PATH path for the CMAKE_BUILD_TYPE are added
+      # unconditionally just in case ppl do interesting stuff in their
+      # CMakeLists
+      #
+      # We always prepend to "override" inherited values, so
+      # the order seems reversed
+      #
+      if( EXISTS "${TMP_SDK_PATH}")
+
+         #
+         # add build type unconditionally if not Release
+         #
+         if( NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+            set( TMP_CMAKE_INCLUDE_PATH
+               ${TMP_CMAKE_INCLUDE_PATH}
+               "${TMP_SDK_PATH}/${CMAKE_BUILD_TYPE}/include"
+            )
+            set( TMP_INCLUDE_DIRS
+               ${TMP_INCLUDE_DIRS}
+               "${TMP_SDK_PATH}/${CMAKE_BUILD_TYPE}/include"
+            )
+
+            set( TMP_CMAKE_LIBRARY_PATH
+               ${TMP_CMAKE_LIBRARY_PATH}
+               "${TMP_SDK_PATH}/${CMAKE_BUILD_TYPE}/lib"
+            )
+            set( TMP_CMAKE_FRAMEWORK_PATH
+               ${TMP_CMAKE_FRAMEWORK_PATH}
+               "${TMP_SDK_PATH}/${CMAKE_BUILD_TYPE}/Frameworks"
+            )
+         endif()
+
+         #
+         # add release as fallback always
+         #
+         set( TMP_SDK_RELEASE_PATH "${TMP_SDK_PATH}/Release")
+         if( NOT EXISTS "${TMP_SDK_RELEASE_PATH}")
+            set( TMP_SDK_RELEASE_PATH "${TMP_SDK_PATH}")
+         endif()
+
+         message( STATUS "TMP_SDK_RELEASE_PATH=${TMP_SDK_RELEASE_PATH}")
+         if( EXISTS "${TMP_SDK_RELEASE_PATH}/include")
+            message( STATUS "TMP_SDK_RELEASE_PATH=${TMP_SDK_RELEASE_PATH}/include exists")
+         else()
+            message( STATUS "TMP_SDK_RELEASE_PATH=${TMP_SDK_RELEASE_PATH}/include does not exist")
+         endif()
+
+         if( EXISTS "${TMP_SDK_RELEASE_PATH}/include")
+            set( TMP_CMAKE_INCLUDE_PATH
+               ${TMP_CMAKE_INCLUDE_PATH}
+               "${TMP_SDK_RELEASE_PATH}/include"
+            )
+            set( TMP_INCLUDE_DIRS
+               ${TMP_INCLUDE_DIRS}
+               "${TMP_SDK_RELEASE_PATH}/include"
+            )
+         endif()
+
+         if( EXISTS "${TMP_SDK_RELEASE_PATH}/lib")
+            set( TMP_CMAKE_LIBRARY_PATH
+               ${TMP_CMAKE_LIBRARY_PATH}
+               "${TMP_SDK_RELEASE_PATH}/lib"
+            )
+         endif()
+         if( EXISTS "${TMP_SDK_RELEASE_PATH}/Frameworks")
+            set( TMP_CMAKE_FRAMEWORK_PATH
+               "${TMP_SDK_RELEASE_PATH}/Frameworks"
+               ${TMP_CMAKE_FRAMEWORK_PATH}
+            )
+         endif()
+
+         unset( TMP_SDK_RELEASE_PATH)
+      endif()
+   endforeach()
+
+   set( CMAKE_INCLUDE_PATH
+      ${TMP_CMAKE_INCLUDE_PATH}
       ${CMAKE_INCLUDE_PATH}
    )
-   set( CMAKE_LIBRARY_PATH "${DEPENDENCY_DIR}/lib"
-      "${ADDICTION_DIR}/lib"
+   set( CMAKE_LIBRARY_PATH
+      ${TMP_CMAKE_LIBRARY_PATH}
       ${CMAKE_LIBRARY_PATH}
    )
-   set( CMAKE_FRAMEWORK_PATH "${DEPENDENCY_DIR}/Frameworks"
-      "${ADDICTION_DIR}/Frameworks"
+   set( CMAKE_FRAMEWORK_PATH
+      ${TMP_CMAKE_FRAMEWORK_PATH}
       ${CMAKE_FRAMEWORK_PATH}
    )
 
-   ### Additional search paths based on build style
 
-   if( NOT CMAKE_BUILD_TYPE STREQUAL "Release")
-
-      set( CMAKE_INCLUDE_PATH
-         "${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/include"
-         ${CMAKE_INCLUDE_PATH}
-      )
-      set( CMAKE_LIBRARY_PATH
-         "${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/lib"
-         ${CMAKE_LIBRARY_PATH}
-      )
-      set( CMAKE_FRAMEWORK_PATH
-         "${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/Frameworks"
-         ${CMAKE_FRAMEWORK_PATH}
-      )
-
-      include_directories( BEFORE SYSTEM
-         ${DEPENDENCY_DIR}/${CMAKE_BUILD_TYPE}/include
-      )
-   else()
-      ### If you build DEBUG buildorder, but want RELEASE interspersed, so that
-      ### the debugger doesn't trace through too much fluff then set the
-      ### FALLBACK_BUILD_TYPE (for lack of a better name)
-
-      if( NOT FALLBACK_BUILD_TYPE)
-         set( FALLBACK_BUILD_TYPE "$ENV{MULLE_OBJC_RUNTIME_FALLBACK_BUILD_TYPE}")
-         if( NOT FALLBACK_BUILD_TYPE)
-            set( FALLBACK_BUILD_TYPE "$ENV{MULLE_OBJC_RUNTIME_FALLBACK_BUILD_TYPE}")
-            if( NOT FALLBACK_BUILD_TYPE)
-               set( FALLBACK_BUILD_TYPE "$ENV{FALLBACK_BUILD_TYPE}")
-            endif()
-            if( NOT FALLBACK_BUILD_TYPE)
-               set( FALLBACK_BUILD_TYPE "Debug")
-            endif()
-         endif()
-      endif()
-
-      if( FALLBACK_BUILD_TYPE STREQUAL "Release")
-         unset( FALLBACK_BUILD_TYPE)
-      endif()
-
-      if( FALLBACK_BUILD_TYPE)
-         set( CMAKE_INCLUDE_PATH
-            ${CMAKE_INCLUDE_PATH}
-            "${DEPENDENCY_DIR}/${FALLBACK_BUILD_TYPE}/include"
-         )
-         set( CMAKE_LIBRARY_PATH
-            ${CMAKE_LIBRARY_PATH}
-            "${DEPENDENCY_DIR}/${FALLBACK_BUILD_TYPE}/lib"
-         )
-         set( CMAKE_FRAMEWORK_PATH
-            ${CMAKE_FRAMEWORK_PATH}
-            "${DEPENDENCY_DIR}/${FALLBACK_BUILD_TYPE}/Frameworks"
-         )
-         message( STATUS "FALLBACK_BUILD_TYPE=\"${FALLBACK_BUILD_TYPE}\"" )
-      endif()
-   endif()
+   message( STATUS "CMAKE_INCLUDE_PATH=\"${CMAKE_INCLUDE_PATH}\"" )
+   message( STATUS "CMAKE_LIBRARY_PATH=\"${CMAKE_LIBRARY_PATH}\"" )
+   message( STATUS "CMAKE_FRAMEWORK_PATH=\"${CMAKE_FRAMEWORK_PATH}\"" )
+   message( STATUS "INCLUDE_DIRS=\"${TMP_INCLUDE_DIRS}\"" )
 
 
    include_directories( BEFORE SYSTEM
-      ${DEPENDENCY_DIR}/include
-      ${ADDICTION_DIR}/include
+      ${TMP_INCLUDE_DIRS}
    )
 
-   # after release include
-   if( FALLBACK_BUILD_TYPE)
-      include_directories( BEFORE SYSTEM
-         ${DEPENDENCY_DIR}/${FALLBACK_BUILD_TYPE}/include
-      )
-   endif()
+   unset( TMP_INCLUDE_DIRS)
+   unset( TMP_CMAKE_INCLUDE_PATH)
+   unset( TMP_CMAKE_LIBRARY_PATH)
+   unset( TMP_CMAKE_FRAMEWORK_PATH)
 
+   #
+   #
    # include files that get installed
    set( CMAKE_INCLUDES
       "cmake/DependenciesAndLibraries.cmake"
