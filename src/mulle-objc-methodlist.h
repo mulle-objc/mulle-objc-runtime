@@ -37,6 +37,7 @@
 #define mulle_objc_methodlist_h__
 
 #include "mulle-objc-method.h"
+#include "mulle-objc-walktypes.h"
 
 #include <assert.h>
 
@@ -143,20 +144,20 @@ static inline void  _mulle_objc_methodlistenumerator_done( struct _mulle_objc_me
 // but it's easier this way (no need to reorganize userinfo)
 //
 int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
-                                   int (*f)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *),
+                                   mulle_objc_method_walkcallback_t callback,
                                    struct _mulle_objc_class *cls,
                                    void *userinfo);
 
 # pragma mark - methodlist API
 
 static inline int   mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
-                                                int (*f)( struct _mulle_objc_method *, struct _mulle_objc_class *, void *),
+                                                mulle_objc_method_walkcallback_t callback,
                                                 struct _mulle_objc_class *cls,
                                                 void *userinfo)
 {
-   if( ! list || ! f)
+   if( ! list || ! callback)
       return( -1);
-   return( _mulle_objc_methodlist_walk( list, f, cls, userinfo));
+   return( _mulle_objc_methodlist_walk( list, callback, cls, userinfo));
 }
 
 

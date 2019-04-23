@@ -69,7 +69,8 @@ struct _mulle_objc_classpair
    union _mulle_objc_uniqueidarraypointer_t  p_protocolids;
    union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
-   char                                      *origin;      // a start of shared info
+   uint32_t                                  classindex;       // set when added
+   char                                      *origin;          // a start of shared info
    double                                    *_classextra[ 1]; // will not exist if classextra is 0
 };
 
@@ -140,11 +141,25 @@ static inline char   *
 }
 
 
-
 static inline void   *
    _mulle_objc_classpair_get_classextra( struct _mulle_objc_classpair *pair)
 {
    return( pair->_classextra);
+}
+
+
+static inline void
+   _mulle_objc_classpair_set_classindex( struct _mulle_objc_classpair *pair,
+                                         uint32_t classindex)
+{
+   pair->classindex = classindex;
+}
+
+
+static inline uint32_t
+   _mulle_objc_classpair_get_classindex( struct _mulle_objc_classpair *pair)
+{
+   return( pair->classindex);
 }
 
 
@@ -229,7 +244,6 @@ static inline struct _mulle_objc_infraclass   *
 
 
 # pragma mark - class reverse
-
 
 static inline struct _mulle_objc_classpair   *
    _mulle_objc_class_get_classpair( struct _mulle_objc_class *cls)

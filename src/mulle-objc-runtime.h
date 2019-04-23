@@ -146,20 +146,20 @@ static inline void  mulle_objc_global_finish( void)
 }
 
 
-#if MULLE_ABA_VERSION < ((2 << 20) | (0 << 8) | 7)
-# error "mulle_aba is too old"
+#if MULLE_ABA_VERSION < ((2 << 20) | (0 << 8) | 14)
+# error "mulle-aba is too old"
 #endif
-#if MULLE_ALLOCATOR_VERSION < ((4 << 20) | (0 << 8) | 0)
-# error "mulle_allocator is too old"
+#if MULLE_ALLOCATOR_VERSION < ((4 << 20) | (0 << 8) | 2)
+# error "mulle-allocator is too old"
 #endif
-#if MULLE_CONCURRENT_VERSION < ((2 << 20) | (0 << 8) | 6)
-# error "mulle_concurrent is too old"
+#if MULLE_CONCURRENT_VERSION < ((2 << 20) | (2 << 8) | 2)
+# error "mulle-concurrent is too old"
 #endif
-#if MULLE_THREAD_VERSION < ((4 << 20) | (1 << 8) | 6)
-# error "mulle_thread is too old"
+#if MULLE_THREAD_VERSION < ((4 << 20) | (1 << 8) | 9)
+# error "mulle-thread is too old"
 #endif
-#if MULLE_VARARG_VERSION < ((1 << 20) | (0 << 8) | 8)
-# error "mulle_vararg is too old"
+#if MULLE_VARARG_VERSION < ((1 << 20) | (0 << 8) | 11)
+# error "mulle-vararg is too old"
 #endif
 
 

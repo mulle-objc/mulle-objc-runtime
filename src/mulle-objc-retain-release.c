@@ -76,6 +76,9 @@ void  _mulle_objc_object_tryfinalizetrydealloc( void *obj)
    // when we enter this, we are single threaded if -1
    // but we are not when we have been finalized
 
+   // can't finalize or dealloc constant objects
+   assert( ! _mulle_objc_object_is_constant( obj));
+
    header        = _mulle_objc_object_get_objectheader( obj);
    retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
 
@@ -108,6 +111,9 @@ void  _mulle_objc_object_perform_finalize( void *obj)
    struct _mulle_objc_objectheader  *header;
    volatile intptr_t                retaincount_1;  // volatile vooodo ?
    intptr_t                         new_retaincount_1;
+
+   // can't finalize constant objects
+   assert( ! _mulle_objc_object_is_constant( obj));
 
    header = _mulle_objc_object_get_objectheader( obj);
    do

@@ -125,34 +125,6 @@ void
 }
 
 
-
-struct _mulle_objc_universe  *__mulle_objc_global_getany_universe( void)
-{
-   struct _mulle_objc_universe                 *universe;
-   struct mulle_concurrent_hashmapenumerator   rover;
-   intptr_t                                    hash;
-   int                                         rval;
-
-   universe = &mulle_objc_defaultuniverse;
-   if( _mulle_objc_universe_is_initialized( universe))
-      return( universe);
-
-   // look through alternate universes, we don't really know what
-   // the debugger is inspecting
-
-retry:
-   universe = NULL;
-   rover    = mulle_concurrent_hashmap_enumerate( &mulle_objc_universetable.map);
-   rval     = mulle_concurrent_hashmapenumerator_next( &rover, &hash, (void **) &universe);
-   mulle_concurrent_hashmapenumerator_done( &rover);
-   if( rval == EBUSY)
-      goto retry;
-
-   return( universe);
-}
-
-
-
 size_t  __mulle_objc_global_get_alluniverses( struct _mulle_objc_universe **buf,
                                               size_t n)
 {

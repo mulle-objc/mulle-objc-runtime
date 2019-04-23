@@ -43,6 +43,8 @@
 
 // these defines are compatible to other universes
 // but some aren't implemented in code yet
+// NOTE: Avoid ';' and ',' because of CSV and mulle-objc-list
+
 #define _C_ARY_B        '['
 #define _C_ARY_E        ']'
 #define _C_ATOM         '%'
@@ -112,31 +114,50 @@ struct mulle_objc_typeinfo
 
 
 
-// returns address of next type in types
+//
+// You usually don't call this yourself, always check types first
+// if type is invalid or empty, will return NULL and set errno to EINVAL
+//
+char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
+                                                     struct mulle_objc_typeinfo *info);
 
+static inline char   *
+   _mulle_objc_signature_supply_next_typeinfo( char *types,
+                                              struct mulle_objc_typeinfo *info)
+{
+   char  *next;
+
+   if( ! types || ! *types)
+      return( NULL);
+
+   return( __mulle_objc_signature_supply_next_typeinfo( types, info));
+}
+
+
+//
+// you should be able to iterate through all types of a signature with
+// while( mulle_objc_signature_supply_next_typeinfo( types, &info))
+//
 static inline char   *
    mulle_objc_signature_supply_next_typeinfo( char *types,
                                               struct mulle_objc_typeinfo *info)
 {
-   // don't call this yourself, always check types first
-   char   *_mulle_objc_signature_supply_next_typeinfo( char *types,
-                                                       struct mulle_objc_typeinfo *info);
+   char  *next;
 
    if( ! types || ! *types)
       return( NULL);
 
-   return( _mulle_objc_signature_supply_next_typeinfo( types, info));
+   next = __mulle_objc_signature_supply_next_typeinfo( types, info);
+   return( next);
 }
 
 
-char    *_mulle_objc_signature_next_typeinfo( char *types);
-static inline char    *mulle_objc_signature_next_type( char *types)
-{
-   if( ! types || ! *types)
-      return( NULL);
+//
+// skip to next type if the types is "@:@@\0"
+// the sequence will be ":@@\0" "@@\0" "@\0" "\0" NULL
+//
+char    *mulle_objc_signature_next_type( char *types);
 
-   return( _mulle_objc_signature_next_typeinfo( types));
-}
 
 // kinda the same just a little simpler to interact with
 char   *mulle_objc_signature_supply_size_and_alignment( char *type,

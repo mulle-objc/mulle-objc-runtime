@@ -44,10 +44,9 @@
 
 
 static char    *_mulle_objc_type_parse_simple( char *type,
-                                                             int level,
-                                                             struct mulle_objc_typeinfo *info);
-char   *_mulle_objc_signature_supply_next_typeinfo( char *types,
-                                                    struct mulle_objc_typeinfo *info);
+                                               int level,
+                                               struct mulle_objc_typeinfo *info);
+
 
 
 #define STRUCT_MEMBER_ALIGNMENT( type)  offsetof( struct { char x; type v; }, v)
@@ -297,7 +296,10 @@ static char  *_mulle_objc_signature_supply_struct_typeinfo( char *type,
    {
       c = *type++;
       if( ! c)
+      {
+         errno = EINVAL;
          return( NULL);
+      }
       if( c == _C_STRUCT_E)
       {
          if( info)
@@ -314,7 +316,10 @@ static char  *_mulle_objc_signature_supply_struct_typeinfo( char *type,
 
       type = _mulle_objc_type_parse_simple( type, level, tmp);
       if( ! type)
+      {
+         errno = EINVAL;
          return( NULL);
+      }
 
       if( tmp)
       {
@@ -375,7 +380,10 @@ static char  *
    {
       c = *type++;
       if( ! c)
+      {
+         errno = EINVAL;
          return( NULL);
+      }
       if( c == _C_UNION_E)
       {
          if( info)
@@ -459,15 +467,15 @@ static inline int  is_multi_character_type( char c)
 
 
 //
-// this should not return NULL unless, the type is incomplete!
+// this should not return NULL, unless the type is incomplete or malformed!
 //
 // Otherwise returns the end of the partially parsed type (there may be
 // extended stuff trailing).e.g. type="[16^]32" will return "32"
 //
 static char   *
    _mulle_objc_type_parse_simple( char *type,
-                                   int level,
-                                    struct mulle_objc_typeinfo *info)
+                                  int level,
+                                  struct mulle_objc_typeinfo *info)
 {
    int   isComplex;
 
@@ -488,7 +496,10 @@ static char   *
    // this shouldn't really happen!
    // passing in "" ??
    if( ! *type)
+   {
+      errno = EINVAL;
       return( NULL);
+   }
 
    // in the non-complex case the parsing of the single character is done
    if( ! isComplex)
@@ -534,15 +545,17 @@ static char   *
       return( _mulle_objc_signature_supply_union_typeinfo( type, level, info));
    }
 
+   errno = EINVAL;
    return( NULL);
 }
 
 
 //
 // this returns NULL, if there is no consecutive type
+// types must be valid
 //
-char   *_mulle_objc_signature_supply_next_typeinfo( char *types,
-                                                    struct mulle_objc_typeinfo *info)
+char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
+                                                     struct mulle_objc_typeinfo *info)
 {
    char   *next;
    int    offset;
@@ -551,7 +564,7 @@ char   *_mulle_objc_signature_supply_next_typeinfo( char *types,
 
    next = _mulle_objc_type_parse_simple( types, -1, info);
    if( ! next)  // broken ?
-      return( next);
+      return( NULL);
 
    if( info)
       info->pure_type_end = next;
@@ -562,7 +575,10 @@ char   *_mulle_objc_signature_supply_next_typeinfo( char *types,
       {
          c = *++next;
          if( ! c)
+         {
+            errno = EINVAL;
             return( NULL);
+         }
 
          if( c == '>')
          {
@@ -600,7 +616,7 @@ char   *_mulle_objc_signature_supply_next_typeinfo( char *types,
    if( info)
       info->offset = offset * sign;
 
-   return( (next && *next) ? next : NULL);
+   return( next);
 }
 
 
@@ -610,6 +626,8 @@ char   *_mulle_objc_signature_supply_next_typeinfo( char *types,
 //
 char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s)
 {
+   char  c;
+
    //
    // parse extended class info
    // @"<NSCopying>" or @"NSString"
@@ -620,11 +638,33 @@ char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s)
       switch( *s)
       {
          case '<' : // blocksy stuff
-            while( *++s != '>');
+            for(;;)
+            {
+               c = *++s;
+               if( ! c)
+                  return( NULL);
+
+               if( c == '>')
+               {
+                  ++s;
+                  break;
+               }
+            }
             break;
 
          case '"' :
-            while( *++s != '"');
+            for(;;)
+            {
+               c = *++s;
+               if( ! c)
+                  return( NULL);
+
+               if( c == '"')
+               {
+                  ++s;
+                  break;
+               }
+            }
             break;
 
          case '-' :
@@ -640,23 +680,23 @@ char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s)
 }
 
 
-//
-// "types" must be correct
-// this does not error checking (we don't have the time)
-//
-char   *_mulle_objc_signature_next_typeinfo( char *types)
+char   *mulle_objc_signature_next_type( char *types)
 {
    char   *next;
 
+   if( ! types || ! *types)
+      return( NULL);
+
    next = _mulle_objc_type_parse_simple( types, -1, NULL);
    if( ! next)
-      return( next);
+      return( NULL); // error, errno should be set already
 
    next = _mulle_objc_signature_skip_extendedtypeinfo( next);
-   return( (next && *next) ? next : NULL);
+   if( ! next)
+      return( NULL);  // error, errno should be set already
 
+   return( next);
 }
-
 
 
 #define type_fits_voidptr( x)  \
@@ -749,7 +789,7 @@ enum mulle_objc_metaabiparamtype
    {
       // skip current
       types = mulle_objc_signature_next_type( types);
-      if( types)
+      if( types && *types)
          p_type = mulle_objc_metaabiparamtype_param;
    }
    return( p_type);
@@ -786,7 +826,7 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *types,
    if( ! size && ! alignment)
       return( mulle_objc_signature_supply_next_typeinfo( types, NULL));
 
-   next = _mulle_objc_signature_supply_next_typeinfo( types, &info);
+   next = __mulle_objc_signature_supply_next_typeinfo( types, &info);
 
    if( size)
       *size = info.bits_size >> 3;
@@ -802,11 +842,8 @@ unsigned int   mulle_objc_signature_count_typeinfos( char *types)
    unsigned int   n;
 
    n = 0;
-   while( types)
-   {
+   while( types = mulle_objc_signature_next_type( types))
       ++n;
-      types = mulle_objc_signature_next_type( types);
-   }
 
    return( n);
 }
@@ -844,16 +881,19 @@ int   _mulle_objc_signature_compare( char *a, char *b)
 
    for(;;)
    {
-      a = _mulle_objc_signature_supply_next_typeinfo( a,  &a_info);
-      b = _mulle_objc_signature_supply_next_typeinfo( b,  &b_info);
+      a = __mulle_objc_signature_supply_next_typeinfo( a, &a_info);
+      b = __mulle_objc_signature_supply_next_typeinfo( b, &b_info);
       if( ! a)
          return( b ? 1 : 0);
       if( ! b)
          return( -1);
 
-      comparison = _mulle_objc_typeinfo_compare( &a_info, &b_info);
-      if( comparison)
-         return( comparison);
+      if( a != b)
+      {
+         comparison = _mulle_objc_typeinfo_compare( &a_info, &b_info);
+         if( comparison)
+            return( comparison);
+      }
    }
 }
 
@@ -862,11 +902,6 @@ int   mulle_objc_signature_contains_retainableobject( char *type)
 {
    struct mulle_objc_typeinfo  info;
 
-   if( ! type)
-   {
-      errno = EINVAL;
-      return( -1);
-   }
    type = _mulle_objc_signature_supply_next_typeinfo( type,  &info);
    if( ! type)
    {
@@ -881,18 +916,13 @@ int   mulle_objc_signature_contains_object( char *type)
 {
    struct mulle_objc_typeinfo  info;
 
-   if( ! type)
-   {
-      errno = EINVAL;
-      return( -1);
-   }
    type = _mulle_objc_signature_supply_next_typeinfo( type,  &info);
    if( ! type)
    {
       errno = EINVAL;
       return( -1);
    }
-   return( info.has_retainable_object);
+   return( info.has_object);
 }
 
 

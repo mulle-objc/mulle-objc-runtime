@@ -32,18 +32,13 @@ by \0. It's lifetime is the same as that of `method`. Don't free it.
 mulle_objc_methodid_t  mulle_objc_method_get_methodid( struct _mulle_objc_method *method)
 ```
 
-{
-   return( method ? _mulle_objc_method_get_methodid( method) : MULLE_OBJC_NO_METHODID);
-}
-
-
 Returns the ID of the method. This is a unique hash across all methods.
 
 ### `mulle_objc_method_get_implementation`
 
 ```
-mulle_objc_methodimplementation_t
-mulle_objc_method_get_implementation( struct _mulle_objc_method *method)
+mulle_objc_implementation_t
+   mulle_objc_method_get_implementation( struct _mulle_objc_method *method)
 ```
 
 Return the implementation (C-Function) of the method. The C-function has the

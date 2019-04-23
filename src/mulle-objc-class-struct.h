@@ -104,6 +104,7 @@ enum _mulle_objc_class_state
    MULLE_OBJC_CLASS_INITIALIZE_DONE          = 0x8000,  // no _, can be used on its own
 
    MULLE_OBJC_CLASS_FOUNDATION_BIT0    = 0x00010000,
+   MULLE_OBJC_CLASS_FOUNDATION_BIT1    = 0x00020000,
    MULLE_OBJC_CLASS_FOUNDATION_BIT15   = 0x00800000,
 
    MULLE_OBJC_CLASS_USER_BIT0          = 0x01000000,
@@ -126,20 +127,18 @@ struct _mulle_objc_class
 
    /* ^^^ keep above like this, or change mulle_objc_fastmethodtable fault */
 
-   // keep universe here for easier access
-   // keep name here for debugging
+   // keep name, superclass, allocationsize in this order for lldb debugging
 
-   char                                    *name;            // offset (void **)[ 3]
-   struct _mulle_objc_universe             *universe;        // keep here for debugger (void **)[ 4]
-
-   struct _mulle_objc_class                *superclass;      // keep here for debugger (void **)[ 5]
+   struct _mulle_objc_class                *superclass;      // keep here for debugger (void **)[ 3]
+   char                                    *name;            // offset (void **)[ 4]
+   uintptr_t                               allocationsize;   // instancesize + header   (void **)[ 5]
 
 
-   struct _mulle_objc_infraclass           *infraclass;      // meta calls (+) use this (void **)[ 6]
-   struct _mulle_objc_method               *forwardmethod;   //                         (void **)[ 7]
-
-   uintptr_t                               allocationsize;   // instancesize + header   (void **)[ 8]
    // vvv - from here on the debugger doesn't care
+
+   struct _mulle_objc_universe             *universe;
+   struct _mulle_objc_infraclass           *infraclass;
+   struct _mulle_objc_method               *forwardmethod;
 
    uintptr_t                               extensionoffset;  // 4 later #1#
 

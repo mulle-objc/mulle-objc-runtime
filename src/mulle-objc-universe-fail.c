@@ -35,8 +35,11 @@
 //
 #include "mulle-objc-universe-fail.h"
 
+#include "include-private.h"
+
 #include <string.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 #include "mulle-objc-builtin.h"
 
@@ -50,6 +53,9 @@ MULLE_C_NO_RETURN static void
    vfprintf( stderr, format, args);
    fprintf( stderr, "\n");
 
+#ifdef DEBUG
+   mulle_stacktrace_once( stderr);
+#endif
    abort();
 }
 
@@ -63,6 +69,9 @@ MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE static void
    _mulle_objc_vprintf_abort( format, args);
    va_end( args);
 
+#ifdef DEBUG
+   mulle_stacktrace_once( stderr);
+#endif
    abort();
 }
 

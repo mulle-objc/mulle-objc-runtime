@@ -37,7 +37,7 @@ This is an optimized variant of `mulle_objc_object_call` in cases, where
 with -O1.
 
 Right: `mulle_objc_object_partialinlinecall( self, 0x1848, NULL)`,
-Wrong: `mulle_objc_object_partialinlinecall( self, _cmd, NULL)
+Wrong: `mulle_objc_object_partialinlinecall( self, _cmd, NULL)`
 
 
 ### `mulle_objc_object_inlinecall`
@@ -54,7 +54,7 @@ optimized with -O2 and up. Frequent use of this function can increase the size
 of your executable by quite a bit.
 
 Right: `mulle_objc_object_inlinecall( self, 0x1848, NULL)`,
-Wrong: `mulle_objc_object_inlinecall( self, _cmd, NULL)
+Wrong: `mulle_objc_object_inlinecall( self, _cmd, NULL)`
 
 
 ### `mulle_objc_object_call_classid`
@@ -113,7 +113,7 @@ this object. If the object did not get retained during finalization, then an
 internal version of `mulle_objc_object_dealloc` is called. The object is then
 to be considered "dead" and must not be messaged any more.
 
-See: [mulle_objc: object layout, retain counting, finalize](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_finalize_makes_a_comeback.html]
+See: [mulle_objc: object layout, retain counting, finalize](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_finalize_makes_a_comeback.html)
 
 
 ### `mulle_objc_object_get_class`

@@ -62,9 +62,16 @@ then
    PATHS="."
 fi
 
-MULLE_OBJC_UNIQUEID="${MULLE_OBJC_UNIQUEID:-`command -v mulle-objc-uniqueid`}"
-[ -z "${MULLE_OBJC_UNIQUEID}" ] && echo "mulle-objc-uniqueid not in PATH" >&2 && exit 1
-
+# prefer sibling mulle-objc-lista
+if [ -z "${MULLE_OBJC_UNIQUEID}" ]
+then
+   MULLE_OBJC_UNIQUEID="${0%/*}/mulle-objc-uniqueid"
+   if [ ! -x "${MULLE_OBJC_UNIQUEID}" ]
+   then
+      MULLE_OBJC_UNIQUEID="`command -v mulle-objc-uniqueid`"
+      [ -z "${MULLE_OBJC_UNIQUEID}" ] && echo "mulle-objc-uniqueid not in PATH" >&2 && exit 1
+   fi
+fi
 
 grep -h -s -o -E '\w+' -r --include "${PATTERN}" ${PATHS} | \
    egrep -v '^[0-9]' | \

@@ -46,18 +46,11 @@
 
 #pragma mark - instance creation
 
-MULLE_C_NON_NULL_RETURN
-static inline struct mulle_allocator   *
-    _mulle_objc_class_get_universe_allocator( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_universe     *universe;
 
-   universe = _mulle_objc_class_get_universe( cls);
-   return( _mulle_objc_universe_get_allocator( universe));
-}
+// void as a return value is just easier to handle than
+// struct _mulle_objc_object *
 
-
-static inline struct _mulle_objc_object   *
+static inline void *
     __mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
                                                   size_t extra,
                                                   struct mulle_allocator *allocator)
@@ -65,8 +58,14 @@ static inline struct _mulle_objc_object   *
    struct _mulle_objc_objectheader  *header;
    struct _mulle_objc_object        *obj;
    struct _mulle_objc_class         *cls;
+   size_t                           size;
 
-   header = mulle_allocator_calloc( allocator, 1, _mulle_objc_infraclass_get_allocationsize( infra) + extra);
+   size = _mulle_objc_infraclass_get_allocationsize( infra) + extra;
+   // if extra < 0, then overflow would happen undetected
+   if( size <= extra)
+      mulle_allocator_fail( allocator, NULL, extra);
+
+   header = mulle_allocator_calloc( allocator, 1, size);
    obj    = _mulle_objc_objectheader_get_object( header);
    cls    = _mulle_objc_infraclass_as_class( infra);
    _mulle_objc_object_set_isa( obj, cls);
@@ -99,29 +98,41 @@ static inline void *
 
 
 // free with mulle_allocator_free
-static inline struct _mulle_objc_object *
+static inline void *
     _mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra)
 {
-   struct mulle_allocator   *allocator;
-
-   allocator = _mulle_objc_infraclass_get_allocator( infra);
-   return( __mulle_objc_infraclass_alloc_instance_extra( infra, 0, allocator));
+   return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));
 }
 
 
+static inline void *
+    _mulle_objc_infraclass_allocwithzone_instance( struct _mulle_objc_infraclass *infra,
+                                                   void *zone) // zone is unused
+{
+   return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));
+}
 
-static inline struct _mulle_objc_object *
+
+static inline void *
    mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra)
 {
-   struct mulle_allocator   *allocator;
-
    if( ! infra)
       return( NULL);
    return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));
 }
 
 
-static inline struct _mulle_objc_object   *
+static inline void *
+   mulle_objc_infraclass_allocwithzone_instance( struct _mulle_objc_infraclass *infra,
+                                                 void *zone)
+{
+   if( ! infra)
+      return( NULL);
+   return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));
+}
+
+
+static inline void *
    mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
                                                size_t extra)
 {

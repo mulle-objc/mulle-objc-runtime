@@ -78,6 +78,9 @@ void   _mulle_objc_universe_throw( struct _mulle_objc_universe *universe, void *
 {
    struct _mulle_objc_exceptionstackentry  *entry;
    struct _mulle_objc_threadinfo           *config;
+   struct _mulle_objc_class                *class;
+   struct _mulle_objc_method               *method;
+   char                                    *s;
 
    config = _mulle_objc_thread_get_threadinfo( universe);
    entry  = config->exception_stack;
@@ -86,7 +89,18 @@ void   _mulle_objc_universe_throw( struct _mulle_objc_universe *universe, void *
       if( universe->failures.uncaughtexception)
          (*universe->failures.uncaughtexception)( exception);
 
-      fprintf( stderr, "mulle-objc-universe %p: Uncaught exception %p", universe, exception);
+      // cStringDescription
+      if( exception)
+      {
+         class  = _mulle_objc_object_get_isa( exception);
+         method = _mulle_objc_class_lookup_method( class, 0xd73980f7); //, mulle_objc_methodid_t methodid)
+         s      = NULL;
+         if( method)
+            s = (*method->value)( exception, 0xd73980f7, exception);
+      }
+      if( ! s)
+         s = "???";
+      fprintf( stderr, "mulle-objc-universe %p: Uncaught exception %p \"%s\"", universe, exception, s);
       abort();
    }
 
