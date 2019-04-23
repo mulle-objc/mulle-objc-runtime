@@ -138,6 +138,13 @@ static inline char   *
 
 
 static inline int
+   _mulle_objc_descriptor_get_bits( struct _mulle_objc_descriptor *desc)
+{
+   return( desc->bits);
+}
+
+
+static inline int
    _mulle_objc_descriptor_is_preload_method( struct _mulle_objc_descriptor *desc)
 {
    return( desc->bits & _mulle_objc_method_preload);
@@ -207,6 +214,14 @@ static inline mulle_objc_methodid_t
 {
    return( method->descriptor.methodid);
 }
+
+
+static inline int
+   _mulle_objc_method_get_bits( struct _mulle_objc_method *method)
+{
+   return( method->descriptor.bits);
+}
+
 
 
 static inline mulle_objc_implementation_t

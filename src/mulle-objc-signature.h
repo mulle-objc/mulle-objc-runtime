@@ -228,10 +228,10 @@ static inline void   _mulle_objc_sprint_untypedsignature( char *buf, size_t size
 // Get type and encoding via compiler:
 //
 // #include <stdio.h>
-// 
+//
 // #define show_encode( x)   printf( "%s=%s\n", #x, @encode( x))
-// 
-// 
+//
+//
 // int   main( void)
 // {
 //    show_encode( void (*)( void));

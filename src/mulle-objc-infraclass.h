@@ -289,7 +289,6 @@ static inline struct mulle_allocator   *
 }
 
 
-
 //
 // version is kept in the infraclass
 //
@@ -308,8 +307,8 @@ static inline int
    if( ! value)
       return( 1);
    return( _mulle_atomic_pointer_cas( &infra->coderversion,
-                                                   (void *) value,
-                                                   NULL));
+                                      (void *) value,
+                                      NULL));
 }
 
 
@@ -321,8 +320,8 @@ static inline int
    if( ! value)
       return( 1);
    return( _mulle_atomic_pointer_cas( &infra->taggedpointerindex,
-                                                  (void *) (uintptr_t) value,
-                                                  NULL));
+                                      (void *) (uintptr_t) value,
+                                      NULL));
 }
 
 
@@ -357,14 +356,14 @@ int   mulle_objc_infraclass_is_sane( struct _mulle_objc_infraclass *infra);
 # pragma mark - class variables
 
 static inline void   *_mulle_objc_infraclass_get_cvar( struct _mulle_objc_infraclass *infra,
-                                                       void *key)
+                                                       struct _mulle_objc_object *key)
 {
    return( _mulle_concurrent_hashmap_lookup( &infra->cvars, (intptr_t) key));
 }
 
 
 static inline int   _mulle_objc_infraclass_set_cvar( struct _mulle_objc_infraclass *infra,
-                                                     void *key,
+                                                     struct _mulle_objc_object *key,
                                                      void *value)
 {
    return( _mulle_concurrent_hashmap_insert( &infra->cvars, (intptr_t) key, value));
@@ -372,7 +371,7 @@ static inline int   _mulle_objc_infraclass_set_cvar( struct _mulle_objc_infracla
 
 
 static inline int   _mulle_objc_infraclass_remove_cvar( struct _mulle_objc_infraclass *infra,
-                                                        void *key,
+                                                        struct _mulle_objc_object *key,
                                                         void *value)
 {
    return( _mulle_concurrent_hashmap_remove( &infra->cvars, (intptr_t) key, value));

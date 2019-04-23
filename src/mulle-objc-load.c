@@ -283,8 +283,8 @@ static struct _mulle_objc_dependency
     _mulle_objc_loadclass_fulfill_user_dependencies( struct _mulle_objc_loadclass *info,
                                                      struct _mulle_objc_universe *universe)
 {
-   struct _mulle_objc_dependency       *dependencies;
-   mulle_objc_implementation_t   imp;
+   struct _mulle_objc_dependency   *dependencies;
+   mulle_objc_implementation_t     imp;
 
    if( ! info->classmethods)
       return( no_dependency);
@@ -296,13 +296,12 @@ static struct _mulle_objc_dependency
    if( universe->debug.trace.load_call)
       loadclass_trace( info, universe, "call +[%s dependencies]", info->classname);
 
-   dependencies = (*imp)( NULL, MULLE_OBJC_DEPENDENCIES_METHODID, NULL);
-   if( ! dependencies)
-      mulle_objc_universe_fail_generic( universe,
-                                                    "error in mulle_objc_universe %p: %s "
-                                                    "returned NULL for +dependencies\n",
-                                                    universe,
-                                                    info->classname);
+    dependencies = (*imp)( NULL, MULLE_OBJC_DEPENDENCIES_METHODID, NULL);
+    if( ! dependencies)
+       mulle_objc_universe_fail_generic( universe, "error in mulle_objc_universe %p: %s "
+                                                   "returned NULL for +dependencies\n",
+                                                   universe,
+                                                   info->classname);
 
    return( _mulle_objc_universe_fulfill_dependencies( universe, NULL, dependencies));
 }
@@ -328,11 +327,9 @@ static struct _mulle_objc_dependency
    *p_superclass = NULL;
 
    if( universe->debug.trace.dependency)
-   {
-      loadclass_trace( info, universe, "dependency check ...",
-                       info->classid,
-                       info->classname);
-   }
+      loadclass_trace( info, universe, "dependency check superclass %08x \"%s\" ...",
+                       info->superclassid,
+                       info->superclassname);
 
    if( info->superclassid)
    {
@@ -342,13 +339,10 @@ static struct _mulle_objc_dependency
       if( ! superclass)
       {
          if( universe->debug.trace.dependency)
-         {
-            loadclass_trace( info, universe, "superclass %08x \"%s\" is "
-                                             "not present yet",
-                                             info->superclassid,
-                                             info->superclassname);
-         }
-
+           loadclass_trace( info, universe, "superclass %08x \"%s\" is "
+                                            "not present yet",
+                                            info->superclassid,
+                                            info->superclassname);
          dependency.classid    = info->superclassid;
          dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
          return( dependency);
@@ -1906,6 +1900,8 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
       // the load-queue is kinda superflous, since we are single-threaded
       // but the sequencing is nicer, since all classes and categories in
       // .o are now loaded (should document this (or nix it)))
+      //
+      // TODO: just callin +load in add_infraclass would do it find me thinks
       //
       struct _mulle_objc_callqueue   loads;
 

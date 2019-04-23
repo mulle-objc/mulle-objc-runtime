@@ -87,7 +87,7 @@ static inline struct _mulle_objc_object   *
 }
 
 
-static inline struct _mulle_objc_object *
+static inline void *
     _mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
                                                  size_t extra)
 {

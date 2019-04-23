@@ -126,7 +126,7 @@ static inline void  __mulle_objc_object_will_free( struct _mulle_objc_object *ob
 }
 
 
-static inline void   __mulle_objc_object_free( struct _mulle_objc_object *obj,
+static inline void   __mulle_objc_object_free( void *obj,
                                                struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
@@ -138,7 +138,7 @@ static inline void   __mulle_objc_object_free( struct _mulle_objc_object *obj,
 }
 
 
-static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj)
+static inline void   _mulle_objc_object_free( void *obj)
 {
    struct mulle_allocator          *allocator;
    struct _mulle_objc_class        *cls;
@@ -151,7 +151,7 @@ static inline void   _mulle_objc_object_free( struct _mulle_objc_object *obj)
 }
 
 
-static inline void   mulle_objc_object_free( struct _mulle_objc_object *obj)
+static inline void   mulle_objc_object_free( void *obj)
 {
    if( ! obj)
       return;

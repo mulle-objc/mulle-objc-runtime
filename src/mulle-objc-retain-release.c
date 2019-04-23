@@ -133,7 +133,6 @@ void   _mulle_objc_objects_retain( void **objects, size_t n)
 
    // assume compiler can do unrolling
    sentinel = &objects[ n];
-
    while( objects < sentinel)
    {
       p = *objects++;

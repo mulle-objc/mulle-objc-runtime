@@ -69,8 +69,9 @@ static inline int  mulle_objc_object_get_taggedpointerindex( struct _mulle_objc_
 MULLE_C_ALWAYS_INLINE_NON_NULL_CONST_RETURN
 static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void *obj)
 {
-   unsigned int                 index;
-   struct _mulle_objc_universe   *universe;
+   unsigned int                     index;
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_infraclass   *infra;
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
@@ -78,7 +79,8 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
-   return( universe->taggedpointers.pointerclass[ index]);
+   infra    = universe->taggedpointers.pointerclass[ index];
+   return( _mulle_objc_infraclass_as_class( infra));
 }
 
 
@@ -89,8 +91,9 @@ MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
 static inline struct _mulle_objc_class *
    _mulle_objc_object_get_isa( void *obj)
 {
-   unsigned int                  index;
-   struct _mulle_objc_universe   *universe;
+   unsigned int                    index;
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_infraclass   *infra;
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
@@ -99,7 +102,8 @@ static inline struct _mulle_objc_class *
 
    universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");
-   return( universe->taggedpointers.pointerclass[ index]);
+   infra    = universe->taggedpointers.pointerclass[ index];
+   return( _mulle_objc_infraclass_as_class( infra));
 }
 
 //
@@ -109,7 +113,8 @@ MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
 static inline struct _mulle_objc_class *
    _mulle_objc_object_get_isa_universe( void *obj, struct _mulle_objc_universe *universe)
 {
-   unsigned int   index;
+   unsigned int                    index;
+   struct _mulle_objc_infraclass   *infra;
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
@@ -117,7 +122,8 @@ static inline struct _mulle_objc_class *
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");
-   return( universe->taggedpointers.pointerclass[ index]);
+   infra = universe->taggedpointers.pointerclass[ index];
+   return( _mulle_objc_infraclass_as_class( infra));
 }
 
 static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_class *cls)
