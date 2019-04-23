@@ -713,7 +713,7 @@ char   *mulle_objc_propertylist_describe_html( struct _mulle_objc_propertylist *
                    "<TR><TD>ivarid</TD><TD>%08x</TD></TR>"
                    "<TR><TD>getter</TD><TD>%08x</TD></TR>"
                    "<TR><TD>setter</TD><TD>%08x</TD></TR>"
-                   "<TR><TD>clearer</TD><TD>%08x</TD></TR>"
+                   "<TR><TD>bits</TD><TD>0x%08x</TD></TR>"
                  "</TABLE>"
                "</TD>"
                "</TR>\n",
@@ -723,7 +723,7 @@ char   *mulle_objc_propertylist_describe_html( struct _mulle_objc_propertylist *
                list->properties[ j].ivarid,
                list->properties[ j].getter,
                list->properties[ j].setter,
-               list->properties[ j].clearer);
+               list->properties[ j].bits);
 
       len += strlen( tmp[ i]);
       ++i;

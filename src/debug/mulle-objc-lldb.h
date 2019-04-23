@@ -48,11 +48,12 @@ struct _mulle_objc_descriptor  *
 
 mulle_objc_implementation_t
    mulle_objc_lldb_lookup_implementation( void *object,
-                                            mulle_objc_methodid_t sel,
-                                            void *cls_or_classid,
-                                            int is_classid,
-                                            int is_meta,
-                                            int debug);
+                                          mulle_objc_methodid_t sel,
+                                          void *class_or_superid,
+                                          int calltype,
+                                          int debug);
+struct _mulle_objc_class *
+   mulle_objc_lldb_lookup_isa( void *obj, int debug);
 
 void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void);
 

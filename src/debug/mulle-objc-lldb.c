@@ -45,6 +45,7 @@
 #include "mulle-objc-universe.h"
 #include "mulle-objc-universe-global.h"
 
+#pragma clang diagnostic ignored  "-Wmultichar"
 
 # pragma mark - lldb support
 
@@ -52,52 +53,69 @@
 mulle_objc_implementation_t
    mulle_objc_lldb_lookup_implementation( void *obj,
                                           mulle_objc_methodid_t methodid,
-                                          void *cls_or_classid,
-                                          int is_classid,
-                                          int is_meta,
+                                          void *class_or_superid,
+                                          int calltype,
                                           int debug)
 {
-   struct _mulle_objc_class       *cls;
-   struct _mulle_objc_universe    *universe;
-   struct _mulle_objc_infraclass  *found;
-   struct _mulle_objc_class       *call_cls;
-   mulle_objc_implementation_t    imp;
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *super;
+   mulle_objc_implementation_t     imp;
+   mulle_objc_superid_t            superid;
 
    if( debug)
-      fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, cls_or_classid, is_classid);
+      fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, class_or_superid, calltype);
 
    if( ! obj || mulle_objc_uniqueid_is_sane( MULLE_OBJC_NO_METHODID))
       return( 0);
-
-   // ensure class init
-   cls  = is_meta ? obj : _mulle_objc_object_get_isa( obj);
 
    // call "-class" so class initializes.. But WHY ??
    // if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE))
    //   mulle_objc_object_call( cls, MULLE_OBJC_CLASS_METHODID, NULL);
 
-   if( is_classid)
+   switch( calltype)
    {
-      universe = _mulle_objc_class_get_universe( cls);
-      found    = _mulle_objc_universe_lookup_infraclass_nofail( universe,
-                                                                (mulle_objc_classid_t) (uintptr_t) cls_or_classid);
-      if( is_meta)
-         call_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( found));
-      else
-         call_cls = _mulle_objc_infraclass_as_class( found);
-   }
-   else
-      call_cls = cls_or_classid;
+      case 0 :
+         cls = _mulle_objc_object_get_isa( obj);
+         imp = _mulle_objc_class_lookup_implementation_nocache_noforward( cls, methodid);
+         break;
 
-   imp = _mulle_objc_class_lookup_implementation_nocache_noforward( call_cls, methodid);
+      case 1 :
+         imp = _mulle_objc_class_lookup_implementation_nocache_noforward( class_or_superid,
+                                                                          methodid);
+         break;
+
+      case 2 :
+         superid = (mulle_objc_superid_t) (uintptr_t) class_or_superid;
+         imp     = _mulle_objc_object_inlinesuperlookup_implementation_nofail( obj,
+                                                                               superid);
+   }
+
    if( debug)
    {
       char   buf[ s_mulle_objc_sprintf_functionpointer_buffer];
 
       mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) imp);
-      fprintf( stderr, "resolved to %p -> %s\n", call_cls, buf);
+      fprintf( stderr, "resolved to %s\n", buf);
    }
    return( imp);
+}
+
+
+
+// DO NOT RENAME THESE FUNCTIONS, mulle-lldb looks for them
+struct _mulle_objc_class *
+   mulle_objc_lldb_lookup_isa( void *obj, int debug)
+{
+   struct _mulle_objc_class   *cls;
+
+   if( debug)
+      fprintf( stderr, "isa lookup %p\n", obj);
+
+   cls = mulle_objc_object_get_isa( obj);
+   if( debug)
+      fprintf( stderr, "resolved to isa=%p (%s)\n",
+                           cls, cls ? _mulle_objc_class_get_name( cls) : "");
+   return( cls);
 }
 
 
@@ -109,7 +127,7 @@ struct _mulle_objc_descriptor  *
    struct _mulle_objc_descriptor   *descriptor;
 
    methodid   = mulle_objc_uniqueid_from_string( name);
-   universe   = __mulle_objc_global_getany_universe();
+   universe   = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    descriptor = _mulle_objc_universe_lookup_descriptor( universe, methodid);
 
    return( descriptor);
@@ -130,8 +148,23 @@ void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t methodid)
    strlen( cls->name);    // try to crash here
 
    if( ! _mulle_objc_class_lookup_implementation_noforward( cls, methodid))
-      *((volatile int *)0) = '1848'; // force crash
+      *((volatile int *) 0) = '1848'; // force crash
 }
+
+
+void   *mulle_objc_lldb_get_dangerous_tpsstorage_pointer( void)
+{
+   struct _mulle_objc_universe   *universe;
+
+   // fprintf( stderr, "get class storage\n");
+
+   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+//   if( ! universe)
+//      return( NULL);
+
+   return( &universe->taggedpointers);
+}
+
 
 
 void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void)
@@ -141,7 +174,7 @@ void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void)
 
    // fprintf( stderr, "get class storage\n");
 
-   universe = __mulle_objc_global_getany_universe();
+   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
 //   if( ! universe)
 //      return( NULL);
 
@@ -185,12 +218,12 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
 
    // fprintf( stderr, "create static string \"%.*s\"\n", (int) numBytes, bytes);
 
-   universe = __mulle_objc_global_getany_universe();
+   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    infra    = _mulle_objc_universe_get_staticstringclass( universe);
    obj      = (void *) _mulle_objc_infraclass_alloc_instance_extra( infra, numBytes + 4);
 
    // static string class has no release anyway
-   _mulle_objc_object_infiniteretain_noatomic( obj);
+   _mulle_objc_object_constantify_noatomic( obj);
 
    extra = _mulle_objc_object_get_extra( obj);
 
