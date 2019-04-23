@@ -7,11 +7,13 @@ autorelease
 class
 copy
 dealloc
+deinitialize
 finalize
 initialize
 init
 instantiate
 load
+unload
 release
 retain
 forward:
