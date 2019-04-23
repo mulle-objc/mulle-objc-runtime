@@ -1,2 +1,3 @@
 mulle-concurrent;tar;no-all-load,no-import,no-singlephase;8ae0712b-418b-4a24-bd84-48cf5caf5e38;${MULLE_CONCURRENT_URL:-https://github.com/mulle-concurrent/mulle-concurrent/archive/${MULLE_CONCURRENT_BRANCH:-latest}.tar.gz};;;;
 mulle-vararg;tar;no-all-load,no-import,no-singlephase;3bb60fad-077f-41cc-b6d4-93c91f1d457a;${MULLE_VARARG_URL:-https://github.com/mulle-c/mulle-vararg/archive/${MULLE_VARARG_BRANCH:-latest}.tar.gz};;;;
+mulle-stacktrace;tar;no-all-load,no-import,no-public,no-singlephase;A80369B3-6A83-4563-83C7-F590C5967E84;${MULLE_STACKTRACE_URL:-https://github.com/mulle-core/mulle-stacktrace/archive/${MULLE_BRANCH}.tar.gz};${MULLE_STACKTRACE_BRANCH:-latest};;;
