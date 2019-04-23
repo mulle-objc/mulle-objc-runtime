@@ -437,7 +437,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    {
       print_to_body( NULL, "<DIV CLASS=\"class_universe_link\">", fp);
       {
-         print_to_body( "universe","<A HREF=\"index.html\">universe</a>", fp);
+         print_to_body( "Universe","<A HREF=\"index.html\">universe</a>", fp);
       }
       print_to_body( NULL, "</DIV>\n", fp);
 
@@ -539,12 +539,8 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             style       = methodlisttable_style;
-            categoryid  = (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner;
-            if( categoryid)
-               style.title = _mulle_objc_universe_describe_categoryid( universe, categoryid);
-            else
-               style.title = "";
-            label       = mulle_objc_methodlist_describe_hor_html( methodlist, &methodlisttable_style);
+            style.title = _mulle_objc_universe_describe_categoryid( universe, (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
+            label       = mulle_objc_methodlist_describe_hor_html( methodlist, &style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
