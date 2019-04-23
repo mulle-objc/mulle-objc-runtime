@@ -17,6 +17,7 @@ src/debug/mulle-objc-dotdump.h
 src/debug/mulle-objc-htmldump.h
 src/debug/mulle-objc-html.h
 src/debug/mulle-objc-lldb.h
+src/debug/mulle-objc-symbolizer.h
 )
 
 set( PRIVATE_HEADERS

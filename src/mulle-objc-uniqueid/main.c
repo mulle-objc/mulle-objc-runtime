@@ -89,7 +89,8 @@ int   main( int argc, char *argv[])
    if( argc < 2 || ! strlen( argv[ 1]))
    {
       fprintf( stderr, "Usage:\n   mulle-objc-uniqueid <string>*\n"
-                       "      Based on fnv1%s32 with shift %d\n"
+                       "    Generates @selector() values from strings."
+                       "    Based on fnv1%s32 with shift %d\n"
                        "\n"
                        "Environment:\n"
                        "   CSV:     output hash;name\n"

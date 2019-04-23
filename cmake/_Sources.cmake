@@ -11,6 +11,11 @@ src/debug/mulle-objc-dotdump.c
 src/debug/mulle-objc-html.c
 src/debug/mulle-objc-htmldump.c
 src/debug/mulle-objc-lldb.c
+src/debug/mulle-objc-symbolizer.c
+)
+
+set( SIGNATURE_SOURCES
+src/mulle-objc-signature/main.c
 )
 
 set( SOURCES
