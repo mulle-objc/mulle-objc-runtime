@@ -40,7 +40,7 @@
     */
    if( _cmd == @selector( dontDoit:))
       return( mulle_objc_object_call( self, @selector( doit:), param));
-   printf( stderr, "FAIL");
+   fprintf( stderr, "FAIL");
    return( (void *) 12345678);
 }
 
