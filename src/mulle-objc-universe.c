@@ -559,7 +559,7 @@ void  _mulle_objc_universe_assert_runtimeversion( struct _mulle_objc_universe *u
             mulle_objc_version_get_major( _mulle_objc_universe_get_version( universe)),
             mulle_objc_version_get_minor( _mulle_objc_universe_get_version( universe)),
             mulle_objc_version_get_patch( _mulle_objc_universe_get_version( universe)),
-                                                   _mulle_objc_universe_get_path( universe) ? _mulle_objc_universe_get_path( universe) : "???");
+            _mulle_objc_universe_get_path( universe) ? _mulle_objc_universe_get_path( universe) : "???");
    }
 }
 
@@ -1441,6 +1441,8 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
    struct _mulle_objc_metaclass    *meta;
    struct _mulle_objc_metaclass    *dup;
    struct _mulle_objc_infraclass   *superclass;
+   struct _mulle_objc_classpair    *pair;
+   uintptr_t                       classindex;
 
    if( ! universe || ! infra)
    {
@@ -1449,7 +1451,6 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
    }
 
    meta  = _mulle_objc_infraclass_get_metaclass( infra);
-
    if( ! mulle_objc_infraclass_is_sane( infra) ||
        ! mulle_objc_metaclass_is_sane( meta))
    {

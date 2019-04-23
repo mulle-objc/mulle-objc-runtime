@@ -356,7 +356,7 @@ mulle_objc_implementation_t
 
 // convenience
 static inline mulle_objc_implementation_t
-   _mulle_objc_object_lookup_implementation_nocache_noforward( struct _mulle_objc_object *obj,
+   _mulle_objc_object_lookup_implementation_nocache_noforward( void *obj,
                                                                mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
@@ -368,7 +368,7 @@ static inline mulle_objc_implementation_t
 
 // convenience
 static inline mulle_objc_implementation_t
-   _mulle_objc_object_lookup_implementation_nocache( struct _mulle_objc_object *obj,
+   _mulle_objc_object_lookup_implementation_nocache( void *obj,
                                                      mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;

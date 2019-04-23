@@ -50,7 +50,9 @@ struct _mulle_objc_class;
 // to find -methods ask isa of object, to find +methods, ask the metaclass of isa
 // these methods are uncached and authorative
 //
-struct _mulle_objc_method  *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);
+struct _mulle_objc_method  *
+   mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
+                                          mulle_objc_methodid_t methodid);
 
 enum
 {
@@ -76,10 +78,10 @@ struct _mulle_objc_searchargumentscachable
       // should be 16 bytes on 32bit and 32 bytes on 64 bit
       struct
       {
-         mulle_objc_uniqueid_t  mode;
-         mulle_objc_methodid_t  methodid;
-         mulle_objc_classid_t   classid;
-         mulle_objc_classid_t   categoryid;
+         mulle_objc_uniqueid_t   mode;
+         mulle_objc_methodid_t   methodid;
+         mulle_objc_classid_t    classid;
+         mulle_objc_classid_t    categoryid;
       };
       mulle_atomic_functionpointer_t    pointer;
    };
@@ -88,9 +90,9 @@ struct _mulle_objc_searchargumentscachable
 
 //
 // this must be as fast as possible, while still
-// maintaing decent diffusion, as this affects call speed
+// maintaning decent diffusion, as this affects call speed
 // This is something the compiler can do for us at compile time!
-//
+// NOT USED ATM.
 static inline uintptr_t
    _mulle_objc_searchargumentscachable_hash( struct _mulle_objc_searchargumentscachable
                                           *args)
@@ -155,10 +157,10 @@ static inline void
 //
 // Classid is the id of the implementation class, that does the call
 //
-static inline void   _mulle_objc_searchargumentscacheable_superinit( struct _mulle_objc_searchargumentscachable *p,
-                                                             mulle_objc_methodid_t methodid,
-
-                                                             mulle_objc_classid_t classid)
+static inline void
+  _mulle_objc_searchargumentscacheable_superinit( struct _mulle_objc_searchargumentscachable *p,
+                                                  mulle_objc_methodid_t methodid,
+                                                  mulle_objc_classid_t classid)
 {
    p->mode       = MULLE_OBJC_SEARCH_SUPER_METHOD;
    p->methodid   = methodid;
@@ -182,10 +184,11 @@ static inline void   _mulle_objc_searchargumentscacheable_superinit( struct _mul
 //
 // Classid, categoryid is the id of the implementation class/category, that does the call
 //
-static inline void   _mulle_objc_searchargumentscacheable_overriddeninit( struct _mulle_objc_searchargumentscachable *p,
-                                                                  mulle_objc_methodid_t methodid,
-                                                                  mulle_objc_classid_t classid,
-                                                                  mulle_objc_categoryid_t categoryid)
+static inline void
+   _mulle_objc_searchargumentscacheable_overriddeninit( struct _mulle_objc_searchargumentscachable *p,
+                                                        mulle_objc_methodid_t methodid,
+                                                        mulle_objc_classid_t classid,
+                                                        mulle_objc_categoryid_t categoryid)
 {
    p->mode       = MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD;
    p->methodid   = methodid;
@@ -204,10 +207,11 @@ static inline void   _mulle_objc_searchargumentscacheable_overriddeninit( struct
 //   _mulle_objc_searcharguments_init_specific( &search, @selector( A), @selector( B))
 //   mulle_objc_class_search_method( [A class], @selector( foo), &search,....)
 //
-static inline void   _mulle_objc_searchargumentscacheable_specificinit( struct _mulle_objc_searchargumentscachable *p,
-                                                                mulle_objc_methodid_t methodid,
-                                                                mulle_objc_classid_t classid,
-                                                                mulle_objc_categoryid_t categoryid)
+static inline void
+   _mulle_objc_searchargumentscacheable_specificinit( struct _mulle_objc_searchargumentscachable *p,
+                                                      mulle_objc_methodid_t methodid,
+                                                      mulle_objc_classid_t classid,
+                                                      mulle_objc_categoryid_t categoryid)
 {
    p->mode       = MULLE_OBJC_SEARCH_SPECIFIC_METHOD;
    p->methodid   = methodid;

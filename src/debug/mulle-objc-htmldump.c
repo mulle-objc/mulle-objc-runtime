@@ -562,9 +562,9 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          rover = mulle_concurrent_pointerarray_enumerate( &infra->base.methodlists);
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
-            style = methodlisttable_style;
+            style       = methodlisttable_style;
             style.title = _mulle_objc_universe_describe_categoryid( universe, (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
-            label = mulle_objc_methodlist_describe_hor_html( methodlist, &methodlisttable_style);
+            label       = mulle_objc_methodlist_describe_hor_html( methodlist, &style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
          }
@@ -593,8 +593,8 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
       if( array->n)
       {
          label = mulle_objc_categories_describe_html( array,
-                                                         universe,
-                                                         &categorytable_style);
+                                                      universe,
+                                                      &categorytable_style);
 
          print_to_body( "Categories", label, fp);
          mulle_allocator_free( &mulle_stdlib_allocator, label);

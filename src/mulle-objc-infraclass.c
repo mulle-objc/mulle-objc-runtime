@@ -140,7 +140,7 @@ struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _m
 
 
 struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
-                                                                mulle_objc_propertyid_t propertyid)
+                                                                     mulle_objc_propertyid_t propertyid)
 {
    assert( mulle_objc_uniqueid_is_sane( propertyid));
 

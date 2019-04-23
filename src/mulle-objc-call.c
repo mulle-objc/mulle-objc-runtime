@@ -49,13 +49,13 @@
 
 
 static void   *_mulle_objc_object_call_class_nocache( void *obj,
-                                                       mulle_objc_methodid_t methodid,
-                                                       void *parameter,
-                                                       struct _mulle_objc_class *cls);
+                                                      mulle_objc_methodid_t methodid,
+                                                      void *parameter,
+                                                      struct _mulle_objc_class *cls);
 
 static void   *_mulle_objc_object_call2_emptycache( void *obj,
-                                                     mulle_objc_methodid_t methodid,
-                                                     void *parameter);
+                                                    mulle_objc_methodid_t methodid,
+                                                    void *parameter);
 static void   *_mulle_objc_object_call2( void *obj,
                                          mulle_objc_methodid_t methodid,
                                          void *parameter);
@@ -66,9 +66,9 @@ void   *_mulle_objc_object_call_class( void *obj,
                                        struct _mulle_objc_class *cls);
 
 static void   *_mulle_objc_object_call_class_nofail( void *obj,
-                                                         mulle_objc_methodid_t methodid,
-                                                         void *parameter,
-                                                         struct  _mulle_objc_class *cls);
+                                                     mulle_objc_methodid_t methodid,
+                                                     void *parameter,
+                                                     struct  _mulle_objc_class *cls);
 
 static mulle_objc_implementation_t
    _mulle_objc_class_superlookup2_implementation_nofail( struct _mulle_objc_class *cls,
@@ -820,9 +820,8 @@ mulle_objc_implementation_t
    struct _mulle_objc_method       *method;
    struct _mulle_objc_cacheentry   *entry;
 
-   method  = mulle_objc_class_search_method_nofail( cls, methodid);
-   imp     = _mulle_objc_method_get_implementation( method);
-
+   method   = mulle_objc_class_search_method_nofail( cls, methodid);
+   imp      = _mulle_objc_method_get_implementation( method);
    universe = _mulle_objc_class_get_universe( cls);
    // trace but don't cache it
    if( universe->debug.trace.method_call)
