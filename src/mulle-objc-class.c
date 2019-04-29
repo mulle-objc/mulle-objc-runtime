@@ -139,19 +139,28 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
 
    assert( universe);
 
-   cls->name                     = name;
+   cls->name             = name;
 
-   cls->superclass               = superclass;
-   cls->superclassid             = superclass ? superclass->classid : MULLE_OBJC_NO_CLASSID;
-   //   cls->nextclass                = superclass;
-   cls->classid                  = classid;
-   cls->allocationsize           = sizeof( struct _mulle_objc_objectheader) + instancesize;
-   cls->call                     = _mulle_objc_object_call_class_needcache;
-   cls->universe                 = universe;
-   cls->inheritance              = universe->classdefaults.inheritance;
+   cls->superclass       = superclass;
+   if( superclass)
+   {
+      cls->superclassid  = superclass->classid;
+      cls->inheritance   = superclass->inheritance;
+   }
+   else
+   {
+      cls->superclassid  = MULLE_OBJC_NO_CLASSID;
+      cls->inheritance   = universe->classdefaults.inheritance;
 
-   cls->cachepivot.call2         = _mulle_objc_object_call2_needcache;
-   cls->superlookup2             = _mulle_objc_class_superlookup2_needcache;
+   }
+   //   cls->nextclass        = superclass;
+   cls->classid          = classid;
+   cls->allocationsize   = sizeof( struct _mulle_objc_objectheader) + instancesize;
+   cls->call             = _mulle_objc_object_call_class_needcache;
+   cls->universe         = universe;
+
+   cls->cachepivot.call2 = _mulle_objc_object_call2_needcache;
+   cls->superlookup2     = _mulle_objc_class_superlookup2_needcache;
 #ifdef HAVE_SUPERCACHE
    _mulle_atomic_pointer_nonatomic_write( &cls->supercachepivot.entries, universe->empty_cache.entries);
 #endif
@@ -785,9 +794,9 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                                                void *obj,
                                                size_t extra)
 {
-   fprintf( stderr, "[==] allocated \"%s\" (%p) instance %p",
+   fprintf( stderr, "[==] allocated \"%s\" (%08x) instance %p",
                      _mulle_objc_class_get_name( cls),
-                     cls,
+                     _mulle_objc_class_get_classid( cls),
                      obj);
    if( extra)
       fprintf( stderr, " (+%ld)", extra);
@@ -800,8 +809,9 @@ void   _mulle_objc_object_trace_free( void *obj)
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   fprintf( stderr, "[==] free \"%s\" instance %p\n",
+   fprintf( stderr, "[==] free \"%s\" (%08x) instance %p\n",
                      _mulle_objc_class_get_name( cls),
+                     _mulle_objc_class_get_classid( cls),
                      obj);
 }
 
