@@ -340,10 +340,7 @@ MULLE_C_NON_NULL_RETURN static inline void   *
                                char *s)
 {
    if( ! universe || ! s)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
    return( _mulle_objc_universe_strdup( universe, s));
 }
 
@@ -354,10 +351,7 @@ static inline void   *
                                size_t size)
 {
    if( ! universe)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
    return( _mulle_objc_universe_calloc( universe, n, size));
 }
 
@@ -368,10 +362,7 @@ static inline void   mulle_objc_universe_set_path( struct _mulle_objc_universe *
                                                    char *s)
 {
    if( ! universe || ! s)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    // can only set once
    if( universe->path)
@@ -747,8 +738,8 @@ static inline struct _mulle_objc_infraclass  *_mulle_objc_universe_get_staticstr
 void   _mulle_objc_universe_add_loadhashedstringlist( struct _mulle_objc_universe *universe,
                                                       struct _mulle_objc_loadhashedstringlist *hashnames);
 
-char   *_mulle_objc_universe_search_debughashname( struct _mulle_objc_universe *universe,
-                                                   mulle_objc_uniqueid_t hash);
+char   *_mulle_objc_universe_search_hashstring( struct _mulle_objc_universe *universe,
+                                                mulle_objc_uniqueid_t hash);
 
 #pragma mark - uniqueid to string conversions
 

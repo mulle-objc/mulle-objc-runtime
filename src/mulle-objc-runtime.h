@@ -50,10 +50,10 @@
 # error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_TPS__ and __MULLE_OBJC_NO_TPS__)"
 #endif
 #if ! defined( __MULLE_OBJC_FCS__) && ! defined( __MULLE_OBJC_NO_FCS__)
-# error "Use the mulle-clang 7.0.0.0 (or newer) compiler to compile mulle-objc code (or define either __MULLE_OBJC_FCS__ or __MULLE_OBJC_NO_FCS__)"
+# error "Use the mulle-clang 8.0.0.0 (or newer) compiler to compile mulle-objc code (or define either __MULLE_OBJC_FCS__ or __MULLE_OBJC_NO_FCS__)"
 #endif
 #if defined( __MULLE_OBJC_FCS__) && defined( __MULLE_OBJC_NO_FCS__)
-# error "Use the mulle-clang 7.0.0.0 (or newer) compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FCS__ and __MULLE_OBJC_NO_FCS__)"
+# error "Use the mulle-clang 8.0.0.0 (or newer) compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FCS__ and __MULLE_OBJC_NO_FCS__)"
 #endif
 
 //
@@ -149,7 +149,7 @@ static inline void  mulle_objc_global_finish( void)
 #if MULLE_ABA_VERSION < ((2 << 20) | (0 << 8) | 14)
 # error "mulle-aba is too old"
 #endif
-#if MULLE_ALLOCATOR_VERSION < ((4 << 20) | (0 << 8) | 2)
+#if MULLE_ALLOCATOR_VERSION < ((4 << 20) | (1 << 8) | 0)
 # error "mulle-allocator is too old"
 #endif
 #if MULLE_CONCURRENT_VERSION < ((2 << 20) | (2 << 8) | 2)

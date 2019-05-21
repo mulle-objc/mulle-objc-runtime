@@ -51,9 +51,20 @@ struct _mulle_objc_class;
 // these methods are uncached and authorative
 //
 struct _mulle_objc_method  *
-   mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
-                                          mulle_objc_methodid_t methodid);
+   _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
+                                           mulle_objc_methodid_t methodid,
+                                           int *error);
 
+static inline struct _mulle_objc_method  *
+   mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
+                                          mulle_objc_methodid_t methodid)
+{
+   int   error;
+
+   return( _mulle_objc_class_defaultsearch_method( cls, methodid, &error));
+}   
+
+ 
 enum
 {
    MULLE_OBJC_SEARCH_INVALID           = -1,   // used by cache to build entry
@@ -301,6 +312,7 @@ struct _mulle_objc_searchresult
    struct _mulle_objc_class       *class;    // where method was found
    struct _mulle_objc_methodlist  *list;     // list containing method
    struct _mulle_objc_method      *method;   // method
+   int                            error;
 };
 
 
@@ -318,6 +330,7 @@ struct _mulle_objc_method   *
                                    struct _mulle_objc_searchresult *result);
 
 
+
 # pragma mark - forwarding
 
 //
@@ -333,7 +346,8 @@ mulle_objc_implementation_t
 // the user_method is just there to create a nicer crash log
 //
 struct _mulle_objc_method   *
-   _mulle_objc_class_lazyget_forwardmethod( struct _mulle_objc_class *cls);
+   _mulle_objc_class_lazyget_forwardmethod( struct _mulle_objc_class *cls,
+                                            int *error);
 
 
 MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
@@ -341,9 +355,11 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
 
+// error contains a errno constant, if return value is NULL
 struct _mulle_objc_method  *
    mulle_objc_class_search_non_inherited_method( struct _mulle_objc_class *cls,
-                                                 mulle_objc_methodid_t methodid);
+                                                 mulle_objc_methodid_t methodid,
+                                                 int *error);
 
 
 MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_method *

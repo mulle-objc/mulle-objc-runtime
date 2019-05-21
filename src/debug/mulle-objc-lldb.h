@@ -41,7 +41,7 @@
 
 // for test only, don't use this if you aren't a debugger
 
-void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t sel);
+void   $__lldb_objc_object_check( void *obj, mulle_objc_methodid_t methodid);
 
 struct _mulle_objc_descriptor  *
    mulle_objc_lldb_lookup_descriptor_by_name( char *name);

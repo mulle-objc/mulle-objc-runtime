@@ -125,8 +125,8 @@ void  _mulle_objc_object_perform_finalize( void *obj)
       new_retaincount_1 = retaincount_1 + INTPTR_MIN + 1;
    }
    while( ! _mulle_atomic_pointer_cas( &header->_retaincount_1,
-   	                                 (void *) new_retaincount_1,
-   	                                 (void *) retaincount_1));
+                                       (void *) new_retaincount_1,
+                                       (void *) retaincount_1));
 
    _mulle_objc_object_finalize( obj);
 }
@@ -187,12 +187,12 @@ void   _mulle_objc_objects_releaseandzero( void **objects, size_t n)
 
 void   *mulle_objc_object_retain( void *obj)
 {
-	return( mulle_objc_object_inlineretain( obj));
+   return( mulle_objc_object_inlineretain( obj));
 }
 
 
 void   mulle_objc_object_release( void *obj)
 {
-	mulle_objc_object_inlinerelease( obj);
+   mulle_objc_object_inlinerelease( obj);
 }
 

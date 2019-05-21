@@ -117,7 +117,7 @@ MULLE_C_NO_RETURN static void
       if( desc)
          methodname = desc->name;
       else
-         methodname = _mulle_objc_universe_search_debughashname( universe, missing_method);
+         methodname = _mulle_objc_universe_search_hashstring( universe, missing_method);
    }
 
    // keep often seen output more user friendly
@@ -189,16 +189,11 @@ MULLE_C_NO_RETURN void
 
 
 MULLE_C_NO_RETURN void
-   mulle_objc_universe_fail_errno( struct _mulle_objc_universe *universe)
-{
-   mulle_objc_universe_fail_generic( universe, "errno: %s (%d)", strerror( errno), errno);
-}
-
-MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_code(struct _mulle_objc_universe *universe, int errnocode)
 {
    mulle_objc_universe_fail_generic(universe, "errno: %s (%d)", strerror(errnocode), errnocode);
 }
+
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_perror(struct _mulle_objc_universe *universe, char *s)
@@ -255,9 +250,9 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_classnotfound( struct _mulle_objc_universe *universe,
-                                            mulle_objc_classid_t classid)
+                                           mulle_objc_classid_t classid)
 {
-   if( ! universe || _mulle_objc_universe_is_uninitialized(universe))
+   if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
       _mulle_objc_abort_classnotfound( universe, classid);
 
    (*universe->failures.classnotfound)( universe, classid);

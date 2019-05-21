@@ -501,8 +501,11 @@ int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
 void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                struct _mulle_objc_methodlist *list)
 {
-   if( mulle_objc_class_add_methodlist( cls, list))
-      mulle_objc_universe_fail_errno( cls->universe);
+   int   error;
+
+   error = mulle_objc_class_add_methodlist( cls, list);
+   if( error)
+      mulle_objc_universe_fail_code( cls->universe, error);
 }
 
 

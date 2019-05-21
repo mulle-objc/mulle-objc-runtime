@@ -42,14 +42,20 @@
 
 #include "mulle-objc-universe-struct.h"
 
+#include <errno.h>
+
 
 #pragma mark - fails, universe can be null
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_code(struct _mulle_objc_universe *universe, int errnocode);
 
-MULLE_C_NO_RETURN void
-   mulle_objc_universe_fail_errno( struct _mulle_objc_universe *universe);
+static inline MULLE_C_NO_RETURN void
+   mulle_objc_universe_fail_errno( struct _mulle_objc_universe *universe)
+{
+   mulle_objc_universe_fail_code( universe, errno);
+}
+
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_perror( struct _mulle_objc_universe *universe, char *s);

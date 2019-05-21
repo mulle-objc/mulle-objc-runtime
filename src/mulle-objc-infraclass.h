@@ -206,10 +206,13 @@ static inline struct _mulle_objc_method  *
     mulle_objc_infraclass_defaultsearch_method( struct _mulle_objc_infraclass *infra,
                                                 mulle_objc_methodid_t methodid)
 {
-   extern struct _mulle_objc_method   *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
-                                                                              mulle_objc_methodid_t methodid);
+   extern struct _mulle_objc_method   *
+      _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
+                                              mulle_objc_methodid_t methodid,
+                                              int *error);
+   int   error;
 
-   return( mulle_objc_class_defaultsearch_method( &infra->base, methodid));
+   return( _mulle_objc_class_defaultsearch_method( &infra->base, methodid, &error));
 }
 
 
@@ -287,6 +290,17 @@ static inline struct mulle_allocator   *
 {
    return( infra->allocator);
 }
+
+
+static inline void
+   _mulle_objc_infraclass_set_allocator( struct _mulle_objc_infraclass *infra,
+                                         struct mulle_allocator  *allocator)
+{
+   assert( allocator);
+   infra->allocator = allocator;
+}
+
+
 
 
 //

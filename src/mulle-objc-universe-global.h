@@ -56,7 +56,7 @@ MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_universe *
       struct _mulle_objc_universe   mulle_objc_defaultuniverse;
 
    assert( ! _mulle_objc_universe_is_uninitialized( &mulle_objc_defaultuniverse) \
-               && "universe not initialized yet");
+               && "The universe not initialized yet.\nIs a C function - possibly __attribute__((constructor)) - calling Objective-C prematurely? ");
    return( &mulle_objc_defaultuniverse);
 }
 
