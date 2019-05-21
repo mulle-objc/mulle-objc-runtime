@@ -21,7 +21,7 @@ static char  *get_class_name( Class self)
 
 @implementation A
 
-+ (id) initialize
++ (void) initialize
 {
    printf( "%s :: %s\n", get_class_name( self), __PRETTY_FUNCTION__);
 }
