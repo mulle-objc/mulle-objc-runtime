@@ -23,7 +23,7 @@ if( NOT __FALLBACK_ENVIRONMENT___CMAKE__)
    set( TMP_INCLUDE_DIRS)
 
    ###
-   ### If you build DEBUG buildorder, but want RELEASE interspersed, so that
+   ### If you build DEBUG craftorder, but want RELEASE interspersed, so that
    ### the debugger doesn't trace through too much fluff then set the
    ### FALLBACK_BUILD_TYPE (for lack of a better name)
    ###

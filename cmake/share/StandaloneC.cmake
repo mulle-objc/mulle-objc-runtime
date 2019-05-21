@@ -45,6 +45,14 @@ if( STANDALONE)
       )
    endif()
 
+   #
+   # for example take out the mulle-allocator library from the standalone
+   # so that the test library can add mulle-testallocator
+   #
+   if( STANDALONE_EXCLUDE_LIBRARIES)
+      list( REMOVE_ITEM STANDALONE_ALL_LOAD_LIBRARIES ${STANDALONE_EXCLUDE_LIBRARIES})
+   endif()
+
    # STARTUP_LIBRARY is supposed to be a find_library definition
    if( NOT STANDALONE_STARTUP_LIBRARY)
       set( STANDALONE_STARTUP_LIBRARY ${STARTUP_LIBRARY})
@@ -173,5 +181,8 @@ and everybody will be happy")
       )
 
       message( STATUS "STANDALONE_LIBRARY_NAME is ${STANDALONE_LIBRARY_NAME}")
+      message( STATUS "STANDALONE_ALL_LOAD_LIBRARIES is ${STANDALONE_ALL_LOAD_LIBRARIES}")
+      message( STATUS "FORCE_STANDALONE_ALL_LOAD_LIBRARIES is ${FORCE_STANDALONE_ALL_LOAD_LIBRARIES}")
+      message( STATUS "OS_SPECIFIC_LIBRARIES is ${OS_SPECIFIC_LIBRARIES}")
    endif()
 endif()

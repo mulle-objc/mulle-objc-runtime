@@ -62,20 +62,22 @@ if( "${C_COMPILER_NAME}" MATCHES "mulle-cl*")
 endif()
 
 set( EXECUTABLE_NAME mulle-objc-uniqueid)
-set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES})
+# only need the hash function (done like this if runtime is built as shared)
+set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES}
+src/mulle-objc-uniqueid.c
+src/mulle-objc-fnv1a.c
+)
 set( EXECUTABLE_DEPENDENCY_NAMES mulle-objc-runtime)
 # only need the hash function
-set( EXECUTABLE_LIBRARY_LIST
-   $<TARGET_FILE:mulle-objc-runtime>
-)
+set( EXECUTABLE_LIBRARY_LIST)
 
 include( Executable)
 
 set( EXECUTABLE_NAME mulle-objc-signature)
-set( EXECUTABLE_SOURCES  ${SIGNATURE_SOURCES})
-set( EXECUTABLE_LIBRARY_LIST
-   $<TARGET_FILE:mulle-objc-runtime>
-)
+# only need the signature function
+set( EXECUTABLE_SOURCES  ${SIGNATURE_SOURCES}
+src/mulle-objc-signature.c)
+set( EXECUTABLE_LIBRARY_LIST)
 
 include( Executable)
 
