@@ -169,10 +169,13 @@ static inline struct _mulle_objc_method  *
     mulle_objc_metaclass_defaultsearch_method( struct _mulle_objc_metaclass *meta,
                                          mulle_objc_methodid_t methodid)
 {
-   extern struct _mulle_objc_method   *mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
-                                                                       mulle_objc_methodid_t methodid);
+    extern struct _mulle_objc_method   *
+      _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
+                                              mulle_objc_methodid_t methodid,
+                                              int *error);
+   int   error;
 
-   return( mulle_objc_class_defaultsearch_method( &meta->base, methodid));
+   return( _mulle_objc_class_defaultsearch_method( &meta->base, methodid, &error));
 }
 
 

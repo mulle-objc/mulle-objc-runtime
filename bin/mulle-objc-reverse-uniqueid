@@ -62,7 +62,7 @@ then
    PATHS="."
 fi
 
-# prefer sibling mulle-objc-lista
+# prefer sibling mulle-objc-uniqueid
 if [ -z "${MULLE_OBJC_UNIQUEID}" ]
 then
    MULLE_OBJC_UNIQUEID="${0%/*}/mulle-objc-uniqueid"

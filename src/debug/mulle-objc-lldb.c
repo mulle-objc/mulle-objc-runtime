@@ -61,33 +61,45 @@ mulle_objc_implementation_t
    struct _mulle_objc_infraclass   *super;
    mulle_objc_implementation_t     imp;
    mulle_objc_superid_t            superid;
+   int                             olderrno;
 
+   olderrno = errno;
    if( debug)
       fprintf( stderr, "lookup %p %08x %p (%d)\n", obj, methodid, class_or_superid, calltype);
 
    if( ! obj || mulle_objc_uniqueid_is_sane( MULLE_OBJC_NO_METHODID))
+   {
+      errno = olderrno;
       return( 0);
+   }
 
    // call "-class" so class initializes.. But WHY ??
    // if( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE))
    //   mulle_objc_object_call( cls, MULLE_OBJC_CLASS_METHODID, NULL);
 
+   //
+   // the resulting IMP is the one, the debugger will step "thru"
+   // if we want to step into forwarded methods, we would have to do the
+   // complete forward: resolution, which we can't at this level.
+   //
    switch( calltype)
    {
-      case 0 :
-         cls = _mulle_objc_object_get_isa( obj);
-         imp = _mulle_objc_class_lookup_implementation_nocache_noforward( cls, methodid);
-         break;
+   case 0 :
+      cls = _mulle_objc_object_get_isa( obj);
+      imp = _mulle_objc_class_lookup_implementation_nocache( cls, methodid);
+      break;
 
-      case 1 :
-         imp = _mulle_objc_class_lookup_implementation_nocache_noforward( class_or_superid,
-                                                                          methodid);
-         break;
+   case 1 :
+      imp = _mulle_objc_class_lookup_implementation_nocache( class_or_superid,
+                                                             methodid);
+      break;
 
-      case 2 :
-         superid = (mulle_objc_superid_t) (uintptr_t) class_or_superid;
-         imp     = _mulle_objc_object_inlinesuperlookup_implementation_nofail( obj,
-                                                                               superid);
+      // doing this nofail, is bad. Tracing into [super forwardedMessage]
+      // will bring grief
+   case 2 :
+      superid = (mulle_objc_superid_t) (uintptr_t) class_or_superid;
+      imp     = _mulle_objc_object_inlinesuperlookup_implementation_nofail( obj,
+                                                                            superid);
    }
 
    if( debug)
@@ -97,6 +109,9 @@ mulle_objc_implementation_t
       mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) imp);
       fprintf( stderr, "resolved to %s\n", buf);
    }
+
+   errno = olderrno;
+
    return( imp);
 }
 
@@ -107,7 +122,9 @@ struct _mulle_objc_class *
    mulle_objc_lldb_lookup_isa( void *obj, int debug)
 {
    struct _mulle_objc_class   *cls;
+   int                        olderrno;
 
+   olderrno = errno;
    if( debug)
       fprintf( stderr, "isa lookup %p\n", obj);
 
@@ -115,6 +132,7 @@ struct _mulle_objc_class *
    if( debug)
       fprintf( stderr, "resolved to isa=%p (%s)\n",
                            cls, cls ? _mulle_objc_class_get_name( cls) : "");
+   errno = olderrno;
    return( cls);
 }
 
@@ -125,30 +143,40 @@ struct _mulle_objc_descriptor  *
    mulle_objc_methodid_t           methodid;
    struct _mulle_objc_universe     *universe;
    struct _mulle_objc_descriptor   *descriptor;
+   int                             olderrno;
 
+   olderrno   = errno;
    methodid   = mulle_objc_uniqueid_from_string( name);
    universe   = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    descriptor = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+   errno      = olderrno;
 
    return( descriptor);
 }
 
 
 // this is supposed to crash!
-void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t methodid)
+// must be named like this, because it gets called directly from the
+// debugger
+//
+void   $__lldb_objc_object_check( void *obj, mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class  *cls;
+   int                        olderrno;
 
    // fprintf( stderr, "check %p %08x %p (%d)\n", obj, methodid);
 
    if( ! obj)
       return;
 
-   cls = _mulle_objc_object_get_isa( obj);
+   olderrno = errno;
+   cls      = _mulle_objc_object_get_isa( obj);
    strlen( cls->name);    // try to crash here
 
    if( ! _mulle_objc_class_lookup_implementation_noforward( cls, methodid))
       *((volatile int *) 0) = '1848'; // force crash
+
+   errno    = olderrno;
 }
 
 
@@ -215,8 +243,11 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
    size_t                         size;
    struct { void  *bytes; intptr_t len; }  *obj;
    void                           *extra;
+   int                            olderrno;
 
    // fprintf( stderr, "create static string \"%.*s\"\n", (int) numBytes, bytes);
+
+   olderrno  = errno;
 
    universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    infra    = _mulle_objc_universe_get_staticstringclass( universe);
@@ -232,6 +263,8 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
 
    obj->bytes = extra;
    obj->len   = numBytes;
+
+   errno      = olderrno;
 
    return( obj);
 }

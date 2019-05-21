@@ -262,7 +262,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
 static MULLE_C_NO_RETURN void   mulle_objc_fail_allocation( void *block, size_t size)
 {
-   mulle_objc_universe_fail_errno( NULL);
+   mulle_objc_universe_fail_code( NULL, ENOMEM);
 }
 
 
@@ -703,7 +703,8 @@ static void   mulle_objc_global_atexit( void)
    }
 
    if( universe->debug.trace.universe)
-      mulle_objc_universe_trace( universe, "atexit releases the universe");
+      mulle_objc_universe_trace( universe, "atexit releases the universe (atexit: %p)",
+                                    (void *) mulle_objc_global_atexit);
    _mulle_objc_universe_release( universe);
 }
 
@@ -730,11 +731,12 @@ void
    if( ! did_it)
    {
       did_it = 1;
-      if( atexit( mulle_objc_global_atexit))
+      if( mulle_atexit( mulle_objc_global_atexit))
          mulle_objc_universe_fail_perror( universe, "atexit:");
       if( universe->debug.trace.universe)
          mulle_objc_universe_trace( universe,
-                                    "atexit \"mulle_objc_global_atexit\" installed");
+                                       "atexit \"mulle_objc_global_atexit\" (%p) installed",
+                                       (void *) mulle_objc_global_atexit);
    }
 }
 
@@ -1704,12 +1706,6 @@ int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
       return( -1);
    }
 
-   if( _mulle_concurrent_hashmap_lookup( &universe->classtable, infra->base.classid))
-   {
-      errno = EEXIST;
-      return( -1);
-   }
-
    superclass = _mulle_objc_infraclass_get_superclass( infra);
    if( superclass)
    {
@@ -2374,8 +2370,8 @@ void   _mulle_objc_universe_add_loadhashedstringlist( struct _mulle_objc_univers
 }
 
 
-char  *_mulle_objc_universe_search_debughashname( struct _mulle_objc_universe *universe,
-                                                 mulle_objc_uniqueid_t hash)
+char  *_mulle_objc_universe_search_hashstring( struct _mulle_objc_universe *universe,
+                                               mulle_objc_uniqueid_t hash)
 {
    struct mulle_concurrent_pointerarrayenumerator   rover;
    struct _mulle_objc_loadhashedstringlist          *map;
@@ -2407,7 +2403,7 @@ char   *_mulle_objc_universe_describe_uniqueid( struct _mulle_objc_universe *uni
       return( "NOT AN ID");
    if( uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
       return( "INVALID ID");
-   s = _mulle_objc_universe_search_debughashname( universe, uniqueid);
+   s = _mulle_objc_universe_search_hashstring( universe, uniqueid);
    return( s ? s : "???");
 }
 

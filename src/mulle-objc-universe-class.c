@@ -253,8 +253,10 @@ struct _mulle_objc_infraclass   *
    _mulle_objc_universe_lookup_infraclass_nocache_nofast( struct _mulle_objc_universe *universe,
                                                           mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_infraclass    *infra;
    int                              retry;
+   int                              olderrno;
+
 
    retry = 1;
    for(;;)
@@ -270,7 +272,11 @@ struct _mulle_objc_infraclass   *
         return( NULL);
 
       retry = 0;
+
+      // preserve errno for user 
+      olderrno = errno;
       (*universe->classdefaults.class_is_missing)( universe, classid);
+      errno    = olderrno;
    }
 }
 

@@ -1,3 +1,12 @@
+## 0.15.0
+
+* avoid setting errno during messages
+* improved support for lldb
+* the debughashname is now hashstring and its always loaded
+* make loadclass accessible from classpair, makes origin superflous
+* Inherit inheritance from superclass
+
+
 ### 0.14.1
 
 * modernized mulle-sde with .mulle folder

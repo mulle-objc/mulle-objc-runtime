@@ -118,10 +118,7 @@ void
    mulle_objc_methodid_t                methodid;
 
    if( ! cls || ! fp)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
    if( ! _mulle_atomic_pointer_read( &cache->n))
@@ -168,10 +165,7 @@ void
    unsigned int                                            n;
 
    if( ! cls || ! fp)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
    assert( n);
@@ -211,10 +205,7 @@ void
    struct mulle_concurrent_hashmapenumerator   rover;
 
    if( ! universe || ! fp)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
@@ -239,10 +230,7 @@ void
    struct mulle_concurrent_hashmapenumerator   rover;
 
    if( ! universe || ! fp)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
@@ -266,10 +254,7 @@ void
    int                                         nada;
 
    if( ! universe || ! fp)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    //
    // here we just go through all installed classes and check the state
@@ -333,10 +318,7 @@ void   mulle_objc_universe_csvdump_cachesizes_to_fp( struct _mulle_objc_universe
    struct mulle_concurrent_hashmapenumerator   rover;
 
    if( ! universe || ! fp)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    //
    // here we just go through all installed classes and check the state
@@ -435,10 +417,7 @@ void   mulle_objc_loadinfo_csvdump_terse_to_fp( struct _mulle_objc_loadinfo *inf
    char   *s;
 
    if( ! fp)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    s = mulle_objc_loadinfo_get_originator( info);
    fprintf( fp, "%s;", s ? s : "");

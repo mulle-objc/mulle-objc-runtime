@@ -78,7 +78,7 @@ static int   mmc_snprint( struct mmc  *p,
                                   _mulle_objc_method_get_name( p->method)));
 
    categoryid = (mulle_objc_categoryid_t) (uintptr_t) p->list->owner;
-   s          = _mulle_objc_universe_search_debughashname( universe, categoryid);
+   s          = _mulle_objc_universe_search_hashstring( universe, categoryid);
    if( ! s)
    {
       sprintf( tmp, "%08x", categoryid);
@@ -287,7 +287,7 @@ void   mmcarray_csvdump( struct mmcarray *array,
       fprintf( fp, ";%08x", categoryid);
       s = NULL;
       if( categoryid)
-         s = _mulle_objc_universe_search_debughashname( universe, categoryid);
+         s = _mulle_objc_universe_search_hashstring( universe, categoryid);
       fprintf( fp, ";%s", s ? s : "");
 
       if( mmc_snprint( p, universe, buf, sizeof( buf)) < 0)
@@ -320,7 +320,7 @@ static void   mmc_print( struct mmc  *p,
    }
 
    categoryid = (mulle_objc_categoryid_t) (uintptr_t) p->list->owner;
-   s          = _mulle_objc_universe_search_debughashname( universe, categoryid);
+   s          = _mulle_objc_universe_search_hashstring( universe, categoryid);
    if( ! s)
    {
       sprintf( buf, "%08x", categoryid);

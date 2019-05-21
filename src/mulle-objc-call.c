@@ -45,8 +45,13 @@
 #include "include-private.h"
 #include <assert.h>
 #include <stdlib.h>
-#include <errno.h>
 
+
+//
+// MEMO: during messaging operation (i.e. -[foo bar] ) the runtime must not set "errno"
+//       this could happen, if malloc sets errno even on success. It's 
+//       assumed mulle_malloc shields us from that on misbehaving platforms.
+//       The same should hold true for class lookups like +[NSArray array] 
 
 static void   *_mulle_objc_object_call_class_nocache( void *obj,
                                                       mulle_objc_methodid_t methodid,
@@ -751,6 +756,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_method        *method;
+   int                              error;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -766,7 +772,7 @@ mulle_objc_implementation_t
    method = mulle_objc_class_defaultsearch_method( cls, methodid);
    if( ! method)
    {
-      method = _mulle_objc_class_lazyget_forwardmethod( cls);
+      method = _mulle_objc_class_lazyget_forwardmethod( cls, &error);
       if( ! method)
          return( imp);
    }
@@ -788,6 +794,7 @@ mulle_objc_implementation_t
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_method        *method;
+   int                              error;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -802,7 +809,7 @@ mulle_objc_implementation_t
 
    method = mulle_objc_class_defaultsearch_method( cls, methodid);
    if( ! method)
-      method = _mulle_objc_class_lazyget_forwardmethod( cls);
+      method = _mulle_objc_class_lazyget_forwardmethod( cls, &error);
 
    if( method)
    {
@@ -856,7 +863,7 @@ mulle_objc_implementation_t
 {
    if( ! cls || ! mulle_objc_uniqueid_is_sane( methodid))
    {
-      errno = EINVAL;
+      errno = EINVAL;  // BAD FAIL so errno is OK
       //  mulle_objc_universe_fail_errno( mulle_objc_global_get_universe());
       mulle_objc_universe_fail_errno( NULL);
    }
@@ -1128,7 +1135,8 @@ static void
 
    // grab code from superclass
    // this is useful for MulleObjCSingleton
-   initialize = mulle_objc_class_defaultsearch_method( &meta->base, MULLE_OBJC_INITIALIZE_METHODID);
+   initialize = mulle_objc_class_defaultsearch_method( &meta->base, 
+                                                       MULLE_OBJC_INITIALIZE_METHODID);
    if( initialize)
    {
       if( universe->debug.trace.initialize)

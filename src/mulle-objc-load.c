@@ -265,10 +265,7 @@ static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info
    struct mulle_concurrent_pointerarray   *list;
 
    if( ! info)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( universe);
-   }
+      mulle_objc_universe_fail_code( universe, EINVAL);
 
    assert( info->classid != missingclassid);
 
@@ -525,7 +522,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    if( ! pair)
       mulle_objc_universe_fail_errno( universe);  // unfailing vectors through there
 
-   _mulle_objc_classpair_set_origin( pair, info->origin);
+   _mulle_objc_classpair_set_loadclass( pair, info);
    mulle_objc_classpair_add_protocollist_nofail( pair, info->protocols);
    mulle_objc_classpair_add_protocolclassids_nofail( pair, info->protocolclassids);
 
@@ -547,10 +544,30 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
       _mulle_objc_universe_set_fastclass( universe, infra, info->fastclassindex);
 
    if( mulle_objc_universe_add_infraclass( universe, infra))
-      mulle_objc_universe_fail_generic( universe,
-            "error in mulle_objc_universe %p: "
-            "duplicate class %08x \"%s\".\n",
-             universe, infra->base.classid, infra->base.name);
+   {
+      switch( errno)
+      {
+      default  :
+         mulle_objc_universe_fail_generic( universe,
+               "error addding class %08x \"%s\" to mulle_objc_universe %p "
+               "errno=%d\n",
+               infra->base.classid, infra->base.name, universe, errno);
+
+      case EFAULT : // how can this happen if we check for superclass up there ?
+         mulle_objc_universe_fail_generic( universe,
+               "error in mulle_objc_universe %p: "
+               "superclass %08x \"%s\" of class %08x \"%s\" does not exist.\n",
+                universe, 
+                superclass->base.classid, superclass->base.name,
+                infra->base.classid, infra->base.name);
+
+      case EEXIST :
+         mulle_objc_universe_fail_generic( universe,
+               "error in mulle_objc_universe %p: "
+               "duplicate class %08x \"%s\".\n",
+                universe, infra->base.classid, infra->base.name);
+      }
+   }
 
    //
    // check if categories or classes are waiting for us ?
@@ -580,10 +597,7 @@ static void
    // possibly get or create universe..
 
    if( ! mulle_objc_loadclass_is_sane( info))
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( universe);
-   }
+      mulle_objc_universe_fail_code( universe, EINVAL);
 
    missingclassid = _mulle_objc_loadclass_enqueue( info, loads, universe);
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
@@ -1186,10 +1200,7 @@ static void
    mulle_objc_classid_t   missingclassid;
 
    if( ! mulle_objc_loadcategory_is_sane( info))
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( universe);
-   }
+      mulle_objc_universe_fail_code( universe, EINVAL);
 
    missingclassid = _mulle_objc_loadcategory_enqueue( info, loads, universe);
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
@@ -1767,10 +1778,7 @@ char   *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
    char  *s;
 
    if( ! info)
-   {
-      errno = EINVAL;
-      mulle_objc_universe_fail_errno( NULL);
-   }
+      mulle_objc_universe_fail_code( NULL, EINVAL);
 
    s = NULL;
    if( info->loadclasslist && info->loadclasslist->n_loadclasses)

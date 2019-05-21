@@ -42,11 +42,14 @@
 #include "mulle-objc-objectheader.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-metaclass.h"
+#include "mulle-objc-load.h"
+#include "mulle-objc-uniqueid.h"
 #include "mulle-objc-uniqueidarray.h"
 #include "mulle-objc-walktypes.h"
 #include "include.h"
 
 struct _mulle_objc_protocollist;
+struct _mulle_objc_loadclass;
 
 
 #define _MULLE_OBJC_CLASSPAIR_PADDING     (0x10 - ((sizeof( struct _mulle_objc_infraclass) + sizeof( struct _mulle_objc_objectheader)) & 0xF))
@@ -63,6 +66,7 @@ struct _mulle_objc_classpair
    unsigned char                             _padding[ _MULLE_OBJC_CLASSPAIR_PADDING];
    struct _mulle_objc_objectheader           metaclassheader;
    struct _mulle_objc_metaclass              metaclass;
+   struct _mulle_objc_loadclass              *loadclass;
 
    // common stuff
    struct mulle_concurrent_pointerarray      protocolclasses;
@@ -70,7 +74,6 @@ struct _mulle_objc_classpair
    union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
    uint32_t                                  classindex;       // set when added
-   char                                      *origin;          // a start of shared info
    double                                    *_classextra[ 1]; // will not exist if classextra is 0
 };
 
@@ -126,18 +129,26 @@ static inline struct _mulle_objc_metaclass   *
    return( pair ? _mulle_objc_classpair_get_metaclass( pair) : NULL);
 }
 
-static inline void
-   _mulle_objc_classpair_set_origin( struct _mulle_objc_classpair *pair,
-                                     char *name)
+
+static inline struct _mulle_objc_loadclass  *
+   _mulle_objc_classpair_get_loadclass( struct _mulle_objc_classpair *pair)
 {
-   pair->origin = name;  // not copied gotta be a constant string
+   return( pair->loadclass);
+}
+
+
+static inline void
+   _mulle_objc_classpair_set_loadclass( struct _mulle_objc_classpair *pair, 
+                                        struct _mulle_objc_loadclass *loadclass)
+{
+   pair->loadclass = loadclass;
 }
 
 
 static inline char   *
    _mulle_objc_classpair_get_origin( struct _mulle_objc_classpair *pair)
 {
-   return( pair->origin);
+   return( pair->loadclass ? pair->loadclass->origin : 0);
 }
 
 
