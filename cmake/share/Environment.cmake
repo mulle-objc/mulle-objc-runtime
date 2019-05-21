@@ -33,7 +33,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    set( TMP_CMAKE_FRAMEWORK_PATH)
 
    ###
-   ### If you build DEBUG buildorder, but want RELEASE interspersed, so that
+   ### If you build DEBUG craftorder, but want RELEASE interspersed, so that
    ### the debugger doesn't trace through too much fluff then set the
    ### FALLBACK_BUILD_TYPE (for lack of a better name)
    ###
@@ -185,7 +185,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # Parallel build support. run all "participating" projects once for
    # HEADERS_PHASE in parallel.
    # Now run all "participating" projects for COMPILE_PHASE in parallel.
-   # Finally run all participating and non-participating projects in buildorder
+   # Finally run all participating and non-participating projects in craftorder
    # serially together with the LINK_PHASE. What is tricky is that the
    # sequential projects may need to run first.
    #

@@ -1,4 +1,6 @@
 
+autoconf;optional
+autoreconf;optional
 awk
 base64
 basename

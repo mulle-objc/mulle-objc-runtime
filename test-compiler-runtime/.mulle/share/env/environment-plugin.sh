@@ -37,4 +37,4 @@ export ADDICTION_DIR="${MULLE_VIRTUAL_ROOT}/addiction"
 #
 # Use common build directory
 #
-export BUILD_DIR="${MULLE_VIRTUAL_ROOT}/build"
+export KITCHEN_DIR="${MULLE_VIRTUAL_ROOT}/kitchen"

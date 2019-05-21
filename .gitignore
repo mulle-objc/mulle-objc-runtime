@@ -2,6 +2,7 @@
 ._.DS_Store
 .idea/
 build/
+kitchen/
 var/
 tmp/
 build*.d/
@@ -47,6 +48,7 @@ stash/
 
 # build stuff is boring too
 build/
+kitchen/
 dependency/
 addiction/
 *.tmp/
