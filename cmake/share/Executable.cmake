@@ -56,9 +56,20 @@ if( LINK_PHASE)
    include( ExecutableAux OPTIONAL)
 
    #
+   # Now if the local project also produces a startup add_library
+   # add this to dependencies (mulle-objc-runtime)
+   # This should be harmless, even if there is no real dependency.
+   #
+   if( STARTUP_SOURCES AND DEFINED STARTUP_LIBRARY_NAME)
+      add_dependencies( "${EXECUTABLE_NAME}"
+         "${STARTUP_LIBRARY_NAME}"
+      )
+   endif()
+
+   #
    # fall back if EXECUTABLE_LIBRARY_LIST is not set by ALL_LOAD
    #
-   if( NOT EXECUTABLE_LIBRARY_LIST)
+   if( NOT DEFINED EXECUTABLE_LIBRARY_LIST)
       if( ALL_LOAD_DEPENDENCY_LIBRARIES)
          message( FATAL_ERROR "ALL_LOAD_DEPENDENCY_LIBRARIES \
 \"${ALL_LOAD_DEPENDENCY_LIBRARIES}\" are not linked to ${EXECUTABLE_NAME}.
