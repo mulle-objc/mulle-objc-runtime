@@ -1,3 +1,7 @@
+### 0.15.2
+
+* messed up the version number in 0.15.1
+
 ### 0.15.1
 
 * improved find_library code for mulle-atexit
