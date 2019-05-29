@@ -149,6 +149,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    )
 
 
+   message( STATUS "CMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH}\"" )
    message( STATUS "CMAKE_INCLUDE_PATH=\"${CMAKE_INCLUDE_PATH}\"" )
    message( STATUS "CMAKE_LIBRARY_PATH=\"${CMAKE_LIBRARY_PATH}\"" )
    message( STATUS "CMAKE_FRAMEWORK_PATH=\"${CMAKE_FRAMEWORK_PATH}\"" )
@@ -217,7 +218,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    #
    if( NOT MULLE_NO_CMAKE_INSTALL_RPATH)
       if( APPLE)
-         set( CMAKE_INSTALL_RPATH "@rpath/../lib")
+         set( CMAKE_INSTALL_RPATH "@rpath/../lib/")
       else()
          set( CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
       endif()

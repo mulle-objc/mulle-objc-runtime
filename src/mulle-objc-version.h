@@ -47,7 +47,7 @@
 // Change the values below also to match. 
 // Don't forget to edit mulle-objc-jit.inc too.
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (15 << 8) | 0)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (15 << 8) | 1)
 
 //
 // these three values are read by the compiler(!)

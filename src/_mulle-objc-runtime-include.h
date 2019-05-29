@@ -14,7 +14,4 @@
 // library: remove with `mark no-header`, rename with `set include`
 # include <mulle-vararg/mulle-vararg.h>   // mulle-vararg
 
-// library: remove with `mark no-header`, rename with `set include`
-# include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
-
 #endif

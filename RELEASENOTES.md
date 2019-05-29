@@ -1,3 +1,8 @@
+### 0.15.1
+
+* improved find_library code for mulle-atexit
+* fix RPATH for executables on OS X
+
 ## 0.15.0
 
 * avoid setting errno during messages
