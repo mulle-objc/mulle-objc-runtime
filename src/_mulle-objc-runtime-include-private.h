@@ -11,6 +11,9 @@
 # include <mulle-stacktrace/mulle-stacktrace.h>   // mulle-stacktrace
 
 // library: remove with `mark no-header`, rename with `set include`
+# include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
+
+// library: remove with `mark no-header`, rename with `set include`
 # if defined( _WIN32)
 # ifdef __has_include
 #  if __has_include(<dlfcn.h>)

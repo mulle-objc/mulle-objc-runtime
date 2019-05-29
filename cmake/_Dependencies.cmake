@@ -197,7 +197,7 @@ if( NOT MULLE_STACKTRACE_LIBRARY)
 endif()
 
 
-# sourcetree: MULLE_ATEXIT;;
+# sourcetree: MULLE_ATEXIT;no-all-load,no-import,no-public,no-singlephase;
 if( NOT MULLE_ATEXIT_LIBRARY)
    find_library( MULLE_ATEXIT_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-atexit NO_CMAKE_SYSTEM_PATH)
    message( STATUS "MULLE_ATEXIT_LIBRARY is ${MULLE_ATEXIT_LIBRARY}")
@@ -209,8 +209,8 @@ if( NOT MULLE_ATEXIT_LIBRARY)
       # Add to MULLE_ATEXIT_LIBRARY list.
       # Disable with: `mark no-cmakeadd`
       #
-      set( ALL_LOAD_DEPENDENCY_LIBRARIES
-         ${ALL_LOAD_DEPENDENCY_LIBRARIES}
+      set( DEPENDENCY_LIBRARIES
+         ${DEPENDENCY_LIBRARIES}
          ${MULLE_ATEXIT_LIBRARY}
          CACHE INTERNAL "need to cache this"
       )
@@ -255,23 +255,6 @@ if( NOT MULLE_ATEXIT_LIBRARY)
             message( STATUS "${_TMP_MULLE_ATEXIT_DIR}/DependenciesAndLibraries.cmake not found")
          endif()
       endforeach()
-      #
-      # Search for "objc-loader.inc" in include directory.
-      # Disable with: `mark no-cmakeloader`
-      #
-      if( NOT NO_INHERIT_OBJC_LOADERS)
-         foreach( _TMP_MULLE_ATEXIT_NAME "mulle-atexit")
-            set( _TMP_MULLE_ATEXIT_FILE "${_TMP_MULLE_ATEXIT_ROOT}/include/${_TMP_MULLE_ATEXIT_NAME}/MulleObjCLoader+${_TMP_MULLE_ATEXIT_NAME}.h")
-            if( EXISTS "${_TMP_MULLE_ATEXIT_FILE}")
-               set( INHERITED_OBJC_LOADERS
-                  ${INHERITED_OBJC_LOADERS}
-                  ${_TMP_MULLE_ATEXIT_FILE}
-                  CACHE INTERNAL "need to cache this"
-               )
-               break()
-            endif()
-         endforeach()
-      endif()
    else()
       message( FATAL_ERROR "MULLE_ATEXIT_LIBRARY was not found")
    endif()
