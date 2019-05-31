@@ -218,7 +218,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    #
    if( NOT MULLE_NO_CMAKE_INSTALL_RPATH)
       if( APPLE)
-         set( CMAKE_INSTALL_RPATH "@rpath/../lib/")
+         set( CMAKE_INSTALL_RPATH "@loader_path/../lib/")
       else()
          set( CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
       endif()

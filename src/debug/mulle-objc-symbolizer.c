@@ -445,6 +445,8 @@ int   mulle_objc_symbolizer_snprint( struct mulle_objc_symbolizer *p,
 
    imp  = _mulle_objc_method_get_implementation( q->method);
    diff = (intptr_t) address - (intptr_t) imp;
+   if( diff < 0)
+      diff = -diff;
    if( diff > max)
       return( 0);
 

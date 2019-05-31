@@ -23,7 +23,7 @@ then
    MULLE_HOSTNAME="`PATH=/bin:/usr/bin:/sbin:/usr/sbin hostname -s`"
    if [ "${MULLE_HOSTNAME:0:1}" = '.' ]
    then
-      MULLE_HOSTNAME="_walitza"
+      MULLE_HOSTNAME="_terodde"
    fi
    export MULLE_HOSTNAME
 fi
