@@ -1,3 +1,4 @@
+mulle-testallocator;tar;no-import,no-singlephase,only-os-darwin;00B7D42C-64ED-4EF1-8DC7-C37319972608;${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TESTALLOCATOR_BRANCH:-latest}.tar.gz};;;;
 mulle-objc-runtime;tar;no-all-load,no-import,no-singlephase;4FCCC9EB-BBC4-44EE-ABA8-B124B5D6E658;${MULLE_OBJC_RUNTIME_URL:-https://github.com/mulle-objc/mulle-objc-runtime/archive/${MULLE_OBJC_RUNTIME_BRANCH:-latest}.tar.gz};;;;
 mulle-objc-runtime-startup;none;no-build,no-cmakeinherit,no-delete,no-fs,no-import,no-share,no-update,only-startup;f7422f8c-9def-4b76-93e3-01046c7874e5;;;;;
-mulle-testallocator;tar;no-import,no-singlephase;00B7D42C-64ED-4EF1-8DC7-C37319972608;${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TESTALLOCATOR_BRANCH:-latest}.tar.gz};;;;
+mulle-testallocator#1;tar;no-import,no-os-darwin,no-singlephase,no-static-link;8f2ff2e4-6fd5-4c21-a686-1e2650200ab8;${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TESTALLOCATOR_BRANCH:-latest}.tar.gz};;;;

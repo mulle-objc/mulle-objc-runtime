@@ -797,24 +797,52 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                                                void *obj,
                                                size_t extra)
 {
-   fprintf( stderr, "[==] allocated \"%s\" (%08x) instance %p",
+   fprintf( stderr, "[==] %p instance %p allocated (\"%s\" (%08x)) ",
+                     _mulle_objc_object_get_objectheader( obj),
+                     obj,
                      _mulle_objc_class_get_name( cls),
-                     _mulle_objc_class_get_classid( cls),
-                     obj);
+                     _mulle_objc_class_get_classid( cls));
    if( extra)
       fprintf( stderr, " (+%ld)", extra);
    fputc( '\n', stderr);
 }
 
 
-void   _mulle_objc_object_trace_free( void *obj)
+// we don't have a mulle-objc-object.c so here
+static void   _mulle_objc_object_trace_operation( void *obj, char *operation)
 {
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   fprintf( stderr, "[==] free \"%s\" (%08x) instance %p\n",
+   fprintf( stderr, "[==] %p instance %p %s (\"%s\" (%08x))\n",
+                     _mulle_objc_object_get_objectheader( obj),
+                     obj,
+                     operation,
                      _mulle_objc_class_get_name( cls),
-                     _mulle_objc_class_get_classid( cls),
-                     obj);
+                     _mulle_objc_class_get_classid( cls));
+}
+
+
+void   _mulle_objc_object_trace_free( void *obj)
+{
+   _mulle_objc_object_trace_operation( obj, "freed");
+}
+
+
+void   _mulle_objc_object_trace_release( void *obj)
+{
+   _mulle_objc_object_trace_operation( obj, "released");
+}
+
+
+void   _mulle_objc_object_trace_retain( void *obj)
+{
+   _mulle_objc_object_trace_operation( obj, "retained");
+}
+
+
+void   _mulle_objc_object_trace_autorelease( void *obj)
+{
+   _mulle_objc_object_trace_operation( obj, "autoreleased");
 }
 

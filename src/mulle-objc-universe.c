@@ -731,6 +731,7 @@ void
    if( ! did_it)
    {
       did_it = 1;
+
       if( mulle_atexit( mulle_objc_global_atexit))
          mulle_objc_universe_fail_perror( universe, "atexit:");
       if( universe->debug.trace.universe)

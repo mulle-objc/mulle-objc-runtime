@@ -183,7 +183,9 @@ static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infracl
       }
       last = property->propertyid;
 
-      if( property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear))
+      // it seems clearing readonly is incompatible, though it might be
+      // backed by an ivar so don't do it
+      if( ! (property->bits & _mulle_objc_property_readonly) && (property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear)))
       {
          _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY);
          break;
