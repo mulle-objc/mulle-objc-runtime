@@ -13,7 +13,9 @@
 
 + (void) load
 {
-    printf( "Foo( C3)\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "Foo( C3)");
 }
 
 @end

@@ -7,6 +7,8 @@
 
 + (void) load
 {
-    printf( "Root\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "Root");
 }
 @end

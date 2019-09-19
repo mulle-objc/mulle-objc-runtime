@@ -7,6 +7,8 @@
 
 + (void) load
 {
-    printf( "Foo3\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "Foo3");
 }
 @end

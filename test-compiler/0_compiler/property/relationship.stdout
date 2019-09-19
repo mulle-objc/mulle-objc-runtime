@@ -1,0 +1,12 @@
+-[Bar willReadRelationship:]
+a: 1
+-[Bar willReadRelationship:]
+a: 2
+-[Bar willReadRelationship:]
+a: 3
+-[Bar willReadRelationship:]
+b: 1
+-[Bar willReadRelationship:]
+b: 2
+-[Bar willReadRelationship:]
+b: 3
