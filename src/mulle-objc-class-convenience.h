@@ -55,10 +55,10 @@ static inline void *
                                                   size_t extra,
                                                   struct mulle_allocator *allocator)
 {
-   struct _mulle_objc_objectheader  *header;
-   struct _mulle_objc_object        *obj;
-   struct _mulle_objc_class         *cls;
-   size_t                           size;
+   struct _mulle_objc_objectheader   *header;
+   struct _mulle_objc_object         *obj;
+   struct _mulle_objc_class          *cls;
+   size_t                            size;
 
    size = _mulle_objc_infraclass_get_allocationsize( infra) + extra;
    // if extra < 0, then overflow would happen undetected
@@ -75,9 +75,13 @@ static inline void *
       extern void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                                                             void *obj,
                                                             size_t extra);
+      extern void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *cls,
+                                                                  void *obj);
       struct _mulle_objc_universe   *universe;
 
       universe = _mulle_objc_class_get_universe( cls);
+      if( _mulle_objc_universe_is_deinitializing( universe))
+         _mulle_objc_class_warn_alloc_during_finalize( cls, obj);
       if( universe->debug.trace.instance)
          _mulle_objc_class_trace_alloc_instance( cls, obj, extra);
    }

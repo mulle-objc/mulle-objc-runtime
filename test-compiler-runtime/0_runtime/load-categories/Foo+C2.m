@@ -10,7 +10,9 @@
 
 + (void) load
 {
-    printf( "Foo( C2)\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "Foo( C2)");
 }
 
 + (struct _mulle_objc_dependency *) dependencies

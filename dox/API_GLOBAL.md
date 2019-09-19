@@ -100,26 +100,26 @@ Compute the **protocolid** from ASCII string `s`. Will return
 ## Thread Functions
 
 If your thread wants to acces the mulle-runtime (except the thread you
-initialized the runtime with), you must call `mulle_objc_register_current_thread`
-first. You should periodically call `mulle_objc_checkin_current_thread` to
+initialized the runtime with), you must call `mulle_objc_thread_register`
+first. You should periodically call `mulle_objc_thread_checkin` to
 progress the internal  garbage collection of the runtime. At the end of the
-thread you must call `mulle_objc_unregister_current_thread`.
+thread you must call `mulle_objc_thread_deregister`.
 
 
-### `mulle_objc_register_current_thread`
+### `mulle_objc_thread_register`
 
 ```
-void   mulle_objc_register_current_thread( mulle_objc_universeid_t universeid)
+void   mulle_objc_thread_register( mulle_objc_universeid_t universeid)
 ```
 
 Register the current thread in the global runtime. If you are using multiple
 runtimes, check the source code for more details.
 
 
-### `mulle_objc_unregister_current_thread`
+### `mulle_objc_thread_deregister`
 
 ```
-void   mulle_objc_unregister_current_thread( mulle_objc_universeid_t universeid)
+void   mulle_objc_thread_deregister( mulle_objc_universeid_t universeid)
 ```
 
 Unregister the current thread from the global runtime. Do not access the
@@ -128,10 +128,10 @@ runtime or any of its classes or objects afterwards.
 
 
 
-### `mulle_objc_checkin_current_thread`
+### `mulle_objc_thread_checkin`
 
 ```
-void   mulle_objc_checkin_current_thread( mulle_objc_universeid_t universeid)
+void   mulle_objc_thread_checkin( mulle_objc_universeid_t universeid)
 ```
 
 Check in the current thread. Failing to do this often enough can result in

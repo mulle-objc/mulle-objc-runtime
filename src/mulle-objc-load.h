@@ -66,7 +66,7 @@ struct _mulle_objc_dependency
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   15
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   16
 
 
 // future idea: specify more than one universe
@@ -170,7 +170,7 @@ struct _mulle_objc_loadhashedstringlist
 };
 
 
-   
+
 
 int  mulle_objc_loadhashedstring_is_sane( struct _mulle_objc_loadhashedstring *p);
 
@@ -284,7 +284,9 @@ struct _mulle_objc_loadinfo
 //
 // use this if the compiler was able to sort all protocol_uniqueids
 // all method lists referenced by load_categories and loadclasses by
-// their methodid
+// their methodid. Anything passed to `mulle_objc_loadinfo_enqueue_nofail`
+// must reside in permanent memory and not be freed until the universe
+// is destructed.
 //
 void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info);
 

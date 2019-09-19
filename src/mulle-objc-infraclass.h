@@ -55,7 +55,8 @@ enum _mulle_objc_infraclass_state
    MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY = _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY,
    MULLE_OBJC_INFRACLASS_WARN_PROTOCOL          = _MULLE_OBJC_CLASS_WARN_PROTOCOL,
    MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS       = _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS,
-   MULLE_OBJC_INFRACLASS_INITIALIZE_DONE        = MULLE_OBJC_CLASS_INITIALIZE_DONE
+   MULLE_OBJC_INFRACLASS_INITIALIZE_DONE        = MULLE_OBJC_CLASS_INITIALIZE_DONE,
+   MULLE_OBJC_INFRACLASS_FINALIZE_DONE          = MULLE_OBJC_CLASS_FINALIZE_DONE
 };
 
 
@@ -70,7 +71,9 @@ struct _mulle_objc_infraclass
    struct mulle_concurrent_pointerarray      ivarlists;
    struct mulle_concurrent_pointerarray      propertylists;
 
+#if 0
    struct mulle_concurrent_hashmap           cvars;
+#endif
    union _mulle_objc_atomicobjectpointer_t   placeholder;
    union _mulle_objc_atomicobjectpointer_t   singleton;
 
@@ -333,6 +336,7 @@ static inline int
 {
    if( ! value)
       return( 1);
+   assert( value <= 0x7);
    return( _mulle_atomic_pointer_cas( &infra->taggedpointerindex,
                                       (void *) (uintptr_t) value,
                                       NULL));
@@ -357,7 +361,10 @@ static inline void
 static inline int
    _mulle_objc_infraclass_is_taggedpointerclass( struct _mulle_objc_infraclass *infra)
 {
-   return( _mulle_atomic_pointer_read( &infra->taggedpointerindex) != 0);
+   intptr_t   index;
+
+   index = (intptr_t) _mulle_atomic_pointer_read( &infra->taggedpointerindex);
+   return( index != 0);
 }
 
 
@@ -366,6 +373,8 @@ static inline int
 int   mulle_objc_infraclass_is_sane( struct _mulle_objc_infraclass *infra);
 
 
+
+#if 0
 
 # pragma mark - class variables
 
@@ -398,6 +407,7 @@ static inline struct mulle_concurrent_hashmapenumerator
    return( mulle_concurrent_hashmap_enumerate( &infra->cvars));
 }
 
+#endif
 
 
 # pragma mark - properties
@@ -467,6 +477,9 @@ mulle_objc_walkcommand_t
 
 int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra);
 
+// check is same, but also emits warnings
+int    mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *infra);
+
 // hairy code for the compat layer
 static inline void
   __mulle_objc_infraclass_set_instancesize( struct _mulle_objc_infraclass *infra,
@@ -476,8 +489,10 @@ static inline void
 }
 
 
-void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra);
-void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra);
 void   _mulle_objc_infraclass_call_categories_unload( struct _mulle_objc_infraclass *infra);
+void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra);
+void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infra);
+void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra);
+void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *infra);
 
 #endif /* mulle_objc_infraclass_h */

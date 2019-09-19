@@ -7,6 +7,9 @@
 
 + (void) load
 {
-    printf( "Base\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "Base");
 }
+
 @end

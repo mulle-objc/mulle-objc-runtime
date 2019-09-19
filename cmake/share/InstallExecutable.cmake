@@ -11,6 +11,9 @@ if( LINK_PHASE)
    include( PreInstallExecutable OPTIONAL)
 
    install( TARGETS ${INSTALL_EXECUTABLE_TARGETS} DESTINATION "bin")
+   foreach( TMP_NAME ${INSTALL_EXECUTABLE_TARGETS})
+      install( FILES ${INSTALL_${TMP_NAME}_RESOURCES} DESTINATION "share/${TMP_NAME}")
+   endforeach()
 
    include( PostInstallExecutable OPTIONAL)
 

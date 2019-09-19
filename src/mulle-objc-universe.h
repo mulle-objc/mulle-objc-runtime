@@ -869,7 +869,7 @@ static inline void   mulle_objc_invalidate_classcaches( mulle_objc_universeid_t 
 
 # pragma mark - garbage collection
 
-static inline void   mulle_objc_register_current_thread( mulle_objc_universeid_t universeid)
+static inline void   mulle_objc_thread_register( mulle_objc_universeid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -878,7 +878,7 @@ static inline void   mulle_objc_register_current_thread( mulle_objc_universeid_t
 }
 
 
-static inline void   mulle_objc_unregister_current_thread( mulle_objc_universeid_t universeid)
+static inline void   mulle_objc_thread_deregister( mulle_objc_universeid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -887,7 +887,7 @@ static inline void   mulle_objc_unregister_current_thread( mulle_objc_universeid
 }
 
 
-static inline void   mulle_objc_checkin_current_thread( mulle_objc_universeid_t universeid)
+static inline void   mulle_objc_thread_checkin( mulle_objc_universeid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 

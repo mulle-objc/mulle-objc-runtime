@@ -49,9 +49,9 @@
 
 //
 // MEMO: during messaging operation (i.e. -[foo bar] ) the runtime must not set "errno"
-//       this could happen, if malloc sets errno even on success. It's 
+//       this could happen, if malloc sets errno even on success. It's
 //       assumed mulle_malloc shields us from that on misbehaving platforms.
-//       The same should hold true for class lookups like +[NSArray array] 
+//       The same should hold true for class lookups like +[NSArray array]
 
 static void   *_mulle_objc_object_call_class_nocache( void *obj,
                                                       mulle_objc_methodid_t methodid,
@@ -586,30 +586,58 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
                                     void *parameter,
                                     mulle_objc_implementation_t imp)
 {
-   struct _mulle_objc_descriptor   *desc;
-   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_descriptor        *desc;
+   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_class             *isa;
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_searchresult      result;
+   unsigned int                         inheritance;
+   char                                 *name;
 
-   universe = _mulle_objc_class_get_universe( cls);
-   desc    = _mulle_objc_universe_lookup_descriptor( universe, methodid);
 
    // [::] is just there to grep it
-   if( desc)
-      fprintf( stderr, "[::] %c[%s %s] @%p %s (%p, %x, %p))\n",
-            _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-            _mulle_objc_class_get_name( _mulle_objc_object_get_isa_universe( obj, universe)),
-            desc->name,
-            imp,
-            _mulle_objc_class_get_name( cls),
-            obj,
-            methodid,
-            parameter);
+   fprintf( stderr, "[::] %c[",
+            _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
+
+
+   // What is basically wrong here is, that we should be searching for the
+   // class that implements the method, not the called class
+   // This is fairly expensive though...
+   //
+
+   inheritance = _mulle_objc_class_get_inheritance( cls);
+   _mulle_objc_searcharguments_impinit( &search, imp);
+   method = mulle_objc_class_search_method( cls,
+                                            &search,
+                                            inheritance,
+                                            &result);
+
+   if( method)
+   {
+      fprintf( stderr, "%s", _mulle_objc_class_get_name( result.class));
+      name = mulle_objc_methodlist_get_categoryname( result.list);
+      if( name)
+         fprintf( stderr, "(%s)", name);
+      fprintf( stderr, " %s]", _mulle_objc_method_get_name( method));
+   }
    else
-      fprintf( stderr, "[::] %c[%s #%08x] @%p %s (%p, %x, %p)\n",
-            _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-            _mulle_objc_class_get_name( _mulle_objc_object_get_isa_universe( obj, universe)),
-            methodid,
+   {
+      // fallback in case...
+      fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
+      universe = _mulle_objc_class_get_universe( cls);
+      desc     = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+      if( desc)
+         fprintf( stderr, " %s]", desc->name);
+      else
+         fprintf( stderr, " #%08x]", methodid);
+   }
+
+   universe = _mulle_objc_class_get_universe( cls);
+   isa      =  _mulle_objc_object_get_isa_universe( obj, universe);
+   fprintf( stderr, " @%p %s (%p, %x, %p)\n",
             imp,
-            _mulle_objc_class_get_name( cls),
+            _mulle_objc_class_get_name( isa),
             obj,
             methodid,
             parameter);
@@ -624,9 +652,9 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 //
 MULLE_C_NEVER_INLINE static void *
    _mulle_objc_object_call_class_nofail( void *obj,
-                                            mulle_objc_methodid_t methodid,
-                                            void *parameter,
-                                            struct  _mulle_objc_class *cls)
+                                         mulle_objc_methodid_t methodid,
+                                         void *parameter,
+                                         struct  _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t   imp;
    struct _mulle_objc_universe  *universe;
@@ -1135,7 +1163,7 @@ static void
 
    // grab code from superclass
    // this is useful for MulleObjCSingleton
-   initialize = mulle_objc_class_defaultsearch_method( &meta->base, 
+   initialize = mulle_objc_class_defaultsearch_method( &meta->base,
                                                        MULLE_OBJC_INITIALIZE_METHODID);
    if( initialize)
    {
@@ -1147,10 +1175,10 @@ static void
       imp   = _mulle_objc_method_get_implementation( initialize);
       if( universe->debug.trace.method_call)
          mulle_objc_class_trace_call( &infra->base,
-                                             MULLE_OBJC_INITIALIZE_METHODID,
-                                             infra,
-                                             NULL,
-                                             imp);
+                                      MULLE_OBJC_INITIALIZE_METHODID,
+                                      infra,
+                                      NULL,
+                                      imp);
       (*imp)( (struct _mulle_objc_object *) infra,
               MULLE_OBJC_INITIALIZE_METHODID,
               NULL);

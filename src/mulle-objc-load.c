@@ -302,7 +302,7 @@ static struct _mulle_objc_dependency
    if( ! imp)
       return( no_dependency);
 
-   if( universe->debug.trace.load_call)
+   if( universe->debug.trace.dependency)
       loadclass_trace( info, universe, "call +[%s dependencies]", info->classname);
 
     dependencies = (*imp)( NULL, MULLE_OBJC_DEPENDENCIES_METHODID, NULL);
@@ -335,10 +335,12 @@ static struct _mulle_objc_dependency
    superclass    = NULL;
    *p_superclass = NULL;
 
+#if 0
    if( universe->debug.trace.dependency)
       loadclass_trace( info, universe, "dependency check superclass %08x \"%s\" ...",
                        info->superclassid,
                        info->superclassname);
+#endif
 
    if( info->superclassid)
    {
@@ -388,12 +390,12 @@ static struct _mulle_objc_dependency
          // avoid duplication and waiting for seld
          if( *classid_p == info->superclassid || *classid_p == info->classid)
             continue;
-
+#if 0
          if( universe->debug.trace.dependency)
             loadclass_trace( info, universe, "dependency check protocolclass %08x \"%s\" ...",
                              *classid_p,
                              _mulle_objc_universe_describe_classid( universe, *classid_p));
-
+#endif
          protocolclass = _mulle_objc_universe_lookup_infraclass( universe, *classid_p);
          if( ! protocolclass)
          {
@@ -454,9 +456,9 @@ static int  mulle_objc_loadclass_is_sane( struct _mulle_objc_loadclass *info)
       return( 0);
 
    // class method lists should have no owner
-   if( info->classmethods && info->classmethods->owner)
+   if( info->classmethods && info->classmethods->loadcategory)
       return( 0);
-   if( info->instancemethods && info->instancemethods->owner)
+   if( info->instancemethods && info->instancemethods->loadcategory)
       return( 0);
 
    return( 1);
@@ -557,7 +559,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
          mulle_objc_universe_fail_generic( universe,
                "error in mulle_objc_universe %p: "
                "superclass %08x \"%s\" of class %08x \"%s\" does not exist.\n",
-                universe, 
+                universe,
                 superclass->base.classid, superclass->base.name,
                 infra->base.classid, infra->base.name);
 
@@ -909,7 +911,7 @@ static struct _mulle_objc_dependency
       return( no_dependency);
 
    universe = _mulle_objc_infraclass_get_universe( infra);
-   if( universe->debug.trace.load_call)
+   if( universe->debug.trace.dependency)
       loadcategory_trace( info, universe, "call +[%s(%s) dependencies]",
               info->classname,
               info->categoryname);
@@ -942,9 +944,10 @@ static struct _mulle_objc_dependency
    assert( universe);
    assert( p_class);
 
+#if 0
    if( universe->debug.trace.dependency)
       loadcategory_trace( info, universe, "dependency check ...");
-
+#endif
    // check class
    infra    = _mulle_objc_universe_lookup_infraclass( universe, info->classid);
    *p_class = infra;
@@ -1145,13 +1148,13 @@ static mulle_objc_classid_t
    // the loader sets the categoryid as owner
    if( info->instancemethods && info->instancemethods->n_methods)
    {
-      info->instancemethods->owner = (void *) (uintptr_t) info->categoryid;
+      info->instancemethods->loadcategory = info;
       if( mulle_objc_class_add_methodlist( &infra->base, info->instancemethods))
          mulle_objc_universe_fail_errno( universe);
    }
    if( info->classmethods && info->classmethods->n_methods)
    {
-      info->classmethods->owner = (void *) (uintptr_t) info->categoryid;
+      info->classmethods->loadcategory = info;
       if( mulle_objc_class_add_methodlist( &meta->base, info->classmethods))
          mulle_objc_universe_fail_errno( universe);
    }
@@ -1507,8 +1510,14 @@ static void   mulle_objc_loadhashedstringlist_enqueue_nofail( struct _mulle_objc
                                                               struct _mulle_objc_universe   *universe,
                                                               int need_sort)
 {
-   if( ! map)
+   if( ! map || ! map->n_loadentries)
+   {
+      if( universe->debug.trace.hashstrings)
+         mulle_objc_universe_trace( universe,
+                                    "empty hashstrings %p",
+                                    map);
       return;
+   }
 
    if( need_sort)
       mulle_objc_loadhashedstringlist_sort( map);
@@ -1607,7 +1616,7 @@ static void   call_load( struct _mulle_objc_metaclass *meta,
 {
    struct _mulle_objc_infraclass   *infra;
 
-   if( universe->debug.trace.load_call)
+   if( universe->debug.trace.initialize)
      mulle_objc_universe_trace( universe,
                                 "%08x \"%s\" call +[%s load]",
                                 _mulle_objc_metaclass_get_classid( meta),
@@ -1791,9 +1800,11 @@ char   *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
 
 
 //
-// this is function called per .o file
+// this is the function called per .o file
+// it's calle indirectly via mulle_atinit on participating platforms
+// (those that use ELF)
 //
-void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
+static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
 {
    struct _mulle_objc_universe             *universe;
    int                                     need_sort;
@@ -1971,3 +1982,22 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
       mulle_objc_universe_trace( universe, "finished with loadinfo %p", info);
 }
 
+
+//
+// Use of mulle_atinit:
+//
+// What we would like to have is a scenario, where libraries like
+// mulle-testallocator can be transparently placed "underneath" the runtime.
+// For that the initializer of the library has to run before the runtime
+// gets initialized. The runtime gets initialized during class-loading though.
+// That's usually not a problem, but because ELF can not really give any
+// guarantees, this is an endless source of problems.
+//
+// So we delay all incoming class loads from shared libraries and run them
+// when the executable initializers, which run last. This scheme doesn't work
+// if you link the mulle_testallocator statically and in the wrong order.
+//
+void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
+{
+   mulle_atinit( (void (*)( void *))_mulle_objc_loadinfo_enqueue_nofail, info, 0);
+}

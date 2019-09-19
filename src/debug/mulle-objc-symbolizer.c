@@ -71,24 +71,16 @@ static int   mmc_snprint( struct mmc  *p,
    char                      *s;
 
    // it's not a category ?
-   if( ! p->list->owner)
+   if( ! mulle_objc_methodlist_get_categoryid( p->list))
       return( snprintf( buf, len, "%c[%s %s]",
                                   _mulle_objc_class_is_metaclass( p->class) ? '+' : '-',
                                   _mulle_objc_class_get_name( p->class),
                                   _mulle_objc_method_get_name( p->method)));
 
-   categoryid = (mulle_objc_categoryid_t) (uintptr_t) p->list->owner;
-   s          = _mulle_objc_universe_search_hashstring( universe, categoryid);
-   if( ! s)
-   {
-      sprintf( tmp, "%08x", categoryid);
-      s = tmp;
-   }
-
    return( snprintf( buf, len, "%c[%s( %s) %s]",
                                _mulle_objc_class_is_metaclass( p->class) ? '+' : '-',
                                _mulle_objc_class_get_name( p->class),
-                               s,
+                               _mulle_objc_methodlist_get_categoryname( p->list),
                                _mulle_objc_method_get_name( p->method)));
 }
 
@@ -283,11 +275,9 @@ void   mmcarray_csvdump( struct mmcarray *array,
       fprintf( fp, "%08x", _mulle_objc_class_get_classid( p->class));
       fprintf( fp, ";%s", _mulle_objc_class_get_name( p->class));
 
-      categoryid = (int) (intptr_t) p->list->owner;
+      categoryid = mulle_objc_methodlist_get_categoryid( p->list);
       fprintf( fp, ";%08x", categoryid);
-      s = NULL;
-      if( categoryid)
-         s = _mulle_objc_universe_search_hashstring( universe, categoryid);
+      s = mulle_objc_methodlist_get_categoryname( p->list);
       fprintf( fp, ";%s", s ? s : "");
 
       if( mmc_snprint( p, universe, buf, sizeof( buf)) < 0)
@@ -311,7 +301,7 @@ static void   mmc_print( struct mmc  *p,
    char                      *s;
 
    // it's not a category ?
-   if( ! p->list->owner)
+   if( ! p->list->loadcategory)
    {
       fprintf( fp, "%c[%s %s]", _mulle_objc_class_is_metaclass( p->class) ? '+' : '-',
                                   _mulle_objc_class_get_name( p->class),
@@ -319,7 +309,7 @@ static void   mmc_print( struct mmc  *p,
       return;
    }
 
-   categoryid = (mulle_objc_categoryid_t) (uintptr_t) p->list->owner;
+   categoryid = (mulle_objc_categoryid_t) (uintptr_t) p->list->loadcategory;
    s          = _mulle_objc_universe_search_hashstring( universe, categoryid);
    if( ! s)
    {

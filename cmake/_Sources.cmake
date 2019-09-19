@@ -58,10 +58,6 @@ set( STANDALONE_SOURCES
 src/mulle-objc-runtime-standalone.c
 )
 
-set( STARTUP_SOURCES
-src/mulle-objc-runtime-startup.c
-)
-
 set( UNIQUEID_SOURCES
 src/mulle-objc-uniqueid/main.c
 )

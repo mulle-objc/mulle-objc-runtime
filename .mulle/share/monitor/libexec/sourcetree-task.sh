@@ -31,8 +31,10 @@
 #
 
 #
-# overwrite inherited task and add mulle-mulle-sourcetree-to-c
-# it would be nice to inherit this properly instead of clobbering it
+# Overwrite inherited task and add mulle-mulle-sourcetree-to-c.
+# It would be nice to inherit this properly instead of clobbering it.
+# Also mulle-sourcetree-to-c doesn't really require cmake to exist, this
+# is another bug.
 #
 sourcetree_task_run()
 {
@@ -40,6 +42,21 @@ sourcetree_task_run()
 
    log_info "Updating ${C_MAGENTA}${C_BOLD}${PROJECT_NAME}${C_INFO} sourcetree"
 
-   exekutor mulle-sourcetree-to-cmake ${MULLE_SOURCETREE_TO_CMAKE_FLAGS} "$@" &&
-   exekutor mulle-sourcetree-to-c ${MULLE_SOURCETREE_TO_C_FLAGS} "$@"
+   case "${MULLE_SOURCETREE_TO_CMAKE_RUN}" in
+      NO|DISABLE*|OFF)
+      ;;
+
+      *)
+         exekutor mulle-sourcetree-to-cmake ${MULLE_SOURCETREE_TO_CMAKE_FLAGS} "$@"  || return $?
+      ;;
+   esac
+
+   case "${MULLE_SOURCETREE_TO_C_RUN}" in
+      NO|DISABLE*|OFF)
+      ;;
+
+      *)
+         exekutor mulle-sourcetree-to-c ${MULLE_SOURCETREE_TO_C_FLAGS} "$@" || return $?
+      ;;
+   esac
 }

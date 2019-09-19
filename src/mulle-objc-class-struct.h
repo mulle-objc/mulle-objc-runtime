@@ -100,6 +100,7 @@ enum _mulle_objc_class_state
    _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        = 0x0200,
    _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  = 0x0400,
    _MULLE_OBJC_CLASS_LOAD_SCHEDULED          = 0x0800,
+   MULLE_OBJC_CLASS_FINALIZE_DONE            = 0x2000,  // no _, can be used on its own
    MULLE_OBJC_CLASS_INITIALIZING             = 0x4000,  // no _, can be used on its own
    MULLE_OBJC_CLASS_INITIALIZE_DONE          = 0x8000,  // no _, can be used on its own
 
@@ -114,7 +115,9 @@ enum _mulle_objc_class_state
 
 //
 // this is a fairly hefty struct, and the universe needs two for each class
-// assume that each new class costs you 1K
+// assume that each new class costs you 1K.
+// A classpair on 64 bit is (0.15):  928  bytes without methodlists and cache
+// The fastmethods table is responsible for 384 bytes.
 //
 struct _mulle_objc_class
 {

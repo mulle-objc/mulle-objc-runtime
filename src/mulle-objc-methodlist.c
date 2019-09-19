@@ -84,13 +84,37 @@ struct _mulle_objc_method  *_mulle_objc_methodlist_linear_search( struct _mulle_
 
    while( p < sentinel)
    {
-      if( p->descriptor.methodid == methodid)
+      if( _mulle_objc_method_get_methodid( p) == methodid)
          return( p);
       ++p;
    }
 
    return( 0);
 }
+
+
+struct _mulle_objc_method  *_mulle_objc_methodlist_linear_impsearch( struct _mulle_objc_methodlist *list,
+                                                                     mulle_objc_implementation_t imp)
+{
+   struct _mulle_objc_method   *sentinel;
+   struct _mulle_objc_method   *p;
+
+   assert( list);
+   assert( imp);
+
+   p        = &list->methods[ 0];
+   sentinel = &p[ list->n_methods];
+
+   while( p < sentinel)
+   {
+      if( _mulle_objc_method_get_implementation( p) == imp)
+         return( p);
+      ++p;
+   }
+
+   return( 0);
+}
+
 
 
 void   mulle_objc_methodlist_sort( struct _mulle_objc_methodlist *list)
@@ -139,3 +163,23 @@ void
       mulle_objc_universe_fail_errno( _mulle_objc_metaclass_get_universe( meta));
 }
 
+
+
+mulle_objc_categoryid_t
+   _mulle_objc_methodlist_get_categoryid( struct _mulle_objc_methodlist *list)
+{
+   struct _mulle_objc_loadcategory   *category;
+
+   category = list->loadcategory;
+   return( category ? category->categoryid : MULLE_OBJC_NO_CATEGORYID);
+}
+
+
+char *
+   _mulle_objc_methodlist_get_categoryname( struct _mulle_objc_methodlist *list)
+{
+   struct _mulle_objc_loadcategory   *category;
+
+   category = list->loadcategory;
+   return( category ? category->categoryname : NULL);
+}

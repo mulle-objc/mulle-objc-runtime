@@ -61,11 +61,14 @@ struct _mulle_objc_loadclass;
 //
 struct _mulle_objc_classpair
 {
+   // >>> dont' add anything >>>
    struct _mulle_objc_objectheader           infraclassheader;
    struct _mulle_objc_infraclass             infraclass;
    unsigned char                             _padding[ _MULLE_OBJC_CLASSPAIR_PADDING];
    struct _mulle_objc_objectheader           metaclassheader;
    struct _mulle_objc_metaclass              metaclass;
+   // <<< dont' add anything <<<
+
    struct _mulle_objc_loadclass              *loadclass;
 
    // common stuff
@@ -138,7 +141,7 @@ static inline struct _mulle_objc_loadclass  *
 
 
 static inline void
-   _mulle_objc_classpair_set_loadclass( struct _mulle_objc_classpair *pair, 
+   _mulle_objc_classpair_set_loadclass( struct _mulle_objc_classpair *pair,
                                         struct _mulle_objc_loadclass *loadclass)
 {
    pair->loadclass = loadclass;

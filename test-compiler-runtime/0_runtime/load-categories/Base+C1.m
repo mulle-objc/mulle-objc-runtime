@@ -13,7 +13,9 @@
 
 + (void) load
 {
-    printf( "Base( C1)\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "Base( C1)");
 }
 
 

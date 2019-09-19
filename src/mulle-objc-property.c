@@ -57,7 +57,7 @@ char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *p
 }
 
 
-// nice to travese signature for multiple types, ignoring others
+// nice to traverse signature for multiple types, ignoring others
 char   *_mulle_objc_propertysignature_next_types( char *s, char *types)
 {
    int    c;

@@ -106,13 +106,19 @@ static void   test_overridden( id obj,
    _mulle_objc_searcharguments_overriddeninit( &args, methodsel, classsel, categorysel);
    before = args;
    method = mulle_objc_class_search_method( &infraclass->base, &args, infraclass->base.inheritance, NULL);
-   imp    = _mulle_objc_method_get_implementation( method);
+   if( ! method)
+      abort();
+
+   imp = _mulle_objc_method_get_implementation( method);
    (*imp)( obj, methodsel, obj);
 
    assert( ! memcmp( &args, &before, sizeof( args)));
 
    method = mulle_objc_class_search_method( &metaclass->base, &args, metaclass->base.inheritance, NULL);
-   imp    = _mulle_objc_method_get_implementation( method);
+   if( ! method)
+      abort();
+
+   imp = _mulle_objc_method_get_implementation( method);
    (*imp)( obj, methodsel, obj);
 }
 

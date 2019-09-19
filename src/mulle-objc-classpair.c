@@ -452,7 +452,7 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
       // variables or some-such, we warn and ignore, since the compiler can
       // not discern this for sure.
       //
-      if( ! mulle_objc_infraclass_is_protocolclass( proto_cls))
+      if( ! mulle_objc_infraclass_check_protocolclass( proto_cls))
          continue;
 
       if( _mulle_objc_classpair_has_protocolclass( pair, proto_cls))

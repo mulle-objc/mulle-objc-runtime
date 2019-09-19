@@ -62,18 +62,15 @@ static void
   mulle_objc_searchresult_csvdump_to_fp( struct _mulle_objc_searchresult  *result,
                                          FILE *fp)
 {
-   mulle_objc_categoryid_t          categoryid;
-   struct _mulle_objc_universe      *universe;
-   char                             *classname;
-   char                             *categoryname;
+   mulle_objc_categoryid_t   categoryid;
+   char                      *classname;
+   char                      *categoryname;
 
-   universe = _mulle_objc_class_get_universe( result->class);
-
-   categoryid = (mulle_objc_categoryid_t) (intptr_t) result->list->owner;
    classname  = _mulle_objc_class_get_name( result->class);
+   categoryid = mulle_objc_methodlist_get_categoryid( result->list);
    if( categoryid)
    {
-      categoryname = _mulle_objc_universe_describe_categoryid( universe, categoryid);
+      categoryname = mulle_objc_methodlist_get_categoryname( result->list);
       fprintf( fp, "%08x;%s;%08x;%s;",
               _mulle_objc_class_get_classid( result->class),
               classname,

@@ -826,16 +826,8 @@ char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list
    ++i;
 
 
-   if( universe)
-   {
-      asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%s</TD></TR>",
-                           _mulle_objc_universe_describe_categoryid( universe,
-                                                                      (mulle_objc_categoryid_t) (uintptr_t) list->owner));
-   }
-   else
-   {
-      asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%p</TD></TR>", list->owner);
-   }
+   asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%s</TD></TR>",
+                        _mulle_objc_methodlist_get_categoryname( list));
    len += strlen( tmp[ i]);
    ++i;
 

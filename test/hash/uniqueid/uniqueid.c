@@ -13,7 +13,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 
-int main(int argc, const char * argv[])
+int   main( int argc, const char * argv[])
 {
    mulle_objc_methodid_t   uniqueid;
 

@@ -5,7 +5,6 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 include( AllLoadC)
-include( StartupC)
 include( StandaloneC)
 
 include( LibraryAuxC OPTIONAL)

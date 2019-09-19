@@ -10,7 +10,9 @@
 
 + (void) load
 {
-    printf( "Base( C2)\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "Base( C2)");
 }
 
 @end

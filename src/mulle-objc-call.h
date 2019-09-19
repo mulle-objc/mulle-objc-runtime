@@ -301,6 +301,10 @@ MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN mulle_objc_implementation_t
 # pragma mark - API Calls
 
 // compiler uses this for -O0, -Os, it does no fast calls
+// TODO: 1. rename to mulle_objc_object_standardcall
+//       2. create mulle_objc_object_call, that uses any of the three call
+//          types based on optimization level
+//
 void   *mulle_objc_object_call( void *obj,
                                 mulle_objc_methodid_t methodid,
                                 void *parameter);

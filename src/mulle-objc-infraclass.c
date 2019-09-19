@@ -57,8 +57,9 @@ void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
    _mulle_concurrent_pointerarray_init( &infra->ivarlists, 0, allocator);
    _mulle_concurrent_pointerarray_init( &infra->propertylists, 0, allocator);
 
+#if 0
    _mulle_concurrent_hashmap_init( &infra->cvars, 0, allocator);
-
+#endif
    universe          = _mulle_objc_infraclass_get_universe( infra);
    objectallocator   = _mulle_objc_universe_get_foundationallocator( universe);
    infra->allocator  = objectallocator->calloc
@@ -69,9 +70,10 @@ void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
 
 void    _mulle_objc_infraclass_plusdone( struct _mulle_objc_infraclass *infra)
 {
+#if 0
    // this is done earlier now
    _mulle_concurrent_hashmap_done( &infra->cvars);
-
+#endif
    _mulle_concurrent_pointerarray_done( &infra->ivarlists);
 
    // initially room for 2 categories with properties
@@ -254,7 +256,6 @@ int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
    // only add empty list, if there is nothing there yet
    if( ! list)
    {
-
       if( _mulle_concurrent_pointerarray_get_count( &infra->ivarlists) != 0)
          return( 0);
 
@@ -391,6 +392,7 @@ mulle_objc_walkcommand_t
    //  ->[1]    : category
    //  ->[n -1] : last category
 
+loop:
    n = mulle_concurrent_pointerarray_get_count( &infra->propertylists);
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
       n = 1;
@@ -406,7 +408,10 @@ mulle_objc_walkcommand_t
    {
       superclass = _mulle_objc_infraclass_get_superclass( infra);
       if( superclass && superclass != infra)
-         return( _mulle_objc_infraclass_walk_properties( superclass, inheritance, f, userinfo));
+      {
+         infra = superclass;
+         goto loop;  // avoid recursion stack in this simple case
+      }
    }
 
    return( mulle_objc_walk_ok);
@@ -517,7 +522,8 @@ mulle_objc_walkcommand_t
 // must not conform to other protocols (it's tempting to conform to NSObject)
 // If you conform to NSObject, NSObject methods will override your superclass(!)
 //
-int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
+static int   _mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra,
+                                                      int warn)
 {
    struct _mulle_objc_universe         *universe;
    struct _mulle_objc_classpair       *pair;
@@ -526,38 +532,35 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    int                                has_categories;
    unsigned int                       inheritance;
 
-   if( ! infra)
-      return( 0);
-
    universe = _mulle_objc_infraclass_get_universe( infra);
 
    if( _mulle_objc_infraclass_get_superclass( infra))
    {
-      if( universe->debug.warn.protocolclass)
+      if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
             fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol of same name, but it is "
                              "not a root class %s",
-                    universe,
-                    _mulle_objc_infraclass_get_name( infra),
-                    footer);
+                        universe,
+                        _mulle_objc_infraclass_get_name( infra),
+                        footer);
       }
       return( 0);
    }
 
    if( infra->base.allocationsize > sizeof( struct _mulle_objc_objectheader))
    {
-      if( universe->debug.warn.protocolclass)
+      if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol of the same name"
-                 ", but implements instance variables %s",
-                   universe,
-                    _mulle_objc_infraclass_get_name( infra),
-                   footer);
-      }
-      return( 0);
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
+                             "matches a protocol of the same name, but "
+                             "implements instance variables %s",
+                        universe,
+                        _mulle_objc_infraclass_get_name( infra),
+                        footer);
+      }           return( 0);
    }
 
    pair = _mulle_objc_infraclass_get_classpair( infra);
@@ -565,26 +568,29 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    if( ! _mulle_objc_classpair_conformsto_protocolid( pair,
                                                      _mulle_objc_infraclass_get_classid( infra)))
    {
-      if( universe->debug.warn.protocolclass)
+      if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol but does not conform to it %s",
-                    universe,
-                    _mulle_objc_infraclass_get_name( infra),
-                    footer);
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
+                             "matches a protocol but does not conform to it %s",
+                        universe,
+                        _mulle_objc_infraclass_get_name( infra),
+                        footer);
       }
       return( 0);
    }
 
    if( _mulle_objc_classpair_get_protocolclasscount( pair))
    {
-      if( universe->debug.warn.protocolclass)
+      if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" matches a protocol but also inherits from other protocolclasses %s",
-                    universe,
-                    _mulle_objc_infraclass_get_name( infra),
-                    footer);
+            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
+                             "matches a protocol but also inherits from other "
+                             "protocolclasses %s",
+                        universe,
+                        _mulle_objc_infraclass_get_name( infra),
+                        footer);
       }
       return( 0);
    }
@@ -606,19 +612,22 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
       has_categories = array->n != 0;
       if( has_categories)
       {
-         if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
+         if( warn)
          {
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" conforms "
-                    "to a protocol but has gained some categories, which "
-                    "will be ignored.\n",
-                    universe,
-                    _mulle_objc_infraclass_get_name( infra));
+            if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
+            {
+               fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" conforms "
+                       "to a protocol but has gained some categories, which "
+                       "will be ignored.\n",
+                       universe,
+                       _mulle_objc_infraclass_get_name( infra));
 
-            fprintf( stderr, "Categories:\n");
-            _mulle_objc_classpair_walk_categoryids( pair,
-                                                    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS,
-                                                    print_categoryid,
-                                                    NULL);
+               fprintf( stderr, "Categories:\n");
+               _mulle_objc_classpair_walk_categoryids( pair,
+                                                       MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS,
+                                                       print_categoryid,
+                                                       NULL);
+            }
          }
       }
    }
@@ -626,6 +635,29 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
    return( 1);
 }
 
+
+int   mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_universe   *universe;
+
+   if( ! infra)
+      return( 0);
+
+   universe = _mulle_objc_infraclass_get_universe( infra);
+   return( _mulle_objc_infraclass_is_protocolclass( infra, 0));
+}
+
+
+int   mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_universe   *universe;
+
+   if( ! infra)
+      return( 0);
+
+   universe = _mulle_objc_infraclass_get_universe( infra);
+   return( _mulle_objc_infraclass_is_protocolclass( infra, universe->debug.warn.protocolclass));
+}
 
 
 static struct _mulle_objc_method  *
@@ -648,21 +680,52 @@ static struct _mulle_objc_method  *
 
 static void   _mulle_objc_infraclass_call_unloadmethod( struct _mulle_objc_infraclass *infra,
                                                         struct _mulle_objc_method *method,
-                                                        char *name)
+                                                        char *name,
+                                                        char *categoryname)
 {
    struct _mulle_objc_universe     *universe;
    mulle_objc_implementation_t     imp;
 
    universe = _mulle_objc_infraclass_get_universe( infra);
    if( universe->debug.trace.initialize)
+   {
       mulle_objc_universe_trace( universe,
-                                 "call +%s on class #%ld %s",
+                                 "call +%s on class #%ld %s%s%s%s",
                                  name,
                                  _mulle_objc_classpair_get_classindex( _mulle_objc_infraclass_get_classpair( infra)),
-                                 _mulle_objc_infraclass_get_name( infra));
+                                 _mulle_objc_infraclass_get_name( infra),
+                                 categoryname ? "( " : "",
+                                 categoryname ? categoryname : "",
+                                 categoryname ? ")" : "");
+   }
 
    imp = _mulle_objc_method_get_implementation( method);
    (*imp)( infra, _mulle_objc_method_get_methodid( method), infra);
+}
+
+
+void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_method     *method;
+
+   method = _mulle_objc_infraclass_search_method_noinherit( infra,
+                                                            MULLE_OBJC_WILLFINALIZE_METHODID);
+   if( method)
+      _mulle_objc_infraclass_call_unloadmethod( infra, method, "willFinalize", NULL);
+}
+
+
+void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_method     *method;
+
+   method = _mulle_objc_infraclass_search_method_noinherit( infra,
+                                                            MULLE_OBJC_FINALIZE_METHODID);
+   if( method)
+      _mulle_objc_infraclass_call_unloadmethod( infra, method, "finalize", NULL);
+   _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_FINALIZE_DONE);
 }
 
 
@@ -679,7 +742,7 @@ void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *
    if( ! method)
       return;
 
-   _mulle_objc_infraclass_call_unloadmethod( infra, method, "deinitialize");
+   _mulle_objc_infraclass_call_unloadmethod( infra, method, "deinitialize", NULL);
 }
 
 
@@ -692,6 +755,7 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
    int                                  inheritance;
    struct _mulle_objc_searcharguments   search;
    mulle_objc_implementation_t          imp;
+   struct _mulle_objc_searchresult      result;
 
    meta = _mulle_objc_infraclass_get_metaclass( infra);
    cls  = _mulle_objc_metaclass_as_class( meta);
@@ -703,11 +767,11 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
    _mulle_objc_searcharguments_defaultinit( &search, MULLE_OBJC_UNLOAD_METHODID);
    for(;;)
    {
-      method = mulle_objc_class_search_method( cls, &search, inheritance, NULL);
+      method = mulle_objc_class_search_method( cls, &search, inheritance, &result);
       if( ! method)
          break;
 
-      _mulle_objc_infraclass_call_unloadmethod( infra, method, "unload");
+      _mulle_objc_infraclass_call_unloadmethod( infra, method, "unload", _mulle_objc_methodlist_get_categoryname( result.list));
       _mulle_objc_searcharguments_previousmethodinit( &search, method);
    }
 }

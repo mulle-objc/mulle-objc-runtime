@@ -45,19 +45,25 @@
 
 # pragma mark - compiler support
 
+//
+// use partial inline calls, to reduce code size
+// for accessors, calls.
+// TODO: code a generic mulle_objc_object_call function that uses various
+//       callers dependening on optimization setting
+//
 static inline void   *mulle_objc_object_call_copy( void *self)
 {
-   return( mulle_objc_object_inlinecall( self,
-                                         MULLE_OBJC_COPY_METHODID,
-                                         self));
+   return( mulle_objc_object_partialinlinecall( self,
+                                                MULLE_OBJC_COPY_METHODID,
+                                                self));
 }
 
 
 static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 {
-   return( mulle_objc_object_inlinecall( self,
-                                         MULLE_OBJC_MUTABLECOPY_METHODID,
-                                         self));
+   return( mulle_objc_object_partialinlinecall( self,
+                                                MULLE_OBJC_MUTABLECOPY_METHODID,
+                                                self));
 }
 
 
@@ -66,14 +72,47 @@ static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 //
 static inline void   *mulle_objc_object_call_autorelease( void *self)
 {
-   return( mulle_objc_object_inlinecall( self,
-                                         MULLE_OBJC_AUTORELEASE_METHODID,
-                                         self));
+   return( mulle_objc_object_partialinlinecall( self,
+                                                MULLE_OBJC_AUTORELEASE_METHODID,
+                                                self));
+}
+
+
+static inline void   mulle_objc_object_call_willchange( void *self)
+{
+   mulle_objc_object_partialinlinecall( self,
+                                        MULLE_OBJC_WILLCHANGE_METHODID,
+                                        self);
+}
+
+
+static inline void   *mulle_objc_object_call_willreadrelationship( void *self, void *value)
+{
+   return( mulle_objc_object_partialinlinecall( self,
+                                                MULLE_OBJC_WILLREADRELATIONSHIP_METHODID,
+                                                value));
+}
+
+
+static inline void   mulle_objc_object_call_addobject( void *self, void *value)
+{
+   mulle_objc_object_partialinlinecall( self,
+                                        MULLE_OBJC_ADDOBJECT_METHODID,
+                                        value);
+}
+
+
+static inline void   mulle_objc_object_call_removeobject( void *self, void *value)
+{
+   mulle_objc_object_partialinlinecall( self,
+                                        MULLE_OBJC_REMOVEOBJECT_METHODID,
+                                        value);
 }
 
 
 //
 // this is called by the compiler for retain or copy of objects only
+// TODO: conceivably move this out of the runtime
 //
 static inline void
    mulle_objc_object_set_property_value( void *self,
@@ -83,13 +122,12 @@ static inline void
                                          char is_atomic,
                                          char is_copy)
 {
-   void  **ivar;
+   void  **p_ivar;
    void  *old;
 
    if( ! self)
       return;
 
-   ivar = (void **) &((char *) self)[ offset];
    if( is_copy)
    {
       if( is_copy == 2)  // da apple way
@@ -100,15 +138,16 @@ static inline void
    else
       mulle_objc_object_retain( value);
 
+   p_ivar = (void **) &((char *) self)[ offset];
    if( is_atomic)
    {
-      old = _mulle_atomic_pointer_set( (mulle_atomic_pointer_t *) ivar, value);
+      old = _mulle_atomic_pointer_set( (mulle_atomic_pointer_t *) p_ivar, value);
       mulle_objc_object_call_autorelease( old);
    }
    else
    {
-      mulle_objc_object_call_autorelease( *ivar);
-      *ivar = value;
+      mulle_objc_object_call_autorelease( *p_ivar);
+      *p_ivar = value;
    }
 }
 
@@ -119,15 +158,54 @@ static inline void   *
                                          ptrdiff_t offset,
                                          char is_atomic)
 {
-   void  **ivar;
+   void  **p_ivar;
 
    if( ! self)
       return( NULL);
 
-   ivar = (void **) &((char *) self)[ offset];
+   p_ivar = (void **) &((char *) self)[ offset];
    if( is_atomic)
-      return( _mulle_atomic_pointer_read( (mulle_atomic_pointer_t *) ivar));
-   return( *ivar);
+      return( _mulle_atomic_pointer_read( (mulle_atomic_pointer_t *) p_ivar));
+   return( *p_ivar);
 }
+
+
+static inline void   mulle_objc_object_add_to_container( void *self,
+                                                         ptrdiff_t offset,
+                                                         void *value)
+{
+   void   **p_ivar;
+
+   p_ivar = (void **) &((char *) self)[ offset];
+   mulle_objc_object_call_addobject( *p_ivar, value);
+}
+
+
+static inline void   mulle_objc_object_remove_from_container( void *self,
+                                                              ptrdiff_t offset,
+                                                              void *value)
+{
+   void   **p_ivar;
+
+   p_ivar = (void **) &((char *) self)[ offset];
+   mulle_objc_object_call_removeobject( *p_ivar, value);
+}
+
+
+static inline void   mulle_objc_object_will_change( void *self)
+{
+   mulle_objc_object_call_willchange( self);
+}
+
+
+static inline void   mulle_objc_object_will_read_relationship( void *self,
+                                                               ptrdiff_t offset)
+{
+   void   **p_ivar;
+
+   p_ivar  = (void **) &((char *) self)[ offset];
+   *p_ivar = mulle_objc_object_call_willreadrelationship( self, *p_ivar);
+}
+
 
 #endif
