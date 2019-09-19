@@ -539,7 +539,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             style       = methodlisttable_style;
-            style.title = _mulle_objc_universe_describe_categoryid( universe, (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
+            style.title = _mulle_objc_methodlist_get_categoryname( methodlist);
             label       = mulle_objc_methodlist_describe_hor_html( methodlist, &style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -559,7 +559,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
          while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
          {
             style       = methodlisttable_style;
-            style.title = _mulle_objc_universe_describe_categoryid( universe, (mulle_objc_categoryid_t) (uintptr_t) methodlist->owner);
+            style.title = _mulle_objc_methodlist_get_categoryname( methodlist);
             label       = mulle_objc_methodlist_describe_hor_html( methodlist, &style);
             fprintf( fp, "%s\n", label);
             mulle_allocator_free( &mulle_stdlib_allocator, label);
@@ -703,7 +703,7 @@ void
    mulle_objc_classpair_htmldump_to_directory( struct _mulle_objc_classpair *pair,
                                                char *directory)
 {
-   struct dump_info               info;
+   struct dump_info   info;
 
    c_set_init( &info.set);
    info.directory = directory;

@@ -58,6 +58,9 @@ enum
    _mulle_objc_property_class             = 0x00200,  // unused
    _mulle_objc_property_dynamic           = 0x00400,
    _mulle_objc_property_nonserializable   = 0x00800,
+   _mulle_objc_property_container         = 0x01000,
+   _mulle_objc_property_relationship      = 0x02000,
+   _mulle_objc_property_observable        = 0x04000,
 
    _mulle_objc_property_setterclear       = 0x10000,  // setter clear
    _mulle_objc_property_autoreleaseclear  = 0x20000   // autorelease clear
@@ -74,6 +77,8 @@ struct _mulle_objc_property
    char                       *signature;  // hmmm...
    mulle_objc_methodid_t      getter;
    mulle_objc_methodid_t      setter;
+   mulle_objc_methodid_t      adder;
+   mulle_objc_methodid_t      remover;
    uint32_t                   bits;        // for pointers/objects
 };
 
@@ -114,6 +119,18 @@ static inline mulle_objc_methodid_t    _mulle_objc_property_get_getter( struct _
 static inline mulle_objc_methodid_t    _mulle_objc_property_get_setter( struct _mulle_objc_property *property)
 {
    return( property->setter);
+}
+
+
+static inline mulle_objc_methodid_t    _mulle_objc_property_get_adder( struct _mulle_objc_property *property)
+{
+   return( property->adder);
+}
+
+
+static inline mulle_objc_methodid_t    _mulle_objc_property_get_remover( struct _mulle_objc_property *property)
+{
+   return( property->remover);
 }
 
 
@@ -184,6 +201,19 @@ static inline mulle_objc_methodid_t    mulle_objc_property_get_setter( struct _m
 {
    return( property ? _mulle_objc_property_get_setter( property) : MULLE_OBJC_NO_METHODID);
 }
+
+
+static inline mulle_objc_methodid_t    mulle_objc_property_get_adder( struct _mulle_objc_property *property)
+{
+   return( property ? _mulle_objc_property_get_adder( property) : MULLE_OBJC_NO_METHODID);
+}
+
+
+static inline mulle_objc_methodid_t    mulle_objc_property_get_remover( struct _mulle_objc_property *property)
+{
+   return( property ? _mulle_objc_property_get_remover( property) : MULLE_OBJC_NO_METHODID);
+}
+
 
 static inline uint32_t    mulle_objc_property_get_bits( struct _mulle_objc_property *property)
 {

@@ -52,7 +52,7 @@ struct _mulle_objc_kvcinfo  *_mulle_objc_kvcinfo_new( char *cKey,
 
    len   = strlen( cKey); // cKey is dimension [1], so no + 1 here
    entry = mulle_allocator_calloc( allocator, 1, len + sizeof( struct _mulle_objc_kvcinfo));
-   entry->valueType = _C_ID;
+   memset( entry->valueType, _C_ID, 4);
    memcpy( entry->cKey, cKey, len);
    return( entry);
 }

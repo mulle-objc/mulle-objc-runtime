@@ -56,36 +56,32 @@ if( LINK_PHASE)
    include( ExecutableAux OPTIONAL)
 
    #
-   # Now if the local project also produces a startup add_library
-   # add this to dependencies (mulle-objc-runtime)
-   # This should be harmless, even if there is no real dependency.
-   #
-   if( STARTUP_SOURCES AND DEFINED STARTUP_LIBRARY_NAME)
-      add_dependencies( "${EXECUTABLE_NAME}"
-         "${STARTUP_LIBRARY_NAME}"
-      )
-   endif()
-
-   #
    # fall back if EXECUTABLE_LIBRARY_LIST is not set by ALL_LOAD
    #
    if( NOT DEFINED EXECUTABLE_LIBRARY_LIST)
       if( ALL_LOAD_DEPENDENCY_LIBRARIES)
          message( FATAL_ERROR "ALL_LOAD_DEPENDENCY_LIBRARIES \
 \"${ALL_LOAD_DEPENDENCY_LIBRARIES}\" are not linked to ${EXECUTABLE_NAME}.
-If these are C libraries, be sure, that they are marked as \"no-all-load\" in
-the sourcetree and inherited sourcetrees.
+If these are regular C libraries, be sure, that they are marked as
+\"no-all-load\" in the sourcetree and inherited sourcetrees.
 
   mulle-sde dependency unmark <name> all-load
 ")
+      endif()
+
+      if( STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES)
+         message( FATAL_ERROR "STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES \
+\"${STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES}\" are not linked to ${EXECUTABLE_NAME}.
+STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES is an Objective-C feature, but this
+project is seemingly not setup for Objective-C.")
 
       endif()
 
       set( EXECUTABLE_LIBRARY_LIST
          ${DEPENDENCY_LIBRARIES}
          ${OPTIONAL_DEPENDENCY_LIBRARIES}
+         ${STARTUP_DEPENDENCY_LIBRARIES}
          ${OS_SPECIFIC_LIBRARIES}
-         ${STARTUP_LIBRARY}
       )
    endif()
 

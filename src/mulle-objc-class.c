@@ -792,6 +792,21 @@ mulle_objc_walkcommand_t
 }
 
 
+MULLE_C_NEVER_INLINE
+void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *cls,
+                                                     void *obj)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = _mulle_objc_class_get_universe( cls);
+   mulle_objc_universe_trace( universe, "An instance %p of \"%s\" has been created "
+                                        "during universe finalization. "
+                                        "Try to avoid this.\n"
+                                        "(break on: _mulle_objc_class_warn_alloc_during_finalize)",
+                                     obj,
+                                     _mulle_objc_class_get_name( cls));
+}
+
 
 void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                                                void *obj,
@@ -809,7 +824,7 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
 
 
 // we don't have a mulle-objc-object.c so here
-static void   _mulle_objc_object_trace_operation( void *obj, char *operation)
+void   _mulle_objc_object_trace_operation( void *obj, char *operation)
 {
    struct _mulle_objc_class   *cls;
 

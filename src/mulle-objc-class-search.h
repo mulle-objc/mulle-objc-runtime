@@ -54,7 +54,6 @@ struct _mulle_objc_method  *
    _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                            mulle_objc_methodid_t methodid,
                                            int *error);
-
 static inline struct _mulle_objc_method  *
    mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                           mulle_objc_methodid_t methodid)
@@ -62,17 +61,18 @@ static inline struct _mulle_objc_method  *
    int   error;
 
    return( _mulle_objc_class_defaultsearch_method( cls, methodid, &error));
-}   
+}
 
- 
+
 enum
 {
    MULLE_OBJC_SEARCH_INVALID           = -1,   // used by cache to build entry
    MULLE_OBJC_SEARCH_DEFAULT           = 0,    // not cacheable
-   MULLE_OBJC_SEARCH_SUPER_METHOD      = 1,    // like [super call]
-   MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD = 2,    // find the method overridden by class,category
-   MULLE_OBJC_SEARCH_SPECIFIC_METHOD   = 3,    // find method implemented in class,category
-   MULLE_OBJC_SEARCH_PREVIOUS_METHOD   = 4     // not cacheable
+   MULLE_OBJC_SEARCH_IMP               = 1,    // not cacheable
+   MULLE_OBJC_SEARCH_SUPER_METHOD      = 2,    // like [super call]
+   MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD = 3,    // find the method overridden by class,category
+   MULLE_OBJC_SEARCH_SPECIFIC_METHOD   = 4,    // find method implemented in class,category
+   MULLE_OBJC_SEARCH_PREVIOUS_METHOD   = 5     // not cacheable
 };
 
 
@@ -94,16 +94,18 @@ struct _mulle_objc_searchargumentscachable
          mulle_objc_classid_t    classid;
          mulle_objc_classid_t    categoryid;
       };
-      mulle_atomic_functionpointer_t    pointer;
+      mulle_atomic_functionpointer_t      pointer;
    };
 };
 
 
 //
+// ***NOT USED ATM***
+//
 // this must be as fast as possible, while still
 // maintaning decent diffusion, as this affects call speed
 // This is something the compiler can do for us at compile time!
-// NOT USED ATM.
+//
 static inline uintptr_t
    _mulle_objc_searchargumentscachable_hash( struct _mulle_objc_searchargumentscachable
                                           *args)
@@ -137,7 +139,7 @@ static inline void
    _mulle_objc_searchargumentscacheable_assert( struct _mulle_objc_searchargumentscachable *p)
 {
    assert( p);
-   assert( p->methodid != MULLE_OBJC_NO_METHODID && p->methodid != MULLE_OBJC_INVALID_METHODID);
+   assert( p->mode == MULLE_OBJC_SEARCH_IMP || (p->methodid != MULLE_OBJC_NO_METHODID && p->methodid != MULLE_OBJC_INVALID_METHODID));
    assert( p->mode != MULLE_OBJC_SEARCH_SUPER_METHOD ||
           (p->classid != 0 && p->categoryid == MULLE_OBJC_INVALID_CATEGORYID));
    assert( p->mode != MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD ||
@@ -235,6 +237,7 @@ static inline void
 struct _mulle_objc_searcharguments
 {
    struct _mulle_objc_searchargumentscachable    args;
+   mulle_objc_implementation_t                   imp;
    struct _mulle_objc_method                     *previous_method;    // default 0
 };
 
@@ -252,7 +255,7 @@ static inline void
    _mulle_objc_searchargumentscacheable_assert( &p->args);
 
    assert( p->args.mode >= MULLE_OBJC_SEARCH_DEFAULT && p->args.mode <= MULLE_OBJC_SEARCH_PREVIOUS_METHOD);
-   assert( p->args.mode != MULLE_OBJC_SEARCH_PREVIOUS_METHOD ||
+   assert( p->args.mode != MULLE_OBJC_SEARCH_PREVIOUS_METHOD || p->args.mode != MULLE_OBJC_SEARCH_IMP ||
           (p->previous_method != 0));
 }
 
@@ -263,6 +266,15 @@ static inline void
 {
    p->args.mode     = MULLE_OBJC_SEARCH_DEFAULT;
    p->args.methodid = methodid;
+}
+
+
+static inline void
+   _mulle_objc_searcharguments_impinit( struct _mulle_objc_searcharguments *p,
+                                        mulle_objc_implementation_t imp)
+{
+   p->args.mode = MULLE_OBJC_SEARCH_IMP;
+   p->imp       = imp;
 }
 
 
@@ -328,7 +340,6 @@ struct _mulle_objc_method   *
                                    struct _mulle_objc_searcharguments *search,
                                    unsigned int inheritance,
                                    struct _mulle_objc_searchresult *result);
-
 
 
 # pragma mark - forwarding

@@ -203,7 +203,6 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.instance        = getenv_yes_no( "MULLE_OBJC_TRACE_INSTANCE");
    universe->debug.trace.initialize      = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");
    universe->debug.trace.hashstrings     = getenv_yes_no( "MULLE_OBJC_TRACE_HASHSTRINGS");
-   universe->debug.trace.load_call       = getenv_yes_no( "MULLE_OBJC_TRACE_LOAD_CALL");
    universe->debug.trace.loadinfo        = getenv_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
    universe->debug.trace.method_call     = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALL");  // totally excessive!
@@ -500,11 +499,11 @@ struct _mulle_objc_universe  *
                                           (void *) mulle_objc_universe_is_uninitialized);
 
    // should be gifted (afterwards), if this isn't read only
-   universe->universeid   = universeid;
-   universe->universename = universename;
+   universe->universeid               = universeid;
+   universe->universename             = universename;
    universe->config.no_tagged_pointer = 1;
 
-   universe->debug.trace.universe     = getenv_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
+   universe->debug.trace.universe = getenv_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
    if( universe->debug.trace.universe)
    {
       mulle_objc_universe_trace( universe, "allocated universe %x \"%s\"\n", universeid, universename);
@@ -586,6 +585,9 @@ void  _mulle_objc_universe_assert_runtimeversion( struct _mulle_objc_universe *u
 }
 
 
+static void
+   _mulle_objc_universe_willfinalize( struct _mulle_objc_universe *universe);
+
 //
 // this is done for "global" universe configurations
 // where threads possibly try to create and release
@@ -608,7 +610,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    for(;;)
    {
       actual = __mulle_atomic_pointer_cas( &universe->version,
-                                           (void *) mulle_objc_universe_is_deinitializing,
+                                           (void *) (MULLE_OBJC_RUNTIME_VERSION + 1),
                                            (void *) MULLE_OBJC_RUNTIME_VERSION);
       if( actual == (void *) mulle_objc_universe_is_uninitialized)
       {
@@ -619,9 +621,28 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
                                       (void *) mulle_thread_self());
          return;  // someone else did it
       }
-      if( actual == (void *) MULLE_OBJC_RUNTIME_VERSION)
+      if( actual == (void *) (MULLE_OBJC_RUNTIME_VERSION + 1))
          break;
       mulle_thread_yield();
+   }
+
+   //
+   // there should be no other thread attempting this now
+   // the universe is still in a "happy" state and messaging is going on
+   // uninhibited, but we will notify interested classes and parties that
+   // the universe will go down (e.g. +willFinalize)
+   //
+   _mulle_objc_universe_willfinalize( universe);
+
+   // change to deinitializing...
+   // __mulle_atomic_pointer_cas is weak and allowed to fail
+   for(;;)
+   {
+      actual = __mulle_atomic_pointer_cas( &universe->version,
+                                           (void *) mulle_objc_universe_is_deinitializing,
+                                           (void *) (MULLE_OBJC_RUNTIME_VERSION + 1));
+      if( actual == (void *) mulle_objc_universe_is_deinitializing)
+         break;
    }
 
    // START OF LOCKED
@@ -662,8 +683,6 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
             mulle_objc_universe_trace( universe,
                                        "[%p] unlocked the universe",
                                        (void *) mulle_thread_self());
-
-
          if( callback)
             (*callback)( universe);
 
@@ -872,6 +891,8 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
                                                            struct _mulle_objc_infraclass *infra,
                                                            unsigned int index)
 {
+   assert( index <= 0x7);  // anything over 0x7 is a bug though
+
    if( ! index || index > mulle_objc_get_taggedpointer_mask())
       return( -1);
 
@@ -901,6 +922,18 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
 # pragma mark - dealloc
 
 static void
+   _mulle_objc_universe_willfinalize_friend( struct _mulle_objc_universe *universe,
+                                             struct _mulle_objc_universefriend *pfriend)
+{
+   /* we don't mind if pfriend->friend is NULL */
+   if( ! pfriend->finalizer)
+      return;
+
+   (*pfriend->finalizer)( universe, pfriend->data, mulle_objc_will_finalize);
+}
+
+
+static void
    _mulle_objc_universe_finalize_friend( struct _mulle_objc_universe *universe,
                                          struct _mulle_objc_universefriend *pfriend)
 {
@@ -908,7 +941,7 @@ static void
    if( ! pfriend->finalizer)
       return;
 
-   (*pfriend->finalizer)( universe, pfriend->data);
+   (*pfriend->finalizer)( universe, pfriend->data, mulle_objc_finalize);
 }
 
 
@@ -1088,7 +1121,8 @@ static void
 
 
 static void
-   _mulle_objc_universe_deinitialize_infraclasses( struct _mulle_objc_universe *universe)
+   _mulle_objc_universe_call_infraclasses( struct _mulle_objc_universe *universe,
+                                           void (*f)( struct _mulle_objc_infraclass *))
 {
    unsigned int                    n_classes;
    struct _mulle_objc_infraclass   **array;
@@ -1107,39 +1141,39 @@ static void
    while( p < sentinel)
    {
       infra = *p++;
-      _mulle_objc_infraclass_call_deinitialize( infra);
+      (*f)( infra);
    }
    mulle_allocator_free( allocator, array);
 }
 
 
 static void
+   _mulle_objc_universe_deinitialize_infraclasses( struct _mulle_objc_universe *universe)
+{
+   _mulle_objc_universe_call_infraclasses( universe, _mulle_objc_infraclass_call_deinitialize);
+}
+
+
+static void
+   _mulle_objc_universe_finalize_infraclasses( struct _mulle_objc_universe *universe)
+{
+   _mulle_objc_universe_call_infraclasses( universe, _mulle_objc_infraclass_call_finalize);
+}
+
+
+static void
    _mulle_objc_universe_unload_infraclasses( struct _mulle_objc_universe *universe)
 {
-   unsigned int                    n_classes;
-   struct _mulle_objc_infraclass   **array;
-   struct _mulle_objc_infraclass   **p;
-   struct _mulle_objc_infraclass   **sentinel;
-   struct _mulle_objc_infraclass   *infra;
-   struct mulle_allocator          *allocator;
-
-   allocator = _mulle_objc_universe_get_allocator( universe);
-   array     = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
-   _mulle_objc_universe_reversesort_infraclasses_by_classindex( array, n_classes);
-
-   //
-   // call unload after all deinitializes have run . this will include
-   // categories
-   //
-   p        = array;
-   sentinel = &p[ n_classes];
-   while( p < sentinel)
-   {
-      infra = *p++;
-      _mulle_objc_infraclass_call_unload( infra);
-   }
-   mulle_allocator_free( allocator, array);
+   _mulle_objc_universe_call_infraclasses( universe, _mulle_objc_infraclass_call_unload);
 }
+
+
+static void
+   _mulle_objc_universe_willfinalize_infraclasses( struct _mulle_objc_universe *universe)
+{
+   _mulle_objc_universe_call_infraclasses( universe, _mulle_objc_infraclass_call_willfinalize);
+}
+
 
 
 static void
@@ -1306,6 +1340,26 @@ static int   fake_aba_free( void *aba, void (*free)( void *), void *block)
 }
 
 
+static void
+   _mulle_objc_universe_willfinalize( struct _mulle_objc_universe *universe)
+{
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe willfinalize classes");
+
+   _mulle_objc_universe_willfinalize_infraclasses( universe);
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe willfinalize userinfo");
+   _mulle_objc_universe_willfinalize_friend( universe, &universe->userinfo);
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe willfinalize foundation");
+   // say goodbye to root classes here
+   _mulle_objc_universe_willfinalize_friend( universe, &universe->foundation.universefriend);
+}
+
+
 // this is called by release, when all retainers are gone
 void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
 {
@@ -1320,8 +1374,19 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
       mulle_objc_universe_fail_inconsistency( universe,
          "universe must be deallocated by the same thread that created it (sorry)");
 
+
    // the friends are freed first, and everything is still fairly fine
    // you can still message around
+
+   //
+   // call +finalize on classes (done before the foundation winds down)
+   // What is tricky here, is that the classes are finalized, yet the
+   // autoreleasepool and the thread dictionary may still exist!
+   //
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe finalizes classes");
+   _mulle_objc_universe_finalize_infraclasses( universe);
 
    if( universe->debug.trace.universe)
       mulle_objc_universe_trace( universe, "universe finalizes userinfo");
@@ -1332,6 +1397,10 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
    // say goodbye to root classes here
    _mulle_objc_universe_finalize_friend( universe, &universe->foundation.universefriend);
 
+   //
+   // TODO: wrap above statements up till here into an autoreleasepool ?
+   //
+
    // call +deinitialize on classes
    if( universe->debug.trace.universe)
       mulle_objc_universe_trace( universe,
@@ -1341,7 +1410,7 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
    // call +unload on classes
    if( universe->debug.trace.universe)
       mulle_objc_universe_trace( universe,
-                                 "universe unloads classes");
+                                 "universe unloads classes and categories");
    _mulle_objc_universe_unload_infraclasses( universe);
 
    //
@@ -1485,7 +1554,7 @@ int    _mulle_objc_thread_isregistered_universe_gc( struct _mulle_objc_universe 
 {
    struct _mulle_objc_garbagecollection   *gc;
 
-   assert( _mulle_objc_universe_is_initialized( universe));
+   assert( _mulle_objc_universe_is_messaging( universe));
 
    gc = _mulle_objc_universe_get_gc( universe);
    return( _mulle_aba_is_current_thread_registered( &gc->aba));
@@ -1512,7 +1581,7 @@ void   _mulle_objc_thread_remove_universe_gc( struct _mulle_objc_universe *unive
 {
    struct _mulle_objc_garbagecollection   *gc;
 
-   assert( _mulle_objc_universe_is_initialized( universe));
+   assert( _mulle_objc_universe_is_messaging( universe));
 
    gc = _mulle_objc_universe_get_gc( universe);
    if( _mulle_aba_unregister_current_thread( &gc->aba))
@@ -1524,7 +1593,7 @@ void   _mulle_objc_thread_checkin_universe_gc( struct _mulle_objc_universe *univ
 {
    struct _mulle_objc_garbagecollection   *gc;
 
-   assert( _mulle_objc_universe_is_initialized( universe));
+   assert( _mulle_objc_universe_is_messaging( universe));
 
    gc = _mulle_objc_universe_get_gc( universe);
    if( _mulle_aba_checkin_current_thread( &gc->aba))

@@ -48,14 +48,16 @@
 // 0 : get        1: take
 // 2 : storedGet  3: storedTake
 //
+// Valuetype can be different for get/stored if ivar is
+// declared as short, and method is declared as int
 //
 struct _mulle_objc_kvcinfo
 {
    mulle_objc_implementation_t   implementation[ 4];
-   mulle_objc_methodid_t               methodid[ 4];
-   ptrdiff_t                           offset;
-   char                                valueType;
-   char                                cKey[1];  // flexible
+   mulle_objc_methodid_t         methodid[ 4];
+   ptrdiff_t                     offset;
+   char                          valueType[ 4];
+   char                          cKey[ 1];  // flexible
 };
 
 

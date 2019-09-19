@@ -91,7 +91,10 @@ static inline void   *_mulle_objc_fastmethodtable_invoke( void *obj,
 // 8 basic functions are predefined, it's not that these need
 // to be very speedy, but being fastmethods, they also reduce the generated
 // code-size a lot for the inlineable code and the compiler generated code.
-// retain/release may be a waste of space really
+// On the flipside, many of these will go away in -O3 optimization, wasting
+// space. (e.g. retain/release)
+//
+// TODO: reexamine in real-life usage later on.
 //
 MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
 static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t methodid)

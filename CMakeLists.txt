@@ -61,6 +61,8 @@ if( "${C_COMPILER_NAME}" MATCHES "mulle-cl*")
    target_compile_options( ${STARTUP_NAME} PRIVATE -x objective-c)
 endif()
 
+
+
 set( EXECUTABLE_NAME mulle-objc-uniqueid)
 # only need the hash function (done like this if runtime is built as shared)
 set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES}

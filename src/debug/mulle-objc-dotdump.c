@@ -1029,6 +1029,9 @@ static void   _mulle_objc_universe_dotdump_to_directory( struct _mulle_objc_univ
 void   mulle_objc_universe_dotdump_to_directory( struct _mulle_objc_universe *universe,
                                                  char *directory)
 {
+   if( ! universe || ! directory)
+      return;
+
    _mulle_objc_universe_dotdump_overview_to_directory( universe, directory);
    _mulle_objc_universe_dotdump_to_directory( universe, directory, 0);
    _mulle_objc_universe_dotdump_classes_to_directory( universe, directory);
@@ -1040,7 +1043,7 @@ void   mulle_objc_class_dotdump_to_directory( struct _mulle_objc_class *cls,
 {
    char   *path;
 
-   if( ! cls)
+   if( ! cls || ! directory)
       return;
 
    path = dot_filename_for_name( _mulle_objc_class_get_name( cls), directory);

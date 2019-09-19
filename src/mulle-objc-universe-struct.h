@@ -224,8 +224,15 @@ struct _mulle_objc_garbagecollection
 };
 
 
+enum mulle_objc_finalize_stage
+{
+   mulle_objc_will_finalize,
+   mulle_objc_finalize
+};
+
+
 typedef void   mulle_objc_universefriend_destructor_t( struct _mulle_objc_universe *, void *);
-typedef void   mulle_objc_universefriend_finalizer_t( struct _mulle_objc_universe *, void *);
+typedef void   mulle_objc_universefriend_finalizer_t( struct _mulle_objc_universe *, void *, enum mulle_objc_finalize_stage);
 typedef void   mulle_objc_universefriend_versionassert_t( struct _mulle_objc_universe *,
                                                           void *,
                                                           struct mulle_objc_loadversion *);
@@ -427,12 +434,19 @@ static inline mulle_objc_universeid_t
 }
 
 
+static inline mulle_thread_t
+   _mulle_objc_universe_get_thread( struct _mulle_objc_universe *universe)
+{
+   return( universe->thread);
+}
+
 
 static inline mulle_thread_tss_t
    _mulle_objc_universe_get_threadkey( struct _mulle_objc_universe *universe)
 {
    return( universe->threadkey);
 }
+
 
 // initialized is "ready for user code"
 // this is what you use in __get_or_create should query
@@ -449,6 +463,16 @@ static inline int
 
    version = _mulle_objc_universe_get_version( universe);
    return( version >= 0 || version == mulle_objc_universe_is_deinitializing);
+}
+
+
+static inline int
+   _mulle_objc_universe_is_deinitializing( struct _mulle_objc_universe *universe)
+{
+   int32_t   version;
+
+   version = _mulle_objc_universe_get_version( universe);
+   return( version == mulle_objc_universe_is_deinitializing);
 }
 
 

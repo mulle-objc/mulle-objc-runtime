@@ -45,6 +45,7 @@
 struct _mulle_objc_class;
 struct _mulle_objc_callqueue;
 struct _mulle_objc_metaclass;
+struct _mulle_objc_loadcategory;
 
 //
 // methods have to be sorted by methodid
@@ -52,15 +53,36 @@ struct _mulle_objc_metaclass;
 //
 struct _mulle_objc_methodlist
 {
-   unsigned int                n_methods; // must be #0 and same as struct _mulle_objc_ivarlist
-   void                        *owner;    // it's a void because of compiler
-   struct _mulle_objc_method   methods[ 1];
+   unsigned int                     n_methods;  // must be #0 and same as struct _mulle_objc_ivarlist
+   struct _mulle_objc_loadcategory  *loadcategory;
+   struct _mulle_objc_method        methods[ 1];
 };
 
 
 static inline unsigned int   _mulle_objc_methodlist_get_count( struct _mulle_objc_methodlist *list)
 {
    return( list->n_methods);
+}
+
+
+mulle_objc_categoryid_t
+   _mulle_objc_methodlist_get_categoryid( struct _mulle_objc_methodlist *list);
+
+char *
+   _mulle_objc_methodlist_get_categoryname( struct _mulle_objc_methodlist *list);
+
+
+static inline mulle_objc_categoryid_t
+   mulle_objc_methodlist_get_categoryid( struct _mulle_objc_methodlist *list)
+{
+   return( list ? _mulle_objc_methodlist_get_categoryid( list) : MULLE_OBJC_NO_CATEGORYID);
+}
+
+
+static inline char *
+   mulle_objc_methodlist_get_categoryname( struct _mulle_objc_methodlist *list)
+{
+   return( list ? _mulle_objc_methodlist_get_categoryname( list) : NULL);
 }
 
 
@@ -72,22 +94,36 @@ static inline size_t   mulle_objc_sizeof_methodlist( unsigned int n_methods)
 
 void   mulle_objc_methodlist_sort( struct _mulle_objc_methodlist *list);
 
-struct _mulle_objc_method  *_mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
-                                                                  mulle_objc_methodid_t methodid);
+struct _mulle_objc_method  *
+   _mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
+                                         mulle_objc_methodid_t methodid);
+struct _mulle_objc_method  *
+   _mulle_objc_methodlist_linear_impsearch( struct _mulle_objc_methodlist *list,
+                                            mulle_objc_implementation_t imp);
 
-static inline struct _mulle_objc_method  *_mulle_objc_methodlist_binary_search( struct _mulle_objc_methodlist *list,
-                                                                   mulle_objc_methodid_t methodid)
+static inline struct _mulle_objc_method  *
+   _mulle_objc_methodlist_binary_search( struct _mulle_objc_methodlist *list,
+                                         mulle_objc_methodid_t methodid)
 {
    return( _mulle_objc_method_bsearch( list->methods, list->n_methods, methodid));
 }
 
 
-static inline struct _mulle_objc_method  *_mulle_objc_methodlist_search( struct _mulle_objc_methodlist *list,
-                                                                                 mulle_objc_methodid_t methodid)
+static inline struct _mulle_objc_method  *
+   _mulle_objc_methodlist_search( struct _mulle_objc_methodlist *list,
+                                  mulle_objc_methodid_t methodid)
 {
    if( list->n_methods >= 14) // 14 is a researched value (i7)
       return( _mulle_objc_methodlist_binary_search( list, methodid));
    return( _mulle_objc_methodlist_linear_search( list, methodid));
+}
+
+
+static inline struct _mulle_objc_method  *
+   _mulle_objc_methodlist_impsearch( struct _mulle_objc_methodlist *list,
+                                     mulle_objc_implementation_t imp)
+{
+   return( _mulle_objc_methodlist_linear_impsearch( list, imp));
 }
 
 

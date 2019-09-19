@@ -10,6 +10,8 @@
 
 + (void) load
 {
-    printf( "ProtoClass1\n");
+   void  add_to_loaded( char *s);
+
+   add_to_loaded( "ProtoClass1");
 }
 @end
