@@ -11,7 +11,7 @@ endif()
 # Disable with: `mulle-sourcetree mark mulle-dlfcn no-link`
 #
 if( NOT MULLE_DLFCN_HEADER)
-   find_file( MULLE_DLFCN_HEADER NAMES mulle-dlfcn/mulle-dlfcn.h mulle-dlfcn.h)
+   find_file( MULLE_DLFCN_HEADER NAMES mulle-dlfcn.h mulle-dlfcn/mulle-dlfcn.h)
    message( STATUS "MULLE_DLFCN_HEADER is ${MULLE_DLFCN_HEADER}")
 
    #

@@ -37,6 +37,5 @@ source_task_run()
 
    exekutor mulle-match-to-cmake \
                ${MULLE_TECHNICAL_FLAGS} \
-               ${MULLE_MATCH_TO_CMAKE_FLAGS} \
                "$@"
 }

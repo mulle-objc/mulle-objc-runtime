@@ -37,15 +37,16 @@
 #define mulle_objc_metaabi_h__
 
 /* if you need to "manually" call a MetaABI function with a _param block
-   use mulle_objc_metaabi_param_block to generate it.
+   use mulle_objc_metaabi_param_block to generate it. DO NOT CALL IT 
+   `_param` THOUGH (triggers a compiler bug).
 
    ex.
 
-   mulle_objc_metaabi_param_block( NSRange, NSUInteger)   _param;
+   mulle_objc_metaabi_param_block( NSRange, NSUInteger)   param;
 
-   _param.p = NSMakeRange( 1, 1);
-   mulle_objc_object_call( obj, sel, &_param);
-   return( _param.rval);
+   param.p = NSMakeRange( 1, 1);
+   mulle_objc_object_call( obj, sel, &param);
+   return( param.rval);
 */
 
 #define mulle_objc_void_5_pointers( size)  \

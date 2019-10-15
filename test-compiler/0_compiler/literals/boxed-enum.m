@@ -15,18 +15,24 @@
 + (id) numberWithInt:(int) x
 {
    printf( "%d\n", x);
-   return( NULL);
+   return( 1);
 }
 
 @end
 
 
+enum {
+   Red = 0,
+   Green = 1,
+   Blue = 2
+};
+
 int  main( void)
 {
    id   foo;
 
-   foo = @1;
+   foo = @( Blue);
    // just be happy that it compiles :)
-   return( 0);
+   return( foo ? 0 : 1);
 }
 

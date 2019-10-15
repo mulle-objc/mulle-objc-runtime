@@ -1,3 +1,20 @@
+## 0.16.0
+
+* start of special gdb support
+* fix `MULLE_OBJC_COVERAGE` cache fill bug
+* remove retain/release from fastcalls (superflous)
+* use mulle-atinit und mulle-atexit now
+* support new mulle-clang 9.0 property attributes "container" and "observable"
+* improved universe crunch, will now notify classes with willfinalize
+* method search can now search for a specific IMP
+* category names are now (properly) available via methodlists and API
+* classes gain the +finalize method (and +willFinalize)
+* fix a KVC bug
+* startup code has been moved to its own library mulle-objc-runtime-startup
+* `MULLE_OBJC_TRACE_LOAD_CALL` is no more, its part of `MULLE_OBJC_TRACE_DEPENDENCY`
+* `mulle_objc_..._current_thread` functions and related are now named `mulle_objc_thread_...`
+
+
 ### 0.15.3
 
 * improved symbolification of stacktrace

@@ -79,6 +79,51 @@ static mulle_objc_implementation_t
    _mulle_objc_class_superlookup2_implementation_nofail( struct _mulle_objc_class *cls,
                                                          mulle_objc_superid_t superid);
 
+#pragma mark - method cache searches
+
+// only searches cache, returns what there
+static struct _mulle_objc_cacheentry *
+   _mulle_objc_class_lookup_cacheentry( struct _mulle_objc_class *cls,
+                                        mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_cacheentry   *entries;
+   mulle_objc_cache_uint_t         offset;
+   mulle_functionpointer_t         p;
+
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   cache   = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
+   entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
+   entry   = (void *) &((char *) entries)[ offset];
+   return( entry);
+}
+
+
+// only searches cache, returns what there
+mulle_objc_implementation_t
+   _mulle_objc_class_lookup_implementation_cacheonly( struct _mulle_objc_class *cls,
+                                                      mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_cacheentry   *entries;
+   mulle_objc_cache_uint_t         offset;
+   mulle_functionpointer_t         p;
+
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   cache   = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
+   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
+   entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
+   entry   = (void *) &((char *) entries)[ offset];
+   p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+   return( (mulle_objc_implementation_t) p);
+}
+
+
 # pragma mark - class cache
 
 static mulle_objc_cache_uint_t
@@ -172,6 +217,7 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
                                                       enum mulle_objc_cachesizing_t strategy)
 {
    struct _mulle_objc_cache        *old_cache;
+   struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
    struct _mulle_objc_cacheentry   *p;
    struct _mulle_objc_cacheentry   *sentinel;
@@ -179,6 +225,8 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
    struct mulle_allocator          *allocator;
    mulle_objc_cache_uint_t         new_size;
    mulle_objc_implementation_t     imp;
+   mulle_objc_cache_uint_t         offset;
+   mulle_objc_methodid_t           copyid;
 
    old_cache = cache;
 
@@ -207,7 +255,7 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
    entry = &empty_entry;
    if( method)
    {
-      imp =  _mulle_objc_method_get_implementation( method);
+      imp   =  _mulle_objc_method_get_implementation( method);
       entry = _mulle_objc_cache_inactivecache_add_functionpointer_entry( cache,
                                                                          (mulle_functionpointer_t) imp,
                                                                          methodid);
@@ -223,6 +271,7 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
                                                  cache->entries,
                                                  old_cache->entries))
    {
+      // cas failed, so get rid of this and punt
       _mulle_objc_cache_free( cache, allocator); // sic, can be unsafe deleted now
       return( NULL);
    }
@@ -238,40 +287,56 @@ MULLE_C_NEVER_INLINE struct _mulle_objc_cacheentry   *
                                  _mulle_objc_class_get_classid( cls),
                                  _mulle_objc_class_get_name( cls));
 
-   if( &old_cache->entries[ 0] != &cls->universe->empty_cache.entries[ 0])
-   {
-      //
-      // if we repopulate the new cache with the old cache, we can then
-      // determine, which methods have actually been used over the course
-      // of the program by just dumping the cache contents
-      //
-      if( cls->universe->config.repopulate_caches)
-      {
-         p        = &old_cache->entries[ 0];
-         sentinel = &p[ old_cache->size];
-         while( p < sentinel)
-         {
-            methodid = (mulle_objc_methodid_t) (intptr_t) _mulle_atomic_pointer_read( &p->key.pointer);
-            ++p;
+   // ??? isn't this checked in the assert above already ?
+   if( &old_cache->entries[ 0] == &cls->universe->empty_cache.entries[ 0])
+      return( entry);
 
-            // place it back into cache
-            if( methodid != MULLE_OBJC_NO_METHODID)
-               _mulle_objc_class_lookup_implementation( cls, methodid);
-         }
+   //
+   // If we repopulate the new cache with the old cache, we can then
+   // determine, which methods have actually been used over the course
+   // of the program by just dumping the cache contents.
+   // We can do this only if the cache is growing though, or if we are
+   // invalidating...
+   //
+   if( cls->universe->config.repopulate_caches &&
+       (strategy == MULLE_OBJC_CACHESIZE_GROW ||
+        strategy == MULLE_OBJC_CACHESIZE_GROW && ! method))
+   {
+      p        = &old_cache->entries[ 0];
+      sentinel = &p[ old_cache->size];
+      while( p < sentinel)
+      {
+         copyid = (mulle_objc_methodid_t) (intptr_t) _mulle_atomic_pointer_read( &p->key.pointer);
+         ++p;
+
+         //
+         // Place it back into cache.
+         // The copyid can also be a superid! In this case, it will not be
+         // found. We leave it empty and don't place a forward into it.
+         //
+         if( copyid != MULLE_OBJC_NO_METHODID)
+            _mulle_objc_class_lookup_implementation_noforward( cls, copyid);
       }
 
-      if( universe->debug.trace.method_cache)
-         mulle_objc_universe_trace( universe, "free old method cache "
-                                     "%p (%u of %u used) for %s %08x \"%s\"",
-                                    old_cache,
-                                     _mulle_objc_cache_get_count( cache),
-                                     old_cache->size,
-                                    _mulle_objc_class_get_classtypename( cls),
-                                    _mulle_objc_class_get_classid( cls),
-                                    _mulle_objc_class_get_name( cls));
-
-      _mulle_objc_cache_abafree( old_cache, allocator);
+      //
+      // Cache might have changed again due to repopulation so pick out a
+      // new entry
+      //
+      entry = _mulle_objc_class_lookup_cacheentry( cls, methodid);
    }
+
+   if( universe->debug.trace.method_cache)
+      mulle_objc_universe_trace( universe, "free old method cache "
+                                  "%p (%u of %u used) for %s %08x \"%s\"",
+                                 old_cache,
+                                  _mulle_objc_cache_get_count( cache),
+                                  old_cache->size,
+                                 _mulle_objc_class_get_classtypename( cls),
+                                 _mulle_objc_class_get_classid( cls),
+                                 _mulle_objc_class_get_name( cls));
+
+   _mulle_objc_cache_abafree( old_cache, allocator);
+
    return( entry);
 }
 
@@ -670,28 +735,7 @@ MULLE_C_NEVER_INLINE static void *
 
 
 
-#pragma mark - method cache searches
-
-// only searches cache, returns what there
-mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_cacheonly( struct _mulle_objc_class *cls,
-                                                      mulle_objc_methodid_t methodid)
-{
-   struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_cacheentry   *entries;
-   mulle_objc_cache_uint_t         offset;
-   mulle_functionpointer_t         p;
-
-   assert( mulle_objc_uniqueid_is_sane( methodid));
-
-   cache   = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
-   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
-   entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
-   entry   = (void *) &((char *) entries)[ offset];
-   p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-   return( (mulle_objc_implementation_t) p);
- }
+# pragma mark -
 
 // does not update the cache, no forward
 mulle_objc_implementation_t

@@ -15,7 +15,7 @@
 + (id) numberWithInt:(int) x
 {
    printf( "%d\n", x);
-   return( NULL);
+   return( 1);
 }
 
 @end
@@ -25,8 +25,8 @@ int  main( void)
 {
    id   foo;
 
-   foo = @1;
+   foo = @( 1847 + 1);
    // just be happy that it compiles :)
-   return( 0);
+   return( foo ? 0 : 1);
 }
 

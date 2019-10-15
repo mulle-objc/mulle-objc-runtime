@@ -149,6 +149,7 @@ static inline struct _mulle_objc_cacheentry  *
 }
 
 
+// will return 0 if successful
 static inline int
    _mulle_objc_cachepivot_atomiccas_entries( struct _mulle_objc_cachepivot *p,
                                              struct _mulle_objc_cacheentry *new_entries,

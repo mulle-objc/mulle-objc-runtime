@@ -14,6 +14,7 @@ set( DEBUG_HEADERS
 src/debug/c-set.inc
 src/debug/mulle-objc-csvdump.h
 src/debug/mulle-objc-dotdump.h
+src/debug/mulle-objc-gdb.h
 src/debug/mulle-objc-htmldump.h
 src/debug/mulle-objc-html.h
 src/debug/mulle-objc-lldb.h

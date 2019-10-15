@@ -320,10 +320,10 @@ int   _mulle_objc_class_invalidate_methodcacheentry( struct _mulle_objc_class *c
    {
       // always break regardless of return value
       _mulle_objc_class_add_cacheentry_swappmethodcache( cls,
-                                                                 cache,
-                                                                 NULL,
-                                                                 MULLE_OBJC_NO_METHODID,
-                                                                 MULLE_OBJC_CACHESIZE_STAGNATE);
+                                                         cache,
+                                                         NULL,
+                                                         MULLE_OBJC_NO_METHODID,
+                                                         MULLE_OBJC_CACHESIZE_STAGNATE);
       break;
    }
 
