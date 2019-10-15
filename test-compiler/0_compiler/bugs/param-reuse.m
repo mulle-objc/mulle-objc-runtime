@@ -1,0 +1,41 @@
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+
+@interface Foo
+@end
+
+
+@implementation Foo
+
++ (void) whatever:(double) x
+{
+}
+
+
++ (void) callWhateverWithDouble:(double) x
+{
+   // the problem here is that '_param' shadows '_param' which 
+   // is implicitly defined by the compiler. But the compiler
+   // doesn't complain. But later it gets confused.
+   // Solution A: Don't call it `_param`.
+   // Solution B: Compiler should not allow `_param` redefine (can though with _cmd if in block)
+   // Solution C: Fix bug otherwise
+   //
+   {
+      mulle_objc_metaabi_param_block( double, void *)   _param;  
+
+      _param.p = x;
+      mulle_objc_object_call( NULL, @selector( whatever:), &_param);          
+   }
+}
+
+
+@end
+
+main()
+{
+   [Foo callWhateverWithCGRect:18.48];
+   return( 0);
+}
+
+

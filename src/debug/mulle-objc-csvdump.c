@@ -382,7 +382,7 @@ void
 {
    FILE   *fp;
 
-   fp = fopen( filename, "a");
+   fp = fopen( filename, "w");  // append makes no sense
    if( ! fp)
    {
       perror( "fopen:");
