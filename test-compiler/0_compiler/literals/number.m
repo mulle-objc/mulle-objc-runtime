@@ -15,16 +15,18 @@
 + (id) numberWithInt:(int) x
 {
    printf( "%d\n", x);
+   return( NULL);
 }
 
 @end
 
 
-main()
+int  main( void)
 {
    id   foo;
 
    foo = @1;
    // just be happy that it compiles :)
+   return( 0);
 }
 

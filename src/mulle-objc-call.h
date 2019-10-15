@@ -51,6 +51,9 @@
 #include <assert.h>
 
 
+// clang and gcc complain when artificial functions aren't inlineable :(
+
+
 //// on x86_64 this should optimize into 30 bytes tops w/o tagged pointers
 //
 // When inlining, we are "fine" if the cache is stale
@@ -243,11 +246,11 @@ static inline void   *
 
 
 
-MULLE_C_ALWAYS_INLINE
-   static inline void  *_mulle_objc_object_inlinesupercall( void *obj,
-                                                            mulle_objc_methodid_t methodid,
-                                                            void *parameter,
-                                                            mulle_objc_superid_t superid)
+MULLE_C_ALWAYS_INLINE static inline void  *
+   _mulle_objc_object_inlinesupercall( void *obj,
+                                       mulle_objc_methodid_t methodid,
+                                       void *parameter,
+                                       mulle_objc_superid_t superid)
 {
    mulle_objc_implementation_t     f;
    struct _mulle_objc_cache        *cache;
@@ -283,17 +286,22 @@ MULLE_C_ALWAYS_INLINE
 }
 
 
-
+//MULLE_C_ARTIFICIAL
 void   *_mulle_objc_object_supercall( void *obj,
                                       mulle_objc_methodid_t methodid,
                                       void *parameter,
                                       mulle_objc_superid_t superid);
 
-MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
-   _mulle_objc_class_superlookup_method_nofail( struct _mulle_objc_class *cls,
-                                                mulle_objc_superid_t superid);
 
-MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN mulle_objc_implementation_t
+MULLE_C_CONST_RETURN
+MULLE_C_NON_NULL_RETURN
+   struct _mulle_objc_method *
+      _mulle_objc_class_superlookup_method_nofail( struct _mulle_objc_class *cls,
+                                                   mulle_objc_superid_t superid);
+
+
+MULLE_C_CONST_RETURN
+MULLE_C_NON_NULL_RETURN mulle_objc_implementation_t
    _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                         mulle_objc_superid_t superid);
 
@@ -305,6 +313,8 @@ MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN mulle_objc_implementation_t
 //       2. create mulle_objc_object_call, that uses any of the three call
 //          types based on optimization level
 //
+
+//MULLE_C_ARTIFICIAL
 void   *mulle_objc_object_call( void *obj,
                                 mulle_objc_methodid_t methodid,
                                 void *parameter);
@@ -312,6 +322,7 @@ void   *mulle_objc_object_call( void *obj,
 
 # pragma mark - special initial setup calls
 
+//MULLE_C_ARTIFICIAL
 void   *_mulle_objc_object_call_class_needcache( void *obj,
                                                  mulle_objc_methodid_t methodid,
                                                  void *parameter,

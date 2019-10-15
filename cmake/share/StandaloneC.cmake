@@ -15,9 +15,9 @@ endif()
 
 # include before (!)
 
-include( StandaloneAuxC OPTIONAL)
-
 if( STANDALONE)
+   include( PreStandaloneAuxC OPTIONAL)
+
    if( NOT LIBRARY_NAME)
       set( LIBRARY_NAME "${PROJECT_NAME}")
    endif()
@@ -159,6 +159,8 @@ and everybody will be happy")
          ${INSTALL_LIBRARY_TARGETS}
          ${STANDALONE_LIBRARY_NAME}
       )
+
+      include( PostStandaloneAuxC OPTIONAL)
 
       message( STATUS "STANDALONE_LIBRARY_NAME is ${STANDALONE_LIBRARY_NAME}")
       message( STATUS "STANDALONE_ALL_LOAD_LIBRARIES is ${STANDALONE_ALL_LOAD_LIBRARIES}")

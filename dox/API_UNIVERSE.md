@@ -101,10 +101,10 @@ cls     = mulle_objc_classpair_get_infraclass( pair);
 mulle_objc_universe_add_class( universe, cls);
 ```
 
-### `mulle_objc_universe_get_or_lookup_infraclass`
+### `_mulle_objc_universe_lookup_infraclass`
 
 ```
-struct _mulle_objc_class  *mulle_objc_universe_get_or_lookup_class(
+struct _mulle_objc_class  *_mulle_objc_universe_lookup_infraclass(
                     struct _mulle_objc_universe *universe,
                     mulle_objc_classid_t classid)
 ```

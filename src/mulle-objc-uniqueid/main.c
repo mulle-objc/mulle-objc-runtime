@@ -43,6 +43,8 @@
 #include <string.h>
 
 
+#pragma clang diagnostic ignored "-Wparentheses"
+
 static void   print_uniqueid( char *s, size_t len,
                               unsigned long value,
                               char *prefix, char *suffix)

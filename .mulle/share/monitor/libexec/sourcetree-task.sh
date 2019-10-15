@@ -47,7 +47,7 @@ sourcetree_task_run()
       ;;
 
       *)
-         exekutor mulle-sourcetree-to-cmake ${MULLE_SOURCETREE_TO_CMAKE_FLAGS} "$@"  || return $?
+         exekutor mulle-sourcetree-to-cmake "$@"  || return $?
       ;;
    esac
 
@@ -56,7 +56,7 @@ sourcetree_task_run()
       ;;
 
       *)
-         exekutor mulle-sourcetree-to-c ${MULLE_SOURCETREE_TO_C_FLAGS} "$@" || return $?
+         exekutor mulle-sourcetree-to-c "$@" || return $?
       ;;
    esac
 }

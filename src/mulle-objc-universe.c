@@ -1941,7 +1941,7 @@ int   _mulle_objc_universe_should_grow_cache( struct _mulle_objc_universe *unive
    size = cache->size;
 
    if( ! universe->config.cache_fillrate)
-      return( used >= (size >> 2));
+      return( used * 3 >= size);  // have cache filled to a third
 
    return( used * 100 >= size * universe->config.cache_fillrate);
 }
@@ -2077,6 +2077,23 @@ int   _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe
                  universe,
                  dup->signature, p->signature, p->name);
    }
+
+#ifndef HAVE_SUPERCACHE
+   {
+      struct _mulle_objc_super   *sup;
+
+      sup = _mulle_objc_universe_lookup_super( universe, p->methodid);
+      if( sup)
+         mulle_objc_universe_fail_generic( universe,
+               "mulle_objc_universe %p error: super \"%s\" "
+               "and method \"%s\" conflict with same id %08x\n",
+               universe,
+               sup->name,
+               p->name,
+               p->methodid);
+   }
+#endif
+
    return( 0);
 }
 
@@ -2180,6 +2197,23 @@ int   _mulle_objc_universe_add_super( struct _mulle_objc_universe *universe,
             dup->classid, dup->methodid,
             p->classid, p->methodid,
             p->superid);
+
+
+#ifndef HAVE_SUPERCACHE
+   {
+      struct _mulle_objc_descriptor   *desc;
+
+      desc = _mulle_objc_universe_lookup_descriptor( universe, p->superid);
+      if( desc)
+         mulle_objc_universe_fail_generic( universe,
+               "mulle_objc_universe %p error: method \"%s\" "
+               "and super \"%s\" with same id %08x\n",
+               universe,
+               desc->name,
+               p->name,
+               p->superid);
+   }
+#endif
 
    return( 0);
 }

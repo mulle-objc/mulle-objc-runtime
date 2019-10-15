@@ -8,6 +8,7 @@ endif()
 set( DEBUG_SOURCES
 src/debug/mulle-objc-csvdump.c
 src/debug/mulle-objc-dotdump.c
+src/debug/mulle-objc-gdb.c
 src/debug/mulle-objc-html.c
 src/debug/mulle-objc-htmldump.c
 src/debug/mulle-objc-lldb.c

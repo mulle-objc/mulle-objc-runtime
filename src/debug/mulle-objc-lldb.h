@@ -39,19 +39,23 @@
 #include "mulle-objc-method.h"
 
 
-// for test only, don't use this if you aren't a debugger
-
 void   $__lldb_objc_object_check( void *obj, mulle_objc_methodid_t methodid);
 
 struct _mulle_objc_descriptor  *
    mulle_objc_lldb_lookup_descriptor_by_name( char *name);
 
+struct mulle_objc_lldb_lookup_implementation_args
+{
+   void   *class_or_superid;
+   int    calltype;
+   int    debug;
+};
+
 mulle_objc_implementation_t
    mulle_objc_lldb_lookup_implementation( void *object,
                                           mulle_objc_methodid_t sel,
-                                          void *class_or_superid,
-                                          int calltype,
-                                          int debug);
+                                          struct mulle_objc_lldb_lookup_implementation_args *args);
+
 struct _mulle_objc_class *
    mulle_objc_lldb_lookup_isa( void *obj, int debug);
 
@@ -64,3 +68,5 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
                                              int encoding,
                                              char isExternalRepresentation);
 #endif /* mulle_objc_lldb_h */
+
+

@@ -49,21 +49,22 @@ struct _mulle_objc_universe;
 
 
 /*
+   @mulle-lldb@ needs to know about these:
 ## Universe / classid Functions
 
-__mulle_objc_universe_lookup_infraclass_nocache_nofast
-_mulle_objc_universe_lookup_infraclass_nocache_nofast
-_mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast
-_mulle_objc_universe_lookup_infraclass_nofail_nofast
+_mulle_objc_universe_inlinelookup_infraclass_nocache_nofast
 _mulle_objc_universe_inlinelookup_infraclass
 _mulle_objc_universe_inlinelookup_infraclass_nofail
+_mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast
+_mulle_objc_universe_lookup_infraclass_nocache_nofast
+_mulle_objc_universe_lookup_infraclass_nofail_nofast
 
 ## Universeid / classid Functions
 
-mulle_objc_global_inlinelookup_infraclass_nofail_nofast
-mulle_objc_global_lookup_infraclass_nofail_nofast
 mulle_objc_global_inlinelookup_infraclass_nofail
+mulle_objc_global_inlinelookup_infraclass_nofail_nofast
 mulle_objc_global_lookup_infraclass_nofail
+mulle_objc_global_lookup_infraclass_nofail_nofast
 
 ## Object / universeid / classid Functions
 
@@ -83,8 +84,8 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 // yet. (therefore it doesn't forward)
 //
 static inline struct _mulle_objc_infraclass *
-   __mulle_objc_universe_lookup_infraclass_nocache_nofast( struct _mulle_objc_universe *universe,
-                                                           mulle_objc_classid_t classid)
+   _mulle_objc_universe_inlinelookup_infraclass_nocache_nofast( struct _mulle_objc_universe *universe,
+                                                                 mulle_objc_classid_t classid)
 {
    return( _mulle_concurrent_hashmap_lookup( &universe->classtable, classid));
 }

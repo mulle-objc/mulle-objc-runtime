@@ -107,9 +107,13 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
    case MULLE_OBJC_DEALLOC_METHODID     : return( 3);  // in AAO mode noone can call dealloc
    case MULLE_OBJC_INSTANTIATE_METHODID : return( 4);  // alloc + autorelease
    case MULLE_OBJC_AUTORELEASE_METHODID : return( 5);  // for compiler
-   case MULLE_OBJC_RETAIN_METHODID      : return( 6);  // not used in -O2 and up
-   case MULLE_OBJC_RELEASE_METHODID     : return( 7);  // not used in -O2 and up
 
+#ifdef MULLE_OBJC_FASTMETHODHASH_6
+   case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_6 ) : return( 6);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_7
+   case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_7 ) : return( 7);
+#endif
 #ifdef MULLE_OBJC_FASTMETHODHASH_8
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_8 ) : return( 8);
 #endif

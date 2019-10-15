@@ -109,7 +109,7 @@ static struct _mulle_objc_cacheentry *
       //
       // if we repopulate the new cache with the old cache, we can then
       // determine, which classes have actually been used over the course
-      // of the program by just dumping the cache contents
+      // of the program by just dumping the cache contents.
       //
       if( universe->config.repopulate_caches)
       {
@@ -261,7 +261,7 @@ struct _mulle_objc_infraclass   *
    retry = 1;
    for(;;)
    {
-      infra = __mulle_objc_universe_lookup_infraclass_nocache_nofast( universe, classid);
+      infra = _mulle_objc_universe_inlinelookup_infraclass_nocache_nofast( universe, classid);
       if( infra)
       {
          assert( _mulle_objc_infraclass_get_classid( infra) == classid);
@@ -273,7 +273,7 @@ struct _mulle_objc_infraclass   *
 
       retry = 0;
 
-      // preserve errno for user 
+      // preserve errno for user
       olderrno = errno;
       (*universe->classdefaults.class_is_missing)( universe, classid);
       errno    = olderrno;
