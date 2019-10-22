@@ -441,7 +441,11 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_objc_universe_init_gc( universe);
    _mulle_objc_thread_register_universe_gc_if_needed( universe);
 
-   mulle_thread_mutex_init( &universe->lock);
+   if( mulle_thread_mutex_init( &universe->waitqueues.lock))
+      abort();
+   if( mulle_thread_mutex_init( &universe->lock))
+      abort();
+
    universe->thread = mulle_thread_self();
    mulle_objc_thread_setup_threadinfo( universe);
 
@@ -451,7 +455,7 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_concurrent_hashmap_init( &universe->protocoltable, 64, allocator);
    _mulle_concurrent_hashmap_init( &universe->supertable, 256, allocator);
 
-   mulle_thread_mutex_init( &universe->waitqueues.lock);
+
    _mulle_concurrent_hashmap_init( &universe->waitqueues.classestoload, 64, allocator);
    _mulle_concurrent_hashmap_init( &universe->waitqueues.categoriestoload, 32, allocator);
 
