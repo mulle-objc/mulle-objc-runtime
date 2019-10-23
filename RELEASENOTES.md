@@ -1,3 +1,7 @@
+### 0.16.1
+
+* fix `debug.warn.stuck_loadable` which is executed too late in the universe teardown
+
 ## 0.16.0
 
 * start of special gdb support

@@ -1312,9 +1312,6 @@ enum mulle_objc_universe_status
 static void
    _mulle_objc_universe_free_classgraph( struct _mulle_objc_universe *universe)
 {
-   if( universe->debug.warn.stuck_loadable)
-      _mulle_objc_universe_check_waitqueues( universe);
-
    /* free classes */
    _mulle_objc_universe_free_classpairs( universe);
 
@@ -1378,6 +1375,9 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
       mulle_objc_universe_fail_inconsistency( universe,
          "universe must be deallocated by the same thread that created it (sorry)");
 
+   // check for lost classes now, its soon enough
+   if( universe->debug.warn.stuck_loadable)
+      _mulle_objc_universe_check_waitqueues( universe);
 
    // the friends are freed first, and everything is still fairly fine
    // you can still message around
