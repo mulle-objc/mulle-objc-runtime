@@ -125,8 +125,6 @@ static inline char   *
    _mulle_objc_signature_supply_next_typeinfo( char *types,
                                               struct mulle_objc_typeinfo *info)
 {
-   char  *next;
-
    if( ! types || ! *types)
       return( NULL);
 

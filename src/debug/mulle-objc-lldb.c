@@ -161,7 +161,7 @@ struct _mulle_objc_descriptor  *
 // must be named like this, because it gets called directly from the
 // debugger
 //
-void   $__lldb_objc_object_check( void *obj, mulle_objc_methodid_t methodid)
+void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class  *cls;
    int                        olderrno;
@@ -180,6 +180,18 @@ void   $__lldb_objc_object_check( void *obj, mulle_objc_methodid_t methodid)
 
    errno    = olderrno;
 }
+
+
+//
+// alternatively called like this
+// defining these two functions by calling $__lldb_objc_object_check from
+// mulle_objc_lldb_check_object trips up gcc though
+//
+void  $__lldb_objc_object_check( void *obj, mulle_objc_methodid_t methodid)
+{
+   mulle_objc_lldb_check_object( obj, methodid);
+}
+
 
 
 void   *mulle_objc_lldb_get_dangerous_tpsstorage_pointer( void)

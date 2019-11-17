@@ -70,7 +70,7 @@ struct _mulle_objc_universeconfig
    unsigned   no_fast_call             : 1;  // don't use fast method calls
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
    unsigned   pedantic_exit            : 1;  // useful for leak checks
-
+   unsigned   wait_threads_on_exit     : 1;  // useful for tests
    int        cache_fillrate;                // default is (0) can be 0-90
 };
 

@@ -37,7 +37,7 @@
 #define mulle_objc_metaabi_h__
 
 /* if you need to "manually" call a MetaABI function with a _param block
-   use mulle_objc_metaabi_param_block to generate it. DO NOT CALL IT 
+   use mulle_objc_metaabi_param_block to generate it. DO NOT CALL IT
    `_param` THOUGH (triggers a compiler bug).
 
    ex.
@@ -62,6 +62,13 @@
                          :  mulle_objc_void_5_pointers( sizeof( param_type))]; \
    }
 
+#define mulle_objc_metaabi_param_block_voidptr_return( param_type) \
+   mulle_objc_metaabi_param_block( param_type, void *)
+
+#define mulle_objc_metaabi_param_block_voidptr_parameter( return_type) \
+   mulle_objc_metaabi_param_block( void *, return_type)
+
+// quite the same, as we can't define void member. So just ignore
 #define mulle_objc_metaabi_param_block_void_return( param_type) \
    mulle_objc_metaabi_param_block( param_type, void *)
 

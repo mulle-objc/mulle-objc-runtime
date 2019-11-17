@@ -105,16 +105,14 @@ void  _mulle_objc_universe_done( struct _mulle_objc_universe *universe);
 // use
 static inline void  _mulle_objc_universe_retain( struct _mulle_objc_universe *universe)
 {
+   // the main thread should not retain the universe, it is implicit
+   assert( _mulle_objc_universe_get_thread( universe) != mulle_thread_self());
+
    _mulle_atomic_pointer_increment( &universe->retaincount_1);
 }
 
 
-static inline void  _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
-{
-   if( _mulle_atomic_pointer_decrement( &universe->retaincount_1) == 0)
-      _mulle_objc_universe_crunch( universe, _mulle_objc_universe_done);
-}
-
+void   _mulle_objc_universe_release( struct _mulle_objc_universe *universe);
 
 
 #pragma mark - globals / tables
