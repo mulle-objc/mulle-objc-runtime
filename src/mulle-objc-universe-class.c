@@ -122,7 +122,7 @@ static struct _mulle_objc_cacheentry *
 
             // place it into cache
             if( classid != MULLE_OBJC_NO_CLASSID)
-               (void) _mulle_objc_universe_lookup_infraclass_nofail( universe, classid);
+               (void) mulle_objc_universe_lookup_infraclass_nofail( universe, classid);
          }
 
          // entry is still valid, even if the cache has been blown away in the
@@ -402,9 +402,11 @@ struct _mulle_objc_infraclass  *
 
 
 MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
-    _mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
+    mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid)
 {
+   assert( universe);
+
    if( universe->config.no_fast_call)
       return( _mulle_objc_universe_lookup_infraclass_nofail_nofast( universe, classid));
    return( _mulle_objc_universe_inlinelookup_infraclass_nofail( universe, classid));
@@ -430,7 +432,7 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
    struct _mulle_objc_universe   *universe;
 
    universe = mulle_objc_global_inlineget_universe( universeid);
-   return( _mulle_objc_universe_lookup_infraclass_nofail( universe, classid));
+   return( mulle_objc_universe_lookup_infraclass_nofail( universe, classid));
 }
 
 
@@ -444,8 +446,8 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
    struct _mulle_objc_universe   *universe;
 
    universe = __mulle_objc_object_get_universe_nofail( obj, universeid);
-   return( _mulle_objc_universe_lookup_infraclass_nofail( universe,
-                                                          classid));
+   return( mulle_objc_universe_lookup_infraclass_nofail( universe,
+                                                         classid));
 }
 
 

@@ -168,7 +168,7 @@ int  _mulle_objc_universe_match_exception( struct _mulle_objc_universe *universe
    assert( classid != MULLE_OBJC_NO_CLASSID && classid != MULLE_OBJC_INVALID_CLASSID);
    assert( exception);
 
-   infra        = _mulle_objc_universe_lookup_infraclass_nofail( universe, classid);
+   infra        = mulle_objc_universe_lookup_infraclass_nofail( universe, classid);
    exceptionCls = __mulle_objc_object_get_isa_notps( exception);
 
    do

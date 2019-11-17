@@ -199,7 +199,7 @@ struct _mulle_objc_infraclass  *
                                             mulle_objc_classid_t classid);
 
 MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
-    _mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
+    mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid);
 
 

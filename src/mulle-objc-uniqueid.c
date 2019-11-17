@@ -61,11 +61,12 @@ mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
       return( MULLE_OBJC_INVALID_UNIQUEID);
    }
 
-   if( MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A)
+#if MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A
       value = _mulle_objc_fnv1a_32( s, len);
-   else
+#else
       value = _mulle_objc_fnv1_32( s, len);
-
+#endif
+      
    //
    // fnv1 favors the last byte disproportionally, but that' usually just ':'
    // lets rotate it a bit, so the hash bit portions used for cache

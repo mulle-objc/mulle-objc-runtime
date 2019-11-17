@@ -925,7 +925,8 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
 
 # pragma mark - dealloc
 
-static void
+
+static inline void
    _mulle_objc_universe_willfinalize_friend( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_universefriend *pfriend)
 {
@@ -937,7 +938,7 @@ static void
 }
 
 
-static void
+static inline void
    _mulle_objc_universe_finalize_friend( struct _mulle_objc_universe *universe,
                                          struct _mulle_objc_universefriend *pfriend)
 {
@@ -950,7 +951,7 @@ static void
 
 
 
-static void
+static inline void
    _mulle_objc_universe_free_friend( struct _mulle_objc_universe *universe,
                                      struct _mulle_objc_universefriend *pfriend)
 {
@@ -1506,8 +1507,32 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
 }
 
 
+void   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
+{
+   intptr_t   rc;
+
+   if( universe->config.wait_threads_on_exit || universe->config.pedantic_exit)
+   {
+      if( mulle_thread_self() == _mulle_objc_universe_get_thread( universe))
+      {
+         if( universe->debug.trace.universe)
+            mulle_objc_universe_trace( universe, "main thread is waiting on threads to finish (possibly indefinitely");
+
+         while( (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1) != 0)
+            mulle_thread_yield();
+      }
+   }
+
+   rc = (intptr_t) _mulle_atomic_pointer_decrement( &universe->retaincount_1);
+   if( rc == 0)
+      _mulle_objc_universe_crunch( universe, _mulle_objc_universe_done);
+}
+
+
+
 # pragma mark - universe release convenience
 
+// a convenience for testing universes
 void  mulle_objc_global_release_defaultuniverse( void)
 {
    struct _mulle_objc_universe   *universe;
