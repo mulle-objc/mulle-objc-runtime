@@ -1460,7 +1460,7 @@ void   mulle_objc_objects_call( void **objects,
    memset( lastIsa, 0, sizeof( lastIsa));
 
    // assume compiler can do unrolling
-   lookup   = _mulle_objc_class_lookup_implementation_noforward;
+   lookup   = _mulle_objc_class_lookup_implementation;
    sentinel = &objects[ n];
 
    while( objects < sentinel)
