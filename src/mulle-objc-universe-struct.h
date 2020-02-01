@@ -358,6 +358,22 @@ struct _mulle_objc_universe
    char                                     *universename;
 
    //
+   // Idea: a universe can have a parent, so you modify the universe and fall
+   // back to the parent, if you don't find a: class, method, selector, super,
+   // string, protocol.
+   //
+   // Could be good for NSBundle unloading. So you can go back to the
+   // previous state by destroying the child universe (+ blow class caches away).
+   // All the loaded classes and category +unloads would run.
+   //
+   // If you further use custom allocators and get rid of all created objects
+   // you are in almost a pristine state. (except NSNotificationCenter and
+   // other callbacks installed into libraries) ?
+   // A problem though is technical finalizers like -close not being done.
+   //
+   // struct _mulle_objc_universe          *parent;
+
+   //
    // B: the rest is intended to be read only (setup at init time)
    //    if you think you need to change something, use the lock
    //

@@ -48,7 +48,8 @@
 #pragma mark - fails, universe can be null
 
 MULLE_C_NO_RETURN void
-   mulle_objc_universe_fail_code(struct _mulle_objc_universe *universe, int errnocode);
+   mulle_objc_universe_fail_code( struct _mulle_objc_universe *universe,
+                                  int errnocode);
 
 static inline MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_errno( struct _mulle_objc_universe *universe)
@@ -62,31 +63,31 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_generic( struct _mulle_objc_universe *universe,
-                                                 char *format, ...);
+                                     char *format, ...);
 MULLE_C_NO_RETURN void
    mulle_objc_universe_failv_generic( struct _mulle_objc_universe *universe,
-                                                  char *format,
-                                                  va_list args);
+                                      char *format,
+                                      va_list args);
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_inconsistency( struct _mulle_objc_universe *universe,
-                                            char *format, ...);
+                                           char *format, ...);
 MULLE_C_NO_RETURN void
    mulle_objc_universe_failv_inconsistency( struct _mulle_objc_universe *universe,
-                                                       char *format,
-                                                       va_list args);
+                                            char *format,
+                                            va_list args);
 
 #pragma mark - fails
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_classnotfound( struct _mulle_objc_universe *universe,
-                                            mulle_objc_classid_t classid);
+                                           mulle_objc_classid_t classid);
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_supernotfound( struct _mulle_objc_universe *universe,
-                                            mulle_objc_superid_t superid);
+                                           mulle_objc_superid_t superid);
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_methodnotfound( struct _mulle_objc_universe *universe,
-                                             struct _mulle_objc_class *class,
-                                             mulle_objc_methodid_t methodid);
+                                            struct _mulle_objc_class *class,
+                                            mulle_objc_methodid_t methodid);
 
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe);
 

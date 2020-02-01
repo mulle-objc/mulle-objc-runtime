@@ -54,37 +54,6 @@ static char    *_mulle_objc_type_parse_simple( char *type,
 
 # pragma mark - type decoding
 
-static char   *_mulle_objc_signature_skip_type_qualifier( char *type)
-{
-   char   c;
-
-   assert( type);
-
-   while( (c = *type) == _C_CONST
-#ifdef _C_IN
-       || c == _C_IN
-#endif
-#ifdef _C_INOUT
-       || c == _C_INOUT
-#endif
-#ifdef _C_OUT
-       || c == _C_OUT
-#endif
-#ifdef _C_BYCOPY
-       || c == _C_BYCOPY
-#endif
-#ifdef _C_ONEWAY
-       || c == _C_ONEWAY
-#endif
-      )
-   {
-      type++;
-   }
-
-   return( type);
-}
-
-
 static inline void   _CLEAR_RUNTIME_TYPE_INFO( struct mulle_objc_typeinfo *info)
 {
    info->natural_size          = 0;
@@ -126,10 +95,12 @@ static int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_
    case 0            : return( 0);
    case _C_VOID      : _CLEAR_RUNTIME_TYPE_INFO( info); return( 0);
    case _C_COPY_ID   : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, 1); return( 0);
+   case _C_RETAIN_ID : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, 1); return( 1);  // because of "@?"
    case _C_ASSIGN_ID : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, 0); return( 0);
    case _C_CLASS     : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_class *, 0); return( 0);
    case _C_SEL       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, mulle_objc_methodid_t); return( 0);
    case _C_CHR       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, char); return( 0);
+   case _C_BOOL      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, int); return( 0); // it's an enum later
    case _C_UCHR      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned char); return( 0);
    case _C_SHT       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, short); return( 0);
    case _C_USHT      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned short); return( 0);
@@ -143,9 +114,6 @@ static int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_
    case _C_DBL       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, double); return( 0);
    case _C_LNG_DBL   : _SUPPLY_RUNTIME_C_TYPE_INFO( info, long double); return( 0);
    case _C_CHARPTR   : _SUPPLY_RUNTIME_C_TYPE_INFO( info, char *); return( 0);
-#ifdef _C_BOOL
-   case _C_BOOL      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned char); return( 0);
-#endif
    case _C_UNDEF     : _SUPPLY_RUNTIME_C_TYPE_INFO( info, void *); return( 0);
 #ifdef _C_ATOM
    case _C_ATOM      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, char *); return( 0);
@@ -459,7 +427,7 @@ static inline int  is_multi_character_type( char c)
    case _C_STRUCT_B  :
    case _C_UNION_B   :
    case _C_BFLD      :
-   case _C_RETAIN_ID : // thx to @?
+   case _C_RETAIN_ID : // thx to "@?", which means what ?
          return( 1);
    }
    return( 0);
@@ -713,12 +681,10 @@ static enum mulle_objc_metaabiparamtype
    case _C_VOID      : return( mulle_objc_metaabiparamtype_void);
    case _C_UNDEF     : return( mulle_objc_metaabiparamtype_error);
 
-#ifdef _C_BOOL
-   case _C_BOOL      :
-#endif
 #ifdef _C_ATOM
    case _C_ATOM      :
 #endif
+   case _C_BOOL      :
    case _C_CHARPTR   :
    case _C_RETAIN_ID :
    case _C_COPY_ID   :
@@ -817,17 +783,13 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *types,
    char                         *next;
 
    if( ! types || ! *types)
-   {
-      memset( &info, 0, sizeof( info));
       return( NULL);
-   }
 
    // NULL info is cheaper
    if( ! size && ! alignment)
       return( mulle_objc_signature_supply_next_typeinfo( types, NULL));
 
    next = __mulle_objc_signature_supply_next_typeinfo( types, &info);
-
    if( size)
       *size = info.bits_size >> 3;
    if( alignment)

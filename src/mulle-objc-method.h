@@ -47,8 +47,8 @@
 
 
 // tough decision, but I type self as void
-typedef void   *(*mulle_objc_implementation_t)( void *, 
-                                                mulle_objc_methodid_t, 
+typedef void   *(*mulle_objc_implementation_t)( void *,
+                                                mulle_objc_methodid_t,
                                                 void *);
 //
 // idea... add a bit to this _mulle_objc_descriptor, that the compiler
@@ -70,6 +70,38 @@ typedef void   *(*mulle_objc_implementation_t)( void *,
 // preloaded methods are placed into empty caches
 // immediately, receiving the coveted #1 spot (usually)
 //
+
+
+// this enum is inside bits shifted << 16
+enum _mulle_objc_methodfamily
+{
+   _mulle_objc_methodfamily_none        = 0,
+
+   _mulle_objc_methodfamily_alloc       = 1,
+   _mulle_objc_methodfamily_copy        = 2,
+   _mulle_objc_methodfamily_init        = 3,
+   _mulle_objc_methodfamily_mutablecopy = 4,
+   _mulle_objc_methodfamily_new         = 5,
+
+   _mulle_objc_methodfamily_autorelease = 6,
+   _mulle_objc_methodfamily_dealloc     = 7,
+   _mulle_objc_methodfamily_finalize    = 8,
+   _mulle_objc_methodfamily_release     = 9,
+   _mulle_objc_methodfamily_retain      = 10,
+   _mulle_objc_methodfamily_retaincount = 11,
+   _mulle_objc_methodfamily_self        = 12,
+   _mulle_objc_methodfamily_initialize  = 13,
+
+   _mulle_objc_methodfamily_perform     = 14,
+   // methods returning non-void, no args
+   _mulle_objc_methodfamily_getter      = 32,
+   // methods starting with set[A-Z] returning void and one arg
+   _mulle_objc_methodfamily_setter      = 33,
+   _mulle_objc_methodfamily_adder       = 34,
+   _mulle_objc_methodfamily_remover     = 35
+};
+
+
 enum
 {
    _mulle_objc_method_check_unexpected_override = 0x01,
@@ -87,24 +119,12 @@ enum
 
    _mulle_objc_method_searched_and_found        = 0x80,
 
-// this is from clang ObjCMethodFamilyAttr
-//  enum FamilyKind {
-//    OMF_None,
-//    OMF_alloc,
-//    OMF_copy,
-//    OMF_init,
-//    OMF_mutableCopy,
-//    OMF_new
-//  };
-   _mulle_objc_method_family_kind_none        = (0 << 16),
-   _mulle_objc_method_family_kind_alloc       = (1 << 16),
-   _mulle_objc_method_family_kind_copy        = (2 << 16),
-   _mulle_objc_method_family_kind_init        = (3 << 16),
-   _mulle_objc_method_family_kind_mutablecopy = (4 << 16),
-   _mulle_objc_method_family_kind_new         = (5 << 16)
-
-
+   _mulle_objc_methodfamily_mask                = 0x3F0000,
 };
+
+
+#define  _mulle_objc_methodfamily_shift   16
+
 
 # pragma mark - descriptor
 
@@ -123,6 +143,13 @@ struct _mulle_objc_descriptor
 
 
 # pragma mark - method descriptor petty accessors
+
+
+static inline mulle_objc_methodid_t
+   _mulle_objc_descriptor_get_methodid( struct _mulle_objc_descriptor *desc)
+{
+   return( desc->methodid);
+}
 
 static inline char   *
    _mulle_objc_descriptor_get_name( struct _mulle_objc_descriptor *desc)
@@ -166,11 +193,50 @@ static inline int
 }
 
 
+
+
+static inline enum _mulle_objc_methodfamily
+   _mulle_objc_descriptor_get_methodfamily( struct _mulle_objc_descriptor *desc)
+{
+   return( (desc->bits & _mulle_objc_methodfamily_mask) >> _mulle_objc_methodfamily_shift);
+}
+
+
 static inline int
    _mulle_objc_descriptor_is_init_method( struct _mulle_objc_descriptor *desc)
 {
-   return( desc->bits & _mulle_objc_method_family_kind_init);
+   return( _mulle_objc_descriptor_get_methodfamily( desc) == _mulle_objc_methodfamily_init);
 }
+
+
+static inline int
+   _mulle_objc_descriptor_is_setter_method( struct _mulle_objc_descriptor *desc)
+{
+   return( _mulle_objc_descriptor_get_methodfamily( desc) == _mulle_objc_methodfamily_setter);
+}
+
+
+static inline int
+   _mulle_objc_descriptor_is_getter_method( struct _mulle_objc_descriptor *desc)
+{
+   return( _mulle_objc_descriptor_get_methodfamily( desc) == _mulle_objc_methodfamily_getter);
+}
+
+
+static inline int
+   _mulle_objc_descriptor_is_adder_method( struct _mulle_objc_descriptor *desc)
+{
+   return( _mulle_objc_descriptor_get_methodfamily( desc) == _mulle_objc_methodfamily_adder);
+}
+
+
+static inline int
+   _mulle_objc_descriptor_is_remover_method( struct _mulle_objc_descriptor *desc)
+{
+   return( _mulle_objc_descriptor_get_methodfamily( desc) == _mulle_objc_methodfamily_remover);
+}
+
+
 
 
 # pragma mark - method descriptor consistency

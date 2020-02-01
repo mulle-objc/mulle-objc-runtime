@@ -13,39 +13,35 @@
 #define _mulle_objc_runtime_include_h__
 
 // How to tweak the following mulle-concurrent #include
-//    remove:        `mulle-sourcetree mark mulle-concurrent no-header`
-//    rename:        `mulle-sourcetree mark mulle-concurrent set include whatever.h`
-//    make private:  `mulle-sourcetree mark mulle-concurrent no-public`
-//    make public:   `mulle-sourcetree mark mulle-concurrent public`
-//    make optional: `mulle-sourcetree mark mulle-concurrent no-require`
-//    remove for os: `mulle-sourcetree mark mulle-concurrent no-os-<osname>`
+//    remove:          `mulle-sourcetree mark mulle-concurrent no-header`
+//    rename:          `mulle-sourcetree mark mulle-concurrent set include whatever.h`
+//    toggle public:   `mulle-sourcetree mark mulle-concurrent [no-]public`
+//    toggle optional: `mulle-sourcetree mark mulle-concurrent [no-]require`
+//    remove for os:   `mulle-sourcetree mark mulle-concurrent no-os-<osname>`
 # include <mulle-concurrent/mulle-concurrent.h>   // mulle-concurrent
 
 // How to tweak the following mulle-vararg #include
-//    remove:        `mulle-sourcetree mark mulle-vararg no-header`
-//    rename:        `mulle-sourcetree mark mulle-vararg set include whatever.h`
-//    make private:  `mulle-sourcetree mark mulle-vararg no-public`
-//    make public:   `mulle-sourcetree mark mulle-vararg public`
-//    make optional: `mulle-sourcetree mark mulle-vararg no-require`
-//    remove for os: `mulle-sourcetree mark mulle-vararg no-os-<osname>`
+//    remove:          `mulle-sourcetree mark mulle-vararg no-header`
+//    rename:          `mulle-sourcetree mark mulle-vararg set include whatever.h`
+//    toggle public:   `mulle-sourcetree mark mulle-vararg [no-]public`
+//    toggle optional: `mulle-sourcetree mark mulle-vararg [no-]require`
+//    remove for os:   `mulle-sourcetree mark mulle-vararg no-os-<osname>`
 # include <mulle-vararg/mulle-vararg.h>   // mulle-vararg
 
 // How to tweak the following mulle-atinit #include
-//    remove:        `mulle-sourcetree mark mulle-atinit no-header`
-//    rename:        `mulle-sourcetree mark mulle-atinit set include whatever.h`
-//    make private:  `mulle-sourcetree mark mulle-atinit no-public`
-//    make public:   `mulle-sourcetree mark mulle-atinit public`
-//    make optional: `mulle-sourcetree mark mulle-atinit no-require`
-//    remove for os: `mulle-sourcetree mark mulle-atinit no-os-<osname>`
+//    remove:          `mulle-sourcetree mark mulle-atinit no-header`
+//    rename:          `mulle-sourcetree mark mulle-atinit set include whatever.h`
+//    toggle public:   `mulle-sourcetree mark mulle-atinit [no-]public`
+//    toggle optional: `mulle-sourcetree mark mulle-atinit [no-]require`
+//    remove for os:   `mulle-sourcetree mark mulle-atinit no-os-<osname>`
 # include <mulle-atinit/mulle-atinit.h>   // mulle-atinit
 
 // How to tweak the following mulle-atexit #include
-//    remove:        `mulle-sourcetree mark mulle-atexit no-header`
-//    rename:        `mulle-sourcetree mark mulle-atexit set include whatever.h`
-//    make private:  `mulle-sourcetree mark mulle-atexit no-public`
-//    make public:   `mulle-sourcetree mark mulle-atexit public`
-//    make optional: `mulle-sourcetree mark mulle-atexit no-require`
-//    remove for os: `mulle-sourcetree mark mulle-atexit no-os-<osname>`
+//    remove:          `mulle-sourcetree mark mulle-atexit no-header`
+//    rename:          `mulle-sourcetree mark mulle-atexit set include whatever.h`
+//    toggle public:   `mulle-sourcetree mark mulle-atexit [no-]public`
+//    toggle optional: `mulle-sourcetree mark mulle-atexit [no-]require`
+//    remove for os:   `mulle-sourcetree mark mulle-atexit no-os-<osname>`
 # include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
 
 #endif

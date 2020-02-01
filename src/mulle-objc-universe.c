@@ -2052,7 +2052,7 @@ struct _mulle_objc_descriptor *
    if( ! universe)
       mulle_objc_universe_fail_code( universe, EINVAL);
    if( ! mulle_objc_descriptor_is_sane( p))
-      mulle_objc_universe_fail_code(universe, EINVAL);
+      mulle_objc_universe_fail_code( universe, EINVAL);
 
    return( _mulle_objc_universe_register_descriptor_nofail( universe, p));
 }

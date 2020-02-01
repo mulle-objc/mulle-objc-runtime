@@ -160,6 +160,171 @@ struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mul
 }
 
 
+enum
+{
+   is_getter  = 0x1,
+   is_setter  = 0x2,
+   is_adder  = 0x4,
+   is_remover = 0x8
+};
+
+
+//
+// for dynamic properties, create the descriptors
+// accessor will contain bits, and methodid already
+
+static void
+   _mulle_objc_universe_set_setter_name_signature( struct _mulle_objc_universe *universe,
+                                                   struct _mulle_objc_descriptor  *accessor,
+                                                   char *prefix,
+                                                   char *name,
+                                                   char *signature,
+                                                   size_t s_len)
+{
+   size_t         n_len;
+   size_t         len;
+   size_t         p_len;
+   unsigned int   size;
+
+   assert( accessor->bits);
+   assert( accessor->methodid);
+
+   p_len = strlen( prefix);
+   n_len = strlen( name);
+   len   = n_len > s_len ? n_len : s_len;
+   {
+      char   buf[ len + 60 + p_len + 1];
+
+      sprintf( buf, "%s%s:", prefix, name);
+      if( buf[ p_len] >= 'a' && buf[ p_len] <= 'z')
+         buf[ p_len] += 'A' - 'a';
+      accessor->name = _mulle_objc_universe_strdup( universe, buf);
+
+      assert( mulle_objc_methodid_from_string( accessor->name) == accessor->methodid);
+
+      mulle_objc_signature_supply_size_and_alignment( signature, &size, NULL);
+      sprintf( buf, "v%d@0:%d%.*s%d",
+                                  (int) (size + sizeof( void *) + sizeof( void *)),
+                                  (int) sizeof( void *),
+                                  (int) s_len, signature,
+                                  (int) (sizeof( void *) + sizeof( void *)));
+      accessor->signature = _mulle_objc_universe_strdup( universe, buf);
+   }
+}
+
+
+static inline int   count_bits( unsigned int bits)
+{
+   int   n;
+
+   n = 0;
+   while( bits)
+   {
+      ++n;
+      bits >>= 1;
+   }
+   return( n);
+}
+
+
+static void
+   _mulle_objc_universe_register_descriptors_for_property( struct _mulle_objc_universe *universe,
+                                                           struct _mulle_objc_property *property,
+                                                           unsigned int bits)
+{
+   struct _mulle_objc_descriptor  *space;
+   size_t                         s_len;
+   char                           *s_type;
+   char                           *e_type;
+
+   assert( bits && bits < 0x10);
+
+   // get @encode from signature
+   s_type = property->signature;
+   e_type = strchr( s_type, ',');
+   e_type = e_type ? e_type : &s_type[ strlen( s_type)];
+   s_len  = e_type - s_type;
+
+   // allocate as many descriptors as needed
+
+   space = _mulle_objc_universe_calloc( universe,
+                                        count_bits( bits),
+                                        sizeof( struct _mulle_objc_descriptor));
+
+   assert( sizeof( int) <= 8);  // %d -> 20 signs max for 64 bit
+
+   if( bits & is_getter)  // getter
+   {
+      struct _mulle_objc_descriptor  *getter;
+      char                           buf[ s_len + 40 + 3 + 1];
+
+      getter            = space++;
+      getter->bits      = _mulle_objc_methodfamily_getter << _mulle_objc_methodfamily_shift;
+      getter->methodid  = property->propertyid;
+      getter->name      = property->name;
+
+      sprintf( buf, "%.*s%d@0:%d", (int) s_len, s_type,
+                                   (int) (sizeof( void *) + sizeof( void *)),
+                                   (int) sizeof( void *));
+      getter->signature = _mulle_objc_universe_strdup( universe, buf);
+
+      _mulle_objc_universe_register_descriptor_nofail( universe, getter);
+   }
+
+
+   if( bits & is_setter)
+   {
+      struct _mulle_objc_descriptor  *setter;
+
+      setter            = space++;
+      setter->bits      = _mulle_objc_methodfamily_setter << _mulle_objc_methodfamily_shift;
+      setter->methodid  = property->setter;
+
+      _mulle_objc_universe_set_setter_name_signature( universe,
+                                                      setter,
+                                                      "set",
+                                                      property->name,
+                                                      s_type,
+                                                      s_len);
+      _mulle_objc_universe_register_descriptor_nofail( universe, setter);
+   }
+
+   if( bits & is_adder)
+   {
+      struct _mulle_objc_descriptor  *adder;
+
+      adder            = space++;
+      adder->bits      = _mulle_objc_methodfamily_adder << _mulle_objc_methodfamily_shift;
+      adder->methodid  = property->adder;
+
+      _mulle_objc_universe_set_setter_name_signature( universe,
+                                                      adder,
+                                                      "addTo",
+                                                      property->name,
+                                                      s_type,
+                                                      s_len);
+      _mulle_objc_universe_register_descriptor_nofail( universe, adder);
+   }
+
+   if( bits & is_remover)
+   {
+      struct _mulle_objc_descriptor  *remover;
+
+      remover            = space++;
+      remover->bits      = _mulle_objc_methodfamily_remover << _mulle_objc_methodfamily_shift;
+      remover->methodid  = property->remover;
+
+      _mulle_objc_universe_set_setter_name_signature( universe,
+                                                      remover,
+                                                      "removeFrom",
+                                                      property->name,
+                                                      s_type,
+                                                      s_len);
+      _mulle_objc_universe_register_descriptor_nofail( universe, remover);
+   }
+}
+
+
 static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
                                                       struct _mulle_objc_propertylist *list)
 {
@@ -167,10 +332,14 @@ static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infracl
    struct _mulle_objc_property                 *property;
    struct _mulle_objc_propertylistenumerator   rover;
    struct _mulle_objc_universe                 *universe;
+   int                                         bit_isset;
+
+   universe = _mulle_objc_infraclass_get_universe( infra);
 
    /* register instance methods */
-   last  = MULLE_OBJC_MIN_UNIQUEID - 1;
-   rover = _mulle_objc_propertylist_enumerate( list);
+   last      = MULLE_OBJC_MIN_UNIQUEID - 1;
+   rover     = _mulle_objc_propertylist_enumerate( list);
+   bit_isset = 0;
    while( property = _mulle_objc_propertylistenumerator_next( &rover))
    {
       assert( mulle_objc_uniqueid_is_sane( property->propertyid));
@@ -187,10 +356,39 @@ static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infracl
 
       // it seems clearing readonly is incompatible, though it might be
       // backed by an ivar so don't do it
-      if( ! (property->bits & _mulle_objc_property_readonly) && (property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear)))
+      if( ! bit_isset)
       {
-         _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY);
-         break;
+         if( ! (property->bits & _mulle_objc_property_readonly) &&
+               (property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear)))
+         {
+            _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY);
+            bit_isset = 1;
+         }
+      }
+
+      //
+      // if we are a dynamic property, ensure that setter/getter have been
+      // defined, otherwise create them now (for MulleGenericObject forward:
+      // to work)
+      //
+      if( property->bits & _mulle_objc_property_dynamic)
+      {
+         int   bits;
+
+         bits = 0;
+         if( ! _mulle_objc_universe_lookup_descriptor( universe, property->getter))
+            bits = is_getter;
+         if( property->setter)
+            if( ! _mulle_objc_universe_lookup_descriptor( universe, property->setter))
+               bits |= is_setter;
+         if( property->adder)
+            if( ! _mulle_objc_universe_lookup_descriptor( universe, property->adder))
+               bits |= is_adder;
+         if( property->remover)
+            if( ! _mulle_objc_universe_lookup_descriptor( universe, property->remover))
+               bits |= is_remover;
+         if( bits)
+            _mulle_objc_universe_register_descriptors_for_property( universe, property, bits);
       }
    }
    _mulle_objc_propertylistenumerator_done( &rover);

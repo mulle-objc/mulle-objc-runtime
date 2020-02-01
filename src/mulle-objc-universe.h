@@ -354,7 +354,7 @@ static inline void   *
 }
 
 
-#pragma mark - debug support for fuundation (with gifting)
+#pragma mark - debug support for foundation (with gifting)
 
 static inline void   mulle_objc_universe_set_path( struct _mulle_objc_universe *universe,
                                                    char *s)
@@ -548,19 +548,17 @@ int  _mulle_objc_universe_should_grow_cache( struct _mulle_objc_universe *univer
 
 #pragma mark - methods
 
+// just for tests! use mulle_objc_universe_register_descriptor_nofail instead
 int    _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
                                             struct _mulle_objc_descriptor *p);
 
-static inline int   mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
-                                                        struct _mulle_objc_descriptor *p);
-
 struct _mulle_objc_descriptor *
     _mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
-                                                       struct _mulle_objc_descriptor *p);
+                                                     struct _mulle_objc_descriptor *p);
 
 struct _mulle_objc_descriptor *
    mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
-                                                     struct _mulle_objc_descriptor *p);
+                                                   struct _mulle_objc_descriptor *p);
 
 // get name from methodid for example
 struct _mulle_objc_descriptor   *

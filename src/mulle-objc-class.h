@@ -78,7 +78,8 @@ int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls);
 
 # pragma mark - convenience accessors
 
-static inline unsigned int   _mulle_objc_class_count_depth( struct _mulle_objc_class *cls)
+static inline unsigned int
+   _mulle_objc_class_count_depth( struct _mulle_objc_class *cls)
 {
    unsigned int   depth;
 

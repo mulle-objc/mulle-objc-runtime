@@ -20,4 +20,8 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
       endif()
    endif()
 
+   if( MULLE_TEST)
+      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMULLE_TEST=1")
+   endif()
+
 endif()

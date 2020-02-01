@@ -182,7 +182,7 @@ static inline  int
 
 static inline void
    mulle_objc_infraclass_add_methodlist_nofail( struct _mulle_objc_infraclass *infra,
-                                                  struct _mulle_objc_methodlist *list)
+                                                struct _mulle_objc_methodlist *list)
 {
    extern void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                            struct _mulle_objc_methodlist *list);
@@ -304,8 +304,6 @@ static inline void
 }
 
 
-
-
 //
 // version is kept in the infraclass
 //
@@ -418,11 +416,13 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 void   mulle_objc_infraclass_add_propertylist_nofail( struct _mulle_objc_infraclass *infra,
                                                         struct _mulle_objc_propertylist *list);
 
-struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
-                                                                       mulle_objc_propertyid_t propertyid);
+struct _mulle_objc_property   *
+   _mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
+                                           mulle_objc_propertyid_t propertyid);
 
-struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
-                                                                     mulle_objc_propertyid_t propertyid);
+struct _mulle_objc_property  *
+   mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
+                                          mulle_objc_propertyid_t propertyid);
 
 
 # pragma mark - ivar lists

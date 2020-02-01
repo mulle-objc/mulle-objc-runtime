@@ -21,7 +21,7 @@ if( NOT __MOTD__CMAKE__)
       )
    endif()
 
-
+   # must run in singlephase
    if( CREATE_MOTD_EXE)
       add_custom_target( __motd__ ALL
          COMMAND "${CREATE_MOTD_EXE}" $ENV{CREATE_BUILD_MOTD_FLAGS}

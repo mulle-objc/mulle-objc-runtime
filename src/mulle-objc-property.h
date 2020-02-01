@@ -56,11 +56,11 @@ enum
    _mulle_objc_property_nonnull           = 0x00080,
 //   _mulle_objc_property_nullable          = 0x00100,
    _mulle_objc_property_class             = 0x00200,  // unused
-   _mulle_objc_property_dynamic           = 0x00400,
-   _mulle_objc_property_nonserializable   = 0x00800,
-   _mulle_objc_property_container         = 0x01000,
-   _mulle_objc_property_relationship      = 0x02000,
-   _mulle_objc_property_observable        = 0x04000,
+   _mulle_objc_property_dynamic           = 0x00400,  // implement via forward:
+   _mulle_objc_property_nonserializable   = 0x00800,  // exclude from NSCoder
+   _mulle_objc_property_container         = 0x01000,  // --addToValue:/-removeFromValue:
+   _mulle_objc_property_relationship      = 0x02000,  // -willReadRelationship:
+   _mulle_objc_property_observable        = 0x04000,  // -willChange
 
    _mulle_objc_property_setterclear       = 0x10000,  // setter clear
    _mulle_objc_property_autoreleaseclear  = 0x20000   // autorelease clear
@@ -138,6 +138,19 @@ static inline uint32_t   _mulle_objc_property_get_bits( struct _mulle_objc_prope
 {
    return( property->bits);
 }
+
+
+static inline uint32_t   _mulle_objc_property_is_dynamic( struct _mulle_objc_property *property)
+{
+   return( (property->bits & _mulle_objc_property_dynamic) ? 1 : 0);
+}
+
+
+static inline uint32_t   _mulle_objc_property_is_readonly( struct _mulle_objc_property *property)
+{
+   return( (property->bits & _mulle_objc_property_readonly) ? 1 : 0);
+}
+
 
 
 // todo: fix this naming strangenesss

@@ -1,5 +1,5 @@
 # Reset to empty
-export MULLE_SDE_UPDATE_CALLBACKS="sourcetree:source"
+export MULLE_SDE_REFLECT_CALLBACKS="sourcetree:source"
 
 
 # Used by `mulle-match find` to speed up the search.

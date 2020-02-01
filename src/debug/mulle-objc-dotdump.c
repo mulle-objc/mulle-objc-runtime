@@ -1057,7 +1057,7 @@ void
                                                    char *directory)
 {
    static mulle_atomic_pointer_t   counter;
-   auto char                       buf[ 32];
+   auto char                       buf[ 20 + 32 + 1];
    int                             nr;
    int                             max;
    char                            *s;

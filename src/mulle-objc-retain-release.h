@@ -52,6 +52,17 @@ void  _mulle_objc_object_tryfinalizetrydealloc( void *obj);
 void  _mulle_objc_object_perform_finalize( void *obj);
 
 
+static inline int   _mulle_objc_object_is_finalized( void *obj)
+{
+   intptr_t                          retaincount_1;
+   struct _mulle_objc_objectheader   *header;
+
+   header        = _mulle_objc_object_get_objectheader( obj);
+   retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
+   return( retaincount_1 < 0);
+}
+
+
 static inline void   mulle_objc_object_perform_finalize( void *obj)
 {
    if( obj)

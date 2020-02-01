@@ -13,21 +13,19 @@
 #define _mulle_objc_runtime_include_private_h__
 
 // How to tweak the following mulle-stacktrace #include
-//    remove:        `mulle-sourcetree mark mulle-stacktrace no-header`
-//    rename:        `mulle-sourcetree mark mulle-stacktrace set include whatever.h`
-//    make private:  `mulle-sourcetree mark mulle-stacktrace no-public`
-//    make public:   `mulle-sourcetree mark mulle-stacktrace public`
-//    make optional: `mulle-sourcetree mark mulle-stacktrace no-require`
-//    remove for os: `mulle-sourcetree mark mulle-stacktrace no-os-<osname>`
+//    remove:          `mulle-sourcetree mark mulle-stacktrace no-header`
+//    rename:          `mulle-sourcetree mark mulle-stacktrace set include whatever.h`
+//    toggle public:   `mulle-sourcetree mark mulle-stacktrace [no-]public`
+//    toggle optional: `mulle-sourcetree mark mulle-stacktrace [no-]require`
+//    remove for os:   `mulle-sourcetree mark mulle-stacktrace no-os-<osname>`
 # include <mulle-stacktrace/mulle-stacktrace.h>   // mulle-stacktrace
 
 // How to tweak the following mulle-dlfcn #include
-//    remove:        `mulle-sourcetree mark mulle-dlfcn no-header`
-//    rename:        `mulle-sourcetree mark mulle-dlfcn set include whatever.h`
-//    make private:  `mulle-sourcetree mark mulle-dlfcn no-public`
-//    make public:   `mulle-sourcetree mark mulle-dlfcn public`
-//    make optional: `mulle-sourcetree mark mulle-dlfcn no-require`
-//    remove for os: `mulle-sourcetree mark mulle-dlfcn no-os-<osname>`
+//    remove:          `mulle-sourcetree mark mulle-dlfcn no-header`
+//    rename:          `mulle-sourcetree mark mulle-dlfcn set include whatever.h`
+//    toggle public:   `mulle-sourcetree mark mulle-dlfcn [no-]public`
+//    toggle optional: `mulle-sourcetree mark mulle-dlfcn [no-]require`
+//    remove for os:   `mulle-sourcetree mark mulle-dlfcn no-os-<osname>`
 # include <mulle-dlfcn/mulle-dlfcn.h>   // mulle-dlfcn
 
 #endif

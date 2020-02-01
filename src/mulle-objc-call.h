@@ -219,6 +219,9 @@ static inline mulle_objc_implementation_t
    struct _mulle_objc_class      *cls;
    mulle_objc_implementation_t   imp;
 
+   //
+   // never forget, the superid contains the methodid and the classid
+   //
    cls = _mulle_objc_object_get_isa( obj);
    imp = (*cls->superlookup)( cls, superid);
    return( imp);
@@ -291,7 +294,6 @@ void   *_mulle_objc_object_supercall( void *obj,
                                       mulle_objc_methodid_t methodid,
                                       void *parameter,
                                       mulle_objc_superid_t superid);
-
 
 MULLE_C_CONST_RETURN
 MULLE_C_NON_NULL_RETURN

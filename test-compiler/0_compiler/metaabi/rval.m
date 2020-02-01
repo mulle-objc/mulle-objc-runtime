@@ -32,17 +32,17 @@ typedef struct
 
 static inline MulleObjCMemoryRegion   MulleObjCMakeMemoryRegion( void *p, NSUInteger length)
 {
-    MulleObjCMemoryRegion    region;
+   MulleObjCMemoryRegion    region;
 
-    region.bytes  = p;
-    region.length = length;
-    return( region);
+   region.bytes  = p;
+   region.length = length;
+   return( region);
 }
 
 
 static inline int   MulleObjCEqualMemoryRegions( MulleObjCMemoryRegion region1, MulleObjCMemoryRegion region2)
 {
-    return( region1.bytes == region2.bytes && region1.length == region2.length);
+   return( region1.bytes == region2.bytes && region1.length == region2.length);
 }
 
 
@@ -58,17 +58,17 @@ typedef NSRange   *NSRangePointer;
 
 static inline NSRange   NSMakeRange( NSUInteger location, NSUInteger length)
 {
-    NSRange    range;
+   NSRange   range;
 
-    range.location = location;
-    range.length   = length;
-    return( range);
+   range.location = location;
+   range.length   = length;
+   return( range);
 }
 
 
 static inline int   NSEqualRanges( NSRange range1, NSRange range2)
 {
-    return( range1.location == range2.location && range1.length == range2.length);
+   return( range1.location == range2.location && range1.length == range2.length);
 }
 
 
