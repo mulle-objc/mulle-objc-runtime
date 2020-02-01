@@ -65,9 +65,10 @@ static int   test( char *s)
       fprintf( stderr, "unexpected NULL in %s\n", __PRETTY_FUNCTION__);
       return( 1);
    }
+
    if( *s)
    {
-      fprintf( stderr, "unexpected tail in %s\n", __PRETTY_FUNCTION__);
+      fprintf( stderr, "unexpected tail \"%s\" in %s\n", s, __PRETTY_FUNCTION__);
       return( 1);
    }
    return( 0);
@@ -107,7 +108,7 @@ static int   test_info( char *s)
    }
    if( *s)
    {
-      fprintf( stderr, "unexpected tail in %s\n", __PRETTY_FUNCTION__);
+      fprintf( stderr, "unexpected tail \"%s\" in %s\n", s, __PRETTY_FUNCTION__);
       return( 1);
    }
    return( 0);

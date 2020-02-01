@@ -1,0 +1,7 @@
+noValue = (0) 
+value = (32)  getter
+notAValue: = (0) 
+setValue: = (33)  setter
+setNotAValue: = (0) 
+setNotAValue:notAValue: = (0) 
+setNoValue = (0) 

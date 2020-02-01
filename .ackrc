@@ -1,0 +1,6 @@
+--ignore-dir=addiction
+--ignore-dir=build
+--ignore-dir=dependency
+--ignore-dir=kitchen
+--ignore-dir=stash
+--ignore-dir=.mulle/var
