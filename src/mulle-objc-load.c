@@ -278,11 +278,11 @@ static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info
 
    if( universe->debug.trace.dependency)
       loadclass_trace( info, universe,
-                      "waits for class %08x \"%s\" to load "
-                      "or gain more categories on list %p",
+                      "waits on list %p for class %08x \"%s\" to load "
+                      "(or to gain more categories) ",
+                      list,
                       missingclassid,
-                      _mulle_objc_universe_describe_classid( universe, missingclassid),
-                      list);
+                      _mulle_objc_universe_describe_classid( universe, missingclassid));
 
    return( 0);
 }
@@ -539,8 +539,8 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    _mulle_objc_infraclass_set_ivarhash( infra, info->classivarhash);
 
    mulle_objc_infraclass_add_ivarlist_nofail( infra, info->instancevariables);
-   mulle_objc_infraclass_add_propertylist_nofail( infra, info->properties);
    mulle_objc_infraclass_add_methodlist_nofail( infra, info->instancemethods);
+   mulle_objc_infraclass_add_propertylist_nofail( infra, info->properties);
 
    if( info->fastclassindex >= 0)
       _mulle_objc_universe_set_fastclass( universe, infra, info->fastclassindex);
@@ -1444,9 +1444,8 @@ int  mulle_objc_loadhashedstring_is_sane( struct _mulle_objc_loadhashedstring *p
 static void   mulle_objc_loadsuperlist_enqueue_nofail( struct _mulle_objc_superlist *list,
                                                        struct _mulle_objc_universe *universe)
 {
-   ;
-   struct _mulle_objc_super      *p;
-   struct _mulle_objc_super      *sentinel;
+   struct _mulle_objc_super   *p;
+   struct _mulle_objc_super   *sentinel;
 
    if( ! list)
       return;

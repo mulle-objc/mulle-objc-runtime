@@ -17,13 +17,13 @@
    return( self);
 }
 
-- (void) addObject:(id) a
+- (void) addObject:(id) obj
 {
    printf( "%s\n", __FUNCTION__);
 }
 
 
-- (void) removeObject:(id) a
+- (void) removeObject:(id) obj
 {
    printf( "%s\n", __FUNCTION__);
 }

@@ -50,24 +50,18 @@
 #define _C_ATOM         '%'
 #define _C_BFLD         'b'
 #define _C_BOOL         'B'
-#define _C_BYCOPY       'O'
-#define _C_BYREF        'R'
 #define _C_CHARPTR      '*'
 #define _C_CHR          'c'
 #define _C_CLASS        '#'
-#define _C_CONST        'r'
+// #define _C_COMPLEX      'j'   // no support for this
 #define _C_DBL          'd'
 #define _C_FLT          'f'
-#define _C_GCINVISIBLE  '!'  /* lol */
+#define _C_FUNCTION     '?'  // same as undef. undef meaning "undefined size"
 #define _C_ID           '@'
-#define _C_IN           'n'
-#define _C_INOUT        'N'
 #define _C_INT          'i'
 #define _C_LNG          'l'
 #define _C_LNG_DBL      'D'
 #define _C_LNG_LNG      'q'
-#define _C_ONEWAY       'V'
-#define _C_OUT          'o'
 #define _C_PTR          '^'
 #define _C_SEL          ':'
 #define _C_SHT          's'
@@ -77,8 +71,7 @@
 #define _C_UINT         'I'
 #define _C_ULNG         'L'
 #define _C_ULNG_LNG     'Q'
-#define _C_FUNCTION     '?'  // same as undef. undef meaning "undefined size"
-#define _C_UNDEF        '?'  // actually @? is a block, ^? is function pointer
+#define _C_UNDEF        '?'  // actually @? is a block, ^? is function pointer (so ?)
 #define _C_UNION_B      '('
 #define _C_UNION_E      ')'
 #define _C_USHT         'S'
@@ -88,10 +81,22 @@
 // these future defines are incompatible
 // % is like @ but it should be copyied instead of retained
 // = is like @ but it should not be retained
-#define _C_COPY_ID      '~'
 #define _C_ASSIGN_ID    '='
+#define _C_COPY_ID      '~'
 #define _C_RETAIN_ID    _C_ID
 
+
+// Type modifiers are no longer encoded in mulle-objc. They slow things down
+// and there is no interest in them. The DO stuff and GC is also obsolete
+//
+// #define _C_BYCOPY       'O'
+// #define _C_BYREF        'R'
+// #define _C_CONST        'r'  /*  mulle-c compiler doesn't emit it anymore */
+// #define _C_GCINVISIBLE  '|'  /* lol */
+// #define _C_IN           'n'
+// #define _C_INOUT        'N'
+// #define _C_ONEWAY       'V'
+// #define _C_OUT          'o'
 
 struct mulle_objc_typeinfo
 {
@@ -123,7 +128,7 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
 
 static inline char   *
    _mulle_objc_signature_supply_next_typeinfo( char *types,
-                                              struct mulle_objc_typeinfo *info)
+                                               struct mulle_objc_typeinfo *info)
 {
    if( ! types || ! *types)
       return( NULL);
@@ -240,6 +245,58 @@ static inline void   _mulle_objc_sprint_untypedsignature( char *buf, size_t size
    }
    *buf = 0;
 }
+
+
+#define mulle_objc_type_fits_voidptr( x)  \
+   ((sizeof( x) <= sizeof( void *)) && (alignof( x) <= alignof( void *)))
+
+
+//
+// in usual operation, this evaporates as none of the _C_xxxx type
+// qualifiers are actually defined and the mulle-objc 0.17 does not
+// emit them anymore
+//
+static inline char   *_mulle_objc_signature_skip_type_qualifier( char *type)
+{
+   assert( type);
+
+   for(;;)
+   {
+      switch( *type)
+      {
+      default :
+         return( type);
+
+#ifdef _C_CONST
+      case _C_CONST :
+#endif
+#ifdef _C_IN
+      case _C_IN :
+#endif
+#ifdef _C_INOUT
+      case _C_INOUT :
+#endif
+#ifdef _C_OUT
+      case _C_OUT :
+#endif
+#ifdef _C_BYCOPY
+      case _C_BYCOPY :
+#endif
+#ifdef _C_BYREF
+      case _C_BYREF :
+#endif
+#ifdef _C_ONEWAY
+      case _C_ONEWAY :
+#endif
+#ifdef _C_GCINVISIBLE
+      case _C_GCINVISIBLE :
+#endif
+         continue;
+      }
+      ++type;
+   }
+}
+
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */
 

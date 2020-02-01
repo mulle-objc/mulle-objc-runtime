@@ -351,10 +351,10 @@ int   _mulle_objc_class_invalidate_supercache( struct _mulle_objc_class *cls)
    {
       // always break regardless of return value
       _mulle_objc_class_add_cacheentry_swapsupercache( cls,
-                                                                supercache,
-                                                                NULL,
-                                                                MULLE_OBJC_NO_METHODID,
-                                                                MULLE_OBJC_CACHESIZE_STAGNATE);
+                                                       supercache,
+                                                       NULL,
+                                                       MULLE_OBJC_NO_METHODID,
+                                                       MULLE_OBJC_CACHESIZE_STAGNATE);
       break;
    }
 

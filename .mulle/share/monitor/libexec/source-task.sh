@@ -33,7 +33,7 @@ source_task_run()
 {
    log_entry "mulle-sde/c-cmake::source_task_run" "$@"
 
-   log_info "Updating ${C_MAGENTA}${C_BOLD}${PROJECT_NAME}${C_INFO} source"
+   log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME}${C_INFO} source"
 
    exekutor mulle-match-to-cmake \
                ${MULLE_TECHNICAL_FLAGS} \
