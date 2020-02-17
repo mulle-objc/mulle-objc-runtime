@@ -115,6 +115,7 @@ struct _mulle_objc_universedebug
       unsigned   string_add           : 1;
       unsigned   super_add            : 1;
       unsigned   tagged_pointer       : 1;
+      unsigned   thread               : 1;
       unsigned   universe             : 1;
    } trace;
 
@@ -230,12 +231,14 @@ enum mulle_objc_finalize_stage
    mulle_objc_finalize
 };
 
+struct _mulle_objc_threadinfo;
 
 typedef void   mulle_objc_universefriend_destructor_t( struct _mulle_objc_universe *, void *);
 typedef void   mulle_objc_universefriend_finalizer_t( struct _mulle_objc_universe *, void *, enum mulle_objc_finalize_stage);
 typedef void   mulle_objc_universefriend_versionassert_t( struct _mulle_objc_universe *,
                                                           void *,
                                                           struct mulle_objc_loadversion *);
+typedef void   mulle_objc_universefriend_threadinfoinit_t( struct _mulle_objc_threadinfo *);
 
 
 //
@@ -249,6 +252,7 @@ struct _mulle_objc_universefriend
    mulle_objc_universefriend_finalizer_t        *finalizer;
    mulle_objc_universefriend_destructor_t       *destructor;
    mulle_objc_universefriend_versionassert_t    *versionassert;
+   mulle_objc_universefriend_threadinfoinit_t   *threadinfoinitializer;
 };
 
 //
@@ -294,7 +298,8 @@ struct _mulle_objc_waitqueues
 };
 
 // size in bytes
-#define S_MULLE_OBJC_UNIVERSE_FOUNDATION_SPACE   1024
+#define S_MULLE_OBJC_UNIVERSE_FOUNDATION_SPACE   512
+#define S_MULLE_OBJC_UNIVERSE_USERINFO_SPACE     64
 
 /*
  * All (?) global variables used by the universe are in this struct.
@@ -412,6 +417,7 @@ struct _mulle_objc_universe
    // a malloc
    //
    struct _mulle_objc_universefriend     userinfo;    // for user programs
+   intptr_t                              userinfospace[ S_MULLE_OBJC_UNIVERSE_USERINFO_SPACE / sizeof( intptr_t)];
 
    //
    // it must be assured that foundationspace always trails foundation

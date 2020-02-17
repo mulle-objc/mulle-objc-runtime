@@ -42,7 +42,8 @@ Use the following environment variables to trace runtime operations. You can set
 `MULLE_OBJC_TRACE_LOAD_CALL`            | Trace calls of `+load`, `+categoryDependencies`, `+classDependencies`
 `MULLE_OBJC_TRACE_LOADINFO`             | Trace the enqueing of loadinfos
 `MULLE_OBJC_TRACE_PROTOCOL_ADD`         | Trace whenever a protocol is added to the runtime system.
-`MULLE_OBJC_TRACE_STATE_BIT`            | Trace whenever a class state changes. `MULLE_OBJC_TRACE_STRING_ADDS`          | Trace whenever a constant string is added to the runtime system.
+`MULLE_OBJC_TRACE_STATE_BIT`            | Trace whenever a class state changes.
+`MULLE_OBJC_TRACE_STRING_ADDS`          | Trace whenever a constant string is added to the runtime system.
 `MULLE_OBJC_TRACE_TAGGED_POINTER`       | Trace whenever a class registers for tagged pointers (isa).
 
 
