@@ -90,7 +90,7 @@ int   mulle_objc_environment_get_yes_no_default( char *name, int default_value)
 {
    char   *s;
 
-   s = getenv( name);
+   s = name ? getenv( name) : NULL;
    if( ! s)
       return( default_value);
 
@@ -213,6 +213,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.string_add      = getenv_yes_no( "MULLE_OBJC_TRACE_STRING_ADD");
    universe->debug.trace.super_add       = getenv_yes_no( "MULLE_OBJC_TRACE_SUPER_ADD");
    universe->debug.trace.tagged_pointer  = getenv_yes_no( "MULLE_OBJC_TRACE_TAGGED_POINTER");
+   universe->debug.trace.thread          = getenv_yes_no( "MULLE_OBJC_TRACE_THREAD");
 
    if( getenv_yes_no( "MULLE_OBJC_TRACE_CACHE"))
    {
@@ -269,6 +270,30 @@ static MULLE_C_NO_RETURN void   mulle_objc_fail_allocation( void *block, size_t 
 
 static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
 {
+   struct _mulle_objc_universe *universe;
+
+   if( ! config)
+      return;
+
+   universe = config->universe;
+   if( config->userspace_destructor)
+   {
+      if( universe->debug.trace.thread)
+         mulle_objc_universe_trace( universe, "call threadinfo %p of thread %p user destructor", config, mulle_thread_self());
+
+      (*config->userspace_destructor)( config, config->userspace);
+   }
+   if( config->foundation_destructor)
+   {
+      if( universe->debug.trace.thread)
+         mulle_objc_universe_trace( universe, "call threadinfo %p of thread %p foundation destructor", config, mulle_thread_self());
+
+      (*config->foundation_destructor)( config, config->foundationspace);
+   }
+
+   if( universe->debug.trace.thread)
+      mulle_objc_universe_trace( universe, "free threadinfo %p of thread %p", config, mulle_thread_self());
+
    _mulle_allocator_free( config->allocator, config);
 }
 
@@ -284,11 +309,12 @@ void   mulle_objc_thread_unset_threadinfo( struct _mulle_objc_universe *universe
    threadkey = _mulle_objc_universe_get_threadkey( universe);
    config    = mulle_thread_tss_get( threadkey);
    assert( config);
-   if( config)
-   {
-      mulle_thread_tss_set( threadkey, NULL);
-      mulle_objc_threadinfo_free( config);
-   }
+
+   mulle_objc_threadinfo_free( config);
+   mulle_thread_tss_set( threadkey, NULL);
+
+   if( universe->debug.trace.thread)
+      mulle_objc_universe_trace( universe, "unset threadinfo %p of thread %p", config, mulle_thread_self());
 }
 
 
@@ -307,9 +333,21 @@ void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe
    config    = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_threadinfo));
 
    config->allocator = allocator;
-   threadkey         = _mulle_objc_universe_get_threadkey( universe);
+   config->universe  = universe;
+
+   // let foundation and userinfo setup their threadinfo space
+   // including possibly the destructors of the threadinfo
+   if( universe->foundation.universefriend.threadinfoinitializer)
+      (*universe->foundation.universefriend.threadinfoinitializer)( config);
+   if( universe->userinfo.threadinfoinitializer)
+      (*universe->userinfo.threadinfoinitializer)( config);
+
+   threadkey = _mulle_objc_universe_get_threadkey( universe);
    assert( mulle_thread_tss_get( threadkey) == NULL);
    mulle_thread_tss_set( threadkey, config);
+
+   if( universe->debug.trace.thread)
+      mulle_objc_universe_trace( universe, "setup threadinfo %p of thread %p", config, mulle_thread_self());
 }
 
 
@@ -2651,9 +2689,6 @@ mulle_objc_walkcommand_t
    struct _mulle_objc_infraclass               *cls;
    struct _mulle_objc_metaclass                *meta;
    struct mulle_concurrent_hashmapenumerator   rover;
-
-   if( ! universe || ! callback)
-      return( mulle_objc_walk_error);
 
    cmd   = mulle_objc_walk_done;
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);  // slow!

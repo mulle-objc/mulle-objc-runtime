@@ -118,7 +118,7 @@ static void    map_f( struct mulle_concurrent_hashmap *table,
 static mulle_objc_implementation_t
    _mulle_objc_methodlist_bsearch_dependencies_imp( struct _mulle_objc_methodlist *methods)
 {
-   struct _mulle_objc_method            *method;
+   struct _mulle_objc_method      *method;
    mulle_objc_implementation_t    imp;
 
    method = mulle_objc_method_bsearch( methods->methods,
@@ -443,7 +443,7 @@ void
 }
 
 
-// ensure the load class, minimally make sense
+// ensure the load class, minimally makes sense
 static int  mulle_objc_loadclass_is_sane( struct _mulle_objc_loadclass *info)
 {
    if( ! info)

@@ -83,7 +83,7 @@ void   _mulle_objc_universe_throw( struct _mulle_objc_universe *universe, void *
    char                                    *s;
 
    config = _mulle_objc_thread_get_threadinfo( universe);
-   entry  = config->exception_stack;
+   entry  = _mulle_objc_threadinfo_get_exception_stack( config);
    if( ! entry)
    {
       if( universe->failures.uncaughtexception)
@@ -104,8 +104,8 @@ void   _mulle_objc_universe_throw( struct _mulle_objc_universe *universe, void *
       abort();
    }
 
-   entry->exception        = exception;
-   config->exception_stack = entry->previous;
+   entry->exception = exception;
+   _mulle_objc_threadinfo_set_exception_stack( config, entry->previous);
 
    // from Apple objc_universe.mm
 #if defined( _WIN32) || defined( __linux__)
@@ -124,13 +124,13 @@ void   _mulle_objc_universe_tryenter( struct _mulle_objc_universe *universe,
 {
    struct _mulle_objc_exceptionstackentry  *entry = data;
    struct _mulle_objc_exceptionstackentry  *top;
-   struct _mulle_objc_threadinfo         *config;
+   struct _mulle_objc_threadinfo           *config;
 
    config                  = _mulle_objc_thread_get_threadinfo( universe);
-   top                     = config->exception_stack;
+   top                     = _mulle_objc_threadinfo_get_exception_stack( config);
    entry->exception        = NULL;
    entry->previous         = top;
-   config->exception_stack = entry;
+   _mulle_objc_threadinfo_set_exception_stack( config, entry);
 }
 
 
@@ -142,10 +142,10 @@ void   _mulle_objc_universe_tryexit( struct _mulle_objc_universe *universe,
                                      void *data)
 {
    struct _mulle_objc_exceptionstackentry *entry = data;
-   struct _mulle_objc_threadinfo        *config;
+   struct _mulle_objc_threadinfo          *config;
 
-   config                  = _mulle_objc_thread_get_threadinfo( universe);
-   config->exception_stack = entry->previous;
+   config = _mulle_objc_thread_get_threadinfo( universe);
+   _mulle_objc_threadinfo_set_exception_stack( config, entry->previous);
 }
 
 
