@@ -103,16 +103,8 @@ void  _mulle_objc_universe_done( struct _mulle_objc_universe *universe);
 
 
 // use
-static inline void  _mulle_objc_universe_retain( struct _mulle_objc_universe *universe)
-{
-   // the main thread should not retain the universe, it is implicit
-   assert( _mulle_objc_universe_get_thread( universe) != mulle_thread_self());
-
-   _mulle_atomic_pointer_increment( &universe->retaincount_1);
-}
-
-
-void   _mulle_objc_universe_release( struct _mulle_objc_universe *universe);
+intptr_t  _mulle_objc_universe_retain( struct _mulle_objc_universe *universe);
+intptr_t  _mulle_objc_universe_release( struct _mulle_objc_universe *universe);
 
 
 #pragma mark - globals / tables
@@ -129,9 +121,10 @@ typedef void   mulle_objc_threadinfo_destructor_t( struct _mulle_objc_threadinfo
 struct _mulle_objc_threadinfo
 {
    struct _mulle_objc_universe              *universe;
-   struct mulle_allocator                   *allocator;
-   struct _mulle_objc_exceptionstackentry   *exception_stack;
    void                                     *threadobject;
+   uintptr_t                                nr;  // thread identifier short
+   struct _mulle_objc_exceptionstackentry   *exception_stack;
+   struct mulle_allocator                   *allocator;
 
    // these will be called when mulle_objc_thread_unset_threadinfo is called
    // (or the thread dies)
@@ -159,6 +152,12 @@ static inline void *
    _mulle_objc_threadinfo_get_threadobject( struct _mulle_objc_threadinfo *config)
 {
    return( config->threadobject);
+}
+
+static inline uintptr_t
+   _mulle_objc_threadinfo_get_nr( struct _mulle_objc_threadinfo *config)
+{
+   return( config->nr);
 }
 
 
@@ -286,11 +285,11 @@ static inline int
 // initialize them easily)
 //
 
-MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_universe *
+MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_universe *
    mulle_objc_global_get_universe( mulle_objc_universeid_t universeid);
 
 // always returns same value (in same thread)
-MULLE_C_CONST_NON_NULL_RETURN  static inline struct _mulle_objc_universe *
+MULLE_C_CONST_NONNULL_RETURN  static inline struct _mulle_objc_universe *
    mulle_objc_global_inlineget_universe( mulle_objc_universeid_t universeid)
 {
    if( universeid == MULLE_OBJC_DEFAULTUNIVERSEID)
@@ -301,7 +300,7 @@ MULLE_C_CONST_NON_NULL_RETURN  static inline struct _mulle_objc_universe *
 
 // use this only during mulle_objc_global_register_universe
 // always returns same value (in same thread)
-MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_universe   *
+MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_universe   *
    __mulle_objc_global_get_universe(  mulle_objc_universeid_t universeid,
                                       char *universename);
 
@@ -314,7 +313,7 @@ MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_universe   *
 //
 // It is not CONST, so you can reinitialize a universe with this function.
 //
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_universe   *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_universe   *
    mulle_objc_global_register_universe( mulle_objc_universeid_t universeid,
                                         char *universename);
 
@@ -340,14 +339,14 @@ struct _mulle_concurrent_pointerarray  *
 // used as default value for the infraclass allocator, which creates
 // objects
 //
-MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
+MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
    _mulle_objc_foundation_get_allocator( struct _mulle_objc_foundation *foundation)
 {
    return( &foundation->allocator);
 }
 
 
-MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
+MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
    _mulle_objc_universe_get_foundationallocator( struct _mulle_objc_universe *universe)
 {
    return( _mulle_objc_foundation_get_allocator( &universe->foundation));
@@ -382,7 +381,7 @@ static inline void
 #pragma mark - memory allocation with "gifting"
 
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
 static inline void   *_mulle_objc_universe_strdup( struct _mulle_objc_universe *universe,
                                                    char  *s)
 {
@@ -396,7 +395,7 @@ static inline void   *_mulle_objc_universe_strdup( struct _mulle_objc_universe *
 }
 
 
-MULLE_C_NON_NULL_RETURN static inline void *
+MULLE_C_NONNULL_RETURN static inline void *
    _mulle_objc_universe_calloc( struct _mulle_objc_universe *universe,
                                 size_t n,
                                 size_t size)
@@ -411,7 +410,7 @@ MULLE_C_NON_NULL_RETURN static inline void *
 }
 
 
-MULLE_C_NON_NULL_RETURN static inline void   *
+MULLE_C_NONNULL_RETURN static inline void   *
    mulle_objc_universe_strdup( struct _mulle_objc_universe *universe,
                                char *s)
 {
@@ -824,22 +823,22 @@ char   *_mulle_objc_universe_search_hashstring( struct _mulle_objc_universe *uni
 
 #pragma mark - uniqueid to string conversions
 
-MULLE_C_NON_NULL_RETURN MULLE_C_NONNULL_FIRST
+MULLE_C_NONNULL_RETURN MULLE_C_NONNULL_FIRST
 char   *_mulle_objc_universe_describe_uniqueid( struct _mulle_objc_universe *universe,
                                                 mulle_objc_uniqueid_t uniqueid);
-MULLE_C_NON_NULL_RETURN MULLE_C_NONNULL_FIRST
+MULLE_C_NONNULL_RETURN MULLE_C_NONNULL_FIRST
 char   *_mulle_objc_universe_describe_classid( struct _mulle_objc_universe *universe,
                                                 mulle_objc_classid_t classid);
-MULLE_C_NON_NULL_RETURN MULLE_C_NONNULL_FIRST
+MULLE_C_NONNULL_RETURN MULLE_C_NONNULL_FIRST
 char   *_mulle_objc_universe_describe_methodid( struct _mulle_objc_universe *universe,
                                                 mulle_objc_methodid_t methodid);
-MULLE_C_NON_NULL_RETURN MULLE_C_NONNULL_FIRST
+MULLE_C_NONNULL_RETURN MULLE_C_NONNULL_FIRST
 char   *_mulle_objc_universe_describe_protocolid( struct _mulle_objc_universe *universe,
                                                   mulle_objc_protocolid_t protocolid);
-MULLE_C_NON_NULL_RETURN MULLE_C_NONNULL_FIRST
+MULLE_C_NONNULL_RETURN MULLE_C_NONNULL_FIRST
 char   *_mulle_objc_universe_describe_categoryid( struct _mulle_objc_universe *universe,
                                                   mulle_objc_categoryid_t categoryid);
-MULLE_C_NON_NULL_RETURN MULLE_C_NONNULL_FIRST
+MULLE_C_NONNULL_RETURN MULLE_C_NONNULL_FIRST
 char   *_mulle_objc_universe_describe_superid( struct _mulle_objc_universe *universe,
                                                mulle_objc_superid_t classid);
 
@@ -882,6 +881,13 @@ static inline enum mulle_objc_universe_status
 
 
 /* debug support */
+// TODO: probably useless ...
+void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe);
+
+void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
+                                    FILE *fp,
+                                    char *format,
+                                    ...);
 
 void  mulle_objc_universe_trace( struct _mulle_objc_universe *universe,
                                  char *format,
@@ -991,6 +997,7 @@ static inline void   mulle_objc_thread_checkin( mulle_objc_universeid_t universe
    _mulle_objc_thread_checkin_universe_gc( universe);
 }
 
+
 MULLE_C_NONNULL_FIRST
 static inline struct _mulle_objc_threadinfo  *
    __mulle_objc_thread_get_threadinfo( struct _mulle_objc_universe *universe)
@@ -1005,7 +1012,7 @@ static inline struct _mulle_objc_threadinfo  *
 
 
 // always returns same value (in same thread)
-MULLE_C_CONST_NON_NULL_RETURN MULLE_C_NONNULL_FIRST
+MULLE_C_CONST_NONNULL_RETURN MULLE_C_NONNULL_FIRST
 static inline struct _mulle_objc_threadinfo *
    _mulle_objc_thread_get_threadinfo( struct _mulle_objc_universe *universe)
 {

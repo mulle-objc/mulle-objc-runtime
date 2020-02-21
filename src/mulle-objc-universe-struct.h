@@ -91,6 +91,9 @@ enum
 //
 struct _mulle_objc_universedebug
 {
+   mulle_thread_mutex_t              lock;  // used for trace
+   mulle_atomic_pointer_t            thread_counter;
+
    struct
    {
       unsigned   method_searches;      // keep this in an int
@@ -116,6 +119,7 @@ struct _mulle_objc_universedebug
       unsigned   super_add            : 1;
       unsigned   tagged_pointer       : 1;
       unsigned   thread               : 1;
+      unsigned   timestamp            : 1; // linux only for now
       unsigned   universe             : 1;
    } trace;
 
@@ -125,6 +129,7 @@ struct _mulle_objc_universedebug
       unsigned   protocolclass          : 1;
       unsigned   stuck_loadable         : 1;  // set by default
       unsigned   pedantic_methodid_type : 1;
+      unsigned   crash                  : 1;
    } warn;
 
    struct
@@ -526,7 +531,7 @@ static inline int
 #pragma mark - non concurrent memory allocation
 
 // use for universe stuff, like classes, methods, properties, ivars
-MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator *
+MULLE_C_NONNULL_RETURN static inline struct mulle_allocator *
    _mulle_objc_universe_get_allocator( struct _mulle_objc_universe *universe)
 {
    return( &universe->memory.allocator);

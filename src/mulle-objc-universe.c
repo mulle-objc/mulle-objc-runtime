@@ -56,6 +56,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined( __linux__) || defined( __APPLE__)
+# define HAVE_TRACE_TIMESTAMP
+# include <time.h>
+#endif
 
 
 # pragma mark - setup
@@ -125,24 +129,62 @@ static inline int   getenv_yes_no_default( char *name, int default_value)
 }
 
 
+void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_threadinfo   *config;
+
+   if( universe->thread != mulle_thread_self())
+   {
+      config = __mulle_objc_thread_get_threadinfo( universe);
+      if( config)
+         fprintf( stderr, "t:#%2lu ", config->nr);
+      else
+         fprintf( stderr, "t:%p ", (void *) mulle_thread_self());
+   }
+
+#ifdef HAVE_TRACE_TIMESTAMP
+   if( universe->debug.trace.timestamp)
+   {
+      struct timespec   now;
+
+      clock_gettime( CLOCK_MONOTONIC_RAW, &now);
+      fprintf( stderr, "%ld.%09ld ", now.tv_sec, now.tv_nsec);
+   }
+#endif
+}
+
+
 static void   trace_preamble( struct _mulle_objc_universe *universe)
 {
-   size_t    n_universes;
-   char      *name;
+   size_t   n_universes;
+   char     *name;
+   char     *format;
 
+   mulle_objc_universe_trace_preamble( universe);
+
+   // if we dump a lot, indent traces and be less verbose
+   if( universe->debug.trace.method_call ||
+       universe->debug.trace.instance)
+   {
+      format = "     %s: ";
+   }
+   else
+      if( universe->debug.trace.timestamp)
+         format = "%s: ";
+      else
+         format = "mulle_objc_universe %strace: ";
+
+   name="";
    if( universe)
    {
       n_universes = __mulle_objc_global_get_alluniverses( NULL, 0);
       if( n_universes > 1)
-      {
          name = mulle_objc_universe_get_name( universe);
-         fprintf( stderr, "mulle_objc_universe \"%s\" trace: ", name);
-      }
-      else
-         fprintf( stderr, "mulle_objc_universe %p trace: ", universe);
    }
    else
-      fprintf( stderr, "mulle_objc_universe NULL trace: ");
+      name = "NULL";
+
+   fprintf( stderr, format, name);
 }
 
 
@@ -154,8 +196,12 @@ void  mulle_objc_universe_trace_nolf( struct _mulle_objc_universe *universe,
 
    va_start( args, format);
 
-   trace_preamble( universe);
-   vfprintf( stderr, format, args);
+   mulle_thread_mutex_lock( &universe->debug.lock);
+   {
+      trace_preamble( universe);
+      vfprintf( stderr, format, args);
+   }
+   mulle_thread_mutex_unlock( &universe->debug.lock);
 
    va_end( args);
 }
@@ -169,12 +215,38 @@ void   mulle_objc_universe_trace( struct _mulle_objc_universe *universe,
 
    va_start( args, format);
 
-   trace_preamble( universe);
-   vfprintf( stderr, format, args);
-   fprintf( stderr, "\n");
+   mulle_thread_mutex_lock( &universe->debug.lock);
+   {
+      trace_preamble( universe);
+      vfprintf( stderr, format, args);
+      fprintf( stderr, "\n");
+   }
+   mulle_thread_mutex_unlock( &universe->debug.lock);
 
    va_end( args);
 }
+
+
+void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
+                                    FILE *fp,
+                                    char *format,
+                                    ...)
+{
+   va_list   args;
+
+   va_start( args, format);
+
+   mulle_thread_mutex_lock( &universe->debug.lock);
+   {
+      mulle_objc_universe_trace_preamble( universe);
+
+      vfprintf( stderr, format, args);
+   }
+   mulle_thread_mutex_unlock( &universe->debug.lock);
+
+   va_end( args);
+}
+
 
 
 static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe  *universe)
@@ -183,6 +255,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.warn.pedantic_methodid_type = getenv_yes_no( "MULLE_OBJC_WARN_PEDANTIC_METHODID_TYPE");
    universe->debug.warn.protocolclass          = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
    universe->debug.warn.stuck_loadable         = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
+   universe->debug.warn.crash                  = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
 
 #if ! DEBUG
    if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
@@ -213,6 +286,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.string_add      = getenv_yes_no( "MULLE_OBJC_TRACE_STRING_ADD");
    universe->debug.trace.super_add       = getenv_yes_no( "MULLE_OBJC_TRACE_SUPER_ADD");
    universe->debug.trace.tagged_pointer  = getenv_yes_no( "MULLE_OBJC_TRACE_TAGGED_POINTER");
+   universe->debug.trace.timestamp       = getenv_yes_no( "MULLE_OBJC_TRACE_TIMESTAMP");
    universe->debug.trace.thread          = getenv_yes_no( "MULLE_OBJC_TRACE_THREAD");
 
    if( getenv_yes_no( "MULLE_OBJC_TRACE_CACHE"))
@@ -268,6 +342,46 @@ static MULLE_C_NO_RETURN void   mulle_objc_fail_allocation( void *block, size_t 
 
 # pragma mark - thread info
 
+
+
+void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_threadinfo   *config;
+   struct mulle_allocator          *allocator;
+   mulle_thread_tss_t              threadkey;
+   auto char                       buf[ 64];
+
+   if( ! universe)
+      abort();
+
+   // don't use gifting calloc, will be cleaned separately
+
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   config    = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_threadinfo));
+
+   config->allocator = allocator;
+   config->universe  = universe;
+
+   // merely for tracing, main as its first, gets config->nr 0
+   config->nr = (uintptr_t) _mulle_atomic_pointer_increment( &universe->debug.thread_counter);
+
+   // let foundation and userinfo setup their threadinfo space
+   // including possibly the destructors of the threadinfo
+   if( universe->foundation.universefriend.threadinfoinitializer)
+      (*universe->foundation.universefriend.threadinfoinitializer)( config);
+   if( universe->userinfo.threadinfoinitializer)
+      (*universe->userinfo.threadinfoinitializer)( config);
+
+   threadkey = _mulle_objc_universe_get_threadkey( universe);
+   assert( mulle_thread_tss_get( threadkey) == NULL);
+   mulle_thread_tss_set( threadkey, config);
+   assert( mulle_thread_tss_get( threadkey) == config);
+
+   if( universe->debug.trace.thread)
+      mulle_objc_universe_trace( universe, "setup threadinfo %p of thread %p", config, mulle_thread_self());
+}
+
+
 static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
 {
    struct _mulle_objc_universe *universe;
@@ -292,7 +406,7 @@ static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
    }
 
    if( universe->debug.trace.thread)
-      mulle_objc_universe_trace( universe, "free threadinfo %p of thread %p", config, mulle_thread_self());
+      mulle_objc_universe_trace( universe, "free threadinfo %p of thread %p (#%ld)", config, mulle_thread_self(), config->nr);
 
    _mulle_allocator_free( config->allocator, config);
 }
@@ -318,38 +432,6 @@ void   mulle_objc_thread_unset_threadinfo( struct _mulle_objc_universe *universe
 }
 
 
-void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe)
-{
-   struct _mulle_objc_threadinfo   *config;
-   struct mulle_allocator          *allocator;
-   mulle_thread_tss_t              threadkey;
-
-   if( ! universe)
-      return;
-
-   // don't use gifting calloc, will be cleaned separately
-
-   allocator = _mulle_objc_universe_get_allocator( universe);
-   config    = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_threadinfo));
-
-   config->allocator = allocator;
-   config->universe  = universe;
-
-   // let foundation and userinfo setup their threadinfo space
-   // including possibly the destructors of the threadinfo
-   if( universe->foundation.universefriend.threadinfoinitializer)
-      (*universe->foundation.universefriend.threadinfoinitializer)( config);
-   if( universe->userinfo.threadinfoinitializer)
-      (*universe->userinfo.threadinfoinitializer)( config);
-
-   threadkey = _mulle_objc_universe_get_threadkey( universe);
-   assert( mulle_thread_tss_get( threadkey) == NULL);
-   mulle_thread_tss_set( threadkey, config);
-
-   if( universe->debug.trace.thread)
-      mulle_objc_universe_trace( universe, "setup threadinfo %p of thread %p", config, mulle_thread_self());
-}
-
 
 # pragma mark - initialization
 
@@ -371,7 +453,7 @@ static int   abafree_nofail( void  *aba,
 static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *universe,
                                                  struct mulle_allocator *allocator)
 {
-   void    mulle_objc_vprintf_abort( char *format, va_list args);
+   void   mulle_objc_vprintf_abort( char *format, va_list args);
    char *kind;
 
    assert( universe);
@@ -479,6 +561,8 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_objc_universe_init_gc( universe);
    _mulle_objc_thread_register_universe_gc_if_needed( universe);
 
+   if( mulle_thread_mutex_init( &universe->debug.lock))
+      abort();
    if( mulle_thread_mutex_init( &universe->waitqueues.lock))
       abort();
    if( mulle_thread_mutex_init( &universe->lock))
@@ -1533,6 +1617,9 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
 
    mulle_objc_thread_unset_threadinfo( universe);
    mulle_thread_tss_free( universe->threadkey);
+
+   mulle_thread_mutex_done( &universe->waitqueues.lock);
+   mulle_thread_mutex_done( &universe->debug.lock);
    mulle_thread_mutex_done( &universe->lock);
 
    if( _mulle_objc_universe_is_default( universe))
@@ -1545,7 +1632,19 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
 }
 
 
-void   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
+intptr_t  _mulle_objc_universe_retain( struct _mulle_objc_universe *universe)
+{
+   intptr_t  rc;
+
+   rc = (intptr_t) _mulle_atomic_pointer_increment( &universe->retaincount_1);
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "retain the universe (%ld)", rc + 1);
+
+   return( rc);
+}
+
+
+intptr_t   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
 {
    intptr_t   rc;
 
@@ -1554,16 +1653,28 @@ void   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
       if( mulle_thread_self() == _mulle_objc_universe_get_thread( universe))
       {
          if( universe->debug.trace.universe)
-            mulle_objc_universe_trace( universe, "main thread is waiting on threads to finish (possibly indefinitely");
-
-         while( (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1) != 0)
+            mulle_objc_universe_trace( universe, "main thread is waiting "
+                     "on %ld threads to finish (possibly indefinitely)", (long) (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1));
+         for(;;)
+         {
+            rc = (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1);
+            if( ! rc)
+               break;
             mulle_thread_yield();
+         }
       }
    }
 
    rc = (intptr_t) _mulle_atomic_pointer_decrement( &universe->retaincount_1);
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "release the universe (%ld)", rc + 1);
+
    if( rc == 0)
+   {
+      assert( universe->thread == mulle_thread_self());
       _mulle_objc_universe_crunch( universe, _mulle_objc_universe_done);
+   }
+   return( rc);
 }
 
 
@@ -2564,7 +2675,7 @@ char  *_mulle_objc_universe_search_hashstring( struct _mulle_objc_universe *univ
 
 #pragma mark - uniqueid to string conversions
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
 char   *_mulle_objc_universe_describe_uniqueid( struct _mulle_objc_universe *universe,
                                                 mulle_objc_uniqueid_t uniqueid)
 {
@@ -2579,7 +2690,7 @@ char   *_mulle_objc_universe_describe_uniqueid( struct _mulle_objc_universe *uni
 }
 
 
-MULLE_C_NON_NULL_RETURN char
+MULLE_C_NONNULL_RETURN char
    *_mulle_objc_universe_describe_classid( struct _mulle_objc_universe *universe,
                                            mulle_objc_classid_t classid)
 {
@@ -2592,7 +2703,7 @@ MULLE_C_NON_NULL_RETURN char
 }
 
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
 char   *_mulle_objc_universe_describe_methodid( struct _mulle_objc_universe *universe,
                                                   mulle_objc_methodid_t methodid)
 {
@@ -2605,7 +2716,7 @@ char   *_mulle_objc_universe_describe_methodid( struct _mulle_objc_universe *uni
 }
 
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
 char   *_mulle_objc_universe_describe_protocolid( struct _mulle_objc_universe *universe,
                                                     mulle_objc_protocolid_t protocolid)
 {
@@ -2618,7 +2729,7 @@ char   *_mulle_objc_universe_describe_protocolid( struct _mulle_objc_universe *u
 }
 
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
 char   *_mulle_objc_universe_describe_categoryid( struct _mulle_objc_universe *universe,
                                                     mulle_objc_categoryid_t categoryid)
 {
@@ -2631,7 +2742,7 @@ char   *_mulle_objc_universe_describe_categoryid( struct _mulle_objc_universe *u
 }
 
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
 char   *_mulle_objc_universe_describe_superid( struct _mulle_objc_universe *universe,
                                                  mulle_objc_superid_t superid)
 {

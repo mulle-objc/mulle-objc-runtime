@@ -146,6 +146,9 @@ static inline void  mulle_objc_global_finish( void)
 }
 
 
+#if MULLE_C11_VERSION < ((2 << 20) | (3 << 8) | 0)
+# error "mulle-c11 is too old"
+#endif
 #if MULLE_ABA_VERSION < ((2 << 20) | (0 << 8) | 14)
 # error "mulle-aba is too old"
 #endif

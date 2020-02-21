@@ -49,7 +49,7 @@
 #pragma mark - default universe (0)
 
 // always returns same value (in same thread)
-MULLE_C_CONST_NON_NULL_RETURN static inline struct _mulle_objc_universe *
+MULLE_C_CONST_NONNULL_RETURN static inline struct _mulle_objc_universe *
    mulle_objc_global_get_defaultuniverse( void)
 {
    MULLE_OBJC_RUNTIME_EXTERN_GLOBAL

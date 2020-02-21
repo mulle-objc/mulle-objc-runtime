@@ -55,6 +55,7 @@ enum _mulle_objc_infraclass_state
    MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY = _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY,
    MULLE_OBJC_INFRACLASS_WARN_PROTOCOL          = _MULLE_OBJC_CLASS_WARN_PROTOCOL,
    MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS       = _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS,
+   MULLE_OBJC_INFRACLASS_INITIALIZING           = MULLE_OBJC_CLASS_INITIALIZING,
    MULLE_OBJC_INFRACLASS_INITIALIZE_DONE        = MULLE_OBJC_CLASS_INITIALIZE_DONE,
    MULLE_OBJC_INFRACLASS_FINALIZE_DONE          = MULLE_OBJC_CLASS_FINALIZE_DONE
 };
@@ -287,7 +288,7 @@ static inline uintptr_t
 }
 
 
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
 static inline struct mulle_allocator   *
    _mulle_objc_infraclass_get_allocator( struct _mulle_objc_infraclass *infra)
 {
@@ -494,5 +495,17 @@ void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *
 void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infra);
 void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra);
 void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *infra);
+
+
+// move where ?
+static inline void
+   _mulle_objc_infraclass_setup_if_needed( struct _mulle_objc_infraclass *infra)
+{
+   void  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
+
+   if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
+      _mulle_objc_class_setup( _mulle_objc_infraclass_as_class( infra));
+}
+
 
 #endif /* mulle_objc_infraclass_h */

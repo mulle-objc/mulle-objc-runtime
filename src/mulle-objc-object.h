@@ -67,7 +67,7 @@ static inline int  mulle_objc_object_get_taggedpointerindex( struct _mulle_objc_
 // this defeats faults, but benchmarks much better, if put into the inline
 // call routine
 //
-MULLE_C_ALWAYS_INLINE_NON_NULL_CONST_RETURN
+MULLE_C_ALWAYS_INLINE_NONNULL_CONST_RETURN
 static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void *obj)
 {
    unsigned int                     index;
@@ -88,7 +88,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
 //
 // don't use isa in most cases, use get_class (defined elsewhere)
 //
-MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
+MULLE_C_ALWAYS_INLINE_NONNULL_RETURN
 static inline struct _mulle_objc_class *
    _mulle_objc_object_get_isa( void *obj)
 {
@@ -110,7 +110,7 @@ static inline struct _mulle_objc_class *
 //
 // don't use isa in most cases, use get_class (defined elsewhere)
 //
-MULLE_C_ALWAYS_INLINE_NON_NULL_RETURN
+MULLE_C_ALWAYS_INLINE_NONNULL_RETURN
 static inline struct _mulle_objc_class *
    _mulle_objc_object_get_isa_universe( void *obj, struct _mulle_objc_universe *universe)
 {
@@ -203,7 +203,7 @@ static inline struct _mulle_objc_universe *
  * this function also deals with obj being NULL
  * therefore we need the universeid
  */
-MULLE_C_CONST_NON_NULL_RETURN MULLE_C_ALWAYS_INLINE
+MULLE_C_CONST_NONNULL_RETURN MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_universe *
 	__mulle_objc_object_get_universe_nofail( void *obj,
 	       							        		  mulle_objc_universeid_t universeid)
