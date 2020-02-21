@@ -210,8 +210,9 @@ static void   _update_struct_typeinfo_with_first_member_typeinfo( struct mulle_o
 }
 
 
-static inline void   _update_struct_typeinfo_with_subsequent_member_typeinfo( struct mulle_objc_typeinfo *info,
-                                                                             struct mulle_objc_typeinfo *tmp)
+static inline void
+_update_struct_typeinfo_with_subsequent_member_typeinfo( struct mulle_objc_typeinfo *info,
+                                                         struct mulle_objc_typeinfo *tmp)
 {
    unsigned int   align;
 
@@ -308,7 +309,7 @@ static void   _update_union_typeinfo_with_member_typeinfo( struct mulle_objc_typ
    if( tmp->natural_alignment > info->natural_alignment)
       info->natural_alignment = tmp->natural_alignment;
    if( tmp->bits_struct_alignment > info->bits_struct_alignment)
-      info->bits_struct_alignment =  tmp->bits_struct_alignment;
+      info->bits_struct_alignment = tmp->bits_struct_alignment;
    if( tmp->bits_size > info->bits_size)
       info->bits_size = tmp->bits_size;
    if( tmp->natural_size > info->natural_size)
@@ -400,7 +401,6 @@ static char  *
 
 
 
-
 static char  *
    _mulle_objc_signature_supply_object_typeinfo( char *type,
                                                  int level,
@@ -418,7 +418,7 @@ static char  *
 }
 
 
-static inline int  is_multi_character_type( char c)
+static inline int   is_multi_character_type( char c)
 {
    switch( c)
    {
@@ -523,7 +523,9 @@ static char   *
 // types must be valid
 //
 char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
-                                                     struct mulle_objc_typeinfo *info)
+                                                     struct mulle_objc_typeinfo *info,
+                                                     unsigned int *p_invocation_offset,
+                                                     unsigned int index)
 {
    char   *next;
    int    offset;
@@ -575,14 +577,29 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
    if( *next == '+')
       ++next;
 
+
    offset = 0;
    while( *next >= '0' && *next <= '9')
    {
       offset *= 10;
       offset += *next++ - '0';
    }
-   if( info)
-      info->offset = offset * sign;
+
+   //
+   // the offset calculated by the compiler is unfortunately
+   // incorrect for the MetaABI block, so we ignore it
+   //
+   // if( info)
+   //   info->offset = offset * sign;
+   if( p_invocation_offset && info)
+   {
+      // for the MetaABI block we want this aligned as safely as possible
+      if( index == 2)
+         info->invocation_offset = mulle_address_align( *p_invocation_offset, alignof( long double));
+      else
+         info->invocation_offset = mulle_address_align( *p_invocation_offset, info->bits_struct_alignment / 8);
+      *p_invocation_offset = info->invocation_offset + info->natural_size;
+   }
 
    return( next);
 }
@@ -789,7 +806,7 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *types,
    if( ! size && ! alignment)
       return( mulle_objc_signature_supply_next_typeinfo( types, NULL));
 
-   next = __mulle_objc_signature_supply_next_typeinfo( types, &info);
+   next = __mulle_objc_signature_supply_next_typeinfo( types, &info, NULL, 0);
    if( size)
       *size = info.bits_size >> 3;
    if( alignment)
@@ -843,8 +860,8 @@ int   _mulle_objc_signature_compare( char *a, char *b)
 
    for(;;)
    {
-      a = __mulle_objc_signature_supply_next_typeinfo( a, &a_info);
-      b = __mulle_objc_signature_supply_next_typeinfo( b, &b_info);
+      a = __mulle_objc_signature_supply_next_typeinfo( a, &a_info, NULL, 0);
+      b = __mulle_objc_signature_supply_next_typeinfo( b, &b_info, NULL, 0);
       if( ! a)
          return( b ? 1 : 0);
       if( ! b)

@@ -142,7 +142,7 @@ static struct _mulle_objc_cacheentry *
 }
 
 
-MULLE_C_NON_NULL_RETURN static struct _mulle_objc_cacheentry *
+MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
    _mulle_objc_universe_fill_classcache_class( struct _mulle_objc_universe *universe,
                                                struct _mulle_objc_infraclass *infra)
 {
@@ -232,7 +232,7 @@ void   _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *
 
 
 
-MULLE_C_CONST_NON_NULL_RETURN static struct _mulle_objc_cacheentry *
+MULLE_C_CONST_NONNULL_RETURN static struct _mulle_objc_cacheentry *
     _mulle_objc_universe_fill_classcache_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid)
 {
@@ -281,7 +281,7 @@ struct _mulle_objc_infraclass   *
 }
 
 
-MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass   *
+MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_infraclass   *
    _mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast( struct _mulle_objc_universe *universe,
                                                                  mulle_objc_classid_t classid)
 {
@@ -298,7 +298,7 @@ MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass   *
 
 
 // used by the debugger
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
    mulle_objc_global_lookup_infraclass_nofail_nofast( mulle_objc_universeid_t universeid,
                                                             mulle_objc_classid_t classid)
 {
@@ -355,7 +355,7 @@ struct _mulle_objc_infraclass  *
 // class must exist, otherwise pain
 // will place class into cache, will not check for fastclass
 //
-MULLE_C_CONST_NON_NULL_RETURN struct _mulle_objc_infraclass  *
+MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_infraclass  *
     _mulle_objc_universe_lookup_infraclass_nofail_nofast( struct _mulle_objc_universe *universe,
                                                           mulle_objc_classid_t classid)
 {
@@ -401,7 +401,7 @@ struct _mulle_objc_infraclass  *
 }
 
 
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass  *
     mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid)
 {
@@ -425,7 +425,7 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
 // I am not sure that this translates into much of a win though.
 
 // we could create mulle_objc_object_lookup_infraclass_nofail
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass  *
    mulle_objc_global_lookup_infraclass_nofail( mulle_objc_universeid_t universeid,
                                                mulle_objc_classid_t classid)
 {
@@ -438,7 +438,7 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass  *
 
 #pragma mark - infraclass lookup via object, fastclass lookup then cached
 
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
    mulle_objc_object_lookup_infraclass_nofail( void *obj,
                                                mulle_objc_universeid_t universeid,
                                                mulle_objc_classid_t classid)
@@ -451,7 +451,7 @@ MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
 }
 
 
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_infraclass *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
    mulle_objc_object_lookup_infraclass_nofail_nofast( void *obj,
                                                       mulle_objc_universeid_t universeid,
                                                       mulle_objc_classid_t classid)

@@ -50,7 +50,10 @@
 */
 
 #define mulle_objc_void_5_pointers( size)  \
-   (((size) +  sizeof( void *[ 5]) - 1) /  sizeof( void *[ 5]))
+   ( ((size) + sizeof( void *[ 5]) - 1) / sizeof( void *[ 5]) )
+
+#define mulle_objc_size_metaabi_param_block(  size) \
+   ( sizeof( void *[ 5]) * mulle_objc_void_5_pointers( size) )
 
 #define mulle_objc_metaabi_param_block( param_type, rval_type) \
    union                   \

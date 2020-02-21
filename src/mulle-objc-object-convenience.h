@@ -94,7 +94,7 @@ static inline struct _mulle_objc_method   *
 }
 
 
-MULLE_C_NON_NULL_RETURN static inline struct mulle_allocator   *
+MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
     _mulle_objc_object_get_allocator( void *obj)
 {
    struct _mulle_objc_class       *cls;
