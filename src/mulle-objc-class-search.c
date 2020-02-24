@@ -795,7 +795,7 @@ MULLE_C_NO_RETURN static void
 }
 
 
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t missing_method)
 {

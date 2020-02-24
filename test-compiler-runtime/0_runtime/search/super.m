@@ -34,7 +34,7 @@
 }
 - (void) dealloc
 {
-   _mulle_objc_object_free( self);
+   _mulle_objc_instance_free( self);
 }
 + (void) foo
 {
@@ -103,8 +103,12 @@ static void   test_super( id obj,
    struct _mulle_objc_method             *method;
    mulle_objc_implementation_t           imp;
 
+//   memset( &args, 0xFF, sizeof( args));
+//   memset( &before, 0xFF, sizeof( before));
+
    _mulle_objc_searcharguments_superinit( &args, methodsel, classsel);
    before = args;
+
    method = mulle_objc_class_search_method( &infraclass->base, &args, infraclass->base.inheritance, NULL);
    imp    = _mulle_objc_method_get_implementation( method);
    (*imp)( obj, methodsel, obj);

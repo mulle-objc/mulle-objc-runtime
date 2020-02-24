@@ -296,14 +296,14 @@ void   *_mulle_objc_object_supercall( void *obj,
                                       mulle_objc_superid_t superid);
 
 MULLE_C_CONST_RETURN
-MULLE_C_NON_NULL_RETURN
+MULLE_C_NONNULL_RETURN
    struct _mulle_objc_method *
       _mulle_objc_class_superlookup_method_nofail( struct _mulle_objc_class *cls,
                                                    mulle_objc_superid_t superid);
 
 
 MULLE_C_CONST_RETURN
-MULLE_C_NON_NULL_RETURN mulle_objc_implementation_t
+MULLE_C_NONNULL_RETURN mulle_objc_implementation_t
    _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                         mulle_objc_superid_t superid);
 
@@ -463,8 +463,12 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 
 # pragma mark - compat layer support
 
-// don't use it yourself, it's supposed to be called automatically
+//
+// You are likely better off using [self self] to force unlazing a
+// class as its more portable and readable
+//
 void  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
+
 
 
 # pragma mark - API

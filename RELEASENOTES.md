@@ -71,7 +71,7 @@
 * ADDED: `_mulle_objc_class_lookup_method` to search in a class without recursion for a method
 * ADDED: `_mulle_objc_infraclass_get_allocator`
 * BREAKING: Load version set to 13, as the ivar order in methods changed
-* ADDED: `_mulle_objc_object_get_allocator,` get the allocator of the class
+* ADDED: `_mulle_objc_instance_get_allocator,` get the allocator of the class
 * signature is now aware of function pointers and blocks
 * BREAKING: `mulle_objc_signature_next_type` will now always return NULL if there is no next type, and not an empty string.
 * mulle-objc-uniqueid can now deal with multiple arguments and can output CSV

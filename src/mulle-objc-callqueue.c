@@ -47,9 +47,9 @@ struct _mulle_objc_object;
 
 struct _queue_entry
 {
-   struct _mulle_objc_object           *obj;
-   mulle_objc_methodid_t               uniqueid;
-   mulle_objc_implementation_t   imp;
+   struct _mulle_objc_object      *obj;
+   mulle_objc_methodid_t          uniqueid;
+   mulle_objc_implementation_t    imp;
 };
 
 

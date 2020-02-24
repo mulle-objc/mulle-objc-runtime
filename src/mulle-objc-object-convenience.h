@@ -52,7 +52,7 @@ static inline char   *_mulle_objc_object_get_isa_name( void *obj)
 
 static inline mulle_objc_implementation_t
     _mulle_objc_object_cacheonlylookup_implementation( void *obj,
-                                                     mulle_objc_methodid_t methodid)
+                                                       mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
@@ -95,9 +95,9 @@ static inline struct _mulle_objc_method   *
 
 
 MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
-    _mulle_objc_object_get_allocator( void *obj)
+    _mulle_objc_instance_get_allocator( void *obj)
 {
-   struct _mulle_objc_class       *cls;
+   struct _mulle_objc_class        *cls;
    struct _mulle_objc_infraclass   *infra;
 
    cls   = _mulle_objc_object_get_isa( obj);
@@ -107,7 +107,7 @@ MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
 
 #pragma mark - instance deletion
 
-static inline void  __mulle_objc_object_will_free( struct _mulle_objc_object *obj)
+static inline void  __mulle_objc_instance_will_free( struct _mulle_objc_object *obj)
 {
 // too slow for non debug
 #if DEBUG
@@ -117,28 +117,28 @@ static inline void  __mulle_objc_object_will_free( struct _mulle_objc_object *ob
       universe = _mulle_objc_object_get_universe( obj);
       if( universe->debug.trace.instance)
       {
-         void   _mulle_objc_object_trace_free( void *obj);
+         void   _mulle_objc_instance_trace_free( void *obj);
 
-         _mulle_objc_object_trace_free( obj);
+         _mulle_objc_instance_trace_free( obj);
       }
    }
 #endif
 }
 
 
-static inline void   __mulle_objc_object_free( void *obj,
-                                               struct mulle_allocator *allocator)
+static inline void   __mulle_objc_instance_free( void *obj,
+                                                 struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader  *header;
 
-   __mulle_objc_object_will_free( obj);
+   __mulle_objc_instance_will_free( obj);
 
    header = _mulle_objc_object_get_objectheader( obj);
    mulle_allocator_free( allocator, header);
 }
 
 
-static inline void   _mulle_objc_object_free( void *obj)
+static inline void   _mulle_objc_instance_free( void *obj)
 {
    struct mulle_allocator          *allocator;
    struct _mulle_objc_class        *cls;
@@ -147,16 +147,16 @@ static inline void   _mulle_objc_object_free( void *obj)
    cls       = _mulle_objc_object_get_isa( obj);
    infra     = _mulle_objc_class_as_infraclass( cls);
    allocator = _mulle_objc_infraclass_get_allocator( infra);
-   __mulle_objc_object_free( obj, allocator);
+   __mulle_objc_instance_free( obj, allocator);
 }
 
 
-static inline void   mulle_objc_object_free( void *obj)
+static inline void   mulle_objc_instance_free( void *obj)
 {
    if( ! obj)
       return;
 
-   _mulle_objc_object_free( obj);
+   _mulle_objc_instance_free( obj);
 }
 
 #endif

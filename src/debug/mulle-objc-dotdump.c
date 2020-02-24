@@ -273,7 +273,8 @@ static struct _mulle_objc_htmltablestyle    universe_style =
 
 # pragma mark - walker universe callback
 
-static char  *mulle_objc_loadclasslist_describe_row_html( intptr_t classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
+static char  *mulle_objc_loadclasslist_describe_row_html( intptr_t classid, void *value,
+   struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_pointerarray   *array = value;
 
@@ -283,7 +284,8 @@ static char  *mulle_objc_loadclasslist_describe_row_html( intptr_t classid, void
 }
 
 
-static char  *mulle_objc_loadcategorylist_describe_row_html( intptr_t classid, void *value,                                                     struct _mulle_objc_htmltablestyle *styling)
+static char  *mulle_objc_loadcategorylist_describe_row_html( intptr_t classid, void *value,
+                                                struct _mulle_objc_htmltablestyle *styling)
 {
    struct mulle_concurrent_pointerarray   *array = value;
 
@@ -341,8 +343,8 @@ static void   print_universe( struct _mulle_objc_universe *universe,
               universe, &universe->protocoltable);
 
       label = mulle_concurrent_hashmap_describe_html( &universe->protocoltable,
-                                                        mulle_objc_protocol_describe_row_html,
-                                                        &protocoltable_style);
+                                                      mulle_objc_protocol_describe_row_html,
+                                                      &protocoltable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
               &universe->protocoltable, label, "box");
       free( label);
@@ -354,8 +356,8 @@ static void   print_universe( struct _mulle_objc_universe *universe,
               universe, &universe->categorytable);
 
       label = mulle_concurrent_hashmap_describe_html( &universe->categorytable,
-                                                        mulle_objc_category_describe_row_html,
-                                                        &categorytable_style);
+                                                      mulle_objc_category_describe_row_html,
+                                                      &categorytable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
               &universe->categorytable, label, "box");
       free( label);
@@ -367,8 +369,8 @@ static void   print_universe( struct _mulle_objc_universe *universe,
               universe, &universe->supertable);
 
       label = mulle_concurrent_hashmap_describe_html( &universe->supertable,
-                                                        mulle_objc_super_describe_row_html,
-                                                        &supertable_style);
+                                                      mulle_objc_super_describe_row_html,
+                                                      &supertable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
               &universe->supertable, label, "box");
       free( label);
@@ -378,8 +380,8 @@ static void   print_universe( struct _mulle_objc_universe *universe,
       if( mulle_concurrent_pointerarray_get_count( &universe->staticstrings))
       {
          label = mulle_concurrent_pointerarray_describe_html( &universe->staticstrings,
-                                                                 mulle_objc_staticstring_describe_row_html,
-                                                                 &staticstringtable_title);
+                                                              mulle_objc_staticstring_describe_row_html,
+                                                              &staticstringtable_title);
 
          fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"staticstrings\" ];\n",
                  universe, &universe->staticstrings);
@@ -398,8 +400,8 @@ static void   print_universe( struct _mulle_objc_universe *universe,
       if( i < MULLE_OBJC_S_FASTCLASSES)
       {
          label = mulle_objc_fastclasstable_describe_html( &universe->fastclasstable,
-                                                             mulle_objc_fastclassentry_describe_row_html,
-                                                             &fastclasstable_title);
+                                                          mulle_objc_fastclassentry_describe_row_html,
+                                                          &fastclasstable_title);
 
          fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"fastclasses\" ];\n",
                  universe, &universe->fastclasstable);
@@ -415,8 +417,8 @@ static void   print_universe( struct _mulle_objc_universe *universe,
               universe, &universe->classtable);
 
       label = mulle_concurrent_hashmap_describe_html( &universe->classtable,
-                                                         mulle_objc_infraclass_describe_row_html,
-                                                         &classtable_style);
+                                                      mulle_objc_infraclass_describe_row_html,
+                                                      &classtable_style);
       fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
               &universe->classtable, label, "box");
       free( label);
@@ -429,8 +431,8 @@ static void   print_universe( struct _mulle_objc_universe *universe,
                  universe, &universe->waitqueues.classestoload);
 
          label = mulle_concurrent_hashmap_describe_html( &universe->waitqueues.classestoload,
-                                                           mulle_objc_loadclasslist_describe_row_html,
-                                                           &classestoload_style);
+                                                         mulle_objc_loadclasslist_describe_row_html,
+                                                         &classestoload_style);
          fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
                  &universe->waitqueues.classestoload, label, "box");
          free( label);
@@ -459,7 +461,8 @@ static void   print_hyper_universe( struct _mulle_objc_universe *universe,
    char   *label;
 
    label = mulle_objc_universe_describe_html( universe, &universe_style);
-   fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\", URL=\"file:///%s/universe.dot\"  ];\n", universe, label, "component", info->directory);
+   fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\", URL=\"file:///%s/universe.dot\"  ];\n",
+      universe, label, "component", info->directory);
    free( label);
 }
 

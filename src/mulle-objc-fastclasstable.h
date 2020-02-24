@@ -71,7 +71,7 @@ static inline struct _mulle_objc_infraclass *
 
 
 
-MULLE_C_CONST_NON_NULL_RETURN MULLE_C_ALWAYS_INLINE
+MULLE_C_CONST_NONNULL_RETURN MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_infraclass  *
      mulle_objc_fastclasstable_get_infraclass_nofail( struct _mulle_objc_fastclasstable *table,
                                                         unsigned int i)

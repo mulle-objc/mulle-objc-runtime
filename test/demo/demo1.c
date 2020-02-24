@@ -573,8 +573,8 @@ int   main( int argc, const char * argv[])
    mulle_objc_object_call( obj, ___print__methodid, NULL);
 
    // [obj release];
-   fprintf( stderr, "-==> mulle_objc_object_free( ... )\n");
-   mulle_objc_object_free( obj);
+   fprintf( stderr, "-==> mulle_objc_instance_free( ... )\n");
+   mulle_objc_instance_free( obj);
 
    return 0;
 }

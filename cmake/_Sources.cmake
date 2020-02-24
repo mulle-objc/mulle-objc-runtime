@@ -13,6 +13,7 @@ src/debug/mulle-objc-html.c
 src/debug/mulle-objc-htmldump.c
 src/debug/mulle-objc-lldb.c
 src/debug/mulle-objc-symbolizer.c
+src/debug/mulle-objc-typeinfodump.c
 )
 
 set( SIGNATURE_SOURCES

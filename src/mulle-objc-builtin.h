@@ -122,8 +122,8 @@ static inline void
                                          char is_atomic,
                                          char is_copy)
 {
-   void  **p_ivar;
-   void  *old;
+   void   **p_ivar;
+   void   *old;
 
    if( ! self)
       return;

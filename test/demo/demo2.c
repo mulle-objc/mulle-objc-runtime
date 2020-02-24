@@ -315,7 +315,7 @@ int   main( int argc, const char * argv[])
    // [obj print];
 
    // [obj release];
-   mulle_objc_object_free( obj);
+   mulle_objc_instance_free( obj);
    _mulle_objc_universe_release( universe); // since its not default
 
    return 0;

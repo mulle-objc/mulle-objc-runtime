@@ -264,8 +264,10 @@ static inline void
    _mulle_objc_searcharguments_defaultinit( struct _mulle_objc_searcharguments *p,
                                             mulle_objc_methodid_t methodid)
 {
-   p->args.mode     = MULLE_OBJC_SEARCH_DEFAULT;
-   p->args.methodid = methodid;
+   p->args.mode       = MULLE_OBJC_SEARCH_DEFAULT;
+   p->args.methodid   = methodid;
+   p->imp             = 0; // 4 valgrind
+   p->previous_method = 0; // 4 valgrind
 }
 
 
@@ -273,8 +275,10 @@ static inline void
    _mulle_objc_searcharguments_impinit( struct _mulle_objc_searcharguments *p,
                                         mulle_objc_implementation_t imp)
 {
-   p->args.mode = MULLE_OBJC_SEARCH_IMP;
-   p->imp       = imp;
+   p->args.mode       = MULLE_OBJC_SEARCH_IMP;
+   p->args.methodid   = 0;  // 4 valgrind
+   p->imp             = imp;
+   p->previous_method = 0; // 4 valgrind
 }
 
 
@@ -285,6 +289,7 @@ static inline void
 {
    p->args.mode       = MULLE_OBJC_SEARCH_PREVIOUS_METHOD;
    p->args.methodid   = _mulle_objc_method_get_methodid( method);
+   p->imp             = 0; // 4 valgrind
    p->previous_method = method;
 }
 
@@ -295,6 +300,8 @@ static inline void
                                           mulle_objc_classid_t classid)
 {
    _mulle_objc_searchargumentscacheable_superinit( &p->args, methodid, classid);
+   p->imp             = 0; // 4 valgrind
+   p->previous_method = 0; // 4 valgrind
 }
 
 
@@ -305,6 +312,8 @@ static inline void
                                                mulle_objc_classid_t category)
 {
    _mulle_objc_searchargumentscacheable_overriddeninit( &p->args, methodid, classid, category);
+   p->imp             = 0; // 4 valgrind
+   p->previous_method = 0; // 4 valgrind
 }
 
 
@@ -315,6 +324,8 @@ static inline void
                                              mulle_objc_classid_t category)
 {
    _mulle_objc_searchargumentscacheable_specificinit( &p->args, methodid, classid, category);
+   p->imp             = 0; // 4 valgrind
+   p->previous_method = 0; // 4 valgrind
 }
 
 
@@ -361,7 +372,7 @@ struct _mulle_objc_method   *
                                             int *error);
 
 
-MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
+MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail(
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
@@ -373,7 +384,7 @@ struct _mulle_objc_method  *
                                                  int *error);
 
 
-MULLE_C_NON_NULL_RETURN static inline struct _mulle_objc_method *
+MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_method *
    mulle_objc_class_search_method_nofail( struct _mulle_objc_class *cls,
                                           mulle_objc_methodid_t methodid)
 {

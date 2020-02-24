@@ -51,7 +51,7 @@ int   main( void)
 
    [obj setA:(id) 0];
 
-   mulle_objc_object_free( obj);
+   mulle_objc_instance_free( obj);
 
    return( 0);
 }

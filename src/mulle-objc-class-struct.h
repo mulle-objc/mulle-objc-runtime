@@ -152,8 +152,6 @@ struct _mulle_objc_class
    //
    mulle_objc_classid_t                    classid;
    mulle_objc_classid_t                    superclassid;
-
-   mulle_atomic_pointer_t                  thread;          // protects the empty cache
    mulle_atomic_pointer_t                  state;
 
    // TODO: general storage mechanism for KVC, needed in meta ? move to classpair ?
@@ -246,6 +244,10 @@ static inline void
 }
 
 
+//
+// 1 means successfully, set
+// 0 means is already set
+//
 int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
                                        unsigned int bit);
 
@@ -258,6 +260,9 @@ static inline unsigned int
    old = _mulle_atomic_pointer_read( &cls->state);
    return( (unsigned int) (uintptr_t) old & bit);
 }
+
+
+char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit);
 
 
 static inline struct _mulle_objc_method   *

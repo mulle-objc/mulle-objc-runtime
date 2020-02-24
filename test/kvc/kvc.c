@@ -420,7 +420,7 @@ int   main( int argc, const char * argv[])
    }
 
    // [obj release];
-   mulle_objc_object_free( obj);
+   mulle_objc_instance_free( obj);
 
    return 0;
 }

@@ -69,6 +69,8 @@ struct _mulle_objc_classpair
    struct _mulle_objc_metaclass              metaclass;
    // <<< dont' add anything <<<
 
+   mulle_thread_mutex_t                      lock;   // used for initialize
+   mulle_thread_t                            thread; // used for initialize
    struct _mulle_objc_loadclass              *loadclass;
 
    // common stuff
@@ -130,6 +132,13 @@ static inline struct _mulle_objc_metaclass   *
    mulle_objc_classpair_get_metaclass( struct _mulle_objc_classpair *pair)
 {
    return( pair ? _mulle_objc_classpair_get_metaclass( pair) : NULL);
+}
+
+
+static inline mulle_thread_mutex_t *
+   _mulle_objc_classpair_get_lock( struct _mulle_objc_classpair *pair)
+{
+   return( &pair->lock);
 }
 
 

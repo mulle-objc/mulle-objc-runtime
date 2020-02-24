@@ -69,23 +69,17 @@ static inline void *
    obj    = _mulle_objc_objectheader_get_object( header);
    cls    = _mulle_objc_infraclass_as_class( infra);
    _mulle_objc_object_set_isa( obj, cls);
+
 // only add this trace query for debugging because it slows things down!
 #if DEBUG
    {
-      extern void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
-                                                            void *obj,
-                                                            size_t extra);
-      extern void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *cls,
-                                                                  void *obj);
-      struct _mulle_objc_universe   *universe;
-
-      universe = _mulle_objc_class_get_universe( cls);
-      if( _mulle_objc_universe_is_deinitializing( universe))
-         _mulle_objc_class_warn_alloc_during_finalize( cls, obj);
-      if( universe->debug.trace.instance)
-         _mulle_objc_class_trace_alloc_instance( cls, obj, extra);
+      void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infraclass *infra,
+                                                           void *obj,
+                                                           size_t extra);
+      _mulle_objc_infraclass_check_and_trace_alloc( infra, obj, extra);
    }
 #endif
+
    return( obj);
 }
 
