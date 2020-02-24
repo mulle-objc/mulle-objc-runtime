@@ -43,7 +43,7 @@
 
 - (void) dealloc
 {
-   _mulle_objc_object_free( (struct _mulle_objc_object *) self);
+   _mulle_objc_instance_free( (struct _mulle_objc_object *) self);
 }
 
 @end

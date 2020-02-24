@@ -81,8 +81,8 @@ int   main( void)
    [obj addToA:(id) 18];
    [obj removeFromA:(id) 19];
 
-   mulle_objc_object_free( obj);
-   mulle_objc_object_free( container);
+   mulle_objc_instance_free( obj);
+   mulle_objc_instance_free( container);
 
    return( 0);
 }

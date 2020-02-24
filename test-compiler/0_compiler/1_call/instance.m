@@ -21,7 +21,7 @@
 
 - (void) dealloc
 {
-   mulle_objc_object_free( self);
+   mulle_objc_instance_free( self);
 }
 
 - (void)  a:(id) a

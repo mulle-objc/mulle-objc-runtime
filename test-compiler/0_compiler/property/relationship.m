@@ -52,7 +52,7 @@ main()
    printf( "b: %d\n", (int) (intptr_t) [obj b]);
    printf( "b: %d\n", (int) (intptr_t) [obj b]);
 
-   mulle_objc_object_free( obj);
+   mulle_objc_instance_free( obj);
 
    return( 0);
 }
