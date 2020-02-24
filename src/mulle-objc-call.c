@@ -549,7 +549,7 @@ MULLE_C_NEVER_INLINE static struct _mulle_objc_cacheentry *
 #endif
 
 
-MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_superlookup_method_nofail( struct _mulle_objc_class *cls,
                                                 mulle_objc_superid_t superid)
 {
@@ -576,7 +576,7 @@ MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN struct _mulle_objc_method *
 }
 
 
-MULLE_C_CONST_RETURN MULLE_C_NON_NULL_RETURN mulle_objc_implementation_t
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN mulle_objc_implementation_t
    _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                         mulle_objc_superid_t superid)
 {
@@ -661,51 +661,55 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
    char                                 *name;
 
 
-   // [::] is just there to grep it
-   fprintf( stderr, "[::] %c[",
-            _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
-
-
-   // What is basically wrong here is, that we should be searching for the
-   // class that implements the method, not the called class
-   // This is fairly expensive though...
-   //
-
-   inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_searcharguments_impinit( &search, imp);
-   method = mulle_objc_class_search_method( cls,
-                                            &search,
-                                            inheritance,
-                                            &result);
-
-   if( method)
-   {
-      fprintf( stderr, "%s", _mulle_objc_class_get_name( result.class));
-      name = mulle_objc_methodlist_get_categoryname( result.list);
-      if( name)
-         fprintf( stderr, "(%s)", name);
-      fprintf( stderr, " %s]", _mulle_objc_method_get_name( method));
-   }
-   else
-   {
-      // fallback in case...
-      fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
-      universe = _mulle_objc_class_get_universe( cls);
-      desc     = _mulle_objc_universe_lookup_descriptor( universe, methodid);
-      if( desc)
-         fprintf( stderr, " %s]", desc->name);
-      else
-         fprintf( stderr, " #%08x]", methodid);
-   }
-
    universe = _mulle_objc_class_get_universe( cls);
-   isa      =  _mulle_objc_object_get_isa_universe( obj, universe);
-   fprintf( stderr, " @%p %s (%p, %x, %p)\n",
-            imp,
-            _mulle_objc_class_get_name( isa),
-            obj,
-            methodid,
-            parameter);
+   mulle_thread_mutex_lock( &universe->debug.lock);
+   {
+      mulle_objc_universe_trace_preamble( universe);
+
+      fprintf( stderr, "[::] %c[",
+                              _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
+
+
+      // What is basically wrong here is, that we should be searching for the
+      // class that implements the method, not the called class
+      // This is fairly expensive though...
+      //
+
+      inheritance = _mulle_objc_class_get_inheritance( cls);
+      _mulle_objc_searcharguments_impinit( &search, imp);
+      method = mulle_objc_class_search_method( cls,
+                                               &search,
+                                               inheritance,
+                                               &result);
+
+      if( method)
+      {
+         fprintf( stderr, "%s", _mulle_objc_class_get_name( result.class));
+         name = mulle_objc_methodlist_get_categoryname( result.list);
+         if( name)
+            fprintf( stderr, "(%s)", name);
+         fprintf( stderr, " %s]", _mulle_objc_method_get_name( method));
+      }
+      else
+      {
+         // fallback in case...
+         fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
+         desc     = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+         if( desc)
+            fprintf( stderr, " %s]", desc->name);
+         else
+            fprintf( stderr, " #%08x]", methodid);
+      }
+
+      isa      =  _mulle_objc_object_get_isa_universe( obj, universe);
+      fprintf( stderr, " @%p %s (%p, %x, %p)\n",
+               imp,
+               _mulle_objc_class_get_name( isa),
+               obj,
+               methodid,
+               parameter);
+   }
+   mulle_thread_mutex_unlock( &universe->debug.lock);
 }
 
 
@@ -1087,16 +1091,17 @@ static void   *
 
 # pragma mark - cache
 
+// this runs when the class is locked,
 static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_universe   *universe;
    struct _mulle_objc_cache      *cache;
    struct mulle_allocator        *allocator;
    mulle_objc_cache_uint_t       n_entries;
+   void                          *found;
 
    // now setup the cache and let it rip, except when we don't ever want one
    universe  = _mulle_objc_class_get_universe( cls);
-   allocator = _mulle_objc_universe_get_allocator( universe);
 
    // your chance to change the cache algorithm and initital size
    n_entries = _class_search_minmethodcachesize( cls);
@@ -1105,13 +1110,20 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
 
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
    {
-      cache = mulle_objc_cache_new( n_entries, allocator);
+      allocator = _mulle_objc_universe_get_allocator( universe);
+      cache     = mulle_objc_cache_new( n_entries, allocator);
 
       assert( cache);
-      assert( _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries) ==
-              universe->empty_cache.entries);
 
-      _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, cache->entries);
+      //
+      // the atomic exchange is pointless, as we are inside the lock anyway
+      // we just do this for the assert basically
+      //
+      found = __mulle_atomic_pointer_cas( &cls->cachepivot.pivot.entries,
+                                          cache->entries,
+                                          universe->empty_cache.entries);
+      assert( found == universe->empty_cache.entries);
+
       cls->cachepivot.call2 = _mulle_objc_object_call2;
       cls->call             = _mulle_objc_object_call_class;
       cls->superlookup      = _mulle_objc_class_superlookup_implementation;
@@ -1166,13 +1178,20 @@ static void
 
 # pragma mark - +initialize
 
-static void   _mulle_objc_class_wait_for_setup(  struct _mulle_objc_class *cls)
+
+MULLE_C_NEVER_INLINE
+void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cls)
 {
-   /* same thread ? we are single threaded! */
-   if( _mulle_atomic_pointer_read( &cls->thread) != (void *) mulle_thread_self())
+   struct _mulle_objc_universe     *universe;
+
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe->debug.trace.initialize)
    {
-      while( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_INITIALIZE_DONE))
-         mulle_thread_yield();
+      mulle_objc_universe_trace( universe, "recursive +[%s initialize] ignored.\n"
+                     "break on _mulle_objc_warn_recursive_initialize to debug.",
+              _mulle_objc_class_get_name( cls));
+      if( universe->debug.warn.crash)
+         abort();
    }
 }
 
@@ -1187,170 +1206,140 @@ static void
    int                             flag;
    char                            *name;
 
+   universe = _mulle_objc_infraclass_get_universe( infra);
    meta     = _mulle_objc_infraclass_get_metaclass( infra);
    name     = _mulle_objc_infraclass_get_name( infra);
-   universe = _mulle_objc_infraclass_get_universe( infra);
-
-   assert( ! _mulle_objc_metaclass_get_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE));
-   assert( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE));
-
-   // always set meta bit first!
-   // must be 1 as a return value
-   flag = _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZING);
-   if( flag != 1)
-   {
-      if( universe->debug.trace.initialize)
-         mulle_objc_universe_trace( universe, "recusive +[%s initialize] ignored",
-                 name);
-      return;
-   }
 
    // grab code from superclass
    // this is useful for MulleObjCSingleton
    initialize = mulle_objc_class_defaultsearch_method( &meta->base,
                                                        MULLE_OBJC_INITIALIZE_METHODID);
-   if( initialize)
-   {
-      if( universe->debug.trace.initialize)
-         mulle_objc_universe_trace( universe,
-                                    "call +[%s initialize]",
-                                    _mulle_objc_metaclass_get_name( meta));
-
-      imp   = _mulle_objc_method_get_implementation( initialize);
-      if( universe->debug.trace.method_call)
-         mulle_objc_class_trace_call( &infra->base,
-                                      MULLE_OBJC_INITIALIZE_METHODID,
-                                      infra,
-                                      NULL,
-                                      imp);
-      (*imp)( (struct _mulle_objc_object *) infra,
-              MULLE_OBJC_INITIALIZE_METHODID,
-              NULL);
-   }
-   else
+   if( ! initialize)
    {
       if( universe->debug.trace.initialize)
          mulle_objc_universe_trace( universe, "no +[%s initialize] found", name);
+      return;
    }
 
-   // always set meta bit first!
-   // must be 1 as a return value
-   flag = _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_INITIALIZE_DONE);
-   if( flag != 1)
-      mulle_objc_universe_fail_inconsistency( universe, "someone else initialized metaclass \"%s\"",
-                                                name);
-   // must be 1 as a return value
-   flag = _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
-   if( flag != 1)
-      mulle_objc_universe_fail_inconsistency( universe, "someone else initialized infraclass \"%s\"",
-                                                name);
+   if( universe->debug.trace.initialize)
+      mulle_objc_universe_trace( universe,
+                                 "call +[%s initialize]",
+                                 _mulle_objc_metaclass_get_name( meta));
+
+   imp   = _mulle_objc_method_get_implementation( initialize);
+   if( universe->debug.trace.method_call)
+      mulle_objc_class_trace_call( &infra->base,
+                                   MULLE_OBJC_INITIALIZE_METHODID,
+                                   infra,
+                                   NULL,
+                                   imp);
+   (*imp)( (struct _mulle_objc_object *) infra,
+           MULLE_OBJC_INITIALIZE_METHODID,
+           NULL);
+
+   if( universe->debug.trace.initialize)
+      mulle_objc_universe_trace( universe,
+                                 "done +[%s initialize]",
+                                 _mulle_objc_metaclass_get_name( meta));
 }
 
 
-static int   _mulle_objc_class_lock_for_setup( struct _mulle_objc_class *cls)
-{
-   assert( mulle_objc_class_is_current_thread_registered( cls));
-
-   //
-   // An uninitialized class has the empty_cache as the cache. It also has
-   // `cls->thread` NULL. This methods is therefore usually called twice
-   // once for the meta class and once for the instance. Regardless in both
-   // cases, it is checked if +initialize needs to run. But this is only
-   // flagged in the meta class.
-   //
-   // If another thread enters here, it will expect `cls->thread` to be NULL.
-   // If it isn't it waits for MULLE_OBJC_CACHE_INITIALIZE_DONE to go up.
-   //
-   // what is tricky is, that cls and metaclass are executing this
-   // singlethreaded, but still cls and metaclass could be in different threads
-   //
-
-   if( ! _mulle_atomic_pointer_cas( &cls->thread, (void *) mulle_thread_self(), NULL))
-      return( 0);
-   return( 1);
-}
-
-
-//void  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
-
-static void
-   _mulle_objc_infraclass_initialize_if_needed( struct _mulle_objc_infraclass *start)
+static void  _mulle_objc_infraclass_setup_superclasses( struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair                 *pair;
-   struct _mulle_objc_infraclass                *infra;
-   struct _mulle_objc_infraclass                *superclass;
-   struct _mulle_objc_metaclass                 *meta;
-   struct _mulle_objc_metaclass                 *rootmeta;
-   struct _mulle_objc_metaclass                 *supermeta;
    struct _mulle_objc_protocolclassenumerator   rover;
+   struct _mulle_objc_infraclass                *protocolclass;
+   struct _mulle_objc_infraclass                *superclass;
+   struct _mulle_objc_class                     *cls;
 
-   if( _mulle_objc_infraclass_get_state_bit( start, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
-      return;
-
-   rootmeta = NULL;
-
-   pair  = _mulle_objc_infraclass_get_classpair( start);
+   /*
+    * Ensure protocol classes are there
+    */
+   pair  = _mulle_objc_infraclass_get_classpair( infra);
    rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-   for(;;)
-   {
-      infra = _mulle_objc_protocolclassenumerator_next( &rover);
-      if( ! infra)
-         break;
-
-      meta = _mulle_objc_infraclass_get_metaclass( infra);
-      if( ! rootmeta)
-         rootmeta = meta;
-
-      _mulle_objc_class_setup( _mulle_objc_metaclass_as_class( meta));
-   }
+   while( protocolclass = _mulle_objc_protocolclassenumerator_next( &rover))
+      _mulle_objc_infraclass_setup_if_needed( protocolclass);
    _mulle_objc_protocolclassenumerator_done( &rover);
 
-
-   superclass = start;
-   while( superclass = _mulle_objc_infraclass_get_superclass( superclass))
-   {
-      supermeta = _mulle_objc_infraclass_get_metaclass( superclass);
-      if( ! rootmeta)
-         rootmeta = supermeta;
-
-      // call #initialize on superclass if needed
-      _mulle_objc_class_setup( _mulle_objc_metaclass_as_class( supermeta));
-   }
-
-   //
-   // root class must have cache setup as well for wrap around
-   //
-   if( ! rootmeta)
-      _mulle_objc_class_setup_initial_cache_if_needed( _mulle_objc_infraclass_as_class( start));
-
-   _mulle_objc_infraclass_call_initialize( start);
+   /*
+    * Ensure superclass is there
+    */
+   superclass = _mulle_objc_infraclass_get_superclass( infra);
+   if( superclass)
+      _mulle_objc_infraclass_setup_if_needed( superclass);
 }
 
 
-static void   _mulle_objc_class_initialize_if_needed( struct _mulle_objc_class *cls)
+static void  _mulle_objc_metaclass_setup_superclass( struct _mulle_objc_metaclass *meta)
 {
+   struct _mulle_objc_metaclass    *superclass;
+   struct _mulle_objc_class        *cls;
+
+   /*
+    * Ensure superclass is there (infraclass will do protocolclasses)
+    */
+   superclass = _mulle_objc_metaclass_get_superclass( meta);
+   if( superclass)
+   {
+      cls = _mulle_objc_metaclass_as_class( superclass);
+      _mulle_objc_class_setup( cls);
+   }
+}
+
+
+void   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_metaclass    *meta;
    struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_classpair    *pair;
+   mulle_thread_mutex_t            *initialize_lock;
 
-   // initialize is called only once though
-   if( _mulle_objc_class_is_infraclass( cls))
-      infra = _mulle_objc_class_as_infraclass( cls);
-   else
-      infra = _mulle_objc_class_get_infraclass( cls);
+   assert( mulle_objc_class_is_current_thread_registered( cls));
 
-   _mulle_objc_infraclass_initialize_if_needed( infra);
-}
+   pair  = _mulle_objc_class_get_classpair( cls);
+   infra = _mulle_objc_classpair_get_infraclass( pair);
+   meta  = _mulle_objc_classpair_get_metaclass( pair);
 
-
-void  _mulle_objc_class_setup( struct _mulle_objc_class *cls)
-{
-   // this is always done
-   if( _mulle_objc_class_lock_for_setup( cls))
+   //
+   // allow recursion to same class in same thread
+   //
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZING))
    {
-      _mulle_objc_class_setup_initial_cache_if_needed( cls);
-      _mulle_objc_class_initialize_if_needed( cls);
+      if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
+         return;
+      if( pair->thread == mulle_thread_self())
+      {
+         if( cls->superclass)
+            _mulle_objc_class_warn_recursive_initialize( cls);  // hmmm
+         return;
+      }
    }
-   else
-      _mulle_objc_class_wait_for_setup( cls);
+
+   initialize_lock = _mulle_objc_classpair_get_lock( pair);
+   mulle_thread_mutex_lock( initialize_lock);
+   {
+      if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZING))
+      {
+         assert( ! pair->thread);
+
+         pair->thread = mulle_thread_self();
+
+         _mulle_objc_metaclass_setup_superclass( meta);
+         _mulle_objc_class_setup_initial_cache_if_needed( _mulle_objc_metaclass_as_class( meta));
+
+         _mulle_objc_infraclass_setup_superclasses( infra);
+         _mulle_objc_class_setup_initial_cache_if_needed( _mulle_objc_infraclass_as_class( infra));
+
+         _mulle_objc_infraclass_call_initialize( infra);
+
+         _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
+      }
+      else
+      {
+         assert( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE));
+      }
+   }
+   mulle_thread_mutex_unlock( initialize_lock);
 }
 
 

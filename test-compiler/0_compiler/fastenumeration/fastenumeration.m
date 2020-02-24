@@ -72,7 +72,7 @@ typedef struct
 
 - (void) dealloc
 {
-   _mulle_objc_object_free( self);
+   _mulle_objc_instance_free( self);
 }
 
 @end

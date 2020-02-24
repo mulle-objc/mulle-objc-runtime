@@ -34,7 +34,7 @@ extern void  object_dispose( id obj);
 - (void) dealloc
 {
 #ifdef __MULLE_OBJC__
-   mulle_objc_object_free( self);
+   mulle_objc_instance_free( self);
 #else
    object_dispose( self);
 #endif

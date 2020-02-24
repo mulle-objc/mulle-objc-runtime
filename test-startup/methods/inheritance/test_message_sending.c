@@ -140,5 +140,5 @@ void   test_message_sending()
       }
    }
 #endif
-   mulle_objc_object_free( A_obj);
+   mulle_objc_instance_free( A_obj);
 }

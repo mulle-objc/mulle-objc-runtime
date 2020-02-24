@@ -59,7 +59,7 @@
 
 # pragma mark - accessor
 
-static char   *lookup_bitname( unsigned int bit)
+char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit)
 {
    // some "known" values
    switch( bit)
@@ -102,7 +102,7 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.state_bit)
    {
-      bitname = lookup_bitname( bit);
+      bitname = _mulle_objc_global_lookup_state_bit_name( bit);
       mulle_objc_universe_trace( universe,
                                  "%s %08x \"%s\" (%p) "
                                  "gained the 0x%x bit (%s)",
@@ -118,9 +118,9 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
 # pragma mark - initialization / deallocation
 
 void   *_mulle_objc_object_call_class_needcache( void *obj,
-                                                   mulle_objc_methodid_t methodid,
-                                                   void *parameter,
-                                                   struct _mulle_objc_class *cls);
+                                                 mulle_objc_methodid_t methodid,
+                                                 void *parameter,
+                                                 struct _mulle_objc_class *cls);
 
 
 void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
@@ -793,6 +793,24 @@ mulle_objc_walkcommand_t
 
 
 MULLE_C_NEVER_INLINE
+void   _mulle_objc_class_warn_alloc_before_initialize( struct _mulle_objc_class *cls,
+                                                       void *obj)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = _mulle_objc_class_get_universe( cls);
+   mulle_objc_universe_trace( universe, "An instance %p of \"%s\" has been created "
+                                        "before the class was initialized. "
+                                        "Try to avoid this.\n"
+                                        "(break on: _mulle_objc_class_warn_alloc_before_initialize)",
+                                     obj,
+                                     _mulle_objc_class_get_name( cls));
+   if( universe->debug.warn.crash)
+      abort();
+}
+
+
+MULLE_C_NEVER_INLINE
 void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *cls,
                                                      void *obj)
 {
@@ -805,6 +823,8 @@ void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *c
                                         "(break on: _mulle_objc_class_warn_alloc_during_finalize)",
                                      obj,
                                      _mulle_objc_class_get_name( cls));
+   if( universe->debug.warn.crash)
+      abort();
 }
 
 
@@ -812,7 +832,9 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                                                void *obj,
                                                size_t extra)
 {
-   fprintf( stderr, "[==] %p instance %p allocated (\"%s\" (%08x)) ",
+   mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
+                     stderr,
+                     "[==] %p instance %p allocated (\"%s\" (%08x)) ",
                      _mulle_objc_object_get_objectheader( obj),
                      obj,
                      _mulle_objc_class_get_name( cls),
@@ -823,13 +845,38 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
 }
 
 
+void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infraclass *infra,
+                                                     void *obj,
+                                                     size_t extra)
+{
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_class      *cls;
+   size_t                        size;
+
+   // we check initializing, if we are in +initialize while objects are
+   // created that's ok
+   cls = _mulle_objc_infraclass_as_class( infra);
+   if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZING))
+      _mulle_objc_class_warn_alloc_before_initialize( cls, obj);
+
+   universe = _mulle_objc_class_get_universe( cls);
+   if( _mulle_objc_universe_is_deinitializing( universe))
+      _mulle_objc_class_warn_alloc_during_finalize( cls, obj);
+
+   if( universe->debug.trace.instance)
+      _mulle_objc_class_trace_alloc_instance( cls, obj, extra);
+}
+
+
 // we don't have a mulle-objc-object.c so here
 void   _mulle_objc_object_trace_operation( void *obj, char *operation)
 {
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   fprintf( stderr, "[==] %p instance %p %s (\"%s\" (%08x))\n",
+   mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
+                     stderr,
+                     "[==] %p instance %p %s (\"%s\" (%08x))\n",
                      _mulle_objc_object_get_objectheader( obj),
                      obj,
                      operation,
@@ -838,7 +885,7 @@ void   _mulle_objc_object_trace_operation( void *obj, char *operation)
 }
 
 
-void   _mulle_objc_object_trace_free( void *obj)
+void   _mulle_objc_instance_trace_free( void *obj)
 {
    _mulle_objc_object_trace_operation( obj, "freed");
 }

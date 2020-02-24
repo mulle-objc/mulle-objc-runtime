@@ -90,7 +90,7 @@ static inline int   NSEqualRanges( NSRange range1, NSRange range2)
 
 - (void) dealloc
 {
-   _mulle_objc_object_free( self);
+   _mulle_objc_instance_free( self);
 }
 
 

@@ -52,9 +52,18 @@
 struct _mulle_objc_method;
 
 
+//
+// an object can be both a instance or a _class, so it should be typed as
+// void *. Possibly should renamed struct _mulle_objc_object to
+// struct _mulle_objc_instance...
+//
+// Functions that only deal with instances (like alloc/free) are
+// named _mulle_objc_instance...
+//
+
 # pragma mark - isa handling
 
-static inline int  mulle_objc_object_get_taggedpointerindex( struct _mulle_objc_object *obj)
+static inline int  mulle_objc_object_get_taggedpointerindex( void *obj)
 {
 #ifdef __MULLE_OBJC_TPS__
    return( mulle_objc_taggedpointer_get_index( obj));
@@ -127,6 +136,7 @@ static inline struct _mulle_objc_class *
    return( _mulle_objc_infraclass_as_class( infra));
 }
 
+
 static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_class *cls)
 {
    unsigned int   index;
@@ -149,7 +159,7 @@ static inline void  *_mulle_objc_object_get_extra( void *obj)
 
    cls  = _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj));
    size = _mulle_objc_class_get_allocationsize( cls) - sizeof( struct _mulle_objc_objectheader);
-   return(  &((char *)obj)[ size]);
+   return(  &((char *) obj)[ size]);
 }
 
 
@@ -230,7 +240,10 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_infraclass   *
 
 # pragma mark - ivar access
 
+//
 // these are not calculating the size from the signature
+// (could work for classes too...)
+//
 static inline void
    _mulle_objc_object_get_value_for_ivar( void *obj,
                                           struct _mulle_objc_ivar *ivar,

@@ -51,6 +51,9 @@ void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
    universe = _mulle_objc_classpair_get_universe( pair);
    assert( universe);
 
+   if( mulle_thread_mutex_init( &pair->lock))
+      abort();
+
    _mulle_concurrent_pointerarray_init( &pair->protocolclasses, 0, allocator);
 
    _mulle_atomic_pointer_nonatomic_write( &pair->p_protocolids.pointer,
@@ -68,6 +71,8 @@ void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
 
    universe = _mulle_objc_classpair_get_universe( pair);
    assert( universe);
+
+   mulle_thread_mutex_done( &pair->lock);
 
    array = _mulle_atomic_pointer_nonatomic_read( &pair->p_protocolids.pointer);
    if( array != &universe->empty_uniqueidarray)

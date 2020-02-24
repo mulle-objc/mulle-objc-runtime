@@ -127,7 +127,7 @@ static void   test_simple_retain_release( struct _mulle_objc_infraclass *A_infra
    mulle_objc_object_release( a);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
-   __mulle_objc_object_free( a, &my_allocator);
+   __mulle_objc_instance_free( a, &my_allocator);
    assert( instances == 0);
 }
 
@@ -151,7 +151,7 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
    assert( mulle_objc_object_get_retaincount( a) == retain_count);
    assert( instances == 1);
 
-   __mulle_objc_object_free( a, &my_allocator);
+   __mulle_objc_instance_free( a, &my_allocator);
    assert( instances == 0);
 }
 
@@ -173,7 +173,7 @@ static void    A_dealloc( void *self, mulle_objc_classid_t sel)
 {
    assert( get_retaincount( self) == -1);
    ++dealloced;
-   __mulle_objc_object_free( self, &my_allocator);
+   __mulle_objc_instance_free( self, &my_allocator);
 }
 
 

@@ -159,32 +159,44 @@ static void   trace_preamble( struct _mulle_objc_universe *universe)
    size_t   n_universes;
    char     *name;
    char     *format;
+   char     *sep;
 
    mulle_objc_universe_trace_preamble( universe);
+
+   name="";
+   sep=":";
 
    // if we dump a lot, indent traces and be less verbose
    if( universe->debug.trace.method_call ||
        universe->debug.trace.instance)
    {
-      format = "     %s: ";
+      format = "    %s%s ";
    }
    else
       if( universe->debug.trace.timestamp)
-         format = "%s: ";
+         format = "%s%s ";
       else
-         format = "mulle_objc_universe %strace: ";
+      {
+         format = "mulle_objc_universe %strace%s ";
+         sep    = ":";
+      }
 
-   name="";
    if( universe)
    {
       n_universes = __mulle_objc_global_get_alluniverses( NULL, 0);
       if( n_universes > 1)
+      {
          name = mulle_objc_universe_get_name( universe);
+         sep  = ":";
+      }
    }
    else
+   {
       name = "NULL";
+      sep  = ":";
+   }
 
-   fprintf( stderr, format, name);
+   fprintf( stderr, format, name, sep);
 }
 
 
