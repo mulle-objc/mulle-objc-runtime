@@ -659,28 +659,30 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
    struct _mulle_objc_searchresult      result;
    unsigned int                         inheritance;
    char                                 *name;
-
+   int                                  frames;
 
    universe = _mulle_objc_class_get_universe( cls);
+   //
+   // What is basically wrong here is, that we should be searching for the
+   // class that implements the method, not the called class
+   // This is fairly expensive though...
+   //
+   inheritance = _mulle_objc_class_get_inheritance( cls);
+   _mulle_objc_searcharguments_impinit( &search, imp);
+   method = mulle_objc_class_search_method( cls,
+                                            &search,
+                                            inheritance,
+                                            &result);
+
    mulle_thread_mutex_lock( &universe->debug.lock);
    {
       mulle_objc_universe_trace_preamble( universe);
 
-      fprintf( stderr, "[::] %c[",
-                              _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
-
-
-      // What is basically wrong here is, that we should be searching for the
-      // class that implements the method, not the called class
-      // This is fairly expensive though...
-      //
-
-      inheritance = _mulle_objc_class_get_inheritance( cls);
-      _mulle_objc_searcharguments_impinit( &search, imp);
-      method = mulle_objc_class_search_method( cls,
-                                               &search,
-                                               inheritance,
-                                               &result);
+      fprintf( stderr, "[::] ");
+      frames = (*universe->debug.count_stackdepth)();
+      while( frames--)
+         fputc( ' ', stderr);
+      fprintf( stderr, "%c[", _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
 
       if( method)
       {
@@ -701,7 +703,7 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
             fprintf( stderr, " #%08x]", methodid);
       }
 
-      isa      =  _mulle_objc_object_get_isa_universe( obj, universe);
+      isa = _mulle_objc_object_get_isa_universe( obj, universe);
       fprintf( stderr, " @%p %s (%p, %x, %p)\n",
                imp,
                _mulle_objc_class_get_name( isa),

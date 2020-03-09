@@ -555,6 +555,10 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
 static void   _mulle_objc_universe_done_gc( struct _mulle_objc_universe *universe);
 static void   _mulle_objc_universe_init_gc( struct _mulle_objc_universe *universe);
 
+static int   return_zero( void)
+{
+   return( 0);
+}
 
 void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
                                   struct mulle_allocator *allocator)
@@ -579,6 +583,8 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
       abort();
    if( mulle_thread_mutex_init( &universe->lock))
       abort();
+
+   universe->debug.count_stackdepth = return_zero;
 
    universe->thread = mulle_thread_self();
    mulle_objc_thread_setup_threadinfo( universe);
