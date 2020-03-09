@@ -93,6 +93,7 @@ struct _mulle_objc_universedebug
 {
    mulle_thread_mutex_t              lock;  // used for trace
    mulle_atomic_pointer_t            thread_counter;
+   int                               (*count_stackdepth)( void);
 
    struct
    {

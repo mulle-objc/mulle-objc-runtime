@@ -56,6 +56,7 @@
 #define OFFSET_2_MODE      100
 #define OFFSET_3_MODE      200
 
+
 enum internal_search_mode
 {
    search_default             = MULLE_OBJC_SEARCH_DEFAULT,
@@ -74,6 +75,7 @@ enum internal_search_mode
    search_overridden_method_3 = OFFSET_3_MODE + search_overridden_method,
    search_specific_method_3   = OFFSET_3_MODE + search_specific_method
 };
+
 
 static struct _mulle_objc_method   *
    __mulle_objc_class_search_method( struct _mulle_objc_class *cls,
@@ -188,7 +190,6 @@ static void   trace_method_search_fail( struct _mulle_objc_class *cls,
       mulle_objc_universe_trace( universe, "method search error %d", error);
    }
 }
-
 
 
 static void   trace_method_found( struct _mulle_objc_class *cls,
@@ -774,8 +775,8 @@ MULLE_C_NO_RETURN static void
                                                 mulle_objc_methodid_t missing_method,
                                                 int error)
 {
-   char   *prefix;
-   char   *name;
+   char                          *prefix;
+   char                          *name;
    struct _mulle_objc_universe   *universe;
 
    prefix = _mulle_objc_class_is_metaclass( cls) ? "meta-" : "";
@@ -799,9 +800,9 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t missing_method)
 {
-   struct _mulle_objc_universe  *universe;
-   struct _mulle_objc_method    *method;
-   int                          error;
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_method     *method;
+   int                           error;
 
    method = _mulle_objc_class_lazyget_forwardmethod( cls, &error);
    if( method)

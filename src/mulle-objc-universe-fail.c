@@ -53,6 +53,8 @@ MULLE_C_NO_RETURN static void
    vfprintf( stderr, format, args);
    fprintf( stderr, "\n");
 
+   // could improve this with symbolification but, it's a) debug
+   // only and b) you get better a one in the debugger
 #ifdef DEBUG
    mulle_stacktrace_once( stderr);
 #endif
