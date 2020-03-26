@@ -1,3 +1,26 @@
+## 0.17.0
+
+* experimental stackdepth indent for method trace (not that satisfactory, but occasionally useful)
+* up the version to 0.17, load version stays at 16
+* redid class +initialize code, it now uses a per-classpair mutex for simplicity
+* renamed some `_mulle_objc_object_...` functions to `_mulle_objc_instance_` when it is clear, that object can't be a class
+* improved trace capabilities for threaded mulle-objc code
+* redid +initialize, instead of using implicit locks with atomic bits and `thread_yield` now a per-class mutex is used
+* clarified the signature offset to be only useful for invocations
+* The initializing code, now puts caches on infra an meta classes immediately
+* added signature enumeration, clarified that offsets are for NSInvocation only
+* added `MULLE_OBJC_TRACE_THREAD`
+* threadinfo now has destructors or foundation and userspace
+* reduced `S_MULLE_OBJC_UNIVERSE_FOUNDATION_SPACE` to 512 but added some userspace to universe
+* support for dynamic properties added (auto-create selectors for getter,setter,adder,remover)
+* improved method family bits to discern accessors from regular methods
+* add ``_mulle_objc_object_is_finalized`` method
+* ``_C_BOOL`` is now used to serialize BOOL (not! ``_Bool`)`
+* type modifiers like ``_C_CONST`` or ``_C_INOUT`` are no longer encoded/decoed in mulle-objc
+* runtime may wait for non-main threads to complete before exiting
+* which is not just beneficial for tests, but makes thread writing much easier
+
+
 ### 0.16.1
 
 * fix `debug.warn.stuck_loadable` which is executed too late in the universe teardown

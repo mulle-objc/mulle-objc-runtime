@@ -11,6 +11,7 @@ endif()
 
 if( NOT EXECUTABLE_SOURCES)
    set( EXECUTABLE_SOURCES "${SOURCES}")
+   set( __EXECUTABLE_SOURCES_UNSET ON)
 endif()
 
 #
@@ -96,4 +97,9 @@ project is seemingly not setup for Objective-C.")
 
    include( PostExecutable OPTIONAL)
 
+   # clean EXECUTABLE_SOURCES for the next run, if set by this script 
+   if( __EXECUTABLE_SOURCES_UNSET )
+      unset( EXECUTABLE_SOURCES)
+      unset( __EXECUTABLE_SOURCES_UNSET)
+   endif()
 endif()

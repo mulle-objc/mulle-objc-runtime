@@ -1,0 +1,9 @@
+#! /bin/sh
+
+# with serial its easier to read the logs
+mulle-sde -v craft --serial || exit 1
+
+if [ -d test ]
+then
+   mulle-sde -v test --serial
+fi

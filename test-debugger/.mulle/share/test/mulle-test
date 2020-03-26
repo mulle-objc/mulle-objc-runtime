@@ -1,0 +1,6 @@
+#
+# presence of this folder indicates a mulle-test environment
+#
+# mulle-sde craft and mulle-sde clean should be aware of this and not run
+# unless specifically told to, to force use of mulle-sde test ...
+#

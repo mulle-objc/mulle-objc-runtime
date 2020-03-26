@@ -15,7 +15,7 @@ if( NOT MULLE_DLFCN_HEADER)
    message( STATUS "MULLE_DLFCN_HEADER is ${MULLE_DLFCN_HEADER}")
 
    #
-   # Add to list of header files.
+   # Add MULLE_DLFCN_HEADER to HEADER_ONLY_LIBRARIES list.
    # Disable with: `mulle-sourcetree mark mulle-dlfcn no-cmakeadd`
    #
    set( HEADER_ONLY_LIBRARIES
@@ -85,7 +85,7 @@ if( NOT MULLE_CONCURRENT_LIBRARY)
    #
    if( MULLE_CONCURRENT_LIBRARY)
       #
-      # Add to MULLE_CONCURRENT_LIBRARY to DEPENDENCY_LIBRARIES list.
+      # Add MULLE_CONCURRENT_LIBRARY to DEPENDENCY_LIBRARIES list.
       # Disable with: `mulle-sourcetree mark mulle-concurrent no-cmakeadd`
       #
       set( DEPENDENCY_LIBRARIES
@@ -153,7 +153,7 @@ if( NOT MULLE_VARARG_LIBRARY)
    #
    if( MULLE_VARARG_LIBRARY)
       #
-      # Add to MULLE_VARARG_LIBRARY to DEPENDENCY_LIBRARIES list.
+      # Add MULLE_VARARG_LIBRARY to DEPENDENCY_LIBRARIES list.
       # Disable with: `mulle-sourcetree mark mulle-vararg no-cmakeadd`
       #
       set( DEPENDENCY_LIBRARIES
@@ -221,7 +221,7 @@ if( NOT MULLE_STACKTRACE_LIBRARY)
    #
    if( MULLE_STACKTRACE_LIBRARY)
       #
-      # Add to MULLE_STACKTRACE_LIBRARY to DEPENDENCY_LIBRARIES list.
+      # Add MULLE_STACKTRACE_LIBRARY to DEPENDENCY_LIBRARIES list.
       # Disable with: `mulle-sourcetree mark mulle-stacktrace no-cmakeadd`
       #
       set( DEPENDENCY_LIBRARIES
@@ -277,7 +277,7 @@ endif()
 
 
 #
-# Generated from sourcetree: mulle-atinit;no-bequeath,no-dynamic-link,no-import,no-intermediate-link,no-singlephase;
+# Generated from sourcetree: mulle-atinit;no-bequeath,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;
 # Disable with: `mulle-sourcetree mark mulle-atinit no-link`
 #
 if( NOT MULLE_ATINIT_LIBRARY)
@@ -289,7 +289,7 @@ if( NOT MULLE_ATINIT_LIBRARY)
    #
    if( MULLE_ATINIT_LIBRARY)
       #
-      # Add to MULLE_ATINIT_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
+      # Add MULLE_ATINIT_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
       # Disable with: `mulle-sourcetree mark mulle-atinit no-cmakeadd`
       #
       set( STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES
@@ -362,7 +362,7 @@ endif()
 
 
 #
-# Generated from sourcetree: mulle-atexit;no-bequeath,no-dynamic-link,no-import,no-intermediate-link,no-singlephase;
+# Generated from sourcetree: mulle-atexit;no-bequeath,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;
 # Disable with: `mulle-sourcetree mark mulle-atexit no-link`
 #
 if( NOT MULLE_ATEXIT_LIBRARY)
@@ -374,7 +374,7 @@ if( NOT MULLE_ATEXIT_LIBRARY)
    #
    if( MULLE_ATEXIT_LIBRARY)
       #
-      # Add to MULLE_ATEXIT_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
+      # Add MULLE_ATEXIT_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
       # Disable with: `mulle-sourcetree mark mulle-atexit no-cmakeadd`
       #
       set( STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES

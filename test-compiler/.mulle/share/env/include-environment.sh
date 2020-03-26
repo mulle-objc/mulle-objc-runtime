@@ -12,7 +12,7 @@ MULLE_ENV_ETC_DIR="${MULLE_VIRTUAL_ROOT}/.mulle/etc/env"
 # --------------------------------------|--------------------
 #                                       | environment-plugin.sh
 #                                       | environment-plugin-os-${MULLE_UNAME}.sh
-#                                       | environment-project.sh
+# environment-project.sh                |
 #                                       | environment-extension.sh
 # environment-global.sh                 |
 # environment-os-${MULLE_UNAME}.sh      |
@@ -42,9 +42,9 @@ fi
 # The project file, if present is to be set by mulle-sde init itself
 # w/o extensions
 #
-if [ -f "${MULLE_ENV_SHARE_DIR}/environment-project.sh" ]
+if [ -f "${MULLE_ENV_ETC_DIR}/environment-project.sh" ]
 then
-   . "${MULLE_ENV_SHARE_DIR}/environment-project.sh"
+   . "${MULLE_ENV_ETC_DIR}/environment-project.sh"
 fi
 
 #
@@ -83,6 +83,7 @@ fi
 
 #
 # For more complex edits, that don't work with the cmdline tool
+# Therefore its not in a scope
 #
 if [ -f "${MULLE_ENV_ETC_DIR}/environment-custom.sh" ]
 then
