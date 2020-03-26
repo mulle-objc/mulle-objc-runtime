@@ -10,7 +10,7 @@ It is designed to be suitable for massive multi-threading.
 
 Build Status | Release Version
 -------------|-----------------------------------
-[![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg)](https://travis-ci.org/mulle-objc/mulle-objc) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc.svg) [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc.svg?branch=release)](https://travis-ci.org/mulle-objc/mulle-objc)
+[![Build Status](https://travis-ci.org/mulle-objc/mulle-objc-runtime.svg)](https://travis-ci.org/mulle-objc/mulle-objc-runtime) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](https://travis-ci.org/mulle-objc/mulle-objc-runtime.svg?branch=release)](https://travis-ci.org/mulle-objc/mulle-objc-runtime)
 
 
 ## What's so different ?
@@ -59,6 +59,14 @@ only locks during `+initialize` on a per class basis.
 
 See [mulle-objc-developer](//github.com/mulle-objc/mulle-objc-developer) for
 installation instructions.
+
+## How to add it
+
+To an existing mulle-sde project:
+
+```
+mulle-sde dependency add --multiphase --github mulle-objc mulle-objc-runtime
+```
 
 
 ## How to build it

@@ -12,6 +12,7 @@ endif()
 
 if( NOT LIBRARY_SOURCES)
    set( LIBRARY_SOURCES "${SOURCES}")
+   set( __LIBRARY_SOURCES_UNSET ON)
 endif()
 
 include( PreLibrary OPTIONAL)
@@ -141,3 +142,9 @@ if( LINK_PHASE)
 endif()
 
    ### Install
+
+   # clean EXECUTABLE_SOURCES for the next run, if set by this script 
+if( __LIBRARY_SOURCES_UNSET )
+   unset( LIBRARY_SOURCES)
+   unset( __LIBRARY_SOURCES_UNSET)
+endif()
