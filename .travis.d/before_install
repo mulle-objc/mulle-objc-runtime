@@ -1,0 +1,46 @@
+#! /bin/sh
+
+
+get_mulle_kybernetik_gpg_key()
+{
+   curl -sS "https://www.mulle-kybernetik.com/dists/debian-admin-pub.asc" | \
+      sudo apt-key add -
+}
+
+
+add_mulle_kybernetik_to_apt_sources()
+{
+   local release
+   local debname
+
+   release="`lsb_release -c -s`" || return 1
+
+   #
+   # we can choose a different mulle-kybernetik debian repository instead
+   # of "main" like say "prerelease", if the branch contains
+   # &debname=prerelease.
+   #
+   # Yes you can use & in git tags:
+   # https://git-scm.com/docs/git-check-ref-format
+   #
+   debname="main"
+   case "${TRAVIS_BRANCH}" in
+      *'&debname='*)
+         debname="${TRAVIS_BRANCH#*\&debname=}"
+         debname="${debname%&*}"
+      ;;
+   esac
+
+   #
+   # use DEBIAN_REPOSITORY preferably (set it in travis-ci settings)
+   #
+   debname="${DEBIAN_REPOSITORY:-${debname}}"
+
+   echo "deb [arch=all] http://www.mulle-kybernetik.com ${release} ${debname}" | \
+   sudo tee "/etc/apt/sources.list.d/mulle-kybernetik.com-${debname}.list" > /dev/null
+}
+
+get_mulle_kybernetik_gpg_key && \
+add_mulle_kybernetik_to_apt_sources &&  \
+sudo apt-get update && \
+sudo apt-get -y install mulle-sde mulle-test
