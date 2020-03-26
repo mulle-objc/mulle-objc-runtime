@@ -15,6 +15,7 @@
 // How to tweak the following mulle-stacktrace #include
 //    remove:          `mulle-sourcetree mark mulle-stacktrace no-header`
 //    rename:          `mulle-sourcetree mark mulle-stacktrace set include whatever.h`
+//    toggle #import:  `mulle-sourcetree mark mulle-stacktrace [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-stacktrace [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-stacktrace [no-]require`
 //    remove for os:   `mulle-sourcetree mark mulle-stacktrace no-os-<osname>`
@@ -23,6 +24,7 @@
 // How to tweak the following mulle-atinit #include
 //    remove:          `mulle-sourcetree mark mulle-atinit no-header`
 //    rename:          `mulle-sourcetree mark mulle-atinit set include whatever.h`
+//    toggle #import:  `mulle-sourcetree mark mulle-atinit [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-atinit [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-atinit [no-]require`
 //    remove for os:   `mulle-sourcetree mark mulle-atinit no-os-<osname>`
@@ -31,6 +33,7 @@
 // How to tweak the following mulle-atexit #include
 //    remove:          `mulle-sourcetree mark mulle-atexit no-header`
 //    rename:          `mulle-sourcetree mark mulle-atexit set include whatever.h`
+//    toggle #import:  `mulle-sourcetree mark mulle-atexit [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-atexit [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-atexit [no-]require`
 //    remove for os:   `mulle-sourcetree mark mulle-atexit no-os-<osname>`
@@ -39,6 +42,7 @@
 // How to tweak the following mulle-dlfcn #include
 //    remove:          `mulle-sourcetree mark mulle-dlfcn no-header`
 //    rename:          `mulle-sourcetree mark mulle-dlfcn set include whatever.h`
+//    toggle #import:  `mulle-sourcetree mark mulle-dlfcn [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-dlfcn [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-dlfcn [no-]require`
 //    remove for os:   `mulle-sourcetree mark mulle-dlfcn no-os-<osname>`

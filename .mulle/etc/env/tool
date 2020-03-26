@@ -68,3 +68,5 @@ mulle-match-to-cmake
 mulle-sourcetree-to-cmake
 cmake
 mulle-clang
+mulle-clang;remove
+mulle-clang;optional
