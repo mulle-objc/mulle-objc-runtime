@@ -15,6 +15,7 @@
 // How to tweak the following mulle-concurrent #include
 //    remove:          `mulle-sourcetree mark mulle-concurrent no-header`
 //    rename:          `mulle-sourcetree mark mulle-concurrent set include whatever.h`
+//    toggle #import:  `mulle-sourcetree mark mulle-concurrent [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-concurrent [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-concurrent [no-]require`
 //    remove for os:   `mulle-sourcetree mark mulle-concurrent no-os-<osname>`
@@ -23,6 +24,7 @@
 // How to tweak the following mulle-vararg #include
 //    remove:          `mulle-sourcetree mark mulle-vararg no-header`
 //    rename:          `mulle-sourcetree mark mulle-vararg set include whatever.h`
+//    toggle #import:  `mulle-sourcetree mark mulle-vararg [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-vararg [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-vararg [no-]require`
 //    remove for os:   `mulle-sourcetree mark mulle-vararg no-os-<osname>`
