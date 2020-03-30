@@ -1,0 +1,137 @@
+#! /bin/sh
+
+
+r_get_mulle_tapname()
+{
+   #
+   # we can choose a different mulle-kybernetik debian repository instead
+   # of "main" like say "prerelease", if the branch contains
+   # &debname=prerelease.
+   #
+   # Yes you can use & in git tags:
+   # https://git-scm.com/docs/git-check-ref-format
+   #
+   case "${TRAVIS_BRANCH}" in
+      *'&mulle_tapname='*)
+         RVAL="${TRAVIS_BRANCH#*\&mulle_tapname=}"
+         RVAL="${RVAL%&*}"
+      ;;
+
+      # hard coded convention
+      'prerelease')
+         RVAL='prerelease'
+      ;;
+
+      *)
+         RVAL="software"
+      ;;
+   esac
+
+   #
+   # use DEBIAN_REPOSITORY preferably (set it in travis-ci settings)
+   #
+   RVAL="${MULLE_TAP_NAME:-${RVAL}}"
+}
+
+
+r_get_mulle_tapuser()
+{
+   case "${TRAVIS_BRANCH}" in
+      *'&mulle_tapuser='*)
+         RVAL="${TRAVIS_BRANCH#*\&mulle_tapuser=}"
+         RVAL="${RVAL%&*}"
+      ;;
+
+      # hard coded convention
+      'prerelease'*)
+         RVAL="mulle-nat"
+      ;;
+
+      *)
+         RVAL="mulle-kybernetik"
+      ;;
+   esac
+
+   #
+   # use TAP_USER preferably (set it in travis-ci settings)
+   #
+   RVAL="${MULLE_TAP_USER:-${RVAL}}"
+}
+
+
+r_get_hostname()
+{
+   case "${TRAVIS_BRANCH}" in
+      *'&hostname='*)
+         RVAL="${TRAVIS_BRANCH#*\&hostname=}"
+         RVAL="${RVAL%&*}"
+      ;;
+
+      # hard coded convention
+      'prerelease'*)
+         RVAL="travis-ci-prerelease"
+      ;;
+
+      *)
+         RVAL="travis-ci"
+      ;;
+   esac
+
+   #
+   # use MULLE_HOSTNAME preferably (set it in travis-ci settings)
+   #
+   RVAL="${MULLE_HOSTNAME:-${RVAL}}"
+}
+
+
+before_install_main()
+{
+   local tapuser
+   local tapname
+
+   r_get_mulle_tapuser
+   tapuser="${RVAL}"
+
+   r_get_mulle_tapname
+   tapname="${RVAL}"
+
+   # for script
+   r_get_hostname
+   MULLE_HOSTNAME="${RVAL}"
+   export MULLE_HOSTNAME
+
+   brew update
+
+   if [ -f ".travis.d/PACKAGES.darwin" ]
+   then
+      PACKAGES="`egrep -v '^#' ".travis.d/PACKAGES.darwin" `"
+   else
+      PACKAGES="`egrep -v '^#' ".travis.d/PACKAGES" `"
+   fi
+
+   (
+      IFS=$'\n'
+      for package in ${PACKAGES}
+      do
+         case "${package}" in
+            /*)
+               brew install "${package:1}"
+            ;;
+
+            */*/*)
+               brew install "${package}"
+            ;;
+
+            */*)
+               brew install "${tapuser}/${package}"
+            ;;
+
+            *)
+               brew install "${tapuser}/${tapname}/${package}"
+            ;;
+         esac
+      done
+   )
+}
+
+before_install_main "$@"
