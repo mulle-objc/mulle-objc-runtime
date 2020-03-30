@@ -1,0 +1,66 @@
+#! /bin/sh
+
+
+get_codeon_gpg_key()
+{
+   curl -sS "https://www.codeon.de/dists/codeon-pub.asc" | \
+      sudo apt-key add -
+
+   echo "Added Codeon repository key to apt" >&2
+}
+
+
+add_codeon_to_apt_sources()
+{
+   local release="$1"
+   local debname="$2"
+
+   echo "deb [arch=amd64] http://download.codeon.de ${release} ${debname}" | \
+   sudo tee "/etc/apt/sources.list.d/codeon.de-${debname}.list" > /dev/null
+
+   echo "Added Codeon repository to apt" >&2
+}
+
+
+#
+# We inherit code from the C extension here. So we already have
+# mulle-sde and mulle-c
+#
+before_install_objc_main()
+{
+   local release
+   local debname
+
+   r_get_linux_release || exit 1
+   release="${RVAL}"
+
+   r_get_debname
+   debname="${RVAL}"
+
+   echo "DEBIAN_REPOSITORY=\"${debname}\"" 2>&1
+
+   get_codeon_gpg_key && \
+   add_codeon_to_apt_sources "${release}" "${debname}" &&
+
+   sudo apt-get update &&
+
+   if [ -f ".travis.d/PACKAGES-aux.linux" ]
+   then
+      PACKAGES="`egrep -v '^#' ".travis.d/PACKAGES-aux.linux" `"
+   else
+      PACKAGES="`egrep -v '^#' ".travis.d/PACKAGES-aux" `"
+   fi &&
+
+   (
+      IFS=$'\n'
+      for package in ${PACKAGES}
+      do
+         if [ ! -z "${package}" ]
+         then
+            sudo apt-get -y install "${package}"
+         fi
+      done
+   )
+}
+
+before_install_objc_main "$@"

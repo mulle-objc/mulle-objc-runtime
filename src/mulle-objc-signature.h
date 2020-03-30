@@ -197,7 +197,7 @@ MULLE_C_NONNULL_FIRST
 static inline char *
    _mulle_objc_signatureenumerator_get_type( struct mulle_objc_signatureenumerator *rover)
 {
-   return( rover->types);
+   return( rover->rval.type);
 }
 
 
