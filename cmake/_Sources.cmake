@@ -36,6 +36,7 @@ src/mulle-objc-ivar.c
 src/mulle-objc-ivarlist.c
 src/mulle-objc-kvccache.c
 src/mulle-objc-load.c
+src/mulle-objc-loadinfo.c
 src/mulle-objc-metaclass.c
 src/mulle-objc-method.c
 src/mulle-objc-methodlist.c
