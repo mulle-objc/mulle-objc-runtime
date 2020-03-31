@@ -41,14 +41,15 @@
 #include "mulle-objc-callqueue.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
-#include "mulle-objc-universe-class.h"
 #include "mulle-objc-dotdump.h"
 #include "mulle-objc-infraclass.h"
+#include "mulle-objc-loadinfo.h"
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-methodlist.h"
 #include "mulle-objc-propertylist.h"
 #include "mulle-objc-protocollist.h"
 #include "mulle-objc-universe.h"
+#include "mulle-objc-universe-class.h"
 
 
 #include "include-private.h"

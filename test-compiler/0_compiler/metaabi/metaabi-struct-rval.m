@@ -93,16 +93,12 @@ int main( int argc, const char * argv[])
 
    foo = mulle_objc_infraclass_alloc_instance( [Foo class]);
 
-   // keep nil code alive (voodoo)
-   nothing = foo;
-   if( argc != 1848)
-      nothing = 0;
+
 
    ls.value1 = INTPTR_MAX;
    ls.value2 = INTPTR_MIN;
 
-   // flips it around
-   ls = [foo callLargeStruct:ls];
+   ls = [foo callLargeStruct];
    if( ls.value1 != INTPTR_MIN || ls.value2 != INTPTR_MAX)
    {
       fprintf( stderr, "FAIL1\n");
@@ -113,26 +109,13 @@ int main( int argc, const char * argv[])
    ls.value2 = INTPTR_MIN;
 
    // flips it around
-   ls = [nothing callLargeStruct:ls];
-   if( ls.value1 != 0 || ls.value2 != 0)
+   ls = [foo callLargeStruct:ls];
+   if( ls.value1 != INTPTR_MIN || ls.value2 != INTPTR_MAX)
    {
       fprintf( stderr, "FAIL2\n");
       return( 1);
    }
 
-   ls = [foo callLargeStruct];
-   if( ls.value1 != INTPTR_MIN || ls.value2 != INTPTR_MAX)
-   {
-      fprintf( stderr, "FAIL3\n");
-      return( 1);
-   }
-
-   ls = [nothing callLargeStruct];
-   if( ls.value1 != 0 || ls.value2 != 0)
-   {
-      fprintf( stderr, "FAIL4\n");
-      return( 1);
-   }
 
    // flips it around
 
@@ -144,15 +127,7 @@ int main( int argc, const char * argv[])
    lls = [foo callLargerStruct:lls];
    if( lls.value1 != INTPTR_MIN || lls.value6 != INTPTR_MAX)
    {
-      fprintf( stderr, "FAIL5\n");
-      return( 1);
-   }
-
-   // flips it around
-   lls = [nothing callLargerStruct:lls];
-   if( lls.value1 != 0 || lls.value6 != 0)
-   {
-      fprintf( stderr, "FAIL6\n");
+      fprintf( stderr, "FAIL3\n");
       return( 1);
    }
 

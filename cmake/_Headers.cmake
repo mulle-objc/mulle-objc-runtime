@@ -50,6 +50,7 @@ src/mulle-objc-ivarlist.h
 src/mulle-objc-jit.inc
 src/mulle-objc-kvccache.h
 src/mulle-objc-load.h
+src/mulle-objc-loadinfo.h
 src/mulle-objc-metaabi.h
 src/mulle-objc-metaclass.h
 src/mulle-objc-method.h
