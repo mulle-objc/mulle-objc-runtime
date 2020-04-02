@@ -42,6 +42,8 @@ before_install_objc_main()
    get_codeon_gpg_key && \
    add_codeon_to_apt_sources "${release}" "${debname}" &&
 
+   sudo apt-get update &&
+
    if [ -f ".travis.d/PACKAGES-aux.linux" ]
    then
       PACKAGES="`egrep -v '^#' ".travis.d/PACKAGES-aux.linux" `"
