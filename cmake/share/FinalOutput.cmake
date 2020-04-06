@@ -1,3 +1,7 @@
+### If you want to edit this, copy it from cmake/share to cmake. It will be
+### picked up in preference over the one in cmake/share. And it will not get
+### clobbered with the next upgrade.
+
 if( NOT __FINAL_OUTPUT_C_CMAKE__)
    set( __FINAL_OUTPUT_C_CMAKE__ ON)
 

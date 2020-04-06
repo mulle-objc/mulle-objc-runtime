@@ -8,5 +8,7 @@ mulle-sde -v craft --serial || exit 1
 
 if [ -d test ]
 then
-   mulle-sde -v test --serial
+   # here verbose is more distracting and duplicates much of what we've seen
+   mulle-sde test craft &&
+   mulle-sde -v test run --serial
 fi

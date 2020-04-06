@@ -91,13 +91,13 @@ mulle_objc_implementation_t
    struct _mulle_objc_infraclass   *super;
    mulle_objc_implementation_t     imp;
    mulle_objc_superid_t            superid;
-   int                             olderrno;
+   int                             preserve;
 
-   olderrno = errno;
+   preserve = errno;
 
    if( ! obj || mulle_objc_uniqueid_is_sane( MULLE_OBJC_NO_METHODID))
    {
-      errno = olderrno;
+      errno = preserve;
       return( 0);
    }
 
@@ -126,7 +126,7 @@ mulle_objc_implementation_t
                                                                             superid);
    }
 
-   errno = olderrno;
+   errno = preserve;
 
    return( imp);
 }

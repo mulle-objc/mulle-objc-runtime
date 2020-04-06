@@ -6,13 +6,13 @@ export MULLE_TESTALLOCATOR_NODETYPE="git"
 
 
 #
-# mulle-testallocator url: ${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TAG}.tar.gz}
+# mulle-testallocator url: ${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_BRANCH}.tar.gz}
 #
 export MULLE_TESTALLOCATOR_URL="https://github.com/mulle-core/mulle-testallocator.git"
 
 
 #
-# mulle-testallocator branch: ${MULLE_TESTALLOCATOR_BRANCH}
+# mulle-testallocator branch: ${MULLE_TESTALLOCATOR_BRANCH:-latest}
 #
 export MULLE_TESTALLOCATOR_BRANCH="prerelease"
 
@@ -150,13 +150,13 @@ export MULLE_OBJC_RUNTIME_NODETYPE="git"
 
 
 #
-# mulle-objc-runtime url: ${MULLE_OBJC_RUNTIME_URL:-https://github.com/mulle-objc/mulle-objc-runtime/archive/${MULLE_TAG}.tar.gz}
+# mulle-objc-runtime url: ${MULLE_OBJC_RUNTIME_URL:-https://github.com/mulle-objc/mulle-objc-runtime/archive/${MULLE_BRANCH}.tar.gz}
 #
 export MULLE_OBJC_RUNTIME_URL="https://github.com/mulle-objc/mulle-objc-runtime.git"
 
 
 #
-# mulle-objc-runtime branch: ${MULLE_OBJC_RUNTIME_BRANCH}
+# mulle-objc-runtime branch: ${MULLE_OBJC_RUNTIME_BRANCH:-latest}
 #
 export MULLE_OBJC_RUNTIME_BRANCH="prerelease"
 

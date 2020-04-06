@@ -209,20 +209,10 @@ static inline mulle_objc_cache_uint_t
 struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
                                                   struct mulle_allocator *allocator);
 
-static inline void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
-                                             struct mulle_allocator *allocator)
-{
-   assert( allocator);
-   _mulle_allocator_free( allocator, cache);
-}
-
-
-static inline void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
-                                                struct mulle_allocator *allocator)
-{
-   assert( allocator);
-   _mulle_allocator_abafree( allocator, cache);
-}
+void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
+                               struct mulle_allocator *allocator);
+void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
+                                  struct mulle_allocator *allocator);
 
 
 # pragma mark - cache add entry

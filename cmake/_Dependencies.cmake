@@ -339,7 +339,7 @@ if( NOT MULLE_ATINIT_LIBRARY)
          endif()
       endforeach()
       #
-      # Search for "objc-loader.inc" in include directory.
+      # Search for "MulleObjCLoader+<name>.h" in include directory.
       # Disable with: `mulle-sourcetree mark mulle-atinit no-cmakeloader`
       #
       if( NOT NO_INHERIT_OBJC_LOADERS)
@@ -424,7 +424,7 @@ if( NOT MULLE_ATEXIT_LIBRARY)
          endif()
       endforeach()
       #
-      # Search for "objc-loader.inc" in include directory.
+      # Search for "MulleObjCLoader+<name>.h" in include directory.
       # Disable with: `mulle-sourcetree mark mulle-atexit no-cmakeloader`
       #
       if( NOT NO_INHERIT_OBJC_LOADERS)

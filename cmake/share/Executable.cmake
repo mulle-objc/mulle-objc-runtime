@@ -1,4 +1,8 @@
-# can be included multiple times in theory
+### If you want to edit this, copy it from cmake/share to cmake. It will be
+### picked up in preference over the one in cmake/share. And it will not get
+### clobbered with the next upgrade.
+
+# This can be included multiple times
 
 if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
@@ -97,7 +101,7 @@ project is seemingly not setup for Objective-C.")
 
    include( PostExecutable OPTIONAL)
 
-   # clean EXECUTABLE_SOURCES for the next run, if set by this script 
+   # clean EXECUTABLE_SOURCES for the next run, if set by this script
    if( __EXECUTABLE_SOURCES_UNSET )
       unset( EXECUTABLE_SOURCES)
       unset( __EXECUTABLE_SOURCES_UNSET)

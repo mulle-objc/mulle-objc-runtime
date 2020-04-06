@@ -62,13 +62,13 @@ mulle_objc_implementation_t
    struct _mulle_objc_infraclass   *super;
    mulle_objc_implementation_t     imp;
    mulle_objc_superid_t            superid;
-   int                             olderrno;
+   int                             preserve;
 
-   olderrno = errno;
+   preserve = errno;
 
    if( ! obj || mulle_objc_uniqueid_is_sane( MULLE_OBJC_NO_METHODID))
    {
-      errno = olderrno;
+      errno = preserve;
       return( 0);
    }
 
@@ -112,7 +112,7 @@ mulle_objc_implementation_t
       fprintf( stderr, "mulle_objc_lldb_lookup_implementation: resolved to %s\n", buf);
    }
 
-   errno = olderrno;
+   errno = preserve;
 
    return( imp);
 }
@@ -124,9 +124,9 @@ struct _mulle_objc_class *
    mulle_objc_lldb_lookup_isa( void *obj, int debug)
 {
    struct _mulle_objc_class   *cls;
-   int                        olderrno;
+   int                        preserve;
 
-   olderrno = errno;
+   preserve = errno;
    if( debug)
       fprintf( stderr, "isa lookup %p\n", obj);
 
@@ -134,7 +134,7 @@ struct _mulle_objc_class *
    if( debug)
       fprintf( stderr, "resolved to isa=%p (%s)\n",
                            cls, cls ? _mulle_objc_class_get_name( cls) : "");
-   errno = olderrno;
+   errno = preserve;
    return( cls);
 }
 
@@ -145,13 +145,13 @@ struct _mulle_objc_descriptor  *
    mulle_objc_methodid_t           methodid;
    struct _mulle_objc_universe     *universe;
    struct _mulle_objc_descriptor   *descriptor;
-   int                             olderrno;
+   int                             preserve;
 
-   olderrno   = errno;
+   preserve   = errno;
    methodid   = mulle_objc_uniqueid_from_string( name);
    universe   = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    descriptor = _mulle_objc_universe_lookup_descriptor( universe, methodid);
-   errno      = olderrno;
+   errno      = preserve;
 
    return( descriptor);
 }
@@ -164,21 +164,21 @@ struct _mulle_objc_descriptor  *
 void   mulle_objc_lldb_check_object( void *obj, mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class  *cls;
-   int                        olderrno;
+   int                        preserve;
 
    // fprintf( stderr, "check %p %08x %p (%d)\n", obj, methodid);
 
    if( ! obj)
       return;
 
-   olderrno = errno;
+   preserve = errno;
    cls      = _mulle_objc_object_get_isa( obj);
    strlen( cls->name);    // try to crash here
 
    if( ! _mulle_objc_class_lookup_implementation_noforward( cls, methodid))
       *((volatile int *) 0) = '1848'; // force crash
 
-   errno    = olderrno;
+   errno    = preserve;
 }
 
 
@@ -257,11 +257,11 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
    size_t                         size;
    struct { void  *bytes; intptr_t len; }  *obj;
    void                           *extra;
-   int                            olderrno;
+   int                            preserve;
 
    // fprintf( stderr, "create static string \"%.*s\"\n", (int) numBytes, bytes);
 
-   olderrno  = errno;
+   preserve  = errno;
 
    universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    infra    = _mulle_objc_universe_get_staticstringclass( universe);
@@ -278,7 +278,7 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
    obj->bytes = extra;
    obj->len   = numBytes;
 
-   errno      = olderrno;
+   errno      = preserve;
 
    return( obj);
 }

@@ -89,17 +89,18 @@ before_install_main()
    local tapuser
    local tapname
 
+   # for script
+   r_get_hostname
+   MULLE_HOSTNAME="${RVAL}"
+   export MULLE_HOSTNAME
+   
    r_get_mulle_tapuser
    tapuser="${RVAL}"
 
    r_get_mulle_tapname
    tapname="${RVAL}"
 
-   # for script
-   r_get_hostname
-   MULLE_HOSTNAME="${RVAL}"
-   export MULLE_HOSTNAME
-
+   brew tap "${tapuser}/${tapname}" || return 1
    brew update
 
    if [ -f ".travis.d/PACKAGES.darwin" ]
@@ -114,20 +115,12 @@ before_install_main()
       for package in ${PACKAGES}
       do
          case "${package}" in
-            /*)
-               brew install "${package:1}"
-            ;;
-
-            */*/*)
-               brew install "${package}"
-            ;;
-
-            */*)
-               brew install "${tapuser}/${package}"
+            =*)
+               brew install "${tapuser}/${tapname}/${package:1}"
             ;;
 
             *)
-               brew install "${tapuser}/${tapname}/${package}"
+               brew install "${package}"
             ;;
          esac
       done

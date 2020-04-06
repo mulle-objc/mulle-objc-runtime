@@ -1,3 +1,7 @@
+### If you want to edit this, copy it from cmake/share to cmake. It will be
+### picked up in preference over the one in cmake/share. And it will not get
+### clobbered with the next upgrade.
+
 ### Files
 if( NOT __FILES__CMAKE__)
    set( __FILES___CMAKE__ ON)
