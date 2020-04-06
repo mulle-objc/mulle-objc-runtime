@@ -42,10 +42,15 @@
 
 #pragma mark - methodcache
 
+
+//
+// cache malloc/frees should not disturb errno, so we preserve it
+//
 struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
                                                   struct mulle_allocator *allocator)
 {
    struct _mulle_objc_cache  *cache;
+   int                       preserve;
 
    assert( allocator);
    assert( ! (sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1)));
@@ -55,13 +60,41 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
 
    assert( ! (size & (size - 1)));          // check for tumeni bits
 
-   cache = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_cache) + sizeof( struct _mulle_objc_cacheentry) * (size - 1));
+   preserve = errno;
+   cache    = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_cache) + sizeof( struct _mulle_objc_cacheentry) * (size - 1));
+   errno    = preserve;
 
    cache->size = size;
    // myhardworkbythesewordsguardedpleasedontsteal © Nat!
    cache->mask = (size - 1) * sizeof( struct _mulle_objc_cacheentry);    // preshift
 
    return( cache);
+}
+
+
+void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
+                               struct mulle_allocator *allocator)
+{
+   int   preserve;
+
+   assert( allocator);
+
+   preserve = errno;
+   _mulle_allocator_free( allocator, cache);
+   errno    = preserve;
+}
+
+
+void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
+                                  struct mulle_allocator *allocator)
+{
+   int   preserve;
+
+   assert( allocator);
+
+   preserve = errno;
+   _mulle_allocator_abafree( allocator, cache);
+   errno    = preserve;
 }
 
 
