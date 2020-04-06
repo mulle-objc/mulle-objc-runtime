@@ -255,7 +255,7 @@ struct _mulle_objc_infraclass   *
 {
    struct _mulle_objc_infraclass    *infra;
    int                              retry;
-   int                              olderrno;
+   int                              preserve;
 
 
    retry = 1;
@@ -274,9 +274,9 @@ struct _mulle_objc_infraclass   *
       retry = 0;
 
       // preserve errno for user
-      olderrno = errno;
+      preserve = errno;
       (*universe->classdefaults.class_is_missing)( universe, classid);
-      errno    = olderrno;
+      errno    = preserve;
    }
 }
 

@@ -129,28 +129,36 @@ static inline int   getenv_yes_no_default( char *name, int default_value)
 }
 
 
+//
+// preserve errno here, as this is used during calls
+//
 void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_threadinfo   *config;
+   int       preserve;
 
-   if( universe->thread != mulle_thread_self())
+   preserve = errno;
    {
-      config = __mulle_objc_thread_get_threadinfo( universe);
-      if( config)
-         fprintf( stderr, "t:#%2lu ", config->nr);
-      else
-         fprintf( stderr, "t:%p ", (void *) mulle_thread_self());
-   }
+      if( universe->thread != mulle_thread_self())
+      {
+         config = __mulle_objc_thread_get_threadinfo( universe);
+         if( config)
+            fprintf( stderr, "t:#%2lu ", config->nr);
+         else
+            fprintf( stderr, "t:%p ", (void *) mulle_thread_self());
+      }
 
 #ifdef HAVE_TRACE_TIMESTAMP
-   if( universe->debug.trace.timestamp)
-   {
-      struct timespec   now;
+      if( universe->debug.trace.timestamp)
+      {
+         struct timespec   now;
 
-      clock_gettime( CLOCK_MONOTONIC_RAW, &now);
-      fprintf( stderr, "%ld.%09ld ", now.tv_sec, now.tv_nsec);
-   }
+         clock_gettime( CLOCK_MONOTONIC_RAW, &now);
+         fprintf( stderr, "%ld.%09ld ", now.tv_sec, now.tv_nsec);
+      }
 #endif
+   }
+   errno = preserve;
 }
 
 
@@ -205,17 +213,22 @@ void  mulle_objc_universe_trace_nolf( struct _mulle_objc_universe *universe,
                                       ...)
 {
    va_list   args;
+   int       preserve;
 
-   va_start( args, format);
-
-   mulle_thread_mutex_lock( &universe->debug.lock);
+   preserve = errno;
    {
-      trace_preamble( universe);
-      vfprintf( stderr, format, args);
-   }
-   mulle_thread_mutex_unlock( &universe->debug.lock);
+      va_start( args, format);
 
-   va_end( args);
+      mulle_thread_mutex_lock( &universe->debug.lock);
+      {
+         trace_preamble( universe);
+         vfprintf( stderr, format, args);
+      }
+      mulle_thread_mutex_unlock( &universe->debug.lock);
+
+      va_end( args);
+   }
+   errno = preserve;
 }
 
 
@@ -224,18 +237,23 @@ void   mulle_objc_universe_trace( struct _mulle_objc_universe *universe,
                                   ...)
 {
    va_list   args;
+   int       preserve;
 
-   va_start( args, format);
-
-   mulle_thread_mutex_lock( &universe->debug.lock);
+   preserve = errno;
    {
-      trace_preamble( universe);
-      vfprintf( stderr, format, args);
-      fprintf( stderr, "\n");
-   }
-   mulle_thread_mutex_unlock( &universe->debug.lock);
+      va_start( args, format);
 
-   va_end( args);
+      mulle_thread_mutex_lock( &universe->debug.lock);
+      {
+         trace_preamble( universe);
+         vfprintf( stderr, format, args);
+         fprintf( stderr, "\n");
+      }
+      mulle_thread_mutex_unlock( &universe->debug.lock);
+
+      va_end( args);
+   }
+   errno = preserve;
 }
 
 
@@ -245,18 +263,22 @@ void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
                                     ...)
 {
    va_list   args;
+   int       preserve;
 
-   va_start( args, format);
-
-   mulle_thread_mutex_lock( &universe->debug.lock);
+   preserve = errno;
    {
-      mulle_objc_universe_trace_preamble( universe);
+      va_start( args, format);
 
-      vfprintf( stderr, format, args);
+      mulle_thread_mutex_lock( &universe->debug.lock);
+      {
+         mulle_objc_universe_trace_preamble( universe);
+
+         vfprintf( stderr, format, args);
+      }
+      mulle_thread_mutex_unlock( &universe->debug.lock);
+      va_end( args);
    }
-   mulle_thread_mutex_unlock( &universe->debug.lock);
-
-   va_end( args);
+   errno = preserve;
 }
 
 
@@ -334,6 +356,8 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
    if( universe->debug.print.universe_config)
    {
+      int       preserve;
+      preserve = errno;
       fprintf( stderr, "mulle-objc-universe %p: v%u.%u.%u (load-version: %u) (",
          universe,
          MULLE_OBJC_RUNTIME_VERSION_MAJOR,
@@ -459,7 +483,7 @@ static int   abafree_nofail( void  *aba,
 
 
 //
-// minimal stuff the universe needs to be setup with, immediately
+// minimal stuff the universe needs to be setup with immediately.
 // *** dont allocate anything***
 //
 static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *universe,
@@ -922,6 +946,7 @@ static void   universe_trace( struct _mulle_objc_universe *universe, char *s)
                   	(void *) mulle_thread_self(),
    						s);
 }
+
 //
 // this is done for "global" universe configurations
 // where threads possibly try to create and release

@@ -19,6 +19,7 @@
 * type modifiers like ``_C_CONST`` or ``_C_INOUT`` are no longer encoded/decoed in mulle-objc
 * runtime may wait for non-main threads to complete before exiting
 * which is not just beneficial for tests, but makes thread writing much easier
+* preserve errno over method calls (inluding +initialize)
 
 
 ### 0.16.1

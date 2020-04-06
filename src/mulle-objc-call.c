@@ -728,13 +728,11 @@ MULLE_C_NEVER_INLINE static void *
                                          struct  _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t   imp;
-   struct _mulle_objc_universe  *universe;
-
+   struct _mulle_objc_universe   *universe;
    imp      = _mulle_objc_class_lookup_implementation_nofail( cls, methodid);
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.method_call)
       mulle_objc_class_trace_call( cls, methodid, obj, parameter, imp);
-
    /*->*/
    return( (*imp)( obj, methodid, parameter));
 }
@@ -1078,9 +1076,9 @@ static mulle_objc_implementation_t
 
 static void   *
    _mulle_objc_object_call_class_nocache( void *obj,
-                                            mulle_objc_methodid_t methodid,
-                                            void *parameter,
-                                            struct _mulle_objc_class *cls)
+                                          mulle_objc_methodid_t methodid,
+                                          void *parameter,
+                                          struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method   *method;
 
@@ -1207,6 +1205,9 @@ static void
    mulle_objc_implementation_t     imp;
    int                             flag;
    char                            *name;
+   int                             preserve;
+
+   preserve = errno;
 
    universe = _mulle_objc_infraclass_get_universe( infra);
    meta     = _mulle_objc_infraclass_get_metaclass( infra);
@@ -1220,6 +1221,8 @@ static void
    {
       if( universe->debug.trace.initialize)
          mulle_objc_universe_trace( universe, "no +[%s initialize] found", name);
+
+      errno = preserve;
       return;
    }
 
@@ -1243,6 +1246,7 @@ static void
       mulle_objc_universe_trace( universe,
                                  "done +[%s initialize]",
                                  _mulle_objc_metaclass_get_name( meta));
+   errno = preserve;
 }
 
 
