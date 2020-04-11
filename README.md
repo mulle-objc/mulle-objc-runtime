@@ -55,38 +55,6 @@ only locks during `+initialize` on a per class basis.
 [mulle-thread](//github.com/mulle-concurrent/mulle-thread) | [![Build Status](https://travis-ci.org/mulle-concurrent/mulle-thread.svg?branch=release)](https://travis-ci.org/mulle-concurrent/mulle-thread) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-thread.svg) [![Build Status](https://travis-ci.org/mulle-concurrent/mulle-thread.svg?branch=release)](https://travis-ci.org/mulle-concurrent/mulle-thread)
 [mulle-vararg](//github.com/mulle-c/mulle-vararg) | [![Build Status](https://travis-ci.org/mulle-c/mulle-vararg.svg?branch=release)](https://travis-ci.org/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](https://travis-ci.org/mulle-c/mulle-vararg.svg?branch=release)](https://travis-ci.org/mulle-c/mulle-vararg)
 
-## Install
-
-See [mulle-objc-developer](//github.com/mulle-objc/mulle-objc-developer) for
-installation instructions.
-
-## How to add it
-
-To an existing mulle-sde project:
-
-```
-mulle-sde dependency add --multiphase --github mulle-objc mulle-objc-runtime
-```
-
-
-## How to build it
-
-#### Manually with cmake
-
-Install all above prerequisites:
-
-now build the project
-
-```
-mkdir build
-cd build
-cmake ..
-```
-
-#### Conveniently with mulle-sde
-
-Install [mulle-sde]/(//github.com/mulle-sde) and run `mulle-sde craft`.
-
 
 ## How to use it
 
@@ -157,6 +125,56 @@ All platforms and compilers supported by
 [mulle-c11](//github.com/mulle-c/mulle-c11/) and
 [mulle-thread](//github.com/mulle-concurrent/mulle-thread/).
 
+
+## Add 
+
+Use [mulle-sde](//github.com/mulle-sde) to add mulle-objc-runtime to your project:
+
+```
+mulle-sde dependency add --c --github mulle-objc mulle-objc-runtime
+```
+
+## Install
+
+See [mulle-objc-developer](//github.com/mulle-objc/mulle-objc-developer) for the preferred
+way to installation mulle-objc-runtime.
+
+
+### mulle-sde
+
+Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-objc-runtime and all dependencies:
+
+```
+mulle-sde install --prefix /usr/local \
+   https://github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
+```
+
+### Manual Installation
+
+
+Install the requirements:
+
+Requirements                                                       | Description
+-------------------------------------------------------------------|-----------------------
+[mulle-atinit](//github.com/mulle-core/mulle-atinit)               | Cross-platform atinit support
+[mulle-atexit](//github.com/mulle-core/mulle-atexit)               | Cross-platform atexitsupport
+[mulle-concurrent](//github.com/mulle-concurrent/mulle-concurrent) | Concurrent hashmap and array
+[mulle-dlfcn](//github.com/mulle-core/mulle-dlfcn)                 | Cross-platform dlfcn support
+[mulle-stacktrace](//github.com/mulle-core/mulle-stacktrace)       | Cross-platform stacktrace support
+[mulle-vararg](//github.com/mulle-c/mulle-vararg)                  | Cross-platform atexit support
+
+Install into `/usr/local`:
+
+```
+mkdir build 2> /dev/null
+(
+   cd build ;
+   cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
+         -DCMAKE_PREFIX_PATH=/usr/local \
+         -DCMAKE_BUILD_TYPE=Release .. ;
+   make install
+)
+```
 
 ## Author
 
