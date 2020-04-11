@@ -134,6 +134,9 @@ Use [mulle-sde](//github.com/mulle-sde) to add mulle-objc-runtime to your projec
 mulle-sde dependency add --c --github mulle-objc mulle-objc-runtime
 ```
 
+Executables will need to link with [mulle-objc-runtime-startup](//github.com/mulle-objc/mulle-objc-runtime-startup) as well.
+
+
 ## Install
 
 See [mulle-objc-developer](//github.com/mulle-objc/mulle-objc-developer) for the preferred
