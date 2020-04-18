@@ -1,14 +1,21 @@
 #! /bin/sh
 
-# with serial its easier to read the logs
-
+#
+# The MULLE_FETCH_SEARCH_PATH setting is convenient for local travis tests
+# with mulle-project-local-travis and the -e option
+#
 echo "MULLE_HOSTNAME=\"${MULLE_HOSTNAME}\"" 2>&1
+echo "MULLE_FETCH_SEARCH_PATH=\"${MULLE_FETCH_SEARCH_PATH}\"" 2>&1
 
-mulle-sde -v craft --serial || exit 1
+#
+# With serial its easier to read the logs, so its quite a bit slower
+#
+mulle-sde -DMULLE_FETCH_SEARCH_PATH="${MULLE_FETCH_SEARCH_PATH}" -v craft --serial || exit 1
 
 if [ -d test ]
 then
-   # here verbose is more distracting and duplicates much of what we've seen
-   mulle-sde test craft &&
-   mulle-sde -v test run --serial
+   # For the test craft verbose is more of a distraction and duplicates much
+   # of what we've seen
+   mulle-sde -DMULLE_FETCH_SEARCH_PATH="${MULLE_FETCH_SEARCH_PATH}" test craft &&
+   mulle-sde -DMULLE_FETCH_SEARCH_PATH="${MULLE_FETCH_SEARCH_PATH}" -v test run --serial
 fi

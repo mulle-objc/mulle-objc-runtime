@@ -22,7 +22,7 @@ endif()
 include( PreLibrary OPTIONAL)
 
 if( NOT LIBRARY_SOURCES)
-   message( FATAL_ERROR "There are no sources to compile for libray ${LIBRARY_NAME}. Did mulle-sde update run yet ?")
+   message( FATAL_ERROR "There are no sources to compile for library ${LIBRARY_NAME}. Did mulle-sde update run yet ?")
 endif()
 
 # Libraries are built in two stages:

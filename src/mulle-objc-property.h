@@ -152,6 +152,29 @@ static inline uint32_t   _mulle_objc_property_is_readonly( struct _mulle_objc_pr
 }
 
 
+static inline uint32_t   _mulle_objc_property_is_observable( struct _mulle_objc_property *property)
+{
+   return( (property->bits & _mulle_objc_property_observable) ? 1 : 0);
+}
+
+
+static inline uint32_t   _mulle_objc_property_is_relationship( struct _mulle_objc_property *property)
+{
+   return( (property->bits & _mulle_objc_property_relationship) ? 1 : 0);
+}
+
+
+static inline uint32_t   _mulle_objc_property_is_container( struct _mulle_objc_property *property)
+{
+   return( (property->bits & _mulle_objc_property_container) ? 1 : 0);
+}
+
+
+static inline uint32_t   _mulle_objc_property_is_nonserializable( struct _mulle_objc_property *property)
+{
+   return( (property->bits & _mulle_objc_property_nonserializable) ? 1 : 0);
+}
+
 
 // todo: fix this naming strangenesss
 char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *property, char type);
