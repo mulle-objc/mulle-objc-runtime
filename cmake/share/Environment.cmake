@@ -5,6 +5,8 @@
 if( NOT __ENVIRONMENT__CMAKE__)
    set( __ENVIRONMENT__CMAKE__ ON)
 
+   ## USE mulle-sde -v craft -- -DMULLE_TRACE_INCLUDE=ON to trace cmake
+   ##     inclusion
    if( MULLE_TRACE_INCLUDE)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
@@ -12,7 +14,6 @@ if( NOT __ENVIRONMENT__CMAKE__)
    #
    #
    #
-   set( MULLE_VIRTUAL_ROOT "$ENV{MULLE_VIRTUAL_ROOT}")
    if( NOT MULLE_VIRTUAL_ROOT)
       set( MULLE_VIRTUAL_ROOT "${PROJECT_SOURCE_DIR}")
    endif()
@@ -22,13 +23,29 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # default set below. But! If you are using --sdk --platform
    # distictions the paths will be different
    #
-   string( REPLACE ":" ";" MULLE_SDK_PATH "$ENV{MULLE_SDK_PATH}")
-
    if( NOT MULLE_SDK_PATH)
-      set( MULLE_SDK_PATH
-         "${MULLE_VIRTUAL_ROOT}/dependency"
-         "${MULLE_VIRTUAL_ROOT}/addiction"
-      )
+      string( REPLACE ":" ";" MULLE_SDK_PATH "$ENV{MULLE_SDK_PATH}")
+
+      set( TMP_DEPENDENCY_DIR "$ENV{DEPENDENCY_DIR}")
+      if( NOT TMP_DEPENDENCY_DIR)
+         set( TMP_DEPENDENCY_DIR "${MULLE_VIRTUAL_ROOT}/dependency")
+      endif()
+      set( TMP_ADDICTION_DIR "$ENV{ADDICTION_DIR}")
+      if( NOT TMP_ADDICTION_DIR)
+         set( TMP_ADDICTION_DIR "${MULLE_VIRTUAL_ROOT}/addiction")
+      endif()
+
+      if( NOT MULLE_SDK_PATH)
+         set( MULLE_SDK_PATH
+            "${TMP_DEPENDENCY_DIR}"
+            "${TMP_ADDICTION_DIR}"
+         )
+      endif()
+   else()
+      # temporary fix until mulle-objc 0.18 release
+      if( $ENV{MULLE_MAKE_VERSION} VERSION_LESS 0.14.0)
+         string( REPLACE ":" ";" MULLE_SDK_PATH "${MULLE_SDK_PATH}")
+      endif()
    endif()
 
    set( TMP_INCLUDE_DIRS)
@@ -78,24 +95,26 @@ if( NOT __ENVIRONMENT__CMAKE__)
          #
          # add build type unconditionally if not Release
          #
-         if( NOT CMAKE_BUILD_TYPE STREQUAL "Release")
-            set( TMP_CMAKE_INCLUDE_PATH
-               ${TMP_CMAKE_INCLUDE_PATH}
-               "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/include"
-            )
-            set( TMP_INCLUDE_DIRS
-               ${TMP_INCLUDE_DIRS}
-               "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/include"
-            )
+         if( CMAKE_BUILD_TYPE)
+            if( NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+               set( TMP_CMAKE_INCLUDE_PATH
+                  ${TMP_CMAKE_INCLUDE_PATH}
+                  "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/include"
+               )
+               set( TMP_INCLUDE_DIRS
+                  ${TMP_INCLUDE_DIRS}
+                  "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/include"
+               )
 
-            set( TMP_CMAKE_LIBRARY_PATH
-               ${TMP_CMAKE_LIBRARY_PATH}
-               "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/lib"
-            )
-            set( TMP_CMAKE_FRAMEWORK_PATH
-               ${TMP_CMAKE_FRAMEWORK_PATH}
-               "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/Frameworks"
-            )
+               set( TMP_CMAKE_LIBRARY_PATH
+                  ${TMP_CMAKE_LIBRARY_PATH}
+                  "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/lib"
+               )
+               set( TMP_CMAKE_FRAMEWORK_PATH
+                  ${TMP_CMAKE_FRAMEWORK_PATH}
+                  "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/Frameworks"
+               )
+            endif()
          endif()
 
          #
@@ -154,7 +173,6 @@ if( NOT __ENVIRONMENT__CMAKE__)
       ${CMAKE_FRAMEWORK_PATH}
    )
 
-
    message( STATUS "CMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH}\"" )
    message( STATUS "CMAKE_INCLUDE_PATH=\"${CMAKE_INCLUDE_PATH}\"" )
    message( STATUS "CMAKE_LIBRARY_PATH=\"${CMAKE_LIBRARY_PATH}\"" )
@@ -172,21 +190,31 @@ if( NOT __ENVIRONMENT__CMAKE__)
    unset( TMP_CMAKE_FRAMEWORK_PATH)
 
    #
-   #
    # include files that get installed
-   set( CMAKE_INCLUDES
-      "cmake/DependenciesAndLibraries.cmake"
-      "cmake/_Dependencies.cmake"
-      "cmake/_Libraries.cmake"
-   )
+   #
+   if( EXISTS "cmake/DependenciesAndLibraries.cmake")
+      list( APPEND CMAKE_INCLUDES "cmake/DependenciesAndLibraries.cmake")
+   else()
+      list( APPEND CMAKE_INCLUDES "cmake/share/DependenciesAndLibraries.cmake")
+   endif()
+   if( EXISTS "cmake/_Dependencies.cmake")
+      list( APPEND CMAKE_INCLUDES "cmake/_Dependencies.cmake")
+   else()
+      list( APPEND CMAKE_INCLUDES "cmake/reflect/_Dependencies.cmake")
+   endif()
+   if( EXISTS "cmake/_Libraries.cmake")
+      list( APPEND CMAKE_INCLUDES "cmake/_Libraries.cmake")
+   else()
+      list( APPEND CMAKE_INCLUDES "cmake/reflect/_Libraries.cmake")
+   endif()
 
-   # IDE visible cmake files
-   set( CMAKE_EDITABLE_FILES
-      CMakeLists.txt
-      cmake/Headers.cmake
-      cmake/Sources.cmake
-      cmake/DependenciesAndLibraries.cmake
-   )
+   # IDE visible cmake files, Headers etc. are no longer there by default
+   if( EXISTS "CMakeLists.txt")
+      list( APPEND CMAKE_EDITABLE_FILES "CMakeLists.txt")
+   endif()
+
+   FILE( GLOB TMP_CMAKE_FILES cmake/*.cmake)
+   list( APPEND CMAKE_EDITABLE_FILES ${TMP_CMAKE_FILES})
 
    #
    # Parallel build support. run all "participating" projects once for
