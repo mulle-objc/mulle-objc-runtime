@@ -79,7 +79,7 @@ struct _mulle_objc_classpair
    union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
    uint32_t                                  classindex;       // set when added
-   double                                    *_classextra[ 1]; // will not exist if classextra is 0
+   double                                    _classextra[ 1]; // will not exist if classextra is 0
 };
 
 
