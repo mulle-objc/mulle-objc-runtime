@@ -14,12 +14,12 @@
 -callSmallStruct:{ INTPTR_MAX } PASS
 -callLargeStruct:{ INTPTR_MIN, INTPTR_MAX } PASS
 -callLargeStruct:{ INTPTR_MAX, INTPTR_MIN } PASS
--callChar:CHAR_MIN longlong:LLONG_MIN PASS
--callChar:CHAR_MIN longlong:LLONG_MAX PASS
--callChar:CHAR_MAX longlong:LLONG_MIN PASS
--callChar:CHAR_MAX longlong:LLONG_MAX PASS
--callCharPtr:"VfL Bochum 1848" longlong:LLONG_MIN PASS
--callCharPtr:"VfL Bochum 1848" longlong:LLONG_MAX PASS
+-callChar:CHAR_MIN longLong:LLONG_MIN PASS
+-callChar:CHAR_MIN longLong:LLONG_MAX PASS
+-callChar:CHAR_MAX longLong:LLONG_MIN PASS
+-callChar:CHAR_MAX longLong:LLONG_MAX PASS
+-callCharPtr:"VfL Bochum 1848" longLong:LLONG_MIN PASS
+-callCharPtr:"VfL Bochum 1848" longLong:LLONG_MAX PASS
 -callLongLong:... #0 PASS
 -callLongLong:... #1 PASS
 -callLongLong:... #2 PASS
