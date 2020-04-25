@@ -136,14 +136,10 @@ struct _mulle_objc_class
    char                                    *name;            // offset (void **)[ 4]
    uintptr_t                               allocationsize;   // instancesize + header   (void **)[ 5]
 
+   struct mulle_concurrent_pointerarray    methodlists;
 
-   // vvv - from here on the debugger doesn't care
-
-   struct _mulle_objc_universe             *universe;
    struct _mulle_objc_infraclass           *infraclass;
-   struct _mulle_objc_method               *forwardmethod;
-
-   uintptr_t                               extensionoffset;  // 4 later #1#
+   struct _mulle_objc_universe             *universe;
 
    //
    // TODO: we could have a pointer to the load class and get the id
@@ -152,13 +148,19 @@ struct _mulle_objc_class
    //
    mulle_objc_classid_t                    classid;
    mulle_objc_classid_t                    superclassid;
-   mulle_atomic_pointer_t                  state;
 
    // TODO: general storage mechanism for KVC, needed in meta ? move to classpair ?
-   struct _mulle_objc_kvccachepivot        kvc;
-
    uint16_t                                inheritance;
    uint16_t                                preloads;
+
+   // vvv - from here on the debugger doesn't care
+
+   uintptr_t                               extensionoffset;  // 4 later #1#
+
+   struct _mulle_objc_method               *forwardmethod;
+
+   mulle_atomic_pointer_t                  state;
+   struct _mulle_objc_kvccachepivot        kvc;
 
 //   struct _mulle_objc_cachepivot           supercachepivot;
    mulle_objc_implementation_t             (*superlookup)( struct _mulle_objc_class *,
@@ -166,7 +168,6 @@ struct _mulle_objc_class
    mulle_objc_implementation_t             (*superlookup2)( struct _mulle_objc_class *,
                                                             mulle_objc_superid_t);
 
-   struct mulle_concurrent_pointerarray    methodlists;
 #ifdef __MULLE_OBJC_FCS__
    struct _mulle_objc_fastmethodtable      vtab;  // dont' move it up, debugs nicer here
 #endif

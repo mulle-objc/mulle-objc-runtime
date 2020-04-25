@@ -129,11 +129,10 @@ enum
 # pragma mark - descriptor
 
 //
-
 //
 struct _mulle_objc_descriptor
 {
-   mulle_objc_methodid_t   methodid;
+   mulle_objc_methodid_t   methodid;  // alignment to signature unclear!
    char                    *signature; // mulle_objc_compat: signature < name
    char                    *name;
    int                     bits;  // todo: make this a mulle_atomic_pointer_t

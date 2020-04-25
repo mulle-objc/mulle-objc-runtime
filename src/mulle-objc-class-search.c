@@ -229,11 +229,12 @@ static void   trace_search( struct _mulle_objc_class *cls,
 
    universe = _mulle_objc_class_get_universe( cls);
    mulle_objc_universe_trace( universe,
-                              "search %s %08x \"%s\" (0x%x)",
+                              "search %s %08x \"%s\" (0x%x) %p",
                               _mulle_objc_class_get_classtypename( cls),
                               cls->classid,
                               cls->name,
-                              inheritance);
+                              inheritance,
+                              cls);
 }
 
 
@@ -266,7 +267,7 @@ static struct _mulle_objc_method  *
 
    rover          = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
    next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
-   while( proto_cls = next_proto_cls)
+   while( (proto_cls = next_proto_cls))
    {
       next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
       if( proto_cls == infra)
@@ -335,31 +336,31 @@ static struct _mulle_objc_class   *search_superclass( struct _mulle_objc_class *
    if( _mulle_objc_class_is_metaclass( supercls))
       return( supercls);
 
-   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META)
-      return( NULL);
-
-   // Ok we'd be transitioning from metaclass to infraclass
-   // Use protocolclass if available
-   protocls = NULL;
-
-   pair  = _mulle_objc_class_get_classpair( cls);
-   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-
-   for(;;)
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META))
    {
-      infra = _mulle_objc_protocolclassenumerator_next( &rover);
-      if( ! infra)
-         break;
+      // Ok we'd be transitioning from metaclass to infraclass
+      // Use protocolclass if available
+      protocls = NULL;
 
-      meta     = _mulle_objc_infraclass_get_metaclass( infra);
-      protocls = _mulle_objc_metaclass_as_class( meta);
-      if( protocls != cls)
+      pair  = _mulle_objc_class_get_classpair( cls);
+      rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
+
+      for(;;)
       {
-         supercls = protocls;
-         break;
+         infra = _mulle_objc_protocolclassenumerator_next( &rover);
+         if( ! infra)
+            break;
+
+         meta     = _mulle_objc_infraclass_get_metaclass( infra);
+         protocls = _mulle_objc_metaclass_as_class( meta);
+         if( protocls != cls)
+         {
+            supercls = protocls;
+            break;
+         }
       }
+      _mulle_objc_protocolclassenumerator_done( &rover);
    }
-   _mulle_objc_protocolclassenumerator_done( &rover);
 
    return( supercls);
 }

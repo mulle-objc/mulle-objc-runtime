@@ -15,7 +15,7 @@
 
 @implementation Foo ( DoubleArgs)
 
-+ (void) callChar:(char) v  longlong:(long long) v2
++ (void) callChar:(char) v  longLong:(long long) v2
 {
    received[ 0].c   = v;
    received[ 1].ll = v2;
@@ -29,7 +29,7 @@
 }
 
 
-+ (void) callCharPtr:(char *) v  longlong:(long long) v2
++ (void) callCharPtr:(char *) v  longLong:(long long) v2
 {
    received[ 0].cp  = v;
    received[ 1].ll = v2;
@@ -40,22 +40,22 @@
 
 @implementation Foo ( FatArgs)
 
-+ (void) callLongLong:(char) v1
-             longlong:(long long) v2
-             longlong:(long long) v3
-             longlong:(long long) v4
-             longlong:(long long) v5
-             longlong:(long long) v6
-             longlong:(long long) v7
-             longlong:(long long) v8
-             longlong:(long long) v9
-             longlong:(long long) v10
-             longlong:(long long) v11
-             longlong:(long long) v12
-             longlong:(long long) v13
-             longlong:(long long) v14
-             longlong:(long long) v15
-             longlong:(long long) v16
++ (void) callLongLong:(long long) v1
+             longLong:(long long) v2
+             longLong:(long long) v3
+             longLong:(long long) v4
+             longLong:(long long) v5
+             longLong:(long long) v6
+             longLong:(long long) v7
+             longLong:(long long) v8
+             longLong:(long long) v9
+             longLong:(long long) v10
+             longLong:(long long) v11
+             longLong:(long long) v12
+             longLong:(long long) v13
+             longLong:(long long) v14
+             longLong:(long long) v15
+             longLong:(long long) v16
 {
    received[ 0].ll = v1;
    received[ 1].ll = v2;

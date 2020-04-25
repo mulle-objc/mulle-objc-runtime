@@ -69,17 +69,19 @@ struct _mulle_objc_classpair
    struct _mulle_objc_metaclass              metaclass;
    // <<< dont' add anything <<<
 
-   mulle_thread_mutex_t                      lock;   // used for initialize
-   mulle_thread_t                            thread; // used for initialize
-   struct _mulle_objc_loadclass              *loadclass;
-
-   // common stuff
+   // common stuff keep for debugger >
    struct mulle_concurrent_pointerarray      protocolclasses;
    union _mulle_objc_uniqueidarraypointer_t  p_protocolids;
    union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
+   // debugger doesn't care anymore
+
+   mulle_thread_mutex_t                      lock;   // used for initialize
+   mulle_thread_t                            thread; // used for initialize
+   struct _mulle_objc_loadclass              *loadclass;
+
    uint32_t                                  classindex;       // set when added
-   double                                    *_classextra[ 1]; // will not exist if classextra is 0
+   double                                    _classextra[ 1];  // will not exist if classextra is 0
 };
 
 

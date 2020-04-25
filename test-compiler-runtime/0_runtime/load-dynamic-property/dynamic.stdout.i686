@@ -1,0 +1,9 @@
+getter reference "-example" (i8@0:4)
+setter reference "-setExample:" (v12@0:4i8)
+property was found
+"value" (i,D,N) is dynamic
+getter 25ed3ca4
+method "-value" (i8@0:4)
+no ivar
+setter 4ddcb6e4
+method "-setValue:" (v12@0:4i8)

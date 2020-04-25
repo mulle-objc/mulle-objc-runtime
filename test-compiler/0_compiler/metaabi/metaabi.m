@@ -101,21 +101,21 @@ static void  double_args()
 {
    char   *s;
 
-   [Foo callChar:CHAR_MIN longlong:LLONG_MIN];
-   printf( "-callChar:CHAR_MIN longlong:LLONG_MIN %s\n", (received[ 0].c == CHAR_MIN && received[ 1].ll == LLONG_MIN) ? "PASS" : "FAIL");
-   [Foo callChar:CHAR_MIN longlong:LLONG_MAX];
-   printf( "-callChar:CHAR_MIN longlong:LLONG_MAX %s\n", (received[ 0].c == CHAR_MIN && received[ 1].ll == LLONG_MAX) ? "PASS" : "FAIL");
+   [Foo callChar:CHAR_MIN longLong:LLONG_MIN];
+   printf( "-callChar:CHAR_MIN longLong:LLONG_MIN %s\n", (received[ 0].c == CHAR_MIN && received[ 1].ll == LLONG_MIN) ? "PASS" : "FAIL");
+   [Foo callChar:CHAR_MIN longLong:LLONG_MAX];
+   printf( "-callChar:CHAR_MIN longLong:LLONG_MAX %s\n", (received[ 0].c == CHAR_MIN && received[ 1].ll == LLONG_MAX) ? "PASS" : "FAIL");
 
-   [Foo callChar:CHAR_MAX longlong:LLONG_MIN];
-   printf( "-callChar:CHAR_MAX longlong:LLONG_MIN %s\n", (received[ 0].c == CHAR_MAX && received[ 1].ll == LLONG_MIN) ? "PASS" : "FAIL");
-   [Foo callChar:CHAR_MAX longlong:LLONG_MAX];
-   printf( "-callChar:CHAR_MAX longlong:LLONG_MAX %s\n", (received[ 0].c == CHAR_MAX && received[ 1].ll == LLONG_MAX) ? "PASS" : "FAIL");
+   [Foo callChar:CHAR_MAX longLong:LLONG_MIN];
+   printf( "-callChar:CHAR_MAX longLong:LLONG_MIN %s\n", (received[ 0].c == CHAR_MAX && received[ 1].ll == LLONG_MIN) ? "PASS" : "FAIL");
+   [Foo callChar:CHAR_MAX longLong:LLONG_MAX];
+   printf( "-callChar:CHAR_MAX longLong:LLONG_MAX %s\n", (received[ 0].c == CHAR_MAX && received[ 1].ll == LLONG_MAX) ? "PASS" : "FAIL");
 
    s = "VfL Bochum 1848";
-   [Foo callCharPtr:s longlong:LLONG_MIN];
-   printf( "-callCharPtr:\"%s\" longlong:LLONG_MIN %s\n", s, (received[ 0].cp == s && received[ 1].ll == LLONG_MIN) ? "PASS" : "FAIL");
-   [Foo callCharPtr:s longlong:LLONG_MAX];
-   printf( "-callCharPtr:\"%s\" longlong:LLONG_MAX %s\n", s, (received[ 0].cp == s && received[ 1].ll == LLONG_MAX) ? "PASS" : "FAIL");
+   [Foo callCharPtr:s longLong:LLONG_MIN];
+   printf( "-callCharPtr:\"%s\" longLong:LLONG_MIN %s\n", s, (received[ 0].cp == s && received[ 1].ll == LLONG_MIN) ? "PASS" : "FAIL");
+   [Foo callCharPtr:s longLong:LLONG_MAX];
+   printf( "-callCharPtr:\"%s\" longLong:LLONG_MAX %s\n", s, (received[ 0].cp == s && received[ 1].ll == LLONG_MAX) ? "PASS" : "FAIL");
 }
 
 
@@ -124,21 +124,21 @@ static void  fat_args()
    unsigned int   i;
 
    [Foo callLongLong:1
-            longlong:2
-            longlong:3
-            longlong:4
-            longlong:5
-            longlong:6
-            longlong:7
-            longlong:8
-            longlong:9
-            longlong:10
-            longlong:11
-            longlong:12
-            longlong:13
-            longlong:14
-            longlong:15
-            longlong:16];
+            longLong:2
+            longLong:3
+            longLong:4
+            longLong:5
+            longLong:6
+            longLong:7
+            longLong:8
+            longLong:9
+            longLong:10
+            longLong:11
+            longLong:12
+            longLong:13
+            longLong:14
+            longLong:15
+            longLong:16];
 
    for( i = 0; i < 16; i++)
       printf( "-callLongLong:... #%u %s\n",  i, (received[ i].ll == i + 1) ? "PASS" : "FAIL");

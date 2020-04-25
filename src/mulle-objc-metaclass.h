@@ -50,7 +50,7 @@ enum _mulle_objc_metaclass_state
 
 struct _mulle_objc_metaclass
 {
-   struct _mulle_objc_class                 base;
+   struct _mulle_objc_class   base;
 };
 
 

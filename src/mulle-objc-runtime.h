@@ -50,10 +50,10 @@
 # error "Use the mulle-clang compiler to compile mulle-objc code (do not define both __MULLE_OBJC_TPS__ and __MULLE_OBJC_NO_TPS__)"
 #endif
 #if ! defined( __MULLE_OBJC_FCS__) && ! defined( __MULLE_OBJC_NO_FCS__)
-# error "Use the mulle-clang 9.0.0.0 (or newer) compiler to compile mulle-objc code (or define either __MULLE_OBJC_FCS__ or __MULLE_OBJC_NO_FCS__)"
+# error "Use the mulle-clang 10.0.0.0 (or newer) compiler to compile mulle-objc code (or define either __MULLE_OBJC_FCS__ or __MULLE_OBJC_NO_FCS__)"
 #endif
 #if defined( __MULLE_OBJC_FCS__) && defined( __MULLE_OBJC_NO_FCS__)
-# error "Use the mulle-clang 9.0.0.0 (or newer) compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FCS__ and __MULLE_OBJC_NO_FCS__)"
+# error "Use the mulle-clang 10.0.0.0 (or newer) compiler to compile mulle-objc code (do not define both __MULLE_OBJC_FCS__ and __MULLE_OBJC_NO_FCS__)"
 #endif
 
 //

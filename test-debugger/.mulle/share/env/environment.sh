@@ -23,7 +23,7 @@ then
    MULLE_HOSTNAME="`PATH=/bin:/usr/bin:/sbin:/usr/sbin hostname -s`"
    if [ "${MULLE_HOSTNAME:0:1}" = '.' ]
    then
-      MULLE_HOSTNAME="_terodde"
+      MULLE_HOSTNAME="_${MULLE_HOSTNAME}"
    fi
    export MULLE_HOSTNAME
 fi
@@ -85,9 +85,16 @@ case "${MULLE_SHELL_MODE}" in
       done
       shopt -u nullglob; IFS="${DEFAULT_IFS}"
 
-      unset FILENAME
       unset DEFAULT_IFS
+      unset FILENAME
 
+      vardir="${MULLE_VIRTUAL_ROOT}/.mulle/var/${MULLE_HOSTNAME}"
+      [ -d "${vardir}" ] || mkdir -p "${vardir}"
+
+      HISTFILE="${vardir}/bash_history"
+      export HISTFILE
+
+      unset vardir
 
       #
       # show motd, if any
@@ -134,7 +141,7 @@ case "${MULLE_SHELL_MODE}" in
          alias monitor="mulle-sde monitor"
          alias patternfile="mulle-sde patternfile"
          alias subproject="mulle-sde subproject"
-         alias update="mulle-sde update"
+         alias reflect="mulle-sde reflect"
       fi
 
       if [ -z "" ]
@@ -145,9 +152,9 @@ case "${MULLE_SHELL_MODE}" in
          alias t="mulle-sde test rerun --serial"
          alias tt="mulle-sde test craft ; mulle-sde test rerun --serial"
          alias T="mulle-sde test craft ; mulle-sde test"
-         alias TT="mulle-sde test clean ; mulle-sde test"
-         alias u="mulle-sde update"
-         alias l="mulle-sde list"
+         alias TT="mulle-sde test clean all; mulle-sde test"
+         alias r="mulle-sde reflect"
+         alias l="mulle-sde list --files"
       fi
    ;;
 esac
