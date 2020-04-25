@@ -1,0 +1,100 @@
+#! /bin/sh
+
+
+r_get_codeon_tapname()
+{
+   #
+   # we can choose a different codeon-kybernetik debian repository instead
+   # of "main" like say "prerelease", if the branch contains
+   # &debname=prerelease.
+   #
+   # Yes you can use & in git tags:
+   # https://git-scm.com/docs/git-check-ref-format
+   #
+   case "${TRAVIS_BRANCH}" in
+      *'&codeon_tapname='*)
+         RVAL="${TRAVIS_BRANCH#*\&codeon_tapname=}"
+         RVAL="${RVAL%&*}"
+      ;;
+
+      # hard coded convention
+      'prerelease')
+         RVAL='prerelease'
+      ;;
+
+      *)
+         RVAL="software"
+      ;;
+   esac
+
+   #
+   # use DEBIAN_REPOSITORY preferably (set it in travis-ci settings)
+   #
+   RVAL="${MULLE_TAP_NAME:-${RVAL}}"
+}
+
+
+r_get_codeon_tapuser()
+{
+   case "${TRAVIS_BRANCH}" in
+      *'&codeon_tapuser='*)
+         RVAL="${TRAVIS_BRANCH#*\&codeon_tapuser=}"
+         RVAL="${RVAL%&*}"
+      ;;
+
+      # hard coded convention
+      'prerelease'*)
+         RVAL="Codeon-GmbH"
+      ;;
+
+      *)
+         RVAL="Codeon-GmbH"
+      ;;
+   esac
+
+   #
+   # use TAP_USER preferably (set it in travis-ci settings)
+   #
+   RVAL="${MULLE_TAP_USER:-${RVAL}}"
+}
+
+
+before_install_objc_main()
+{
+   local tapuser
+   local tapname
+
+   r_get_codeon_tapuser
+   tapuser="${RVAL}"
+
+   r_get_codeon_tapname
+   tapname="${RVAL}"
+
+   brew tap "${tapuser}/${tapname}" || return 1
+   brew update
+
+   if [ -f ".travis.d/PACKAGES-aux.darwin" ]
+   then
+      PACKAGES="`egrep -v '^#' ".travis.d/PACKAGES-aux.darwin" `"
+   else
+      PACKAGES="`egrep -v '^#' ".travis.d/PACKAGES-aux" `"
+   fi
+
+   (
+      IFS=$'\n'
+      for package in ${PACKAGES}
+      do
+         case "${package}" in
+            =*)
+               brew install "${tapuser}/${tapname}/${package:1}"
+            ;;
+
+            *)
+               brew install "${package}"
+            ;;
+         esac
+      done
+   )
+}
+
+before_install_objc_main "$@"

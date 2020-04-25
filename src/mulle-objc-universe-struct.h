@@ -332,12 +332,12 @@ struct _mulle_objc_universe
    //
    struct _mulle_objc_cachepivot            cachepivot;
 
-   // try to keep this region stable for version checks
+   // try to keep this region stable for version checks >
 
    mulle_atomic_pointer_t                   version;
    char                                     *path;
 
-   // try to keep this region stable for callbacks
+   // try to keep this region stable for debugger and callbacks >
 
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
@@ -348,14 +348,14 @@ struct _mulle_objc_universe
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
 
+   struct _mulle_objc_taggedpointers        taggedpointers;
+   struct _mulle_objc_fastclasstable        fastclasstable;
+
    struct _mulle_objc_universecallbacks     callbacks;
 
    // unstable region, edit at will
 
    struct _mulle_objc_waitqueues            waitqueues;
-
-   struct _mulle_objc_fastclasstable        fastclasstable;
-   struct _mulle_objc_taggedpointers        taggedpointers;
 
    mulle_atomic_pointer_t                   retaincount_1;
    mulle_atomic_pointer_t                   cachecount_1; // #1#

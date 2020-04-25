@@ -143,7 +143,7 @@ void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe
       {
          config = __mulle_objc_thread_get_threadinfo( universe);
          if( config)
-            fprintf( stderr, "t:#%2lu ", config->nr);
+            fprintf( stderr, "t:#%2lu ", (unsigned long) config->nr);
          else
             fprintf( stderr, "t:%p ", (void *) mulle_thread_self());
       }

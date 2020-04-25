@@ -840,7 +840,7 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                      _mulle_objc_class_get_name( cls),
                      _mulle_objc_class_get_classid( cls));
    if( extra)
-      fprintf( stderr, " (+%ld)", extra);
+      fprintf( stderr, " (+%ld)", (long) extra);
    fputc( '\n', stderr);
 }
 
