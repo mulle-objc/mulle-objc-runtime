@@ -275,7 +275,7 @@ struct _mulle_objc_foundation
 {
    struct _mulle_objc_universefriend    universefriend;
    struct _mulle_objc_infraclass        *staticstringclass;
-   struct mulle_allocator               allocator;   // allocator for objects
+   struct mulle_allocator               *allocator;   // allocator for objects, must not be NULL
    mulle_objc_classid_t                 rootclassid; // NSObject = e9e78cbd
 };
 

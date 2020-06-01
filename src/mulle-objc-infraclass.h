@@ -78,7 +78,7 @@ struct _mulle_objc_infraclass
    union _mulle_objc_atomicobjectpointer_t   placeholder;
    union _mulle_objc_atomicobjectpointer_t   singleton;
 
-   struct mulle_allocator                    *allocator;
+   struct mulle_allocator                    *allocator;  // must not be NULL
 };
 
 
