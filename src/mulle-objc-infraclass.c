@@ -62,7 +62,7 @@ void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
 #endif
    universe          = _mulle_objc_infraclass_get_universe( infra);
    objectallocator   = _mulle_objc_universe_get_foundationallocator( universe);
-   infra->allocator  = objectallocator->calloc
+   infra->allocator  = objectallocator
                           ? objectallocator
                           : _mulle_objc_universe_get_allocator( universe);
 }

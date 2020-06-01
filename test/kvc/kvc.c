@@ -19,7 +19,7 @@
 #define ___Foo_classid         MULLE_OBJC_CLASSID( 0xc7e16770)
 
 #define ___a___methodid        MULLE_OBJC_METHODID( 0x40c292ce)
-#define ___init__methodid      MULLE_OBJC_METHODID( 0x6b1d3731)
+#define ___init__methodid      MULLE_OBJC_INIT_METHODID
 #define ___setA___methodid     MULLE_OBJC_METHODID( 0xffb5e54a)
 
 #define ___a___ivarid          MULLE_OBJC_IVARID( 0x40c292ce)

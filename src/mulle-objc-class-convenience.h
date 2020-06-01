@@ -63,9 +63,9 @@ static inline void *
    size = _mulle_objc_infraclass_get_allocationsize( infra) + extra;
    // if extra < 0, then overflow would happen undetected
    if( size <= extra)
-      mulle_allocator_fail( allocator, NULL, extra);
+      _mulle_allocator_fail( allocator, NULL, extra);
 
-   header = mulle_allocator_calloc( allocator, 1, size);
+   header = _mulle_allocator_calloc( allocator, 1, size);
    obj    = _mulle_objc_objectheader_get_object( header);
    cls    = _mulle_objc_infraclass_as_class( infra);
    _mulle_objc_object_set_isa( obj, cls);

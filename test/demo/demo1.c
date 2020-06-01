@@ -92,7 +92,7 @@
 
 #define ___print__methodid     MULLE_OBJC_METHODID( 0x6378a881)
 
-#define ___init__methodid      MULLE_OBJC_METHODID( 0x6b1d3731)
+#define ___init__methodid      MULLE_OBJC_INIT_METHODID
 #define ___setA_b___methodid   MULLE_OBJC_METHODID( 0xf6bb528e)
 
 #define ___a___ivarid          MULLE_OBJC_IVARID( 0x40c292ce)

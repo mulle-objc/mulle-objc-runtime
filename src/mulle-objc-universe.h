@@ -342,7 +342,7 @@ struct _mulle_concurrent_pointerarray  *
 MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
    _mulle_objc_foundation_get_allocator( struct _mulle_objc_foundation *foundation)
 {
-   return( &foundation->allocator);
+   return( foundation->allocator);
 }
 
 
