@@ -18,7 +18,7 @@
 #define ___Object_classid      MULLE_OBJC_CLASSID( 0x58e64dae)
 
 #define ___conforms_to_protocol__methodid   MULLE_OBJC_METHODID( 0x3d1e9472)
-#define ___init__methodid      MULLE_OBJC_METHODID( 0x6b1d3731)
+#define ___init__methodid      MULLE_OBJC_INIT_METHODID
 
 //  x=B; echo "#define ___"$x"__protocolid   MULLE_OBJC_PROTOCOLID( 0x"`./build/mulle-objc-uniqueid $x`")"
 
