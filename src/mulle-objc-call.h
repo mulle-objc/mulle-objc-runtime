@@ -53,6 +53,9 @@
 
 // clang and gcc complain when artificial functions aren't inlineable :(
 
+#ifndef MULLE_OBJC_CALL_PREFER_FCS
+# define MULLE_OBJC_CALL_PREFER_FCS   0
+#endif
 
 //// on x86_64 this should optimize into 30 bytes tops w/o tagged pointers
 //
@@ -91,7 +94,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    // try to simplify to return( (*cls->vtab.methods[ index])( obj, methodid, parameter)
    //
    index = mulle_objc_get_fastmethodtable_index( methodid);
-   if( index >= 0)
+   if( __builtin_expect( index >= 0, MULLE_OBJC_CALL_PREFER_FCS)) // prefer fast methods path
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
@@ -132,7 +135,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
 #ifdef __MULLE_OBJC_FCS__
    index = mulle_objc_get_fastmethodtable_index( methodid);
-   if( __builtin_expect( index >= 0, 1))
+   if( __builtin_expect( index >= 0, MULLE_OBJC_CALL_PREFER_FCS))
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 

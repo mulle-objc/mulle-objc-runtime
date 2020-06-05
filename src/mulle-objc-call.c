@@ -974,7 +974,7 @@ void   *_mulle_objc_object_call_class( void *obj,
    for(;;)
    {
       offset = offset & mask;
-      entry = (void *) &((char *) entries)[ offset];
+      entry  = (void *) &((char *) entries)[ offset];
 
       if( entry->key.uniqueid == methodid)
       {
@@ -984,10 +984,12 @@ void   *_mulle_objc_object_call_class( void *obj,
       }
 
       if( ! entry->key.uniqueid)
-/*->*/   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
+         break;
 
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
+/*->*/
+   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
 }
 
 
@@ -1016,7 +1018,7 @@ void   *_mulle_objc_object_call2( void *obj,
    mask    = cache->mask;
 
    offset  = (mulle_objc_cache_uint_t) methodid;
-   for(;;)
+   do
    {
       offset += sizeof( struct _mulle_objc_cacheentry);
       offset  = offset & mask;
@@ -1025,12 +1027,13 @@ void   *_mulle_objc_object_call2( void *obj,
       {
          p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp     = (mulle_objc_implementation_t) p;
+/*->*/
          return( (*imp)( obj, methodid, parameter));
       }
-
-      if( ! entry->key.uniqueid)
-/*->*/   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
    }
+   while( entry->key.uniqueid);
+/*->*/
+   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
 }
 
 
@@ -1055,21 +1058,21 @@ static mulle_objc_implementation_t
    mask    = cache->mask;
 
    offset  = (mulle_objc_cache_uint_t) superid;
-   for(;;)
+   do
    {
       offset += sizeof( struct _mulle_objc_cacheentry);
       offset  = offset & mask;
       entry   = (void *) &((char *) entries)[ offset];
       if( entry->key.uniqueid == superid)
       {
-         p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-         imp     = (mulle_objc_implementation_t) p;
-         return( imp);
+         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         imp = (mulle_objc_implementation_t) p;
+/*->*/   return( imp);
       }
-
-      if( ! entry->key.uniqueid)
-/*->*/   return( _mulle_objc_class_superlookup_implementation( cls, superid));
    }
+   while( entry->key.uniqueid);
+/*->*/
+   return( _mulle_objc_class_superlookup_implementation( cls, superid));
 }
 
 

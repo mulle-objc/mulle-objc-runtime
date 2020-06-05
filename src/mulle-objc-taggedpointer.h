@@ -116,6 +116,7 @@ static inline unsigned int   mulle_objc_taggedpointer_get_index( void *pointer)
 }
 
 
+MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
 static inline uintptr_t   mulle_objc_taggedpointer_get_unsigned_value( void *pointer)
 {
    uintptr_t   value;
@@ -126,7 +127,7 @@ static inline uintptr_t   mulle_objc_taggedpointer_get_unsigned_value( void *poi
    return( value >> mulle_objc_get_taggedpointer_shift());
 }
 
-
+MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
 static inline intptr_t   mulle_objc_taggedpointer_get_signed_value( void *pointer)
 {
    intptr_t   value;
