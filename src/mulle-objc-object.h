@@ -52,6 +52,10 @@
 struct _mulle_objc_method;
 
 
+#ifndef MULLE_OBJC_CALL_PREFER_TPS
+# define MULLE_OBJC_CALL_PREFER_TPS  1
+#endif
+
 //
 // an object can be both a instance or a _class, so it should be typed as
 // void *. Possibly should renamed struct _mulle_objc_object to
@@ -107,7 +111,7 @@ static inline struct _mulle_objc_class *
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
-   if( __builtin_expect( ! index, 1))
+   if( __builtin_expect( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
@@ -128,7 +132,7 @@ static inline struct _mulle_objc_class *
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
-   if( __builtin_expect( ! index, 1))
+   if( __builtin_expect( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");

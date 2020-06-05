@@ -377,13 +377,14 @@ MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_infraclass  *
       if( entry->key.uniqueid == classid)
          return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
 
-      if( ! entry->key.uniqueid)
+      if( entry->key.uniqueid)
       {
-         entry = _mulle_objc_universe_fill_classcache_nofail( universe, classid);
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+         offset += sizeof( struct _mulle_objc_cacheentry);
+         continue;
       }
 
-      offset += sizeof( struct _mulle_objc_cacheentry);
+      entry = _mulle_objc_universe_fill_classcache_nofail( universe, classid);
+      return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
    }
 }
 
