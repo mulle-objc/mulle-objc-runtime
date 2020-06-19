@@ -3,10 +3,10 @@
 
 ## Macros
 
-### `mulle_objc_metaabi_param_block`
+### `mulle_metaabi_struct`
 
 ```
-mulle_objc_metaabi_param_block( param_type, rval_type)
+mulle_metaabi_struct( param_type, rval_type)
 ```
 
 To construct a properly sized meta-ABI parameter block, you should use this
@@ -23,7 +23,7 @@ Here is an example how to construct a call to `- (long long) fooWithA:(double) a
 
 
 ```
-   mulle_objc_metaabi_param_block( struct { double a; double b;}, long long)  _param;
+   mulle_metaabi_struct( struct { double a; double b;}, long long)  _param;
 
    _param.p.a = 18.0;
    _param.p.b = 0.48;
@@ -34,13 +34,13 @@ Here is an example how to construct a call to `- (long long) fooWithA:(double) a
 ```
 
 
-### `mulle_objc_metaabi_param_block_void_return`
+### `mulle_metaabi_struct_void_return`
 
 ```
-mulle_objc_metaabi_param_block_void_return( param_type)
+mulle_metaabi_struct_void_return( param_type)
 ```
 
-This is a simplified version of `mulle_objc_metaabi_param_block`, if the return
+This is a simplified version of `mulle_metaabi_struct`, if the return
 value is **void**.
 
 

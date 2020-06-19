@@ -676,10 +676,7 @@ mulle_objc_walkcommand_t
 
 
 
-//
-// lookup a method in class and categories, do not look through protocol
-// class methodlists, as they are shared by other classes
-//
+
 struct lookup_method_ctxt
 {
    mulle_objc_methodid_t      methodid;
@@ -703,6 +700,11 @@ static mulle_objc_walkcommand_t   find_method( struct _mulle_objc_method *method
 }
 
 
+//
+// Lookup a method in class methodlist. Does not look through protocol
+// class or superclass methodlists. Use
+// mulle_objc_class_defaultsearch_method for that instead.
+//
 struct _mulle_objc_method  *
    _mulle_objc_class_lookup_method( struct _mulle_objc_class *cls,
                                     mulle_objc_methodid_t methodid)
@@ -735,7 +737,6 @@ struct bouncy_info
    mulle_objc_walkcallback_t     callback;
    mulle_objc_walkcommand_t      rval;
 };
-
 
 
 static int   bouncy_method( struct _mulle_objc_method *method,

@@ -39,11 +39,14 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
+
 #include "include.h"  // for alignment mulle_objc_vararg.hcode
+
+#include "mulle-metaabi.h"
 
 // these defines are compatible to other universes
 // but some aren't implemented in code yet
-// NOTE: Avoid ';' and ',' because of CSV and mulle-objc-list
+// NOTE: Avoid adding ';' and ',' because of CSV and mulle-objc-list
 
 #define _C_ARY_B        '['
 #define _C_ARY_E        ']'
@@ -93,9 +96,14 @@
 // #define _C_BYREF        'R'
 // #define _C_CONST        'r'  /*  mulle-c compiler doesn't emit it anymore */
 // #define _C_GCINVISIBLE  '|'  /* lol */
+// #define _C_ONEWAY       'V'
+
+//
+// Candidates for ressurrection ? They could be useful for introspecting
+// pointer parameters
+//
 // #define _C_IN           'n'
 // #define _C_INOUT        'N'
-// #define _C_ONEWAY       'V'
 // #define _C_OUT          'o'
 
 struct mulle_objc_typeinfo
@@ -131,7 +139,7 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
 
 
 //
-// the signature enumerator enumerates self, _cmd, args...
+// The signature enumerator enumerates self, _cmd, args...
 // and at the end, you can ask _mulle_objc_signatureenumerator_rval to
 // get the return value info. If you don't ask for it last, the offset
 // will not have been computed properly.
@@ -202,11 +210,17 @@ static inline char *
 
 
 
+//
+// the invocation_offset will only be valid, if a valid info has been
+// passed in for all iterations of the enumerator!
+//
 MULLE_C_NONNULL_FIRST_SECOND
 static inline void
    _mulle_objc_signatureenumerator_rval( struct mulle_objc_signatureenumerator *rover,
                                          struct mulle_objc_typeinfo *info)
 {
+   assert( rover->invocation_offset != (unsigned int) -1);
+
    rover->rval.invocation_offset = rover->invocation_offset;
    memcpy( info, &rover->rval, sizeof( *info));
 }
@@ -263,28 +277,20 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *type,
 unsigned int    mulle_objc_signature_count_typeinfos( char *types);
 
 
-enum mulle_objc_metaabiparamtype
-{
-   mulle_objc_metaabiparamtype_error         = -1,
-   mulle_objc_metaabiparamtype_void          = 0,
-   mulle_objc_metaabiparamtype_void_pointer  = 1,
-   mulle_objc_metaabiparamtype_param         = 2
-};
-
 //
-// -1: error, 0: void, 1: void *, 2: _param
+// -1: error, 0: void, 1: void *, 2: struct
 //
 // mulle_objc_signature_get_metaabiparamtype will deduce _param correctly from
 // the return type also. It needs the complete signature.
 //
-enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabiparamtype( char *types);
+enum mulle_metaabi_param   mulle_objc_signature_get_metaabiparamtype( char *types);
 
 // this method does not inspect the complete signature! only the return type
-enum mulle_objc_metaabiparamtype   mulle_objc_signature_get_metaabireturntype( char *type);
+enum mulle_metaabi_param   mulle_objc_signature_get_metaabireturntype( char *type);
 
 
 // this method does not inspect the complete signature! only the type
-static inline enum mulle_objc_metaabiparamtype
+static inline enum mulle_metaabi_param
    _mulle_objc_signature_get_metaabiparamtype( char *type)
 {
    return( mulle_objc_signature_get_metaabireturntype( type)); // sic(!)

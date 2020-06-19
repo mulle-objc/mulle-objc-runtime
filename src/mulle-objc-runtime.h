@@ -74,6 +74,8 @@
 
 #include "include.h"
 
+#include "mulle-metaabi.h"
+
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-builtin.h"
 #include "mulle-objc-call.h"
@@ -91,7 +93,6 @@
 #include "mulle-objc-ivarlist.h"
 #include "mulle-objc-kvccache.h"
 #include "mulle-objc-load.h"
-#include "mulle-objc-metaabi.h"
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-method.h"
 #include "mulle-objc-methodidconstants.h"
@@ -122,15 +123,19 @@
 // add some functions to mulle-vararg for ObjC
 
 #define mulle_vararg_count_ids( args, obj) \
-   mulle_vararg_count_pointers( (args), (obj))
+   mulle_vararg_count_pointers( args, obj)
 #define mulle_vararg_count_objects( args, obj) \
-   mulle_vararg_count_pointers( (args), (obj))
+   mulle_vararg_count_pointers( args, obj)
 
 #define mulle_vararg_next_id( args) \
-   mulle_vararg_next_pointer( (args), id)
+   mulle_vararg_next_pointer( args, id)
 #define mulle_vararg_next_object( args, type) \
-   mulle_vararg_next_pointer( (args), id)
+   mulle_vararg_next_pointer( args, type)
 
+#define mulle_vararg_push_id( args, value) \
+   _mulle_vararg_push( args, id, value)
+#define mulle_vararg_push_object( args, value) \
+   mulle_vararg_push_id( args, value)
 
 //
 // add this before return of int main( argc, char **argc) when running

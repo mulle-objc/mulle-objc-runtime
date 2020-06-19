@@ -14,7 +14,7 @@
 
 // How to tweak the following mulle-stacktrace #include
 //    remove:          `mulle-sourcetree mark mulle-stacktrace no-header`
-//    rename:          `mulle-sourcetree mark mulle-stacktrace set include whatever.h`
+//    rename:          `mulle-sde dependency|library set mulle-stacktrace include whatever.h`
 //    toggle #import:  `mulle-sourcetree mark mulle-stacktrace [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-stacktrace [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-stacktrace [no-]require`
@@ -23,7 +23,7 @@
 
 // How to tweak the following mulle-atinit #include
 //    remove:          `mulle-sourcetree mark mulle-atinit no-header`
-//    rename:          `mulle-sourcetree mark mulle-atinit set include whatever.h`
+//    rename:          `mulle-sde dependency|library set mulle-atinit include whatever.h`
 //    toggle #import:  `mulle-sourcetree mark mulle-atinit [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-atinit [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-atinit [no-]require`
@@ -32,7 +32,7 @@
 
 // How to tweak the following mulle-atexit #include
 //    remove:          `mulle-sourcetree mark mulle-atexit no-header`
-//    rename:          `mulle-sourcetree mark mulle-atexit set include whatever.h`
+//    rename:          `mulle-sde dependency|library set mulle-atexit include whatever.h`
 //    toggle #import:  `mulle-sourcetree mark mulle-atexit [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-atexit [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-atexit [no-]require`
@@ -41,7 +41,7 @@
 
 // How to tweak the following mulle-dlfcn #include
 //    remove:          `mulle-sourcetree mark mulle-dlfcn no-header`
-//    rename:          `mulle-sourcetree mark mulle-dlfcn set include whatever.h`
+//    rename:          `mulle-sde dependency|library set mulle-dlfcn include whatever.h`
 //    toggle #import:  `mulle-sourcetree mark mulle-dlfcn [no-]import`
 //    toggle public:   `mulle-sourcetree mark mulle-dlfcn [no-]public`
 //    toggle optional: `mulle-sourcetree mark mulle-dlfcn [no-]require`
