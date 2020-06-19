@@ -591,14 +591,25 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
    //
    // if( info)
    //   info->offset = offset * sign;
-   if( p_invocation_offset && info)
+   if( p_invocation_offset)
    {
-      // for the MetaABI block we want this aligned as safely as possible
-      if( index == 2)
-         info->invocation_offset = mulle_address_align( *p_invocation_offset, alignof( long double));
+      if( info)
+      {
+         //
+         // invalidate once, this means you called an iterator with a
+         // NULL info inbetween, now offsets are wrong
+         //
+         assert( *p_invocation_offset != (unsigned int) -1);
+
+         // for the MetaABI block we want this aligned as safely as possible
+         if( index == 2)
+            info->invocation_offset = mulle_address_align( *p_invocation_offset, alignof( long double));
+         else
+            info->invocation_offset = mulle_address_align( *p_invocation_offset, info->bits_struct_alignment / 8);
+         *p_invocation_offset = info->invocation_offset + info->natural_size;
+      }
       else
-         info->invocation_offset = mulle_address_align( *p_invocation_offset, info->bits_struct_alignment / 8);
-      *p_invocation_offset = info->invocation_offset + info->natural_size;
+         *p_invocation_offset = (unsigned int) -1;  // is invalid now!
    }
 
    return( next);
@@ -688,15 +699,15 @@ char   *mulle_objc_signature_next_type( char *types)
    ((sizeof( x) <= sizeof( void *)) && (alignof( x) <= alignof( void *)))
 
 
-static enum mulle_objc_metaabiparamtype
+static enum mulle_metaabi_param
    __mulle_objc_signature_get_metaabiparamtype( char *type)
 {
    type = _mulle_objc_signature_skip_type_qualifier( type);
    switch( *type)
    {
    case 0            :
-   case _C_VOID      : return( mulle_objc_metaabiparamtype_void);
-   case _C_UNDEF     : return( mulle_objc_metaabiparamtype_error);
+   case _C_VOID      : return( mulle_metaabi_param_void);
+   case _C_UNDEF     : return( mulle_metaabi_param_error);
 
 #ifdef _C_ATOM
    case _C_ATOM      :
@@ -713,32 +724,32 @@ static enum mulle_objc_metaabiparamtype
    case _C_SHT       :
    case _C_USHT      :
    case _C_INT       :
-   case _C_UINT      : return( mulle_objc_metaabiparamtype_void_pointer);
+   case _C_UINT      : return( mulle_metaabi_param_void_pointer);
 
    case _C_LNG       : return( type_fits_voidptr( long)
-                                  ? mulle_objc_metaabiparamtype_void_pointer
-                                  : mulle_objc_metaabiparamtype_param);
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
    case _C_ULNG      : return( type_fits_voidptr( unsigned long)
-                                  ? mulle_objc_metaabiparamtype_void_pointer
-                                  : mulle_objc_metaabiparamtype_param);
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
    case _C_LNG_LNG   : return( type_fits_voidptr( long long)
-                                  ? mulle_objc_metaabiparamtype_void_pointer
-                                  : mulle_objc_metaabiparamtype_param);
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
    case _C_ULNG_LNG  : return( type_fits_voidptr( unsigned long long)
-                                  ? mulle_objc_metaabiparamtype_void_pointer
-                                  : mulle_objc_metaabiparamtype_param);
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
    case _C_PTR       : if( type[ 1] == '?')
-                          return( mulle_objc_metaabiparamtype_void_pointer);
+                          return( mulle_metaabi_param_void_pointer);
                        return( type_fits_voidptr( void( *)( void))
-                                 ? mulle_objc_metaabiparamtype_void_pointer
-                                 : mulle_objc_metaabiparamtype_param);
+                                 ? mulle_metaabi_param_void_pointer
+                                 : mulle_metaabi_param_struct);
    }
-   return( mulle_objc_metaabiparamtype_param);
+   return( mulle_metaabi_param_struct);
 }
 
 
 
-enum mulle_objc_metaabiparamtype
+enum mulle_metaabi_param
    mulle_objc_signature_get_metaabiparamtype( char *types)
 {
    int   p_type;
@@ -748,12 +759,12 @@ enum mulle_objc_metaabiparamtype
    if( ! types)
    {
       errno = EINVAL;
-      return( mulle_objc_metaabiparamtype_error);
+      return( mulle_metaabi_param_error);
    }
 
    // return value overrides
    r_type = mulle_objc_signature_get_metaabireturntype( types);
-   if( r_type == mulle_objc_metaabiparamtype_param)
+   if( r_type == mulle_metaabi_param_struct)
       return( r_type);
 
    // skip return
@@ -765,28 +776,28 @@ enum mulle_objc_metaabiparamtype
    // skip _cmd
    types = mulle_objc_signature_next_type( types);
    if( ! types)
-      return( mulle_objc_metaabiparamtype_void);
+      return( mulle_metaabi_param_void);
 
    p_type = __mulle_objc_signature_get_metaabiparamtype( types);
-   if( p_type == mulle_objc_metaabiparamtype_void_pointer)
+   if( p_type == mulle_metaabi_param_void_pointer)
    {
       // skip current
       types = mulle_objc_signature_next_type( types);
       if( types && *types)
-         p_type = mulle_objc_metaabiparamtype_param;
+         p_type = mulle_metaabi_param_struct;
    }
    return( p_type);
 }
 
 
-enum mulle_objc_metaabiparamtype
+enum mulle_metaabi_param
    mulle_objc_signature_get_metaabireturntype( char *type)
 {
    // unspecified return type can't happen though (see above)
    if( ! type)
    {
       errno = EINVAL;
-      return( mulle_objc_metaabiparamtype_error);
+      return( mulle_metaabi_param_error);
    }
 
    return( __mulle_objc_signature_get_metaabiparamtype( type));

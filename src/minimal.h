@@ -39,7 +39,7 @@
 
 #define mulle_objc_runtime_minimal__h__
 
-#include "mulle-objc-metaabi.h"
+#include "mulle-metaabi.h"
 
 //
 // These are minimal runtime definitions for MulleObjC.

@@ -248,6 +248,11 @@ int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p);
 
 # pragma mark - method
 
+//
+// MEMO: if we move the implementation up, and put methods into the
+// call cache, objc call speed would get punished by one indirection,
+// but introspecting a method becomes MUCH faster...
+//
 struct _mulle_objc_method
 {
    struct _mulle_objc_descriptor   descriptor;
@@ -287,7 +292,6 @@ static inline int
 {
    return( method->descriptor.bits);
 }
-
 
 
 static inline mulle_objc_implementation_t
@@ -397,7 +401,7 @@ static inline struct _mulle_objc_descriptor *
 }
 
 
-/* compatbility stuff for Foundation */
+/* compatibility stuff for Foundation */
 
 unsigned int   mulle_objc_count_selector_arguments( char *s);
 

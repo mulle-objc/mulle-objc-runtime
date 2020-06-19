@@ -55,11 +55,11 @@
 #define mulle_objc_size_metaabi_param_block(  size) \
    ( sizeof( void *[ 5]) * mulle_objc_void_5_pointers( size) )
 
-#define mulle_objc_metaabi_param_block( param_type, rval_type) \
-   union                   \
-   {                       \
-      rval_type    r;      \
-      param_type   p;      \
+#define mulle_objc_metaabi_param_block( param_type, rval_type)                 \
+   union                                                                       \
+   {                                                                           \
+      rval_type    r;                                                          \
+      param_type   p;                                                          \
       void         *space[ 5][ sizeof( rval_type) > sizeof( param_type)        \
                          ?  mulle_objc_void_5_pointers( sizeof( rval_type))    \
                          :  mulle_objc_void_5_pointers( sizeof( param_type))]; \
