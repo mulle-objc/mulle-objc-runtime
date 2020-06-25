@@ -36,7 +36,7 @@ static char   *string_for_paramtype( enum mulle_metaabi_param type)
    case mulle_metaabi_param_error         : return( "error");
    case mulle_metaabi_param_void          : return( "void");
    case mulle_metaabi_param_void_pointer  : return( "void *");
-   case mulle_metaabi_param_struct         : return( "_param");
+   case mulle_metaabi_param_struct        : return( "struct {...} *");
    }
    return( "FAIL");
 }
