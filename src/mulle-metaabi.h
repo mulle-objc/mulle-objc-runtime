@@ -130,8 +130,8 @@ union                                                                   \
  * are more complicated. The initial arguments are passed via metaabi rules.
  * The variable arguments are pushed via mulle_vararg rules. The difference is,
  * that the promotion rules (->int ->double) apply to variable arguments only.
- * This is because it was easiest to implement in mulle-clang.
- * A future mulle_vararg_list should be identical to the metaabi (no promotion).
+ * This is because the types are not known and can differ on a per call basis
+ * (e.g. mulle_msprintf( "%f", d) vs mulle_msprintf( "%d", i);
  */
 #define _mulle_metaabi_push( ap, type, value)                      \
 do                                                                 \
