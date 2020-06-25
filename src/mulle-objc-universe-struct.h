@@ -58,7 +58,7 @@ struct mulle_objc_loadversion;
 
 
 //
-// Config of the universe. Don't change after intialization
+// Config of the universe. Don't change after initialization
 //
 struct _mulle_objc_universeconfig
 {
@@ -129,7 +129,7 @@ struct _mulle_objc_universedebug
       unsigned   methodid_type          : 1;
       unsigned   protocolclass          : 1;
       unsigned   stuck_loadable         : 1;  // set by default
-      unsigned   pedantic_methodid_type : 1;
+      unsigned   lenient_methodid_type  : 1;
       unsigned   crash                  : 1;
    } warn;
 
@@ -313,7 +313,7 @@ struct _mulle_objc_waitqueues
  * autorelease pool, you should be able to completely remove the
  * universe AND all created instances.
  *
- * All no, unfortunately there is one static class needed for
+ * All ? No. Unfortunately there is one static class needed for
  * static strings.
  */
 enum
@@ -341,6 +341,7 @@ struct _mulle_objc_universe
 
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
+   struct mulle_concurrent_hashmap          varyingsignaturedescriptortable;
    struct mulle_concurrent_hashmap          protocoltable;
    struct mulle_concurrent_hashmap          categorytable;
    struct mulle_concurrent_hashmap          supertable;

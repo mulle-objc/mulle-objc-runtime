@@ -286,7 +286,7 @@ void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
 static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe  *universe)
 {
    universe->debug.warn.methodid_type          = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPE");
-   universe->debug.warn.pedantic_methodid_type = getenv_yes_no( "MULLE_OBJC_WARN_PEDANTIC_METHODID_TYPE");
+   universe->debug.warn.lenient_methodid_type  = getenv_yes_no( "MULLE_OBJC_WARN_LENIENT_METHODID_TYPE");
    universe->debug.warn.protocolclass          = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
    universe->debug.warn.stuck_loadable         = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
    universe->debug.warn.crash                  = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
@@ -616,6 +616,7 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_concurrent_hashmap_init( &universe->categorytable, 128, allocator);
    _mulle_concurrent_hashmap_init( &universe->classtable, 128, allocator);
    _mulle_concurrent_hashmap_init( &universe->descriptortable, 2048, allocator);
+   _mulle_concurrent_hashmap_init( &universe->varyingsignaturedescriptortable, 8, allocator);
    _mulle_concurrent_hashmap_init( &universe->protocoltable, 64, allocator);
    _mulle_concurrent_hashmap_init( &universe->supertable, 256, allocator);
 
@@ -1486,6 +1487,7 @@ static void
    _mulle_concurrent_hashmap_done( &universe->supertable);
    _mulle_concurrent_hashmap_done( &universe->protocoltable);
    _mulle_concurrent_hashmap_done( &universe->descriptortable);
+   _mulle_concurrent_hashmap_done( &universe->varyingsignaturedescriptortable);
    _mulle_concurrent_hashmap_done( &universe->classtable);
    _mulle_concurrent_hashmap_done( &universe->categorytable);
 
@@ -2170,134 +2172,13 @@ int   _mulle_objc_universe_should_grow_cache( struct _mulle_objc_universe *unive
 
 # pragma mark - method descriptors
 
-struct _mulle_objc_descriptor   *
-   _mulle_objc_universe_lookup_descriptor( struct _mulle_objc_universe *universe,
-                                           mulle_objc_methodid_t methodid)
+static struct _mulle_objc_descriptor *
+   _mulle_objc_universe_register_descriptor( struct _mulle_objc_universe *universe,
+                                             struct _mulle_objc_descriptor *p)
 {
-   return( _mulle_concurrent_hashmap_lookup( &universe->descriptortable, methodid));
-}
+   int   comparison;
 
-
-//
-// returns duplicate if found!
-// returns MULLE_OBJC_INVALID_DESCRIPTOR, if error
-//
-struct _mulle_objc_descriptor *_mulle_objc_universe_register_descriptor_nofail(
-   struct _mulle_objc_universe *universe,
-   struct _mulle_objc_descriptor *p)
-{
    struct _mulle_objc_descriptor   *dup;
-
-   dup = _mulle_concurrent_hashmap_register( &universe->descriptortable,
-                                             p->methodid,
-                                             p);
-   if( ! dup)
-   {
-      if( universe->debug.trace.descriptor_add)
-         mulle_objc_universe_trace( universe,
-                                    "add descriptor %08x \"%s\" (%p)",
-                                    p->methodid,
-                                    p->name,
-                                    p);
-      return( p);
-   }
-
-   // must be out of mem: is catastrophic
-   if( dup == MULLE_CONCURRENT_INVALID_POINTER)
-      mulle_objc_universe_fail_errno( NULL);
-
-   assert( p->methodid == dup->methodid);
-
-   // hash clash is also a catastrophy
-   if( strcmp( dup->name, p->name))
-      mulle_objc_universe_fail_generic( universe,
-            "mulle_objc_universe %p error: duplicate selectors \"%s\" and \"%s\" "
-            "with same id %08lx\n", universe, dup->name, p->name, (long) p->methodid);
-
-   //
-   // f0cb86d3 is ':', which we use as a "shortcut" selector for access
-   //
-   if( universe->debug.warn.methodid_type && p->methodid != MULLE_OBJC_GENERIC_GETTER_METHODID)
-   {
-      int   comparison;
-
-      if( universe->debug.warn.pedantic_methodid_type)
-         comparison = _mulle_objc_signature_pedantic_compare( dup->signature, p->signature);
-      else
-         comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
-      if( comparison)
-         fprintf( stderr, "mulle_objc_universe %p warning: varying types "
-                          "\"%s\" and \"%s\" for method \"%s\"\n",
-                 universe,
-                 dup->signature, p->signature, p->name);
-   }
-
-   return( dup);
-}
-
-
-struct _mulle_objc_descriptor *
-   mulle_objc_universe_register_descriptor_nofail(
-      struct _mulle_objc_universe *universe,
-      struct _mulle_objc_descriptor *p)
-{
-   if( ! universe)
-      mulle_objc_universe_fail_code( universe, EINVAL);
-   if( ! mulle_objc_descriptor_is_sane( p))
-      mulle_objc_universe_fail_code( universe, EINVAL);
-
-   return( _mulle_objc_universe_register_descriptor_nofail( universe, p));
-}
-
-
-
-// function kept for tests, register is the way to go though
-int   _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
-                                           struct _mulle_objc_descriptor *p)
-{
-   struct _mulle_objc_descriptor   *dup;
-
-   dup = _mulle_concurrent_hashmap_register( &universe->descriptortable, p->methodid, p);
-   if( ! dup)
-   {
-      if( universe->debug.trace.descriptor_add)
-         mulle_objc_universe_trace( universe,
-                                    "add descriptor %08x \"%s\" (%p)",
-                                    p->methodid,
-                                    p->name,
-                                    p);
-      return( 0);
-   }
-
-   // must be out of mem
-   if( dup == MULLE_CONCURRENT_INVALID_POINTER)
-      return( -1);
-
-   assert( p->methodid == dup->methodid);
-
-   // hash clash is bad
-   if( strcmp( dup->name, p->name))
-      mulle_objc_universe_fail_generic( universe,
-            "mulle_objc_universe %p error: duplicate methods \"%s\" and \"%s\" "
-            "with same id %08lx\n", universe, dup->name, p->name, (long) p->methodid);
-
-   //
-   // hack: so ':' can be used without warning as a shortcut selector
-   //
-   if( universe->debug.warn.methodid_type && p->methodid != 0xf0cb86d3)
-   {
-      int   comparison;
-
-      if( universe->debug.warn.pedantic_methodid_type)
-         comparison = _mulle_objc_signature_pedantic_compare( dup->signature, p->signature);
-      else
-         comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
-      if( comparison)
-         fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
-                          "and \"%s\" for method \"%s\"\n",
-                 universe,
-                 dup->signature, p->signature, p->name);
-   }
 
 #ifndef HAVE_SUPERCACHE
    {
@@ -2315,7 +2196,61 @@ int   _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe
    }
 #endif
 
-   return( 0);
+   dup = _mulle_concurrent_hashmap_register( &universe->descriptortable, p->methodid, p);
+   if( ! dup)
+   {
+      if( universe->debug.trace.descriptor_add)
+         mulle_objc_universe_trace( universe,
+                                    "add descriptor %08x \"%s\" (%p)",
+                                    p->methodid,
+                                    p->name,
+                                    p);
+      return( p);
+   }
+
+   // must be out of mem
+   if( dup == MULLE_CONCURRENT_INVALID_POINTER)
+      return( 0);
+
+   assert( p->methodid == dup->methodid);
+
+   // hash clash is very bad
+   if( strcmp( dup->name, p->name))
+      mulle_objc_universe_fail_generic( universe,
+            "mulle_objc_universe %p error: duplicate methods \"%s\" and \"%s\" "
+            "with same id %08lx\n", universe, dup->name, p->name, (long) p->methodid);
+
+   if( universe->debug.warn.lenient_methodid_type)
+      comparison = _mulle_objc_signature_compare_lenient( dup->signature, p->signature);
+   else
+      comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
+
+   if( comparison)
+   {
+      // the value in the table is unimportant. I might write a hashset
+      // for this, but I am too lazy now.
+      _mulle_concurrent_hashmap_register( &universe->varyingsignaturedescriptortable, p->methodid, (void *) 0x1848);
+
+      //
+      // hack: so ':' can be used without warning as a shortcut selector
+      //
+      if( universe->debug.warn.methodid_type && p->methodid != 0xf0cb86d3)
+      {
+         fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
+                          "and \"%s\" for method \"%s\"\n",
+                 universe,
+                 dup->signature, p->signature, p->name);
+      }
+   }
+   return( dup);
+}
+
+
+// function kept for tests, register is the way to go though
+int   _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
+                                           struct _mulle_objc_descriptor *p)
+{
+  return( _mulle_objc_universe_register_descriptor( universe, p) != NULL ? 0 : -1);
 }
 
 
@@ -2334,6 +2269,37 @@ int   mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
 
    return( _mulle_objc_universe_add_descriptor( universe, p));
 }
+
+
+//
+// returns duplicate if found!
+//
+struct _mulle_objc_descriptor *
+   _mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
+                                                    struct _mulle_objc_descriptor *p)
+{
+   struct _mulle_objc_descriptor   *dup;
+
+   dup = _mulle_objc_universe_register_descriptor( universe,p);
+   if( ! dup)
+      mulle_objc_universe_fail_errno( NULL);
+   return( dup);
+}
+
+
+struct _mulle_objc_descriptor *
+   mulle_objc_universe_register_descriptor_nofail(
+      struct _mulle_objc_universe *universe,
+      struct _mulle_objc_descriptor *p)
+{
+   if( ! universe)
+      mulle_objc_universe_fail_code( universe, EINVAL);
+   if( ! mulle_objc_descriptor_is_sane( p))
+      mulle_objc_universe_fail_code( universe, EINVAL);
+
+   return( _mulle_objc_universe_register_descriptor_nofail( universe, p));
+}
+
 
 
 char   *mulle_objc_universe_lookup_methodname( struct _mulle_objc_universe *universe,

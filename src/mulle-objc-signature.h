@@ -296,6 +296,8 @@ static inline enum mulle_metaabi_param
    return( mulle_objc_signature_get_metaabireturntype( type)); // sic(!)
 }
 
+size_t    _mulle_objc_signature_sizeof_metabistruct( char *type);
+
 
 //
 // not sure of this is really needed or paranoia
@@ -303,7 +305,7 @@ static inline enum mulle_metaabi_param
 //
 char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s);
 
-static inline int  _mulle_objc_signature_pedantic_compare( char *a, char *b)
+static inline int  _mulle_objc_signature_compare( char *a, char *b)
 {
    return( strcmp( a, b));
 }
@@ -311,7 +313,7 @@ static inline int  _mulle_objc_signature_pedantic_compare( char *a, char *b)
 int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
                                     struct mulle_objc_typeinfo *b);
 
-int  _mulle_objc_signature_compare( char *a, char *b);
+int  _mulle_objc_signature_compare_lenient( char *a, char *b);
 
 
 // check if type is '@' '~' '=' '#' (or as member array, union, struct member)

@@ -60,6 +60,8 @@ static inline void   _CLEAR_RUNTIME_TYPE_INFO( struct mulle_objc_typeinfo *info)
    info->natural_alignment     = 0;
    info->bits_struct_alignment = 0;
    info->bits_size             = 0;
+   info->has_object            = 0;
+   info->has_retainable_object = 0;
 }
 
 
@@ -92,7 +94,7 @@ static int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_
 {
    switch( c)
    {
-   case 0            : return( 0);
+   case 0            : _CLEAR_RUNTIME_TYPE_INFO( info); return( -1);
    case _C_VOID      : _CLEAR_RUNTIME_TYPE_INFO( info); return( 0);
    case _C_COPY_ID   : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, 1); return( 0);
    case _C_RETAIN_ID : _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, struct mulle_objc_object *, 1); return( 1);  // because of "@?"
@@ -119,6 +121,8 @@ static int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_
    case _C_ATOM      : _SUPPLY_RUNTIME_C_TYPE_INFO( info, char *); return( 0);
 #endif
    }
+
+   _CLEAR_RUNTIME_TYPE_INFO( info);
    return( 1);
 }
 
@@ -454,64 +458,74 @@ static char   *
 
    if( info)
    {
-      memset( info, 0, sizeof( *info));
-      info->type = type;
+      // _mulle_objc_signature_supply_scalar_typeinfo will set:
+      // natural_size
+      // natural_alignment
+      // bits_struct_alignment
+      // bits_size
+      // has_object
+      // has_retainable_object
+      //
       isComplex  = _mulle_objc_signature_supply_scalar_typeinfo( *type, info);
+      // initialize rest:
+      info->type              = type;
+      info->pure_type_end     = 0;
+      info->name              = 0;
+      info->invocation_offset = 0;
+      info->n_members         = 0;
    }
    else
       isComplex = is_multi_character_type( *type);
 
-   // this shouldn't really happen!
-   // passing in "" ??
-   if( ! *type)
+   // isComplex == -1: error
+   switch( isComplex)
    {
-      errno = EINVAL;
-      return( NULL);
-   }
-
+   case 0 :
    // in the non-complex case the parsing of the single character is done
-   if( ! isComplex)
-   {
       ++type;  // skip that single char
       return( type);
-   }
 
-   switch( *type++)
-   {
-   case _C_PTR      :
-      if( info)
+   case 1 :
+      switch( *type++)
       {
-         if( *type == '?')
-         {
-            _SUPPLY_RUNTIME_C_TYPE_INFO( info, void_function_pointer);
-            return( ++type);
-         }
-         _SUPPLY_RUNTIME_C_TYPE_INFO( info, void *);
-      }
-      return( _mulle_objc_type_parse_simple( type, level, NULL));  // skip trailing type
-
-   case _C_ARY_B    :
-      if( ! level)
-      {
-         // it's really a pointer
+      case _C_PTR      :
          if( info)
+         {
+            if( *type == '?')
+            {
+               _SUPPLY_RUNTIME_C_TYPE_INFO( info, void_function_pointer);
+               return( ++type);
+            }
             _SUPPLY_RUNTIME_C_TYPE_INFO( info, void *);
-         info = NULL;   // skip array
+         }
+         return( _mulle_objc_type_parse_simple( type, level, NULL));  // skip trailing type
+
+      case _C_ARY_B    :
+         if( ! level)
+         {
+            // it's really a pointer
+            if( info)
+               _SUPPLY_RUNTIME_C_TYPE_INFO( info, void *);
+            info = NULL;   // skip array
+         }
+         return( _mulle_objc_signature_supply_array_typeinfo( type, level, info));
+
+      case _C_BFLD  :
+         return( _mulle_objc_signature_supply_bitfield_typeinfo( type, level, info));
+
+      case _C_RETAIN_ID :
+         return( _mulle_objc_signature_supply_object_typeinfo( type, level, info));
+
+      case _C_STRUCT_B :
+         return( _mulle_objc_signature_supply_struct_typeinfo( type, level, info));
+
+      case _C_UNION_B  :
+         return( _mulle_objc_signature_supply_union_typeinfo( type, level, info));
       }
-      return( _mulle_objc_signature_supply_array_typeinfo( type, level, info));
-
-   case _C_BFLD  :
-      return( _mulle_objc_signature_supply_bitfield_typeinfo( type, level, info));
-
-   case _C_RETAIN_ID :
-      return( _mulle_objc_signature_supply_object_typeinfo( type, level, info));
-
-   case _C_STRUCT_B :
-      return( _mulle_objc_signature_supply_struct_typeinfo( type, level, info));
-
-   case _C_UNION_B  :
-      return( _mulle_objc_signature_supply_union_typeinfo( type, level, info));
    }
+
+   // default: this shouldn't really happen!
+   // passing in "" ??
 
    errno = EINVAL;
    return( NULL);
@@ -528,7 +542,7 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
                                                      unsigned int index)
 {
    char   *next;
-   int    offset;
+//   int    offset;
    int    sign;
    char   c;
 
@@ -577,27 +591,30 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
    if( *next == '+')
       ++next;
 
-
-   offset = 0;
+//   offset = 0;
    while( *next >= '0' && *next <= '9')
    {
-      offset *= 10;
-      offset += *next++ - '0';
+//      offset *= 10;
+//      offset += *next - '0';
+      ++next;
    }
+
+/*
+   if( info)
+      info->offset = offset * sign;
+*/
 
    //
    // the offset calculated by the compiler is unfortunately
-   // incorrect for the MetaABI block, so we ignore it
+   // incorrect for the MetaABI block
    //
-   // if( info)
-   //   info->offset = offset * sign;
    if( p_invocation_offset)
    {
       if( info)
       {
          //
-         // invalidate once, this means you called an iterator with a
-         // NULL info inbetween, now offsets are wrong
+         // If it was invalidated once, it means you called an iterator with a
+         // NULL info sometime in your loop, now offsets are wrong
          //
          assert( *p_invocation_offset != (unsigned int) -1);
 
@@ -609,7 +626,7 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
          *p_invocation_offset = info->invocation_offset + info->natural_size;
       }
       else
-         *p_invocation_offset = (unsigned int) -1;  // is invalid now!
+         *p_invocation_offset = (unsigned int) -1;  // invalidate
    }
 
    return( next);
@@ -863,7 +880,7 @@ int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
 }
 
 
-int   _mulle_objc_signature_compare( char *a, char *b)
+int   _mulle_objc_signature_compare_lenient( char *a, char *b)
 {
    struct mulle_objc_typeinfo  a_info;
    struct mulle_objc_typeinfo  b_info;
@@ -916,4 +933,26 @@ int   mulle_objc_signature_contains_object( char *type)
 }
 
 
+size_t   _mulle_objc_signature_sizeof_metabistruct( char *types)
+{
+   struct mulle_objc_signatureenumerator   rover;
+   struct mulle_objc_typeinfo              info;
+   struct mulle_objc_typeinfo              dummy;
+   size_t                                  size;
+
+   rover = mulle_objc_signature_enumerate( types);
+   {
+      _mulle_objc_signatureenumerator_next( &rover, &dummy);
+      _mulle_objc_signatureenumerator_next( &rover, &dummy);
+      while( _mulle_objc_signatureenumerator_next( &rover, &dummy));
+      _mulle_objc_signatureenumerator_rval( &rover, &info);
+   }
+   mulle_objc_signatureenumerator_done( &rover);
+
+   // compute size of metaABI block
+   // (TODO: check that the compiler/runtime has done the right thing here
+   // it's OK, if size is a little bit too large.
+   size = info.invocation_offset + info.natural_size;
+   return( mulle_metaabi_sizeof_struct( size));
+}
 
