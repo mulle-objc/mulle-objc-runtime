@@ -89,7 +89,8 @@ char  *mulle_objc_categoriestoload_describe_row( intptr_t classid,
                                                     struct _mulle_objc_htmltablestyle *styling);
 
 char  *mulle_objc_class_describe_html( struct _mulle_objc_class *cls,
-                                          struct _mulle_objc_htmltablestyle *styling);
+                                       int show_fields,
+                                       struct _mulle_objc_htmltablestyle *styling);
 char  *mulle_objc_class_describe_html_short( struct _mulle_objc_class *cls,
                                                 struct _mulle_objc_htmltablestyle *styling);
 char   *mulle_objc_class_describe_html_tiny( struct _mulle_objc_class *cls,
@@ -130,8 +131,9 @@ char   *mulle_objc_super_describe_row_html( intptr_t  superid,
                                                struct _mulle_objc_htmltablestyle *styling);
 
 char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list,
-                                                struct _mulle_objc_universe *universe,
-                                                struct _mulle_objc_htmltablestyle *styling);
+                                             struct _mulle_objc_universe *universe,
+                                             int show_fields,
+                                             struct _mulle_objc_htmltablestyle *styling);
 
 char  *mulle_objc_methodlist_describe_hor_html( struct _mulle_objc_methodlist *list,
                                                    struct _mulle_objc_htmltablestyle *styling);

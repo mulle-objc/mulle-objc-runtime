@@ -484,7 +484,7 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    {
       style       = infraclass_style;
       style.title = cls->name;
-      label = mulle_objc_class_describe_html( cls, &style);
+      label       = mulle_objc_class_describe_html( cls, 1, &style);
 
       print_to_body( "Values", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
