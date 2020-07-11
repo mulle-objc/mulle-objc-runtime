@@ -1233,62 +1233,53 @@ static void   _mulle_objc_constantobject_dealloc( struct _mulle_objc_object *obj
 
 
 
-static inline void   _mulle_objc_singleton_dealloc( struct _mulle_objc_object *singleton)
+static void   _mulle_objc_classcluster_dealloc( struct _mulle_objc_object *placeholder)
 {
-   _mulle_objc_constantobject_dealloc( singleton, 0xcdfeb729); // @selector( __deallocSingleton));
+   _mulle_objc_constantobject_dealloc( placeholder, 0x0f0ab9f6); // @selector( __deallocClassCluster));
 }
 
 
+static void   _mulle_objc_instantiate_dealloc( struct _mulle_objc_object *placeholder)
+{
+   _mulle_objc_constantobject_dealloc( placeholder, 0x74cf60ba); // @selector( __deallocInstantiate));
+}
+
+
+static void   _mulle_objc_singleton_dealloc( struct _mulle_objc_object *placeholder)
+{
+   _mulle_objc_constantobject_dealloc( placeholder, 0xcdfeb729); // @selector( __deallocSingleton));
+}
+
+
+static void   (*dealloc_functions[])( struct _mulle_objc_object *) =
+{
+   _mulle_objc_classcluster_dealloc,
+   _mulle_objc_instantiate_dealloc,
+   _mulle_objc_singleton_dealloc
+};
+
+
 static void
-   _mulle_objc_universe_dealloc_singletons( struct _mulle_objc_universe *universe)
+   _mulle_objc_universe_dealloc_placeholders( struct _mulle_objc_universe *universe,
+                                              enum _mulle_objc_infraclass_placeholder_index index)
 {
    struct _mulle_objc_infraclass               *infra;
    struct mulle_concurrent_hashmapenumerator   rover;
    struct _mulle_objc_object                   *obj;
+   static void                                 (*f)( struct _mulle_objc_object *);
 
+   f     = dealloc_functions[ index];
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &infra))
    {
-      obj = _mulle_objc_infraclass_get_singleton( infra);
+      obj = _mulle_objc_infraclass_get_placeholder( infra, index);
       if( obj)
-      {
-         _mulle_objc_infraclass_set_singleton( infra, NULL);
-        _mulle_objc_singleton_dealloc( obj);
-      }
+        (*f)( obj);
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 
-static inline void   _mulle_objc_placeholder_dealloc( struct _mulle_objc_object *placeholder)
-{
-   _mulle_objc_constantobject_dealloc( placeholder, 0x777f40ac); // @selector( __deallocPlaceholder));
-}
-
-
-static void
-   _mulle_objc_universe_dealloc_placeholders( struct _mulle_objc_universe *universe)
-{
-   struct _mulle_objc_infraclass               *infra;
-   struct mulle_concurrent_hashmapenumerator   rover;
-   struct _mulle_objc_object                   *obj;
-
-   //
-   // dealloc placeholders and singletons, these have been permanently
-   // retained. Call -__deallocPlaceholder if its defined otherwise -dealloc
-   //
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &infra))
-   {
-      obj = _mulle_objc_infraclass_get_placeholder( infra);
-      if( obj)
-      {
-         _mulle_objc_infraclass_set_placeholder( infra, NULL);
-         _mulle_objc_placeholder_dealloc( obj);
-      }
-   }
-   mulle_concurrent_hashmapenumerator_done( &rover);
-}
 
 
 static void
@@ -1585,21 +1576,30 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
                                  "universe unloads classes and categories");
    _mulle_objc_universe_unload_infraclasses( universe);
 
+
    //
    // dealloc singletons now
    //
    if( universe->debug.trace.universe)
       mulle_objc_universe_trace( universe,
                                  "universe removes singletons");
-   _mulle_objc_universe_dealloc_singletons( universe);
+   _mulle_objc_universe_dealloc_placeholders( universe, MULLE_OBJC_INFRACLASS_SINGLETON_INDEX);
 
    //
-   // dealloc placeholders, they should not care about +unload having run
+   // dealloc classclusters, they should not care about +unload having run
    //
    if( universe->debug.trace.universe)
       mulle_objc_universe_trace( universe,
-                                 "universe removes placeholders");
-   _mulle_objc_universe_dealloc_placeholders( universe);
+                                 "universe removes classclusters");
+   _mulle_objc_universe_dealloc_placeholders( universe, MULLE_OBJC_INFRACLASS_CLASSCLUSTER_INDEX);
+
+   //
+   // dealloc instantiates, they should not care about +unload having run either
+   //
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "universe removes instantiates");
+   _mulle_objc_universe_dealloc_placeholders( universe, MULLE_OBJC_INFRACLASS_INSTANTIATE_INDEX);
 
    // the after the unload we tell the friends to suicide
    // the last autoreleasepool will be gone then

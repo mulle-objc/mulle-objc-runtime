@@ -61,6 +61,14 @@ enum _mulle_objc_infraclass_state
 };
 
 
+enum _mulle_objc_infraclass_placeholder_index
+{
+   MULLE_OBJC_INFRACLASS_CLASSCLUSTER_INDEX = 0,
+   MULLE_OBJC_INFRACLASS_INSTANTIATE_INDEX  = 1,
+   MULLE_OBJC_INFRACLASS_SINGLETON_INDEX    = 2
+};
+
+
 struct _mulle_objc_infraclass
 {
    struct _mulle_objc_class                  base;
@@ -75,8 +83,8 @@ struct _mulle_objc_infraclass
 #if 0
    struct mulle_concurrent_hashmap           cvars;
 #endif
-   union _mulle_objc_atomicobjectpointer_t   placeholder;
-   union _mulle_objc_atomicobjectpointer_t   singleton;
+   // various placeholders
+   union _mulle_objc_atomicobjectpointer_t   placeholders[ 3];
 
    struct mulle_allocator                    *allocator;  // must not be NULL
 };
@@ -236,47 +244,84 @@ static inline mulle_objc_implementation_t
 
 #pragma mark - petty accessors
 
-//
-// the placeholder is used for +instantiate in foundation
-//
-static inline struct _mulle_objc_object *
-   _mulle_objc_infraclass_get_placeholder( struct _mulle_objc_infraclass *infra)
-{
-   return( _mulle_atomic_pointer_read( &infra->placeholder.pointer));
-}
 
-
-// 1: it has worked, 0: someone else was faster
 static inline int
    _mulle_objc_infraclass_set_placeholder( struct _mulle_objc_infraclass *infra,
+                                           enum _mulle_objc_infraclass_placeholder_index index,
                                            struct _mulle_objc_object *obj)
 {
-   if( ! obj)
-      return( 1);
-   return( _mulle_atomic_pointer_cas( &infra->placeholder.pointer,
+   assert( obj);
+   return( _mulle_atomic_pointer_cas( &infra->placeholders[ index].pointer,
                                       obj,
                                       NULL));
 }
 
 
 static inline struct _mulle_objc_object *
+   _mulle_objc_infraclass_get_placeholder( struct _mulle_objc_infraclass *infra,
+                                           enum _mulle_objc_infraclass_placeholder_index index)
+{
+   return( _mulle_atomic_pointer_read( &infra->placeholders[ index].pointer));
+}
+
+
+static inline struct _mulle_objc_object *
+   _mulle_objc_infraclass_get_instantiate( struct _mulle_objc_infraclass *infra)
+{
+   return( _mulle_objc_infraclass_get_placeholder( infra,
+                                                   MULLE_OBJC_INFRACLASS_INSTANTIATE_INDEX));
+}
+
+
+// 1: it has worked, 0: someone else was faster
+static inline int
+   _mulle_objc_infraclass_set_instantiate( struct _mulle_objc_infraclass *infra,
+                                            struct _mulle_objc_object *obj)
+{
+   return( _mulle_objc_infraclass_set_placeholder( infra,
+                                                   MULLE_OBJC_INFRACLASS_INSTANTIATE_INDEX,
+                                                   obj));
+}
+
+
+
+static inline struct _mulle_objc_object *
    _mulle_objc_infraclass_get_singleton( struct _mulle_objc_infraclass *infra)
 {
-   return( _mulle_atomic_pointer_read( &infra->singleton.pointer));
+   return( _mulle_objc_infraclass_get_placeholder( infra,
+                                                   MULLE_OBJC_INFRACLASS_SINGLETON_INDEX));
 }
 
 
 // 1: it has worked, 0: someone else was faster
 static inline int
    _mulle_objc_infraclass_set_singleton( struct _mulle_objc_infraclass *infra,
-                                              struct _mulle_objc_object *obj)
+                                         struct _mulle_objc_object *obj)
 {
-   if( ! obj)
-      return( 0);
-   return( _mulle_atomic_pointer_cas( &infra->singleton.pointer,
-                                      obj,
-                                      NULL));
+   return( _mulle_objc_infraclass_set_placeholder( infra,
+                                                   MULLE_OBJC_INFRACLASS_SINGLETON_INDEX,
+                                                   obj));
 }
+
+
+static inline struct _mulle_objc_object *
+   _mulle_objc_infraclass_get_classcluster( struct _mulle_objc_infraclass *infra)
+{
+   return( _mulle_objc_infraclass_get_placeholder( infra,
+                                                   MULLE_OBJC_INFRACLASS_CLASSCLUSTER_INDEX));
+}
+
+
+// 1: it has worked, 0: someone else was faster
+static inline int
+   _mulle_objc_infraclass_set_classcluster( struct _mulle_objc_infraclass *infra,
+                                            struct _mulle_objc_object *obj)
+{
+   return( _mulle_objc_infraclass_set_placeholder( infra,
+                                                   MULLE_OBJC_INFRACLASS_CLASSCLUSTER_INDEX,
+                                                   obj));
+}
+
 
 //
 // version is kept in the infraclass
