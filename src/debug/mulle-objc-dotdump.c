@@ -76,7 +76,6 @@ static char   *dot_filename_for_name( char *name, char *directory)
 }
 
 
-
 //
 // just don't output stuff with ampersands for now
 // What is this used for ? (apparently the debugger ?)
@@ -295,16 +294,44 @@ static char  *mulle_objc_loadcategorylist_describe_row_html( intptr_t classid, v
 }
 
 
+enum dump_info_show
+{
+   SHOW_FILELINK         = 0x000001,
+   SHOW_UNIVERSE         = 0x000002,
+   SHOW_INFRACLASS       = 0x000004,
+   SHOW_METACLASS        = 0x000008,
+   SHOW_SUPERCLASS       = 0x000010,
+   SHOW_METHODLISTS      = 0x000020,
+   SHOW_PROTOCOLCLASSES  = 0x000040,
+   SHOW_SELECTORS        = 0x000080,
+   SHOW_SUPERS           = 0x000100,
+   SHOW_PROTOCOLS        = 0x000200,
+   SHOW_CATEGORIES       = 0x000400,
+   SHOW_STRINGS          = 0x000800,
+   SHOW_FASTCLASSES      = 0x001000,
+   SHOW_CLASSES          = 0x002000,
+   SHOW_CLASSESTOLOAD    = 0x004000,
+   SHOW_CACHE            = 0x008000,
+   SHOW_CLASSFIELDS      = 0x010000,
+   SHOW_METHODLISTFIELDS = 0x020000,
+   SHOW_CLASSPAIR        = 0x040000,
+   SHOW_IVARLIST         = 0x080000,
+   SHOW_PROPERTYLIST     = 0x100000,
+   SHOW_ALL              = ~0,
+   SHOW_DEFAULT          = SHOW_ALL ^ (SHOW_STRINGS|SHOW_SELECTORS)
+};
+
+
 struct dump_info
 {
-   c_set  set;
-   FILE   *fp;
-   char   *directory;
-   char   create_hyperlink;
-   char   protocolclasses_as_hyperlink;
-   char   universe_as_hyperlink;
-   char   draw_strings;  // usually boring
-   char   omit_selectors;  // boring for movies
+   c_set          set;
+   FILE           *fp;
+   char           *directory;
+
+   char           create_hyperlink;
+   char           protocolclasses_as_hyperlink;
+   char           universe_as_hyperlink;
+   unsigned long  show;
 };
 
 
@@ -323,7 +350,7 @@ static void   print_universe( struct _mulle_objc_universe *universe,
                       info->directory);
    free( label);
 
-   if( ! info->omit_selectors)
+   if( info->show & SHOW_SELECTORS)
       if( mulle_concurrent_hashmap_count( &universe->descriptortable))
       {
          fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"descriptortable\" ];\n",
@@ -337,46 +364,49 @@ static void   print_universe( struct _mulle_objc_universe *universe,
          free( label);
       }
 
-   if( mulle_concurrent_hashmap_count( &universe->protocoltable))
-   {
-      fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"protocoltable\" ];\n",
-              universe, &universe->protocoltable);
+   if( info->show & SHOW_PROTOCOLS)
+      if( mulle_concurrent_hashmap_count( &universe->protocoltable))
+      {
+         fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"protocoltable\" ];\n",
+                 universe, &universe->protocoltable);
 
-      label = mulle_concurrent_hashmap_describe_html( &universe->protocoltable,
-                                                      mulle_objc_protocol_describe_row_html,
-                                                      &protocoltable_style);
-      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
-              &universe->protocoltable, label, "box");
-      free( label);
-   }
+         label = mulle_concurrent_hashmap_describe_html( &universe->protocoltable,
+                                                         mulle_objc_protocol_describe_row_html,
+                                                         &protocoltable_style);
+         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
+                 &universe->protocoltable, label, "box");
+         free( label);
+      }
 
-   if( mulle_concurrent_hashmap_count( &universe->categorytable))
-   {
-      fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"categorytable\" ];\n",
-              universe, &universe->categorytable);
+   if( info->show & SHOW_CATEGORIES)
+      if( mulle_concurrent_hashmap_count( &universe->categorytable))
+      {
+         fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"categorytable\" ];\n",
+                 universe, &universe->categorytable);
 
-      label = mulle_concurrent_hashmap_describe_html( &universe->categorytable,
-                                                      mulle_objc_category_describe_row_html,
-                                                      &categorytable_style);
-      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
-              &universe->categorytable, label, "box");
-      free( label);
-   }
+         label = mulle_concurrent_hashmap_describe_html( &universe->categorytable,
+                                                         mulle_objc_category_describe_row_html,
+                                                         &categorytable_style);
+         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
+                 &universe->categorytable, label, "box");
+         free( label);
+      }
 
-   if( mulle_concurrent_hashmap_count( &universe->supertable))
-   {
-      fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"supertable\" ];\n",
-              universe, &universe->supertable);
+   if( info->show & SHOW_SUPERS)
+      if( mulle_concurrent_hashmap_count( &universe->supertable))
+      {
+         fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"supertable\" ];\n",
+                 universe, &universe->supertable);
 
-      label = mulle_concurrent_hashmap_describe_html( &universe->supertable,
-                                                      mulle_objc_super_describe_row_html,
-                                                      &supertable_style);
-      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
-              &universe->supertable, label, "box");
-      free( label);
-   }
+         label = mulle_concurrent_hashmap_describe_html( &universe->supertable,
+                                                         mulle_objc_super_describe_row_html,
+                                                         &supertable_style);
+         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
+                 &universe->supertable, label, "box");
+         free( label);
+      }
 
-   if( info->draw_strings)
+   if( info->show & SHOW_STRINGS)
       if( mulle_concurrent_pointerarray_get_count( &universe->staticstrings))
       {
          label = mulle_concurrent_pointerarray_describe_html( &universe->staticstrings,
@@ -390,6 +420,7 @@ static void   print_universe( struct _mulle_objc_universe *universe,
          free( label);
       }
 
+   if( info->show & SHOW_FASTCLASSES)
    {
       for( i = 0; i < MULLE_OBJC_S_FASTCLASSES; i++)
       {
@@ -411,19 +442,21 @@ static void   print_universe( struct _mulle_objc_universe *universe,
       }
    }
 
-   if( mulle_concurrent_hashmap_count( &universe->classtable))
-   {
-      fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"classes\" ];\n",
-              universe, &universe->classtable);
+   if( info->show & SHOW_CLASSES)
+      if( mulle_concurrent_hashmap_count( &universe->classtable))
+      {
+         fprintf( info->fp, "\"%p\" -> \"%p\" [ label=\"classes\" ];\n",
+                 universe, &universe->classtable);
 
-      label = mulle_concurrent_hashmap_describe_html( &universe->classtable,
-                                                      mulle_objc_infraclass_describe_row_html,
-                                                      &classtable_style);
-      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
-              &universe->classtable, label, "box");
-      free( label);
-   }
+         label = mulle_concurrent_hashmap_describe_html( &universe->classtable,
+                                                         mulle_objc_infraclass_describe_row_html,
+                                                         &classtable_style);
+         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\" ];\n",
+                 &universe->classtable, label, "box");
+         free( label);
+      }
 
+   if( info->show & SHOW_CLASSESTOLOAD)
    {
       if( mulle_concurrent_hashmap_count( &universe->waitqueues.classestoload))
       {
@@ -473,36 +506,116 @@ static void   print_hyper_universe( struct _mulle_objc_universe *universe,
 static void   print_infraclass( struct _mulle_objc_infraclass *infra,
                                 struct dump_info *info);
 static void   print_metaclass( struct _mulle_objc_metaclass *meta,
-                              struct dump_info *info);
+                               struct dump_info *info);
 static void   print_hyper_infraclass( struct _mulle_objc_infraclass *infra,
                                       struct dump_info *info);
 
 extern char   *_mulle_objc_grapviz_html_header_description( char *name, int is_meta);
 
+
+static void   print_protocolclasses( struct _mulle_objc_class *cls,
+                                     struct dump_info *info)
+{
+   struct _mulle_objc_protocolclassenumerator       rover;
+   struct _mulle_objc_infraclass                    *prop_cls;
+   unsigned int                                     i;
+   struct _mulle_objc_classpair                     *pair;
+
+   i     = 0;
+   pair  = _mulle_objc_class_get_classpair( cls);
+   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
+   while( prop_cls = _mulle_objc_protocolclassenumerator_next( &rover))
+   {
+      fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"protocol class #%u\" ];\n",
+              cls, prop_cls, i++);
+
+      if( ! c_set_member( &info->set, prop_cls))
+      {
+         c_set_add( &info->set, prop_cls);
+         if( info->protocolclasses_as_hyperlink)
+            print_hyper_infraclass( prop_cls, info);
+         else
+         {
+            print_infraclass( prop_cls, info);
+            print_metaclass( _mulle_objc_infraclass_get_metaclass( prop_cls), info);
+         }
+      }
+   }
+   _mulle_objc_protocolclassenumerator_done( &rover);
+}
+
+
+static void   print_methodlists( struct _mulle_objc_class *cls,
+                                 struct dump_info *info)
+{
+   unsigned int                                     i;
+   struct mulle_concurrent_pointerarrayenumerator   rover;
+   struct _mulle_objc_methodlist                    *methodlist;
+   struct _mulle_objc_universe                      *universe;
+   char                                             *label;
+
+   universe = _mulle_objc_class_get_universe( cls);
+
+   i = 0;
+   rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
+   while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   {
+      if( methodlist->n_methods)
+      {
+         fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"methodlist #%d\" ];\n",
+                  cls, methodlist, i++);
+
+         label = mulle_objc_methodlist_describe_html( methodlist,
+                                                      universe,
+                                                      info->show & SHOW_METHODLISTFIELDS,
+                                                      &methodlist_style);
+         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", methodlist, label);
+         free( label);
+      }
+   }
+   mulle_concurrent_pointerarrayenumerator_done( &rover);
+}
+
+
+static void   print_cache( struct _mulle_objc_class *cls,
+                           struct dump_info *info)
+{
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_universe     *universe;
+   char                            *label;
+
+   universe = _mulle_objc_class_get_universe( cls);
+
+   cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
+   if( _mulle_atomic_pointer_nonatomic_read( &cache->n))
+   {
+      fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
+              cls, cache);
+
+      label = mulle_objc_cache_describe_html( cache, universe, &cachetable_style);
+      fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", cache, label);
+      free( label);
+   }
+}
+
+
+
 static void   print_class( struct _mulle_objc_class *cls,
                            struct dump_info *info,
                            int is_meta)
 {
-   char                                             *label;
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   struct _mulle_objc_cache                         *cache;
-   struct _mulle_objc_class                         *superclass;
-   struct _mulle_objc_classpair                     *pair;
-   struct _mulle_objc_infraclass                    *infra;
-   struct _mulle_objc_metaclass                     *meta;
-   struct _mulle_objc_methodlist                    *methodlist;
-   struct _mulle_objc_universe                      *universe;
-   unsigned int                                     i;
-   struct _mulle_objc_htmltablestyle                style;
+   char                                *label;
+   struct _mulle_objc_classpair        *pair;
+   struct _mulle_objc_htmltablestyle   style;
 
    style       = is_meta ? metaclass_style : infraclass_style;
    style.title = cls->name;
 
-   label = mulle_objc_class_describe_html( cls, &style);
+   label = mulle_objc_class_describe_html( cls, info->show & SHOW_CLASSFIELDS, &style);
    fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"%s\"", cls, label, is_meta ? "component" : "box");
    free( label);
 
-   // always create this, what's the harm
+   if( info->show & SHOW_FILELINK)
    {
       //
       // graphviz seemingly can only open absolute path links.
@@ -520,94 +633,65 @@ static void   print_class( struct _mulle_objc_class *cls,
    }
    fprintf( info->fp, " ];\n");
 
-   universe = _mulle_objc_class_get_universe( cls);
-   if( universe)
-      fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"universe\" ];\n", cls,  _mulle_objc_class_get_universe( cls));
-
-   // meta superclass is boring
-   if( ! is_meta)
+   if( info->show & SHOW_UNIVERSE)
    {
-      superclass = _mulle_objc_class_get_superclass( cls);
-      if( superclass)
-         fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"super\"; penwidth=\"%d\" ];\n", cls, superclass,
-                 _mulle_objc_class_is_infraclass( cls)
-                 ? 3 : 1);
+      struct _mulle_objc_universe   *universe;
+
+      universe = _mulle_objc_class_get_universe( cls);
+      if( universe)
+         fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"universe\" ];\n",
+                     cls,
+                     _mulle_objc_class_get_universe( cls));
    }
 
+   // meta superclass is boring
+   if( info->show & SHOW_SUPERCLASS)
+      if( ! is_meta)
+      {
+         struct _mulle_objc_class   *superclass;
+
+         superclass = _mulle_objc_class_get_superclass( cls);
+         if( superclass)
+            fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"super\"; penwidth=\"%d\" ];\n", cls, superclass,
+                    _mulle_objc_class_is_infraclass( cls)
+                    ? 3 : 1);
+      }
+
+   if( info->show & SHOW_METACLASS)
    {
+      struct _mulle_objc_metaclass   *meta;
+
       meta = _mulle_objc_class_get_metaclass( cls);
       if( meta)
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"meta\"; color=\"goldenrod\"; fontcolor=\"goldenrod\" ];\n", cls, meta);
    }
 
+   if( info->show & SHOW_INFRACLASS)
    {
+      struct _mulle_objc_infraclass   *infra;
+
       infra = _mulle_objc_class_get_infraclass( cls);
       if( infra)
          fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"infra\"; color=\"blue\"; fontcolor=\"blue\" ];\n", cls, infra);
    }
 
+   if( info->show & SHOW_PROTOCOLCLASSES)
    {
       if( ! (_mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
       {
-         struct _mulle_objc_protocolclassenumerator  rover;
-         struct _mulle_objc_infraclass               *prop_cls;
-
-         i     = 0;
-         pair  = _mulle_objc_class_get_classpair( cls);
-         rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-         while( prop_cls = _mulle_objc_protocolclassenumerator_next( &rover))
-         {
-            fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"protocol class #%u\" ];\n",
-                    cls, prop_cls, i++);
-
-            if( ! c_set_member( &info->set, prop_cls))
-            {
-               c_set_add( &info->set, prop_cls);
-               if( info->protocolclasses_as_hyperlink)
-                  print_hyper_infraclass( prop_cls, info);
-               else
-               {
-                  print_infraclass( prop_cls, info);
-                  print_metaclass( _mulle_objc_infraclass_get_metaclass( prop_cls), info);
-               }
-            }
-         }
-         _mulle_objc_protocolclassenumerator_done( &rover);
+         print_protocolclasses( cls, info);
+         fprintf( info->fp, "\n\n");
       }
-      fprintf( info->fp, "\n\n");
    }
 
+   if( info->show & SHOW_METHODLISTS)
    {
-      i = 0;
-      rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
-      while( methodlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
-      {
-         if( methodlist->n_methods)
-         {
-            fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"methodlist #%d\" ];\n",
-                    cls, methodlist, i++);
-
-            label = mulle_objc_methodlist_describe_html( methodlist,
-                                                            universe,
-                                                            &methodlist_style);
-            fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", methodlist, label);
-            free( label);
-         }
-      }
-      mulle_concurrent_pointerarrayenumerator_done( &rover);
+      print_methodlists( cls, info);
    }
 
+   if( info->show & SHOW_CACHE)
    {
-      cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
-      if( _mulle_atomic_pointer_nonatomic_read( &cache->n))
-      {
-         fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"cache\" ];\n",
-                 cls, cache);
-
-         label = mulle_objc_cache_describe_html( cache, universe, &cachetable_style);
-         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", cache, label);
-         free( label);
-      }
+      print_cache( cls, info);
    }
 }
 
@@ -661,41 +745,48 @@ static void   print_infraclass( struct _mulle_objc_infraclass *infra,
 
    print_class( _mulle_objc_infraclass_as_class( infra), info, 0);
 
-   i = 0;
-   rover = mulle_concurrent_pointerarray_enumerate( &infra->ivarlists);
-   while( ivarlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   if( info->show & SHOW_IVARLIST)
    {
-      if( ivarlist->n_ivars)
+      i = 0;
+      rover = mulle_concurrent_pointerarray_enumerate( &infra->ivarlists);
+      while( ivarlist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
       {
-         fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"ivarlist #%d\" ];\n",
-                 infra, ivarlist, i++);
+         if( ivarlist->n_ivars)
+         {
+            fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"ivarlist #%d\" ];\n",
+                    infra, ivarlist, i++);
 
-         label = mulle_objc_ivarlist_describe_html( ivarlist, &ivarlist_style);
-         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", ivarlist, label);
-         free( label);
+            label = mulle_objc_ivarlist_describe_html( ivarlist, &ivarlist_style);
+            fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", ivarlist, label);
+            free( label);
+         }
       }
+      mulle_concurrent_pointerarrayenumerator_done( &rover);
    }
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
 
-   i = 0;
-   rover = mulle_concurrent_pointerarray_enumerate( &infra->propertylists);
-   while( propertylist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   if( info->show & SHOW_PROPERTYLIST)
    {
-      if( propertylist->n_properties)
+      i = 0;
+      rover = mulle_concurrent_pointerarray_enumerate( &infra->propertylists);
+      while( propertylist = _mulle_concurrent_pointerarrayenumerator_next( &rover))
       {
-         fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"propertylist #%d\" ];\n",
-                 infra, propertylist, i++);
+         if( propertylist->n_properties)
+         {
+            fprintf( info->fp, "\"%p\" -> \"%p\"  [ label=\"propertylist #%d\" ];\n",
+                    infra, propertylist, i++);
 
-         label = mulle_objc_propertylist_describe_html( propertylist, &propertylist_style);
-         fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", propertylist, label);
-         free( label);
+            label = mulle_objc_propertylist_describe_html( propertylist, &propertylist_style);
+            fprintf( info->fp, "\"%p\" [ label=<%s>, shape=\"none\" ];\n", propertylist, label);
+            free( label);
+         }
       }
+      mulle_concurrent_pointerarrayenumerator_done( &rover);
    }
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
 
-   print_classpair( _mulle_objc_infraclass_get_classpair( infra),
-                    _mulle_objc_infraclass_as_class( infra),
-                    info);
+   if( info->show & SHOW_CLASSPAIR)
+      print_classpair( _mulle_objc_infraclass_get_classpair( infra),
+                       _mulle_objc_infraclass_as_class( infra),
+                       info);
 }
 
 
@@ -733,9 +824,10 @@ static void   print_metaclass( struct _mulle_objc_metaclass *meta,
 {
    print_class( _mulle_objc_metaclass_as_class( meta), info, 1);
 
-   print_classpair( _mulle_objc_metaclass_get_classpair( meta),
-                    _mulle_objc_metaclass_as_class( meta),
-                    info);
+   if( info->show & SHOW_CLASSPAIR)
+      print_classpair( _mulle_objc_metaclass_get_classpair( meta),
+                       _mulle_objc_metaclass_as_class( meta),
+                       info);
 }
 
 
@@ -802,7 +894,6 @@ static mulle_objc_walkcommand_t   callback( struct _mulle_objc_universe *univers
 
 # pragma mark - class dump
 
-
 static void   _mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
                                                  char *directory,
                                                  char *filename)
@@ -826,6 +917,7 @@ static void   _mulle_objc_class_dotdump_to_file( struct _mulle_objc_class *cls,
    info.fp        = fp;
    info.directory = directory;
 
+   info.show                         = SHOW_DEFAULT;
    info.protocolclasses_as_hyperlink = 1;
    info.universe_as_hyperlink        = 1;
 
@@ -889,6 +981,7 @@ static void
    info.fp               = fp;
    info.directory        = directory;
    info.create_hyperlink = 1;
+   info.show             = SHOW_DEFAULT;
 
    fprintf( fp, "digraph mulle_objc_universe\n{\n");
    mulle_objc_universe_walk( universe, callback, &info);
@@ -978,8 +1071,11 @@ static void   _mulle_objc_universe_dotdump_to_fp( struct _mulle_objc_universe *u
 
    info.fp             = fp;
    info.directory      = directory;
-   info.draw_strings   = (char) mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_DRAW_STRING_TABLE", 0);
-   info.omit_selectors = ! (char) mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_DRAW_SELECTOR_TABLE", 1);
+   info.show           = SHOW_DEFAULT;
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_DRAW_STRING_TABLE", 0))
+      info.show |= SHOW_STRINGS;
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_DRAW_SELECTOR_TABLE", 0))
+      info.show |= SHOW_SELECTORS;
 
    fprintf( fp, "digraph mulle_objc_universe\n{\n");
    print_universe( universe, &info);
@@ -1077,4 +1173,185 @@ void
    sprintf( buf, "universe_%06d.dot", nr);
    mulle_objc_universe_dotdump_to_file( universe, directory, buf, 0);
 }
+
+
+/*
+ * Hierarchy dumper. Dump a class and all superclasses and protocol classes
+ */
+struct print_hierarchy_info
+{
+   struct c_set               *class_set;
+   FILE                       *fp;
+
+   struct _mulle_objc_class   *other;
+   char                       *relationship;
+   int                        counter;
+   char                       is_meta;
+};
+
+
+static inline void   print_hierarchy_info_init( struct print_hierarchy_info *info,
+                                                struct _mulle_objc_class   *other,
+                                                char *relationship,
+                                                struct c_set *set,
+                                                FILE *fp)
+{
+
+   info->other        = other;
+   info->counter      = 0;
+   info->is_meta      = 0;
+   info->fp           = fp;
+   info->relationship = relationship;
+   info->class_set    = set;
+}
+
+
+static mulle_objc_walkcommand_t
+   print_hierarchy_classpair( struct _mulle_objc_infraclass *infra,
+                              struct _mulle_objc_classpair *pair,
+                              void *userinfo);
+
+static void   print_hierarchy( void *value, void *userinfo)
+{
+   struct _mulle_objc_class       *cls  = value;
+   struct print_hierarchy_info    *info = userinfo;
+   FILE                           *fp   = info->fp;
+   struct _mulle_objc_classpair   *pair;
+   struct _mulle_objc_class       *supercls;
+   struct dump_info               dumpinfo;
+
+   /* output each class only once */
+   if( c_set_member( info->class_set, cls))
+      return;
+   c_set_add( info->class_set, cls);
+
+   /*
+    * Dump super classes
+    */
+   supercls = _mulle_objc_class_get_superclass( cls);
+   if( supercls)
+   {
+      struct  print_hierarchy_info   subinfo;
+
+      // wrap around to root infra for meta, but not if cls is a protocolclass
+      if( _mulle_objc_class_is_metaclass( supercls) == info->is_meta
+          || (info->is_meta
+              && _mulle_objc_class_get_superclass( supercls) == NULL
+              && ! mulle_objc_infraclass_is_protocolclass( _mulle_objc_class_get_infraclass( cls))))
+      {
+         print_hierarchy_info_init( &subinfo, cls, "superclass", info->class_set, info->fp);
+         subinfo.is_meta = info->is_meta;
+         print_hierarchy( supercls, &subinfo);
+      }
+   }
+
+   /*
+    * Dump protocol classes
+    */
+   {
+      struct  print_hierarchy_info   subinfo;
+
+      print_hierarchy_info_init( &subinfo, cls, "protocolclass", info->class_set, info->fp);
+      subinfo.counter = 1;
+      subinfo.is_meta = info->is_meta;
+
+      pair = _mulle_objc_class_get_classpair( cls);
+      _mulle_objc_classpair_walk_protocolclasses( pair, 0, print_hierarchy_classpair, &subinfo);
+   }
+
+   /*
+    * Finally class itself. Will then hopefully be at the bottom
+    * in Graphviz
+    */
+   memset( &dumpinfo, 0, sizeof( dumpinfo));
+
+   dumpinfo.fp   = info->fp;
+   dumpinfo.show = SHOW_METHODLISTS|SHOW_PROPERTYLIST;
+
+   if( _mulle_objc_class_is_metaclass( cls))
+      print_metaclass( _mulle_objc_class_as_metaclass( cls), &dumpinfo);
+   else
+      print_infraclass( _mulle_objc_class_as_infraclass( cls), &dumpinfo);
+
+   if( info->other)
+   {
+      if( info->counter)
+      {
+         fprintf( fp, "   \"%p\" -> \"%p\" [ label=\" %s #%d\" dir=\"back\" ]\n",
+                     cls,
+                     info->other,
+                     info->relationship,
+                     info->counter - 1);
+         ++info->counter;
+      }
+      else
+         fprintf( fp, "    \"%p\" -> \"%p\" [ label=\" %s\" dir=\"back\" ]\n",
+                     cls,
+                     info->other,
+                     info->relationship);
+   }
+}
+
+
+static mulle_objc_walkcommand_t
+   print_hierarchy_classpair( struct _mulle_objc_infraclass *infra,
+                              struct _mulle_objc_classpair *pair,
+                              void *userinfo)
+{
+   struct print_hierarchy_info    *info = userinfo;
+   struct _mulle_objc_metaclass   *meta;
+
+   if( info->is_meta)
+   {
+      meta = _mulle_objc_infraclass_get_metaclass( infra);
+      print_hierarchy( _mulle_objc_metaclass_as_class( meta), userinfo);
+   }
+   else
+      print_hierarchy( _mulle_objc_infraclass_as_class( infra), userinfo);
+   return( mulle_objc_walk_ok);
+}
+
+
+void   mulle_objc_classhierarchy_dotdump_to_stream( struct _mulle_objc_class *cls,
+                                                    FILE *fp)
+{
+   struct print_hierarchy_info   info;
+   struct c_set                  set;
+
+   if( ! cls)
+      return;
+
+   if( ! fp)
+      fp = stdout;
+
+   fprintf( fp, "digraph mulle_classhierarchy\n{\n");
+
+   c_set_init( &set);
+
+   print_hierarchy_info_init( &info, NULL, NULL, &set, fp);
+
+   info.is_meta = _mulle_objc_class_is_metaclass( cls);
+   print_hierarchy( cls, &info);
+
+   c_set_done( &set);
+
+   fprintf( fp, "}\n");
+}
+
+
+void   mulle_objc_classhierarchy_dotdump_to_file( struct _mulle_objc_class *cls,
+                                                  char *filename)
+{
+   FILE   *fp;
+
+   fp = fopen( filename, "w");
+   if( ! fp)
+   {
+      perror( "fopen:");
+      return;
+   }
+   mulle_objc_classhierarchy_dotdump_to_stream( cls, fp);
+   fclose( fp);
+}
+
 

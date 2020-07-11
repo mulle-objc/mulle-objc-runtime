@@ -43,7 +43,7 @@
 
 // this is an older version of _mulle_pointerset
 
-typedef struct
+typedef struct c_set
 {
    unsigned int   n;
    void           **storage;
@@ -92,11 +92,11 @@ static void   *voidptr_bsearch( void **buf,
    int    last;
    int    middle;
    void   *p;
-   
+
    first  = 0;
    last   = n - 1;
    middle = (first + last) / 2;
-   
+
    while( first <= last)
    {
       p = buf[ middle];
@@ -104,15 +104,15 @@ static void   *voidptr_bsearch( void **buf,
       {
          if( (uintptr_t) p == (uintptr_t) search)
             return( p);
-         
+
          first = middle + 1;
       }
       else
          last = middle - 1;
- 
+
       middle = (first + last) / 2;
    }
-   
+
    return( NULL);
 }
 
@@ -120,10 +120,10 @@ static void   *voidptr_bsearch( void **buf,
 static void   *c_set_member2( c_set *set, void *p)
 {
    void  **result;
-   
+
    if( ! set->n)
       return( NULL);
-   
+
    if( ! set->sorted)
    {
       qsort( set->storage, set->n, sizeof( void *), (int (*)()) _pointer_compare);
