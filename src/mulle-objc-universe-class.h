@@ -99,7 +99,7 @@ static inline struct _mulle_objc_infraclass *
 //
 struct _mulle_objc_infraclass *
     _mulle_objc_universe_lookup_infraclass_nocache_nofast( struct _mulle_objc_universe *universe,
-                                                    mulle_objc_classid_t classid);
+                                                           mulle_objc_classid_t classid);
 
 //
 // this looks through the uncached classtable, if nothing is found
@@ -198,6 +198,16 @@ struct _mulle_objc_infraclass  *
     _mulle_objc_universe_lookup_infraclass( struct _mulle_objc_universe *universe,
                                             mulle_objc_classid_t classid);
 
+static inline struct _mulle_objc_infraclass  *
+    mulle_objc_universe_lookup_infraclass( struct _mulle_objc_universe *universe,
+                                           mulle_objc_classid_t classid)
+{
+   if( ! universe)
+      return( NULL);
+   return( _mulle_objc_universe_lookup_infraclass( universe, classid));
+}
+
+
 MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass  *
     mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid);
@@ -247,5 +257,6 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
 
 // do not use, it's used by compat
 void    _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *universe);
+
 
 #endif
