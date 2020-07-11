@@ -37,7 +37,9 @@
 #define mulle_objc_class_search_h__
 
 #include "mulle-objc-uniqueid.h"
+#include "mulle-objc-class.h"
 #include "mulle-objc-method.h"
+#include "mulle-objc-methodlist.h"
 
 #include "include.h"
 #include <assert.h>
@@ -337,6 +339,22 @@ struct _mulle_objc_searchresult
    struct _mulle_objc_method      *method;   // method
    int                            error;
 };
+
+
+static inline mulle_objc_categoryid_t
+   mulle_objc_searchresult_get_categoryid( struct _mulle_objc_searchresult *p)
+{
+   return( p ? mulle_objc_methodlist_get_categoryid( p->list) : MULLE_OBJC_NO_CATEGORYID);
+}
+
+
+static inline mulle_objc_classid_t
+   mulle_objc_searchresult_get_classid( struct _mulle_objc_searchresult *p)
+{
+   return( p ? mulle_objc_class_get_classid( p->class) : MULLE_OBJC_NO_CLASSID);
+}
+
+
 
 
 //

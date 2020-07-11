@@ -716,8 +716,8 @@ mulle_objc_walkcommand_t
 # pragma mark - protocolclass check
 
 //
-// must be root, must conform to own protocol, must not have ivars
-// must not conform to other protocols (it's tempting to conform to NSObject)
+// Checks that infra must be root, must conform to own protocol, must not have
+// ivars must not conform to other protocols (it's tempting to conform to NSObject)
 // If you conform to NSObject, NSObject methods will override your superclass(!)
 //
 static int   _mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra,
@@ -762,7 +762,6 @@ static int   _mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infracl
    }
 
    pair = _mulle_objc_infraclass_get_classpair( infra);
-
    if( ! _mulle_objc_classpair_conformsto_protocolid( pair,
                                                      _mulle_objc_infraclass_get_classid( infra)))
    {
@@ -833,15 +832,11 @@ static int   _mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infracl
    return( 1);
 }
 
-
+// see _mulle_objc_infraclass_is_protocolclass, this
 int   mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_universe   *universe;
-
    if( ! infra)
       return( 0);
-
-   universe = _mulle_objc_infraclass_get_universe( infra);
    return( _mulle_objc_infraclass_is_protocolclass( infra, 0));
 }
 
