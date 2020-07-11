@@ -646,8 +646,8 @@ mulle_objc_implementation_t
 # pragma mark - trace method
 
 void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
-                                    mulle_objc_methodid_t methodid,
                                     void *obj,
+                                    mulle_objc_methodid_t methodid,
                                     void *parameter,
                                     mulle_objc_implementation_t imp)
 {
@@ -729,10 +729,11 @@ MULLE_C_NEVER_INLINE static void *
 {
    mulle_objc_implementation_t   imp;
    struct _mulle_objc_universe   *universe;
+
    imp      = _mulle_objc_class_lookup_implementation_nofail( cls, methodid);
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.method_call)
-      mulle_objc_class_trace_call( cls, methodid, obj, parameter, imp);
+      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
    /*->*/
    return( (*imp)( obj, methodid, parameter));
 }
@@ -1237,8 +1238,8 @@ static void
    imp   = _mulle_objc_method_get_implementation( initialize);
    if( universe->debug.trace.method_call)
       mulle_objc_class_trace_call( &infra->base,
-                                   MULLE_OBJC_INITIALIZE_METHODID,
                                    infra,
+                                   MULLE_OBJC_INITIALIZE_METHODID,
                                    NULL,
                                    imp);
    (*imp)( (struct _mulle_objc_object *) infra,

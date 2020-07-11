@@ -355,8 +355,8 @@ struct _mulle_objc_cacheentry   *
 
 
 void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
-                                    mulle_objc_methodid_t methodid,
                                     void *obj,
+                                    mulle_objc_methodid_t methodid,
                                     void *parameter,
                                     mulle_objc_implementation_t imp);
 
