@@ -1,6 +1,6 @@
 signature="v40@0:8*16Q24^v32"
 number of types = 6
-metaabi param type = _param
+metaabi param type = struct {...} *
 metaabi return type = void
 #0 = v40
 #1 = @0
@@ -147,7 +147,7 @@ number of types = 4
 
 signature="@"MulleScionObject"40@0:8@"<MulleScionOutput>"16@"NSMutableDictionary"24@"<MulleScionDataSource>"32"
 number of types = 6
-metaabi param type = _param
+metaabi param type = struct {...} *
 metaabi return type = void *
 #0 = @"MulleScionObject"40
 #1 = @0
@@ -211,7 +211,7 @@ number of types = 6
 
 signature="@28@0:8i16@?<v@?>20"
 number of types = 5
-metaabi param type = _param
+metaabi param type = struct {...} *
 metaabi return type = void *
 #0 = @28
 #1 = @0
@@ -266,7 +266,7 @@ number of types = 5
 
 signature="i28@0:8q16f24"
 number of types = 5
-metaabi param type = _param
+metaabi param type = struct {...} *
 metaabi return type = void *
 #0 = i28
 #1 = @0
