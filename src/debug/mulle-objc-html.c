@@ -52,6 +52,11 @@ static char   *html_escape( char *s)
    return( "bad-html");
 }
 
+static int   qsort_strcmp( const void * s1, const void * s2)
+{
+    return( strcmp( *(char **) s1, *(char **) s2));
+}
+
 //
 // have my own, because asprintf is a gnu extension, whereas
 // vsnprintf should be C99. Use malloc because that's what vsprintf does
@@ -396,11 +401,12 @@ char   *mulle_objc_class_describe_html_tiny( struct _mulle_objc_class *cls,
 
 
 char   *mulle_objc_class_describe_html( struct _mulle_objc_class *cls,
+                                        int show_fields,
                                         struct _mulle_objc_htmltablestyle *styling)
 {
-   char           *s;
-   char           *tmp[ 7];
-   unsigned int   i;
+   char                               *s;
+   char                               *tmp[ 7];
+   unsigned int                       i;
    struct _mulle_objc_htmltablestyle  style;
 
    style       = *styling;
@@ -412,35 +418,37 @@ char   *mulle_objc_class_describe_html( struct _mulle_objc_class *cls,
    // fummel for graphviz
    asprintf_table_header( &tmp[ i++], &style);
 
-   asprintf( &tmp[ i++],
-            "<TR><TD>allocationsize</TD><TD>%lu</TD></TR>\n",
-            cls->allocationsize);
-
-   s = inheritance_description( _mulle_objc_class_get_inheritance( cls));
-   asprintf( &tmp[ i++],
-            "<TR><TD>inheritance</TD><TD>%s</TD></TR>\n",
-            s);
-
-   free( s);
-
-   asprintf( &tmp[ i++],
-            "<TR><TD>state</TD><TD>0x%lx</TD></TR>\n",
-            (long) _mulle_atomic_pointer_nonatomic_read( &cls->state));
-
-   if ( _mulle_objc_class_is_infraclass( cls))
+   if( show_fields)
    {
-      struct _mulle_objc_infraclass   *infra;
-
-      infra = _mulle_objc_class_as_infraclass( cls);
       asprintf( &tmp[ i++],
-               "<TR><TD>ivarhash</TD><TD>0x%lx</TD></TR>\n",
-               (long) infra->ivarhash);
+               "<TR><TD>allocationsize</TD><TD>%lu</TD></TR>\n",
+               cls->allocationsize);
+
+      s = inheritance_description( _mulle_objc_class_get_inheritance( cls));
+      asprintf( &tmp[ i++],
+               "<TR><TD>inheritance</TD><TD>%s</TD></TR>\n",
+               s);
+
+      free( s);
+
+      asprintf( &tmp[ i++],
+               "<TR><TD>state</TD><TD>0x%lx</TD></TR>\n",
+               (long) _mulle_atomic_pointer_nonatomic_read( &cls->state));
+
+      if ( _mulle_objc_class_is_infraclass( cls))
+      {
+         struct _mulle_objc_infraclass   *infra;
+
+         infra = _mulle_objc_class_as_infraclass( cls);
+         asprintf( &tmp[ i++],
+                  "<TR><TD>ivarhash</TD><TD>0x%lx</TD></TR>\n",
+                  (long) infra->ivarhash);
+      }
+
+      asprintf( &tmp[ i++],
+               "<TR><TD>preloads</TD><TD>0x%x</TD></TR>\n",
+               cls->preloads);
    }
-
-   asprintf( &tmp[ i++],
-            "<TR><TD>preloads</TD><TD>0x%x</TD></TR>\n",
-            cls->preloads);
-
    asprintf( &tmp[ i++],
             "</TABLE>");
 
@@ -460,6 +468,7 @@ char   *mulle_objc_ivarlist_describe_html( struct _mulle_objc_ivarlist *list,
    unsigned int   i;
    unsigned int   j;
    unsigned int   n;
+   char           *format;
 
    n    = list->n_ivars + 2;
    tmp  = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
@@ -470,9 +479,12 @@ char   *mulle_objc_ivarlist_describe_html( struct _mulle_objc_ivarlist *list,
    len = strlen( tmp[ i]);
    ++i;
 
-   for( j = 0; j < list->n_ivars; j++)
-   {
-      asprintf( &tmp[ i], "<TR>"
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      format = "<TR>"
+               "<TD>%s</TD>"
+               "</TR>\n";
+   else
+      format = "<TR>"
                "<TD>%s</TD>"
                "<TD>"
                  "<TABLE>"
@@ -481,15 +493,23 @@ char   *mulle_objc_ivarlist_describe_html( struct _mulle_objc_ivarlist *list,
                    "<TR><TD>offset</TD><TD>%d</TD></TR>"
                  "</TABLE>"
                "</TD>"
-               "</TR>\n",
-               html_escape( list->ivars[ j].descriptor.name),
-               html_escape( list->ivars[ j].descriptor.signature),
-               (long) list->ivars[ j].descriptor.ivarid,
-               list->ivars[ j].offset);
+               "</TR>\n";
+
+   for( j = 0; j < list->n_ivars; j++)
+   {
+      asprintf( &tmp[ i],
+                format,
+                html_escape( list->ivars[ j].descriptor.name),
+                html_escape( list->ivars[ j].descriptor.signature),
+                (long) list->ivars[ j].descriptor.ivarid,
+                list->ivars[ j].offset);
 
       len += strlen( tmp[ i]);
       ++i;
    }
+
+   /* sort by name */
+   qsort( &tmp[ i - j], j, sizeof( char *), qsort_strcmp);
 
    asprintf( &tmp[ i], "</TABLE>");
    len += strlen( tmp[ i]);
@@ -509,6 +529,7 @@ char   *mulle_objc_ivarlist_describe_hor_html( struct _mulle_objc_ivarlist *list
    unsigned int   i;
    unsigned int   j;
    unsigned int   n;
+   char           *format;
 
    n   = list->n_ivars + 2;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
@@ -519,15 +540,22 @@ char   *mulle_objc_ivarlist_describe_hor_html( struct _mulle_objc_ivarlist *list
    len = strlen( tmp[ i]);
    ++i;
 
-   for( j = 0; j < list->n_ivars; j++)
-   {
-      asprintf( &tmp[ i],
-               "<TR>"
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      format = "<TR>"
+               "<TD>%s</TD>"
+               "</TR>\n";
+   else
+      format = "<TR>"
                  "<TD>%s</TD>"
                  "<TD>%s</TD>"
                  "<TD>%08x</TD>"
                  "<TD>%d</TD>"
-               "</TR>\n",
+               "</TR>\n";
+
+   for( j = 0; j < list->n_ivars; j++)
+   {
+      asprintf( &tmp[ i],
+               format,
                html_escape( list->ivars[ j].descriptor.name),
                html_escape( list->ivars[ j].descriptor.signature),
                list->ivars[ j].descriptor.ivarid,
@@ -554,16 +582,26 @@ char   *mulle_objc_descriptor_describe_html( struct _mulle_objc_descriptor *desc
 {
    char   *tmp[ 2];
    char   *th;
+   char   *format;
 
    th = styling->classprefix ? "TH" : "TD";
 
    asprintf_table_header( &tmp[ 0], styling);
+
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      format = "<TR>"
+               "<%s>%s</%s>"
+               "</TR>"
+               "</TABLE>";
+   else
+      format = "<TR><%s>name</%s><TD>%s</TD></TR>"
+               "<TR><%s>signature</%s><TD>%s</TD></TR>"
+               "<TR><%s>methodid</%s><TD>%08x</TD></TR>"
+               "<TR><%s>bits</%s><TD>0x%x</TD></TR>"
+               "</TABLE>";
+
    asprintf( &tmp[ 1],
-            "<TR><%s>name</%s><TD>%s</TD></TR>"
-            "<TR><%s>signature</%s><TD>%s</TD></TR>"
-            "<TR><%s>methodid</%s><TD>%08x</TD></TR>"
-            "<TR><%s>bits</%s><TD>0x%x</TD></TR>"
-            "</TABLE>",
+            format,
             th, th,
             html_escape( desc->name),
             th, th,
@@ -580,14 +618,22 @@ char   *mulle_objc_descriptor_describe_html( struct _mulle_objc_descriptor *desc
 char   *mulle_objc_descriptor_describe_hor_html( struct _mulle_objc_descriptor *desc)
 {
    char   *s;
+   char   *format;
 
-   asprintf( &s,
-            "<TR>"
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      format = "<TR>"
+               "<TD>%s</TD>"
+               "</TR>";
+   else
+      format =  "<TR>"
             "<TD>%s</TD>"
             "<TD>%s</TD>"
             "<TD>%08x</TD>"
             "<TD>0x%x</TD>"
-            "</TR>",
+            "</TR>";
+
+   asprintf( &s,
+            format,
             html_escape( desc->name),
             html_escape( desc->signature),
             desc->methodid,
@@ -601,20 +647,28 @@ char   *mulle_objc_descriptor_describe_row_html( intptr_t  methodid,
                                                  void *value,
                                                  struct _mulle_objc_htmltablestyle *styling)
 {
-   struct _mulle_objc_descriptor *desc = value;
-   char   *s;
+   struct _mulle_objc_descriptor    *desc = value;
+   char                             *s;
+   char                             *format;
 
-   asprintf( &s,
-            "<TR>"
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      format = "<TR>"
+               "<TD>%s</TD>"
+               "</TR>\n";
+   else
+      format =  "<TR>"
             "<TD>%s</TD>"
             "<TD>%s</TD>"
             "<TD>%08x</TD>"
             "<TD>0x%x</TD>"
-            "</TR>\n",
-            html_escape( desc->name),
-            html_escape( desc->signature),
-            desc->methodid,
-            desc->bits);
+            "</TR>\n";
+
+   asprintf( &s,
+             format,
+             html_escape( desc->name),
+             html_escape( desc->signature),
+             desc->methodid,
+             desc->bits);
 
    return( s);
 }
@@ -692,6 +746,7 @@ char   *mulle_objc_propertylist_describe_html( struct _mulle_objc_propertylist *
    unsigned int   i;
    unsigned int   j;
    unsigned int   n;
+   char           *format;
 
    n   = list->n_properties + 2;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
@@ -702,10 +757,13 @@ char   *mulle_objc_propertylist_describe_html( struct _mulle_objc_propertylist *
    len = strlen( tmp[ i]);
    ++i;
 
-   for( j = 0; j < list->n_properties; j++)
-   {
-      asprintf( &tmp[ i],
-               "<TR><TD>%s</TD>"
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      format = "<TR>"
+               "<TD>%s</TD>"
+               "</TR>\n";
+   else
+      format = "<TR>"
+               "<TD>%s</TD>"
                "<TD>"
                  "<TABLE>"
                    "<TR><TD>signature</TD><TD>%s</TD></TR>"
@@ -716,18 +774,25 @@ char   *mulle_objc_propertylist_describe_html( struct _mulle_objc_propertylist *
                    "<TR><TD>bits</TD><TD>0x%08x</TD></TR>"
                  "</TABLE>"
                "</TD>"
-               "</TR>\n",
-               html_escape( list->properties[ j].name),
-               html_escape( list->properties[ j].signature),
-               list->properties[ j].propertyid,
-               list->properties[ j].ivarid,
-               list->properties[ j].getter,
-               list->properties[ j].setter,
-               list->properties[ j].bits);
+               "</TR>\n";
+
+   for( j = 0; j < list->n_properties; j++)
+   {
+      asprintf( &tmp[ i],
+                format,
+                html_escape( list->properties[ j].name),
+                html_escape( list->properties[ j].signature),
+                list->properties[ j].propertyid,
+                list->properties[ j].ivarid,
+                list->properties[ j].getter,
+                list->properties[ j].setter,
+                list->properties[ j].bits);
 
       len += strlen( tmp[ i]);
       ++i;
    }
+
+   qsort( &tmp[ i - j], j, sizeof( char *), qsort_strcmp);
 
    asprintf( &tmp[ i], "</TABLE>");
    len += strlen( tmp[ i]);
@@ -745,12 +810,12 @@ char   *mulle_objc_cache_describe_html( struct _mulle_objc_cache *cache,
                                         struct _mulle_objc_universe *universe,
                                         struct _mulle_objc_htmltablestyle *styling)
 {
-   size_t          len;
-   char            **tmp;
-   unsigned int    i;
-   unsigned int    j;
-   unsigned int    n;
-   int             index;
+   size_t                  len;
+   char                    **tmp;
+   unsigned int            i;
+   unsigned int            j;
+   unsigned int            n;
+   int                     index;
    mulle_objc_methodid_t   sel;
 
    n   = cache->size + 3 + 2;
@@ -807,6 +872,7 @@ char   *mulle_objc_cache_describe_html( struct _mulle_objc_cache *cache,
 
 char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list,
                                              struct _mulle_objc_universe *universe,
+                                             int show_fields,
                                              struct _mulle_objc_htmltablestyle *styling)
 {
    size_t         len;
@@ -815,6 +881,8 @@ char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list
    unsigned int   j;
    unsigned int   n;
    char           buf[ s_mulle_objc_sprintf_functionpointer_buffer];
+   char           *format;
+   char           *name;
 
    n   = list->n_methods + 3;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
@@ -825,19 +893,16 @@ char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list
    len = strlen( tmp[ i]);
    ++i;
 
-
-   asprintf( &tmp[ i], "<TR><TD>owner</TD><TD>%s</TD></TR>",
-                        _mulle_objc_methodlist_get_categoryname( list));
-   len += strlen( tmp[ i]);
-   ++i;
-
-   for( j = 0; j < list->n_methods; j++)
+   name = _mulle_objc_methodlist_get_categoryname( list);
+   if( name)
    {
-      mulle_objc_sprintf_functionpointer( buf,
-         _mulle_atomic_functionpointer_nonatomic_read( &list->methods[ j].implementation));
+      asprintf( &tmp[ i], "<TR><TD>category</TD><TD>%s</TD></TR>", name);
+      len += strlen( tmp[ i]);
+      ++i;
+   }
 
-      asprintf( &tmp[ i],
-               "<TR>"
+   if( show_fields)
+      format = "<TR>"
                "<TD>%s</TD>"
                "<TD>"
                  "<TABLE>"
@@ -847,16 +912,31 @@ char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list
                    "<TR><TD>implementation</TD><TD>%s</TD></TR>"
                  "</TABLE>"
                "</TD>"
-               "</TR>\n",
-               html_escape( list->methods[ j].descriptor.name),
-               html_escape( list->methods[ j].descriptor.signature),
-               (long) list->methods[ j].descriptor.methodid,
-               list->methods[ j].descriptor.bits,
-               buf);
+               "</TR>\n";
+   else
+      format = "<TR>"
+               "<TD COLSPAN=\"2\">%s</TD>"
+               "</TR>\n";
+
+   for( j = 0; j < list->n_methods; j++)
+   {
+      mulle_objc_sprintf_functionpointer( buf,
+         _mulle_atomic_functionpointer_nonatomic_read( &list->methods[ j].implementation));
+
+      asprintf( &tmp[ i],
+                format,
+                html_escape( list->methods[ j].descriptor.name),
+                html_escape( list->methods[ j].descriptor.signature),
+                (long) list->methods[ j].descriptor.methodid,
+                list->methods[ j].descriptor.bits,
+                buf);
 
       len += strlen( tmp[ i]);
       ++i;
    }
+
+   /* sort by name */
+   qsort( &tmp[ i - j], j, sizeof( char *), qsort_strcmp);
 
    asprintf( &tmp[ i], "</TABLE>");
    len += strlen( tmp[ i]);
@@ -877,6 +957,7 @@ char   *mulle_objc_methodlist_describe_hor_html( struct _mulle_objc_methodlist *
    unsigned int   j;
    unsigned int   n;
    char           buf[ s_mulle_objc_sprintf_functionpointer_buffer];
+   char           *format;
 
    n   = list->n_methods + 3;
    tmp = mulle_allocator_calloc( &mulle_stdlib_allocator, n, sizeof( char *));
@@ -887,30 +968,59 @@ char   *mulle_objc_methodlist_describe_hor_html( struct _mulle_objc_methodlist *
    len = strlen( tmp[ i]);
    ++i;
 
+
    if( list->n_methods)
    {
-      if( styling->classprefix)
-         asprintf( &tmp[ i],
-                   "<TR>"
-                     "<TH>name</TH>"
-                     "<TH>signature</TH>"
-                     "<TH>methodid</TH>"
-                     "<TH>bits</TH>"
-                     "<TH>implementation</TH>"
-                   "</TR>\n");
+      if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      {
+         if( styling->classprefix)
+            format = "<TR>"
+                        "<TH>name</TH>"
+                      "</TR>\n";
+         else
+            format =  "<TR>"
+                        "<TD>name</TD>"
+                      "</TR>\n";
+      }
       else
-         asprintf( &tmp[ i],
-                   "<TR>"
-                     "<TD>name</TD>"
-                     "<TD>signature</TD>"
-                     "<TD>methodid</TD>"
-                     "<TD>bits</TD>"
-                     "<TD>implementation</TD>"
-                   "</TR>\n");
+      {
+         if( styling->classprefix)
+            format = "<TR>"
+                        "<TH>name</TH>"
+                        "<TH>signature</TH>"
+                        "<TH>methodid</TH>"
+                        "<TH>bits</TH>"
+                        "<TH>implementation</TH>"
+                      "</TR>\n";
+         else
+            format =  "<TR>"
+                        "<TD>name</TD>"
+                        "<TD>signature</TD>"
+                        "<TD>methodid</TD>"
+                        "<TD>bits</TD>"
+                        "<TD>implementation</TD>"
+                      "</TR>\n";
+      }
+
+      asprintf( &tmp[ i],
+                format);
 
       len += strlen( tmp[ i]);
       ++i;
    }
+
+   if( mulle_objc_environment_get_yes_no_default( "MULLE_OBJC_TERSE_TABLE", 0))
+      format = "<TR>"
+                 "<TD>%s</TD>"
+               "</TR>\n";
+   else
+      format = "<TR>"
+                 "<TD>%s</TD>"
+                 "<TD>%s</TD>"
+                 "<TD>%08x</TD>"
+                 "<TD>0x%x</TD>"
+                 "<TD>%s</TD>"
+               "</TR>\n";
 
    for( j = 0; j < list->n_methods; j++)
    {
@@ -918,13 +1028,7 @@ char   *mulle_objc_methodlist_describe_hor_html( struct _mulle_objc_methodlist *
          _mulle_atomic_functionpointer_nonatomic_read( &list->methods[ j].implementation));
 
       asprintf( &tmp[ i],
-               "<TR>"
-                 "<TD>%s</TD>"
-                 "<TD>%s</TD>"
-                 "<TD>%08x</TD>"
-                 "<TD>0x%x</TD>"
-                 "<TD>%s</TD>"
-               "</TR>\n",
+               format,
                html_escape( list->methods[ j].descriptor.name),
                html_escape( list->methods[ j].descriptor.signature),
                list->methods[ j].descriptor.methodid,
@@ -933,6 +1037,8 @@ char   *mulle_objc_methodlist_describe_hor_html( struct _mulle_objc_methodlist *
       len += strlen( tmp[ i]);
       ++i;
    }
+
+   qsort( &tmp[ i - j], j, sizeof( char *), qsort_strcmp);
 
    asprintf( &tmp[ i], "</TABLE>");
    len += strlen( tmp[ i]);
@@ -1129,6 +1235,7 @@ char   *mulle_concurrent_hashmap_describe_html( struct mulle_concurrent_hashmap 
    char                                        **tmp;
    unsigned int                                i;
    unsigned int                                n;
+   unsigned int                                j;
    void                                        *value;
 
    count = mulle_concurrent_hashmap_count( map);
@@ -1149,6 +1256,7 @@ char   *mulle_concurrent_hashmap_describe_html( struct mulle_concurrent_hashmap 
 
    null_description = "*null*";
 
+   j = 0;
    rover = mulle_concurrent_hashmap_enumerate( map);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &uniqueid, &value))
    {
@@ -1157,8 +1265,11 @@ char   *mulle_concurrent_hashmap_describe_html( struct mulle_concurrent_hashmap 
       tmp[ i] = (*row_description)( uniqueid, value, styling);
       len    += strlen( tmp[ i]);
       ++i;
+      ++j;
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
+
+   qsort( &tmp[ i - j], j, sizeof( char *), qsort_strcmp);
 
    if( styling)
    {
@@ -1215,6 +1326,8 @@ char   *mulle_objc_uniqueidarray_describe_html( struct _mulle_objc_uniqueidarray
       len    += strlen( tmp[ i]);
       ++i;
    }
+
+   qsort( &tmp[ i - count], count, sizeof( char *), qsort_strcmp);
 
    if( styling)
    {
