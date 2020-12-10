@@ -126,16 +126,48 @@ struct mulle_objc_typeinfo
 };
 
 
+// By changing the supplier function, one can calculate info for a different
+// architecture.
+typedef int  (*mulle_objc_scalar_typeinfo_supplier_t)( char, struct mulle_objc_typeinfo *);
+
+
+
+struct mulle_objc_signaturesupplier
+{
+   int32_t                                 invocation_offset; // used by the enumerator
+   unsigned int                            index;             // used by the enumerator
+   int                                     level;             // init to -1 to convert outer array to pointer
+   mulle_objc_scalar_typeinfo_supplier_t   supplier;          // leave NULL for default arch
+};
+
+
 //
 // You usually don't call this yourself, always check types first
 // if type is invalid or empty, will return NULL and set errno to EINVAL
 // put in NULL for p_offset, unless you are the enumerator and are aware that
 // the first typeinfo here will be rval...
 //
-char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
-                                                     struct mulle_objc_typeinfo *info,
-                                                     unsigned int *p_invocation_offset,
-                                                     unsigned int  index);
+char   *_mulle_objc_signature_supply_typeinfo( char *types,
+                                               struct mulle_objc_signaturesupplier *supplier,
+                                               struct mulle_objc_typeinfo *info);
+
+//
+// you should be able to iterate through all types of a signature with
+// while( mulle_objc_signature_supply_typeinfo( types, &info))
+//
+static inline char   *
+   mulle_objc_signature_supply_typeinfo( char *types,
+                                         struct mulle_objc_signaturesupplier *supplier,
+                                         struct mulle_objc_typeinfo *info)
+{
+   char   *next;
+
+   if( ! types || ! *types)
+      return( NULL);
+
+   next = _mulle_objc_signature_supply_typeinfo( types, NULL, info);
+   return( next);
+}
 
 
 //
@@ -152,30 +184,11 @@ char   *__mulle_objc_signature_supply_next_typeinfo( char *types,
 //
 struct mulle_objc_signatureenumerator
 {
-   char                         *types;
-   unsigned int                 invocation_offset;
-   unsigned int                 i;
-   struct mulle_objc_typeinfo   rval;
+   char                                   *types;
+   struct mulle_objc_signaturesupplier    supplier;
+   struct mulle_objc_typeinfo             rval;
 };
 
-
-
-MULLE_C_NONNULL_FIRST
-static inline int
-   _mulle_objc_signatureenumerator_next( struct mulle_objc_signatureenumerator *rover,
-                                         struct mulle_objc_typeinfo *info)
-{
-   if( ! rover->types)
-      return( 0);
-
-   rover->types = __mulle_objc_signature_supply_next_typeinfo( rover->types,
-                                                               info,
-                                                               &rover->invocation_offset,
-                                                               rover->i);
-   rover->types = (rover->types && *rover->types) ? rover->types : NULL;
-   rover->i++;
-   return( 1);
-}
 
 
 static inline struct mulle_objc_signatureenumerator
@@ -188,16 +201,30 @@ static inline struct mulle_objc_signatureenumerator
       return( rover);
 
    // parse first the incomplete rval
-   rover.types =  __mulle_objc_signature_supply_next_typeinfo( rover.types,
-                                                               &rover.rval,
-                                                               NULL,
-                                                               0);
+   rover.types =  _mulle_objc_signature_supply_typeinfo( rover.types,
+                                                         NULL,
+                                                         &rover.rval);
    rover.types = (rover.types && *rover.types) ? rover.types : NULL;
 
-   rover.invocation_offset = 0;  // now start at 0
-   rover.i                 = 0;
-
+   memset( &rover.supplier, 0, sizeof( struct mulle_objc_signaturesupplier));
    return( rover);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline int
+   _mulle_objc_signatureenumerator_next( struct mulle_objc_signatureenumerator *rover,
+                                         struct mulle_objc_typeinfo *info)
+{
+   if( ! rover->types)
+      return( 0);
+
+   rover->types = _mulle_objc_signature_supply_typeinfo( rover->types,
+                                                         &rover->supplier,
+                                                         info);
+   rover->types = (rover->types && *rover->types) ? rover->types : NULL;
+   rover->supplier.index++;
+   return( 1);
 }
 
 
@@ -219,9 +246,9 @@ static inline void
    _mulle_objc_signatureenumerator_rval( struct mulle_objc_signatureenumerator *rover,
                                          struct mulle_objc_typeinfo *info)
 {
-   assert( rover->invocation_offset != (unsigned int) -1);
+   assert( rover->supplier.invocation_offset != (unsigned int) -1);
 
-   rover->rval.invocation_offset = rover->invocation_offset;
+   rover->rval.invocation_offset = rover->supplier.invocation_offset;
    memcpy( info, &rover->rval, sizeof( *info));
 }
 
@@ -232,34 +259,6 @@ static inline void
 }
 
 
-
-static inline char   *
-   _mulle_objc_signature_supply_next_typeinfo( char *types,
-                                               struct mulle_objc_typeinfo *info)
-{
-   if( ! types || ! *types)
-      return( NULL);
-
-   return( __mulle_objc_signature_supply_next_typeinfo( types, info, NULL, 0));
-}
-
-
-//
-// you should be able to iterate through all types of a signature with
-// while( mulle_objc_signature_supply_next_typeinfo( types, &info))
-//
-static inline char   *
-   mulle_objc_signature_supply_next_typeinfo( char *types,
-                                              struct mulle_objc_typeinfo *info)
-{
-   char           *next;
-
-   if( ! types || ! *types)
-      return( NULL);
-
-   next = __mulle_objc_signature_supply_next_typeinfo( types, info, NULL, 0);
-   return( next);
-}
 
 
 //
@@ -396,6 +395,43 @@ static inline char   *_mulle_objc_signature_skip_type_qualifier( char *type)
       }
       ++type;
    }
+}
+
+
+
+// check if type is '@' '~' (or as member in array, union, struct member)
+static inline int   _mulle_objc_type_is_pointer( char *type)
+{
+   type = _mulle_objc_signature_skip_type_qualifier( type);
+   switch( *type)
+   {
+   case _C_ASSIGN_ID :
+   case _C_ATOM      :
+   case _C_CHARPTR   :
+   case _C_CLASS     :
+   case _C_COPY_ID   :
+   case _C_FUNCTION  :  // same as undef. undef meaning "undefined size"
+   case _C_PTR       :
+   case _C_RETAIN_ID :
+      return( 1);
+   }
+   return( 0);
+}
+
+
+static inline int   _mulle_objc_type_is_object( char *type)
+{
+   type = _mulle_objc_signature_skip_type_qualifier( type);
+   switch( *type)
+   {
+//   case _C_ATOM    : // what's this again ?
+   case _C_ASSIGN_ID :
+   case _C_CLASS     :
+   case _C_COPY_ID   :
+   case _C_RETAIN_ID :
+      return( 1);
+   }
+   return( 0);
 }
 
 

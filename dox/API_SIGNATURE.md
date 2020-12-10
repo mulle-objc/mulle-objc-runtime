@@ -20,7 +20,7 @@ Macro          | Value  | Description
 `_C_RETAIN_ID` |  `_C_ID` | An object with "-retain" semantics
 
 
-> While the runtime may be aware of `_C_ASSIGN_ID` and `_C_COPY_ID` the compiler 
+> While the runtime may be aware of `_C_ASSIGN_ID` and `_C_COPY_ID` the compiler
 > may not produce these signatures yet.
 
 The runtime has no problems with the `long double` type. So `@encode( long double)`
@@ -45,10 +45,12 @@ Macro            | Value  | Description
 
 ## Functions
 
-### `mulle_objc_signature_supply_next_typeinfo`
+### `mulle_objc_signature_supply_typeinfo`
 
 ```
-char    *mulle_objc_signature_supply_next_typeinfo( char *types, struct mulle_objc_typeinfo *info)
+char    *mulle_objc_signature_supply_typeinfo( char *types,
+                                               struct mulle_objc_signaturesupploer *supplier)
+                                               struct mulle_objc_typeinfo *info)
 ```
 
 Parse the information contained in the signature string `types` into `info`.
@@ -60,11 +62,12 @@ traversing all types of the method, which are in order:
 * _cmd
 * parameters
 
+Pass NULL to supplier (no time to document right now)
 The meta-ABI is not relevant when parsing signatures.
 
 
 
-### `mulle_objc_signature_supply_next_typeinfo`
+### `mulle_objc_signature_supply_typeinfo`
 
 ```
 char    *mulle_objc_signature_next_type( char *types, struct mulle_objc_typeinfo *info)

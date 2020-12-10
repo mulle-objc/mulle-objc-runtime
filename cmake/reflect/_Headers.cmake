@@ -45,8 +45,6 @@ src/mulle-objc-class-struct.h
 src/mulle-objc-fastclasstable.h
 src/mulle-objc-fastenumeration.h
 src/mulle-objc-fastmethodtable.h
-src/mulle-objc-fnv1a.h
-src/mulle-objc-fnv1.h
 src/mulle-objc-infraclass.h
 src/mulle-objc-ivar.h
 src/mulle-objc-ivarlist.h

@@ -92,7 +92,7 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
    if( ! index)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
    infra    = universe->taggedpointers.pointerclass[ index];
    return( _mulle_objc_infraclass_as_class( infra));
 }
@@ -114,7 +114,7 @@ static inline struct _mulle_objc_class *
    if( __builtin_expect( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
    assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");
    infra    = universe->taggedpointers.pointerclass[ index];
    return( _mulle_objc_infraclass_as_class( infra));
@@ -208,7 +208,7 @@ static inline struct _mulle_objc_universe *
    assert( obj);
 
 	if( mulle_objc_object_get_taggedpointerindex( obj))
-      return( mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID));
+      return( mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID));
    return( __mulle_objc_object_get_universe_notps( obj));
 }
 
@@ -223,7 +223,7 @@ static inline struct _mulle_objc_universe *
 	       							        		  mulle_objc_universeid_t universeid)
 {
 	if( ! obj ||  mulle_objc_object_get_taggedpointerindex( obj))
-      return( mulle_objc_global_inlineget_universe( universeid));
+      return( mulle_objc_global_get_universe_inline( universeid));
    return( __mulle_objc_object_get_universe_notps( obj));
 }
 

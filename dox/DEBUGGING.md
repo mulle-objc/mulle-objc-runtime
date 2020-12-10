@@ -13,7 +13,7 @@ Variable                              |  Function
 ------------------------------------- | --------------------------------
 `MULLE_OBJC_WARN_ENABLED`             | Enables all the following warnings.
 &nbsp;                                | &nbsp;
-`MULLE_OBJC_WARN_METHODID_TYPE`       | Warn if methods with identical names have different types. Example: `- (BOOL) load` and `+ (void) load`.
+`MULLE_OBJC_WARN_METHOD_TYPE`       | Warn if methods with identical names have different types. Example: `- (BOOL) load` and `+ (void) load`.
 `MULLE_OBJC_WARN_PEDANTIC_METHODID_TYPE` | This is faster and complains more as it is just string comparing the signatures.
 `MULLE_OBJC_WARN_PROTOCOLCLASS`       | Warn if a class does not fit the requirements to be a protocol class, but a protocol of the same name exists.
 `MULLE_OBJC_WARN_STUCK_LOADABLE`      | Warn if classes or categories could not be integrated into the runtime class system. This indicates a missing class or category. The warning appears, when the runtime is released (end of the program). This is enabled by default currently.

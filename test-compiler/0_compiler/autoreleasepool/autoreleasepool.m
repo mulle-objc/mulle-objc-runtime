@@ -18,6 +18,11 @@
 {
 }
 
+- (void) release
+{
+   [self dealloc];
+}
+
 
 - (void) dealloc
 {

@@ -104,7 +104,7 @@ static inline void *
 
 
 static inline void *
-    _mulle_objc_infraclass_allocwithzone_instance( struct _mulle_objc_infraclass *infra,
+    _mulle_objc_infraclass_alloc_instance_zone( struct _mulle_objc_infraclass *infra,
                                                    void *zone) // zone is unused
 {
    return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));

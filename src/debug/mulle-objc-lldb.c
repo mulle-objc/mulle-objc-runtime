@@ -100,7 +100,7 @@ mulle_objc_implementation_t
       // will bring grief
    case 2 :
       superid = (mulle_objc_superid_t) (uintptr_t) args->class_or_superid;
-      imp     = _mulle_objc_object_inlinesuperlookup_implementation_nofail( obj,
+      imp     = _mulle_objc_object_superlookup_implementation_inline_nofail( obj,
                                                                             superid);
    }
 
@@ -149,7 +149,7 @@ struct _mulle_objc_descriptor  *
 
    preserve   = errno;
    methodid   = mulle_objc_uniqueid_from_string( name);
-   universe   = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe   = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
    descriptor = _mulle_objc_universe_lookup_descriptor( universe, methodid);
    errno      = preserve;
 
@@ -200,7 +200,7 @@ void   *mulle_objc_lldb_get_dangerous_tpsstorage_pointer( void)
 
    // fprintf( stderr, "get class storage\n");
 
-   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
 //   if( ! universe)
 //      return( NULL);
 
@@ -216,7 +216,7 @@ void   *mulle_objc_lldb_get_dangerous_classstorage_pointer( void)
 
    // fprintf( stderr, "get class storage pointer\n");
 
-   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
 //   if( ! universe)
 //      return( NULL);
 
@@ -263,7 +263,7 @@ void   *mulle_objc_lldb_create_staticstring( void *cfalloc,
 
    preserve  = errno;
 
-   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
    infra    = _mulle_objc_universe_get_staticstringclass( universe);
    obj      = (void *) _mulle_objc_infraclass_alloc_instance_extra( infra, numBytes + 4);
 

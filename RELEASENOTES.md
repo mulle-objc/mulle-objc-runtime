@@ -1,3 +1,23 @@
+## 0.18.0
+
+* rename runtime functions, e.g. `_mulle_objc_object_partialinlinesupercall` to `mulle_objc_object_supercall_inline_partial` for consistency
+* moved hash code shared by other projects to mulle-data
+* reorder parameters of ``mulle_objc_class_trace_call`` for consistency
+* give instantiate its own placeholder, this makes +object work with classclusters as well
+* add ``mulle_objc_searchresult_get_categoryid`` and ``mulle_objc_searchresult_get_classid``
+* add ``mulle_objc_universe_lookup_infraclass`` for consistency
+* graphviz methodlists are now sorted
+* you can now use  to dump the class hierarchy for a specific infraclass or metaclass
+* renamed ``_mulle_objc_signature_pedantic_compare`` `to`_mulle_objc_signature_compare`` and  ``_mulle_objc_signature_compare`` to ``_mulle_objc_signature_compare_lenient`.` The pedantic compare is now also the default (as its faster)
+* there is now a map that lists selectors for which selectors with varying types exist. Use ``_mulle_objc_universe_lookup_varyingsignaturedescriptor`` to query it
+* `mulle_objc_metabi` is now `mulle_metaabi_` possibly to be moved outside of mulle-objc-runtime in the future.
+* there is now a metaabi reader and a metaabi writer to support interpreters
+* replace `object` for `instantiate` in the fastmethods table
+* foundation allocator is now a pointer, which is more convenient
+* reorganized some structs to support mulle-gdb easier
+* now has some special case test ouputs for i686
+
+
 ### 0.17.1
 
 * new mulle-sde project structure

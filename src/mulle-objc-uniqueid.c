@@ -35,14 +35,18 @@
 //
 #include "mulle-objc-uniqueid.h"
 
-#include "mulle-objc-fnv1.h"
-#include "mulle-objc-fnv1a.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+#include "include-private.h"
 
+
+//
+// TODO: for certain special strings, we could use small numbers that
+//       produce smaller constants, which might save instruction space
+//
 mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
 {
    mulle_objc_uniqueid_t  value;
@@ -62,9 +66,9 @@ mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
    }
 
 #if MULLE_OBJC_UNIQUEHASH_ALGORITHM == MULLE_OBJC_UNIQUEHASH_FNV1A
-   value = _mulle_objc_fnv1a_32( s, len);
+   value = _mulle_fnv1a_32( s, len);
 #else
-   value = _mulle_objc_fnv1_32( s, len);
+# error fnv not supported any longer
 #endif
 
    //

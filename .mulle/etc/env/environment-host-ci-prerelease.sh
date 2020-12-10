@@ -179,3 +179,21 @@ export MULLE_ATEXIT_URL="https://github.com/mulle-core/mulle-atexit.git"
 export MULLE_ATEXIT_BRANCH="prerelease"
 
 
+#
+#
+#
+export MULLE_DATA_NODETYPE="git"
+
+
+#
+#
+#
+export MULLE_DATA_BRANCH="prerelease"
+
+
+#
+#
+#
+export MULLE_DATA_URL="https://github.com/mulle-c/mulle-data.git"
+
+

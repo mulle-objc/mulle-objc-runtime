@@ -33,10 +33,10 @@ Returns the universe for the current thread. If this thread has no universe
 associated with it, this function may crash.
 
 
-### `mulle_objc_global_inlineget_universe`
+### `mulle_objc_global_get_universe_inline`
 
 ```
-struct _mulle_objc_universe  * mulle_objc_global_inlineget_universe( void);
+struct _mulle_objc_universe  * mulle_objc_global_get_universe_inline( void);
 ```
 
 A slightly faster version of above `mulle_objc_global_get_universe`. If you use it you

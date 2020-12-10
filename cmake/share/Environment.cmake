@@ -11,6 +11,16 @@ if( NOT __ENVIRONMENT__CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
+   if( NOT PROJECT_IDENTIFIER)
+      string( MAKE_C_IDENTIFIER "${PROJECT_NAME}" PROJECT_IDENTIFIER)
+   endif()
+   if( NOT PROJECT_UPCASE_IDENTIFIER)
+      string( TOUPPER "${PROJECT_IDENTIFIER}" PROJECT_UPCASE_IDENTIFIER)
+   endif()
+   if( NOT PROJECT_DOWNCASE_IDENTIFIER)
+      string( TOLOWER "${PROJECT_IDENTIFIER}" PROJECT_DOWNCASE_IDENTIFIER)
+   endif()
+
    #
    #
    #
@@ -173,12 +183,14 @@ if( NOT __ENVIRONMENT__CMAKE__)
       ${CMAKE_FRAMEWORK_PATH}
    )
 
-   message( STATUS "CMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH}\"" )
    message( STATUS "CMAKE_INCLUDE_PATH=\"${CMAKE_INCLUDE_PATH}\"" )
    message( STATUS "CMAKE_LIBRARY_PATH=\"${CMAKE_LIBRARY_PATH}\"" )
    message( STATUS "CMAKE_FRAMEWORK_PATH=\"${CMAKE_FRAMEWORK_PATH}\"" )
    message( STATUS "INCLUDE_DIRS=\"${TMP_INCLUDE_DIRS}\"" )
 
+   # given from outside
+   message( STATUS "CMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH}\"" )
+   message( STATUS "CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"" )
 
    include_directories( BEFORE SYSTEM
       ${TMP_INCLUDE_DIRS}
@@ -189,77 +201,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    unset( TMP_CMAKE_LIBRARY_PATH)
    unset( TMP_CMAKE_FRAMEWORK_PATH)
 
-   #
-   # include files that get installed
-   #
-   if( EXISTS "cmake/DependenciesAndLibraries.cmake")
-      list( APPEND CMAKE_INCLUDES "cmake/DependenciesAndLibraries.cmake")
-   else()
-      list( APPEND CMAKE_INCLUDES "cmake/share/DependenciesAndLibraries.cmake")
-   endif()
-   if( EXISTS "cmake/_Dependencies.cmake")
-      list( APPEND CMAKE_INCLUDES "cmake/_Dependencies.cmake")
-   else()
-      list( APPEND CMAKE_INCLUDES "cmake/reflect/_Dependencies.cmake")
-   endif()
-   if( EXISTS "cmake/_Libraries.cmake")
-      list( APPEND CMAKE_INCLUDES "cmake/_Libraries.cmake")
-   else()
-      list( APPEND CMAKE_INCLUDES "cmake/reflect/_Libraries.cmake")
-   endif()
-
-   # IDE visible cmake files, Headers etc. are no longer there by default
-   if( EXISTS "CMakeLists.txt")
-      list( APPEND CMAKE_EDITABLE_FILES "CMakeLists.txt")
-   endif()
-
-   FILE( GLOB TMP_CMAKE_FILES cmake/*.cmake)
-   list( APPEND CMAKE_EDITABLE_FILES ${TMP_CMAKE_FILES})
-
-   #
-   # Parallel build support. run all "participating" projects once for
-   # HEADERS_PHASE in parallel.
-   # Now run all "participating" projects for COMPILE_PHASE in parallel.
-   # Finally run all participating and non-participating projects in craftorder
-   # serially together with the LINK_PHASE. What is tricky is that the
-   # sequential projects may need to run first.
-   #
-   option( HEADERS_PHASE  "Install headers only phase (1)" OFF)
-   option( COMPILE_PHASE  "Compile sources only phase (2)" OFF)
-   option( LINK_PHASE     "Link and install only phase (3)" OFF)
-
-   if( MULLE_MAKE_PHASE STREQUAL "HEADERS")
-      set( HEADERS_PHASE ON)
-   endif()
-   if( MULLE_MAKE_PHASE STREQUAL "COMPILE")
-      set( COMPILE_PHASE ON)
-   endif()
-   if( MULLE_MAKE_PHASE STREQUAL "LINK")
-      set( LINK_PHASE ON)
-   endif()
-
-   if( NOT HEADERS_PHASE AND
-       NOT COMPILE_PHASE AND
-       NOT LINK_PHASE)
-      set( HEADERS_PHASE ON)
-      set( COMPILE_PHASE ON)
-      set( LINK_PHASE ON)
-   endif()
-
-   #
-   # https://stackoverflow.com/questions/32469953/why-is-cmake-designed-so-that-it-removes-runtime-path-when-installing/32470070#32470070
-   # MULLE_NO_CMAKE_INSTALL_RPATH can be used to kill this codepath
-   #
-   if( NOT MULLE_NO_CMAKE_INSTALL_RPATH)
-      if( APPLE)
-         set( CMAKE_INSTALL_RPATH
-               "@loader_path/../Frameworks/"
-               "@loader_path/../lib/"
-         )
-      else()
-         set( CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
-      endif()
-   endif()
+   include( MultiPhase OPTIONAL)
 
    include( EnvironmentAux OPTIONAL)
 

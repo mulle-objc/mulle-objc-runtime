@@ -1277,7 +1277,7 @@ static void   print_hierarchy( void *value, void *userinfo)
    {
       if( info->counter)
       {
-         fprintf( fp, "   \"%p\" -> \"%p\" [ label=\" %s #%d\" dir=\"back\" ]\n",
+         fprintf( fp, "\"%p\" -> \"%p\" [ label=\" %s #%d\" dir=\"back\" ]\n",
                      cls,
                      info->other,
                      info->relationship,
@@ -1285,7 +1285,7 @@ static void   print_hierarchy( void *value, void *userinfo)
          ++info->counter;
       }
       else
-         fprintf( fp, "    \"%p\" -> \"%p\" [ label=\" %s\" dir=\"back\" ]\n",
+         fprintf( fp, "\"%p\" -> \"%p\" [ label=\" %s\" dir=\"back\" ]\n",
                      cls,
                      info->other,
                      info->relationship);

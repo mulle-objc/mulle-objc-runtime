@@ -896,7 +896,7 @@ char   *mulle_objc_methodlist_describe_html( struct _mulle_objc_methodlist *list
    name = _mulle_objc_methodlist_get_categoryname( list);
    if( name)
    {
-      asprintf( &tmp[ i], "<TR><TD>category</TD><TD>%s</TD></TR>", name);
+      asprintf( &tmp[ i], "<TR><TD>category</TD><TD>%s</TD></TR>\n", name);
       len += strlen( tmp[ i]);
       ++i;
    }

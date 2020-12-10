@@ -37,7 +37,6 @@
 
 
 #include "mulle-objc-uniqueid.h"
-#include "mulle-objc-fnv1.h"
 #include <string.h>
 
 
@@ -97,8 +96,8 @@ static inline mulle_objc_superid_t
 {
    mulle_objc_superid_t   hash;
 
-   hash = _mulle_objc_chained_fnv1_32( ";", 1, classid);
-   hash = _mulle_objc_chained_fnv1_32( s, strlen( s), classid);
+   hash = _mulle_fnv1a_chained_32( ";", 1, classid);
+   hash = _mulle_fnv1a_chained_32( s, strlen( s), classid);
    return( hash);
 }
 

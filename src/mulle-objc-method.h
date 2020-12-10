@@ -192,8 +192,6 @@ static inline int
 }
 
 
-
-
 static inline enum _mulle_objc_methodfamily
    _mulle_objc_descriptor_get_methodfamily( struct _mulle_objc_descriptor *desc)
 {
@@ -237,12 +235,10 @@ static inline int
 
 
 
-
 # pragma mark - method descriptor consistency
 
 // sets errno
 int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p);
-
 
 
 

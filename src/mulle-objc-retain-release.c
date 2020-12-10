@@ -143,7 +143,7 @@ void   _mulle_objc_objects_retain( void **objects, size_t n)
    {
       p = *objects++;
       if( p)
-         _mulle_objc_object_inlineretain( p);
+         _mulle_objc_object_retain_inline( p);
    }
 }
 
@@ -160,7 +160,7 @@ void   _mulle_objc_objects_release( void **objects, size_t n)
    {
       p = *objects++;
       if( p)
-         _mulle_objc_object_inlinerelease( p);
+         _mulle_objc_object_release_inline( p);
    }
 }
 
@@ -179,7 +179,7 @@ void   _mulle_objc_objects_releaseandzero( void **objects, size_t n)
       if( p)
       {
          objects[ -1] = 0;
-         _mulle_objc_object_inlinerelease( p);
+         _mulle_objc_object_release_inline( p);
       }
    }
 }
@@ -187,12 +187,12 @@ void   _mulle_objc_objects_releaseandzero( void **objects, size_t n)
 
 void   *mulle_objc_object_retain( void *obj)
 {
-   return( mulle_objc_object_inlineretain( obj));
+   return( mulle_objc_object_retain_inline( obj));
 }
 
 
 void   mulle_objc_object_release( void *obj)
 {
-   mulle_objc_object_inlinerelease( obj);
+   mulle_objc_object_release_inline( obj);
 }
 

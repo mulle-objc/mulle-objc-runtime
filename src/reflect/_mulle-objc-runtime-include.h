@@ -13,21 +13,45 @@
 #define _mulle_objc_runtime_include_h__
 
 // How to tweak the following mulle-concurrent #include
-//    remove:          `mulle-sourcetree mark mulle-concurrent no-header`
-//    rename:          `mulle-sde dependency|library set mulle-concurrent include whatever.h`
-//    toggle #import:  `mulle-sourcetree mark mulle-concurrent [no-]import`
-//    toggle public:   `mulle-sourcetree mark mulle-concurrent [no-]public`
-//    toggle optional: `mulle-sourcetree mark mulle-concurrent [no-]require`
-//    remove for os:   `mulle-sourcetree mark mulle-concurrent no-os-<osname>`
-# include <mulle-concurrent/mulle-concurrent.h>   // mulle-concurrent
+//    remove:             `mulle-sourcetree mark mulle-concurrent no-header`
+//    rename:             `mulle-sde dependency|library set mulle-concurrent include whatever.h`
+//    toggle #import:     `mulle-sourcetree mark mulle-concurrent [no-]import`
+//    toggle localheader: `mulle-sourcetree mark mulle-concurrent [no-]localheader`
+//    toggle public:      `mulle-sourcetree mark mulle-concurrent [no-]public`
+//    toggle optional:    `mulle-sourcetree mark mulle-concurrent [no-]require`
+//    remove for os:      `mulle-sourcetree mark mulle-concurrent no-os-<osname>`
+# if defined( __has_include) && __has_include("mulle-concurrent.h")
+#   include "mulle-concurrent.h"   // mulle-concurrent
+# else
+#   include <mulle-concurrent/mulle-concurrent.h>   // mulle-concurrent
+#endif
 
 // How to tweak the following mulle-vararg #include
-//    remove:          `mulle-sourcetree mark mulle-vararg no-header`
-//    rename:          `mulle-sde dependency|library set mulle-vararg include whatever.h`
-//    toggle #import:  `mulle-sourcetree mark mulle-vararg [no-]import`
-//    toggle public:   `mulle-sourcetree mark mulle-vararg [no-]public`
-//    toggle optional: `mulle-sourcetree mark mulle-vararg [no-]require`
-//    remove for os:   `mulle-sourcetree mark mulle-vararg no-os-<osname>`
-# include <mulle-vararg/mulle-vararg.h>   // mulle-vararg
+//    remove:             `mulle-sourcetree mark mulle-vararg no-header`
+//    rename:             `mulle-sde dependency|library set mulle-vararg include whatever.h`
+//    toggle #import:     `mulle-sourcetree mark mulle-vararg [no-]import`
+//    toggle localheader: `mulle-sourcetree mark mulle-vararg [no-]localheader`
+//    toggle public:      `mulle-sourcetree mark mulle-vararg [no-]public`
+//    toggle optional:    `mulle-sourcetree mark mulle-vararg [no-]require`
+//    remove for os:      `mulle-sourcetree mark mulle-vararg no-os-<osname>`
+# if defined( __has_include) && __has_include("mulle-vararg.h")
+#   include "mulle-vararg.h"   // mulle-vararg
+# else
+#   include <mulle-vararg/mulle-vararg.h>   // mulle-vararg
+#endif
+
+// How to tweak the following mulle-data #include
+//    remove:             `mulle-sourcetree mark mulle-data no-header`
+//    rename:             `mulle-sde dependency|library set mulle-data include whatever.h`
+//    toggle #import:     `mulle-sourcetree mark mulle-data [no-]import`
+//    toggle localheader: `mulle-sourcetree mark mulle-data [no-]localheader`
+//    toggle public:      `mulle-sourcetree mark mulle-data [no-]public`
+//    toggle optional:    `mulle-sourcetree mark mulle-data [no-]require`
+//    remove for os:      `mulle-sourcetree mark mulle-data no-os-<osname>`
+# if defined( __has_include) && __has_include("mulle-data.h")
+#   include "mulle-data.h"   // mulle-data
+# else
+#   include <mulle-data/mulle-data.h>   // mulle-data
+#endif
 
 #endif

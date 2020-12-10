@@ -139,9 +139,9 @@ case "${MULLE_SHELL_MODE}" in
          alias log="mulle-sde log"
          alias match="mulle-sde match"
          alias monitor="mulle-sde monitor"
+         alias reflect="mulle-sde reflect"
          alias patternfile="mulle-sde patternfile"
          alias subproject="mulle-sde subproject"
-         alias reflect="mulle-sde reflect"
       fi
 
       if [ -z "" ]

@@ -100,7 +100,7 @@ void   _mulle_objc_universe_throw( struct _mulle_objc_universe *universe, void *
       }
       if( ! s)
          s = "???";
-      fprintf( stderr, "mulle-objc-universe %p: Uncaught exception %p \"%s\"", universe, exception, s);
+      fprintf( stderr, "mulle-objc-universe %p: Uncaught exception %p \"%s\"\n", universe, exception, s);
       abort();
    }
 

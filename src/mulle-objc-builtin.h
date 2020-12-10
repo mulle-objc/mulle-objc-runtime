@@ -53,7 +53,7 @@
 //
 static inline void   *mulle_objc_object_call_copy( void *self)
 {
-   return( mulle_objc_object_partialinlinecall( self,
+   return( mulle_objc_object_call_inline_partial( self,
                                                 MULLE_OBJC_COPY_METHODID,
                                                 self));
 }
@@ -61,7 +61,7 @@ static inline void   *mulle_objc_object_call_copy( void *self)
 
 static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 {
-   return( mulle_objc_object_partialinlinecall( self,
+   return( mulle_objc_object_call_inline_partial( self,
                                                 MULLE_OBJC_MUTABLECOPY_METHODID,
                                                 self));
 }
@@ -72,7 +72,7 @@ static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 //
 static inline void   *mulle_objc_object_call_autorelease( void *self)
 {
-   return( mulle_objc_object_partialinlinecall( self,
+   return( mulle_objc_object_call_inline_partial( self,
                                                 MULLE_OBJC_AUTORELEASE_METHODID,
                                                 self));
 }
@@ -80,7 +80,7 @@ static inline void   *mulle_objc_object_call_autorelease( void *self)
 
 static inline void   mulle_objc_object_call_willchange( void *self)
 {
-   mulle_objc_object_partialinlinecall( self,
+   mulle_objc_object_call_inline_partial( self,
                                         MULLE_OBJC_WILLCHANGE_METHODID,
                                         self);
 }
@@ -88,7 +88,7 @@ static inline void   mulle_objc_object_call_willchange( void *self)
 
 static inline void   *mulle_objc_object_call_willreadrelationship( void *self, void *value)
 {
-   return( mulle_objc_object_partialinlinecall( self,
+   return( mulle_objc_object_call_inline_partial( self,
                                                 MULLE_OBJC_WILLREADRELATIONSHIP_METHODID,
                                                 value));
 }
@@ -96,7 +96,7 @@ static inline void   *mulle_objc_object_call_willreadrelationship( void *self, v
 
 static inline void   mulle_objc_object_call_addobject( void *self, void *value)
 {
-   mulle_objc_object_partialinlinecall( self,
+   mulle_objc_object_call_inline_partial( self,
                                         MULLE_OBJC_ADDOBJECT_METHODID,
                                         value);
 }
@@ -104,7 +104,7 @@ static inline void   mulle_objc_object_call_addobject( void *self, void *value)
 
 static inline void   mulle_objc_object_call_removeobject( void *self, void *value)
 {
-   mulle_objc_object_partialinlinecall( self,
+   mulle_objc_object_call_inline_partial( self,
                                         MULLE_OBJC_REMOVEOBJECT_METHODID,
                                         value);
 }

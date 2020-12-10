@@ -14,10 +14,16 @@ if( LINK_PHASE)
 
    include( PreInstallExecutable OPTIONAL)
 
+   include( InstallRpath OPTIONAL)
+
    install( TARGETS ${INSTALL_EXECUTABLE_TARGETS} DESTINATION "bin")
    foreach( TMP_NAME ${INSTALL_EXECUTABLE_TARGETS})
-      install( FILES ${INSTALL_${TMP_NAME}_RESOURCES} DESTINATION "share/${TMP_NAME}")
+      string( MAKE_C_IDENTIFIER "${TMP_NAME}" TMP_IDENTIFIER)
+      string( TOUPPER "${TMP_IDENTIFIER}" TMP_IDENTIFIER)
+      install( DIRECTORY ${INSTALL_${TMP_IDENTIFIER}_RESOURCE_DIRS} DESTINATION "share/${TMP_NAME}")
+      install( FILES ${INSTALL_${TMP_IDENTIFIER}_RESOURCES} DESTINATION "share/${TMP_NAME}")
    endforeach()
+
 
    include( PostInstallExecutable OPTIONAL)
 

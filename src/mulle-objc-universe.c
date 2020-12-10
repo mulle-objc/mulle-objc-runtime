@@ -285,17 +285,17 @@ void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
 
 static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe  *universe)
 {
-   universe->debug.warn.methodid_type          = getenv_yes_no( "MULLE_OBJC_WARN_METHODID_TYPE");
-   universe->debug.warn.lenient_methodid_type  = getenv_yes_no( "MULLE_OBJC_WARN_LENIENT_METHODID_TYPE");
-   universe->debug.warn.protocolclass          = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
-   universe->debug.warn.stuck_loadable         = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
-   universe->debug.warn.crash                  = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
+   universe->debug.warn.method_type          = getenv_yes_no( "MULLE_OBJC_WARN_METHOD_TYPE");
+   universe->debug.warn.lenient_method_type  = getenv_yes_no( "MULLE_OBJC_WARN_LENIENT_METHOD_TYPE");
+   universe->debug.warn.protocolclass        = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
+   universe->debug.warn.stuck_loadable       = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
+   universe->debug.warn.crash                = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
 
 #if ! DEBUG
    if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
 #endif
    {
-      universe->debug.warn.methodid_type  = 1;
+      universe->debug.warn.method_type  = 1;
       universe->debug.warn.protocolclass  = 1;
       universe->debug.warn.stuck_loadable = 1;
    }
@@ -1834,7 +1834,7 @@ void   _mulle_objc_thread_checkin_universe_gc( struct _mulle_objc_universe *univ
 struct _mulle_objc_universe  *
    mulle_objc_global_get_universe( mulle_objc_universeid_t universeid)
 {
-   return( mulle_objc_global_inlineget_universe( universeid));
+   return( mulle_objc_global_get_universe_inline( universeid));
 }
 
 
@@ -2220,7 +2220,7 @@ static struct _mulle_objc_descriptor *
             "mulle_objc_universe %p error: duplicate methods \"%s\" and \"%s\" "
             "with same id %08lx\n", universe, dup->name, p->name, (long) p->methodid);
 
-   if( universe->debug.warn.lenient_methodid_type)
+   if( universe->debug.warn.lenient_method_type)
       comparison = _mulle_objc_signature_compare_lenient( dup->signature, p->signature);
    else
       comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
@@ -2234,7 +2234,7 @@ static struct _mulle_objc_descriptor *
       //
       // hack: so ':' can be used without warning as a shortcut selector
       //
-      if( universe->debug.warn.methodid_type && p->methodid != 0xf0cb86d3)
+      if( universe->debug.warn.method_type && p->methodid != 0xf0cb86d3)
       {
          fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
                           "and \"%s\" for method \"%s\"\n",
@@ -2325,7 +2325,7 @@ char   *mulle_objc_global_lookup_methodname( mulle_objc_universeid_t universeid,
    struct _mulle_objc_universe     *universe;
    struct _mulle_objc_descriptor   *desc;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
 
    desc    = _mulle_objc_universe_lookup_descriptor( universe, methodid);
    return( desc ? desc->name : NULL);
