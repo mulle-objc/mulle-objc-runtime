@@ -69,9 +69,10 @@ set( EXECUTABLE_NAME mulle-objc-uniqueid)
 set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES}
 src/mulle-objc-uniqueid.c
 )
-set( EXECUTABLE_DEPENDENCY_NAMES mulle-objc-runtime)
+set( EXECUTABLE_DEPENDENCY_NAMES 
+mulle-objc-runtime)
 # only need the hash function
-set( EXECUTABLE_LIBRARY_LIST "")
+set( EXECUTABLE_LIBRARY_LIST "${MULLE_DATA_LIBRARY}")
 
 include( Executable)
 
@@ -80,6 +81,7 @@ set( EXECUTABLE_NAME mulle-objc-signature)
 set( EXECUTABLE_SOURCES  ${SIGNATURE_SOURCES}
 src/mulle-objc-signature.c)
 set( EXECUTABLE_LIBRARY_LIST "")
+set( EXECUTABLE_DEPENDENCY_NAMES "")
 
 include( Executable)
 
