@@ -29,8 +29,6 @@ src/mulle-objc-classpair.c
 src/mulle-objc-class-search.c
 src/mulle-objc-fastenumeration.c
 src/mulle-objc-fastmethodtable.c
-src/mulle-objc-fnv1a.c
-src/mulle-objc-fnv1.c
 src/mulle-objc-infraclass.c
 src/mulle-objc-ivar.c
 src/mulle-objc-ivarlist.c

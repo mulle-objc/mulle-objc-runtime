@@ -1,0 +1,39 @@
+name: CI
+
+on: [push]
+
+env:
+  BUILD_TYPE: release
+  OTHER_PROJECTS: "mulle-objc/mulle-objc-developer;
+mulle-c/mulle-c-developer;"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-latest, ubuntu-latest]
+
+    steps:
+    - name: Set MULLE_HOSTNAME
+      run: echo "MULLE_HOSTNAME=ci-${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+    - uses: actions/checkout@v2
+
+    - uses: mulle-sde/github-ci@v1
+
+    - name: Add to path
+      run:  echo "$HOME/bin" >> $GITHUB_PATH
+
+    - name: Dump Environment
+      run:  env | sort
+
+    - name: Mulle-SDE Fetch
+      run: mulle-sde fetch
+
+    - name: Mulle-SDE Craft
+      run: mulle-sde craft --${BUILD_TYPE:-release}
+
+    - name: Mulle-SDE Test
+      run: |
+        [ ! -d test ] || mulle-sde test

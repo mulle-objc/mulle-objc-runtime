@@ -73,7 +73,7 @@ typedef int    mulle_objc_uniqueid_t;  // ** MUST BE 32 bit (on the stack) **
 
 
 static inline struct _mulle_objc_infraclass *
-   mulle_objc_inlinelookup_infraclass_nofail( mulle_objc_uniqueid_t universeid,
+   mulle_objc_lookup_infraclass_inline_nofail( mulle_objc_uniqueid_t universeid,
                                               mulle_objc_uniqueid_t classid)
 {
 	extern struct _mulle_objc_infraclass *
@@ -84,7 +84,7 @@ static inline struct _mulle_objc_infraclass *
 
 
 static inline void  *
-	mulle_objc_object_inlinecall( void *obj,
+	mulle_objc_object_call_inline( void *obj,
                                                  mulle_objc_uniqueid_t methodid,
                                                  void *parameter)
 {
@@ -97,22 +97,22 @@ static inline void  *
 
 
 static inline void  *
-   _mulle_objc_object_inlinesupercall( void *obj,
+   mulle_objc_object_supercall_inline( void *obj,
                                        mulle_objc_uniqueid_t methodid,
                                        void *parameter,
                                        mulle_objc_uniqueid_t superid)
 {
 	extern void  *
-	   _mulle_objc_object_supercall( void *obj,
+	   mulle_objc_object_supercall( void *obj,
 	                                 mulle_objc_uniqueid_t methodid,
 	                                 void *parameter,
 	                                 mulle_objc_uniqueid_t superid);
 
-	return( _mulle_objc_object_supercall( obj, methodid, parameter, superid));
+	return( mulle_objc_object_supercall( obj, methodid, parameter, superid));
 }
 
 
-static inline void   *mulle_objc_object_inlineretain( void *obj)
+static inline void   *mulle_objc_object_retain_inline( void *obj)
 {
 	extern void   *mulle_objc_object_retain( void *obj);
 
@@ -120,7 +120,7 @@ static inline void   *mulle_objc_object_inlineretain( void *obj)
 }
 
 
-static inline void   mulle_objc_object_inlinerelease( void *obj)
+static inline void   mulle_objc_object_release_inline( void *obj)
 {
 	extern void   mulle_objc_object_release( void *obj);
 
@@ -132,36 +132,36 @@ static inline void   mulle_objc_object_inlinerelease( void *obj)
 -O1
 
     mulle_objc_lookup_infraclass_nofail
-    mulle_objc_object_partialinlinecall
-    _mulle_objc_object_partialinlinesupercall
+    mulle_objc_object_call_inline_partial
+    mulle_objc_object_supercall_inline_partial
 */
 
 static inline void  *
-	mulle_objc_object_partialinlinecall( void *obj,
+	mulle_objc_object_call_inline_partial( void *obj,
                                              mulle_objc_uniqueid_t methodid,
                                              void *parameter)
 {
 	extern void  *mulle_objc_object_call( void *obj,
-                                        mulle_objc_uniqueid_t methodid,
-                                        void *parameter);
+                                         mulle_objc_uniqueid_t methodid,
+                                         void *parameter);
 
 	return( mulle_objc_object_call( obj, methodid, parameter));
 }
 
 
 static inline void   *
-   _mulle_objc_object_partialinlinesupercall( void *obj,
+   mulle_objc_object_supercall_inline_partial( void *obj,
                                               mulle_objc_uniqueid_t methodid,
                                               void *parameter,
                                               mulle_objc_uniqueid_t superid)
 {
 	extern void   *
-   	_mulle_objc_object_supercall( void *obj,
+   	mulle_objc_object_supercall( void *obj,
       	                          mulle_objc_uniqueid_t methodid,
          	                        void *parameter,
             	                    mulle_objc_uniqueid_t superid);
 
-	return( _mulle_objc_object_supercall( obj, methodid, parameter, superid));
+	return( mulle_objc_object_supercall( obj, methodid, parameter, superid));
 }
 
 #endif

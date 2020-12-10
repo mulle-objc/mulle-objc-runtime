@@ -279,7 +279,7 @@ struct Foo
 
 static void   *Foo_init( struct Foo *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   self = (void *) _mulle_objc_object_supercall( (void *) self, _cmd, _params, ___Foo_init_superid);
+   self = (void *) mulle_objc_object_supercall( (void *) self, _cmd, _params, ___Foo_init_superid);
 
    self->a = 1;
    self->b = 2;

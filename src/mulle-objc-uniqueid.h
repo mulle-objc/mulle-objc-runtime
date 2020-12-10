@@ -36,6 +36,8 @@
 #ifndef mulle_objc_uniqueid_h__
 #define mulle_objc_uniqueid_h__
 
+#include "include.h"
+
 #include <stdint.h>
 #include <assert.h>
 #include <errno.h>
@@ -45,7 +47,7 @@
 
 typedef uint32_t   mulle_objc_uniqueid_t;
 
-#define MULLE_OBJC_UNIQUEHASH_FNV1     0
+#define MULLE_OBJC_UNIQUEHASH_FNV1     0  // no longer supported
 #define MULLE_OBJC_UNIQUEHASH_FNV1A    1
 
 // I had picked fnv1 because it less collision lowercase in this article

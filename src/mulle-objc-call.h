@@ -65,9 +65,9 @@
 // use this for -O3
 //
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_inlinecall( void *obj,
-                                 mulle_objc_methodid_t methodid,
-                                 void *parameter)
+   mulle_objc_object_call_inline( void *obj,
+                                  mulle_objc_methodid_t methodid,
+                                  void *parameter)
 {
 #ifdef __MULLE_OBJC_FCS__
    int                             index;
@@ -119,9 +119,9 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // use this for -O -O1
 //
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_partialinlinecall( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        void *parameter)
+   mulle_objc_object_call_inline_partial( void *obj,
+                                         mulle_objc_methodid_t methodid,
+                                         void *parameter)
 {
 #ifdef __MULLE_OBJC_FCS__
    int                        index;
@@ -147,9 +147,9 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // this is the method to use, when the selector is variable
 //
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_inlinecall_variablemethodid( void *obj,
-                                                  mulle_objc_methodid_t methodid,
-                                                  void *parameter)
+   mulle_objc_object_call_variablemethodid_inline( void *obj,
+                                                   mulle_objc_methodid_t methodid,
+                                                   void *parameter)
 {
    mulle_objc_implementation_t     f;
    struct _mulle_objc_cache        *cache;
@@ -216,8 +216,8 @@ mulle_objc_implementation_t
                                                          mulle_objc_superid_t superid);
 
 static inline mulle_objc_implementation_t
-   _mulle_objc_object_inlinesuperlookup_implementation_nofail( void *obj,
-                                                               mulle_objc_superid_t superid)
+   _mulle_objc_object_superlookup_implementation_inline_nofail( void *obj,
+                                                                mulle_objc_superid_t superid)
 {
    struct _mulle_objc_class      *cls;
    mulle_objc_implementation_t   imp;
@@ -239,7 +239,7 @@ static inline mulle_objc_implementation_t
 //
 
 static inline void   *
-   _mulle_objc_object_partialinlinesupercall( void *obj,
+   mulle_objc_object_supercall_inline_partial( void *obj,
                                               mulle_objc_methodid_t methodid,
                                               void *parameter,
                                               mulle_objc_superid_t superid)
@@ -253,7 +253,7 @@ static inline void   *
 
 
 MULLE_C_ALWAYS_INLINE static inline void  *
-   _mulle_objc_object_inlinesupercall( void *obj,
+   mulle_objc_object_supercall_inline( void *obj,
                                        mulle_objc_methodid_t methodid,
                                        void *parameter,
                                        mulle_objc_superid_t superid)
@@ -293,10 +293,11 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
 
 //MULLE_C_ARTIFICIAL
-void   *_mulle_objc_object_supercall( void *obj,
-                                      mulle_objc_methodid_t methodid,
-                                      void *parameter,
-                                      mulle_objc_superid_t superid);
+void   *mulle_objc_object_supercall( void *obj,
+                                     mulle_objc_methodid_t methodid,
+                                     void *parameter,
+                                     mulle_objc_superid_t superid);
+
 
 MULLE_C_CONST_RETURN
 MULLE_C_NONNULL_RETURN

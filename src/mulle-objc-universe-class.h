@@ -54,21 +54,21 @@ struct _mulle_objc_universe;
 
 _mulle_objc_universe_inlinelookup_infraclass_nocache_nofast
 _mulle_objc_universe_inlinelookup_infraclass
-_mulle_objc_universe_inlinelookup_infraclass_nofail
+_mulle_objc_universe_lookup_infraclass_inline_nofail
 _mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast
 _mulle_objc_universe_lookup_infraclass_nocache_nofast
 _mulle_objc_universe_lookup_infraclass_nofail_nofast
 
 ## Universeid / classid Functions
 
-mulle_objc_global_inlinelookup_infraclass_nofail
-mulle_objc_global_inlinelookup_infraclass_nofail_nofast
+mulle_objc_global_lookup_infraclass_inline_nofail
+mulle_objc_global_lookup_infraclass_inline_nofail_nofast
 mulle_objc_global_lookup_infraclass_nofail
 mulle_objc_global_lookup_infraclass_nofail_nofast
 
 ## Object / universeid / classid Functions
 
-mulle_objc_object_inlinelookup_infraclass_nofail
+mulle_objc_object_lookup_infraclass_inline_nofail
 mulle_objc_object_lookup_infraclass_nofail
 mulle_objc_object_lookup_infraclass_nofail_nofast
 */
@@ -85,7 +85,7 @@ int    mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *
 //
 static inline struct _mulle_objc_infraclass *
    _mulle_objc_universe_inlinelookup_infraclass_nocache_nofast( struct _mulle_objc_universe *universe,
-                                                                 mulle_objc_classid_t classid)
+                                                                mulle_objc_classid_t classid)
 {
    return( _mulle_concurrent_hashmap_lookup( &universe->classtable, classid));
 }
@@ -123,12 +123,12 @@ MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_infraclass *
 
 
 MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_infraclass *
-   mulle_objc_global_inlinelookup_infraclass_nofail_nofast( mulle_objc_universeid_t universeid,
-                                                            mulle_objc_classid_t classid)
+   mulle_objc_global_lookup_infraclass_inline_nofail_nofast( mulle_objc_universeid_t universeid,
+                                                             mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    return( _mulle_objc_universe_lookup_infraclass_nofail_nofast( universe, classid));
 }
 
@@ -169,8 +169,8 @@ static inline struct _mulle_objc_infraclass  *
 
 
 static inline struct _mulle_objc_infraclass  *
-    _mulle_objc_universe_inlinelookup_infraclass_nofail( struct _mulle_objc_universe *universe,
-                                                         mulle_objc_classid_t classid)
+    _mulle_objc_universe_lookup_infraclass_inline_nofail( struct _mulle_objc_universe *universe,
+                                                          mulle_objc_classid_t classid)
 {
    int                             index;
    struct _mulle_objc_infraclass   *infra;
@@ -210,18 +210,18 @@ static inline struct _mulle_objc_infraclass  *
 
 MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass  *
     mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
-                                                   mulle_objc_classid_t classid);
+                                                  mulle_objc_classid_t classid);
 
 
 
 MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_infraclass *
-   mulle_objc_global_inlinelookup_infraclass_nofail( mulle_objc_universeid_t universeid,
-                                                     mulle_objc_classid_t classid)
+   mulle_objc_global_lookup_infraclass_inline_nofail( mulle_objc_universeid_t universeid,
+                                                      mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
-   return( _mulle_objc_universe_inlinelookup_infraclass_nofail( universe, classid));
+   universe = mulle_objc_global_get_universe_inline( universeid);
+   return( _mulle_objc_universe_lookup_infraclass_inline_nofail( universe, classid));
 }
 
 
@@ -234,14 +234,14 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
 
 
 MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_infraclass *
-   mulle_objc_object_inlinelookup_infraclass_nofail( void *obj,
-                                                     mulle_objc_universeid_t universeid,
-                                                     mulle_objc_classid_t classid)
+   mulle_objc_object_lookup_infraclass_inline_nofail( void *obj,
+                                                      mulle_objc_universeid_t universeid,
+                                                      mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
 
    universe = __mulle_objc_object_get_universe_nofail( obj, universeid);
-   return( _mulle_objc_universe_inlinelookup_infraclass_nofail( universe, classid));
+   return( _mulle_objc_universe_lookup_infraclass_inline_nofail( universe, classid));
 }
 
 
@@ -258,5 +258,16 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
 // do not use, it's used by compat
 void    _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *universe);
 
+
+MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_infraclass *
+   mulle_objc_object_lookup_infraclass_inline_nofail_nofast( void *obj,
+                                                             mulle_objc_universeid_t universeid,
+                                                             mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = __mulle_objc_object_get_universe_nofail( obj, universeid);
+   return( _mulle_objc_universe_lookup_infraclass_nofail_nofast( universe, classid));
+}
 
 #endif

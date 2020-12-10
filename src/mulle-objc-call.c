@@ -633,7 +633,6 @@ mulle_objc_implementation_t
 }
 
 
-
 //mulle_objc_implementation_t   mulle_objc_class_search_implementation_unfail( struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid)
 //{
 //   struct _mulle_objc_method   *method;
@@ -641,7 +640,6 @@ mulle_objc_implementation_t
 //   method  = _mulle_objc_class_search_method_nofail( cls, methodid);
 //   return( method->implementation);
 //}
-
 
 # pragma mark - trace method
 
@@ -737,7 +735,6 @@ MULLE_C_NEVER_INLINE static void *
    /*->*/
    return( (*imp)( obj, methodid, parameter));
 }
-
 
 
 # pragma mark -
@@ -1077,7 +1074,6 @@ static mulle_objc_implementation_t
 }
 
 
-
 static void   *
    _mulle_objc_object_call_class_nocache( void *obj,
                                           mulle_objc_methodid_t methodid,
@@ -1192,7 +1188,7 @@ void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cl
    if( universe->debug.trace.initialize)
    {
       mulle_objc_universe_trace( universe, "recursive +[%s initialize] ignored.\n"
-                     "break on _mulle_objc_warn_recursive_initialize to debug.",
+                     "break on _mulle_objc_class_warn_recursive_initialize to debug.",
               _mulle_objc_class_get_name( cls));
       if( universe->debug.warn.crash)
          abort();
@@ -1308,7 +1304,6 @@ void   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
 
    pair  = _mulle_objc_class_get_classpair( cls);
    infra = _mulle_objc_classpair_get_infraclass( pair);
-   meta  = _mulle_objc_classpair_get_metaclass( pair);
 
    //
    // allow recursion to same class in same thread
@@ -1325,6 +1320,7 @@ void   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
       }
    }
 
+   meta            = _mulle_objc_classpair_get_metaclass( pair);
    initialize_lock = _mulle_objc_classpair_get_lock( pair);
    mulle_thread_mutex_lock( initialize_lock);
    {
@@ -1425,20 +1421,22 @@ void   *mulle_objc_object_call( void *obj,
 
 #pragma mark - super call
 
-void   *_mulle_objc_object_supercall( void *obj,
-                                      mulle_objc_methodid_t methodid,
-                                      void *parameter,
-                                      mulle_objc_superid_t superid)
+void   *mulle_objc_object_supercall( void *obj,
+                                     mulle_objc_methodid_t methodid,
+                                     void *parameter,
+                                     mulle_objc_superid_t superid)
 {
    mulle_objc_implementation_t   imp;
 
-   imp = _mulle_objc_object_inlinesuperlookup_implementation_nofail( obj, superid);
+   if( __builtin_expect( ! obj, 0))
+      return( obj);
+
+   imp = _mulle_objc_object_superlookup_implementation_inline_nofail( obj, superid);
    return( (*imp)( obj, methodid, parameter));
 }
 
 
 // need to call cls->call to prepare caches
-
 
 #pragma mark - multiple objects call
 
@@ -1493,8 +1491,5 @@ mulle_objc_implementation_t
    _mulle_objc_object_superlookup_implementation_nofail( void *obj,
                                                          mulle_objc_superid_t superid)
 {
-   return( _mulle_objc_object_inlinesuperlookup_implementation_nofail( obj, superid));
+   return( _mulle_objc_object_superlookup_implementation_inline_nofail( obj, superid));
 }
-
-
-

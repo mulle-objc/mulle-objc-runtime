@@ -45,13 +45,8 @@ struct _mulle_objc_class;
 struct _mulle_objc_object;
 
 
-//
-// this is ahead of the actual instance
-// isa must be underscored
-// It is important, that on 64 bit it's 16 byte size, because then a following
-// class can provide an isa pointer with 4 zero ls bits
-#define MULLE_OBJC_NEVER_RELEASE   INTPTR_MAX
 
+#define MULLE_OBJC_NEVER_RELEASE   INTPTR_MAX
 // retaincount_1
 //    0       -> INTPTR_MAX-1 :: normal retain counting, actual retainCount is retaincount_1 + 1
 //    -1                      :: released
@@ -61,10 +56,15 @@ struct _mulle_objc_object;
 // you can use INTPTR_MAX to create static objects
 //
 // like f.e.
-// { INTPTR_MAX, MULLE_OBJC_METHODID( 0x423aeba60e4eb3be), "VfL Bochum 1848" }; // 0x423aeba60e4eb3be == NXConstantString
+// { INTPTR_MAX, @selector( NSConstantString), "VfL Bochum 1848" };
 //
 
 
+//
+// this is ahead of the actual instance
+// isa must be underscored
+// It is important, that on 64 bit it's 16 byte size, because then a following
+// class can provide an isa pointer with 4 zero ls bits
 struct _mulle_objc_objectheader
 {
    mulle_atomic_pointer_t      _retaincount_1;  // negative means finalized

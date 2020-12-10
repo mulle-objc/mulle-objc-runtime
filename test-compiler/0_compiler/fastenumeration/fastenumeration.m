@@ -12,9 +12,13 @@ typedef struct
 
 @protocol NSFastEnumeration
 
+// this is unsigned long because of the compiler, it should be the same
+// as NSUInteger, but that's not 100% sure.
 - (unsigned long) countByEnumeratingWithState:(NSFastEnumerationState *) rover
-                                      objects:(id *) buffer
-                                        count:(unsigned long) len;
+                                   objects:(id *) buffer
+                                     count:(unsigned long) len;
+- (unsigned long) count;
+
 @end
 
 
@@ -54,6 +58,11 @@ typedef struct
    rover->mutationsPtr = &rover->extra[ 4];
 
    return( len);
+}
+
+- (unsigned long) count
+{
+   return( 20);
 }
 
 @end

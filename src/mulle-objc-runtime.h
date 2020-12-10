@@ -86,8 +86,6 @@
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-fastclasstable.h"
 #include "mulle-objc-fastmethodtable.h"
-#include "mulle-objc-fnv1.h"
-#include "mulle-objc-fnv1a.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-ivar.h"
 #include "mulle-objc-ivarlist.h"
@@ -145,7 +143,7 @@ static inline void  mulle_objc_global_finish( void)
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( __MULLE_OBJC_UNIVERSEID__);
+   universe = mulle_objc_global_get_universe_inline( __MULLE_OBJC_UNIVERSEID__);
    if( universe && ! _mulle_objc_universe_is_default( universe) && universe->config.pedantic_exit)
       _mulle_objc_universe_release( universe);
 }

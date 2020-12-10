@@ -68,7 +68,6 @@ set( EXECUTABLE_NAME mulle-objc-uniqueid)
 # only need the hash function (done like this if runtime is built as shared)
 set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES}
 src/mulle-objc-uniqueid.c
-src/mulle-objc-fnv1a.c
 )
 set( EXECUTABLE_DEPENDENCY_NAMES mulle-objc-runtime)
 # only need the hash function

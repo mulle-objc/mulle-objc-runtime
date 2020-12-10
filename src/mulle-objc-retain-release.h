@@ -171,7 +171,7 @@ static inline int   _mulle_objc_object_is_constant( void *obj)
 // __builtin_expect( --header->retaincount_1 < 0, 0)
 // didnt do anything for me
 //
-static inline void   _mulle_objc_object_inlinerelease( void *obj)
+static inline void   _mulle_objc_object_release_inline( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
 
@@ -193,7 +193,14 @@ static inline void   _mulle_objc_object_inlinerelease( void *obj)
 }
 
 
-static inline void   _mulle_objc_object_inlineretain( void *obj)
+//
+// IDEA: on transition from 0 -> 1 could "seal" an instance, as this
+//       indicates setup is over. So all modifications except retain
+//       counting would be invalid. Advantages: can setup as desired
+//       with property accessors. Negative bi-directional retains won't
+//       work. Manual sealing might be preferable.
+//
+static inline void   _mulle_objc_object_retain_inline( void *obj)
 {
    _mulle_objc_object_increment_retaincount( obj);
 }
@@ -202,19 +209,19 @@ static inline void   _mulle_objc_object_inlineretain( void *obj)
 # pragma mark - API, compiler uses this code too
 
 // must be void *, for compiler
-static inline void   *mulle_objc_object_inlineretain( void *obj)
+static inline void   *mulle_objc_object_retain_inline( void *obj)
 {
    if( obj)
-      _mulle_objc_object_inlineretain( obj);
+      _mulle_objc_object_retain_inline( obj);
    return( obj);
 }
 
 
-static inline void   mulle_objc_object_inlinerelease( void *obj)
+static inline void   mulle_objc_object_release_inline( void *obj)
 {
    if( ! obj)
       return;
-   _mulle_objc_object_inlinerelease( obj);
+   _mulle_objc_object_release_inline( obj);
 }
 
 

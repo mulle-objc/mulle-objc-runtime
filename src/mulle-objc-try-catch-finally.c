@@ -51,7 +51,7 @@ void   mulle_objc_exception_throw( void *exception, mulle_objc_classid_t univers
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    objc_exception_throw( exception, universe);
 }
 
@@ -60,7 +60,7 @@ void   mulle_objc_exception_tryenter( void *localExceptionData, mulle_objc_class
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    universe->exceptionvectors.try_enter( universe, localExceptionData);
 }
 
@@ -69,7 +69,7 @@ void   mulle_objc_exception_tryexit( void *localExceptionData, mulle_objc_classi
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    universe->exceptionvectors.try_exit( universe, localExceptionData);
 }
 
@@ -78,7 +78,7 @@ void   *mulle_objc_exception_extract( void *localExceptionData, mulle_objc_class
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    return( universe->exceptionvectors.extract( universe, localExceptionData));
 }
 
@@ -87,7 +87,7 @@ int   _mulle_objc_exception_match( void *exception, mulle_objc_classid_t univers
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    return( universe->exceptionvectors.match( universe, classid, exception));
 }
 

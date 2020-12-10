@@ -126,10 +126,10 @@ struct _mulle_objc_universedebug
 
    struct
    {
-      unsigned   methodid_type          : 1;
+      unsigned   method_type            : 1;
       unsigned   protocolclass          : 1;
       unsigned   stuck_loadable         : 1;  // set by default
-      unsigned   lenient_methodid_type  : 1;
+      unsigned   lenient_method_type    : 1;
       unsigned   crash                  : 1;
    } warn;
 

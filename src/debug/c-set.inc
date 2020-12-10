@@ -41,7 +41,7 @@
 #include <stdint.h>
 
 
-// this is an older version of _mulle_pointerset
+// this is an older version of mulle__pointerset
 
 typedef struct c_set
 {

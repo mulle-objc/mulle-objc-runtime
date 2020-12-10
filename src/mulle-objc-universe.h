@@ -290,7 +290,7 @@ MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_universe *
 
 // always returns same value (in same thread)
 MULLE_C_CONST_NONNULL_RETURN  static inline struct _mulle_objc_universe *
-   mulle_objc_global_inlineget_universe( mulle_objc_universeid_t universeid)
+   mulle_objc_global_get_universe_inline( mulle_objc_universeid_t universeid)
 {
    if( universeid == MULLE_OBJC_DEFAULTUNIVERSEID)
       return( mulle_objc_global_get_defaultuniverse());
@@ -309,7 +309,7 @@ MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_universe   *
 // present yet.
 //
 // This method is used in the universe for loading and compositing classes
-// manually. Others preferably use mulle_objc_global_inlineget_universe.
+// manually. Others preferably use mulle_objc_global_get_universe_inline.
 //
 // It is not CONST, so you can reinitialize a universe with this function.
 //
@@ -990,7 +990,7 @@ static inline void   mulle_objc_thread_register( mulle_objc_universeid_t univers
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    _mulle_objc_thread_register_universe_gc( universe);
 }
 
@@ -999,7 +999,7 @@ static inline void   mulle_objc_thread_deregister( mulle_objc_universeid_t unive
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    _mulle_objc_thread_remove_universe_gc( universe);
 }
 
@@ -1008,7 +1008,7 @@ static inline void   mulle_objc_thread_checkin( mulle_objc_universeid_t universe
 {
    struct _mulle_objc_universe   *universe;
 
-   universe = mulle_objc_global_inlineget_universe( universeid);
+   universe = mulle_objc_global_get_universe_inline( universeid);
    _mulle_objc_thread_checkin_universe_gc( universe);
 }
 

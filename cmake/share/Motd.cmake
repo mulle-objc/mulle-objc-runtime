@@ -2,43 +2,64 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
-if( NOT __MOTD__CMAKE__)
-   set( __MOTD__CMAKE__ ON)
+# this can be included multiple times
 
-   if( MULLE_TRACE_INCLUDE)
-      message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
-   endif()
+if( MULLE_TRACE_INCLUDE)
+   message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
+endif()
 
-   #
-   # Output message of a day to locate output.
+#
+# Output message of a day to locate output.
+# Must run in singlephase
+#
+if( EXECUTABLE_NAME)
+
    # But if create-build-motd doesn't exist, it's no biggy
    #
-   if( MSVC)
-      find_program( CREATE_MOTD_EXE mulle-create-build-motd.bat
-         PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/env/bin"
-      )
-   else()
-      # will fail on WSL if .mulle/var is elsewhere`. should get
-      # location from `mulle-env vardir env`
-      find_program( CREATE_MOTD_EXE mulle-create-build-motd
-         PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/env/bin"
-      )
+   if( NOT CREATE_MOTD_EXE)
+      if( MSVC)
+         # TODO: adapt search path
+         find_program( CREATE_MOTD_EXE mulle-create-build-motd.bat
+            PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/env/bin"
+         )
+      else()
+         # will fail on WSL if .mulle/var is elsewhere`. should get
+         # location from `mulle-env vardir env`
+         find_program( CREATE_MOTD_EXE mulle-create-build-motd
+            PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/env/bin"
+         )
+      endif()
    endif()
 
-   # must run in singlephase
+
+   #
+   # there is no real order, in which these motds are generated
+   # as they are hooked into the cmake dependency system
+   #
    if( CREATE_MOTD_EXE)
-      add_custom_target( __motd__ ALL
-         COMMAND "${CREATE_MOTD_EXE}" $ENV{CREATE_BUILD_MOTD_FLAGS}
+      if( NOT TARGET "__cleanmotd__")
+         add_custom_target( "__cleanmotd__" ALL
+            COMMAND "test" "!" "-f" "${CMAKE_BINARY_DIR}/.motd" "||" "rm" "${CMAKE_BINARY_DIR}/.motd"
+            COMMENT "Remove old motd file for mulle-craft"
+            VERBATIM
+         )
+      endif()
+      add_dependencies( "${EXECUTABLE_NAME}" "__cleanmotd__")
+
+      add_custom_target( "${EXECUTABLE_NAME}__motd__" ALL
+         COMMAND ${CMAKE_COMMAND} -E env "MULLE_VIRTUAL_ROOT=${MULLE_VIRTUAL_ROOT}"
+                        "${CREATE_MOTD_EXE}"
+                        $ENV{CREATE_BUILD_MOTD_FLAGS}
+                        "--append"
                      "executable"
                         "${CMAKE_BINARY_DIR}"
                         "${EXECUTABLE_NAME}"
-         COMMENT "Creating a motd file for mulle-craft"
+         COMMENT "Append to motd file for mulle-craft"
          VERBATIM
       )
 
-      add_dependencies( __motd__ ${EXECUTABLE_NAME})
+      add_dependencies( "${EXECUTABLE_NAME}__motd__" ${EXECUTABLE_NAME})
    endif()
 
    include( MotdAux OPTIONAL)
-
 endif()

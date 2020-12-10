@@ -63,7 +63,7 @@ int   main( int argc, char *argv[])
    while( argv < sentinel)
    {
       s = *argv++;
-      while( next = mulle_objc_signature_supply_next_typeinfo( s, &info))
+      while( next = mulle_objc_signature_supply_typeinfo( s, NULL, &info))
       {
          printf( "%.*s;", (int) (next - s), s);
          s = next;

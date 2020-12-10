@@ -44,6 +44,43 @@
 #include <stddef.h>
 
 
+// encode characters in the property signature
+enum mulle_objc_property_attribute
+{
+   mulle_objc_property_attribute_adder        = '+',
+   mulle_objc_property_attribute_class        = 'K',
+   mulle_objc_property_attribute_container    = 'K',
+   mulle_objc_property_attribute_copy         = 'C',
+   mulle_objc_property_attribute_dynamic      = 'D',
+   mulle_objc_property_attribute_getter       = 'G',
+   mulle_objc_property_attribute_ivar         = 'V',
+   mulle_objc_property_attribute_nonatomic    = 'N',
+   mulle_objc_property_attribute_observable   = 'O',
+   mulle_objc_property_attribute_readonly     = 'R',
+   mulle_objc_property_attribute_relationship = '>',
+   mulle_objc_property_attribute_remover      = '-',
+   mulle_objc_property_attribute_retain       = '&',
+   mulle_objc_property_attribute_serializable = 'E',
+   mulle_objc_property_attribute_setter       = 'S'
+};
+
+
+#define mulle_objc_property_attribute_adder_string          "+"
+#define mulle_objc_property_attribute_container_string      "K"
+#define mulle_objc_property_attribute_copy_string           "C"
+#define mulle_objc_property_attribute_dynamic_string        "D"
+#define mulle_objc_property_attribute_getter_string         "G"
+#define mulle_objc_property_attribute_ivar_string           "V"
+#define mulle_objc_property_attribute_nonatomic_string      "N"
+#define mulle_objc_property_attribute_observable_string     "O"
+#define mulle_objc_property_attribute_readonly_string       "R"
+#define mulle_objc_property_attribute_relationship_string   ">"
+#define mulle_objc_property_attribute_remover_string        "-"
+#define mulle_objc_property_attribute_retain_string         "&"
+#define mulle_objc_property_attribute_serializable_string   "E"
+#define mulle_objc_property_attribute_setter_string         "S"
+
+
 enum
 {
    _mulle_objc_property_readonly          = 0x00001,

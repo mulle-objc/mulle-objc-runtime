@@ -59,6 +59,7 @@ stty
 su
 sw_vers;optional
 sync
+sysctl;optional
 tail
 tee
 test
@@ -67,6 +68,7 @@ tr
 true
 umount
 uname
+uptime;optional
 uuidgen
 vi;optional
 wc

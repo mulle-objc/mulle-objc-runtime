@@ -58,7 +58,7 @@ struct _mulle_objc_class  *
    struct _mulle_objc_infraclass   *infra;
 
    classid  = mulle_objc_uniqueid_from_string( name);
-   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
    infra    = _mulle_objc_universe_lookup_infraclass( universe, classid);
    return( infra ? _mulle_objc_infraclass_as_class( infra) : NULL);
 }
@@ -72,7 +72,7 @@ mulle_objc_methodid_t
    struct _mulle_objc_descriptor   *desc;
 
    sel      = mulle_objc_uniqueid_from_string( name);
-   universe = mulle_objc_global_inlineget_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
+   universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
    desc     = _mulle_objc_universe_lookup_descriptor( universe, sel);
 
    return( desc ? sel : MULLE_OBJC_NO_METHODID);
@@ -122,7 +122,7 @@ mulle_objc_implementation_t
       // will bring grief
    case 2 :
       superid = (mulle_objc_superid_t) (uintptr_t) class_or_superid;
-      imp     = _mulle_objc_object_inlinesuperlookup_implementation_nofail( obj,
+      imp     = _mulle_objc_object_superlookup_implementation_inline_nofail( obj,
                                                                             superid);
    }
 
