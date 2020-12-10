@@ -22,6 +22,8 @@ jobs:
 
     - uses: mulle-sde/github-ci@v1
 
+    - uses: mulle-objc/github-ci@v1
+
     - name: Add to path
       run:  echo "$HOME/bin" >> $GITHUB_PATH
 
