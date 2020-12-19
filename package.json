@@ -1,0 +1,25 @@
+{
+   "name" : "mulle-objc-runtime",
+   "version" : "0.18.0",
+   "description" : "⏩ A fast, portable Objective-C runtime written 100% in C11",
+   "homepage" : "https://github.com/mulle-kybernetik-tv/mulle-objc-runtime
+https://github.com/mulle-objc/mulle-objc-runtime",
+   "bugs" : "https://github.com/mulle-kybernetik-tv/mulle-objc-runtime
+https://github.com/mulle-objc/mulle-objc-runtime/issues",
+   "keywords" : [],
+   "license" : "BSD-3-Clause",
+   "repository" : {
+      "type" : "git",
+      "url" : "mulle-kybernetik-tv/mulle-objc-runtime
+mulle-objc/mulle-objc-runtime"
+   },
+   "dependencies" : {
+      "mulle-concurrent" : "mulle-concurrent/mulle-concurrent",
+      "mulle-vararg" : "mulle-c/mulle-vararg",
+      "mulle-stacktrace" : "mulle-core/mulle-stacktrace",
+      "mulle-atinit" : "mulle-core/mulle-atinit",
+      "mulle-atexit" : "mulle-core/mulle-atexit",
+      "mulle-dlfcn" : "mulle-core/mulle-dlfcn",
+      "mulle-data" : "mulle-c/mulle-data"
+   }
+}

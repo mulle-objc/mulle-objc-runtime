@@ -2231,15 +2231,23 @@ static struct _mulle_objc_descriptor *
       // for this, but I am too lazy now.
       _mulle_concurrent_hashmap_register( &universe->varyingsignaturedescriptortable, p->methodid, (void *) 0x1848);
 
-      //
-      // hack: so ':' can be used without warning as a shortcut selector
-      //
-      if( universe->debug.warn.method_type && p->methodid != 0xf0cb86d3)
+      if( universe->debug.warn.method_type)
       {
-         fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
-                          "and \"%s\" for method \"%s\"\n",
-                 universe,
-                 dup->signature, p->signature, p->name);
+         //
+         // hack: so ':' can be used without warning as a shortcut selector
+         //       also hack string and data for the time being (sight)
+         switch( p->methodid)
+         {
+         case 0x7c165381 : // string
+         case 0xf0cb86d3 : // :
+         case 0x872e2a5d : // data
+            break;
+         default         :
+            fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
+                             "and \"%s\" for method \"%s\"\n",
+                             universe,
+                             dup->signature, p->signature, p->name);
+         }
       }
    }
    return( dup);

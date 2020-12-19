@@ -3,8 +3,7 @@
 #### ⏩ A fast, portable Objective-C runtime written 100% in C11
 
 A portable Objective-C runtime written in C11. No Assembler required.
-It follows the Apple "Objective-C 1 Runtime" and
-[adds many features](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_present_and_absent.html)
+It follows the Apple "Objective-C 1 Runtime" and [adds many features](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_present_and_absent.html)
 from "Objective-C 2.0", but the runtime function calls are completely different.
 It is designed to be suitable for massive multi-threading.
 
