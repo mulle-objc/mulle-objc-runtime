@@ -16,56 +16,36 @@
 //    remove:             `mulle-sourcetree mark mulle-stacktrace no-header`
 //    rename:             `mulle-sde dependency|library set mulle-stacktrace include whatever.h`
 //    toggle #import:     `mulle-sourcetree mark mulle-stacktrace [no-]import`
-//    toggle localheader: `mulle-sourcetree mark mulle-stacktrace [no-]localheader`
 //    toggle public:      `mulle-sourcetree mark mulle-stacktrace [no-]public`
 //    toggle optional:    `mulle-sourcetree mark mulle-stacktrace [no-]require`
 //    remove for os:      `mulle-sourcetree mark mulle-stacktrace no-os-<osname>`
-# if defined( __has_include) && __has_include("mulle-stacktrace.h")
-#   include "mulle-stacktrace.h"   // mulle-stacktrace
-# else
-#   include <mulle-stacktrace/mulle-stacktrace.h>   // mulle-stacktrace
-# endif
+# include <mulle-stacktrace/mulle-stacktrace.h>   // mulle-stacktrace
 
 // How to tweak the following mulle-atinit #include
 //    remove:             `mulle-sourcetree mark mulle-atinit no-header`
 //    rename:             `mulle-sde dependency|library set mulle-atinit include whatever.h`
 //    toggle #import:     `mulle-sourcetree mark mulle-atinit [no-]import`
-//    toggle localheader: `mulle-sourcetree mark mulle-atinit [no-]localheader`
 //    toggle public:      `mulle-sourcetree mark mulle-atinit [no-]public`
 //    toggle optional:    `mulle-sourcetree mark mulle-atinit [no-]require`
 //    remove for os:      `mulle-sourcetree mark mulle-atinit no-os-<osname>`
-# if defined( __has_include) && __has_include("mulle-atinit.h")
-#   include "mulle-atinit.h"   // mulle-atinit
-# else
-#   include <mulle-atinit/mulle-atinit.h>   // mulle-atinit
-# endif
+# include <mulle-atinit/mulle-atinit.h>   // mulle-atinit
 
 // How to tweak the following mulle-atexit #include
 //    remove:             `mulle-sourcetree mark mulle-atexit no-header`
 //    rename:             `mulle-sde dependency|library set mulle-atexit include whatever.h`
 //    toggle #import:     `mulle-sourcetree mark mulle-atexit [no-]import`
-//    toggle localheader: `mulle-sourcetree mark mulle-atexit [no-]localheader`
 //    toggle public:      `mulle-sourcetree mark mulle-atexit [no-]public`
 //    toggle optional:    `mulle-sourcetree mark mulle-atexit [no-]require`
 //    remove for os:      `mulle-sourcetree mark mulle-atexit no-os-<osname>`
-# if defined( __has_include) && __has_include("mulle-atexit.h")
-#   include "mulle-atexit.h"   // mulle-atexit
-# else
-#   include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
-# endif
+# include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
 
 // How to tweak the following mulle-dlfcn #include
 //    remove:             `mulle-sourcetree mark mulle-dlfcn no-header`
 //    rename:             `mulle-sde dependency|library set mulle-dlfcn include whatever.h`
 //    toggle #import:     `mulle-sourcetree mark mulle-dlfcn [no-]import`
-//    toggle localheader: `mulle-sourcetree mark mulle-dlfcn [no-]localheader`
 //    toggle public:      `mulle-sourcetree mark mulle-dlfcn [no-]public`
 //    toggle optional:    `mulle-sourcetree mark mulle-dlfcn [no-]require`
 //    remove for os:      `mulle-sourcetree mark mulle-dlfcn no-os-<osname>`
-# if defined( __has_include) && __has_include("mulle-dlfcn.h")
-#   include "mulle-dlfcn.h"   // mulle-dlfcn
-# else
-#   include <mulle-dlfcn/mulle-dlfcn.h>   // mulle-dlfcn
-# endif
+# include <mulle-dlfcn/mulle-dlfcn.h>   // mulle-dlfcn
 
 #endif

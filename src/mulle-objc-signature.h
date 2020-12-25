@@ -304,8 +304,16 @@ size_t    _mulle_objc_signature_sizeof_metabistruct( char *type);
 //
 char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s);
 
+// this should be sufficiently fast, because the runtime uses this per
+// default to check each signature at runtime
 static inline int  _mulle_objc_signature_compare( char *a, char *b)
 {
+   a = strstr( a, "@0:");
+   b = strstr( b, "@0:");
+   if( ! a)
+      return( ! b ? 0 : -1);
+   if( ! b)
+      return( 1);
    return( strcmp( a, b));
 }
 
@@ -313,6 +321,15 @@ int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
                                     struct mulle_objc_typeinfo *b);
 
 int  _mulle_objc_signature_compare_lenient( char *a, char *b);
+
+//
+// this also checks the return values, which is all in all not very useful
+// in real life.
+//
+static inline int  _mulle_objc_signature_compare_strict( char *a, char *b)
+{
+   return( strcmp( a, b));
+}
 
 
 // check if type is '@' '~' '=' '#' (or as member array, union, struct member)

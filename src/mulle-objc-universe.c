@@ -111,6 +111,22 @@ int   mulle_objc_environment_get_yes_no_default( char *name, int default_value)
 }
 
 
+int   mulle_objc_environment_get_int( char *name, int min, int max, int default_value)
+{
+   char   *s;
+   long   value;
+
+   s = name ? getenv( name) : NULL;
+   if( ! s)
+      return( default_value);
+
+   value = strtol( s, NULL, 0);
+   if( value >= min && value <= max)
+      return( (int) value);
+   return( default_value);
+}
+
+
 int   mulle_objc_environment_get_yes_no( char *name)
 {
    return( mulle_objc_environment_get_yes_no_default( name, 0));
@@ -282,22 +298,29 @@ void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
 }
 
 
-
 static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe  *universe)
 {
-   universe->debug.warn.method_type          = getenv_yes_no( "MULLE_OBJC_WARN_METHOD_TYPE");
-   universe->debug.warn.lenient_method_type  = getenv_yes_no( "MULLE_OBJC_WARN_LENIENT_METHOD_TYPE");
-   universe->debug.warn.protocolclass        = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
-   universe->debug.warn.stuck_loadable       = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
-   universe->debug.warn.crash                = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
-
-#if ! DEBUG
-   if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
+   universe->debug.warn.method_type  = mulle_objc_environment_get_int( "MULLE_OBJC_WARN_METHOD_TYPE",
+                                                                        MULLE_OBJC_WARN_METHOD_TYPE_NORMAL,
+                                                                        MULLE_OBJC_WARN_METHOD_TYPE_NONE,
+#if DEBUG
+                                                                        MULLE_OBJC_WARN_METHOD_TYPE_LENIENT
+#else
+                                                                        MULLE_OBJC_WARN_METHOD_TYPE_NONE
 #endif
+                                                                     );
+
+   if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
    {
-      universe->debug.warn.method_type  = 1;
       universe->debug.warn.protocolclass  = 1;
       universe->debug.warn.stuck_loadable = 1;
+      universe->debug.warn.crash          = 1;
+   }
+   else
+   {
+      universe->debug.warn.protocolclass  = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
+      universe->debug.warn.stuck_loadable = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
+      universe->debug.warn.crash          = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
    }
 
    universe->debug.trace.category_add    = getenv_yes_no( "MULLE_OBJC_TRACE_CATEGORY_ADD");
@@ -1692,14 +1715,20 @@ intptr_t  _mulle_objc_universe_retain( struct _mulle_objc_universe *universe)
 intptr_t   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
 {
    intptr_t   rc;
+   intptr_t   n_threads;
 
    if( universe->config.wait_threads_on_exit || universe->config.pedantic_exit)
    {
       if( mulle_thread_self() == _mulle_objc_universe_get_thread( universe))
       {
          if( universe->debug.trace.universe)
-            mulle_objc_universe_trace( universe, "main thread is waiting "
-                     "on %ld threads to finish (possibly indefinitely)", (long) (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1));
+         {
+            rc = (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1);
+            if( rc)
+               mulle_objc_universe_trace( universe, "main thread is waiting "
+                     "on %ld threads to finish (possibly indefinitely)", (long) rc);
+         }
+
          for(;;)
          {
             rc = (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1);
@@ -2176,8 +2205,7 @@ static struct _mulle_objc_descriptor *
    _mulle_objc_universe_register_descriptor( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_descriptor *p)
 {
-   int   comparison;
-
+   int                             comparison;
    struct _mulle_objc_descriptor   *dup;
 
 #ifndef HAVE_SUPERCACHE
@@ -2220,35 +2248,43 @@ static struct _mulle_objc_descriptor *
             "mulle_objc_universe %p error: duplicate methods \"%s\" and \"%s\" "
             "with same id %08lx\n", universe, dup->name, p->name, (long) p->methodid);
 
-   if( universe->debug.warn.lenient_method_type)
-      comparison = _mulle_objc_signature_compare_lenient( dup->signature, p->signature);
-   else
-      comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
-
-   if( comparison)
+   switch( universe->debug.warn.method_type)
    {
-      // the value in the table is unimportant. I might write a hashset
-      // for this, but I am too lazy now.
-      _mulle_concurrent_hashmap_register( &universe->varyingsignaturedescriptortable, p->methodid, (void *) 0x1848);
+   case MULLE_OBJC_WARN_METHOD_TYPE_NONE :
+      comparison = 0;
+      break;
+   case MULLE_OBJC_WARN_METHOD_TYPE_LENIENT :
+      comparison = _mulle_objc_signature_compare_lenient( dup->signature, p->signature);
+      break;
+   case MULLE_OBJC_WARN_METHOD_TYPE_NORMAL :
+      comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
+      break;
+   case MULLE_OBJC_WARN_METHOD_TYPE_STRICT :
+      comparison = _mulle_objc_signature_compare_strict( dup->signature, p->signature);
+      break;
+   }
 
-      if( universe->debug.warn.method_type)
-      {
-         //
-         // hack: so ':' can be used without warning as a shortcut selector
-         //       also hack string and data for the time being (sight)
-         switch( p->methodid)
-         {
-         case 0x7c165381 : // string
-         case 0xf0cb86d3 : // :
-         case 0x872e2a5d : // data
-            break;
-         default         :
-            fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
-                             "and \"%s\" for method \"%s\"\n",
-                             universe,
-                             dup->signature, p->signature, p->name);
-         }
-      }
+   if( ! comparison)
+      return( dup);
+
+   // the value in the table is unimportant. I might write a hashset
+   // for this, but I am too lazy now.
+   _mulle_concurrent_hashmap_register( &universe->varyingsignaturedescriptortable, p->methodid, (void *) 0x1848);
+
+   //
+   // hack: so ':' can be used without warning as a shortcut selector
+   //       also hack string and data for the time being (sight)
+   switch( p->methodid)
+   {
+   case 0x7c165381 : // string
+   case 0xf0cb86d3 : // :
+   case 0x872e2a5d : // data
+      break;
+   default         :
+      fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
+                       "and \"%s\" for method \"%s\"\n",
+                       universe,
+                       dup->signature, p->signature, p->name);
    }
    return( dup);
 }
