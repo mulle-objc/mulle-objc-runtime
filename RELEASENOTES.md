@@ -16,7 +16,7 @@
 * foundation allocator is now a pointer, which is more convenient
 * reorganized some structs to support mulle-gdb easier
 * now has some special case test ouputs for i686
-
+* improved signature comparison, now ignores return value by default
 
 ### 0.17.1
 

@@ -85,6 +85,14 @@ enum
 };
 
 
+enum
+{
+   MULLE_OBJC_WARN_METHOD_TYPE_NONE    = 0,
+   MULLE_OBJC_WARN_METHOD_TYPE_LENIENT = 1,
+   MULLE_OBJC_WARN_METHOD_TYPE_NORMAL  = 2,
+   MULLE_OBJC_WARN_METHOD_TYPE_STRICT  = 3
+};
+
 //
 // Debug the universe. Use environment variables to set these
 // bits.
@@ -126,10 +134,9 @@ struct _mulle_objc_universedebug
 
    struct
    {
-      unsigned   method_type            : 1;
       unsigned   protocolclass          : 1;
       unsigned   stuck_loadable         : 1;  // set by default
-      unsigned   lenient_method_type    : 1;
+      unsigned   method_type            : 2;
       unsigned   crash                  : 1;
    } warn;
 

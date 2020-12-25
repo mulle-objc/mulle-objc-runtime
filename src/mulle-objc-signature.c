@@ -451,9 +451,9 @@ static inline int   is_multi_character_type( char c)
 //
 static char   *
    _mulle_objc_type_parse( char *type,
-                                  int level,
-                                  struct mulle_objc_typeinfo *info,
-                                  int  (*supplier)( char, struct mulle_objc_typeinfo *))
+                           int level,
+                           struct mulle_objc_typeinfo *info,
+                           int  (*supplier)( char, struct mulle_objc_typeinfo *))
 {
    int   isComplex;
 
@@ -882,16 +882,13 @@ int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
 
    a_len = a->pure_type_end - a->type;
    b_len = b->pure_type_end - b->type;
+
    comparison = strncmp( a->type, b->type, a_len < b_len ? a_len : b_len);
    if( comparison)
       return( comparison);
 
-   // this can't really happen
-   assert( a_len == b_len);
-
-   // probabyly superflous
-   if( a->n_members != b->n_members)
-      return( a->n_members < b->n_members ? +1 : -1);
+   if( a_len != b_len)
+      return( a_len < b_len ? -1 : 1);
 
    return( 0);
 }
@@ -903,21 +900,28 @@ int   _mulle_objc_signature_compare_lenient( char *a, char *b)
    struct mulle_objc_typeinfo  b_info;
    int                         comparison;
 
+   // skip return value
+   a = _mulle_objc_signature_supply_typeinfo( a, NULL, &a_info);
+   b = _mulle_objc_signature_supply_typeinfo( b, NULL, &b_info);
+
+   if( ! a)
+      return( b ? -1 : 0);
+   if( ! b)
+      return( 1);
+
    for(;;)
    {
       a = _mulle_objc_signature_supply_typeinfo( a, NULL, &a_info);
       b = _mulle_objc_signature_supply_typeinfo( b, NULL, &b_info);
-      if( ! a)
-         return( b ? 1 : 0);
-      if( ! b)
-         return( -1);
 
-      if( a != b)
-      {
-         comparison = _mulle_objc_typeinfo_compare( &a_info, &b_info);
-         if( comparison)
-            return( comparison);
-      }
+      if( ! a)
+         return( b ? -1 : 0);
+      if( ! b)
+         return( 1);
+
+      comparison = _mulle_objc_typeinfo_compare( &a_info, &b_info);
+      if( comparison)
+         return( comparison);
    }
 }
 
