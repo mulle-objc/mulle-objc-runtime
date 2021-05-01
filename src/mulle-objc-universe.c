@@ -33,6 +33,7 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
+#define _GNU_SOURCE     // for <time.h> later on
 #include "mulle-objc-universe.h"
 
 #include "mulle-objc-builtin.h"
@@ -379,8 +380,6 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
    if( universe->debug.print.universe_config)
    {
-      int       preserve;
-      preserve = errno;
       fprintf( stderr, "mulle-objc-universe %p: v%u.%u.%u (load-version: %u) (",
          universe,
          MULLE_OBJC_RUNTIME_VERSION_MAJOR,
@@ -881,7 +880,10 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
          if( ! _mulle_objc_universe_is_default( universe))
          {
             __mulle_objc_global_unregister_universe( universe->universeid, universe);
-            free( universe);
+
+            // if is superflous, but analyzer can't crack it
+            if( universe != __mulle_objc_global_get_defaultuniverse())
+               free( universe);
          }
          return;
       }
@@ -925,10 +927,12 @@ void
 {
    static int   did_it;
 
-
-   universe->config.pedantic_exit = getenv_yes_no( "MULLE_OBJC_PEDANTIC_EXIT");
-   if( ! universe->config.pedantic_exit)
-      return;
+   if( ! universe->config.wait_threads_on_exit)
+   {
+      universe->config.pedantic_exit = getenv_yes_no( "MULLE_OBJC_PEDANTIC_EXIT");
+      if( ! universe->config.pedantic_exit)
+         return;
+   }
 
    if( ! _mulle_objc_universe_is_default( universe))
    {
@@ -1239,11 +1243,9 @@ static void   _mulle_objc_constantobject_dealloc( struct _mulle_objc_object *obj
                                                   mulle_objc_methodid_t deallocSel)
 {
    mulle_objc_implementation_t     imp;
-   struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_class        *cls;
 
    cls   = _mulle_objc_object_get_isa( obj);
-   infra = _mulle_objc_class_as_infraclass( cls);
    imp   = _mulle_objc_class_lookup_implementation_noforward( cls, deallocSel);
    if ( _mulle_objc_object_is_constant( obj))
       _mulle_objc_object_deconstantify_noatomic( obj);
@@ -1743,10 +1745,13 @@ intptr_t   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
    if( universe->debug.trace.universe)
       mulle_objc_universe_trace( universe, "release the universe (%ld)", rc + 1);
 
-   if( rc == 0)
+   if( universe->config.pedantic_exit)
    {
-      assert( universe->thread == mulle_thread_self());
-      _mulle_objc_universe_crunch( universe, _mulle_objc_universe_done);
+      if( rc == 0)
+      {
+         assert( universe->thread == mulle_thread_self());
+         _mulle_objc_universe_crunch( universe, _mulle_objc_universe_done);
+      }
    }
    return( rc);
 }
@@ -1966,14 +1971,17 @@ struct _mulle_objc_classpair *
       assert( super_meta_isa);
    }
 
-   // classes are freed by hand so don't use gifting calloc
+   // classes are freed by hand so don't use the gifting calloc
    size = mulle_objc_classpair_size( classextra);
    pair = _mulle_allocator_calloc( allocator, 1, size);
 
-   _mulle_objc_objectheader_init( &pair->infraclassheader, &pair->metaclass.base);
+   // classes have no extra meta, should they though ?
+   _mulle_objc_objectheader_init( &pair->infraclassheader, &pair->metaclass.base, 0, _mulle_objc_memory_is_zeroed);
    _mulle_objc_objectheader_init( &pair->metaclassheader,
                                   super_meta_isa ? _mulle_objc_metaclass_as_class( super_meta_isa)
-                                                 : _mulle_objc_infraclass_as_class( &pair->infraclass));
+                                                 : _mulle_objc_infraclass_as_class( &pair->infraclass),
+                                 0,
+                                  _mulle_objc_memory_is_zeroed);
 
    _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);
    _mulle_objc_object_constantify_noatomic( &pair->metaclass.base);
@@ -1981,12 +1989,14 @@ struct _mulle_objc_classpair *
    _mulle_objc_class_init( &pair->infraclass.base,
                            name,
                            instancesize,
+                           universe->foundation.headerextrasize,
                            classid,
-                           &superclass->base,
+                           superclass ? &superclass->base : NULL,
                            universe);
    _mulle_objc_class_init( &pair->metaclass.base,
                            name,
                            sizeof( struct _mulle_objc_class),
+                           universe->foundation.headerextrasize,
                            classid,
                            super_meta ? &super_meta->base : &pair->infraclass.base,
                            universe);
@@ -2250,6 +2260,7 @@ static struct _mulle_objc_descriptor *
 
    switch( universe->debug.warn.method_type)
    {
+   default :
    case MULLE_OBJC_WARN_METHOD_TYPE_NONE :
       comparison = 0;
       break;

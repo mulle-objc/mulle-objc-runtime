@@ -561,7 +561,8 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
                "error in mulle_objc_universe %p: "
                "superclass %08x \"%s\" of class %08x \"%s\" does not exist.\n",
                 universe,
-                superclass->base.classid, superclass->base.name,
+                superclass ? superclass->base.classid : 0,  // analyzer...
+                superclass ? superclass->base.name : "nil", // analyzer...
                 infra->base.classid, infra->base.name);
 
       case EEXIST :
@@ -1486,9 +1487,10 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
    else
    {
       if( info->loaduniverse->universeid == MULLE_OBJC_DEFAULTUNIVERSEID)
-         mulle_objc_universe_fail_inconsistency( universe,
-            "mulle_objc_universe %p: loaduniverse uses default id 0 "
-            "(don't emit loaduniverse for 0)", universe);
+      {
+         fprintf( stderr, "loaduniverse must not use default id 0 (compiler bug!)\n");
+         abort();;
+      }
    }
 
    universe = mulle_objc_global_register_universe( loaduniverse->universeid,

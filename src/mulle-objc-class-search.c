@@ -718,10 +718,7 @@ struct _mulle_objc_method  *
    struct _mulle_objc_method            *method;
 
    if( ! cls || ! error)
-   {
-      *error = EINVAL;
       return( NULL);
-   }
 
    inheritance = _mulle_objc_class_get_inheritance( cls) |
                     MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;

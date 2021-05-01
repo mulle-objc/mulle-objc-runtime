@@ -633,7 +633,7 @@ static int  print_categoryid( mulle_objc_protocolid_t categoryid,
 
 
 
-static char  footer[] = "(so it is not used as protocol class)\n";
+static char  footer[] = "(so it is not functioning as a protocol class)\n";
 
 
 struct bouncy_info

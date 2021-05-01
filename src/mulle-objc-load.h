@@ -66,6 +66,9 @@ struct _mulle_objc_dependency
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
+// We changed the fast method ids in 0.19. Does that mean we have to up the
+// load version ? No the runtime version check should be sufficient ?
+//
 #define MULLE_OBJC_RUNTIME_LOAD_VERSION   17
 
 

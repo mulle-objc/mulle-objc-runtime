@@ -15,6 +15,6 @@ if( LINK_PHASE)
 
    install( TARGETS ${INSTALL_FRAMEWORK_TARGETS} DESTINATION "Frameworks")
 
-   include( PreInstallFramework OPTIONAL)
+   include( PostInstallFramework OPTIONAL)
 
 endif()

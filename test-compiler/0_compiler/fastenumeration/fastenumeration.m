@@ -3,21 +3,19 @@
 
 typedef struct
 {
-    unsigned long state;
-    id  * itemsPtr;
-    unsigned long *mutationsPtr;
-    unsigned long extra[5];
+   uintptr_t   state;
+   id              *itemsPtr;
+   uintptr_t   *mutationsPtr;
+   uintptr_t   extra[5];
 } NSFastEnumerationState;
 
 
 @protocol NSFastEnumeration
 
-// this is unsigned long because of the compiler, it should be the same
-// as NSUInteger, but that's not 100% sure.
-- (unsigned long) countByEnumeratingWithState:(NSFastEnumerationState *) rover
-                                   objects:(id *) buffer
-                                     count:(unsigned long) len;
-- (unsigned long) count;
+- (uintptr_t) countByEnumeratingWithState:(NSFastEnumerationState *) rover
+                                  objects:(id *) buffer
+                                    count:(uintptr_t) len;
+- (uintptr_t) count;
 
 @end
 
@@ -34,12 +32,12 @@ typedef struct
 }
 
 
-- (unsigned long) countByEnumeratingWithState:(NSFastEnumerationState *) rover
-                                      objects:(id *) buffer
-                                        count:(unsigned long) len
+- (uintptr_t) countByEnumeratingWithState:(NSFastEnumerationState *) rover
+                                  objects:(id *) buffer
+                                    count:(uintptr_t) len
 {
-   id               *sentinel;
-   unsigned long    remain;
+   id          *sentinel;
+   uintptr_t   remain;
 
    remain = 20 - rover->state;
    if( ! remain)
@@ -60,7 +58,7 @@ typedef struct
    return( len);
 }
 
-- (unsigned long) count
+- (uintptr_t) count
 {
    return( 20);
 }

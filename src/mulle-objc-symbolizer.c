@@ -336,7 +336,6 @@ static inline struct mmcarray *
 }
 
 
-
 static mulle_objc_walkcommand_t
       callback( struct _mulle_objc_universe *universe,
                 void *p,
@@ -409,7 +408,6 @@ void   mulle_objc_symbolizer_destroy( struct mulle_objc_symbolizer *p)
 }
 
 
-
 int   mulle_objc_symbolizer_snprint( struct mulle_objc_symbolizer *p,
                                      void *address,
                                      size_t max,
@@ -450,8 +448,6 @@ int   mulle_objc_symbolizer_snprint( struct mulle_objc_symbolizer *p,
    }
    return( written);
 }
-
-
 
 
 void   _mulle_objc_universe_csvdump_methods( struct _mulle_objc_universe *universe,

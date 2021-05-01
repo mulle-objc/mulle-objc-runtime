@@ -126,6 +126,7 @@ void   *_mulle_objc_object_call_class_needcache( void *obj,
 void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
                                char *name,
                                size_t  instancesize,
+                               size_t  headerextrasize,
                                mulle_objc_classid_t classid,
                                struct _mulle_objc_class *superclass,
                                struct _mulle_objc_universe *universe)
@@ -151,11 +152,11 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    {
       cls->superclassid  = MULLE_OBJC_NO_CLASSID;
       cls->inheritance   = universe->classdefaults.inheritance;
-
    }
    //   cls->nextclass        = superclass;
    cls->classid          = classid;
-   cls->allocationsize   = sizeof( struct _mulle_objc_objectheader) + instancesize;
+   cls->allocationsize   = sizeof( struct _mulle_objc_objectheader) + instancesize + headerextrasize;
+   cls->headerextrasize  = headerextrasize;
    cls->call             = _mulle_objc_object_call_class_needcache;
    cls->universe         = universe;
 
@@ -833,16 +834,22 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                                                void *obj,
                                                size_t extra)
 {
-   mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
-                     stderr,
-                     "[==] %p instance %p allocated (\"%s\" (%08x)) ",
-                     _mulle_objc_object_get_objectheader( obj),
-                     obj,
-                     _mulle_objc_class_get_name( cls),
-                     _mulle_objc_class_get_classid( cls));
-   if( extra)
-      fprintf( stderr, " (+%ld)", (long) extra);
-   fputc( '\n', stderr);
+   mulle_objc_classid_t   classid;
+
+   classid = _mulle_objc_class_get_classid( cls);
+   if( classid != 0x58bb178a)  // NSAutoreleasePool
+   {
+      mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
+                        stderr,
+                        "[==] %p instance %p allocated (\"%s\" (%08x)) ",
+                        _mulle_objc_object_get_objectheader( obj),
+                        obj,
+                        _mulle_objc_class_get_name( cls),
+                        classid);
+      if( extra)
+         fprintf( stderr, " (+%ld)", (long) extra);
+      fputc( '\n', stderr);
+   }
 }
 
 
@@ -873,16 +880,19 @@ void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infracla
 void   _mulle_objc_object_trace_operation( void *obj, char *operation)
 {
    struct _mulle_objc_class   *cls;
+   mulle_objc_classid_t       classid;
 
-   cls = _mulle_objc_object_get_isa( obj);
-   mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
-                     stderr,
-                     "[==] %p instance %p %s (\"%s\" (%08x))\n",
-                     _mulle_objc_object_get_objectheader( obj),
-                     obj,
-                     operation,
-                     _mulle_objc_class_get_name( cls),
-                     _mulle_objc_class_get_classid( cls));
+   cls     = _mulle_objc_object_get_isa( obj);
+   classid = _mulle_objc_class_get_classid( cls);
+   if( classid != 0x58bb178a)  // NSAutoreleasePool
+      mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
+                        stderr,
+                        "[==] %p instance %p %s (\"%s\" (%08x))\n",
+                        _mulle_objc_object_get_objectheader( obj),
+                        obj,
+                        operation,
+                        _mulle_objc_class_get_name( cls),
+                        classid);
 }
 
 
@@ -909,3 +919,29 @@ void   _mulle_objc_object_trace_autorelease( void *obj)
    _mulle_objc_object_trace_operation( obj, "autoreleased");
 }
 
+
+int   _mulle_objc_class_has_direct_relation_to_class( struct _mulle_objc_class *a,
+                                                      struct _mulle_objc_class *b)
+{
+   struct _mulle_objc_class   *walker;
+
+   walker = a;
+   do
+   {
+      if( walker == b)
+         return( 1);
+      walker = _mulle_objc_class_get_superclass( walker);
+   }
+   while( walker);
+
+   walker = b;
+   do
+   {
+      walker = _mulle_objc_class_get_superclass( walker);
+      if( walker == a)
+         return( 1);
+   }
+   while( walker);
+
+   return( 0);
+}

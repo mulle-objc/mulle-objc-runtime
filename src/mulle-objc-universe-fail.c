@@ -50,7 +50,7 @@
 MULLE_C_NO_RETURN static void
    _mulle_objc_vprintf_abort( char *format, va_list args)
 {
-   vfprintf( stderr, format, args);
+   vfprintf( stderr, format ? format : "???", args);
    fprintf( stderr, "\n");
 
    // could improve this with symbolification but, it's a) debug
@@ -147,10 +147,10 @@ MULLE_C_NO_RETURN static void
    _mulle_objc_abort_supernotfound( struct _mulle_objc_universe *universe,
                                     mulle_objc_superid_t missing_superid)
 {
-   _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: missing super %08x (needs to be registered first)",
+   _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: "
+                             "missing super %08x (needs to be registered first)",
                              universe,
-                             missing_superid,
-                             _mulle_objc_universe_describe_superid( universe, missing_superid));
+                             missing_superid);
 }
 
 

@@ -127,15 +127,30 @@ static inline void  __mulle_objc_instance_will_free( struct _mulle_objc_object *
 
 
 static inline void   __mulle_objc_instance_free( void *obj,
+                                                 struct _mulle_objc_class *cls,
                                                  struct mulle_allocator *allocator)
 {
-   struct _mulle_objc_objectheader  *header;
+   struct _mulle_objc_objectheader   *header;
+   void                              *alloc;
 
    __mulle_objc_instance_will_free( obj);
 
    header = _mulle_objc_object_get_objectheader( obj);
-   mulle_allocator_free( allocator, header);
+   alloc  = _mulle_objc_objectheader_get_alloc( header, cls->headerextrasize);
+   mulle_allocator_free( allocator, alloc);
 }
+
+
+static inline void   _mulle_objc_instance_free_allocator( void *obj,
+                                                          struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_class   *cls;
+   void                       *alloc;
+
+   cls = _mulle_objc_object_get_isa( obj);
+   __mulle_objc_instance_free( obj, cls, allocator);
+}
+
 
 
 static inline void   _mulle_objc_instance_free( void *obj)
@@ -147,7 +162,7 @@ static inline void   _mulle_objc_instance_free( void *obj)
    cls       = _mulle_objc_object_get_isa( obj);
    infra     = _mulle_objc_class_as_infraclass( cls);
    allocator = _mulle_objc_infraclass_get_allocator( infra);
-   __mulle_objc_instance_free( obj, allocator);
+   __mulle_objc_instance_free( obj, cls, allocator);
 }
 
 

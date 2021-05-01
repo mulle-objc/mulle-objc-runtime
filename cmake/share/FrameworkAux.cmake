@@ -8,6 +8,14 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
+
+option( REEXPORT_ALL_LOAD "Reexport linked static Objective-C libraries (all-load) of framework" ON)
+
+if( REEXPORT_ALL_LOAD)
+  set( ALL_LOAD_PREFIX "-Xlinker -reexport_library ")  # space important
+endif()
+
+
 include( AllLoadC)
 include( StandaloneC)
 

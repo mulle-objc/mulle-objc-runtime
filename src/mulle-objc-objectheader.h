@@ -45,31 +45,35 @@ struct _mulle_objc_class;
 struct _mulle_objc_object;
 
 
-
-#define MULLE_OBJC_NEVER_RELEASE   INTPTR_MAX
-// retaincount_1
-//    0       -> INTPTR_MAX-1 :: normal retain counting, actual retainCount is retaincount_1 + 1
-//    -1                      :: released
-//    INTPTR_MIN              :: retainCount 0, when finalizing
-//    INTPTR_MIN -> -2        :: finalizing/finalized retainCount
-//
-// you can use INTPTR_MAX to create static objects
-//
-// like f.e.
-// { INTPTR_MAX, @selector( NSConstantString), "VfL Bochum 1848" };
-//
-
-
 //
 // this is ahead of the actual instance
 // isa must be underscored
 // It is important, that on 64 bit it's 16 byte size, because then a following
 // class can provide an isa pointer with 4 zero ls bits
+// If the class has "headerextrasize" then there is space ahead of the header
+// still, which leads us to the alloc.
+//
 struct _mulle_objc_objectheader
 {
    mulle_atomic_pointer_t      _retaincount_1;  // negative means finalized
    struct _mulle_objc_class    *_isa;
 };
+
+
+MULLE_C_ALWAYS_INLINE static inline void *
+   _mulle_objc_objectheader_get_alloc( struct _mulle_objc_objectheader *header,
+                                       uintptr_t headerextrasize)
+{
+   return( &((char *) header)[ - (intptr_t) headerextrasize]);
+}
+
+
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
+   _mulle_objc_alloc_get_objectheader( void *alloc,
+                                       uintptr_t headerextrasize)
+{
+   return( (struct _mulle_objc_objectheader *) &((char *) alloc)[ headerextrasize]);
+}
 
 
 MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
@@ -87,8 +91,16 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
 MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_object *
    _mulle_objc_objectheader_get_object( struct _mulle_objc_objectheader *header)
 {
+   struct _mulle_objc_object *obj;
+
    assert( header);
-   return( (void *) (header + 1));
+
+   obj = (void *) (header + 1);
+
+   // object should be pointer aligned, could awry if the metaextrasize is
+   // wrong
+   assert( ((uintptr_t) obj & (sizeof( void *) - 1)) == 0);
+   return( obj);
 }
 
 
@@ -96,16 +108,6 @@ static inline intptr_t
    _mulle_objc_objectheader_get_retaincount_1( struct _mulle_objc_objectheader *header)
 {
    return( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1));
-}
-
-
-static inline struct _mulle_objc_object *
-   _mulle_objc_objectheader_init( struct _mulle_objc_objectheader *header, struct _mulle_objc_class *cls)
-{
-   header->_isa = cls;
-   // this triggered an uninitialized valgrind, but i couldn't figure out why
-   // assert( ! _mulle_objc_objectheader_get_retaincount_1( header));
-   return( (void *) (header + 1));
 }
 
 
@@ -118,15 +120,41 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class *
 }
 
 
+
 //
 // this is not atomic! only do this when noone else has
 // access (like during initialization)
 //
 static inline void
    _mulle_objc_objectheader_set_isa( struct _mulle_objc_objectheader *header,
-   	                               struct _mulle_objc_class *cls)
+                                     struct _mulle_objc_class *cls)
 {
    header->_isa = cls;
+}
+
+
+# pragma mark - init
+
+
+enum
+{
+   _mulle_objc_memory_is_not_zeroed = 0,
+   _mulle_objc_memory_is_zeroed = 1
+};
+
+static inline void
+   _mulle_objc_objectheader_init( struct _mulle_objc_objectheader *header,
+                                  struct _mulle_objc_class *cls,
+                                  uintptr_t headerextrasize,
+                                  int is_zeroed)
+{
+   // clean out extra meta memory and the retain count
+   if( ! is_zeroed)
+      memset( &((char *) header)[ - (intptr_t) headerextrasize],
+              0,
+              sizeof( *header) - sizeof( struct _mulle_objc_class *) + headerextrasize);
+   _mulle_objc_objectheader_set_isa( header, cls);
+
 }
 
 #endif

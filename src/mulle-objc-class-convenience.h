@@ -56,6 +56,7 @@ static inline void *
                                                   struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader   *header;
+   struct _mulle_objc_objectheader   *alloc;
    struct _mulle_objc_object         *obj;
    struct _mulle_objc_class          *cls;
    size_t                            size;
@@ -65,10 +66,12 @@ static inline void *
    if( size <= extra)
       _mulle_allocator_fail( allocator, NULL, extra);
 
-   header = _mulle_allocator_calloc( allocator, 1, size);
-   obj    = _mulle_objc_objectheader_get_object( header);
+   alloc  = _mulle_allocator_calloc( allocator, 1, size);
    cls    = _mulle_objc_infraclass_as_class( infra);
-   _mulle_objc_object_set_isa( obj, cls);
+   header = _mulle_objc_alloc_get_objectheader( alloc, cls->headerextrasize);
+   _mulle_objc_objectheader_init( header, cls, cls->headerextrasize, _mulle_objc_memory_is_zeroed);
+
+   obj    = _mulle_objc_objectheader_get_object( header);
 
 // only add this trace query for debugging because it slows things down!
 #if DEBUG
