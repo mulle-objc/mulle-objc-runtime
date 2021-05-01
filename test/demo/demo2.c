@@ -11,7 +11,7 @@
 #endif
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-
+#include <mulle-objc-runtime/mulle-objc-dotdump.h>
 #include <stdio.h>
 
 
