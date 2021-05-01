@@ -27,6 +27,7 @@ include( _Headers OPTIONAL)
 
 # keep headers to install separate to make last minute changes
 set( INSTALL_PUBLIC_HEADERS ${PUBLIC_HEADERS}
+${PUBLIC_GENERIC_HEADERS}
 ${PUBLIC_GENERATED_HEADERS}
 )
 

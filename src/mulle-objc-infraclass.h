@@ -203,14 +203,14 @@ static inline void
 static inline size_t
    _mulle_objc_infraclass_get_allocationsize( struct _mulle_objc_infraclass *infra)
 {
-   return( infra->base.allocationsize);
+   return( _mulle_objc_class_get_allocationsize( &infra->base));
 }
 
 
 static inline size_t
    _mulle_objc_infraclass_get_instancesize( struct _mulle_objc_infraclass *infra)
 {
-   return( infra->base.allocationsize - sizeof( struct _mulle_objc_objectheader));
+   return( _mulle_objc_class_get_instancesize( &infra->base));
 }
 
 
@@ -526,12 +526,14 @@ int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *in
 // check is same, but also emits warnings
 int    mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *infra);
 
+
 // hairy code for the compat layer
 static inline void
   __mulle_objc_infraclass_set_instancesize( struct _mulle_objc_infraclass *infra,
                                             size_t size)
 {
-   infra->base.allocationsize = sizeof( struct _mulle_objc_objectheader) + size;
+   infra->base.allocationsize = sizeof( struct _mulle_objc_objectheader) + size
+   + infra->base.headerextrasize;
 }
 
 

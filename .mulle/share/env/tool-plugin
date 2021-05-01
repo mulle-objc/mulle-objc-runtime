@@ -32,7 +32,7 @@ grep
 head
 hostname
 kill
-less
+less;optional
 ln
 login
 ls
@@ -40,6 +40,7 @@ make;optional
 mkdir
 mknod
 more
+more;optional
 mount
 mudo
 mv

@@ -21,6 +21,6 @@ if( LINK_PHASE)
       install( FILES ${INSTALL_${TMP_IDENTIFIER}_RESOURCES} DESTINATION "share/${TMP_NAME}")
    endforeach()
 
-   include( PreInstallLibrary OPTIONAL)
+   include( PostInstallLibrary OPTIONAL)
 
 endif()

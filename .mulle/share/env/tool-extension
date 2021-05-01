@@ -12,5 +12,6 @@ xz;optional
 bzip2;optional
 mulle-sourcetree-to-c
 mulle-match-to-cmake;optional
+mulle-match-to-c;optional
 mulle-sourcetree-to-cmake;optional
 cmake

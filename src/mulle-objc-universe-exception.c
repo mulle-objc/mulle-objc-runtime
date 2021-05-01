@@ -90,11 +90,11 @@ void   _mulle_objc_universe_throw( struct _mulle_objc_universe *universe, void *
          (*universe->failures.uncaughtexception)( exception);
 
       // cStringDescription
+      s = NULL;
       if( exception)
       {
          class  = _mulle_objc_object_get_isa( exception);
          method = _mulle_objc_class_lookup_method( class, 0xd73980f7); //, mulle_objc_methodid_t methodid)
-         s      = NULL;
          if( method)
             s = (*method->value)( exception, 0xd73980f7, exception);
       }

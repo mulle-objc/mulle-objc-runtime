@@ -1,0 +1,7 @@
+# these are installed as private headers only, they don't appear in the
+# envelope header
+
+*[_-]private.h
+*[_-]private.inc
+private.h
+private.inc

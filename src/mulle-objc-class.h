@@ -56,7 +56,8 @@ void   _mulle_objc_class_raise_null_exception( void)   _MULLE_C_NO_RETURN;
 
 void  _mulle_objc_class_init( struct _mulle_objc_class *cls,
                               char *name,
-                              size_t  instancesize,
+                              size_t instancesize,
+                              size_t headerextrasize,
                               mulle_objc_classid_t classid,
                               struct _mulle_objc_class *superclass,
                               struct _mulle_objc_universe *universe);
@@ -371,6 +372,11 @@ mulle_objc_walkcommand_t
                           mulle_objc_walkcallback_t   callback,
                           void *parent,
                           void *userinfo);
+
+// checks if a is subclass of b or b is subclass of a, does not check for
+// NULL. 1=YES 0=NO
+int   _mulle_objc_class_has_direct_relation_to_class( struct _mulle_objc_class *a,
+                                                      struct _mulle_objc_class *b);
 
 #endif
 

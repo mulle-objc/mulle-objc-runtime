@@ -230,6 +230,7 @@ struct _mulle_objc_universecallbacks
    void   (*did_crunch)(  struct _mulle_objc_universe *);
 };
 
+
 //
 // Garbage collection for the various caches
 struct _mulle_objc_garbagecollection
@@ -283,6 +284,7 @@ struct _mulle_objc_foundation
    struct _mulle_objc_universefriend    universefriend;
    struct _mulle_objc_infraclass        *staticstringclass;
    struct mulle_allocator               *allocator;   // allocator for objects, must not be NULL
+   size_t                               headerextrasize; // usually 0, will be copied into each class
    mulle_objc_classid_t                 rootclassid; // NSObject = e9e78cbd
 };
 
@@ -404,8 +406,8 @@ struct _mulle_objc_universe
 
    struct _mulle_objc_classdefaults         classdefaults;
    struct _mulle_objc_garbagecollection     garbage;
+   // methodids_to_preload not methodid_stop_reload
    struct _mulle_objc_preloadmethodids      methodidstopreload;
-
    struct _mulle_objc_universefailures      failures;
    struct _mulle_objc_universeexceptionvectors   exceptionvectors;
    struct _mulle_objc_universeconfig        config;

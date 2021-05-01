@@ -40,10 +40,36 @@
 #include "mulle-objc-method.h"
 #include "mulle-objc-object.h"
 #include "mulle-objc-taggedpointer.h"
+#include "mulle-objc-call.h"
 
 #include "include.h"
 #include <limits.h>
 #include <assert.h>
+
+
+#define MULLE_OBJC_SLOW_RELEASE   INTPTR_MAX
+#define MULLE_OBJC_NEVER_RELEASE  (INTPTR_MAX-1)
+// if an inline rc count manages to pass MULLE_OBJC_INLINE_RELEASE and hit
+// MULLE_OBJC_NEVER_RELEASE, the release counting stops there and we have a
+// leak, but not a crash
+#define MULLE_OBJC_INLINE_RELEASE  (INTPTR_MAX-2)
+
+// retaincount_1 is in the object header
+//
+//    0       -> INTPTR_MAX-2 :: normal retain counting, actual retainCount is retaincount_1 + 1
+//    -1                      :: released
+//    INTPTR_MIN              :: retainCount 0, during finalizing
+//    INTPTR_MIN -> -2        :: other threads retaining during finalization
+//
+// you can use MULLE_OBJC_NEVER_RELEASE to create static objects
+// you can use MULLE_OBJC_SLOW_RELEASE to force use of -release, but
+// obviously you need to keep the referenceCount elsewhere
+//
+// like f.e.
+// { MULLE_OBJC_NEVER_RELEASE, @selector( NSConstantString), "VfL Bochum 1848" };
+//
+
+
 
 //
 // Your root class MUST implement -finalize and -dealloc.
@@ -90,36 +116,83 @@ static inline intptr_t   mulle_objc_object_get_retaincount( void *obj)
 }
 
 
+// TODO: getting a bit too fat for inlining or ?
 static inline void   _mulle_objc_object_increment_retaincount( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
+   intptr_t                           rc;
 
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
+   rc     = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
+   if( rc <= MULLE_OBJC_INLINE_RELEASE)
+   {
       _mulle_atomic_pointer_increment( &header->_retaincount_1); // atomic increment needed
+      return;
+   }
+
+   if( rc == MULLE_OBJC_SLOW_RELEASE)
+      mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_RETAIN_METHODID, obj);
 }
 
 
 static inline int   _mulle_objc_object_decrement_retaincount_waszero( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
+   intptr_t                           rc;
 
    if( mulle_objc_taggedpointer_get_index( obj))
       return( 0);
 
    header = _mulle_objc_object_get_objectheader( obj);
-   assert( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != -1 &&
-           (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != INTPTR_MIN);
-   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
-   {
-      if( _mulle_atomic_pointer_decrement( &header->_retaincount_1) == 0)
-         return( 1);
-   }
+   rc     = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
+
+   assert( rc != -1 && rc != INTPTR_MIN);
+   if( rc <= MULLE_OBJC_INLINE_RELEASE)
+      return( (intptr_t) _mulle_atomic_pointer_decrement( &header->_retaincount_1) <= 0);
+
+   //
+   // this release method call may finalize/dealloc already. So we
+   // return 0 as to say no, which might be a lie, but the caller which
+   // is NSDecrementExtraRefCountWasZero is probably wanting to call dealloc
+   // so it shouldn't with 0
+   //
+   if( rc == MULLE_OBJC_SLOW_RELEASE)
+      mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_RELEASE_METHODID, obj);
    return( 0);
 }
+
+
+// IDEA: make MULLE_OBJC_NEVER_RELEASE call some class callback, this class
+//       callback could then possibly call -release. This would be nice for
+//       classes that need to interpose -release
+//
+// compiler should optimize that the mulle_objc_object_try_finalize_try_dealloc
+// is rarely taken, but
+// __builtin_expect( --header->retaincount_1 < 0, 0)
+// didnt do anything for me
+//
+static inline void   _mulle_objc_object_release_inline( void *obj)
+{
+   if( _mulle_objc_object_decrement_retaincount_waszero( obj))
+      _mulle_objc_object_tryfinalizetrydealloc( obj);
+}
+
+
+//
+// IDEA: on transition from 0 -> 1 could "seal" an instance, as this
+//       indicates setup is over. So all modifications except retain
+//       counting would be invalid. Advantages: can setup as desired
+//       with property accessors. Negative bi-directional retains won't
+//       work. Manual sealing might be preferable.
+//
+static inline void   _mulle_objc_object_retain_inline( void *obj)
+{
+   _mulle_objc_object_increment_retaincount( obj);
+}
+
 
 //
 // Try not to use it, it obscures bugs and could disturb leak detection.
@@ -153,6 +226,33 @@ static inline void   _mulle_objc_object_deconstantify_noatomic( void *obj)
 }
 
 
+//
+// Don't use this either, except when setting up the object
+//
+static inline void   _mulle_objc_object_slowify_noatomic( void *obj)
+{
+   struct _mulle_objc_objectheader    *header;
+
+   if( mulle_objc_taggedpointer_get_index( obj))
+      return;
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) MULLE_OBJC_SLOW_RELEASE);
+}
+
+
+static inline void   _mulle_objc_object_deslowify_noatomic( void *obj)
+{
+   struct _mulle_objc_objectheader    *header;
+
+   if( mulle_objc_taggedpointer_get_index( obj))
+      return;
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) 0);
+}
+
+
 static inline int   _mulle_objc_object_is_constant( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
@@ -162,47 +262,6 @@ static inline int   _mulle_objc_object_is_constant( void *obj)
 
    header = _mulle_objc_object_get_objectheader( obj);
    return( _mulle_atomic_pointer_read( &header->_retaincount_1) == (void *) MULLE_OBJC_NEVER_RELEASE);
-}
-
-
-//
-// compiler should optimize that the mulle_objc_object_try_finalize_try_dealloc
-// is rarely taken, but
-// __builtin_expect( --header->retaincount_1 < 0, 0)
-// didnt do anything for me
-//
-static inline void   _mulle_objc_object_release_inline( void *obj)
-{
-   struct _mulle_objc_objectheader    *header;
-
-   if( mulle_objc_taggedpointer_get_index( obj))
-      return;
-
-   header = _mulle_objc_object_get_objectheader( obj);
-
-   // -1 means released, INTPTR_MIN finalizing/released
-   assert( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != -1 &&
-           (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != INTPTR_MIN);
-
-   // INTPTR_MAX means dont ever free
-   if( (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1) != MULLE_OBJC_NEVER_RELEASE)
-   {
-      if( __builtin_expect( (intptr_t) _mulle_atomic_pointer_decrement( &header->_retaincount_1) <= 0, 0)) // atomic decrement needed
-         _mulle_objc_object_tryfinalizetrydealloc( obj);
-   }
-}
-
-
-//
-// IDEA: on transition from 0 -> 1 could "seal" an instance, as this
-//       indicates setup is over. So all modifications except retain
-//       counting would be invalid. Advantages: can setup as desired
-//       with property accessors. Negative bi-directional retains won't
-//       work. Manual sealing might be preferable.
-//
-static inline void   _mulle_objc_object_retain_inline( void *obj)
-{
-   _mulle_objc_object_increment_retaincount( obj);
 }
 
 

@@ -155,6 +155,7 @@ struct _mulle_objc_class
 
    // vvv - from here on the debugger doesn't care
 
+   uintptr_t                               headerextrasize;  // memory before the header
    uintptr_t                               extensionoffset;  // 4 later #1#
 
    struct _mulle_objc_method               *forwardmethod;
@@ -216,7 +217,9 @@ static inline size_t
 static inline size_t
    _mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
 {
-   return( cls->allocationsize - sizeof( struct _mulle_objc_objectheader));
+   return( cls->allocationsize -
+           sizeof( struct _mulle_objc_objectheader) -
+           cls->headerextrasize);
 }
 
 
@@ -327,6 +330,13 @@ static inline struct _mulle_objc_metaclass   *
 static inline char   *_mulle_objc_class_get_classtypename( struct _mulle_objc_class *cls)
 {
    return( _mulle_objc_class_is_metaclass( cls) ? "metaclass" : "infraclass");
+}
+
+
+static inline size_t
+   _mulle_objc_class_get_metaextrasize( struct _mulle_objc_class *cls)
+{
+   return( cls->headerextrasize);
 }
 
 

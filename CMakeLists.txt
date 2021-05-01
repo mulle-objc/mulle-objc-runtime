@@ -57,11 +57,6 @@ endif()
 include( Library)
 include( InstallLibrary)
 
-if( "${C_COMPILER_NAME}" MATCHES "mulle-cl*")
-   target_compile_options( "${LIBRARY_NAME}" PRIVATE -x objective-c)
-   target_compile_options( ${STARTUP_NAME} PRIVATE -x objective-c)
-endif()
-
 
 set( EXECUTABLE_NAME mulle-objc-uniqueid)
 
@@ -69,7 +64,7 @@ set( EXECUTABLE_NAME mulle-objc-uniqueid)
 set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES}
 src/mulle-objc-uniqueid.c
 )
-set( EXECUTABLE_DEPENDENCY_NAMES 
+set( EXECUTABLE_DEPENDENCY_NAMES
 mulle-objc-runtime)
 # only need the hash function
 set( EXECUTABLE_LIBRARY_LIST "${MULLE_DATA_LIBRARY}")

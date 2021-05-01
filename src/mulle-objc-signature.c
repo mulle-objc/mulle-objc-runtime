@@ -602,9 +602,9 @@ char   *_mulle_objc_signature_supply_typeinfo( char *types,
       ++next;  // skip terminator
    }
 
-   sign = +1;
+//   sign = +1;
    if( *next == '-')
-      ++next, sign = -1;
+      ++next; //, sign = -1;
    if( *next == '+')
       ++next;
 

@@ -32,7 +32,7 @@ grep
 head
 hostname
 kill
-less
+less;optional
 ln
 login
 ls
@@ -40,6 +40,7 @@ make;optional
 mkdir
 mknod
 more
+more;optional
 mount
 mudo
 mv
@@ -59,6 +60,7 @@ stty
 su
 sw_vers;optional
 sync
+sysctl;optional
 tail
 tee
 test
@@ -67,6 +69,7 @@ tr
 true
 umount
 uname
+uptime;optional
 uuidgen
 vi;optional
 wc

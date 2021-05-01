@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 #
-#   Copyright (c) 2018 Nat! - Mulle kybernetiK
+#   Copyright (c) 2020 Nat! - Mulle kybernetiK
 #   All rights reserved.
 #
 #   Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,28 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
+
 source_task_run()
 {
    log_entry "mulle-sde/c-cmake::source_task_run" "$@"
 
    log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME}${C_INFO} source"
 
-   exekutor mulle-match-to-cmake \
-               ${MULLE_TECHNICAL_FLAGS} \
-               "$@"
+   case "${MULLE_MATCH_TO_CMAKE_RUN}" in
+      NO|DISABLE*|OFF)
+      ;;
+
+      *)
+         exekutor mulle-match-to-cmake ${MULLE_TECHNICAL_FLAGS} "$@"  || return $?
+      ;;
+   esac
+
+   case "${MULLE_MATCH_TO_C_RUN}" in
+      NO|DISABLE*|OFF)
+      ;;
+
+      *)
+         exekutor mulle-match-to-c ${MULLE_TECHNICAL_FLAGS} "$@"  || return $?
+      ;;
+   esac
 }

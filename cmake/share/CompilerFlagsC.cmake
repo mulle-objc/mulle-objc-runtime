@@ -1,3 +1,7 @@
+### If you want to edit this, copy it from cmake/share to cmake. It will be
+### picked up in preference over the one in cmake/share. And it will not get
+### clobbered with the next upgrade.
+
 if( NOT __COMPILER_FLAGS_C_CMAKE__)
    set( __COMPILER_FLAGS_C_CMAKE__ ON)
 
@@ -23,5 +27,8 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
    if( MULLE_TEST)
       set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMULLE_TEST=1")
    endif()
+
+   # load in flags defined by other plugins, presumably Objective-C
+   include( CompilerFlagsAuxC OPTIONAL)
 
 endif()

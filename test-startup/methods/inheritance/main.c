@@ -58,6 +58,7 @@ static void   reset_universe()
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
    // tests were written at an earlier time...
+   universe->config.pedantic_exit       = 1;
    universe->classdefaults.inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
 }
 

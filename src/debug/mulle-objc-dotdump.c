@@ -1220,6 +1220,8 @@ static void   print_hierarchy( void *value, void *userinfo)
    struct _mulle_objc_class       *supercls;
    struct dump_info               dumpinfo;
 
+   if( ! cls)
+      return;
    /* output each class only once */
    if( c_set_member( info->class_set, cls))
       return;

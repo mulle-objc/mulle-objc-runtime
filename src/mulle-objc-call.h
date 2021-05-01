@@ -131,7 +131,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    if( __builtin_expect( ! obj, 0))
       return( obj);
 
-   cls   = _mulle_objc_object_get_isa( obj);
+   cls = _mulle_objc_object_get_isa( obj);
 
 #ifdef __MULLE_OBJC_FCS__
    index = mulle_objc_get_fastmethodtable_index( methodid);
@@ -433,36 +433,22 @@ mulle_objc_implementation_t
 
 #pragma mark - low level support
 
+// this doesn't run through caches
 void   *_mulle_objc_object_call_class( void *obj,
                                        mulle_objc_methodid_t methodid,
                                        void *parameter,
                                        struct _mulle_objc_class *cls);
 
+
 static inline void   _mulle_objc_object_finalize( void *obj)
 {
-   struct _mulle_objc_class   *isa;
-
-   isa = _mulle_objc_object_get_isa( obj);
-   assert( isa);
-#ifdef __MULLE_OBJC_FCS__
-   _mulle_objc_fastmethodtable_invoke( obj, MULLE_OBJC_FINALIZE_METHODID, NULL, &isa->vtab, 2);
-#else
-   _mulle_objc_object_call_class( obj, MULLE_OBJC_FINALIZE_METHODID, obj, isa);
-#endif
+   mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_FINALIZE_METHODID, obj);
 }
 
 
 static inline void   _mulle_objc_object_dealloc( void *obj)
 {
-   struct _mulle_objc_class   *isa;
-
-   isa = _mulle_objc_object_get_isa( obj);
-   assert( isa);
-#ifdef __MULLE_OBJC_FCS__
-   _mulle_objc_fastmethodtable_invoke( obj, MULLE_OBJC_DEALLOC_METHODID, NULL, &isa->vtab, 3);
-#else
-   _mulle_objc_object_call_class( obj, MULLE_OBJC_DEALLOC_METHODID, obj, isa);
-#endif
+   mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_DEALLOC_METHODID, obj);
 }
 
 # pragma mark - compat layer support

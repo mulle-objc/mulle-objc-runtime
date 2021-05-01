@@ -143,26 +143,30 @@ static inline struct _mulle_objc_class *
 
 static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_class *cls)
 {
-   unsigned int   index;
+   unsigned int                      index;
+   struct _mulle_objc_objectheader   *header;
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
    if( index)
       mulle_objc_universe_fail_inconsistency( NULL, "set isa on tagged pointer %p", obj);
 
-   _mulle_objc_objectheader_set_isa( _mulle_objc_object_get_objectheader( obj), cls);
+   header = _mulle_objc_object_get_objectheader( obj);
+   _mulle_objc_objectheader_set_isa( header, cls);
 }
 
 
 static inline void  *_mulle_objc_object_get_extra( void *obj)
 {
-   struct _mulle_objc_class   *cls;
-   size_t                     size;
+   struct _mulle_objc_class          *cls;
+   size_t                            size;
+   struct _mulle_objc_objectheader   *header;
 
    assert( ! mulle_objc_object_get_taggedpointerindex( obj));
 
-   cls  = _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj));
-   size = _mulle_objc_class_get_allocationsize( cls) - sizeof( struct _mulle_objc_objectheader);
+   header = _mulle_objc_object_get_objectheader( obj);
+   cls    = _mulle_objc_objectheader_get_isa( header);
+   size   = _mulle_objc_class_get_allocationsize( cls) - sizeof( struct _mulle_objc_objectheader);
    return(  &((char *) obj)[ size]);
 }
 
@@ -188,6 +192,7 @@ static inline struct _mulle_objc_class *
    cls = _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj));
    return( cls);
 }
+
 
 MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_universe *

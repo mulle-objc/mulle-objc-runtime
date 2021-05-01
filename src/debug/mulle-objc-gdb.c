@@ -108,7 +108,8 @@ mulle_objc_implementation_t
    //
    switch( calltype)
    {
-   case 0 :
+   default :
+   case 0  :
       cls = _mulle_objc_object_get_isa( obj);
       imp = _mulle_objc_class_lookup_implementation_nocache( cls, methodid);
       break;

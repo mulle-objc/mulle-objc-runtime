@@ -167,10 +167,10 @@ void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pai
       old = _mulle_atomic_pointer_read( pointer);
    while( ! _mulle_atomic_pointer_weakcas( pointer, array, old));
 
+   universe = _mulle_objc_classpair_get_universe( pair);
    if( array == &universe->empty_uniqueidarray)
       return;
 
-   universe  = _mulle_objc_classpair_get_universe( pair);
    allocator = _mulle_objc_universe_get_allocator( universe);
    mulle_objc_uniqueidarray_abafree( array, allocator);
 }

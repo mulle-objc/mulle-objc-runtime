@@ -1,0 +1,5 @@
+# This is the fallback if patterns file with smaller numbers fail.
+# These are public headers, that are auto-included in the envelope header
+
+*.h
+*.inc

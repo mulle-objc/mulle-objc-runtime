@@ -49,9 +49,9 @@ struct mulle_objc_symbolizer
    struct _mulle_objc_universe  *universe;
    struct
    {
-      void         *_values;
-      size_t       _count;
-      size_t       _size;
+      void     *_values;
+      size_t   _count;
+      size_t   _size;
    } array;
 };
 
@@ -70,4 +70,11 @@ int   mulle_objc_symbolizer_snprint( struct mulle_objc_symbolizer *p,
 
 void   _mulle_objc_universe_csvdump_methods( struct _mulle_objc_universe *universe,
                                              FILE *fp);
+
+static inline void   mulle_objc_symbolizer_done( struct mulle_objc_symbolizer *p)
+{
+   if( p)
+      _mulle_objc_symbolizer_done( p);
+}
+
 #endif
