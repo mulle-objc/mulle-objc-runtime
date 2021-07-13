@@ -216,24 +216,6 @@ export MULLE_VARARG_BRANCH="prerelease"
 
 
 #
-#
-#
-export MULLE_DATA_URL="https://github.com/mulle-c/mulle-data.git"
-
-
-#
-#
-#
-export MULLE_DATA_BRANCH="prerelease"
-
-
-#
-#
-#
-export MULLE_DATA_NODETYPE="git"
-
-
-#
 # mulle-objc-runtime-startup nodetype: ${MULLE_OBJC_RUNTIME_STARTUP_NODETYPE:-tar}
 #
 export MULLE_OBJC_RUNTIME_STARTUP_NODETYPE="git"
