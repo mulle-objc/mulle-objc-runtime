@@ -26,7 +26,7 @@ grep
 head
 hostname
 kill
-less
+less;optional
 ln
 login
 ls
@@ -59,7 +59,7 @@ umount
 uname
 wc
 which
-column
+column;optional
 git
 gzip
 tar

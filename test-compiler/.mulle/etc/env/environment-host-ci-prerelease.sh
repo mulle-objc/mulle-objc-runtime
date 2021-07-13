@@ -233,3 +233,21 @@ export MULLE_DATA_BRANCH="prerelease"
 export MULLE_DATA_NODETYPE="git"
 
 
+#
+# mulle-objc-runtime-startup nodetype: ${MULLE_OBJC_RUNTIME_STARTUP_NODETYPE:-tar}
+#
+export MULLE_OBJC_RUNTIME_STARTUP_NODETYPE="git"
+
+
+#
+# mulle-objc-runtime-startup url: ${MULLE_OBJC_RUNTIME_STARTUP_URL:-https://github.com/mulle-objc/mulle-objc-runtime-startup/archive/${MULLE_BRANCH}.tar.gz}
+#
+export MULLE_OBJC_RUNTIME_STARTUP_URL="https://github.com/mulle-objc/mulle-objc-runtime-startup.git"
+
+
+#
+# mulle-objc-runtime-startup branch: ${MULLE_OBJC_RUNTIME_STARTUP_BRANCH:-latest}
+#
+export MULLE_OBJC_RUNTIME_STARTUP_BRANCH="prerelease"
+
+
