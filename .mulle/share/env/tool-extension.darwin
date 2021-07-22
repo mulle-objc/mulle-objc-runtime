@@ -4,6 +4,7 @@ ar
 as
 cc;optional
 clang;optional
+scan-build;optional
 diff
 gcc;optional
 dsymutil;optional
