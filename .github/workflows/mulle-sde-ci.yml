@@ -12,17 +12,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-latest]
+        os: [ ubuntu-latest] # macos-latest,
 
     steps:
-    - name: Update stuff (for act)
-      if: ${{ env.ACT }}
-      run: apt-get update
-
-    - name: Install stuff (for act)
-      if: ${{ env.ACT }}
-      run: apt-get -y install cmake curl lsb-release uuid-runtime
-
     - name: Set MULLE_HOSTNAME
       run: |
         name="${GITHUB_REF##*/}"
@@ -34,21 +26,23 @@ jobs:
 
     - name: Dump Environment
       run:  env | sort
-
+      
     - uses: actions/checkout@v2
       if: ${{ ! env.ACT }}
 
     - uses: mulle-sde/github-ci@v1
+      if: ${{ ! env.ACT }}
+
+    - uses: mulle-objc/github-ci@v2
+      if: ${{ ! env.ACT }}
 
     - name: Dump Project Environment
       run:  |
-        ls -l .mulle/etc/env/
+        [ ! -d .mulle/etc/env ] || ls -l .mulle/etc/env/environment*.sh
         mulle-sde environment
 
     - name: Mulle-SDE Fetch
       run: mulle-sde fetch
-
-    - uses: mulle-objc/github-ci@v2
 
     - name: Mulle-SDE Craft
       run: mulle-sde craft --${BUILD_TYPE:-release}

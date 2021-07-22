@@ -38,7 +38,7 @@ test*/**/*.html
 .mulle/etc/env/style
 environment-host-*.sh
 environment-user-*.sh
-!environment-host-*prerelease*.sh
+!environment-host-ci-*.sh
 
 # dynamically .mulle-sourcetree-fix is boring
 .mulle-sourcetree-fix
