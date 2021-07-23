@@ -1,3 +1,8 @@
+## 0.19.0
+
+* Various small improvements
+
+
 ## 0.18.0
 
 * rename runtime functions, e.g. `_mulle_objc_object_partialinlinesupercall` to `mulle_objc_object_supercall_inline_partial` for consistency
