@@ -1,6 +1,6 @@
 ## 0.19.0
 
-* slow -release support when you need to suppress inlined retain counts
+* slow -release support when you need to suppress inlined retain counts and maintain your own
 * main thread may now wait on background threads before exit, if desired
 * instance meta header (retaincount, isa) is not fixed size anymore
 * added ``mulle_objc_symbolizer_done``
