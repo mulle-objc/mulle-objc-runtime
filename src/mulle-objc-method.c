@@ -48,20 +48,20 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
                                                          unsigned int n,
                                                          mulle_objc_methodid_t search)
 {
-   int   first;
-   int   last;
-   int   middle;
    struct _mulle_objc_method   *p;
+   int                         first;
+   int                         last;
+   int                         middle;
 
    assert( mulle_objc_uniqueid_is_sane( search));
 
    first  = 0;
    last   = n - 1;
-   middle = (first + last) / 2;
 
    while( first <= last)
    {
-      p = &buf[ middle];
+      middle = (first + last) / 2;
+      p      = &buf[ middle];
       if( p->descriptor.methodid <= search)
       {
          if( p->descriptor.methodid == search)
@@ -71,8 +71,6 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
       }
       else
          last = middle - 1;
-
-      middle = (first + last) / 2;
    }
 
    return( NULL);

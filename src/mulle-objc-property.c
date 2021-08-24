@@ -82,11 +82,11 @@ struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_
 
    first  = 0;
    last   = n - 1;
-   middle = (first + last) / 2;
 
    while( first <= last)
    {
-      p = &buf[ middle];
+      middle = (first + last) / 2;
+      p      = &buf[ middle];
       if( p->propertyid <= search)
       {
          if( p->propertyid == search)
@@ -96,8 +96,6 @@ struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_
       }
       else
          last = middle - 1;
-
-      middle = (first + last) / 2;
    }
 
    return( NULL);

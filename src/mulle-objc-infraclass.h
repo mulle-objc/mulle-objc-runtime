@@ -235,10 +235,10 @@ static inline mulle_objc_implementation_t
                                                       mulle_objc_superid_t superid)
 {
    extern mulle_objc_implementation_t
-      _mulle_objc_class_superlookup_implementation( struct _mulle_objc_class *cls,
+      _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                     mulle_objc_superid_t superid);
 
-   return( _mulle_objc_class_superlookup_implementation( &infra->base, superid));
+   return( _mulle_objc_class_superlookup_implementation_nofail( &infra->base, superid));
 }
 
 
@@ -548,7 +548,7 @@ void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *
 static inline void
    _mulle_objc_infraclass_setup_if_needed( struct _mulle_objc_infraclass *infra)
 {
-   void  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
+   int  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
 
    if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
       _mulle_objc_class_setup( _mulle_objc_infraclass_as_class( infra));

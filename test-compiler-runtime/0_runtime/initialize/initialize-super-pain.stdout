@@ -1,0 +1,6 @@
+A :: +[A initialize]
+B :: +[A initialize]
+B :: +[B initialize]
+C :: +[A initialize]
+C :: +[B initialize]
+C :: +[C initialize]

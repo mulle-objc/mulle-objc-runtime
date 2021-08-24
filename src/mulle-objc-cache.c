@@ -51,6 +51,7 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
 {
    struct _mulle_objc_cache  *cache;
    int                       preserve;
+   size_t                    s_cache;
 
    assert( allocator);
    assert( ! (sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1)));
@@ -61,7 +62,9 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
    assert( ! (size & (size - 1)));          // check for tumeni bits
 
    preserve = errno;
-   cache    = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_cache) + sizeof( struct _mulle_objc_cacheentry) * (size - 1));
+   // cache struct has room for one entry already
+   s_cache  = sizeof( struct _mulle_objc_cache) + sizeof( struct _mulle_objc_cacheentry) * (size - 1);
+   cache    = _mulle_allocator_calloc( allocator, 1, s_cache);
    errno    = preserve;
 
    cache->size = size;
@@ -144,7 +147,7 @@ mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle
    for(;;)
    {
       offset = (mulle_objc_cache_uint_t) offset & mask;
-      entry = (void *) &((char *) entries)[ offset];
+      entry  = (void *) &((char *) entries)[ offset];
       if( entry->key.uniqueid == uniqueid)
          return( _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer));
 
@@ -157,7 +160,8 @@ mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle
 
 
 // used by benchmark code
-int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache, mulle_objc_uniqueid_t uniqueid)
+int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache,
+                                         mulle_objc_uniqueid_t uniqueid)
 {
    int                             index;
    struct _mulle_objc_cacheentry   *entry;
@@ -232,7 +236,6 @@ mulle_objc_cache_uint_t
       else
          if( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer))
             return( offset);
-
 
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
@@ -385,8 +388,10 @@ struct _mulle_objc_cacheentry   *
       // if that guy is done writing the uniqueid and it's ours, then fine!
       // #1#
       if( _mulle_atomic_pointer_read( &entry->key.pointer) == (void *) (uintptr_t) uniqueid)
+      {
+         assert( _mulle_atomic_pointer_read( &entry->value.pointer) == pointer);
          return( entry);
-
+      }
       return( NULL);
    }
 
@@ -420,10 +425,10 @@ struct _mulle_objc_cacheentry   *
 
    //
    // We expect this entry to be 0,0 and we write 0,x first.
-   // As 0,x it will still be ignored by other readers. if successful we put
+   // As 0,x it will still be ignored by other readers. If successful, we put
    // in the methodid and increment ->n.
    // There is a time when the cache has actually n entries, but it's count
-   // is < n. that's not fatal but one needs to know this
+   // is < n. that's not fatal but one needs to know this.
    //
    if( ! _mulle_atomic_functionpointer_cas( &entry->value.functionpointer, pointer, NULL))
    {
@@ -432,12 +437,17 @@ struct _mulle_objc_cacheentry   *
       // if that guy is done writing the uniqueid and it's ours, then fine!
       // #1#
       if( _mulle_atomic_pointer_read( &entry->key.pointer) == (void *) (uintptr_t) uniqueid)
+      {
+         assert( _mulle_atomic_functionpointer_read( &entry->value.functionpointer) == pointer);
          return( entry);
+      }
 
+      // So we failed, because someone else added something. bail and let
+      // the caller retry
       return( NULL);
    }
 
-   // increment first to keep cach fill <= 25%
+   // increment first to keep cache fill <= 25%
    _mulle_atomic_pointer_increment( &cache->n);
 
    assert( ! entry->key.uniqueid);

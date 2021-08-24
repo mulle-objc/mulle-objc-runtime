@@ -71,6 +71,25 @@ static void   nop( struct _mulle_objc_universe  *universe,
 }
 
 
+void   mulle_objc_hang( void)
+{
+   extern void   sleep(unsigned int seconds);
+
+   fprintf( stderr, "Hanging for debugger to attach\n");
+   for(;;)
+      sleep( 3600);
+}
+
+
+void   mulle_objc_universe_maybe_hang_or_abort( struct _mulle_objc_universe *universe)
+{
+   if( universe->debug.warn.crash)
+      abort();
+   if( universe->debug.warn.hang)
+      mulle_objc_hang();
+}
+
+
 static void
    _mulle_objc_universeconfig_dump( struct _mulle_objc_universeconfig *config)
 {
@@ -323,6 +342,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
       universe->debug.warn.stuck_loadable = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
       universe->debug.warn.crash          = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
    }
+   universe->debug.warn.hang             = getenv_yes_no( "MULLE_OBJC_WARN_HANG");
 
    universe->debug.trace.category_add    = getenv_yes_no( "MULLE_OBJC_TRACE_CATEGORY_ADD");
    universe->debug.trace.class_add       = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_ADD");
@@ -355,7 +375,6 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
    if( getenv_yes_no( "MULLE_OBJC_TRACE_LOAD"))
    {
-      universe->debug.trace.load_call  = 1;
       universe->debug.trace.loadinfo   = 1;
       universe->debug.trace.dependency = 1;
    }
@@ -556,6 +575,13 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    assert( _mulle_objc_universe_is_transitioning( universe)); // != 0!
    _mulle_atomic_pointer_nonatomic_write( &universe->cachepivot.entries,
                                           universe->empty_cache.entries);
+
+   // setup the initial cache with the callbacks need to properly call
+   // +initialize and other things
+   universe->empty_memorycache.call         = _mulle_objc_object_call_class_needcache;
+   universe->empty_memorycache.call2        = _mulle_objc_object_call_needcache;
+   universe->empty_memorycache.superlookup  = _mulle_objc_class_superlookup_needcache;
+   universe->empty_memorycache.superlookup2 = _mulle_objc_class_superlookup_needcache;
 
    universe->memory.allocator         = *allocator;
    universe->memory.allocator.aba     = &universe->garbage.aba;

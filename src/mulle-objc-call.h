@@ -226,6 +226,7 @@ static inline mulle_objc_implementation_t
    // never forget, the superid contains the methodid and the classid
    //
    cls = _mulle_objc_object_get_isa( obj);
+   assert( cls->superlookup);  // if this is wrong something is not initialized
    imp = (*cls->superlookup)( cls, superid);
    return( imp);
 }
@@ -235,7 +236,7 @@ static inline mulle_objc_implementation_t
 // infraclasses. The superid is hash( <classname> ';' <methodname>)
 // Since it is a super call, obj is known to be non-nil. So there is
 // no corresponding mulle_objc_object_inline_supercall.
-// Will call _mulle_objc_class_superlookup_implementation
+// Will call _mulle_objc_class_superlookup_implementation_nofail
 //
 
 static inline void   *
@@ -247,6 +248,7 @@ static inline void   *
    mulle_objc_implementation_t   imp;
 
    imp = _mulle_objc_object_superlookup_implementation_nofail( obj, superid);
+   assert( imp);  // if this is wrong something is not initialized
    return( (*imp)( obj, methodid, parameter));
 }
 
@@ -302,14 +304,14 @@ void   *mulle_objc_object_supercall( void *obj,
 MULLE_C_CONST_RETURN
 MULLE_C_NONNULL_RETURN
    struct _mulle_objc_method *
-      _mulle_objc_class_superlookup_method_nofail( struct _mulle_objc_class *cls,
-                                                   mulle_objc_superid_t superid);
+      _mulle_objc_class_superlookup_method_nocache_nofail( struct _mulle_objc_class *cls,
+                                                           mulle_objc_superid_t superid);
 
 
 MULLE_C_CONST_RETURN
 MULLE_C_NONNULL_RETURN mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
-                                                        mulle_objc_superid_t superid);
+   _mulle_objc_class_superlookup_implementation_nocache_nofail( struct _mulle_objc_class *cls,
+                                                                mulle_objc_superid_t superid);
 
 
 # pragma mark - API Calls
@@ -427,7 +429,7 @@ mulle_objc_implementation_t
 
 
 mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation( struct _mulle_objc_class *cls,
+   _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                  mulle_objc_superid_t superid);
 
 
@@ -457,7 +459,7 @@ static inline void   _mulle_objc_object_dealloc( void *obj)
 // You are likely better off using [self self] to force unlazing a
 // class as its more portable and readable
 //
-void  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
+int  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
 
 
 

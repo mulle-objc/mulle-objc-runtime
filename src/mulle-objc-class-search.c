@@ -698,9 +698,9 @@ struct _mulle_objc_method  *
    inheritance = _mulle_objc_class_get_inheritance( cls);
    _mulle_objc_searcharguments_defaultinit( &search, methodid);
    method = mulle_objc_class_search_method( cls,
-                                           &search,
-                                           inheritance,
-                                           &result);
+                                            &search,
+                                            inheritance,
+                                            &result);
    if( ! method)
       *error = result.error;
    return( method);

@@ -1075,6 +1075,9 @@ static inline void
 int  mulle_objc_environment_get_yes_no_default( char *name, int default_value);
 int  mulle_objc_environment_get_yes_no( char *name);
 
+void   mulle_objc_universe_maybe_hang_or_abort( struct _mulle_objc_universe *universe);
+void   mulle_objc_hang( void);
+
 
 #endif /* mulle_objc_universe_h__*/
 

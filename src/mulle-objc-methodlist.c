@@ -71,7 +71,7 @@ int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
 
 
 struct _mulle_objc_method  *_mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
-                                                                   mulle_objc_methodid_t methodid)
+                                                                  mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *sentinel;
    struct _mulle_objc_method   *p;
