@@ -49,4 +49,8 @@ void   mulle_objc_universe_htmldump_to_directory( struct _mulle_objc_universe *u
 void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
                                                char *directory);
 
+// sometimes nice in the debugger
+void   mulle_objc_object_htmldump_class_to_directory( void *obj,
+                                                      char *directory);
+
 #endif

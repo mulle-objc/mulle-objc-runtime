@@ -420,7 +420,7 @@ MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_method *
 
 // will return NULL when not found and not forward!
 mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation( struct _mulle_objc_class *cls,
+   _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                  mulle_objc_superid_t superid);
 
 #endif /* mulle_objc_class_search_h */

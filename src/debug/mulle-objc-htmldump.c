@@ -602,7 +602,16 @@ static void   _print_infraclass( struct _mulle_objc_infraclass *infra, FILE *fp)
    {
       cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
       label = mulle_objc_cache_describe_html( cache, universe, &cachetable_style);
-      print_to_body( "Cache", label, fp);
+      print_to_body( "Instance Cache", label, fp);
+      mulle_allocator_free( &mulle_stdlib_allocator, label);
+   }
+   fprintf( fp, "</DIV>\n");
+
+   fprintf( fp, "\n<DIV CLASS=\"class_cache\">\n");
+   {
+      cache = _mulle_objc_cachepivot_atomicget_cache( &meta->base.cachepivot.pivot);
+      label = mulle_objc_cache_describe_html( cache, universe, &cachetable_style);
+      print_to_body( "Meta Cache", label, fp);
       mulle_allocator_free( &mulle_stdlib_allocator, label);
    }
    fprintf( fp, "</DIV>\n");
@@ -688,11 +697,10 @@ void
    c_set_init( &info.set);
    info.directory = directory;
 
-   mulle_objc_universe_walk( universe, callback, &info);
+   if( mulle_objc_universe_walk( universe, callback, &info) != mulle_objc_walk_error)
+      fprintf( stderr, "Dumped HTML to \"%s\"\n", directory);
 
    c_set_done( &info.set);
-
-   fprintf( stderr, "Dumped HTML to \"%s\"\n", directory);
 }
 
 
@@ -704,6 +712,9 @@ void
                                                char *directory)
 {
    struct dump_info   info;
+
+   if( ! pair)
+      return;
 
    c_set_init( &info.set);
    info.directory = directory;
@@ -719,6 +730,9 @@ void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_classpair   *pair;
 
+   if( ! cls)
+      return;
+
    do
    {
       pair = _mulle_objc_class_get_classpair( cls);
@@ -729,6 +743,18 @@ void   mulle_objc_class_htmldump_to_directory( struct _mulle_objc_class *cls,
    fprintf( stderr, "Dumped HTML to \"/%s\"\n", directory);
 }
 
+
+void   mulle_objc_object_htmldump_class_to_directory( void *obj,
+                                                      char *directory)
+{
+   struct _mulle_objc_class   *cls;
+
+   if( obj)
+   {
+      cls = _mulle_objc_object_get_isa( obj);
+      mulle_objc_class_htmldump_to_directory( cls, directory);
+   }
+}
 
 
 // void   mulle_objc_htmldump_universes_to_directory( char *directory)

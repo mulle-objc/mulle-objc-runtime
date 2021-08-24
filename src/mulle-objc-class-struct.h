@@ -59,6 +59,37 @@ struct _mulle_objc_universe;
 
 
 //
+// as we don't want to pollute other caches with this, have a separate
+// cache struct for methods
+//
+struct _mulle_objc_methodcache
+{
+   mulle_objc_implementation_t     supercall2;
+   mulle_objc_implementation_t     supercall;      // retuns an imp, should fill cache if possible
+   mulle_objc_implementation_t     call2;
+   mulle_objc_implementation_t     call;
+
+   struct _mulle_objc_cache        cache;
+};
+
+struct _mulle_objc_methodcache   *mulle_objc_methodcache_new( mulle_objc_cache_uint_t size,
+                                                              struct mulle_allocator *allocator);
+
+void   _mulle_objc_methodcache_free( struct _mulle_objc_methodcache *cache,
+                                     struct mulle_allocator *allocator);
+void   _mulle_objc_methodcache_abafree( struct _mulle_objc_methodcache *cache,
+                                        struct mulle_allocator *allocator);
+
+
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_methodcache  *
+    _mulle_objc_cache_get_methodcache_from_cache( struct _mulle_objc_cache *cache)
+{
+   return( (void *) &((char *) cache)[ -(int)  offsetof( struct _mulle_objc_methodcache, cache)]);
+}
+
+
+
+//
 // the order of these structure elements is architecture dependent
 // the trick is, that the mask is "behind" the buckets in malloced
 // space. the vtab is in there, because universe and class share this
@@ -69,7 +100,6 @@ struct _mulle_objc_universe;
 struct _mulle_objc_methodcachepivot
 {
    struct _mulle_objc_cachepivot   pivot; // for atomic XCHG with pointer indirection
-   mulle_objc_implementation_t     call2;
 };
 
 
@@ -121,25 +151,19 @@ enum _mulle_objc_class_state
 //
 struct _mulle_objc_class
 {
-   struct _mulle_objc_methodcachepivot    cachepivot;  // DON'T MOVE
-
-   void                                   *(*call)( void *,
-                                                    mulle_objc_methodid_t,
-                                                    void *,
-                                                    struct _mulle_objc_class *);
+   struct _mulle_objc_methodcachepivot     cachepivot;  // DON'T MOVE
 
    /* ^^^ keep above like this, or change mulle_objc_fastmethodtable fault */
 
-   // keep name, superclass, allocationsize in this order for lldb debugging
-
+   // keep name, superclass, allocationsize in this order for gdb debugging
    struct _mulle_objc_class                *superclass;      // keep here for debugger (void **)[ 3]
    char                                    *name;            // offset (void **)[ 4]
    uintptr_t                               allocationsize;   // instancesize + header   (void **)[ 5]
 
-   struct mulle_concurrent_pointerarray    methodlists;
-
    struct _mulle_objc_infraclass           *infraclass;
    struct _mulle_objc_universe             *universe;
+
+   struct mulle_concurrent_pointerarray    methodlists;
 
    //
    // TODO: we could have a pointer to the load class and get the id
@@ -160,14 +184,8 @@ struct _mulle_objc_class
 
    struct _mulle_objc_method               *forwardmethod;
 
-   mulle_atomic_pointer_t                  state;
    struct _mulle_objc_kvccachepivot        kvc;
-
-//   struct _mulle_objc_cachepivot           supercachepivot;
-   mulle_objc_implementation_t             (*superlookup)( struct _mulle_objc_class *,
-                                                           mulle_objc_superid_t);
-   mulle_objc_implementation_t             (*superlookup2)( struct _mulle_objc_class *,
-                                                            mulle_objc_superid_t);
+   mulle_atomic_pointer_t                  state;
 
 #ifdef __MULLE_OBJC_FCS__
    struct _mulle_objc_fastmethodtable      vtab;  // dont' move it up, debugs nicer here

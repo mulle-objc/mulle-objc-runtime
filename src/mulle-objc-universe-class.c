@@ -177,7 +177,7 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
          if( universe->debug.trace.class_cache)
             mulle_objc_universe_trace( universe,
                                        "added class %08x \"%s\" to "
-                                       "class cache %p\n",
+                                       "class cache %p",
                                        _mulle_objc_infraclass_get_classid( infra),
                                        _mulle_objc_infraclass_get_name( infra),
                                        cache);

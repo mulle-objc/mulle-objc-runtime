@@ -97,7 +97,10 @@ void   test_message_sending()
       desc = _mulle_objc_universe_lookup_descriptor( universe, methodlist->methods[ i].descriptor.methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
       rval = mulle_objc_object_call( A_obj, methodlist->methods[ i].descriptor.methodid, NULL);
-      assert( _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
+      // when the very first call hits "A", it's slow mode due to
+      // +initialize having to run. The first call runs uncached, but
+      // subsequent calls must have been cached
+      assert( ! i || _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
       assert( rval == (void *) (uintptr_t) methodlist->methods[ i].descriptor.methodid);
    }
 

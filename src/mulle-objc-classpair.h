@@ -77,7 +77,7 @@ struct _mulle_objc_classpair
    // debugger doesn't care anymore
 
    mulle_thread_mutex_t                      lock;   // used for initialize
-   mulle_thread_t                            thread; // used for initialize
+   mulle_atomic_pointer_t                    thread; // used for initialize
    struct _mulle_objc_loadclass              *loadclass;
 
    uint32_t                                  classindex;       // set when added

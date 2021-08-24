@@ -51,7 +51,12 @@
 typedef mulle_objc_uniqueid_t   mulle_objc_cache_uint_t;
 
 
+//
 // this sizeof() must be a power of 2 else stuff fails
+// because technically a functionpointer need not be the same size as a
+// void *, we differentiate here. Though when will this ever be useful in
+// real life ?
+//
 struct _mulle_objc_cacheentry
 {
    union
@@ -69,6 +74,11 @@ struct _mulle_objc_cacheentry
 
 struct _mulle_objc_cache
 {
+   mulle_objc_implementation_t     supercall2;
+   mulle_objc_implementation_t     supercall;
+   mulle_objc_implementation_t     call2;
+   mulle_objc_implementation_t     call;
+
    mulle_atomic_pointer_t          n;
    mulle_objc_cache_uint_t         size;  // don't optimize away (alignment!)
    mulle_objc_cache_uint_t         mask;

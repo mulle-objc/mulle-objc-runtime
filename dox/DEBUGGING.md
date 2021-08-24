@@ -39,8 +39,7 @@ set the environment variables to "YES" or "NO".
 `MULLE_OBJC_TRACE_DEPENDENCY`           | Trace whenever a class or category is queued up to be added to the runtime system, when it's dependencies have not appeared yet.
 `MULLE_OBJC_TRACE_DUMP_RUNTIME`         | Periodically dump the runtime to tmp during loading.
 `MULLE_OBJC_TRACE_FASTCLASS_ADD`        | Trace whenever a "fast" class is added to the runtime system.
-`MULLE_OBJC_TRACE_INITIALIZE`           | Trace calls or non-calls of `+initialize`
-`MULLE_OBJC_TRACE_LOAD_CALL`            | Trace calls of `+load`, `+categoryDependencies`, `+classDependencies`
+`MULLE_OBJC_TRACE_INITIALIZE`           | Trace calls or non-calls of `+initialize` and +load
 `MULLE_OBJC_TRACE_LOADINFO`             | Trace the enqueing of loadinfos
 `MULLE_OBJC_TRACE_PROTOCOL_ADD`         | Trace whenever a protocol is added to the runtime system.
 `MULLE_OBJC_TRACE_STATE_BIT`            | Trace whenever a class state changes.

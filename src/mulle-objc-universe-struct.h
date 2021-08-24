@@ -114,10 +114,9 @@ struct _mulle_objc_universedebug
       unsigned   dependency           : 1;
       unsigned   dump_universe        : 1;  // hefty, set manually
       unsigned   fastclass_add        : 1;
-      unsigned   initialize           : 1;
+      unsigned   initialize           : 1;  // also traces +load/+uninitialize etc.
       unsigned   instance             : 1;
       unsigned   hashstrings          : 1;
-      unsigned   load_call            : 1; // +initialize, +load, +categoryDependencies
       unsigned   loadinfo             : 1;
       unsigned   method_cache         : 1;
       unsigned   method_call          : 1;
@@ -138,6 +137,7 @@ struct _mulle_objc_universedebug
       unsigned   stuck_loadable         : 1;  // set by default
       unsigned   method_type            : 2;
       unsigned   crash                  : 1;
+      unsigned   hang                   : 1;
    } warn;
 
    struct

@@ -131,13 +131,6 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
                                struct _mulle_objc_class *superclass,
                                struct _mulle_objc_universe *universe)
 {
-   extern void   *_mulle_objc_object_call2_needcache( void *obj,
-                                                        mulle_objc_methodid_t methodid,
-                                                        void *parameter);
-   extern mulle_objc_implementation_t
-      _mulle_objc_class_superlookup2_needcache( struct _mulle_objc_class *cls,
-                                                mulle_objc_superid_t superid);
-
    assert( universe);
 
    cls->name             = name;
@@ -157,18 +150,16 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->classid          = classid;
    cls->allocationsize   = sizeof( struct _mulle_objc_objectheader) + instancesize + headerextrasize;
    cls->headerextrasize  = headerextrasize;
-   cls->call             = _mulle_objc_object_call_class_needcache;
    cls->universe         = universe;
 
-   cls->cachepivot.call2 = _mulle_objc_object_call2_needcache;
-   cls->superlookup2     = _mulle_objc_class_superlookup2_needcache;
+   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->empty_methodcache.entries);
+   _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 #ifdef HAVE_SUPERCACHE
    _mulle_atomic_pointer_nonatomic_write( &cls->supercachepivot.entries, universe->empty_cache.entries);
 #endif
-   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->empty_cache.entries);
-   _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 
    _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &universe->memory.allocator);
+
 #ifdef __MULLE_OBJC_FCS__
    _mulle_objc_fastmethodtable_init( &cls->vtab);
 #endif
@@ -807,8 +798,7 @@ void   _mulle_objc_class_warn_alloc_before_initialize( struct _mulle_objc_class 
                                         "(break on: _mulle_objc_class_warn_alloc_before_initialize)",
                                      obj,
                                      _mulle_objc_class_get_name( cls));
-   if( universe->debug.warn.crash)
-      abort();
+   mulle_objc_universe_maybe_hang_or_abort( universe);
 }
 
 
@@ -825,8 +815,7 @@ void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *c
                                         "(break on: _mulle_objc_class_warn_alloc_during_finalize)",
                                      obj,
                                      _mulle_objc_class_get_name( cls));
-   if( universe->debug.warn.crash)
-      abort();
+   mulle_objc_universe_maybe_hang_or_abort( universe);
 }
 
 
