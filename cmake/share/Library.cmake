@@ -140,7 +140,7 @@ if( LIBRARY_SOURCES)
                ${DEPENDENCY_LIBRARIES}
                ${DEPENDENCY_FRAMEWORKS}
                ${OPTIONAL_DEPENDENCY_LIBRARIES}
-               ${OPTIONAL_DEPENDENCY_FRAMWORKS}
+               ${OPTIONAL_DEPENDENCY_FRAMEWORKS}
                ${OS_SPECIFIC_LIBRARIES}
                ${OS_SPECIFIC_FRAMEWORKS}
          )

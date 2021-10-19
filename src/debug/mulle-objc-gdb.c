@@ -40,6 +40,7 @@
 #include "mulle-objc-call.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-convenience.h"
+#include "mulle-objc-class-lookup.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-method.h"

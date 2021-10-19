@@ -157,7 +157,7 @@ static inline mulle_objc_implementation_t
 {
    extern mulle_objc_implementation_t
       _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
-                                                    mulle_objc_superid_t superid);
+                                                           mulle_objc_superid_t superid);
 
    return( _mulle_objc_class_superlookup_implementation_nofail( &meta->base, superid));
 }

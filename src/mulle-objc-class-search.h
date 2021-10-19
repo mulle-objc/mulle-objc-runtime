@@ -48,6 +48,11 @@
 
 struct _mulle_objc_class;
 
+
+// Searches walk the class / methodlist hierarchy. This isn't fast. That's
+// why there are caches. Use "lookup" for checking the cache, before hitting
+// the cache
+
 //
 // to find -methods ask isa of object, to find +methods, ask the metaclass of isa
 // these methods are uncached and authorative
@@ -371,6 +376,17 @@ struct _mulle_objc_method   *
                                    struct _mulle_objc_searchresult *result);
 
 
+# pragma mark - failing
+
+MULLE_C_NO_RETURN void
+   _mulle_objc_class_fail_methodnotfound( struct _mulle_objc_class *cls,
+                                           mulle_objc_methodid_t missing_method);
+
+MULLE_C_NO_RETURN void
+   _mulle_objc_class_fail_fowardmethodnotfound( struct _mulle_objc_class *cls,
+                                                mulle_objc_methodid_t missing_method,
+                                                int error);
+
 # pragma mark - forwarding
 
 //
@@ -402,7 +418,10 @@ struct _mulle_objc_method  *
                                                  int *error);
 
 
-MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_method *
+# pragma mark - regular search
+
+MULLE_C_NONNULL_RETURN static inline
+struct _mulle_objc_method *
    mulle_objc_class_search_method_nofail( struct _mulle_objc_class *cls,
                                           mulle_objc_methodid_t methodid)
 {
@@ -415,12 +434,39 @@ MULLE_C_NONNULL_RETURN static inline struct _mulle_objc_method *
    return( method);
 }
 
+# pragma mark - super search
 
-#pragma mark - cached searches
 
-// will return NULL when not found and not forward!
-mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
-                                                 mulle_objc_superid_t superid);
+MULLE_C_NONNULL_RETURN static inline
+struct _mulle_objc_method *
+   mulle_objc_class_supersearch_method_nofail( struct _mulle_objc_class *cls,
+                                               mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_super   *
+      _mulle_objc_universe_lookup_super_nofail( struct _mulle_objc_universe *universe,
+                                                  mulle_objc_superid_t superid);
+
+   struct _mulle_objc_method             *method;
+   struct _mulle_objc_universe           *universe;
+   struct _mulle_objc_searcharguments    args;
+   struct _mulle_objc_super              *p;
+
+   //
+   // since "previous_method" in args will not be accessed" this is OK to cast
+   // and obviously cheaper than making a copy
+   //
+   universe = _mulle_objc_class_get_universe( cls);
+   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
+
+   _mulle_objc_searcharguments_superinit( &args, p->methodid, p->classid);
+   method = mulle_objc_class_search_method( cls,
+                                            &args,
+                                            cls->inheritance,
+                                            NULL);
+   if( ! method)
+      method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, args.args.methodid);
+   return( method);
+}
+
 
 #endif /* mulle_objc_class_search_h */

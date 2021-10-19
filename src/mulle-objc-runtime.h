@@ -82,6 +82,8 @@
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
 #include "mulle-objc-class-convenience.h"
+#include "mulle-objc-class-initialize.h"
+#include "mulle-objc-class-lookup.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-fastclasstable.h"

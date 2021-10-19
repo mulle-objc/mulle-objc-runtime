@@ -44,6 +44,9 @@
 #include "mulle-objc-builtin.h"
 
 
+// MEMO: mulle-stacktrace is complicated to compile and not that good
+//       so its been removed from 0.20
+
 # pragma mark - errors when no universe is present
 
 
@@ -55,7 +58,7 @@ MULLE_C_NO_RETURN static void
 
    // could improve this with symbolification but, it's a) debug
    // only and b) you get better a one in the debugger
-#ifdef DEBUG
+#if defined( DEBUG) && defined( MULLE_STACKTRACE_VERSION)
    mulle_stacktrace_once( stderr);
 #endif
    abort();
@@ -71,7 +74,7 @@ MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE static void
    _mulle_objc_vprintf_abort( format, args);
    va_end( args);
 
-#ifdef DEBUG
+#if defined( DEBUG) && defined( MULLE_STACKTRACE_VERSION)
    mulle_stacktrace_once( stderr);
 #endif
    abort();

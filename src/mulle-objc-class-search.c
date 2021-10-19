@@ -37,6 +37,7 @@
 
 #include "mulle-objc-builtin.h"
 #include "mulle-objc-class.h"
+#include "mulle-objc-class-initialize.h"
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-universe-class.h"
 #include "mulle-objc-classpair.h"
@@ -605,6 +606,15 @@ struct _mulle_objc_method   *
       return( NULL);
    }
 
+   //
+   // The dange of the lookup code is that it can be used to bypass the
+   // class initialization and call IMPs directly. So we need to be at least
+   // in -initializing before we can actually search a method, otherwise
+   // we get into problems.
+   //
+   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_INITIALIZING))
+      _mulle_objc_class_setup( cls);
+
    _mulle_objc_searcharguments_assert( search);
 
    assert( mulle_objc_class_is_current_thread_registered( cls));
@@ -768,7 +778,18 @@ struct _mulle_objc_method    *
 }
 
 
-MULLE_C_NO_RETURN static void
+MULLE_C_NO_RETURN void
+   _mulle_objc_class_fail_methodnotfound( struct _mulle_objc_class *cls,
+                                           mulle_objc_methodid_t missing_method)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = _mulle_objc_class_get_universe( cls);
+   mulle_objc_universe_fail_methodnotfound( universe, cls, missing_method);
+}
+
+
+MULLE_C_NO_RETURN void
    _mulle_objc_class_fail_fowardmethodnotfound( struct _mulle_objc_class *cls,
                                                 mulle_objc_methodid_t missing_method,
                                                 int error)

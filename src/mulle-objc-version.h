@@ -48,14 +48,14 @@
 //
 // *** DONT FORGET TO EDIT mulle-objc-jit.inc TOO***
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (19 << 8) | 0)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (20 << 8) | 0)
 
 //
 // these three values are read by the compiler(!)
 // only use integers and no expressions
 //
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0   // max 511
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  19  // max 1023
+#define MULLE_OBJC_RUNTIME_VERSION_MINOR  20  // max 1023
 #define MULLE_OBJC_RUNTIME_VERSION_PATCH  0   // max 255
 
 

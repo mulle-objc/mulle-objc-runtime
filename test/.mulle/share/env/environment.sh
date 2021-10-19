@@ -73,17 +73,20 @@ case "${MULLE_SHELL_MODE}" in
 
       alias mulle-env-reload='. "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/include-environment.sh"'
 
-
       #
       # source in any bash completion files
       #
       DEFAULT_IFS="${IFS}"
-      shopt -s nullglob; IFS=$'\n'
+      IFS=$'\n'
+      # memo: nullglob not easily done on both bash and zsh
       for FILENAME in "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/libexec"/*-bash-completion.sh
       do
-         . "${FILENAME}"
+         if [ -f "${FILENAME}" ]
+         then
+            . "${FILENAME}"
+         fi
       done
-      shopt -u nullglob; IFS="${DEFAULT_IFS}"
+      IFS="${DEFAULT_IFS}"
 
       unset DEFAULT_IFS
       unset FILENAME

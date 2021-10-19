@@ -87,6 +87,7 @@ struct _mulle_objc_infraclass
    union _mulle_objc_atomicobjectpointer_t   placeholders[ 3];
 
    struct mulle_allocator                    *allocator;  // must not be NULL
+   mulle_atomic_pointer_t                    allocatedInstances;
 };
 
 

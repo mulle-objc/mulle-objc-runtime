@@ -39,6 +39,7 @@
 #include "mulle-objc-object.h"
 
 #include "mulle-objc-class.h"
+#include "mulle-objc-class-lookup.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-class-convenience.h"
 #include "mulle-objc-call.h"
@@ -49,6 +50,7 @@ static inline char   *_mulle_objc_object_get_isa_name( void *obj)
 {
    return( _mulle_objc_class_get_name( _mulle_objc_object_get_isa( obj)));
 }
+
 
 static inline mulle_objc_implementation_t
     _mulle_objc_object_cacheonlylookup_implementation( void *obj,
@@ -74,7 +76,7 @@ static inline mulle_objc_implementation_t
 
 static inline mulle_objc_implementation_t
     _mulle_objc_object_lookup_implementation_no_forward( void *obj,
-                                                               mulle_objc_methodid_t methodid)
+                                                         mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
@@ -83,7 +85,8 @@ static inline mulle_objc_implementation_t
 }
 
 
-static inline struct _mulle_objc_method   *
+static inline
+struct _mulle_objc_method   *
     _mulle_objc_object_defaultsearch_method( void *obj,
                                              mulle_objc_methodid_t methodid)
 {
@@ -94,8 +97,8 @@ static inline struct _mulle_objc_method   *
 }
 
 
-MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
-    _mulle_objc_instance_get_allocator( void *obj)
+MULLE_C_NONNULL_RETURN static inline
+struct mulle_allocator   *_mulle_objc_instance_get_allocator( void *obj)
 {
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_infraclass   *infra;
@@ -105,64 +108,30 @@ MULLE_C_NONNULL_RETURN static inline struct mulle_allocator   *
    return( _mulle_objc_infraclass_get_allocator( infra));
 }
 
+
 #pragma mark - instance deletion
-
-static inline void  __mulle_objc_instance_will_free( struct _mulle_objc_object *obj)
-{
-// too slow for non debug
-#if DEBUG
-   {
-      struct _mulle_objc_universe    *universe;
-
-      universe = _mulle_objc_object_get_universe( obj);
-      if( universe->debug.trace.instance)
-      {
-         void   _mulle_objc_instance_trace_free( void *obj);
-
-         _mulle_objc_instance_trace_free( obj);
-      }
-   }
-#endif
-}
 
 
 static inline void   __mulle_objc_instance_free( void *obj,
-                                                 struct _mulle_objc_class *cls,
                                                  struct mulle_allocator *allocator)
 {
-   struct _mulle_objc_objectheader   *header;
-   void                              *alloc;
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *infra;
 
-   __mulle_objc_instance_will_free( obj);
-
-   header = _mulle_objc_object_get_objectheader( obj);
-   alloc  = _mulle_objc_objectheader_get_alloc( header, cls->headerextrasize);
-   mulle_allocator_free( allocator, alloc);
+   cls   = _mulle_objc_object_get_isa( obj);
+   infra = _mulle_objc_class_as_infraclass( cls);
+   __mulle_objc_infraclass_free_instance( infra, obj, allocator);
 }
-
-
-static inline void   _mulle_objc_instance_free_allocator( void *obj,
-                                                          struct mulle_allocator *allocator)
-{
-   struct _mulle_objc_class   *cls;
-   void                       *alloc;
-
-   cls = _mulle_objc_object_get_isa( obj);
-   __mulle_objc_instance_free( obj, cls, allocator);
-}
-
 
 
 static inline void   _mulle_objc_instance_free( void *obj)
 {
-   struct mulle_allocator          *allocator;
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_infraclass   *infra;
 
-   cls       = _mulle_objc_object_get_isa( obj);
-   infra     = _mulle_objc_class_as_infraclass( cls);
-   allocator = _mulle_objc_infraclass_get_allocator( infra);
-   __mulle_objc_instance_free( obj, cls, allocator);
+   cls   = _mulle_objc_object_get_isa( obj);
+   infra = _mulle_objc_class_as_infraclass( cls);
+   _mulle_objc_infraclass_free_instance( infra, obj);
 }
 
 

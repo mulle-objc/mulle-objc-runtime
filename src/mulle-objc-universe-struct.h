@@ -41,6 +41,7 @@
 #include "mulle-objc-fastmethodtable.h"
 #include "mulle-objc-ivarlist.h"
 #include "mulle-objc-load.h"
+#include "mulle-objc-methodcache.h"
 #include "mulle-objc-methodlist.h"
 #include "mulle-objc-propertylist.h"
 #include "mulle-objc-taggedpointer.h"
@@ -50,6 +51,8 @@
 #include "mulle-objc-version.h"
 
 #include "include.h"
+
+#include <stdarg.h>
 
 
 struct _mulle_objc_class;
@@ -413,9 +416,14 @@ struct _mulle_objc_universe
    struct _mulle_objc_universeconfig        config;
    struct _mulle_objc_universedebug         debug;
 
+   // this struct isn't all zeroes! it has some callbacks which are
+   // initialized
+   struct _mulle_objc_methodcache        empty_methodcache;
+   struct _mulle_objc_methodcache        initial_methodcache;
+
    // It's all zeroes, so save some space with a union.
    // it would be "nicer" to have these in a const global
-   // but due to windows, it's nicer to have a few globals
+   // but due to windows, it's nicer to have as few globals
    // as possible
    //
    union

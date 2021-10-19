@@ -10,9 +10,9 @@ endif()
 
 #
 # Output message of a day to locate output.
-# Must run in singlephase
+# Only run in link phase, which should be defined for singlephase builds too
 #
-if( EXECUTABLE_NAME)
+if( EXECUTABLE_NAME AND LINK_PHASE)
 
    # But if create-build-motd doesn't exist, it's no biggy
    #

@@ -16,38 +16,38 @@
 
 // You can tweak the following #include with these commands.
 // (Use 8ae0712b-418b-4a24-bd84-48cf5caf5e38 instead of mulle-concurrent if there are duplicate entries)
-//    remove:             `mulle-sourcetree mark mulle-concurrent no-header`
+//    remove:             `mulle-sde dependency mark mulle-concurrent no-header`
 //    rename:             `mulle-sde dependency|library set mulle-concurrent include whatever.h`
-//    reorder:            `mulle-sourcetree move mulle-concurrent <up|down>`
-//    toggle #include:    `mulle-sourcetree mark mulle-concurrent [no-]import`
-//    toggle public:      `mulle-sourcetree mark mulle-concurrent [no-]public`
-//    toggle optional:    `mulle-sourcetree mark mulle-concurrent [no-]require`
-//    remove for platform:`mulle-sourcetree mark mulle-concurrent no-platform-<uname>`
-//        (use mulle-sourcetree-to-c --unames for known values)
+//    reorder:            `mulle-sde dependency move mulle-concurrent <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-concurrent [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-concurrent [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-concurrent [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-concurrent no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-concurrent/mulle-concurrent.h>   // mulle-concurrent
 
 // You can tweak the following #include with these commands.
 // (Use 3bb60fad-077f-41cc-b6d4-93c91f1d457a instead of mulle-vararg if there are duplicate entries)
-//    remove:             `mulle-sourcetree mark mulle-vararg no-header`
+//    remove:             `mulle-sde dependency mark mulle-vararg no-header`
 //    rename:             `mulle-sde dependency|library set mulle-vararg include whatever.h`
-//    reorder:            `mulle-sourcetree move mulle-vararg <up|down>`
-//    toggle #include:    `mulle-sourcetree mark mulle-vararg [no-]import`
-//    toggle public:      `mulle-sourcetree mark mulle-vararg [no-]public`
-//    toggle optional:    `mulle-sourcetree mark mulle-vararg [no-]require`
-//    remove for platform:`mulle-sourcetree mark mulle-vararg no-platform-<uname>`
-//        (use mulle-sourcetree-to-c --unames for known values)
+//    reorder:            `mulle-sde dependency move mulle-vararg <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-vararg [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-vararg [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-vararg [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-vararg no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-vararg/mulle-vararg.h>   // mulle-vararg
 
 // You can tweak the following #include with these commands.
 // (Use F8EFF078-E086-4E88-9FA8-2A959923DF8B instead of mulle-data if there are duplicate entries)
-//    remove:             `mulle-sourcetree mark mulle-data no-header`
+//    remove:             `mulle-sde dependency mark mulle-data no-header`
 //    rename:             `mulle-sde dependency|library set mulle-data include whatever.h`
-//    reorder:            `mulle-sourcetree move mulle-data <up|down>`
-//    toggle #include:    `mulle-sourcetree mark mulle-data [no-]import`
-//    toggle public:      `mulle-sourcetree mark mulle-data [no-]public`
-//    toggle optional:    `mulle-sourcetree mark mulle-data [no-]require`
-//    remove for platform:`mulle-sourcetree mark mulle-data no-platform-<uname>`
-//        (use mulle-sourcetree-to-c --unames for known values)
+//    reorder:            `mulle-sde dependency move mulle-data <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-data [no-]import`
+//    toggle public:      `mulle-sde dependency mark mulle-data [no-]public`
+//    toggle optional:    `mulle-sde dependency mark mulle-data [no-]require`
+//    remove for platform:`mulle-sde dependency mark mulle-data no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-data/mulle-data.h>   // mulle-data
 
 #endif
