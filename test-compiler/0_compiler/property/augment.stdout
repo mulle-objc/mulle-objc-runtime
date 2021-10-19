@@ -1,5 +1,0 @@
-Foo:
-   value=18
-Bar:
--[Bar willChange]
-   value=18
