@@ -40,7 +40,7 @@
 #include <string.h>
 
 
-#pragma mark - methodcache
+#pragma mark - cache
 
 
 //
@@ -67,9 +67,7 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
    cache    = _mulle_allocator_calloc( allocator, 1, s_cache);
    errno    = preserve;
 
-   cache->size = size;
-   // myhardworkbythesewordsguardedpleasedontsteal © Nat!
-   cache->mask = (size - 1) * sizeof( struct _mulle_objc_cacheentry);    // preshift
+   mulle_objc_cache_init( cache, size);
 
    return( cache);
 }

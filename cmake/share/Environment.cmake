@@ -195,9 +195,11 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # given from outside
    message( STATUS "CMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH}\"" )
    message( STATUS "CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"" )
+   # message( STATUS "TMP_INCLUDE_DIRS=\"${TMP_INCLUDE_DIRS}\"" )
 
    # these generate -isystem arguments, that add to the system search path
-   include_directories( BEFORE SYSTEM
+   # if we use BEFORE we would need to reverse the order in TMP_INCLUDE_DIRS
+   include_directories( SYSTEM
       ${TMP_INCLUDE_DIRS}
    )
 

@@ -41,6 +41,7 @@ void   test_message_sending()
    struct _mulle_objc_universe     *universe;
    unsigned int                    i;
    void                            *rval;
+   mulle_objc_methodid_t           methodid;
 
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
@@ -93,15 +94,16 @@ void   test_message_sending()
    A_cls = _mulle_objc_infraclass_as_class( A_infra);
    for( i = 0; i < 1000; i++)
    {
-      assert( i == 500 || ! _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_cls, methodlist->methods[ i].descriptor.methodid));
-      desc = _mulle_objc_universe_lookup_descriptor( universe, methodlist->methods[ i].descriptor.methodid);
+      methodid = methodlist->methods[ i].descriptor.methodid;
+      assert( i == 500 || ! _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_cls, methodid));
+      desc = _mulle_objc_universe_lookup_descriptor( universe, methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
-      rval = mulle_objc_object_call( A_obj, methodlist->methods[ i].descriptor.methodid, NULL);
+      rval = mulle_objc_object_call( A_obj, methodid, NULL);
+      assert( rval == (void *) (uintptr_t) methodid);
       // when the very first call hits "A", it's slow mode due to
       // +initialize having to run. The first call runs uncached, but
       // subsequent calls must have been cached
-      assert( ! i || _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_infra, methodlist->methods[ i].descriptor.methodid));
-      assert( rval == (void *) (uintptr_t) methodlist->methods[ i].descriptor.methodid);
+      assert( ! i || _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_infra, methodid));
    }
 
 #if DEBUG

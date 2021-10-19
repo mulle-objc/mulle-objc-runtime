@@ -6,10 +6,18 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
-include( _Dependencies OPTIONAL)
+#
+# Get Libraries first. That way local library definitions override those
+# we might inherit from dependencies. The link order should not be affected by
+# this.
+#
 include( _Libraries OPTIONAL)
+include( _Dependencies OPTIONAL)
 
-option( INHERIT_DEPENDENCY_INCLUDES "Make headers of dependencies available as local headers" ON)
+#
+# This is an experiment to have "flat" headers. I don't use it though (yet)
+#
+option( INHERIT_DEPENDENCY_INCLUDES "Make headers of dependencies available as local headers" OFF)
 
 if( INHERIT_DEPENDENCY_INCLUDES)
    # message( STATUS "INHERITED_INCLUDE_DIRS=\"${INHERITED_INCLUDE_DIRS}\"" )

@@ -152,11 +152,8 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->headerextrasize  = headerextrasize;
    cls->universe         = universe;
 
-   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->empty_methodcache.entries);
+   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->initial_methodcache.cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
-#ifdef HAVE_SUPERCACHE
-   _mulle_atomic_pointer_nonatomic_write( &cls->supercachepivot.entries, universe->empty_cache.entries);
-#endif
 
    _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &universe->memory.allocator);
 
@@ -169,7 +166,8 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
 void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
                                struct mulle_allocator *allocator)
 {
-   struct _mulle_objc_cache   *cache;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_methodcache   *mcache;
 
    assert( cls);
    assert( allocator);
@@ -181,19 +179,10 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
 
    _mulle_objc_class_invalidate_kvccache( cls);
 
-   cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
-   if( cache != &cls->universe->empty_cache)
-      _mulle_objc_cache_free( cache, allocator);
-
-#ifdef HAVE_SUPERCACHE
-   {
-      struct _mulle_objc_cache   *supercache;
-
-      supercache = _mulle_objc_cachepivot_atomicget_cache( &cls->supercachepivot);
-      if( supercache != &cls->universe->empty_cache)
-         _mulle_objc_cache_free( supercache, allocator);
-   }
-#endif
+   cache  = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
+   mcache = _mulle_objc_cache_get_methodcache_from_cache( cache);
+   if( mcache != &cls->universe->empty_methodcache && mcache != &cls->universe->initial_methodcache)
+      _mulle_objc_methodcache_free( mcache, allocator);
 }
 
 
@@ -246,9 +235,6 @@ int   __mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
    if( ! mulle_objc_uniqueid_is_sane_string( cls->classid, cls->name))
       return( 0);
 
-   assert( cls->call);
-   assert( cls->cachepivot.call2);
-
    return( 1);
 }
 
@@ -275,85 +261,6 @@ int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
 
 # pragma mark - caches
 
-//
-// pass methodid = 0, to invalidate all
-//
-int   _mulle_objc_class_invalidate_methodcacheentry( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t methodid)
-{
-   struct _mulle_objc_cacheentry   *entry;
-   mulle_objc_uniqueid_t           offset;
-   struct _mulle_objc_cache        *cache;
-
-   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
-      return( 0);
-
-   cache = _mulle_objc_class_get_methodcache( cls);
-   if( ! _mulle_atomic_pointer_read( &cache->n))
-      return( 0);
-
-   if( methodid != MULLE_OBJC_NO_METHODID)
-   {
-      assert( mulle_objc_uniqueid_is_sane( methodid));
-
-      offset = _mulle_objc_cache_find_entryoffset( cache, methodid);
-      entry  = (void *) &((char *) cache->entries)[ offset];
-
-      // no entry is matching, fine
-      if( ! entry->key.uniqueid)
-         return( 0);
-   }
-
-   //
-   // if we get NULL, from _mulle_objc_class_add_cacheentry_by_swapping_caches
-   // someone else recreated the cache, fine by us!
-   //
-   for(;;)
-   {
-      // always break regardless of return value
-      _mulle_objc_class_add_cacheentry_swappmethodcache( cls,
-                                                         cache,
-                                                         NULL,
-                                                         MULLE_OBJC_NO_METHODID,
-                                                         MULLE_OBJC_CACHESIZE_STAGNATE);
-      break;
-   }
-
-   return( 0x1);
-}
-
-
-#ifdef HAVE_SUPERCACHE
-int   _mulle_objc_class_invalidate_supercache( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_cache   *supercache;
-
-   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
-      return( 0);
-
-   supercache = _mulle_objc_class_get_supercache( cls);
-   if( ! _mulle_atomic_pointer_read( &supercache->n))
-      return( 0);
-
-   //
-   // if we get NULL, from _mulle_objc_class_add_entry_by_swapping_caches
-   // someone else recreated the cache, fine by us!
-   //
-   for(;;)
-   {
-      // always break regardless of return value
-      _mulle_objc_class_add_cacheentry_swapsupercache( cls,
-                                                       supercache,
-                                                       NULL,
-                                                       MULLE_OBJC_NO_METHODID,
-                                                       MULLE_OBJC_CACHESIZE_STAGNATE);
-      break;
-   }
-
-   return( 0x1);
-}
-#endif
-
 
 static int  invalidate_methodcacheentries( struct _mulle_objc_universe *universe,
                                            struct _mulle_objc_class *cls,
@@ -370,12 +277,6 @@ static int  invalidate_methodcacheentries( struct _mulle_objc_universe *universe
       return( mulle_objc_walk_ok);
 
    _mulle_objc_class_invalidate_kvccache( cls);
-
-// not having a supercache is so much better (timing...)
-#ifdef HAVE_SUPERCACHE
-   // supercaches need to be invalidate regardless
-   _mulle_objc_class_invalidate_supercache( cls);
-#endif
 
    // if caches have been cleaned for class, it's done
    rover = _mulle_objc_methodlist_enumerate( list);
@@ -413,7 +314,7 @@ void   mulle_objc_class_didadd_methodlist( struct _mulle_objc_class *cls,
    {
       //
       // this optimization works as long as you are installing plain classes.
-      //
+      // So if we have some caches, we need to do this otherwise we don't
       if( _mulle_atomic_pointer_read( &cls->universe->cachecount_1))
          mulle_objc_universe_walk_classes( cls->universe, (mulle_objc_walkcallback_t) invalidate_methodcacheentries, list);
    }

@@ -51,6 +51,14 @@
 typedef mulle_objc_uniqueid_t   mulle_objc_cache_uint_t;
 
 
+enum mulle_objc_cachesizing_t
+{
+   MULLE_OBJC_CACHESIZE_SHRINK   = -1,
+   MULLE_OBJC_CACHESIZE_STAGNATE = 0,
+   MULLE_OBJC_CACHESIZE_GROW     = 2
+};
+
+
 //
 // this sizeof() must be a power of 2 else stuff fails
 // because technically a functionpointer need not be the same size as a
@@ -74,11 +82,6 @@ struct _mulle_objc_cacheentry
 
 struct _mulle_objc_cache
 {
-   mulle_objc_implementation_t     supercall2;
-   mulle_objc_implementation_t     supercall;
-   mulle_objc_implementation_t     call2;
-   mulle_objc_implementation_t     call;
-
    mulle_atomic_pointer_t          n;
    mulle_objc_cache_uint_t         size;  // don't optimize away (alignment!)
    mulle_objc_cache_uint_t         mask;
@@ -86,12 +89,23 @@ struct _mulle_objc_cache
 };
 
 
-enum mulle_objc_cachesizing_t
+// incoming cache must have been zero filled already
+static inline void   mulle_objc_cache_init( struct _mulle_objc_cache *cache,
+                                            mulle_objc_cache_uint_t size)
 {
-   MULLE_OBJC_CACHESIZE_SHRINK   = -1,
-   MULLE_OBJC_CACHESIZE_STAGNATE = 0,
-   MULLE_OBJC_CACHESIZE_GROW     = 2
-};
+   int      preserve;
+   size_t   s_cache;
+
+   assert( ! (sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1)));
+
+   // must be zero filled, don't want to assert everything though
+   assert( ! _mulle_atomic_pointer_read( &cache->n));
+
+   cache->size = size;
+   // myhardworkbythesewordsguardedpleasedontsteal © Nat!
+   cache->mask = (size - 1) * sizeof( struct _mulle_objc_cacheentry);    // preshift
+}
+
 
 
 static inline size_t   _mulle_objc_cache_get_resize( struct _mulle_objc_cache *cache,

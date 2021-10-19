@@ -39,6 +39,8 @@
 #include "mulle-objc-builtin.h"
 #include "mulle-objc-universe-global.h"
 #include "mulle-objc-class.h"
+#include "mulle-objc-class-initialize.h"
+#include "mulle-objc-class-lookup.h"
 #include "mulle-objc-universe-class.h"
 #include "mulle-objc-universe-exception.h"
 #include "mulle-objc-universe-fail.h"
@@ -530,6 +532,14 @@ static int   abafree_nofail( void  *aba,
 static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *universe,
                                                  struct mulle_allocator *allocator)
 {
+   extern void   *_mulle_objc_object_call_needcache( void *obj,
+                                                        mulle_objc_methodid_t methodid,
+                                                        void *parameter);
+   extern mulle_objc_implementation_t
+      _mulle_objc_class_superlookup_needcache( struct _mulle_objc_class *cls,
+                                                mulle_objc_superid_t superid);
+
+
    void   mulle_objc_vprintf_abort( char *format, va_list args);
    char *kind;
 
@@ -576,12 +586,11 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    _mulle_atomic_pointer_nonatomic_write( &universe->cachepivot.entries,
                                           universe->empty_cache.entries);
 
-   // setup the initial cache with the callbacks need to properly call
+   // the initial cache is place into classes, thatz haven't run +initialize
+   // yes, with the callbacks need to properly call
    // +initialize and other things
-   universe->empty_memorycache.call         = _mulle_objc_object_call_class_needcache;
-   universe->empty_memorycache.call2        = _mulle_objc_object_call_needcache;
-   universe->empty_memorycache.superlookup  = _mulle_objc_class_superlookup_needcache;
-   universe->empty_memorycache.superlookup2 = _mulle_objc_class_superlookup_needcache;
+   _mulle_objc_methodcache_init_initial_callbacks( &universe->initial_methodcache);
+   _mulle_objc_methodcache_init_empty_callbacks( &universe->empty_methodcache);
 
    universe->memory.allocator         = *allocator;
    universe->memory.allocator.aba     = &universe->garbage.aba;
@@ -2244,22 +2253,6 @@ static struct _mulle_objc_descriptor *
    int                             comparison;
    struct _mulle_objc_descriptor   *dup;
 
-#ifndef HAVE_SUPERCACHE
-   {
-      struct _mulle_objc_super   *sup;
-
-      sup = _mulle_objc_universe_lookup_super( universe, p->methodid);
-      if( sup)
-         mulle_objc_universe_fail_generic( universe,
-               "mulle_objc_universe %p error: super \"%s\" "
-               "and method \"%s\" conflict with same id %08x\n",
-               universe,
-               sup->name,
-               p->name,
-               p->methodid);
-   }
-#endif
-
    dup = _mulle_concurrent_hashmap_register( &universe->descriptortable, p->methodid, p);
    if( ! dup)
    {
@@ -2465,23 +2458,6 @@ int   _mulle_objc_universe_add_super( struct _mulle_objc_universe *universe,
             dup->classid, dup->methodid,
             p->classid, p->methodid,
             p->superid);
-
-
-#ifndef HAVE_SUPERCACHE
-   {
-      struct _mulle_objc_descriptor   *desc;
-
-      desc = _mulle_objc_universe_lookup_descriptor( universe, p->superid);
-      if( desc)
-         mulle_objc_universe_fail_generic( universe,
-               "mulle_objc_universe %p error: method \"%s\" "
-               "and super \"%s\" with same id %08x\n",
-               universe,
-               desc->name,
-               p->name,
-               p->superid);
-   }
-#endif
 
    return( 0);
 }

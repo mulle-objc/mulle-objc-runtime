@@ -43,6 +43,7 @@
 #include "mulle-objc-universe-struct.h"
 
 #include <errno.h>
+#include <stdarg.h>
 
 
 #pragma mark - fails, universe can be null

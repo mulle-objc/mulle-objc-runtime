@@ -405,7 +405,7 @@ char   *mulle_objc_class_describe_html( struct _mulle_objc_class *cls,
                                         struct _mulle_objc_htmltablestyle *styling)
 {
    char                               *s;
-   char                               *tmp[ 7];
+   char                               *tmp[ 8];
    unsigned int                       i;
    struct _mulle_objc_htmltablestyle  style;
 
@@ -443,16 +443,19 @@ char   *mulle_objc_class_describe_html( struct _mulle_objc_class *cls,
          asprintf( &tmp[ i++],
                   "<TR><TD>ivarhash</TD><TD>0x%lx</TD></TR>\n",
                   (long) infra->ivarhash);
+         asprintf( &tmp[ i++],
+                  "<TR><TD>allocatedInstances</TD><TD>%ld</TD></TR>\n",
+                  (long) _mulle_atomic_pointer_nonatomic_read( &infra->allocatedInstances));
       }
 
       asprintf( &tmp[ i++],
-               "<TR><TD>preloads</TD><TD>0x%x</TD></TR>\n",
+               "<TR><TD>preloads</TD><TD>%u</TD></TR>\n",
                cls->preloads);
    }
    asprintf( &tmp[ i++],
             "</TABLE>");
 
-   assert( i <= 7);
+   assert( i <= 8);
 
    return( final_concat_auto_tmp( tmp, i));
 }

@@ -12,18 +12,23 @@ if( NOT __MULTI_PHASE__CMAKE__)
 
    #
    # Parallel build support. run all "participating" projects once for
-   # HEADERS_PHASE in parallel.
+   # HEADER_PHASE in parallel.
    # Now run all "participating" projects for COMPILE_PHASE in parallel.
    # Finally run all participating and non-participating projects in craftorder
    # serially together with the LINK_PHASE. What is tricky is that the
    # sequential projects may need to run first.
    #
-   option( HEADERS_PHASE  "Install headers only phase (1)" OFF)
-   option( COMPILE_PHASE  "Compile sources only phase (2)" OFF)
-   option( LINK_PHASE     "Link and install only phase (3)" OFF)
+   #
+   # MEMO: as cmake caches the ON flags, this will slowly progress
+   #       from ON OFF OFF to ON ON OFF to ON ON ON during a three
+   #       phase build
+   #
+   option( HEADER_PHASE  "Install headers only phase (1)" OFF)
+   option( COMPILE_PHASE "Compile sources only phase (2)" OFF)
+   option( LINK_PHASE    "Link and install only phase (3)" OFF)
 
-   if( MULLE_MAKE_PHASE STREQUAL "HEADERS")
-      set( HEADERS_PHASE ON)
+   if( MULLE_MAKE_PHASE STREQUAL "HEADERS" OR MULLE_MAKE_PHASE STREQUAL "HEADER")
+      set( HEADER_PHASE ON)
    endif()
    if( MULLE_MAKE_PHASE STREQUAL "COMPILE")
       set( COMPILE_PHASE ON)
@@ -32,11 +37,27 @@ if( NOT __MULTI_PHASE__CMAKE__)
       set( LINK_PHASE ON)
    endif()
 
-   if( NOT HEADERS_PHASE AND
+   if( NOT HEADER_PHASE AND
        NOT COMPILE_PHASE AND
        NOT LINK_PHASE)
-      set( HEADERS_PHASE ON)
+      set( HEADER_PHASE ON)
       set( COMPILE_PHASE ON)
       set( LINK_PHASE ON)
    endif()
+
+   if( COMPILE_PHASE AND NOT HEADER_PHASE)
+      set( HEADER_PHASE ON)
+   endif()
+   if( LINK_PHASE AND NOT COMPILE_PHASE)
+      set( COMPILE_PHASE ON)
+   endif()
+
+   # backwards compatibility
+   if( HEADER_PHASE)
+      set( HEADERS_PHASE ON)
+   endif()
+
+   message( STATUS "HEADER_PHASE=${HEADER_PHASE}")
+   message( STATUS "COMPILE_PHASE=${COMPILE_PHASE}")
+   message( STATUS "LINK_PHASE=${LINK_PHASE}")
 endif()
