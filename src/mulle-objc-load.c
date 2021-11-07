@@ -41,7 +41,6 @@
 #include "mulle-objc-callqueue.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
-#include "mulle-objc-dotdump.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-loadinfo.h"
 #include "mulle-objc-metaclass.h"
@@ -607,10 +606,6 @@ static void
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
       if( mulle_objc_loadclass_delayedadd( info, missingclassid, universe))
          mulle_objc_universe_fail_errno( universe);
-#ifdef MULLE_OBJC_DEBUG_SUPPORT
-   if( universe->debug.trace.dump_universe)
-      mulle_objc_universe_dotdump_frame_to_directory( universe, ".");
-#endif
 }
 
 
@@ -1037,11 +1032,6 @@ static void
    if( missingclassid != MULLE_OBJC_NO_CLASSID)
       if( mulle_objc_loadcategory_delayedadd( info, missingclassid, universe))
          mulle_objc_universe_fail_errno( universe);
-
-#ifdef MULLE_OBJC_DEBUG_SUPPORT
-   if( universe->debug.trace.dump_universe)
-      mulle_objc_universe_dotdump_frame_to_directory( universe, ".");
-#endif
 }
 
 
@@ -1541,11 +1531,6 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
                                  (void *) mulle_thread_self());
       mulle_objc_loadinfo_dump( info, "   ", universe);
    }
-
-#ifdef MULLE_OBJC_DEBUG_SUPPORT
-   if( universe->debug.trace.dump_universe)
-      mulle_objc_universe_dotdump_frame_to_directory( universe, ".");
-#endif
 
    if( universe->debug.trace.loadinfo)
    {

@@ -33,6 +33,4 @@ main()
    printf( "B: %s\n",
        _mulle_objc_infraclass_conformsto_protocolid( cls,
                                               @protocol( B)) ? "YES" : "NO");
-
-   mulle_objc_universe_dotdump_to_directory( mulle_objc_class_get_universe( cls), ".");
 }

@@ -2,9 +2,6 @@ cmake_minimum_required( VERSION 3.1)
 
 project( mulle-objc-runtime C)
 
-option( MULLE_OBJC_DEBUG_SUPPORT "Add html/dot debug support to mulle-objc" ON)
-
-
 ### mulle-sde environment
 
 # add cmake module paths to search path
@@ -17,24 +14,6 @@ include( Environment)
 include( CCompiler)
 
 include( Files)
-
-if( MULLE_OBJC_DEBUG_SUPPORT)
-   set( SOURCES
-${SOURCES}
-${DEBUG_SOURCES}
-)
-
-   set( PUBLIC_HEADERS
-${PUBLIC_HEADERS}
-${DEBUG_HEADERS}
-)
-
-   set( INSTALL_PUBLIC_HEADERS
-${INSTALL_PUBLIC_HEADERS}
-${DEBUG_HEADERS}
-)
-   add_definitions( -DMULLE_OBJC_DEBUG_SUPPORT)
-endif()
 
 
 ### Library

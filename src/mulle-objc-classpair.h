@@ -46,7 +46,6 @@
 #include "mulle-objc-uniqueid.h"
 #include "mulle-objc-uniqueidarray.h"
 #include "mulle-objc-walktypes.h"
-#include "include.h"
 
 struct _mulle_objc_protocollist;
 struct _mulle_objc_loadclass;
@@ -74,7 +73,7 @@ struct _mulle_objc_classpair
    union _mulle_objc_uniqueidarraypointer_t  p_protocolids;
    union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
 
-   // debugger doesn't care anymore
+   // from here on the debugger doesn't care anymore
 
    mulle_thread_mutex_t                      lock;   // used for initialize
    mulle_atomic_pointer_t                    thread; // used for initialize

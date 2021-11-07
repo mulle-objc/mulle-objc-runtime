@@ -23,12 +23,11 @@
 
 
 @implementation A
-
 + (id) new
 {
    return( (id) _mulle_objc_infraclass_alloc_instance( self));
 }
-- (Class) class
++ (Class) class
 {
    return( self);
 }
@@ -91,11 +90,12 @@
 @end
 
 
-static void   test_super( id obj,
-                          SEL methodsel,
-                          SEL classsel,
-                          struct _mulle_objc_infraclass *infraclass,
-                          struct _mulle_objc_metaclass *metaclass)
+static void   test_overridden( id obj,
+                               SEL methodsel,
+                               SEL classsel,
+                               SEL categorysel,
+                               struct _mulle_objc_infraclass *infraclass,
+                               struct _mulle_objc_metaclass *metaclass)
 
 {
    struct _mulle_objc_searcharguments    args;
@@ -103,46 +103,53 @@ static void   test_super( id obj,
    struct _mulle_objc_method             *method;
    mulle_objc_implementation_t           imp;
 
-//   memset( &args, 0xFF, sizeof( args));
-//   memset( &before, 0xFF, sizeof( before));
+   // not sure why valgrind complains otherwise ?
+   // _mulle_objc_searcharguments_overriddeninit inits all values...
+   memset( &args, 0xFF, sizeof( args));
+   memset( &before, 0xFF, sizeof( before));
 
-   _mulle_objc_searcharguments_superinit( &args, methodsel, classsel);
+   _mulle_objc_searcharguments_overriddeninit( &args, methodsel, classsel, categorysel);
+
    before = args;
-
    method = mulle_objc_class_search_method( &infraclass->base, &args, infraclass->base.inheritance, NULL);
-   imp    = _mulle_objc_method_get_implementation( method);
+   if( ! method)
+      abort();
+
+   imp = _mulle_objc_method_get_implementation( method);
    (*imp)( obj, methodsel, obj);
 
    assert( ! memcmp( &args, &before, sizeof( args)));
 
    method = mulle_objc_class_search_method( &metaclass->base, &args, metaclass->base.inheritance, NULL);
-   imp    = _mulle_objc_method_get_implementation( method);
+   if( ! method)
+      abort();
+
+   imp = _mulle_objc_method_get_implementation( method);
    (*imp)( obj, methodsel, obj);
 }
 
 
 int   main()
 {
-   B      *b;
+   B                              *b;
    struct _mulle_objc_infraclass  *infraclass;
    struct _mulle_objc_metaclass   *metaclass;
    struct _mulle_objc_universe    *universe;
 
-#ifdef __MULLE_OBJC_UNIVERSEID__
-   universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
+#ifdef __MULLE_OBJC_UNIVERSENAME__
+   universe = mulle_objc_global_get_universe( mulle_objc_universeid_from_string( __MULLE_OBJC_UNIVERSENAME__));
 #else
    universe = mulle_objc_global_get_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
 #endif
-   mulle_objc_universe_htmldump_to_directory( universe, ".");
 
    b          = [B new];
    infraclass = [B class];
    metaclass  = _mulle_objc_infraclass_get_metaclass( infraclass);
 
-   test_super( b, @selector( foo), @selector( B), infraclass, metaclass);
-   test_super( b, @selector( foo), @selector( Q), infraclass, metaclass);
-   test_super( b, @selector( foo), @selector( P), infraclass, metaclass);
+   test_overridden( b, @selector( foo), @selector( B), @selector( C), infraclass, metaclass);
+   test_overridden( b, @selector( foo), @selector( B), 0, infraclass, metaclass);
+   test_overridden( b, @selector( foo), @selector( Q), 0, infraclass, metaclass);
+   test_overridden( b, @selector( foo), @selector( P), 0, infraclass, metaclass);
 
    [b dealloc];
-   return( 0);
 }

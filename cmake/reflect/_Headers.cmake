@@ -12,22 +12,7 @@ endif()
 
 set( INCLUDE_DIRS
 src
-src/debug
 src/reflect
-)
-
-#
-# contents selected with patternfile ??-header--debug-headers
-#
-set( DEBUG_HEADERS
-src/debug/c-set.inc
-src/debug/mulle-objc-csvdump.h
-src/debug/mulle-objc-dotdump.h
-src/debug/mulle-objc-gdb.h
-src/debug/mulle-objc-htmldump.h
-src/debug/mulle-objc-html.h
-src/debug/mulle-objc-lldb.h
-src/debug/mulle-objc-typeinfodump.h
 )
 
 #

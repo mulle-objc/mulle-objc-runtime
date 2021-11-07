@@ -49,7 +49,6 @@
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-object.h"
 #include "mulle-objc-signature.h"
-#include "mulle-objc-csvdump.h"
 #include "mulle-objc-walktypes.h"
 #include "include-private.h"
 #include <assert.h>
@@ -351,7 +350,6 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.class_free      = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_FREE");
    universe->debug.trace.class_cache     = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_CACHE");
    universe->debug.trace.dependency      = getenv_yes_no( "MULLE_OBJC_TRACE_DEPENDENCY");
-   universe->debug.trace.dump_universe   = getenv_yes_no( "MULLE_OBJC_TRACE_DUMP_RUNTIME");
    universe->debug.trace.fastclass_add   = getenv_yes_no( "MULLE_OBJC_TRACE_FASTCLASS_ADD");
    universe->debug.trace.instance        = getenv_yes_no( "MULLE_OBJC_TRACE_INSTANCE");
    universe->debug.trace.initialize      = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");

@@ -15,7 +15,7 @@
 
 - (int) respondsToSelector:(mulle_objc_methodid_t) sel
 {
-   struct _mulle_objc_class            *cls;
+   struct _mulle_objc_class      *cls;
    mulle_objc_implementation_t   imp;
 
    cls = _mulle_objc_object_get_isa( self);

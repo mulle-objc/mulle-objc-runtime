@@ -11,9 +11,8 @@
 #endif
 
 
-
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-#include <mulle-objc-runtime/mulle-objc-typeinfodump.h>
+#include <mulle-objc-debug/mulle-objc-debug.h>
 
 #include <stdio.h>
 

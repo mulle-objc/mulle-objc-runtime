@@ -17,7 +17,7 @@ static void  test_2( mulle_objc_uniqueid_t first, ...)
       delim=", ";
    }
    va_end( args);
-   printf( "\n", delim, first);
+   printf( "\n");
 }
 
 
