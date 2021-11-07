@@ -48,8 +48,6 @@ main()
    universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
    _mulle_objc_universe_set_staticstringclass( universe, [SomeString class]);
 
-   mulle_objc_universe_dotdump_to_directory( universe, ".");
-
    [foo print];
    [bar print];
    [@"foo" print];

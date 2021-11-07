@@ -1,2 +1,6 @@
 a:
+a = 18
 b:-[Bar willChange]
+b = 48
+c:-[Bar willChange]
+c = { 1, 2, 3, 4 }

@@ -13,7 +13,9 @@ int main(int argc, const char * argv[])
    char   c;
 
    c = 127;
+
    // check that third argument is promoted correctly to int
+   // ** don't put in prototypes!! ***
    print_char( (void *) 0, (uint32_t) 0x1, c);
    print_double( (void *) 0, (uint32_t) 0x2, 18.48);
 

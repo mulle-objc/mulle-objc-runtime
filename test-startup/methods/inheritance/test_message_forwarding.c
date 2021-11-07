@@ -40,7 +40,7 @@ static struct _mulle_objc_methodlist  forward_list =
       {
          {
             MULLE_OBJC_FORWARD_METHODID,
-            "@:^v",
+            "^v@:^v",
             "forward:",  // egal
             0
          },

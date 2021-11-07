@@ -115,7 +115,6 @@ struct _mulle_objc_universedebug
       unsigned   class_cache          : 1;
       unsigned   class_free           : 1;
       unsigned   dependency           : 1;
-      unsigned   dump_universe        : 1;  // hefty, set manually
       unsigned   fastclass_add        : 1;
       unsigned   initialize           : 1;  // also traces +load/+uninitialize etc.
       unsigned   instance             : 1;
