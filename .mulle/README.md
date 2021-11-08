@@ -1,6 +1,6 @@
 # .mulle
 
-This `.mulle` folder is used by [mulle-sde](//mulle-sde.gihub.io) to
+This `.mulle` folder is used by [mulle-sde](//mulle-sde.github.io) to
 store project information.
 
 ## Structure
