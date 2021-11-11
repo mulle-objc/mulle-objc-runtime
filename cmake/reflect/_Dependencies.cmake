@@ -14,7 +14,7 @@ endif()
 #
 # Generated from sourcetree: E67C3C5D-5B47-490D-B4FB-00C98540F287;mulle-dlfcn;no-actual-link,no-all-load,no-bequeath,no-cmake-searchpath,no-import,no-public,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-dlfcn no-header`
-# Disable for this platform: `mulle-sourcetree mark mulle-dlfcn no-cmake-platform-linux`
+# Disable for this platform: `mulle-sourcetree mark mulle-dlfcn no-cmake-platform-darwin`
 #
 if( NOT MULLE_DLFCN_HEADER)
    find_file( MULLE_DLFCN_HEADER NAMES mulle-dlfcn.h mulle-dlfcn/mulle-dlfcn.h)
@@ -82,7 +82,7 @@ endif()
 #
 # Generated from sourcetree: 8ae0712b-418b-4a24-bd84-48cf5caf5e38;mulle-concurrent;no-all-load,no-cmake-searchpath,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-concurrent no-link`
-# Disable for this platform: `mulle-sourcetree mark mulle-concurrent no-cmake-platform-linux`
+# Disable for this platform: `mulle-sourcetree mark mulle-concurrent no-cmake-platform-darwin`
 #
 if( NOT MULLE_CONCURRENT_LIBRARY)
    find_library( MULLE_CONCURRENT_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-concurrent${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-concurrent NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
@@ -153,7 +153,7 @@ endif()
 #
 # Generated from sourcetree: 3bb60fad-077f-41cc-b6d4-93c91f1d457a;mulle-vararg;no-all-load,no-cmake-inherit,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-vararg no-link`
-# Disable for this platform: `mulle-sourcetree mark mulle-vararg no-cmake-platform-linux`
+# Disable for this platform: `mulle-sourcetree mark mulle-vararg no-cmake-platform-darwin`
 #
 if( NOT MULLE_VARARG_LIBRARY)
    find_library( MULLE_VARARG_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-vararg${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-vararg NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
@@ -183,7 +183,7 @@ endif()
 #
 # Generated from sourcetree: E0364339-E5A0-45C1-AFC7-87896F3FAA2A;mulle-atinit;no-bequeath,no-cmake-searchpath,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-atinit no-link`
-# Disable for this platform: `mulle-sourcetree mark mulle-atinit no-cmake-platform-linux`
+# Disable for this platform: `mulle-sourcetree mark mulle-atinit no-cmake-platform-darwin`
 #
 if( NOT MULLE_ATINIT_LIBRARY)
    find_library( MULLE_ATINIT_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_STATIC_LIBRARY_SUFFIX} NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
@@ -263,7 +263,7 @@ endif()
 #
 # Generated from sourcetree: 9956BD7E-D6ED-44BC-B864-B2BAC12846D3;mulle-atexit;no-bequeath,no-cmake-searchpath,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-atexit no-link`
-# Disable for this platform: `mulle-sourcetree mark mulle-atexit no-cmake-platform-linux`
+# Disable for this platform: `mulle-sourcetree mark mulle-atexit no-cmake-platform-darwin`
 #
 if( NOT MULLE_ATEXIT_LIBRARY)
    find_library( MULLE_ATEXIT_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_STATIC_LIBRARY_SUFFIX} NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)
@@ -343,7 +343,7 @@ endif()
 #
 # Generated from sourcetree: F8EFF078-E086-4E88-9FA8-2A959923DF8B;mulle-data;no-all-load,no-cmake-inherit,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-data no-link`
-# Disable for this platform: `mulle-sourcetree mark mulle-data no-cmake-platform-linux`
+# Disable for this platform: `mulle-sourcetree mark mulle-data no-cmake-platform-darwin`
 #
 if( NOT MULLE_DATA_LIBRARY)
    find_library( MULLE_DATA_LIBRARY NAMES ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-data${CMAKE_STATIC_LIBRARY_SUFFIX} mulle-data NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH)

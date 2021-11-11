@@ -41,8 +41,7 @@ main()
    local filename="$2"
    local category="$3"
 
-   echo "sourcetree"
-}
-
+   echo "sourcetree"     # this selects the **task** to run
+}                        # see mulle-sde task list for whats available
 main "$@"
 

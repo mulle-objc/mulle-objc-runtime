@@ -38,8 +38,8 @@ main()
    local filename="$2"
    local category="$3"
 
-   echo "none"
-}
+   echo "none"           # this selects the **task** to run
+}                        # none means no task
 
 main "$@"
 

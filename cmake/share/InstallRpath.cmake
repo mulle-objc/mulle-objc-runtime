@@ -18,7 +18,7 @@ endif()
 # but this is usually counterproductive, since lib will be really in
 # ../../dependency/lib
 #
-# CMAKE_INSTALL_RPATH must be defined before add_exectutable or add_library
+# CMAKE_INSTALL_RPATH must be defined before add_executable or add_library
 #
 if( NOT MULLE_NO_CMAKE_INSTALL_RPATH)
    if( APPLE)
