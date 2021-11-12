@@ -426,7 +426,6 @@ void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe
    struct _mulle_objc_threadinfo   *config;
    struct mulle_allocator          *allocator;
    mulle_thread_tss_t              threadkey;
-   auto char                       buf[ 64];
 
    if( ! universe)
       abort();
@@ -1404,7 +1403,6 @@ static void
    struct _mulle_objc_infraclass   **p;
    struct _mulle_objc_infraclass   **sentinel;
    struct mulle_allocator          *allocator;
-   struct _mulle_objc_metaclass    *meta;
 
    allocator = _mulle_objc_universe_get_allocator( universe);
    array     = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
@@ -1582,7 +1580,6 @@ static void
 void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
 {
    struct _mulle_objc_cache               *cache;
-   struct _mulle_objc_garbagecollection   *gc;
    struct mulle_allocator                 *allocator;
 
    if( universe->debug.trace.universe)
@@ -1750,7 +1747,6 @@ intptr_t  _mulle_objc_universe_retain( struct _mulle_objc_universe *universe)
 intptr_t   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
 {
    intptr_t   rc;
-   intptr_t   n_threads;
 
    if( universe->config.wait_threads_on_exit || universe->config.pedantic_exit)
    {
@@ -2520,8 +2516,6 @@ int   _mulle_objc_universe_add_protocol( struct _mulle_objc_universe *universe,
 void    mulle_objc_universe_add_protocol_nofail( struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_protocol *protocol)
 {
-   struct _mulle_objc_protocol  *dup;
-
    assert( universe);
 
    if( _mulle_objc_universe_add_protocol( universe, protocol))
@@ -2916,7 +2910,6 @@ static mulle_objc_walkcommand_t
 {
    struct _mulle_objc_infraclass   *infra = p;
    struct _mulle_objc_infraclass   *kindofcls = userinfo;
-   struct _mulle_objc_infraclass   *superclass;
    struct _mulle_objc_metaclass    *meta;
 
    if( mulle_objc_infraclass_is_subclass( infra, kindofcls))

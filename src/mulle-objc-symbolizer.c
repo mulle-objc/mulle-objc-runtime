@@ -66,10 +66,6 @@ static int   mmc_snprint( struct mmc  *p,
                           char *buf,
                           size_t len)
 {
-   mulle_objc_categoryid_t   categoryid;
-   char                      tmp[ 16];
-   char                      *s;
-
    // it's not a category ?
    if( ! mulle_objc_methodlist_get_categoryid( p->list))
       return( snprintf( buf, len, "%c[%s %s]",
@@ -378,7 +374,6 @@ void   _mulle_objc_symbolizer_init( struct mulle_objc_symbolizer *p,
 struct mulle_objc_symbolizer *
    _mulle_objc_symbolizer_create( struct _mulle_objc_universe *universe)
 {
-   struct mulle_allocator         *allocator;
    struct mulle_objc_symbolizer   *p;
 
    //
@@ -435,7 +430,7 @@ int   mulle_objc_symbolizer_snprint( struct mulle_objc_symbolizer *p,
    diff = (intptr_t) address - (intptr_t) imp;
    if( diff < 0)
       diff = -diff;
-   if( diff > max)
+   if( diff > (ptrdiff_t) max)
       return( 0);
 
    written = mmc_snprint( q, p->universe, buf, len);

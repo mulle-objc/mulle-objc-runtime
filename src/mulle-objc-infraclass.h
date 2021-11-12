@@ -492,31 +492,22 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 
 #pragma mark - walkers
 
-typedef mulle_objc_walkcommand_t
-   mulle_objc_walkpropertiescallback( struct _mulle_objc_property *,
-                                      struct _mulle_objc_infraclass *,
-                                      void *);
-typedef mulle_objc_walkcommand_t
-   mulle_objc_walkivarscallback( struct _mulle_objc_ivar *,
-                                 struct _mulle_objc_infraclass *,
-                                 void *);
-
 
 mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *cls,
                                       unsigned int inheritance,
-                                      mulle_objc_walkivarscallback *f,
+                                      mulle_objc_walkivarscallback_t f,
                                       void *userinfo);
 mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
-                                           unsigned int inheritance,
-                                           mulle_objc_walkpropertiescallback *f,
-                                           void *userinfo);
+                                          unsigned int inheritance,
+                                          mulle_objc_walkpropertiescallback_t f,
+                                          void *userinfo);
 
 mulle_objc_walkcommand_t
 	mulle_objc_infraclass_walk( struct _mulle_objc_infraclass   *infra,
                               enum mulle_objc_walkpointertype_t  type,
-                              mulle_objc_walkcallback_t   callback,
+                              mulle_objc_walkcallback_t callback,
                               void *parent,
                               void *userinfo);
 

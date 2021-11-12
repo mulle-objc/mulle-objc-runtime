@@ -43,10 +43,11 @@
 #include <stdlib.h>
 
 
-int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                    int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
-                                    struct _mulle_objc_infraclass *infra,
-                                    void *userinfo)
+mulle_objc_walkcommand_t   
+   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
+                                  mulle_objc_walkpropertiescallback_t f,
+                                  struct _mulle_objc_infraclass *infra,
+                                  void *userinfo)
 {
    struct _mulle_objc_property   *sentinel;
    struct _mulle_objc_property   *p;

@@ -172,7 +172,7 @@ enum
 //
 // for dynamic properties, create the descriptors
 // accessor will contain bits, and methodid already
-
+//
 static void
    _mulle_objc_universe_set_setter_name_signature( struct _mulle_objc_universe *universe,
                                                    struct _mulle_objc_descriptor  *accessor,
@@ -193,7 +193,12 @@ static void
    n_len = strlen( name);
    len   = n_len > s_len ? n_len : s_len;
    {
-      char   buf[ len + 60 + p_len + 1];
+      // windows compiler can't do this
+      // char   buf[ len + 60 + p_len + 1];
+      char  buf[ 512];
+
+      if( (len + 60 + p_len + 1) > sizeof( buf))
+         abort();
 
       sprintf( buf, "%s%s:", prefix, name);
       if( buf[ p_len] >= 'a' && buf[ p_len] <= 'z')
@@ -256,7 +261,12 @@ static void
    if( bits & is_getter)  // getter
    {
       struct _mulle_objc_descriptor  *getter;
-      char                           buf[ s_len + 40 + 3 + 1];
+      // windows compiler can't do this
+      // char   buf[ s_len + 40 + 3 + 1];
+      char  buf[ 512];
+
+      if( (s_len + 40 + 3 + 1) > sizeof( buf))
+         abort();
 
       getter            = space++;
       getter->bits      = _mulle_objc_methodfamily_getter << _mulle_objc_methodfamily_shift;
@@ -528,7 +538,7 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
                                       unsigned int inheritance,
-                                      mulle_objc_walkivarscallback *f,
+                                      mulle_objc_walkivarscallback_t f,
                                       void *userinfo)
 {
    int                                                    rval;
@@ -574,7 +584,7 @@ mulle_objc_walkcommand_t
 mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
                                            unsigned int inheritance,
-                                           mulle_objc_walkpropertiescallback *f,
+                                           mulle_objc_walkpropertiescallback_t f,
                                            void *userinfo)
 {
    int                                                     rval;
@@ -618,9 +628,10 @@ loop:
 
 # pragma mark - infraclass walking
 
-static int  print_categoryid( mulle_objc_protocolid_t categoryid,
-                              struct _mulle_objc_classpair *pair,
-                              void *userinfo)
+static mulle_objc_walkcommand_t  
+   print_categoryid( mulle_objc_protocolid_t categoryid,
+                     struct _mulle_objc_classpair *pair,
+                     void *userinfo)
 {
    struct _mulle_objc_universe  *universe;
 
@@ -646,9 +657,10 @@ struct bouncy_info
 };
 
 
-static int   bouncy_property( struct _mulle_objc_property *property,
-                              struct _mulle_objc_infraclass *infra,
-                              void *userinfo)
+static mulle_objc_walkcommand_t   
+   bouncy_property( struct _mulle_objc_property *property,
+                    struct _mulle_objc_infraclass *infra,
+                    void *userinfo)
 {
    struct bouncy_info   *info;
 
@@ -663,9 +675,10 @@ static int   bouncy_property( struct _mulle_objc_property *property,
 }
 
 
-static int   bouncy_ivar( struct _mulle_objc_ivar *ivar,
-                          struct _mulle_objc_infraclass *infra,
-                          void *userinfo)
+static mulle_objc_walkcommand_t   
+   bouncy_ivar( struct _mulle_objc_ivar *ivar,
+                struct _mulle_objc_infraclass *infra,
+                void *userinfo)
 {
    struct bouncy_info   *info;
 
@@ -899,7 +912,6 @@ static void   _mulle_objc_infraclass_call_unloadmethod( struct _mulle_objc_infra
 
 void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_universe   *universe;
    struct _mulle_objc_method     *method;
 
    method = _mulle_objc_infraclass_search_method_noinherit( infra,
@@ -911,7 +923,6 @@ void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *
 
 void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_universe   *universe;
    struct _mulle_objc_method     *method;
 
    method = _mulle_objc_infraclass_search_method_noinherit( infra,
@@ -924,7 +935,6 @@ void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infr
 
 void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_universe   *universe;
    struct _mulle_objc_method     *method;
 
    if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
@@ -942,12 +952,11 @@ void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *
 // in reverse order
 void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_metaclass        *meta;
+   struct _mulle_objc_metaclass         *meta;
    struct _mulle_objc_class             *cls;
    struct _mulle_objc_method            *method;
    int                                  inheritance;
    struct _mulle_objc_searcharguments   search;
-   mulle_objc_implementation_t          imp;
    struct _mulle_objc_searchresult      result;
 
    meta = _mulle_objc_infraclass_get_metaclass( infra);

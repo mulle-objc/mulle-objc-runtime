@@ -548,7 +548,7 @@ char   *_mulle_objc_signature_supply_typeinfo( char *types,
 {
    char                                  *next;
 //   int                                   offset;
-   int                                   sign;
+//   int                                   sign;
    char                                  c;
    struct mulle_objc_signaturesupplier   dummy;
 

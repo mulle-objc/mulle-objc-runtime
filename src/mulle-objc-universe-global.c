@@ -183,11 +183,6 @@ retry:
 
 void   mulle_objc_global_reset_universetable( void)
 {
-   struct _mulle_objc_universe                 *universe;
-   struct mulle_concurrent_hashmapenumerator   rover;
-   intptr_t                                    hash;
-   int                                         rval;
-
    assert( mulle_concurrent_hashmap_count( &mulle_objc_universetable.map) == 0);
    mulle_concurrent_hashmap_done( &mulle_objc_universetable.map);
 

@@ -38,6 +38,7 @@
 
 #include "mulle-objc-property.h"
 #include "mulle-objc-uniqueid.h"
+#include "mulle-objc-walktypes.h"
 
 #include <assert.h>
 
@@ -64,16 +65,17 @@ static inline size_t   mulle_objc_sizeof_propertylist( unsigned int n_properties
 }
 
 
-int   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                   int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
-                                   struct _mulle_objc_infraclass *infra,
-                                   void *userinfo);
+mulle_objc_walkcommand_t   
+  _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
+                                 mulle_objc_walkpropertiescallback_t f,
+                                 struct _mulle_objc_infraclass *infra,
+                                 void *userinfo);
 
 struct _mulle_objc_property  *_mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
                                                                       mulle_objc_propertyid_t propertyid);
 
 static inline struct _mulle_objc_property  *_mulle_objc_propertylist_binary_search( struct _mulle_objc_propertylist *list,
-                                                                   mulle_objc_propertyid_t propertyid)
+                                                                                    mulle_objc_propertyid_t propertyid)
 {
    return( _mulle_objc_property_bsearch( list->properties, list->n_properties, propertyid));
 }
@@ -106,7 +108,8 @@ struct _mulle_objc_propertylistenumerator
 };
 
 
-static inline struct  _mulle_objc_propertylistenumerator   _mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
+static inline struct  _mulle_objc_propertylistenumerator   
+  _mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_propertylistenumerator   rover;
 
@@ -132,10 +135,11 @@ static inline void  _mulle_objc_propertylistenumerator_done( struct _mulle_objc_
 
 # pragma mark - API
 
-static inline int   mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
-                                               int (*f)( struct _mulle_objc_property *, struct _mulle_objc_infraclass *, void *),
-                                               struct _mulle_objc_infraclass *infra,
-                                               void *userinfo)
+static inline mulle_objc_walkcommand_t   
+   mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
+                                 mulle_objc_walkpropertiescallback_t f,
+                                 struct _mulle_objc_infraclass *infra,
+                                 void *userinfo)
 {
    if( ! list || ! f)
       return( -1);
@@ -143,7 +147,8 @@ static inline int   mulle_objc_propertylist_walk( struct _mulle_objc_propertylis
 }
 
 
-static inline struct  _mulle_objc_propertylistenumerator   mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
+static inline struct  _mulle_objc_propertylistenumerator   
+  mulle_objc_propertylist_enumerate( struct _mulle_objc_propertylist *list)
 {
    struct _mulle_objc_propertylistenumerator   rover;
 

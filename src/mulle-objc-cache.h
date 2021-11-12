@@ -93,9 +93,6 @@ struct _mulle_objc_cache
 static inline void   mulle_objc_cache_init( struct _mulle_objc_cache *cache,
                                             mulle_objc_cache_uint_t size)
 {
-   int      preserve;
-   size_t   s_cache;
-
    assert( ! (sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1)));
 
    // must be zero filled, don't want to assert everything though
@@ -116,13 +113,12 @@ static inline size_t   _mulle_objc_cache_get_resize( struct _mulle_objc_cache *c
    case MULLE_OBJC_CACHESIZE_STAGNATE :
       return( cache->size);
 
-   case MULLE_OBJC_CACHESIZE_GROW :
-      return( cache->size * 2);
-
    case MULLE_OBJC_CACHESIZE_SHRINK :
       return( cache->size <= MULLE_OBJC_MIN_CACHE_SIZE * 2
                   ? MULLE_OBJC_MIN_CACHE_SIZE
                   : cache->size >> 1);
+   default :
+      return( cache->size * 2);
    }
 }
 

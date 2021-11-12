@@ -37,6 +37,7 @@
 #define mulle_objc_ivarlist_h__
 
 #include "mulle-objc-ivar.h"
+#include "mulle-objc-walktypes.h"
 
 #include <assert.h>
 
@@ -67,8 +68,9 @@ static inline size_t   mulle_objc_sizeof_ivarlist( unsigned int n_ivars)
 
 struct _mulle_objc_class;
 
-struct _mulle_objc_ivar  *_mulle_objc_ivarlist_linear_search( struct _mulle_objc_ivarlist *list,
-                                                              mulle_objc_ivarid_t ivarid);
+struct _mulle_objc_ivar  *
+  _mulle_objc_ivarlist_linear_search( struct _mulle_objc_ivarlist *list,
+                                      mulle_objc_ivarid_t ivarid);
 
 static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_binary_search( struct _mulle_objc_ivarlist *list,
                                                                             mulle_objc_ivarid_t ivarid)
@@ -87,20 +89,22 @@ static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_search( struct _mul
 }
 
 
-int   _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
-                                 int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *),
-                                 struct _mulle_objc_infraclass *infra,
-                                 void *userinfo);
+mulle_objc_walkcommand_t
+  _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
+                             mulle_objc_walkivarscallback_t f,
+                             struct _mulle_objc_infraclass *infra,
+                             void *userinfo);
 
 void   mulle_objc_ivarlist_sort( struct _mulle_objc_ivarlist *list);
 
 #pragma mark - API
 
 
-static inline int   mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
-                                              int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *),
-                                              struct _mulle_objc_infraclass *infra,
-                                              void *userinfo)
+static inline mulle_objc_walkcommand_t   
+  mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
+                            mulle_objc_walkivarscallback_t f,
+                            struct _mulle_objc_infraclass *infra,
+                            void *userinfo)
 {
    if( ! list)
       return( -1);
