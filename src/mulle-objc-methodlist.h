@@ -179,17 +179,19 @@ static inline void  _mulle_objc_methodlistenumerator_done( struct _mulle_objc_me
 // supply cls and userinfo for callback, the cls is kinda ugly,
 // but it's easier this way (no need to reorganize userinfo)
 //
-int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
-                                   mulle_objc_method_walkcallback_t callback,
-                                   struct _mulle_objc_class *cls,
-                                   void *userinfo);
+mulle_objc_walkcommand_t   
+  _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
+                               mulle_objc_method_walkcallback_t callback,
+                               struct _mulle_objc_class *cls,
+                               void *userinfo);
 
 # pragma mark - methodlist API
 
-static inline int   mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
-                                                mulle_objc_method_walkcallback_t callback,
-                                                struct _mulle_objc_class *cls,
-                                                void *userinfo)
+static inline mulle_objc_walkcommand_t   
+  mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
+                              mulle_objc_method_walkcallback_t callback,
+                              struct _mulle_objc_class *cls,
+                              void *userinfo)
 {
    if( ! list || ! callback)
       return( -1);

@@ -632,10 +632,11 @@ struct bouncy_info
 };
 
 
-static int   bouncy_method( struct _mulle_objc_method *method,
-                            struct _mulle_objc_methodlist *list,
-                            struct _mulle_objc_class *cls,
-                            void *userinfo)
+static mulle_objc_walkcommand_t
+   bouncy_method( struct _mulle_objc_method *method,
+                  struct _mulle_objc_methodlist *list,
+                  struct _mulle_objc_class *cls,
+                  void *userinfo)
 {
    struct bouncy_info               *info;
    struct _mulle_objc_methodparent  parent;
@@ -754,7 +755,6 @@ void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infracla
 {
    struct _mulle_objc_universe   *universe;
    struct _mulle_objc_class      *cls;
-   size_t                        size;
 
    // we check initializing, if we are in +initialize while objects are
    // created that's ok

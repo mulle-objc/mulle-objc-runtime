@@ -200,7 +200,6 @@ static void   trace_method_found( struct _mulle_objc_class *cls,
                                   struct mulle_concurrent_pointerarrayreverseenumerator *rover)
 {
    struct _mulle_objc_universe   *universe;
-   char                          buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
    char                          *categoryname;
 
    universe = _mulle_objc_class_get_universe( cls);
@@ -819,9 +818,8 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t missing_method)
 {
-   struct _mulle_objc_universe   *universe;
-   struct _mulle_objc_method     *method;
-   int                           error;
+   struct _mulle_objc_method   *method;
+   int                         error;
 
    method = _mulle_objc_class_lazyget_forwardmethod( cls, &error);
    if( method)

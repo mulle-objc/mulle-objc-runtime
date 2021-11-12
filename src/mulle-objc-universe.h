@@ -262,8 +262,7 @@ int   _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_u
 static inline int
    mulle_objc_universe_search_free_taggedpointerclass( struct _mulle_objc_universe *universe)
 {
-   struct _mulle_objc_infraclass   *infra;
-   unsigned int                    i;
+   unsigned int   i;
 
    if( universe)
       for( i = 1; i <= 7; i++)

@@ -317,17 +317,12 @@ static inline void
    _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_categoryids.pointer, n, categoryids);
 }
 
-typedef mulle_objc_walkcommand_t
-   mulle_objc_walkcategoryidscallback( mulle_objc_categoryid_t,
-                                       struct _mulle_objc_classpair *,
-                                       void *);
-
 
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
-                                           unsigned int inheritance,
-                                           mulle_objc_walkcategoryidscallback *f,
-                                           void *userinfo);
+                                          unsigned int inheritance,
+                                          mulle_objc_walkcategoryidscallback_t f,
+                                          void *userinfo);
 
 
 void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair *pair,
@@ -351,16 +346,11 @@ static inline unsigned int   _mulle_objc_classpair_get_protocolclasscount( struc
 }
 
 
-typedef mulle_objc_walkcommand_t
-   mulle_objc_walkprotocolclassescallback( struct _mulle_objc_infraclass *,
-                                           struct _mulle_objc_classpair *,
-                                           void *);
-
 
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
                                                unsigned int inheritance,
-                                               mulle_objc_walkprotocolclassescallback *f,
+                                               mulle_objc_walkprotocolclassescallback_t f,
                                                void *userinfo);
 
 
@@ -384,16 +374,10 @@ static inline int
 }
 
 
-typedef mulle_objc_walkcommand_t
-   mulle_objc_walkprotocolidscallback( mulle_objc_protocolid_t,
-                                       struct _mulle_objc_classpair *,
-                                       void *);
-
-
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
                                           unsigned int inheritance,
-                                          mulle_objc_walkprotocolidscallback *f,
+                                          mulle_objc_walkprotocolidscallback_t f,
                                           void *userinfo);
 
 int
@@ -601,9 +585,9 @@ static inline void
    _mulle_objc_classpair_set_protocolidarray( struct _mulle_objc_classpair *pair,
                                               struct _mulle_objc_uniqueidarray *array)
 {
-   return( _mulle_objc_classpair_set_uniqueidarray( pair,
-                                                    &pair->p_protocolids.pointer,
-                                                    array));
+   _mulle_objc_classpair_set_uniqueidarray( pair,
+                                            &pair->p_protocolids.pointer,
+                                            array);
 }
 
 
@@ -611,9 +595,9 @@ static inline void
    _mulle_objc_classpair_set_categoryidarray( struct _mulle_objc_classpair *pair,
                                               struct _mulle_objc_uniqueidarray *array)
 {
-   return( _mulle_objc_classpair_set_uniqueidarray( pair,
-                                                    &pair->p_categoryids.pointer,
-                                                    array));
+   _mulle_objc_classpair_set_uniqueidarray( pair,
+                                            &pair->p_categoryids.pointer,
+                                            array);
 }
 
 

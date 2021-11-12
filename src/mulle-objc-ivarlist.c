@@ -64,10 +64,11 @@ struct _mulle_objc_ivar  *_mulle_objc_ivarlist_linear_search( struct _mulle_objc
 }
 
 
-int   _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
-                                 int (*f)( struct _mulle_objc_ivar *, struct _mulle_objc_infraclass *, void *),
-                                 struct _mulle_objc_infraclass *infra,
-                                 void *userinfo)
+mulle_objc_walkcommand_t
+  _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
+                             mulle_objc_walkivarscallback_t f,
+                             struct _mulle_objc_infraclass *infra,
+                             void *userinfo)
 {
    struct _mulle_objc_ivar   *sentinel;
    struct _mulle_objc_ivar   *p;

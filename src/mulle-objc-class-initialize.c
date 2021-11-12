@@ -161,7 +161,6 @@ static void
    struct _mulle_objc_universe     *universe;
    struct _mulle_objc_metaclass    *meta;
    mulle_objc_implementation_t     imp;
-   int                             flag;
    char                            *name;
    int                             preserve;
 
@@ -214,7 +213,6 @@ static void  _mulle_objc_infraclass_setup_superclasses( struct _mulle_objc_infra
    struct _mulle_objc_protocolclassenumerator   rover;
    struct _mulle_objc_infraclass                *protocolclass;
    struct _mulle_objc_infraclass                *superclass;
-   struct _mulle_objc_class                     *cls;
 
    /*
     * Ensure protocol classes are there

@@ -123,7 +123,6 @@ int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p)
 
 unsigned int   mulle_objc_count_selector_arguments( char *s)
 {
-   char           *p;
    unsigned int   n;
    char           c;
    if( ! s)

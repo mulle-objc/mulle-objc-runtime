@@ -45,10 +45,11 @@
 #include <stdlib.h>
 
 
-int   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
-                                   mulle_objc_method_walkcallback_t callback,
-                                   struct _mulle_objc_class *cls,
-                                   void *userinfo)
+mulle_objc_walkcommand_t   
+   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
+                                mulle_objc_method_walkcallback_t callback,
+                                struct _mulle_objc_class *cls,
+                                void *userinfo)
 {
    struct _mulle_objc_method   *sentinel;
    struct _mulle_objc_method   *p;

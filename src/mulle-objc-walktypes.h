@@ -36,6 +36,8 @@
 #ifndef mulle_objc_walktypes_h__
 #define mulle_objc_walktypes_h__
 
+#include "mulle-objc-uniqueid.h"
+
 
 typedef enum
 {
@@ -120,4 +122,36 @@ static inline int   mulle_objc_walkcommand_is_stopper( mulle_objc_walkcommand_t 
 }
 
 
+struct _mulle_objc_property;
+struct _mulle_objc_infraclass;
+
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walkpropertiescallback_t)( struct _mulle_objc_property *,
+                                           struct _mulle_objc_infraclass *,
+                                           void *);
+
+struct _mulle_objc_ivar;
+
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walkivarscallback_t)( struct _mulle_objc_ivar *,
+                                      struct _mulle_objc_infraclass *,
+                                      void *);
+
+
+struct _mulle_objc_classpair;
+
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walkprotocolclassescallback_t)( struct _mulle_objc_infraclass *,
+                                                struct _mulle_objc_classpair *,
+                                                void *);
+
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walkprotocolidscallback_t)( mulle_objc_protocolid_t,
+                                            struct _mulle_objc_classpair *,
+                                            void *);   
+
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walkcategoryidscallback_t)( mulle_objc_categoryid_t,
+                                            struct _mulle_objc_classpair *,
+                                            void *);   
 #endif /* mulle_objc_walktypes_h */

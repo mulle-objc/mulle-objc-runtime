@@ -161,7 +161,6 @@ void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pai
    void                          *old;
    struct mulle_allocator        *allocator;
    struct _mulle_objc_universe   *universe;
-   unsigned int                  i;
 
    do
       old = _mulle_atomic_pointer_read( pointer);
@@ -250,7 +249,7 @@ static void   _mulle_objc_classpair_fail_einval( struct _mulle_objc_classpair *p
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
                                            unsigned int inheritance,
-                                           mulle_objc_walkcategoryidscallback *f,
+                                           mulle_objc_walkcategoryidscallback_t f,
                                            void *userinfo)
 {
    mulle_objc_walkcommand_t           rval;
@@ -382,7 +381,7 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
                                                unsigned int inheritance,
-                                               mulle_objc_walkprotocolclassescallback *f,
+                                               mulle_objc_walkprotocolclassescallback_t f,
                                                void *userinfo)
 {
    mulle_objc_walkcommand_t                         rval;
@@ -512,7 +511,7 @@ struct _mulle_objc_infraclass  *
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
                                            unsigned int inheritance,
-                                           mulle_objc_walkprotocolidscallback *f,
+                                           mulle_objc_walkprotocolidscallback_t f,
                                            void *userinfo)
 {
    mulle_objc_walkcommand_t           rval;
