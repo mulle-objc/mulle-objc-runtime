@@ -130,10 +130,11 @@ static void
 }
 
 
-static int   preload( struct _mulle_objc_method *method,
-                      struct _mulle_objc_methodlist *list,
-                      struct _mulle_objc_class *cls,
-                      struct _mulle_objc_cache *cache)
+static mulle_objc_walkcommand_t   
+  preload( struct _mulle_objc_method *method,
+           struct _mulle_objc_methodlist *list,
+           struct _mulle_objc_class *cls,
+           struct _mulle_objc_cache *cache)
 {
    assert( cache);
 
@@ -153,7 +154,7 @@ static void
    unsigned int   inheritance;
 
    inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_class_walk_methods( cls, inheritance, (int(*)()) preload, cache);
+   _mulle_objc_class_walk_methods( cls, inheritance, (mulle_objc_method_walkcallback_t) preload, cache);
 }
 
 
@@ -187,7 +188,6 @@ struct _mulle_objc_cacheentry   *
 {
    struct _mulle_objc_methodcache  *mcache;
    struct _mulle_objc_methodcache  *old_cache;
-   struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
    struct _mulle_objc_cacheentry   *p;
    struct _mulle_objc_cacheentry   *sentinel;
@@ -195,7 +195,6 @@ struct _mulle_objc_cacheentry   *
    struct mulle_allocator          *allocator;
    mulle_objc_cache_uint_t         new_size;
    mulle_objc_implementation_t     imp;
-   mulle_objc_cache_uint_t         offset;
    mulle_objc_methodid_t           copyid;
 
    old_cache = _mulle_objc_cache_get_methodcache_from_cache( xcache);
@@ -315,7 +314,6 @@ MULLE_C_NEVER_INLINE void
                                                     struct _mulle_objc_method *method,
                                                     mulle_objc_uniqueid_t uniqueid)
 {
-   struct _mulle_objc_methodcache  *mcache;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_classpair    *pair;
    struct _mulle_objc_cacheentry   *entry;
