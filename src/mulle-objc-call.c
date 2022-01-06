@@ -49,7 +49,27 @@
 #include <stdlib.h>
 
 
+// this is needed so we can call tracing (at least in -O0 situations)
+MULLE_C_NEVER_INLINE static void *
+   _mulle_objc_object_call_class_nofail( void *obj,
+                                         mulle_objc_methodid_t methodid,
+                                         void *parameter,
+                                         struct  _mulle_objc_class *cls)
+{
+   mulle_objc_implementation_t   imp;
+   struct _mulle_objc_universe   *universe;
+
+   imp      = _mulle_objc_class_lookup_implementation_nofail( cls, methodid);
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe->debug.trace.method_call)
+      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
+   /*->*/
+   return( (*imp)( obj, methodid, parameter));
+}
+
+
 #pragma mark - non-inline API calls
+
 
 
 // we can't do the FCS code here, because its just super slow if
@@ -96,8 +116,8 @@ void   *mulle_objc_object_call( void *obj,
    }
    while( entry->key.uniqueid);
 /*->*/
-   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
-   return( (*imp)( obj, methodid, parameter));
+
+   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
 }
 
 
@@ -139,8 +159,7 @@ void   *_mulle_objc_object_call( void *obj,
    }
    while( entry->key.uniqueid);
 /*->*/
-   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
-   return( (*imp)( obj, methodid, parameter));
+   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
 }
 
 
@@ -199,8 +218,7 @@ static void   *_mulle_objc_object_call_class( void *obj,
    }
 /*->*/
 
-   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
-   return( (*imp)( obj, methodid, parameter));
+   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
 }
 
 
@@ -245,8 +263,8 @@ static void   *_mulle_objc_object_call2( void *obj,
    }
    while( entry->key.uniqueid);
 /*->*/
-   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
-   return( (*imp)( obj, methodid, parameter));
+
+   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
 }
 
 
@@ -287,6 +305,7 @@ static mulle_objc_implementation_t
    while( entry->key.uniqueid);
 /*->*/
    imp = _mulle_objc_class_superrefresh_implementation_nofail( cls, superid);
+   // TODO: this doesn't trace yet
    return( imp);
 }
 
@@ -346,6 +365,7 @@ void   mulle_objc_objects_call( void **objects,
          assert( imp);
       }
 
+      // TODO: this doesn't trace yet
       (*lastSelIMP[ i])( p, methodid, params);
    }
 }

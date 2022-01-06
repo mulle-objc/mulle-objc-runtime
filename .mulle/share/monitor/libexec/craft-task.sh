@@ -41,7 +41,7 @@ craft_task_run()
    #
    if [ "${MULLE_SDE_TEST_AFTER_CRAFT}" = 'YES' ]
    then
-      remove_task_job "test"
+      monitor::task::remove_job "test"
    fi
 
    if ! eval_exekutor mulle-sde "${MULLE_TECHNICAL_FLAGS}" \
@@ -54,7 +54,7 @@ craft_task_run()
 
    if [ "${MULLE_SDE_TEST_AFTER_CRAFT}" = 'YES' ]
    then
-      run_task_main "test"
+      monitor::task::run "test"
    fi
 }
 

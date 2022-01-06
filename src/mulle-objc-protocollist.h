@@ -37,6 +37,7 @@
 #define mulle_objc_protocollist_h__
 
 #include "mulle-objc-protocol.h"
+#include "mulle-objc-walktypes.h"
 
 #include <assert.h>
 #include <stddef.h>
@@ -57,10 +58,13 @@ static inline size_t   mulle_objc_sizeof_protocollist( unsigned int n_protocols)
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_protocollist_sort( struct _mulle_objc_protocollist *list);
 
-struct _mulle_objc_protocol  *_mulle_objc_protocollist_linear_search( struct _mulle_objc_protocollist *list,
-                                                                  mulle_objc_protocolid_t protocolid);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+struct _mulle_objc_protocol  *
+   _mulle_objc_protocollist_linear_search( struct _mulle_objc_protocollist *list,
+                                           mulle_objc_protocolid_t protocolid);
 
 static inline struct _mulle_objc_protocol  *_mulle_objc_protocollist_binary_search( struct _mulle_objc_protocollist *list,
                                                                                     mulle_objc_protocolid_t protocolid)
@@ -119,17 +123,20 @@ static inline void  _mulle_objc_protocollistenumerator_done( struct _mulle_objc_
 // supply cls and userinfo for callback, the cls is kinda ugly,
 // but it's easier this way (no need to reorganize userinfo)
 //
-int   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
-                                     int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_universe *, void *),
-                                     struct _mulle_objc_universe *universe,
-                                     void *userinfo);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+mulle_objc_walkcommand_t
+   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
+                                  mulle_objc_walkprotocolcallback_t f,
+                                  struct _mulle_objc_universe *universe,
+                                  void *userinfo);
 
 # pragma mark - protocollist API
 
-static inline int   mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
-                                                int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_universe *, void *),
-                                                struct _mulle_objc_universe *universe,
-                                                void *userinfo)
+static inline mulle_objc_walkcommand_t
+   mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
+                                 mulle_objc_walkprotocolcallback_t f,
+                                 struct _mulle_objc_universe *universe,
+                                 void *userinfo)
 {
    if( ! list || ! f)
       return( -1);
@@ -137,7 +144,8 @@ static inline int   mulle_objc_protocollist_walk( struct _mulle_objc_protocollis
 }
 
 
-static inline struct  _mulle_objc_protocollistenumerator   mulle_objc_protocollist_enumerate( struct _mulle_objc_protocollist *list)
+static inline struct  _mulle_objc_protocollistenumerator
+   mulle_objc_protocollist_enumerate( struct _mulle_objc_protocollist *list)
 {
    struct _mulle_objc_protocollistenumerator   rover;
 
@@ -151,13 +159,15 @@ static inline struct  _mulle_objc_protocollistenumerator   mulle_objc_protocolli
 }
 
 
-static inline struct _mulle_objc_protocol   *mulle_objc_protocollistenumerator_next( struct _mulle_objc_protocollistenumerator *rover)
+static inline struct _mulle_objc_protocol   *
+   mulle_objc_protocollistenumerator_next( struct _mulle_objc_protocollistenumerator *rover)
 {
    return( rover ? _mulle_objc_protocollistenumerator_next( rover) : NULL);
 }
 
 
-static inline void  mulle_objc_protocollistenumerator_done( struct _mulle_objc_protocollistenumerator *rover)
+static inline void
+   mulle_objc_protocollistenumerator_done( struct _mulle_objc_protocollistenumerator *rover)
 {
    if( rover)
       _mulle_objc_protocollistenumerator_done( rover);

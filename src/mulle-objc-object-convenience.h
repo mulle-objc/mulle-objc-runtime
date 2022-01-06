@@ -85,8 +85,7 @@ static inline mulle_objc_implementation_t
 }
 
 
-static inline
-struct _mulle_objc_method   *
+static inline struct _mulle_objc_method   *
     _mulle_objc_object_defaultsearch_method( void *obj,
                                              mulle_objc_methodid_t methodid)
 {
@@ -97,8 +96,9 @@ struct _mulle_objc_method   *
 }
 
 
-MULLE_C_NONNULL_RETURN static inline
-struct mulle_allocator   *_mulle_objc_instance_get_allocator( void *obj)
+MULLE_C_NONNULL_RETURN
+static inline struct mulle_allocator   *
+   _mulle_objc_instance_get_allocator( void *obj)
 {
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_infraclass   *infra;

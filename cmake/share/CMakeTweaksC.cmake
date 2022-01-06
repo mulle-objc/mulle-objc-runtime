@@ -54,3 +54,9 @@ if( NOT __CMAKE_TWEAKS_C_CMAKE__)
    include( CMakeTweaksAuxC OPTIONAL)
 
 endif()
+
+
+# extension : mulle-c/c-cmake
+# directory : project/all
+# template  : .../CMakeTweaksC.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

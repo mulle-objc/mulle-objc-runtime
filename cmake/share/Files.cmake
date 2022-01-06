@@ -67,3 +67,9 @@ set( PROJECT_INSTALLABLE_HEADERS
 )
 
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../Files.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

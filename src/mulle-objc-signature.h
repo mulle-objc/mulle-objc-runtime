@@ -147,6 +147,7 @@ struct mulle_objc_signaturesupplier
 // put in NULL for p_offset, unless you are the enumerator and are aware that
 // the first typeinfo here will be rval...
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 char   *_mulle_objc_signature_supply_typeinfo( char *types,
                                                struct mulle_objc_signaturesupplier *supplier,
                                                struct mulle_objc_typeinfo *info);
@@ -265,14 +266,17 @@ static inline void
 // skip to next type if the types is "@:@@\0"
 // the sequence will be ":@@\0" "@@\0" "@\0" "\0" NULL
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 char    *mulle_objc_signature_next_type( char *types);
 
 
 // kinda the same just a little simpler to interact with
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 char   *mulle_objc_signature_supply_size_and_alignment( char *type,
                                                         unsigned int *size,
                                                         unsigned int *alignment);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 unsigned int    mulle_objc_signature_count_typeinfos( char *types);
 
 
@@ -282,9 +286,11 @@ unsigned int    mulle_objc_signature_count_typeinfos( char *types);
 // mulle_objc_signature_get_metaabiparamtype will deduce _param correctly from
 // the return type also. It needs the complete signature.
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 enum mulle_metaabi_param   mulle_objc_signature_get_metaabiparamtype( char *types);
 
 // this method does not inspect the complete signature! only the return type
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 enum mulle_metaabi_param   mulle_objc_signature_get_metaabireturntype( char *type);
 
 
@@ -295,6 +301,7 @@ static inline enum mulle_metaabi_param
    return( mulle_objc_signature_get_metaabireturntype( type)); // sic(!)
 }
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 size_t    _mulle_objc_signature_sizeof_metabistruct( char *type);
 
 
@@ -302,6 +309,7 @@ size_t    _mulle_objc_signature_sizeof_metabistruct( char *type);
 // not sure of this is really needed or paranoia
 // skip prefix fluff of signature
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 char   *_mulle_objc_signature_skip_extendedtypeinfo( char *s);
 
 // this should be sufficiently fast, because the runtime uses this per
@@ -317,9 +325,11 @@ static inline int  _mulle_objc_signature_compare( char *a, char *b)
    return( strcmp( a, b));
 }
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
                                     struct mulle_objc_typeinfo *b);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int  _mulle_objc_signature_compare_lenient( char *a, char *b);
 
 //
@@ -333,9 +343,11 @@ static inline int  _mulle_objc_signature_compare_strict( char *a, char *b)
 
 
 // check if type is '@' '~' '=' '#' (or as member array, union, struct member)
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_signature_contains_object( char *type);
 
 // check if type is '@' '~' (or as member in array, union, struct member)
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_signature_contains_retainableobject( char *type);
 
 
@@ -413,7 +425,6 @@ static inline char   *_mulle_objc_signature_skip_type_qualifier( char *type)
       ++type;
    }
 }
-
 
 
 // check if type is '@' '~' (or as member in array, union, struct member)

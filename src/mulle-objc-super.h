@@ -51,25 +51,29 @@ struct _mulle_objc_super
 
 # pragma mark - method petty accessors
 
-static inline char   *_mulle_objc_super_get_name( struct _mulle_objc_super *p)
+static inline char   *
+   _mulle_objc_super_get_name( struct _mulle_objc_super *p)
 {
    return( p->name);
 }
 
 
-static inline mulle_objc_superid_t  _mulle_objc_super_get_superid( struct _mulle_objc_super *p)
+static inline mulle_objc_superid_t
+   _mulle_objc_super_get_superid( struct _mulle_objc_super *p)
 {
    return( p->superid);
 }
 
 
-static inline mulle_objc_classid_t  _mulle_objc_super_get_classid( struct _mulle_objc_super *p)
+static inline mulle_objc_classid_t
+   _mulle_objc_super_get_classid( struct _mulle_objc_super *p)
 {
    return( p->classid);
 }
 
 
-static inline mulle_objc_methodid_t  _mulle_objc_super_get_methodid( struct _mulle_objc_super *p)
+static inline mulle_objc_methodid_t
+   _mulle_objc_super_get_methodid( struct _mulle_objc_super *p)
 {
    return( p->methodid);
 }
@@ -83,6 +87,7 @@ struct _mulle_objc_superlist
 };
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_super_is_sane( struct _mulle_objc_super *p);
 
 #define MULLE_OBJC_SUPERSELECTOR_STRING( s_cls, s_method)       (s_cls ";" s_method)

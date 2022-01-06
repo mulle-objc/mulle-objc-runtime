@@ -78,6 +78,7 @@ typedef uint32_t   mulle_objc_uniqueid_t;
 # endif
 #endif
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_uniqueid_t  mulle_objc_uniqueid_from_string( char *s);
 
 static inline int  mulle_objc_uniqueid_is_sane( mulle_objc_uniqueid_t uniqueid)
@@ -270,8 +271,10 @@ static inline mulle_objc_universeid_t   mulle_objc_universeid_from_string( char 
 
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 unsigned int   _mulle_objc_uniqueid_arraycount( mulle_objc_uniqueid_t *ids);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int  _mulle_objc_uniqueid_qsortcompare( mulle_objc_uniqueid_t *a, mulle_objc_uniqueid_t *b);
 
 #endif

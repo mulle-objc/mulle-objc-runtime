@@ -44,10 +44,11 @@
 #include <stdlib.h>
 
 
-int   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
-                                   int (*f)( struct _mulle_objc_protocol *, struct _mulle_objc_universe *, void *),
-                                   struct _mulle_objc_universe *universe,
-                                   void *userinfo)
+mulle_objc_walkcommand_t
+   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
+                                  mulle_objc_walkprotocolcallback_t f,
+                                  struct _mulle_objc_universe *universe,
+                                  void *userinfo)
 {
    struct _mulle_objc_protocol   *sentinel;
    struct _mulle_objc_protocol   *p;
@@ -69,8 +70,9 @@ int   _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
 }
 
 
-struct _mulle_objc_protocol  *_mulle_objc_protocollist_linear_search( struct _mulle_objc_protocollist *list,
-                                                                      mulle_objc_protocolid_t protocolid)
+struct _mulle_objc_protocol  *
+   _mulle_objc_protocollist_linear_search( struct _mulle_objc_protocollist *list,
+                                           mulle_objc_protocolid_t protocolid)
 {
    struct _mulle_objc_protocol   *sentinel;
    struct _mulle_objc_protocol   *p;

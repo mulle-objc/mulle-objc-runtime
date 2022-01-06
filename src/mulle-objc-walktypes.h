@@ -77,6 +77,7 @@ typedef mulle_objc_walkcommand_t
 
 
 struct _mulle_objc_class;
+struct _mulle_objc_method;
 struct _mulle_objc_methodlist;
 
 
@@ -85,6 +86,7 @@ struct _mulle_objc_methodparent
    struct _mulle_objc_class       *cls;
    struct _mulle_objc_methodlist  *list;
 }; 
+
 
 typedef   mulle_objc_walkcommand_t 
    (*mulle_objc_method_walkcallback_t)( struct _mulle_objc_method *,
@@ -146,12 +148,20 @@ typedef mulle_objc_walkcommand_t
                                                 void *);
 
 typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walkcategoryidscallback_t)( mulle_objc_categoryid_t,
+                                            struct _mulle_objc_classpair *,
+                                            void *);
+
+typedef mulle_objc_walkcommand_t
    (*mulle_objc_walkprotocolidscallback_t)( mulle_objc_protocolid_t,
                                             struct _mulle_objc_classpair *,
                                             void *);   
 
+struct _mulle_objc_protocol;
+
 typedef mulle_objc_walkcommand_t
-   (*mulle_objc_walkcategoryidscallback_t)( mulle_objc_categoryid_t,
-                                            struct _mulle_objc_classpair *,
-                                            void *);   
+   (*mulle_objc_walkprotocolcallback_t)( struct _mulle_objc_protocol *,
+                                         struct _mulle_objc_universe *universe,
+                                         void *);
+
 #endif /* mulle_objc_walktypes_h */

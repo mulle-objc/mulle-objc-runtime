@@ -56,3 +56,9 @@ if( NOT DEFINED EXECUTABLE_LIBRARY_LIST)
          ${OS_SPECIFIC_FRAMEWORKS}
    )
 endif()
+
+
+# extension : mulle-c/c-cmake
+# directory : project/all
+# template  : .../ExecutableAux.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

@@ -45,10 +45,19 @@
 // for better or worse
 // these methods are known as builtins by the compiler
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_exception_throw( void *exception, mulle_objc_universeid_t universe);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_exception_tryenter( void *localExceptionData, mulle_objc_universeid_t universe);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_exception_tryexit( void *localExceptionData, mulle_objc_universeid_t universe);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   *mulle_objc_exception_extract( void *localExceptionData, mulle_objc_universeid_t universe);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int    _mulle_objc_exception_match( void *exception, mulle_objc_universeid_t universe, mulle_objc_classid_t classid);
 
 

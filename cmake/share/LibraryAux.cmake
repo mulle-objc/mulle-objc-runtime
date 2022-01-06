@@ -12,3 +12,9 @@ include( AllLoadC)
 include( StandaloneC)
 
 include( LibraryAuxC OPTIONAL)
+
+
+# extension : mulle-c/c-cmake
+# directory : project/all
+# template  : .../LibraryAux.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

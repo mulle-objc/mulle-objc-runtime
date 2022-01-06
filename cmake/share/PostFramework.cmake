@@ -9,3 +9,9 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 include( PostFrameworkAuxC OPTIONAL)
+
+
+# extension : mulle-c/c-cmake
+# directory : project/all
+# template  : .../PostFramework.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

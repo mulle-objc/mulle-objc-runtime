@@ -466,15 +466,16 @@ static int  mulle_objc_loadclass_is_sane( struct _mulle_objc_loadclass *info)
 
 //
 // We call a method classExtraSize which should just return a size_t value
-// it must not call any Objective-C code and in fact self is also passes as
+// it must not call any Objective-C code and in fact self is also passed as
 // nil.
+//
+// useless: just use a static variable in the @implementation
 //
 static size_t    call_classExtraSize( struct _mulle_objc_methodlist  *list)
 {
    size_t                        extrasize;
    mulle_objc_implementation_t   imp;
    struct _mulle_objc_method     *method;
-
    extrasize = 0;
    if( list)
    {
@@ -950,13 +951,15 @@ static mulle_objc_classid_t
    if( info->classivarhash != infra->ivarhash)
       mulle_objc_universe_fail_generic( universe,
          "error in mulle_objc_universe %p: class %08x \"%s\" of "
-         "category %08x \"%s( %s)\" has changed. Recompile %s\n",
+         "category %08x \"%s( %s)\" has changed (load:0x%x->class:0x%x). Recompile %s\n",
             universe,
             info->classid,
             info->classname,
             info->categoryid,
             info->classname,
             info->categoryname ? info->categoryname : "???",
+            info->classivarhash,
+            infra->ivarhash,
             info->origin ? info->origin : "<unknown origin>");
 
    pair = _mulle_objc_infraclass_get_classpair( infra);

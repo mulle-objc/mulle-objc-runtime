@@ -67,3 +67,9 @@ if( NOT __ALL_LOAD_C_CMAKE__)
    include( AllLoadAuxC OPTIONAL)
 
 endif()
+
+
+# extension : mulle-c/c-cmake
+# directory : project/all
+# template  : .../AllLoadC.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

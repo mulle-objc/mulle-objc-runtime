@@ -61,7 +61,7 @@ static inline
    mulle_objc_implementation_t
       _mulle_objc_class_lookup_implementation_mode( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t methodid,
-                                                   unsigned int mode)
+                                                    unsigned int mode)
 {
    struct _mulle_objc_cache         *cache;
    struct _mulle_objc_cacheentry    *entries;

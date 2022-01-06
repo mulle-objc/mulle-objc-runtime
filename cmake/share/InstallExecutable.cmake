@@ -20,11 +20,20 @@ if( LINK_PHASE)
    foreach( TMP_NAME ${INSTALL_EXECUTABLE_TARGETS})
       string( MAKE_C_IDENTIFIER "${TMP_NAME}" TMP_IDENTIFIER)
       string( TOUPPER "${TMP_IDENTIFIER}" TMP_IDENTIFIER)
-      install( DIRECTORY ${INSTALL_${TMP_IDENTIFIER}_RESOURCE_DIRS} DESTINATION "share/${TMP_NAME}")
-      install( FILES ${INSTALL_${TMP_IDENTIFIER}_RESOURCES} DESTINATION "share/${TMP_NAME}")
+      # avoid empty share subdir
+      if( (${INSTALL_${TMP_IDENTIFIER}_RESOURCE_DIRS}) OR (${INSTALL_${TMP_IDENTIFIER}_RESOURCES}))
+         install( DIRECTORY ${INSTALL_${TMP_IDENTIFIER}_RESOURCE_DIRS} DESTINATION "share/${TMP_NAME}")
+         install( FILES ${INSTALL_${TMP_IDENTIFIER}_RESOURCES} DESTINATION "share/${TMP_NAME}")
+      endif()
    endforeach()
 
 
    include( PostInstallExecutable OPTIONAL)
 
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../InstallExecutable.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`
