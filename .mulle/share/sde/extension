@@ -5,8 +5,9 @@ mulle-sde/sde;extra
 mulle-c/c-cmake;buildtool
 mulle-sde/c-cmake;buildtool
 mulle-sde/cmake;buildtool
-mulle-sde/c-demo;extra
 mulle-c/c-demo;extra
+mulle-sde/c-demo;extra
 mulle-sde/vscode-clang;extra
 mulle-sde/vscode;extra
+mulle-objc/github-actions;extra
 mulle-objc/github-actions;extra

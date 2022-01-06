@@ -76,6 +76,7 @@ static inline void
 
 
 // returns sorted
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_uniqueidarray
    *_mulle_objc_uniqueidarray_by_adding_ids( struct _mulle_objc_uniqueidarray  *p,
                                              unsigned int m,

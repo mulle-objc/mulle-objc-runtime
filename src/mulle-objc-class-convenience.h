@@ -263,7 +263,7 @@ static inline void *
    return( _mulle_objc_infraclass_alloc_instance_extra( infra, extra));
 }
 
-
+// useless: just use a static variable in the @implementation
 static inline void *
    _mulle_objc_infraclass_get_classextra( struct _mulle_objc_infraclass *infra)
 {

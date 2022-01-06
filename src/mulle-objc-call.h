@@ -72,10 +72,12 @@
 //
 
 //MULLE_C_ARTIFICIAL
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   *mulle_objc_object_call( void *obj,
                                 mulle_objc_methodid_t methodid,
                                 void *parameter);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   *_mulle_objc_object_call( void *obj,
                                  mulle_objc_methodid_t methodid,
                                  void *parameter);
@@ -258,6 +260,7 @@ void   *mulle_objc_object_call_variablemethodid( void *obj,
 
 // MULLE_C_ARTIFICIAL
 // same as above just not inlining
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   *mulle_objc_object_supercall( void *obj,
                                      mulle_objc_methodid_t methodid,
                                      void *parameter,
@@ -337,6 +340,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
                                     void *obj,
                                     mulle_objc_methodid_t methodid,
@@ -348,6 +352,7 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 // this is useful for calling a list of objects efficiently, it is assumed that
 // class/methods do not change during its run
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_objects_call( void **objects,
                                 unsigned int n,
                                 mulle_objc_methodid_t sel,
@@ -357,6 +362,7 @@ void   mulle_objc_objects_call( void **objects,
 
 # pragma mark - special initial setup calls
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void  _mulle_objc_methodcache_init_normal_callbacks( struct _mulle_objc_methodcache *p);
 
 

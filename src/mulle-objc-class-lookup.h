@@ -87,32 +87,36 @@ static inline mulle_objc_implementation_t
 
 // goes through cache returns an implementation if cached, NULL otherwise
 // will return forward: if nothing found and (!) put it into the cache
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
     _mulle_objc_class_lookup_implementation( struct _mulle_objc_class *cls,
                                              mulle_objc_methodid_t methodid);
 
 
 // knows about trace and empty cache, forwards
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                    mulle_objc_methodid_t methodid);
 
-
-
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t methodid);
 
 // goes through cache returns an implementation if cached, trys to fill cache otherwise
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_noforward( struct _mulle_objc_class *cls,
                                                       mulle_objc_methodid_t methodid);
 
 // this will not update the cache
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache_noforward( struct _mulle_objc_class *cls,
                                                               mulle_objc_methodid_t methodid);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache_nofail( struct _mulle_objc_class *cls,
                                                            mulle_objc_methodid_t methodid);
@@ -144,18 +148,19 @@ static inline mulle_objc_implementation_t
 }
 
 // this is just the non-inline variant of above
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
 mulle_objc_implementation_t
    _mulle_objc_object_superlookup_implementation_nofail( void *obj,
                                                          mulle_objc_superid_t superid);
 
-
-
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
 mulle_objc_implementation_t
    _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                         mulle_objc_superid_t superid);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
 mulle_objc_implementation_t
    _mulle_objc_class_superlookup_implementation_nocache_nofail( struct _mulle_objc_class *cls,
@@ -170,10 +175,12 @@ mulle_objc_implementation_t
 // search directly.
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_superrefresh_implementation_nofail( struct _mulle_objc_class *cls,
                                                          mulle_objc_superid_t superid);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_refresh_implementation_nofail( struct _mulle_objc_class *cls,
                                                      mulle_objc_methodid_t methodid);

@@ -62,22 +62,28 @@ struct _mulle_objc_callqueue
 # pragma mark init/destroy
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_callqueue_init( struct _mulle_objc_callqueue *p,
                                  struct mulle_allocator *allocator);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_callqueue_done( struct _mulle_objc_callqueue *p);
 
 
 # pragma mark  -
 # pragma mark functionality
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *p,
                                 struct _mulle_objc_object *obj,
                                 mulle_objc_methodid_t methodid,
                                 mulle_objc_implementation_t imp);
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *p);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
                                   void (*callback)( struct _mulle_objc_object *obj,
                                                     mulle_objc_methodid_t methodid,

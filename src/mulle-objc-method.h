@@ -238,6 +238,7 @@ static inline int
 # pragma mark - method descriptor consistency
 
 // sets errno
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int  mulle_objc_descriptor_is_sane( struct _mulle_objc_descriptor *p);
 
 
@@ -332,6 +333,7 @@ static inline mulle_objc_implementation_t
 
 #pragma mark - bsearch
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_method   *
    _mulle_objc_method_bsearch( struct _mulle_objc_method *buf,
                                unsigned int n,
@@ -352,9 +354,11 @@ static inline struct _mulle_objc_method   *
 
 #pragma mark - qsort
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int  _mulle_objc_method_compare( struct _mulle_objc_method *a,
                                  struct _mulle_objc_method *b);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_method_sort( struct _mulle_objc_method *methods,
                                unsigned int n);
 
@@ -399,6 +403,7 @@ static inline struct _mulle_objc_descriptor *
 
 /* compatibility stuff for Foundation */
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 unsigned int   mulle_objc_count_selector_arguments( char *s);
 
 

@@ -195,3 +195,9 @@ Frameworks aren't force loaded.")
       unset( __EXECUTABLE_SOURCES_UNSET)
    endif()
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../Executable.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

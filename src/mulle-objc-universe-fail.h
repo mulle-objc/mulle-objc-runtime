@@ -48,6 +48,7 @@
 
 #pragma mark - fails, universe can be null
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_code( struct _mulle_objc_universe *universe,
                                   int errnocode);
@@ -59,19 +60,24 @@ static inline MULLE_C_NO_RETURN void
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_perror( struct _mulle_objc_universe *universe, char *s);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_generic( struct _mulle_objc_universe *universe,
                                      char *format, ...);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_failv_generic( struct _mulle_objc_universe *universe,
                                       char *format,
                                       va_list args);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_inconsistency( struct _mulle_objc_universe *universe,
                                            char *format, ...);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_failv_inconsistency( struct _mulle_objc_universe *universe,
                                             char *format,
@@ -79,17 +85,20 @@ MULLE_C_NO_RETURN void
 
 #pragma mark - fails
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_classnotfound( struct _mulle_objc_universe *universe,
                                            mulle_objc_classid_t classid);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_supernotfound( struct _mulle_objc_universe *universe,
                                            mulle_objc_superid_t superid);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_methodnotfound( struct _mulle_objc_universe *universe,
                                             struct _mulle_objc_class *class,
                                             mulle_objc_methodid_t methodid);
-
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe);
 
 #endif

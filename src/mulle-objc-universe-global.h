@@ -99,11 +99,12 @@ static inline struct _mulle_objc_universe  *
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_universe  *
    __mulle_objc_global_register_universe( mulle_objc_universeid_t universeid,
                                           struct _mulle_objc_universe *universe);
 
-
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void
    __mulle_objc_global_unregister_universe( mulle_objc_universeid_t universeid,
                                             struct _mulle_objc_universe *universe);
@@ -120,11 +121,13 @@ MULLE_C_ALWAYS_INLINE static inline int
 // leak, when using universes other than MULLE_OBJC_DEFAULTUNIVERSEID
 // Remove the universe before calling this!
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_global_reset_universetable( void);
 
 
 MULLE_OBJC_RUNTIME_EXTERN_GLOBAL long   __mulle_objc_personality_v0;   // no idea what this is used for
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 size_t  __mulle_objc_global_get_alluniverses( struct _mulle_objc_universe **p,
                                               size_t n);
 

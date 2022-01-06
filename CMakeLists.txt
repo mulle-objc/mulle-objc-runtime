@@ -1,6 +1,8 @@
 cmake_minimum_required( VERSION 3.1)
 
 project( mulle-objc-runtime C)
+add_definitions( -DMULLE_OBJC_RUNTIME_EXTERN_GLOBAL=extern)
+
 
 ### mulle-sde environment
 

@@ -42,21 +42,41 @@ sourcetree_task_run()
 
    log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME}${C_INFO} sourcetree"
 
+   local rval 
+
+   rval=0
    case "${MULLE_SOURCETREE_TO_CMAKE_RUN}" in
       NO|DISABLE*|OFF)
       ;;
 
       *)
-         exekutor mulle-sourcetree-to-cmake "$@"  || return $?
+         exekutor mulle-sourcetree-to-cmake ${MULLE_TECHNICAL_FLAGS} "$@" 
+         rval=$?
       ;;
    esac
 
+   if [ $rval -ne 0 ]
+   then
+      log_error "mulle-sourcetree-to-cmake ${MULLE_TECHNICAL_FLAGS} $* failed ($rval)"
+   fi
+
+   local rval2
+
+   rval2=0
    case "${MULLE_SOURCETREE_TO_C_RUN}" in
       NO|DISABLE*|OFF)
       ;;
 
       *)
-         exekutor mulle-sourcetree-to-c "$@" || return $?
+         exekutor mulle-sourcetree-to-c ${MULLE_TECHNICAL_FLAGS} "$@" 
+         rval2=$?
       ;;
    esac
+
+   if [ $rval2 -ne 0 ]
+   then
+      log_error "mulle-sourcetree-to-c ${MULLE_TECHNICAL_FLAGS} $* failed ($rval2)"
+   fi
+
+   [ $rval -eq 0 -a $rval2 -eq 0 ]
 }

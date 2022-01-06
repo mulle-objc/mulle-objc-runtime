@@ -68,6 +68,7 @@ static inline size_t   mulle_objc_sizeof_ivarlist( unsigned int n_ivars)
 
 struct _mulle_objc_class;
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_ivar  *
   _mulle_objc_ivarlist_linear_search( struct _mulle_objc_ivarlist *list,
                                       mulle_objc_ivarid_t ivarid);
@@ -89,12 +90,14 @@ static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_search( struct _mul
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_walkcommand_t
   _mulle_objc_ivarlist_walk( struct _mulle_objc_ivarlist *list,
                              mulle_objc_walkivarscallback_t f,
                              struct _mulle_objc_infraclass *infra,
                              void *userinfo);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_ivarlist_sort( struct _mulle_objc_ivarlist *list);
 
 #pragma mark - API

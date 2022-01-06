@@ -82,5 +82,6 @@ src/mulle-objc-universe-struct.h
 src/mulle-objc-version.h
 src/mulle-objc-walktypes.h
 src/reflect/_mulle-objc-runtime-include.h
+src/reflect/_mulle-objc-runtime-versioncheck.h
 )
 

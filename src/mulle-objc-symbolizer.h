@@ -56,18 +56,28 @@ struct mulle_objc_symbolizer
 };
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_symbolizer_init( struct mulle_objc_symbolizer *p,
                                    struct _mulle_objc_universe *universe);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct mulle_objc_symbolizer *
    _mulle_objc_symbolizer_create( struct _mulle_objc_universe *universe);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_symbolizer_done( struct mulle_objc_symbolizer *p);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_symbolizer_destroy( struct mulle_objc_symbolizer *p);
+
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_symbolizer_snprint( struct mulle_objc_symbolizer *p,
                                      void *address,
                                      size_t max,
                                      char *buf,
                                      size_t len);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_universe_csvdump_methods( struct _mulle_objc_universe *universe,
                                              FILE *fp);
 

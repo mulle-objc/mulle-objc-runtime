@@ -378,10 +378,12 @@ struct _mulle_objc_method   *
 
 # pragma mark - failing
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    _mulle_objc_class_fail_methodnotfound( struct _mulle_objc_class *cls,
                                            mulle_objc_methodid_t missing_method);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN void
    _mulle_objc_class_fail_fowardmethodnotfound( struct _mulle_objc_class *cls,
                                                 mulle_objc_methodid_t missing_method,
@@ -393,6 +395,7 @@ MULLE_C_NO_RETURN void
 // this should be used by the debugger, but the debugger is really fixed to
 // use __forward_mulle_objc_object_call
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_implementation_t
    mulle_objc_class_get_forwardimplementation( struct _mulle_objc_class *cls);
 
@@ -406,12 +409,14 @@ struct _mulle_objc_method   *
                                             int *error);
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail(
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
 
 // error contains a errno constant, if return value is NULL
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_method  *
    mulle_objc_class_search_non_inherited_method( struct _mulle_objc_class *cls,
                                                  mulle_objc_methodid_t methodid,

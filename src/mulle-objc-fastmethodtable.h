@@ -65,6 +65,7 @@ struct _mulle_objc_fastmethodtable
 
 
 // setup fault handlers for the method table
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *table);
 
 

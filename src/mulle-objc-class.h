@@ -49,11 +49,13 @@
 
 # pragma mark - exceptions
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_class_raise_null_exception( void)   _MULLE_C_NO_RETURN;
 
 
 # pragma mark - class alloc / free
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void  _mulle_objc_class_init( struct _mulle_objc_class *cls,
                               char *name,
                               size_t instancesize,
@@ -62,9 +64,11 @@ void  _mulle_objc_class_init( struct _mulle_objc_class *cls,
                               struct _mulle_objc_class *superclass,
                               struct _mulle_objc_universe *universe);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_class_done( struct _mulle_objc_class *class,
                                struct mulle_allocator *allocator);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_class_setup_pointerarrays( struct _mulle_objc_class *cls,
                                               struct _mulle_objc_universe *universe);
 
@@ -72,8 +76,10 @@ void   _mulle_objc_class_setup_pointerarrays( struct _mulle_objc_class *cls,
 # pragma mark - sanity check
 
 // fast enough for a quick assert
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   __mulle_objc_class_is_sane( struct _mulle_objc_class *cls);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls);
 
 
@@ -105,6 +111,7 @@ static inline struct _mulle_objc_cache *
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   _mulle_objc_class_invalidate_methodcacheentry( struct _mulle_objc_class *cls,
                                                      mulle_objc_methodid_t methodid);
 
@@ -197,32 +204,37 @@ static inline void
 # pragma mark - methodlists
 
 // this function doesn't invalidate caches!
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
                                         struct _mulle_objc_methodlist *list);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
                                        struct _mulle_objc_methodlist *list);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_class_didadd_methodlist( struct _mulle_objc_class *cls,
                                            struct _mulle_objc_methodlist *list);
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                  struct _mulle_objc_methodlist *list);
 
 
 // the way to find a category
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_methodlist *
    mulle_objc_class_find_methodlist( struct _mulle_objc_class *cls,
                                      mulle_objc_categoryid_t categoryid);
 
-
-
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class *cls);
 
 
 #pragma mark - walking
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_method  *
    _mulle_objc_class_lookup_method( struct _mulle_objc_class *cls,
                                     mulle_objc_methodid_t methodid);
@@ -260,6 +272,7 @@ static inline struct _mulle_objc_method  *
 //    return( info.found);
 //
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_walkcommand_t
    _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls,
                                    unsigned int inheritance,
@@ -365,7 +378,7 @@ static inline struct _mulle_objc_metaclass   *
 }
 
 
-
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_walkcommand_t
    mulle_objc_class_walk( struct _mulle_objc_class   *cls,
                           enum mulle_objc_walkpointertype_t  type,
@@ -375,6 +388,7 @@ mulle_objc_walkcommand_t
 
 // checks if a is subclass of b or b is subclass of a, does not check for
 // NULL. 1=YES 0=NO
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   _mulle_objc_class_has_direct_relation_to_class( struct _mulle_objc_class *a,
                                                       struct _mulle_objc_class *b);
 

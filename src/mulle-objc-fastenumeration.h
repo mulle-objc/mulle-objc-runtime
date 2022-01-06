@@ -38,6 +38,7 @@
 
 #include "include.h"
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 MULLE_C_NO_RETURN
 void   mulle_objc_enumeration_mutation( void *collection);
 

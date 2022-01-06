@@ -17,3 +17,9 @@ if( NOT __DEPENDENCIES___CMAKE__)
    include( DependenciesAndLibraries OPTIONAL)
 
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../Dependencies.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

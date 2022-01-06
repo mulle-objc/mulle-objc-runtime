@@ -227,3 +227,9 @@ if( NOT __ENVIRONMENT__CMAKE__)
    include( EnvironmentAux OPTIONAL)
 
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../Environment.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

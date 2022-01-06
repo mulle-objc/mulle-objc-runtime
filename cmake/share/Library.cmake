@@ -197,3 +197,9 @@ if( __LIBRARY_RESOURCES_UNSET )
    unset( LIBRARY_RESOURCES)
    unset( __LIBRARY_RESOURCES_UNSET)
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../Library.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

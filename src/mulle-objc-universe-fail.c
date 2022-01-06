@@ -50,7 +50,7 @@
 # pragma mark - errors when no universe is present
 
 
-MULLE_C_NO_RETURN static void
+MULLE_C_NO_RETURN void
    _mulle_objc_vprintf_abort( char *format, va_list args)
 {
    vfprintf( stderr, format ? format : "???", args);
@@ -65,7 +65,7 @@ MULLE_C_NO_RETURN static void
 }
 
 
-MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE static void
+MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE void
    _mulle_objc_printf_abort( char *format, ...)
 {
    va_list   args;
@@ -196,7 +196,7 @@ MULLE_C_NO_RETURN void
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_code(struct _mulle_objc_universe *universe, int errnocode)
 {
-   mulle_objc_universe_fail_generic(universe, "errno: %s (%d)", strerror(errnocode), errnocode);
+   mulle_objc_universe_fail_generic( universe, "errno: %s (%d)", strerror(errnocode), errnocode);
 }
 
 

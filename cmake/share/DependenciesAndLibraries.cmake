@@ -25,3 +25,9 @@ if( INHERIT_DEPENDENCY_INCLUDES)
    # these generate -I arguments, that add to the user search path
    include_directories( ${INHERITED_INCLUDE_DIRS})
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../DependenciesAndLibraries.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

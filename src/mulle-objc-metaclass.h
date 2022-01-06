@@ -81,6 +81,7 @@ static inline struct _mulle_objc_metaclass   *_mulle_objc_class_as_metaclass( st
 
 #pragma mark - sanity check
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_metaclass_is_sane( struct _mulle_objc_metaclass *meta);
 
 
@@ -188,6 +189,7 @@ static inline struct _mulle_objc_method  *
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_walkcommand_t
    mulle_objc_metaclass_walk( struct _mulle_objc_metaclass   *meta,
                               enum mulle_objc_walkpointertype_t  type,

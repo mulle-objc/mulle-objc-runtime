@@ -1,3 +1,9 @@
+## 0.20.0
+
+* moved debug support out into mulle-objc-debug, which reduces the size of the runtime proper by 25%
+* redid method call functions
+
+
 ## 0.19.0
 
 * slow -release support when you need to suppress inlined retain counts and maintain your own

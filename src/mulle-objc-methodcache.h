@@ -88,12 +88,15 @@ static inline void   mulle_objc_methodcache_init( struct _mulle_objc_methodcache
 
 
 // these functions don't perturn errno, though they allocate
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_methodcache   *mulle_objc_methodcache_new( mulle_objc_cache_uint_t size,
                                                               struct mulle_allocator *allocator);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_methodcache_free( struct _mulle_objc_methodcache *cache,
                                      struct mulle_allocator *allocator);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   _mulle_objc_methodcache_abafree( struct _mulle_objc_methodcache *cache,
                                         struct mulle_allocator *allocator);
 
@@ -122,6 +125,7 @@ struct _mulle_objc_methodcachepivot
 
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void
     _mulle_objc_class_fill_methodcache_with_method( struct _mulle_objc_class *cls,
                                                     struct _mulle_objc_method *method,

@@ -41,6 +41,7 @@ struct _mulle_objc_loadinfo;
 struct _mulle_objc_universe;
 
 // the actual struct is in mulle-objc-load.h (still)
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_loadinfo_dump( struct _mulle_objc_loadinfo *info,
                                  char *prefix,
                                  struct _mulle_objc_universe *universe);

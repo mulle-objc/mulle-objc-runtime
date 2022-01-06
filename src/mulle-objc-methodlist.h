@@ -65,9 +65,11 @@ static inline unsigned int   _mulle_objc_methodlist_get_count( struct _mulle_obj
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_categoryid_t
    _mulle_objc_methodlist_get_categoryid( struct _mulle_objc_methodlist *list);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 char *
    _mulle_objc_methodlist_get_categoryname( struct _mulle_objc_methodlist *list);
 
@@ -92,11 +94,14 @@ static inline size_t   mulle_objc_sizeof_methodlist( unsigned int n_methods)
 }
 
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_methodlist_sort( struct _mulle_objc_methodlist *list);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_method  *
    _mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
                                          mulle_objc_methodid_t methodid);
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 struct _mulle_objc_method  *
    _mulle_objc_methodlist_linear_impsearch( struct _mulle_objc_methodlist *list,
                                             mulle_objc_implementation_t imp);
@@ -129,10 +134,12 @@ static inline struct _mulle_objc_method  *
 
 # pragma mark - +load
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 int   mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
                                                    struct _mulle_objc_metaclass *cls,
                                                    struct _mulle_objc_callqueue *loads);
 
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 void   mulle_objc_methodlist_add_load_to_callqueue_nofail( struct _mulle_objc_methodlist *list,
                                                              struct _mulle_objc_metaclass *cls,
                                                              struct _mulle_objc_callqueue *loads);
@@ -179,6 +186,7 @@ static inline void  _mulle_objc_methodlistenumerator_done( struct _mulle_objc_me
 // supply cls and userinfo for callback, the cls is kinda ugly,
 // but it's easier this way (no need to reorganize userinfo)
 //
+MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
 mulle_objc_walkcommand_t   
   _mulle_objc_methodlist_walk( struct _mulle_objc_methodlist *list,
                                mulle_objc_method_walkcallback_t callback,

@@ -42,3 +42,9 @@ set( SHARED_LIBRARY_LIST
 )
 
 include( PostSharedLibraryAuxC OPTIONAL)
+
+
+# extension : mulle-c/c-cmake
+# directory : project/all
+# template  : .../PostSharedLibrary.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

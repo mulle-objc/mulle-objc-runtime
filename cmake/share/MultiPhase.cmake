@@ -61,3 +61,9 @@ if( NOT __MULTI_PHASE__CMAKE__)
    message( STATUS "COMPILE_PHASE=${COMPILE_PHASE}")
    message( STATUS "LINK_PHASE=${LINK_PHASE}")
 endif()
+
+
+# extension : mulle-sde/cmake
+# directory : project/all
+# template  : .../MultiPhase.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`
