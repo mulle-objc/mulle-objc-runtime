@@ -327,9 +327,12 @@ MULLE_C_NEVER_INLINE void
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return;
 
-   // need to check that we are initialized
-   //
    universe = _mulle_objc_class_get_universe( cls);
+   // when we trace method calls, we don't cache ever
+   if( universe->debug.trace.method_call)
+      return;
+
+   // need to check that we are initialized
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
    {
       pair  = _mulle_objc_class_get_classpair( cls);
@@ -344,10 +347,10 @@ MULLE_C_NEVER_INLINE void
       return;
    }
 
-   imp = _mulle_objc_method_get_implementation( method);
    //
    //  try to get most up to date value
    //
+   imp = _mulle_objc_method_get_implementation( method);
    do
    {
       cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
@@ -358,9 +361,11 @@ MULLE_C_NEVER_INLINE void
                                                                     uniqueid,
                                                                     MULLE_OBJC_CACHESIZE_GROW);
       else
+      {
          entry = _mulle_objc_cache_add_functionpointer_entry( cache,
                                                               (mulle_functionpointer_t) imp,
                                                               uniqueid);
+      }
    }
    while( ! entry);
 }

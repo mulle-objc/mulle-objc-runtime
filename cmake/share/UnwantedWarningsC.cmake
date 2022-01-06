@@ -36,3 +36,9 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
    endif()
 
 endif()
+
+
+# extension : mulle-c/c-cmake
+# directory : project/all
+# template  : .../UnwantedWarningsC.cmake
+# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`
