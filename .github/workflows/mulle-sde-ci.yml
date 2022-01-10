@@ -30,7 +30,7 @@ jobs:
     - uses: actions/checkout@v2
       if: ${{ ! env.ACT }}
 
-    - uses: mulle-sde/github-ci@v2
+    - uses: mulle-sde/github-ci@v1
       if: ${{ ! env.ACT }}
 
     - uses: mulle-objc/github-ci@v3
