@@ -2,6 +2,8 @@
 
 * moved debug support out into mulle-objc-debug, which reduces the size of the runtime proper by 25%
 * redid method call functions
+* changed class header ivar order, removed some unused ivars
+* some code refactorings
 
 
 ## 0.19.0
