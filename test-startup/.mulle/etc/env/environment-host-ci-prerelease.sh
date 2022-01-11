@@ -5,13 +5,13 @@ export MULLE_TESTALLOCATOR_NODETYPE="git"
 
 
 #
-# mulle-testallocator url: ${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_BRANCH}.tar.gz}
+# mulle-testallocator url: ${MULLE_TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TAG}.tar.gz}
 #
 export MULLE_TESTALLOCATOR_URL="https://github.com/mulle-core/mulle-testallocator.git"
 
 
 #
-# mulle-testallocator branch: ${MULLE_TESTALLOCATOR_BRANCH:-latest}
+# mulle-testallocator branch: ${MULLE_TESTALLOCATOR_BRANCH}
 #
 export MULLE_TESTALLOCATOR_BRANCH="prerelease"
 
@@ -107,6 +107,24 @@ export MULLE_DLFCN_BRANCH="prerelease"
 
 
 #
+# dlfcn-win32 nodetype: ${DLFCN_WIN32_NODETYPE:-tar}
+#
+export DLFCN_WIN32_NODETYPE="git"
+
+
+#
+# dlfcn-win32 url: ${DLFCN_WIN32_URL:-https://github.com/mulle-core/dlfcn-win32/archive/refs/tags/${MULLE_TAG}.tar.gz}
+#
+export DLFCN_WIN32_URL="https://github.com/mulle-core/dlfcn-win32.git"
+
+
+#
+# dlfcn-win32 branch: ${DLFCN_WIN32_BRANCH}
+#
+export DLFCN_WIN32_BRANCH="prerelease"
+
+
+#
 # mulle-atinit nodetype: ${MULLE_ATINIT_NODETYPE:-tar}
 #
 export MULLE_ATINIT_NODETYPE="git"
@@ -149,13 +167,13 @@ export MULLE_OBJC_RUNTIME_NODETYPE="git"
 
 
 #
-# mulle-objc-runtime url: ${MULLE_OBJC_RUNTIME_URL:-https://github.com/mulle-objc/mulle-objc-runtime/archive/${MULLE_BRANCH}.tar.gz}
+# mulle-objc-runtime url: ${MULLE_OBJC_RUNTIME_URL:-https://github.com/mulle-objc/mulle-objc-runtime/archive/${MULLE_TAG}.tar.gz}
 #
 export MULLE_OBJC_RUNTIME_URL="https://github.com/mulle-objc/mulle-objc-runtime.git"
 
 
 #
-# mulle-objc-runtime branch: ${MULLE_OBJC_RUNTIME_BRANCH:-latest}
+# mulle-objc-runtime branch: ${MULLE_OBJC_RUNTIME_BRANCH}
 #
 export MULLE_OBJC_RUNTIME_BRANCH="prerelease"
 
@@ -212,5 +230,41 @@ export MULLE_VARARG_URL="https://github.com/mulle-c/mulle-vararg.git"
 # mulle-vararg branch: ${MULLE_VARARG_BRANCH}
 #
 export MULLE_VARARG_BRANCH="prerelease"
+
+
+#
+# mulle-data nodetype: ${MULLE_DATA_NODETYPE:-tar}
+#
+export MULLE_DATA_NODETYPE="git"
+
+
+#
+# mulle-data url: ${MULLE_DATA_URL:-https://github.com/mulle-c/mulle-data/archive/${MULLE_TAG}.tar.gz}
+#
+export MULLE_DATA_URL="https://github.com/mulle-c/mulle-data.git"
+
+
+#
+# mulle-data branch: ${MULLE_DATA_BRANCH}
+#
+export MULLE_DATA_BRANCH="prerelease"
+
+
+#
+# mulle-objc-runtime-startup nodetype: ${MULLE_OBJC_RUNTIME_STARTUP_NODETYPE:-tar}
+#
+export MULLE_OBJC_RUNTIME_STARTUP_NODETYPE="git"
+
+
+#
+# mulle-objc-runtime-startup url: ${MULLE_OBJC_RUNTIME_STARTUP_URL:-https://github.com/mulle-objc/mulle-objc-runtime-startup/archive/${MULLE_TAG}.tar.gz}
+#
+export MULLE_OBJC_RUNTIME_STARTUP_URL="https://github.com/mulle-objc/mulle-objc-runtime-startup.git"
+
+
+#
+# mulle-objc-runtime-startup branch: ${MULLE_OBJC_RUNTIME_STARTUP_BRANCH}
+#
+export MULLE_OBJC_RUNTIME_STARTUP_BRANCH="prerelease"
 
 
