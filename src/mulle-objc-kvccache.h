@@ -36,6 +36,8 @@
 #ifndef mulle_objc_kvccache_h__
 #define mulle_objc_kvccache_h__
 
+#include "include.h"
+
 #include "mulle-objc-cache.h"
 
 #include "mulle-objc-method.h"
@@ -61,7 +63,7 @@ struct _mulle_objc_kvcinfo
 };
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_kvcinfo   *_mulle_objc_kvcinfo_new( char *cKey,
                                                        struct mulle_allocator *allocator);
 
@@ -116,7 +118,7 @@ static inline struct _mulle_objc_cacheentry  *
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_kvcinfo  *_mulle_objc_kvccache_lookup_kvcinfo( struct _mulle_objc_kvccache *cache,
                                                                  char *key);
 
@@ -152,12 +154,12 @@ static inline int
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_kvccachepivot_invalidate( struct _mulle_objc_kvccachepivot *pivot,
                                             struct _mulle_objc_kvccache *empty_cache,
                                             struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int    _mulle_objc_kvccachepivot_set_kvcinfo( struct _mulle_objc_kvccachepivot *pivot,
                                              struct _mulle_objc_kvcinfo *info,
                                              struct _mulle_objc_kvccache *empty_cache,

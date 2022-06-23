@@ -16,9 +16,18 @@ endif()
 if( NOT LIBRARY_IDENTIFIER)
    string( MAKE_C_IDENTIFIER "${LIBRARY_NAME}" LIBRARY_IDENTIFIER)
 endif()
+
+include( StringCase)
+
 if( NOT LIBRARY_UPCASE_IDENTIFIER)
-   string( TOUPPER "${LIBRARY_IDENTIFIER}" LIBRARY_UPCASE_IDENTIFIER)
+   snakeCaseString( "${LIBRARY_IDENTIFIER}" LIBRARY_UPCASE_IDENTIFIER)
+   string( TOUPPER "${LIBRARY_UPCASE_IDENTIFIER}" LIBRARY_UPCASE_IDENTIFIER)
 endif()
+if( NOT LIBRARY_DOWNCASE_IDENTIFIER)
+   snakeCaseString( "${LIBRARY_IDENTIFIER}" LIBRARY_DOWNCASE_IDENTIFIER)
+   string( TOLOWER "${LIBRARY_DOWNCASE_IDENTIFIER}" LIBRARY_DOWNCASE_IDENTIFIER)
+endif()
+
 # if( NOT LIBRARY_DOWNCASE_IDENTIFIER)
 #    string( TOLOWER "${LIBRARY_IDENTIFIER}" LIBRARY_DOWNCASE_IDENTIFIER)
 # endif()
@@ -38,14 +47,20 @@ endif()
 include( PreLibrary OPTIONAL)
 
 
-# support header only library
-if( LIBRARY_SOURCES)
+# support header only library, and library just made up of pre-compiled
+# object files
+if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDENTIFIER}_OBJECT_FILES)
    # RPATH must be ahead of add_library, but is it really needed ?
    include( InstallRpath OPTIONAL)
 
    option( DLL_EXPORT_ALL "Export all global symbols for DLL" ON)
 
    set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ${DLL_EXPORT_ALL})
+
+   set( ALL_OBJECT_FILES
+      ${OTHER_LIBRARY_OBJECT_FILES}
+      ${OTHER_${LIBRARY_UPCASE_IDENTIFIER}_OBJECT_FILES}
+   )
 
    # Libraries are built in two stages:
    #
@@ -59,23 +74,30 @@ if( LIBRARY_SOURCES)
    # This also enables parallel builds, when the products for a link aren't
    # available yet.
    #
-   add_library( "_1_${LIBRARY_NAME}" OBJECT
-      ${LIBRARY_SOURCES}
-   )
+   if( LIBRARY_SOURCES)
+      add_library( "_1_${LIBRARY_NAME}" OBJECT
+         ${LIBRARY_SOURCES}
+      )
 
-   set( ALL_OBJECT_FILES
-      $<TARGET_OBJECTS:_1_${LIBRARY_NAME}>
-      ${OTHER_LIBRARY_OBJECT_FILES}
-      ${OTHER_${LIBRARY_UPCASE_IDENTIFIER}_OBJECT_FILES}
-   )
+      set( ALL_OBJECT_FILES
+         $<TARGET_OBJECTS:_1_${LIBRARY_NAME}>
+         ${ALL_OBJECT_FILES}
+      )
 
-   set_property( TARGET "_1_${LIBRARY_NAME}" PROPERTY CXX_STANDARD 11)
+      set_target_properties( "_1_${LIBRARY_NAME}"
+         PROPERTIES
+            CXX_STANDARD 11
+#            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
+      )
 
-   #
-   # Sometimes needed for elder linux ? Seen on xenial, with mulle-mmap
-   #
-   if( BUILD_SHARED_LIBS)
-      set_property(TARGET "_1_${LIBRARY_NAME}" PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+      target_compile_definitions( "_1_${LIBRARY_NAME}" PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
+
+      #
+      # Sometimes needed for elder linux ? Seen on xenial, with mulle-mmap
+      #
+      if( BUILD_SHARED_LIBS)
+         set_property(TARGET "_1_${LIBRARY_NAME}" PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+      endif()
    endif()
 
 
@@ -88,7 +110,14 @@ if( LIBRARY_SOURCES)
          ${ALL_OBJECT_FILES}
          $<TARGET_OBJECTS:_2_${LIBRARY_NAME}>
       )
-      set_property( TARGET "_2_${LIBRARY_NAME}" PROPERTY CXX_STANDARD 11)
+
+      set_target_properties( "_2_${LIBRARY_NAME}"
+         PROPERTIES
+            CXX_STANDARD 11
+#            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
+      )
+      target_compile_definitions( "_2_${LIBRARY_NAME}" PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
+
       if( BUILD_SHARED_LIBS)
          set_property(TARGET "_2_${LIBRARY_NAME}" PROPERTY POSITION_INDEPENDENT_CODE TRUE)
       endif()
@@ -122,7 +151,20 @@ if( LIBRARY_SOURCES)
          add_dependencies( "${LIBRARY_NAME}" "_2_${LIBRARY_NAME}")
       endif()
 
+      # MEMO: DEFINE_SYMBOL is only active when building shared libs
+      #                     we want it for static too..
+      set_target_properties( "${LIBRARY_NAME}"
+         PROPERTIES
+            CXX_STANDARD 11
+#            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
+      )
+      target_compile_definitions( "${LIBRARY_NAME}" PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
 
+      # output library with 'd' suffix when in windows (and creating a debug lib)
+      if( MSVC)
+         set_target_properties( "${LIBRARY_NAME}" PROPERTIES DEBUG_POSTFIX "d")
+      endif()
+      
       #
       # allow forward definitions in shared library
       #

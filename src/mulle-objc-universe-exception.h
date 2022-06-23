@@ -45,24 +45,24 @@
 #pragma mark - ObjC exceptions
 
 /* the default implementation for handling exceptions */
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NO_RETURN void
    _mulle_objc_universe_throw( struct _mulle_objc_universe *universe,
                                void *exception);
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_tryenter( struct _mulle_objc_universe *universe,
                                      void *data);
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_tryexit( struct _mulle_objc_universe *universe,
                                       void *data);
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   *_mulle_objc_universe_extract_exception( struct _mulle_objc_universe *universe,
                                                 void *data);
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int  _mulle_objc_universe_match_exception( struct _mulle_objc_universe *universe,
                                            mulle_objc_classid_t classId,
                                            void *exception);
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_init_exception( struct _mulle_objc_universe  *universe);
 
 #endif

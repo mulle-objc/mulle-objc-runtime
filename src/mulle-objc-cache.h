@@ -36,9 +36,10 @@
 #ifndef mulle_objc_cache_h__
 #define mulle_objc_cache_h__
 
+#include "include.h"
+
 #include "mulle-objc-uniqueid.h"
 
-#include "include.h"
 #include <stddef.h>
 #include <assert.h>
 
@@ -228,41 +229,41 @@ static inline mulle_objc_cache_uint_t
 
 # pragma mark - cache allocation
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
                                                   struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
                                struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
                                   struct mulle_allocator *allocator);
 
 
 # pragma mark - cache add entry
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cacheentry   *
     _mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache,
                                                        void *pointer,
                                                        mulle_objc_uniqueid_t uniqueid);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cacheentry   *
    _mulle_objc_cache_inactivecache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
                                                               mulle_functionpointer_t pointer,
                                                               mulle_objc_uniqueid_t uniqueid);
 
 // returns null if cache is full
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cacheentry   *
    _mulle_objc_cache_add_pointer_entry( struct _mulle_objc_cache *cache,
                                         void *pointer,
                                         mulle_objc_uniqueid_t uniqueid);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cacheentry   *
    _mulle_objc_cache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
                                                 mulle_functionpointer_t pointer,
@@ -271,16 +272,16 @@ struct _mulle_objc_cacheentry   *
 
 # pragma mark - cache method lookup
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   *_mulle_objc_cache_lookup_pointer( struct _mulle_objc_cache *cache,
                                           mulle_objc_uniqueid_t uniqueid);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_functionpointer_t
    _mulle_objc_cache_lookup_functionpointer( struct _mulle_objc_cache *cache,
                                              mulle_objc_uniqueid_t uniqueid);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_cache_uint_t
    _mulle_objc_cache_find_entryoffset( struct _mulle_objc_cache *cache,
                                        mulle_objc_uniqueid_t uniqueid);
@@ -288,16 +289,16 @@ mulle_objc_cache_uint_t
 
 # pragma mark - cache utilitites
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 unsigned int   mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cache *cache);
 
 // gives percentage of relative indexes high percentages[ 0] is good. size must be > 1
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 unsigned int  mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cache *cache,
                                                         unsigned int *percentages,
                                                         unsigned int size);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache,
                                          mulle_objc_uniqueid_t uniqueid);
 

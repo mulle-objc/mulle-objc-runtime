@@ -36,6 +36,8 @@
 #ifndef mulle_objc_propertylist_h__
 #define mulle_objc_propertylist_h__
 
+#include "include.h"
+
 #include "mulle-objc-property.h"
 #include "mulle-objc-uniqueid.h"
 #include "mulle-objc-walktypes.h"
@@ -65,14 +67,14 @@ static inline size_t   mulle_objc_sizeof_propertylist( unsigned int n_properties
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t   
   _mulle_objc_propertylist_walk( struct _mulle_objc_propertylist *list,
                                  mulle_objc_walkpropertiescallback_t f,
                                  struct _mulle_objc_infraclass *infra,
                                  void *userinfo);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_property  *
    _mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
                                            mulle_objc_propertyid_t propertyid);

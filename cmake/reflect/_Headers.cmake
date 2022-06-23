@@ -12,6 +12,7 @@ endif()
 
 set( INCLUDE_DIRS
 src
+src/generic
 src/reflect
 )
 
@@ -19,7 +20,7 @@ src/reflect
 # contents selected with patternfile ??-header--private-headers
 #
 set( PRIVATE_HEADERS
-src/include-private.h
+src/generic/include-private.h
 src/reflect/_mulle-objc-runtime-include-private.h
 )
 
@@ -27,7 +28,7 @@ src/reflect/_mulle-objc-runtime-include-private.h
 # contents selected with patternfile ??-header--public-headers
 #
 set( PUBLIC_HEADERS
-src/include.h
+src/generic/include.h
 src/minimal.h
 src/mulle-metaabi.h
 src/mulle-objc-atomicpointer.h

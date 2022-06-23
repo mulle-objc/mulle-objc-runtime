@@ -48,6 +48,7 @@
 #include "mulle-objc-super.h"
 #include "mulle-objc-universe.h"
 
+
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -582,6 +583,20 @@ next_class:
 
 # pragma mark API
 
+
+
+static inline int   _mulle_objc_class_is_initializing_or_initialized( struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_infraclass   *infra;
+
+   infra = _mulle_objc_class_get_infraclass( cls);
+   if( infra)
+      cls = _mulle_objc_infraclass_as_class( infra);
+   // that bit is never cleared
+   return( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_INITIALIZING));
+}
+
+
 //
 // wrapper function, to not expose internal use of MULLE_OBJC_METHOD_SEARCH_FAIL
 //
@@ -605,20 +620,29 @@ struct _mulle_objc_method   *
       return( NULL);
    }
 
+   _mulle_objc_searcharguments_assert( search);
+
+   mode = (enum internal_search_mode) search->args.mode;
+
    //
-   // The dange of the lookup code is that it can be used to bypass the
+   // The danger of the lookup code is that it can be used to bypass the
    // class initialization and call IMPs directly. So we need to be at least
    // in -initializing before we can actually search a method, otherwise
-   // we get into problems.
+   // we get into problems. Unless we are looking for +load/+unload though.
    //
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_INITIALIZING))
-      _mulle_objc_class_setup( cls);
+   if( ! _mulle_objc_class_is_initializing_or_initialized(  cls))
+   {
+      if( ! (mode == search_default &&
+             (search->args.methodid == MULLE_OBJC_UNLOAD_METHODID ||
+              search->args.methodid == MULLE_OBJC_LOAD_METHODID)))
+      {
+         _mulle_objc_class_setup( cls);
+      }
+   }
 
-   _mulle_objc_searcharguments_assert( search);
 
    assert( mulle_objc_class_is_current_thread_registered( cls));
 
-   mode = (enum internal_search_mode) search->args.mode;
    switch( mode)
    {
    case search_default           :
@@ -705,7 +729,7 @@ struct _mulle_objc_method  *
    }
 
    inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_searcharguments_defaultinit( &search, methodid);
+   _mulle_objc_searcharguments_init_default( &search, methodid);
    method = mulle_objc_class_search_method( cls,
                                             &search,
                                             inheritance,
@@ -732,7 +756,7 @@ struct _mulle_objc_method  *
    inheritance = _mulle_objc_class_get_inheritance( cls) |
                     MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
 
-   _mulle_objc_searcharguments_defaultinit( &search, methodid);
+   _mulle_objc_searcharguments_init_default( &search, methodid);
    method = mulle_objc_class_search_method( cls,
                                             &search,
                                             inheritance,

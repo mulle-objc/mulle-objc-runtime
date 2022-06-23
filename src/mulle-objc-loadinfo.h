@@ -36,12 +36,13 @@
 #ifndef mulle_objc_loadinfo_h__
 #define mulle_objc_loadinfo_h__
 
+#include "include.h"
 
 struct _mulle_objc_loadinfo;
 struct _mulle_objc_universe;
 
 // the actual struct is in mulle-objc-load.h (still)
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_loadinfo_dump( struct _mulle_objc_loadinfo *info,
                                  char *prefix,
                                  struct _mulle_objc_universe *universe);

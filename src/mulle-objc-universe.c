@@ -78,7 +78,7 @@ void   mulle_objc_hang( void)
 
    fprintf( stderr, "Hanging for debugger to attach\n");
    for(;;)
-      sleep( 3600);
+      mulle_thread_yield();  // better for windows than sleep
 }
 
 
@@ -2009,7 +2009,7 @@ struct _mulle_objc_classpair *
    _mulle_objc_objectheader_init( &pair->metaclassheader,
                                   super_meta_isa ? _mulle_objc_metaclass_as_class( super_meta_isa)
                                                  : _mulle_objc_infraclass_as_class( &pair->infraclass),
-                                 0,
+                                  0,
                                   _mulle_objc_memory_is_zeroed);
 
    _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);

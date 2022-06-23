@@ -36,10 +36,11 @@
 #ifndef mulle_objc_fastclasstable_h__
 #define mulle_objc_fastclasstable_h__
 
+#include "include.h"
+
 #include "mulle-objc-atomicpointer.h"
 
 #include <assert.h>
-#include "include.h"
 
 
 struct _mulle_objc_infraclass;
@@ -76,7 +77,8 @@ static inline struct _mulle_objc_infraclass  *
      mulle_objc_fastclasstable_get_infraclass_nofail( struct _mulle_objc_fastclasstable *table,
                                                         unsigned int i)
 {
-   extern int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
+   MULLE_OBJC_RUNTIME_GLOBAL
+   int   mulle_objc_class_is_current_thread_registered( struct _mulle_objc_class *cls);
    struct _mulle_objc_infraclass   *infra;
 
    infra = (struct _mulle_objc_infraclass *) _mulle_atomic_pointer_read( &table->classes[ i].pointer);

@@ -36,6 +36,8 @@
 #ifndef mulle_objc_methodcache_h__
 #define mulle_objc_methodcache_h__
 
+#include "include.h"
+
 #include "mulle-objc-cache.h"
 #include "mulle-objc-uniqueid.h"
 #include "mulle-objc-method.h"
@@ -78,7 +80,8 @@ struct _mulle_objc_methodcache
 static inline void   mulle_objc_methodcache_init( struct _mulle_objc_methodcache *mcache,
                                                   mulle_objc_cache_uint_t size)
 {
-   extern void  _mulle_objc_methodcache_init_normal_callbacks( struct _mulle_objc_methodcache *p);
+   MULLE_OBJC_RUNTIME_GLOBAL
+   void  _mulle_objc_methodcache_init_normal_callbacks( struct _mulle_objc_methodcache *p);
 
    mulle_objc_cache_init( &mcache->cache, size);
 
@@ -88,15 +91,15 @@ static inline void   mulle_objc_methodcache_init( struct _mulle_objc_methodcache
 
 
 // these functions don't perturn errno, though they allocate
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_methodcache   *mulle_objc_methodcache_new( mulle_objc_cache_uint_t size,
                                                               struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_methodcache_free( struct _mulle_objc_methodcache *cache,
                                      struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_methodcache_abafree( struct _mulle_objc_methodcache *cache,
                                         struct mulle_allocator *allocator);
 
@@ -125,7 +128,7 @@ struct _mulle_objc_methodcachepivot
 
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void
     _mulle_objc_class_fill_methodcache_with_method( struct _mulle_objc_class *cls,
                                                     struct _mulle_objc_method *method,

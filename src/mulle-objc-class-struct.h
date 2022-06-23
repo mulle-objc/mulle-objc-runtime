@@ -38,6 +38,7 @@
 
 
 // minimal include to get the struct up
+#include "include.h"
 
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-cache.h"
@@ -46,7 +47,6 @@
 #include "mulle-objc-objectheader.h"
 #include "mulle-objc-uniqueid.h"
 #include "mulle-objc-methodcache.h"
-#include "include.h"
 
 
 struct _mulle_objc_class;

@@ -36,6 +36,8 @@
 #ifndef mulle_objc_walktypes_h__
 #define mulle_objc_walktypes_h__
 
+#include "include.h"
+
 #include "mulle-objc-uniqueid.h"
 
 

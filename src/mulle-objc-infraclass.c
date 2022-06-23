@@ -874,7 +874,7 @@ static struct _mulle_objc_method  *
    struct _mulle_objc_method            *method;
    struct _mulle_objc_metaclass         *meta;
 
-   _mulle_objc_searcharguments_defaultinit( &search, methodid);
+   _mulle_objc_searcharguments_init_default( &search, methodid);
    meta   = _mulle_objc_infraclass_get_metaclass( infra);
    method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
                                             &search,
@@ -910,12 +910,39 @@ static void   _mulle_objc_infraclass_call_unloadmethod( struct _mulle_objc_infra
 }
 
 
+
+
+static struct _mulle_objc_method  *
+   _mulle_objc_infraclass_search_method_noinherit_noinitialize( struct _mulle_objc_infraclass *infra,
+                                                                mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_metaclass         *meta;
+   struct _mulle_objc_class             *cls;
+
+   if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
+      return( NULL);
+
+   _mulle_objc_searcharguments_init_default( &search, methodid);
+   meta   = _mulle_objc_infraclass_get_metaclass( infra);
+   method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
+                                            &search,
+                                            -1,  // inherit nothing
+                                            NULL);
+   return( method);
+}
+
+
+//
+// these will only be called if +initialize has run
+//
 void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_method     *method;
 
-   method = _mulle_objc_infraclass_search_method_noinherit( infra,
-                                                            MULLE_OBJC_WILLFINALIZE_METHODID);
+   method = _mulle_objc_infraclass_search_method_noinherit_noinitialize( infra,
+                                                                         MULLE_OBJC_WILLFINALIZE_METHODID);
    if( method)
       _mulle_objc_infraclass_call_unloadmethod( infra, method, "willFinalize", NULL);
 }
@@ -925,11 +952,13 @@ void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infr
 {
    struct _mulle_objc_method     *method;
 
-   method = _mulle_objc_infraclass_search_method_noinherit( infra,
-                                                            MULLE_OBJC_FINALIZE_METHODID);
+   method = _mulle_objc_infraclass_search_method_noinherit_noinitialize( infra,
+                                                                         MULLE_OBJC_FINALIZE_METHODID);
    if( method)
+   {
       _mulle_objc_infraclass_call_unloadmethod( infra, method, "finalize", NULL);
-   _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_FINALIZE_DONE);
+      _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_FINALIZE_DONE);
+   }
 }
 
 
@@ -937,15 +966,10 @@ void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *
 {
    struct _mulle_objc_method     *method;
 
-   if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
-      return;
-
-   method = _mulle_objc_infraclass_search_method_noinherit( infra,
-                                                            MULLE_OBJC_DEINITIALIZE_METHODID);
-   if( ! method)
-      return;
-
-   _mulle_objc_infraclass_call_unloadmethod( infra, method, "deinitialize", NULL);
+   method = _mulle_objc_infraclass_search_method_noinherit_noinitialize( infra,
+                                                                         MULLE_OBJC_DEINITIALIZE_METHODID);
+   if( method)
+      _mulle_objc_infraclass_call_unloadmethod( infra, method, "deinitialize", NULL);
 }
 
 
@@ -966,7 +990,7 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
 
    // search will find last recently added category first
    // but we need to call all
-   _mulle_objc_searcharguments_defaultinit( &search, MULLE_OBJC_UNLOAD_METHODID);
+   _mulle_objc_searcharguments_init_default( &search, MULLE_OBJC_UNLOAD_METHODID);
    for(;;)
    {
       method = mulle_objc_class_search_method( cls, &search, inheritance, &result);
@@ -974,7 +998,7 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
          break;
 
       _mulle_objc_infraclass_call_unloadmethod( infra, method, "unload", _mulle_objc_methodlist_get_categoryname( result.list));
-      _mulle_objc_searcharguments_previousmethodinit( &search, method);
+      _mulle_objc_searcharguments_init_previous( &search, method);
    }
 }
 

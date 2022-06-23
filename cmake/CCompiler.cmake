@@ -14,7 +14,11 @@ if( NOT "${C_COMPILER_NAME}" MATCHES "mulle-cl*")
    add_definitions( -D__MULLE_OBJC_TPS__)     ## tagged pointers runtime (alternative: __MULLE_OBJC_NO_TPS__)
    add_definitions( -D__MULLE_OBJC_FCS__)     ## fast method calls (alternative: __MULLE_OBJC_NO_FCS__)
 else()
-   add_compile_options( -x objective-c)
+   if( MSVC)
+      add_compile_options( /clang:-ObjC)
+   else()
+      add_compile_options( -x objective-c)
+   endif()
 endif()
 
 

@@ -45,6 +45,7 @@
 #include "mulle-objc-universe.h"
 
 #include "include-private.h"
+
 #include <assert.h>
 #include <stdlib.h>
 
@@ -396,7 +397,7 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
    // This is fairly expensive though...
    //
    inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_searcharguments_impinit( &search, imp);
+   _mulle_objc_searcharguments_init_imp( &search, imp);
    method = mulle_objc_class_search_method( cls,
                                             &search,
                                             inheritance,

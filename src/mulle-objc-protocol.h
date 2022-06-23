@@ -36,6 +36,8 @@
 #ifndef mulle_objc_protocol_h__
 #define mulle_objc_protocol_h__
 
+#include "include.h"
+
 #include "mulle-objc-uniqueid.h"
 
 
@@ -67,21 +69,21 @@ static inline mulle_objc_protocolid_t  _mulle_objc_protocol_get_protocolid( stru
 
 #pragma mark - bsearch
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_protocol   *_mulle_objc_protocol_bsearch( struct _mulle_objc_protocol *buf,
                                                              unsigned int n,
                                                              mulle_objc_protocolid_t search);
 
 #pragma mark - qsort
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int  _mulle_objc_protocol_compare( struct _mulle_objc_protocol *a, struct _mulle_objc_protocol *b);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_protocol_sort( struct _mulle_objc_protocol *protocols,
                                  unsigned int n);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int  mulle_objc_protocol_is_sane( struct _mulle_objc_protocol *p);
 
 #endif

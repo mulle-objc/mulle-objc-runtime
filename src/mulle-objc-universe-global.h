@@ -36,13 +36,20 @@
 #ifndef mulle_objc_universe_global_h__
 #define mulle_objc_universe_global_h__
 
-#include "mulle-objc-universe-struct.h"
-
 #include "include.h"
 
+#include "mulle-objc-universe-struct.h"
 
-#ifndef MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
-# define MULLE_OBJC_RUNTIME_EXTERN_GLOBAL    MULLE_C_EXTERN_GLOBAL
+
+
+#ifdef MULLE_OBJC_RUNTIME_BUILD
+# define MULLE_OBJC_RUNTIME_GLOBAL    MULLE_C_GLOBAL
+#else
+# if defined( MULLE_OBJC_RUNTIME_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_OBJC_RUNTIME_INCLUDE_STATIC))
+#  define MULLE_OBJC_RUNTIME_GLOBAL   MULLE_C_EXTERN_GLOBAL
+# else
+#  define MULLE_OBJC_RUNTIME_GLOBAL   extern
+# endif
 #endif
 
 
@@ -52,7 +59,7 @@
 MULLE_C_CONST_NONNULL_RETURN static inline struct _mulle_objc_universe *
    mulle_objc_global_get_defaultuniverse( void)
 {
-   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+   MULLE_OBJC_RUNTIME_GLOBAL
       struct _mulle_objc_universe   mulle_objc_defaultuniverse;
 
    assert( ! _mulle_objc_universe_is_uninitialized( &mulle_objc_defaultuniverse) \
@@ -64,7 +71,7 @@ MULLE_C_CONST_NONNULL_RETURN static inline struct _mulle_objc_universe *
 MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_universe  *
    __mulle_objc_global_get_defaultuniverse( void)
 {
-   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+   MULLE_OBJC_RUNTIME_GLOBAL
       struct _mulle_objc_universe   mulle_objc_defaultuniverse;
 
    return( &mulle_objc_defaultuniverse);
@@ -76,7 +83,7 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_universe  *
 static inline struct _mulle_objc_universe  *
    __mulle_objc_global_lookup_universe( mulle_objc_universeid_t universeid)
 {
-   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+   MULLE_OBJC_RUNTIME_GLOBAL
       struct mulle_concurrent_hashmap   mulle_objc_universetable;
 
    return( mulle_concurrent_hashmap_lookup( &mulle_objc_universetable, universeid));
@@ -86,7 +93,7 @@ static inline struct _mulle_objc_universe  *
 static inline struct _mulle_objc_universe  *
    mulle_objc_global_lookup_universe( mulle_objc_universeid_t universeid)
 {
-   MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+   MULLE_OBJC_RUNTIME_GLOBAL
       struct mulle_concurrent_hashmap   mulle_objc_universetable;
    struct _mulle_objc_universe  *universe;
 
@@ -99,12 +106,12 @@ static inline struct _mulle_objc_universe  *
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_universe  *
    __mulle_objc_global_register_universe( mulle_objc_universeid_t universeid,
                                           struct _mulle_objc_universe *universe);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void
    __mulle_objc_global_unregister_universe( mulle_objc_universeid_t universeid,
                                             struct _mulle_objc_universe *universe);
@@ -121,13 +128,13 @@ MULLE_C_ALWAYS_INLINE static inline int
 // leak, when using universes other than MULLE_OBJC_DEFAULTUNIVERSEID
 // Remove the universe before calling this!
 //
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_global_reset_universetable( void);
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL long   __mulle_objc_personality_v0;   // no idea what this is used for
+MULLE_OBJC_RUNTIME_GLOBAL long   __mulle_objc_personality_v0;   // no idea what this is used for
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 size_t  __mulle_objc_global_get_alluniverses( struct _mulle_objc_universe **p,
                                               size_t n);
 

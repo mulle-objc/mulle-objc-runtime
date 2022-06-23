@@ -47,17 +47,17 @@ struct _mulle_objc_methodcache;
 // You are likely better off using [self self] to force unlazing a
 // class as its more portable and readable
 //
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cls);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void  _mulle_objc_methodcache_init_initial_callbacks( struct _mulle_objc_methodcache *p);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void  _mulle_objc_methodcache_init_empty_callbacks( struct _mulle_objc_methodcache *p);
 
 

@@ -37,12 +37,13 @@
 #ifndef mulle_objc_retain_release_h__
 #define mulle_objc_retain_release_h__
 
+#include "include.h"
+
 #include "mulle-objc-method.h"
 #include "mulle-objc-object.h"
 #include "mulle-objc-taggedpointer.h"
 #include "mulle-objc-call.h"
 
-#include "include.h"
 #include <limits.h>
 #include <assert.h>
 
@@ -74,10 +75,10 @@
 //
 // Your root class MUST implement -finalize and -dealloc.
 //
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void  _mulle_objc_object_tryfinalizetrydealloc( void *obj);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void  _mulle_objc_object_perform_finalize( void *obj);
 
 
@@ -102,7 +103,7 @@ static inline void   mulle_objc_object_perform_finalize( void *obj)
 
 // this function will create an "adjusted" always positive value
 // if you want the raw number, check the header function retaincount_1
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 uintptr_t  __mulle_objc_object_get_retaincount( void *obj);
 
 
@@ -289,23 +290,23 @@ static inline void   mulle_objc_object_release_inline( void *obj)
 
 
 // must be void *, for compiler
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   *mulle_objc_object_retain( void *obj);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_object_release( void *obj);
 
 
 # pragma mark - API
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_objects_retain( void **objects, size_t n);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_objects_release( void **objects, size_t n);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_objects_releaseandzero( void **objects, size_t n);
 
 

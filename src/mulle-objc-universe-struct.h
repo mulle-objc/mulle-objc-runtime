@@ -36,6 +36,8 @@
 #ifndef mulle_objc_universe_struct_h__
 #define mulle_objc_universe_struct_h__
 
+#include "include.h"
+
 #include "mulle-objc-cache.h"
 #include "mulle-objc-fastclasstable.h"
 #include "mulle-objc-fastmethodtable.h"
@@ -49,8 +51,6 @@
 #include "mulle-objc-uniqueidarray.h"
 #include "mulle-objc-super.h"
 #include "mulle-objc-version.h"
-
-#include "include.h"
 
 #include <stdarg.h>
 

@@ -36,6 +36,8 @@
 #ifndef mulle_objc_protocollist_h__
 #define mulle_objc_protocollist_h__
 
+#include "include.h"
+
 #include "mulle-objc-protocol.h"
 #include "mulle-objc-walktypes.h"
 
@@ -58,10 +60,10 @@ static inline size_t   mulle_objc_sizeof_protocollist( unsigned int n_protocols)
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_protocollist_sort( struct _mulle_objc_protocollist *list);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_protocol  *
    _mulle_objc_protocollist_linear_search( struct _mulle_objc_protocollist *list,
                                            mulle_objc_protocolid_t protocolid);
@@ -123,7 +125,7 @@ static inline void  _mulle_objc_protocollistenumerator_done( struct _mulle_objc_
 // supply cls and userinfo for callback, the cls is kinda ugly,
 // but it's easier this way (no need to reorganize userinfo)
 //
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
    _mulle_objc_protocollist_walk( struct _mulle_objc_protocollist *list,
                                   mulle_objc_walkprotocolcallback_t f,

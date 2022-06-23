@@ -15,7 +15,7 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
    if( CMAKE_BUILD_TYPE)
       string( TOUPPER "${CMAKE_BUILD_TYPE}" TMP_CONFIGURATION_NAME)
       add_definitions( "-D${TMP_CONFIGURATION_NAME}" )
-      if( NOT TMP_CONFIGURATION_NAME STREQUAL "DEBUG")
+      if( NOT (TMP_CONFIGURATION_NAME STREQUAL "DEBUG"))
          add_definitions( "-DNDEBUG" )
       else()
          if( "${MULLE_C_COMPILER_ID}" MATCHES "^(Clang|MulleClang)$")
@@ -28,6 +28,13 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
       set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMULLE_TEST=1")
    endif()
 
+   # set this as the default, as we expect shared libs to be included too
+   # if this is not the case you need to change this on a case per case
+   # basis
+   #
+   if( BUILD_SHARED_LIBS)
+      set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMULLE_INCLUDE_DYNAMIC=1")
+   endif()
    # load in flags defined by other plugins, presumably Objective-C
    include( CompilerFlagsAuxC OPTIONAL)
 

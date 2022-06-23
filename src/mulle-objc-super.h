@@ -35,6 +35,7 @@
 #ifndef mulle_objc_super_h__
 #define mulle_objc_super_h__
 
+#include "include.h"  // for alignment mulle_objc_vararg.hcode
 
 #include "mulle-objc-uniqueid.h"
 #include <string.h>
@@ -87,7 +88,7 @@ struct _mulle_objc_superlist
 };
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_super_is_sane( struct _mulle_objc_super *p);
 
 #define MULLE_OBJC_SUPERSELECTOR_STRING( s_cls, s_method)       (s_cls ";" s_method)

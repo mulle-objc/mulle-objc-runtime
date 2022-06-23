@@ -42,7 +42,6 @@
 #include "mulle-objc-universe.h"
 
 
-
 void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator)
 {

@@ -36,6 +36,8 @@
 #ifndef mulle_objc_object_convenience_h__
 #define mulle_objc_object_convenience_h__
 
+#include "include.h"
+
 #include "mulle-objc-object.h"
 
 #include "mulle-objc-class.h"
@@ -53,7 +55,7 @@ static inline char   *_mulle_objc_object_get_isa_name( void *obj)
 
 
 static inline mulle_objc_implementation_t
-    _mulle_objc_object_cacheonlylookup_implementation( void *obj,
+    _mulle_objc_object_lookup_implementation_cacheonly( void *obj,
                                                        mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
@@ -124,6 +126,7 @@ static inline void   __mulle_objc_instance_free( void *obj,
 }
 
 
+// the opposite of  _mulle_objc_infraclass_alloc_instance
 static inline void   _mulle_objc_instance_free( void *obj)
 {
    struct _mulle_objc_class        *cls;
@@ -135,6 +138,7 @@ static inline void   _mulle_objc_instance_free( void *obj)
 }
 
 
+// the opposite of  mulle_objc_infraclass_alloc_instance
 static inline void   mulle_objc_instance_free( void *obj)
 {
    if( ! obj)

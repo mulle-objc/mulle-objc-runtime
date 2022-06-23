@@ -36,6 +36,8 @@
 #ifndef mulle_objc_taggedpointer_h__
 #define mulle_objc_taggedpointer_h__
 
+#include "include.h"  // for alignment mulle_objc_vararg.hcode
+
 // malloc usually guarantees that alignment is suitable for any built in type
 // (this could very well be 1 byte alignment on a hypothetical CPU).
 // But objects may also appear temporarily on the stack(!) (-> cheatin strings)

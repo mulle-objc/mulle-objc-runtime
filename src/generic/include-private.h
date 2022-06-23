@@ -17,4 +17,8 @@
 
 /* You can add some more include statements here */
 
+#ifdef _WIN32
+# include <malloc.h> //  for alloca
+#endif
+
 #endif

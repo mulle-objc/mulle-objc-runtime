@@ -106,7 +106,7 @@ static void   test_super( id obj,
 //   memset( &args, 0xFF, sizeof( args));
 //   memset( &before, 0xFF, sizeof( before));
 
-   _mulle_objc_searcharguments_superinit( &args, methodsel, classsel);
+   _mulle_objc_searcharguments_init_super( &args, methodsel, classsel);
    before = args;
 
    method = mulle_objc_class_search_method( &infraclass->base, &args, infraclass->base.inheritance, NULL);
