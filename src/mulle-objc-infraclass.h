@@ -36,11 +36,12 @@
 #ifndef mulle_objc_infraclass_h__
 #define mulle_objc_infraclass_h__
 
+#include "include.h"
+
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-walktypes.h"
 
-#include "include.h"
 #include <assert.h>
 
 
@@ -91,11 +92,11 @@ struct _mulle_objc_infraclass
 };
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
                                         struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_plusdone( struct _mulle_objc_infraclass *infra);
 
 
@@ -197,8 +198,9 @@ static inline void
    mulle_objc_infraclass_add_methodlist_nofail( struct _mulle_objc_infraclass *infra,
                                                 struct _mulle_objc_methodlist *list)
 {
-   extern void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
-                                                           struct _mulle_objc_methodlist *list);
+   MULLE_OBJC_RUNTIME_GLOBAL
+   void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
+                                                  struct _mulle_objc_methodlist *list);
 
    mulle_objc_class_add_methodlist_nofail( &infra->base, list);
 }
@@ -222,7 +224,8 @@ static inline struct _mulle_objc_method  *
     mulle_objc_infraclass_defaultsearch_method( struct _mulle_objc_infraclass *infra,
                                                 mulle_objc_methodid_t methodid)
 {
-   extern struct _mulle_objc_method   *
+   MULLE_OBJC_RUNTIME_GLOBAL
+   struct _mulle_objc_method   *
       _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                               mulle_objc_methodid_t methodid,
                                               int *error);
@@ -238,9 +241,10 @@ static inline mulle_objc_implementation_t
    _mulle_objc_infraclass_lookup_superimplementation( struct _mulle_objc_infraclass *infra,
                                                       mulle_objc_superid_t superid)
 {
-   extern mulle_objc_implementation_t
+   MULLE_OBJC_RUNTIME_GLOBAL
+   mulle_objc_implementation_t
       _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
-                                                    mulle_objc_superid_t superid);
+                                                           mulle_objc_superid_t superid);
 
    return( _mulle_objc_class_superlookup_implementation_nofail( &infra->base, superid));
 }
@@ -418,7 +422,7 @@ static inline int
 
 # pragma mark - sanity check
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_infraclass_is_sane( struct _mulle_objc_infraclass *infra);
 
 
@@ -461,20 +465,20 @@ static inline struct mulle_concurrent_hashmapenumerator
 
 # pragma mark - properties
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *infra,
                                               struct _mulle_objc_propertylist *list);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_infraclass_add_propertylist_nofail( struct _mulle_objc_infraclass *infra,
                                                         struct _mulle_objc_propertylist *list);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_property   *
    _mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
                                            mulle_objc_propertyid_t propertyid);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_property  *
    mulle_objc_infraclass_search_property( struct _mulle_objc_infraclass *infra,
                                           mulle_objc_propertyid_t propertyid);
@@ -482,22 +486,22 @@ struct _mulle_objc_property  *
 
 # pragma mark - ivar lists
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
                                           struct _mulle_objc_ivarlist *list);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_infraclass_add_ivarlist_nofail( struct _mulle_objc_infraclass *infra,
                                                   struct _mulle_objc_ivarlist *list);
 
 
 # pragma mark - ivars
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_ivar   *_mulle_objc_infraclass_search_ivar( struct _mulle_objc_infraclass *infra,
                                                                mulle_objc_ivarid_t ivarid);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_infraclass *infra,
                                                              mulle_objc_ivarid_t ivarid);
 
@@ -505,20 +509,20 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 #pragma mark - walkers
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *cls,
                                       unsigned int inheritance,
                                       mulle_objc_walkivarscallback_t f,
                                       void *userinfo);
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
                                           unsigned int inheritance,
                                           mulle_objc_walkpropertiescallback_t f,
                                           void *userinfo);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	mulle_objc_infraclass_walk( struct _mulle_objc_infraclass   *infra,
                               enum mulle_objc_walkpointertype_t  type,
@@ -528,11 +532,11 @@ mulle_objc_walkcommand_t
 
 #pragma mark - some other methods, that are only defined on infraclass
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra);
 
 // check is same, but also emits warnings
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int    mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *infra);
 
 
@@ -546,19 +550,19 @@ static inline void
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_categories_unload( struct _mulle_objc_infraclass *infra);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infra);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *infra);
 
 
@@ -566,6 +570,7 @@ void   _mulle_objc_infraclass_call_willfinalize( struct _mulle_objc_infraclass *
 static inline void
    _mulle_objc_infraclass_setup_if_needed( struct _mulle_objc_infraclass *infra)
 {
+   MULLE_OBJC_RUNTIME_GLOBAL
    int  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
 
    if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))

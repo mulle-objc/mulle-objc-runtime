@@ -36,6 +36,8 @@
 #ifndef mulle_objc_load_h__
 #define mulle_objc_load_h__
 
+#include "include.h"
+
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -173,19 +175,19 @@ struct _mulle_objc_loadhashedstringlist
 };
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int  mulle_objc_loadhashedstring_is_sane( struct _mulle_objc_loadhashedstring *p);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_loadhashedstring_compare( struct _mulle_objc_loadhashedstring *a,
                                             struct _mulle_objc_loadhashedstring *b);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_loadhashedstring_sort( struct _mulle_objc_loadhashedstring *methods,
                                          unsigned int n);
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 char   *_mulle_objc_loadhashedstring_search( struct _mulle_objc_loadhashedstring *buf,
                                              unsigned int n,
                                              mulle_objc_uniqueid_t search);
@@ -200,7 +202,7 @@ static inline char   *
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 char   *_mulle_objc_loadhashedstring_bsearch( struct _mulle_objc_loadhashedstring *buf,
                                               unsigned int n,
                                               mulle_objc_uniqueid_t search);
@@ -294,21 +296,21 @@ struct _mulle_objc_loadinfo
 // must reside in permanent memory and not be freed until the universe
 // is destructed.
 //
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info);
 
 // checks that loadinfo is compatibly compiled
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_loadinfo *info);
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void
 	mulle_objc_loadclass_print_unfulfilled_dependency( struct _mulle_objc_loadclass *info,
                                                       struct _mulle_objc_universe *universe);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void
 	mulle_objc_loadcategory_print_unfulfilled_dependency( struct _mulle_objc_loadcategory *info,
                                                          struct _mulle_objc_universe *universe);

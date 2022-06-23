@@ -36,6 +36,8 @@
 #ifndef mulle_objc_metaclass_h__
 #define mulle_objc_metaclass_h__
 
+#include "include.h"
+
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-walktypes.h"
@@ -81,7 +83,7 @@ static inline struct _mulle_objc_metaclass   *_mulle_objc_class_as_metaclass( st
 
 #pragma mark - sanity check
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_metaclass_is_sane( struct _mulle_objc_metaclass *meta);
 
 
@@ -108,11 +110,11 @@ static inline char *
    return( meta->base.name);
 }
 
-
-static inline struct _mulle_objc_metaclass *
+// this can be either an infraclass or a metaclass
+static inline struct _mulle_objc_class *
    _mulle_objc_metaclass_get_superclass( struct _mulle_objc_metaclass *meta)
 {
-   return( (struct _mulle_objc_metaclass *) meta->base.superclass);
+   return( meta->base.superclass);
 }
 
 
@@ -168,7 +170,8 @@ static inline void
    mulle_objc_metaclass_add_methodlist_nofail( struct _mulle_objc_metaclass *meta,
                                                struct _mulle_objc_methodlist *list)
 {
-   extern void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
+   MULLE_OBJC_RUNTIME_GLOBAL
+   void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
                                                          struct _mulle_objc_methodlist *list);
 
    mulle_objc_class_add_methodlist_nofail( &meta->base, list);
@@ -179,7 +182,8 @@ static inline struct _mulle_objc_method  *
     mulle_objc_metaclass_defaultsearch_method( struct _mulle_objc_metaclass *meta,
                                          mulle_objc_methodid_t methodid)
 {
-    extern struct _mulle_objc_method   *
+   MULLE_OBJC_RUNTIME_GLOBAL
+   struct _mulle_objc_method   *
       _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                               mulle_objc_methodid_t methodid,
                                               int *error);
@@ -189,12 +193,14 @@ static inline struct _mulle_objc_method  *
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
    mulle_objc_metaclass_walk( struct _mulle_objc_metaclass   *meta,
                               enum mulle_objc_walkpointertype_t  type,
                               mulle_objc_walkcallback_t   callback,
                               void *parent,
                               void *userinfo);
+
 
 #endif /* mulle_objc_metaclass_h */

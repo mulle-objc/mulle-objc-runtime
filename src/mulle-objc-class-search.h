@@ -36,12 +36,13 @@
 #ifndef mulle_objc_class_search_h__
 #define mulle_objc_class_search_h__
 
+#include "include.h"
+
 #include "mulle-objc-uniqueid.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-method.h"
 #include "mulle-objc-methodlist.h"
 
-#include "include.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -57,6 +58,7 @@ struct _mulle_objc_class;
 // to find -methods ask isa of object, to find +methods, ask the metaclass of isa
 // these methods are uncached and authorative
 //
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_method  *
    _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                            mulle_objc_methodid_t methodid,
@@ -73,13 +75,14 @@ static inline struct _mulle_objc_method  *
 
 enum
 {
-   MULLE_OBJC_SEARCH_INVALID           = -1,   // used by cache to build entry
-   MULLE_OBJC_SEARCH_DEFAULT           = 0,    // not cacheable
-   MULLE_OBJC_SEARCH_IMP               = 1,    // not cacheable
-   MULLE_OBJC_SEARCH_SUPER_METHOD      = 2,    // like [super call]
-   MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD = 3,    // find the method overridden by class,category
-   MULLE_OBJC_SEARCH_SPECIFIC_METHOD   = 4,    // find method implemented in class,category
-   MULLE_OBJC_SEARCH_PREVIOUS_METHOD   = 5     // not cacheable
+   MULLE_OBJC_SEARCH_INVALID               = -1,   // used by cache to build entry
+   MULLE_OBJC_SEARCH_DEFAULT               = 0,    // not cacheable
+   MULLE_OBJC_SEARCH_DEFAULT_NO_INITIALIZE = 1,
+   MULLE_OBJC_SEARCH_IMP                   = 2,    // not cacheable
+   MULLE_OBJC_SEARCH_SUPER_METHOD          = 3,    // like [super call]
+   MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD     = 4,    // find the method overridden by class,category
+   MULLE_OBJC_SEARCH_SPECIFIC_METHOD       = 5,    // find method implemented in class,category
+   MULLE_OBJC_SEARCH_PREVIOUS_METHOD       = 6     // not cacheable
 };
 
 
@@ -178,7 +181,7 @@ static inline void
 // Classid is the id of the implementation class, that does the call
 //
 static inline void
-  _mulle_objc_searchargumentscacheable_superinit( struct _mulle_objc_searchargumentscachable *p,
+  _mulle_objc_searchargumentscacheable_init_super( struct _mulle_objc_searchargumentscachable *p,
                                                   mulle_objc_methodid_t methodid,
                                                   mulle_objc_classid_t classid)
 {
@@ -205,7 +208,7 @@ static inline void
 // Classid, categoryid is the id of the implementation class/category, that does the call
 //
 static inline void
-   _mulle_objc_searchargumentscacheable_overriddeninit( struct _mulle_objc_searchargumentscachable *p,
+   _mulle_objc_searchargumentscacheable_init_overridden( struct _mulle_objc_searchargumentscachable *p,
                                                         mulle_objc_methodid_t methodid,
                                                         mulle_objc_classid_t classid,
                                                         mulle_objc_categoryid_t categoryid)
@@ -228,7 +231,7 @@ static inline void
 //   mulle_objc_class_search_method( [A class], @selector( foo), &search,....)
 //
 static inline void
-   _mulle_objc_searchargumentscacheable_specificinit( struct _mulle_objc_searchargumentscachable *p,
+   _mulle_objc_searchargumentscacheable_init_specific( struct _mulle_objc_searchargumentscachable *p,
                                                       mulle_objc_methodid_t methodid,
                                                       mulle_objc_classid_t classid,
                                                       mulle_objc_categoryid_t categoryid)
@@ -268,7 +271,7 @@ static inline void
 
 
 static inline void
-   _mulle_objc_searcharguments_defaultinit( struct _mulle_objc_searcharguments *p,
+   _mulle_objc_searcharguments_init_default( struct _mulle_objc_searcharguments *p,
                                             mulle_objc_methodid_t methodid)
 {
    p->args.mode       = MULLE_OBJC_SEARCH_DEFAULT;
@@ -278,9 +281,10 @@ static inline void
 }
 
 
+
 static inline void
-   _mulle_objc_searcharguments_impinit( struct _mulle_objc_searcharguments *p,
-                                        mulle_objc_implementation_t imp)
+   _mulle_objc_searcharguments_init_imp( struct _mulle_objc_searcharguments *p,
+                                         mulle_objc_implementation_t imp)
 {
    p->args.mode       = MULLE_OBJC_SEARCH_IMP;
    p->args.methodid   = 0;  // 4 valgrind
@@ -291,8 +295,8 @@ static inline void
 
 
 static inline void
-   _mulle_objc_searcharguments_previousmethodinit( struct _mulle_objc_searcharguments *p,
-                                                   struct _mulle_objc_method *method)
+   _mulle_objc_searcharguments_init_previous( struct _mulle_objc_searcharguments *p,
+                                              struct _mulle_objc_method *method)
 {
    p->args.mode       = MULLE_OBJC_SEARCH_PREVIOUS_METHOD;
    p->args.methodid   = _mulle_objc_method_get_methodid( method);
@@ -302,35 +306,35 @@ static inline void
 
 
 static inline void
-   _mulle_objc_searcharguments_superinit( struct _mulle_objc_searcharguments *p,
-                                          mulle_objc_methodid_t methodid,
-                                          mulle_objc_classid_t classid)
+   _mulle_objc_searcharguments_init_super( struct _mulle_objc_searcharguments *p,
+                                           mulle_objc_methodid_t methodid,
+                                           mulle_objc_classid_t classid)
 {
-   _mulle_objc_searchargumentscacheable_superinit( &p->args, methodid, classid);
+   _mulle_objc_searchargumentscacheable_init_super( &p->args, methodid, classid);
    p->imp             = 0; // 4 valgrind
    p->previous_method = 0; // 4 valgrind
 }
 
 
 static inline void
-   _mulle_objc_searcharguments_overriddeninit( struct _mulle_objc_searcharguments *p,
-                                               mulle_objc_methodid_t methodid,
-                                               mulle_objc_classid_t classid,
-                                               mulle_objc_classid_t category)
+   _mulle_objc_searcharguments_init_overridden( struct _mulle_objc_searcharguments *p,
+                                                mulle_objc_methodid_t methodid,
+                                                mulle_objc_classid_t classid,
+                                                mulle_objc_classid_t category)
 {
-   _mulle_objc_searchargumentscacheable_overriddeninit( &p->args, methodid, classid, category);
+   _mulle_objc_searchargumentscacheable_init_overridden( &p->args, methodid, classid, category);
    p->imp             = 0; // 4 valgrind
    p->previous_method = 0; // 4 valgrind
 }
 
 
 static inline void
-   _mulle_objc_searcharguments_specificinit( struct _mulle_objc_searcharguments *p,
-                                             mulle_objc_methodid_t methodid,
-                                             mulle_objc_classid_t classid,
-                                             mulle_objc_classid_t category)
+   _mulle_objc_searcharguments_init_specific( struct _mulle_objc_searcharguments *p,
+                                              mulle_objc_methodid_t methodid,
+                                              mulle_objc_classid_t classid,
+                                              mulle_objc_classid_t category)
 {
-   _mulle_objc_searchargumentscacheable_specificinit( &p->args, methodid, classid, category);
+   _mulle_objc_searchargumentscacheable_init_specific( &p->args, methodid, classid, category);
    p->imp             = 0; // 4 valgrind
    p->previous_method = 0; // 4 valgrind
 }
@@ -378,12 +382,12 @@ struct _mulle_objc_method   *
 
 # pragma mark - failing
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NO_RETURN void
    _mulle_objc_class_fail_methodnotfound( struct _mulle_objc_class *cls,
                                            mulle_objc_methodid_t missing_method);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NO_RETURN void
    _mulle_objc_class_fail_fowardmethodnotfound( struct _mulle_objc_class *cls,
                                                 mulle_objc_methodid_t missing_method,
@@ -395,7 +399,7 @@ MULLE_C_NO_RETURN void
 // this should be used by the debugger, but the debugger is really fixed to
 // use __forward_mulle_objc_object_call
 //
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
    mulle_objc_class_get_forwardimplementation( struct _mulle_objc_class *cls);
 
@@ -409,14 +413,14 @@ struct _mulle_objc_method   *
                                             int *error);
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail(
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
 
 // error contains a errno constant, if return value is NULL
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_method  *
    mulle_objc_class_search_non_inherited_method( struct _mulle_objc_class *cls,
                                                  mulle_objc_methodid_t methodid,
@@ -447,6 +451,7 @@ struct _mulle_objc_method *
    mulle_objc_class_supersearch_method_nofail( struct _mulle_objc_class *cls,
                                                mulle_objc_superid_t superid)
 {
+  MULLE_OBJC_RUNTIME_GLOBAL
    struct _mulle_objc_super   *
       _mulle_objc_universe_lookup_super_nofail( struct _mulle_objc_universe *universe,
                                                   mulle_objc_superid_t superid);
@@ -463,7 +468,7 @@ struct _mulle_objc_method *
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_superinit( &args, p->methodid, p->classid);
+   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
    method = mulle_objc_class_search_method( cls,
                                             &args,
                                             cls->inheritance,

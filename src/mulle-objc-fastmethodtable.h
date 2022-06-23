@@ -38,10 +38,11 @@
 
 #ifdef __MULLE_OBJC_FCS__
 
+#include "include.h"
+
 #include "mulle-objc-method.h"
 #include "mulle-objc-methodidconstants.h"
 
-#include "include.h"
 
 
 
@@ -65,7 +66,7 @@ struct _mulle_objc_fastmethodtable
 
 
 // setup fault handlers for the method table
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *table);
 
 

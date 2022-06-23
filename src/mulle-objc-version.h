@@ -36,6 +36,7 @@
 #ifndef mulle_objc_version_h__
 #define mulle_objc_version_h__
 
+#include "include.h"
 
 #include <stdint.h>
 

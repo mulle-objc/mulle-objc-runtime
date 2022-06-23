@@ -62,3 +62,5 @@ tmp.*/
 dox/inheritance/
 dox/super/calls-legacy.md
 .gdb_history
+.mulle-make-build-dir
+version.old

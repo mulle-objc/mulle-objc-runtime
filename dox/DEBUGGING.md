@@ -45,7 +45,7 @@ set the environment variables to "YES" or "NO".
 `MULLE_OBJC_TRACE_STATE_BIT`            | Trace whenever a class state changes.
 `MULLE_OBJC_TRACE_STRING_ADDS`          | Trace whenever a constant string is added to the runtime system.
 `MULLE_OBJC_TRACE_TAGGED_POINTER`       | Trace whenever a class registers for tagged pointers (isa).
-`MULLE_OBJC_TRACE_UNIVERSE`             | Trace construction and destructon of universes
+`MULLE_OBJC_TRACE_UNIVERSE`             | Trace construction and destruction of universes
 
 ## Settings
 

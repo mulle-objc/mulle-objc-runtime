@@ -33,6 +33,8 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
+#include <mulle-c11/mulle-c11.h>
+
 #include "mulle-objc-signature.h"
 
 #include <ctype.h>

@@ -89,23 +89,23 @@ struct _mulle_objc_classpair
 
 # pragma mark - init and done
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void    _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
                                     struct mulle_allocator *allocator);
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_classpair_call_class_finalize( struct _mulle_objc_classpair *pair);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
                                   struct mulle_allocator *allocator);
 
@@ -266,6 +266,9 @@ static inline struct _mulle_objc_metaclass   *
 
 
 // code is here, because metaclass doesn't know about pair
+// could also look into .base->infraclass if already setup, but this oughta
+// be faster actually because it needs no memory read
+//
 static inline struct _mulle_objc_infraclass   *
    _mulle_objc_metaclass_get_infraclass( struct _mulle_objc_metaclass *cls)
 {
@@ -306,11 +309,11 @@ static inline int
    return( _mulle_objc_uniqueidarray_search( array, categoryid));
 }
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
                                              mulle_objc_categoryid_t categoryid);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
                                              mulle_objc_categoryid_t categoryid);
 
@@ -329,14 +332,14 @@ static inline void
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_categoryids( struct _mulle_objc_classpair *pair,
                                           unsigned int inheritance,
                                           mulle_objc_walkcategoryidscallback_t f,
                                           void *userinfo);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair *pair,
                                                    mulle_objc_categoryid_t categoryid);
 
@@ -359,18 +362,18 @@ static inline unsigned int   _mulle_objc_classpair_get_protocolclasscount( struc
 
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
                                                unsigned int inheritance,
                                                mulle_objc_walkprotocolclassescallback_t f,
                                                void *userinfo);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pair,
                                                 struct _mulle_objc_infraclass *proto_cls);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_classpair *pair,
                                                          mulle_objc_protocolid_t *protocolids);
 
@@ -388,14 +391,14 @@ static inline int
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
                                           unsigned int inheritance,
                                           mulle_objc_walkprotocolidscallback_t f,
                                           void *userinfo);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int
    __mulle_objc_classpair_conformsto_protocolid( struct _mulle_objc_classpair *pair,
                                                  unsigned int inheritance,
@@ -438,7 +441,7 @@ static inline void
 }
 
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_classpair_add_protocollist_nofail( struct _mulle_objc_classpair *pair,
                                                      struct _mulle_objc_protocollist *protocols);
 
@@ -522,7 +525,7 @@ struct _mulle_objc_infraclass  *
 
 #pragma mark - debug support
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
    mulle_objc_classpair_walk( struct _mulle_objc_classpair *pair,
                               mulle_objc_walkcallback_t callback,
@@ -580,7 +583,7 @@ static inline int   mulle_objc_class_conforms_to_protocol( struct _mulle_objc_cl
 
 // not recommended to use
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pair,
                                                mulle_atomic_pointer_t *pointer,
                                                struct _mulle_objc_uniqueidarray *array);
@@ -619,5 +622,18 @@ static inline void
                                             array);
 }
 
+
+static inline void
+   _mulle_objc_metaclass_setup_if_needed( struct _mulle_objc_metaclass *meta)
+{
+   struct _mulle_objc_infraclass  *infra;
+
+   MULLE_OBJC_RUNTIME_GLOBAL
+   int  _mulle_objc_class_setup( struct _mulle_objc_class *cls);
+
+   infra = _mulle_objc_metaclass_get_infraclass( meta);
+   if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
+      _mulle_objc_class_setup( _mulle_objc_metaclass_as_class( meta));
+}
 
 #endif /* mulle_objc_classpair_h */

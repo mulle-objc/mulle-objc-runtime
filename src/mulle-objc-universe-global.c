@@ -39,20 +39,17 @@
 
 
 
-#define MULLE_OBJC_RUNTIME_GLOBAL   MULLE_C_GLOBAL
-
-
 //
 // Globals I can't get rid off
 // They must be initialized because of windows
 //
 
-MULLE_OBJC_RUNTIME_GLOBAL long   __mulle_objc_personality_v0 = 1848;   // no idea what this is used for
+long   __mulle_objc_personality_v0 = 1848;   // no idea what this is used for
 
 //
 // the mulle_objc_defaultuniverse is special and has universeid 0
 //
-MULLE_OBJC_RUNTIME_GLOBAL struct _mulle_objc_universe
+struct _mulle_objc_universe
    mulle_objc_defaultuniverse =
 {
    .version = (void *) mulle_objc_universe_is_uninitialized
@@ -78,7 +75,7 @@ static const struct _mulle_concurrent_hashmapstorage	empty_hashmapstorage =
 };
 
 
-MULLE_OBJC_RUNTIME_GLOBAL struct init_wrapper_for_windows
+struct init_wrapper_for_windows
 	mulle_objc_universetable =
 {
 	{

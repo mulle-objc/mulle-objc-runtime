@@ -205,7 +205,7 @@ mulle_objc_implementation_t
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_superinit( &args, p->methodid, p->classid);
+   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
    method = mulle_objc_class_search_method( cls,
                                             &args,
                                             cls->inheritance,
@@ -238,7 +238,7 @@ mulle_objc_implementation_t
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_superinit( &args, p->methodid, p->classid);
+   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
    method = mulle_objc_class_search_method( cls,
                                             &args,
                                             cls->inheritance,

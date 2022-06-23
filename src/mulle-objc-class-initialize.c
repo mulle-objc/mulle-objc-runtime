@@ -234,8 +234,10 @@ static void  _mulle_objc_infraclass_setup_superclasses( struct _mulle_objc_infra
 
 static void  _mulle_objc_metaclass_setup_superclass( struct _mulle_objc_metaclass *meta)
 {
-   struct _mulle_objc_metaclass    *superclass;
-   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_class        *superclass;
+   struct _mulle_objc_infraclass   *infra;
+
+   assert( _mulle_objc_class_is_metaclass( _mulle_objc_metaclass_as_class( meta)));
 
    /*
     * Ensure superclass is there (infraclass will do protocolclasses)
@@ -243,8 +245,13 @@ static void  _mulle_objc_metaclass_setup_superclass( struct _mulle_objc_metaclas
    superclass = _mulle_objc_metaclass_get_superclass( meta);
    if( superclass)
    {
-      cls = _mulle_objc_metaclass_as_class( superclass);
-      _mulle_objc_class_setup( cls);
+      // this is a little convoluted, because the root superclass could
+      // actually be an infraclass (NSObject)
+      infra = _mulle_objc_class_get_infraclass( superclass);
+      if( ! infra) // can happen if we hit root
+         infra = _mulle_objc_class_as_infraclass( superclass);
+
+      _mulle_objc_infraclass_setup_if_needed( infra);
    }
 }
 
@@ -361,7 +368,8 @@ static void   *_mulle_objc_object_call_class_slow( void *obj,
 }
 
 
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+struct _mulle_objc_method *
    _mulle_objc_class_superlookup_method_slow_nocache_nofail( struct _mulle_objc_class *cls,
                                                              mulle_objc_superid_t superid)
 {
@@ -377,7 +385,7 @@ MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_superinit( &args, p->methodid, p->classid);
+   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
    method = mulle_objc_class_search_method( cls,
                                             &args,
                                             cls->inheritance,
@@ -388,7 +396,8 @@ MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
 }
 
 
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN mulle_objc_implementation_t
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+mulle_objc_implementation_t
    _mulle_objc_class_superlookup_implementation_slow_nocache_nofail( struct _mulle_objc_class *cls,
                                                                      mulle_objc_superid_t superid)
 {

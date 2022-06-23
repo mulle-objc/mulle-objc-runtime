@@ -36,6 +36,8 @@
 #ifndef mulle_objc_property_h__
 #define mulle_objc_property_h__
 
+#include "include.h"
+
 #include "mulle-objc-uniqueid.h"
 
 #include <assert.h>
@@ -214,16 +216,16 @@ static inline uint32_t   _mulle_objc_property_is_nonserializable( struct _mulle_
 
 
 // todo: fix this naming strangenesss
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *property, char type);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 char   *_mulle_objc_propertysignature_next_types( char *s, char *types);
 
 
 # pragma mark - bsearch
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_property   *
    _mulle_objc_property_bsearch( struct _mulle_objc_property *buf,
                                  unsigned int n,
@@ -243,11 +245,11 @@ static inline struct _mulle_objc_property   *
 
 # pragma mark - qsort
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int  _mulle_objc_property_compare( struct _mulle_objc_property *a,
                                    struct _mulle_objc_property *b);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_property_sort( struct _mulle_objc_property *properties,
                                  unsigned int n);
 

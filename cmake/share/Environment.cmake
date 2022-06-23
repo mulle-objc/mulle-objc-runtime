@@ -2,6 +2,7 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+
 if( NOT __ENVIRONMENT__CMAKE__)
    set( __ENVIRONMENT__CMAKE__ ON)
 
@@ -11,14 +12,18 @@ if( NOT __ENVIRONMENT__CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
+   include( StringCase)
+
    if( NOT PROJECT_IDENTIFIER)
       string( MAKE_C_IDENTIFIER "${PROJECT_NAME}" PROJECT_IDENTIFIER)
    endif()
    if( NOT PROJECT_UPCASE_IDENTIFIER)
-      string( TOUPPER "${PROJECT_IDENTIFIER}" PROJECT_UPCASE_IDENTIFIER)
+      snakeCaseString( "${PROJECT_IDENTIFIER}" PROJECT_UPCASE_IDENTIFIER)
+      string( TOUPPER "${PROJECT_UPCASE_IDENTIFIER}" PROJECT_UPCASE_IDENTIFIER)
    endif()
    if( NOT PROJECT_DOWNCASE_IDENTIFIER)
-      string( TOLOWER "${PROJECT_IDENTIFIER}" PROJECT_DOWNCASE_IDENTIFIER)
+      snakeCaseString( "${PROJECT_IDENTIFIER}" PROJECT_DOWNCASE_IDENTIFIER)
+      string( TOLOWER "${PROJECT_DOWNCASE_IDENTIFIER}" PROJECT_DOWNCASE_IDENTIFIER)
    endif()
 
    if( NOT MULLE_VIRTUAL_ROOT)
@@ -60,7 +65,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
       endif()
    else()
       # temporary fix until mulle-objc 0.16 release
-      if( NOT "$ENV{MULLE_MAKE_VERSION}" STREQUAL "") 
+      if( NOT ("$ENV{MULLE_MAKE_VERSION}" STREQUAL ""))
          if( "$ENV{MULLE_MAKE_VERSION}" VERSION_LESS 0.14.0)
             string( REPLACE ":" ";" MULLE_SDK_PATH "${MULLE_SDK_PATH}")
          endif()
@@ -115,7 +120,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
          # add build type unconditionally if not Release
          #
          if( CMAKE_BUILD_TYPE)
-            if( NOT CMAKE_BUILD_TYPE STREQUAL "Release")
+            if( NOT (CMAKE_BUILD_TYPE STREQUAL "Release"))
                set( TMP_CMAKE_INCLUDE_PATH
                   ${TMP_CMAKE_INCLUDE_PATH}
                   "${TMP_PREFIX}/${CMAKE_BUILD_TYPE}/include"
@@ -215,6 +220,14 @@ if( NOT __ENVIRONMENT__CMAKE__)
          add_definitions( -F "${TMP_FRAMEWORK_PATH}")
       endforeach()
       unset( TMP_FRAMEWORK_PATH)
+   endif()
+
+
+   #
+   # add "d" to library names on windows MSVC for debugging libraries
+   #
+   if( MSVC AND NOT CMAKE_DEBUG_POSTFIX AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+      set( CMAKE_DEBUG_POSTFIX "d")
    endif()
 
    unset( TMP_INCLUDE_DIRS)

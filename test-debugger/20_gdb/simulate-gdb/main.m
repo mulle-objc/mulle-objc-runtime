@@ -156,7 +156,7 @@ static int  test_infra( struct _mulle_objc_infraclass *infra,
    CORE_ADDR                           imp2;
    struct gdbarch                      gdbarch;
 
-   _mulle_objc_searcharguments_defaultinit( &arguments, sel);
+   _mulle_objc_searcharguments_init_default( &arguments, sel);
 
    method = mulle_objc_class_search_method( _mulle_objc_infraclass_as_class( infra),
                                             &arguments,
@@ -189,7 +189,7 @@ static int  test_meta( struct _mulle_objc_metaclass *meta,
    CORE_ADDR                           imp2;
    struct gdbarch                      gdbarch;
 
-   _mulle_objc_searcharguments_defaultinit( &arguments, sel);
+   _mulle_objc_searcharguments_init_default( &arguments, sel);
 
    method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
                                             &arguments,
@@ -223,7 +223,7 @@ static int  test_infra_super( struct _mulle_objc_infraclass *infra,
    CORE_ADDR                           imp2;
    struct gdbarch                      gdbarch;
 
-   _mulle_objc_searcharguments_superinit( &arguments,
+   _mulle_objc_searcharguments_init_super( &arguments,
                                           sel,
                                           _mulle_objc_infraclass_get_classid( infra));
 
@@ -258,7 +258,7 @@ static int  test_meta_super( struct _mulle_objc_metaclass *meta,
    CORE_ADDR                           imp2;
    struct gdbarch                      gdbarch;
 
-   _mulle_objc_searcharguments_superinit( &arguments,
+   _mulle_objc_searcharguments_init_super( &arguments,
                                           sel,
                                           _mulle_objc_metaclass_get_classid( meta));
 
@@ -348,7 +348,7 @@ static int  test3( void)
    infra = (struct _mulle_objc_infraclass *) [E class];
    meta  = _mulle_objc_infraclass_get_metaclass( infra);
 
-   _mulle_objc_searcharguments_superinit( &arguments,
+   _mulle_objc_searcharguments_init_super( &arguments,
                                           @selector( instanceC),
                                           _mulle_objc_metaclass_get_classid( meta));
 

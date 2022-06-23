@@ -36,6 +36,8 @@
 #ifndef mulle_objc_ivar_h__
 #define mulle_objc_ivar_h__
 
+#include "include.h"
+
 #include "mulle-objc-uniqueid.h"
 
 #include <assert.h>
@@ -90,7 +92,7 @@ static inline int    _mulle_objc_ivar_get_offset( struct _mulle_objc_ivar *ivar)
 
 # pragma mark - bsearch
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_ivar   *_mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *buf,
                                                      unsigned int n,
                                                      mulle_objc_ivarid_t search);
@@ -108,10 +110,10 @@ static inline struct _mulle_objc_ivar   *mulle_objc_ivar_bsearch( struct _mulle_
 
 # pragma mark - qsort
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_ivar_compare( struct _mulle_objc_ivar *a, struct _mulle_objc_ivar *b);
 
-MULLE_OBJC_RUNTIME_EXTERN_GLOBAL
+MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_ivar_sort( struct _mulle_objc_ivar *ivars, unsigned int n);
 
 
