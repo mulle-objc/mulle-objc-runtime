@@ -632,7 +632,7 @@ struct _mulle_objc_method   *
    //
    if( ! _mulle_objc_class_is_initializing_or_initialized(  cls))
    {
-      if( ! (mode == search_default &&
+      if( ! ((mode == search_default || mode == search_previous_method) &&
              (search->args.methodid == MULLE_OBJC_UNLOAD_METHODID ||
               search->args.methodid == MULLE_OBJC_LOAD_METHODID)))
       {

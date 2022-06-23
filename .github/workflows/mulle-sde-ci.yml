@@ -33,7 +33,7 @@ jobs:
     - uses: mulle-sde/github-ci@v1
       if: ${{ ! env.ACT }}
 
-    - uses: mulle-objc/github-ci@v3
+    - uses: mulle-cc/github-ci@v4
       if: ${{ ! env.ACT }}
 
     - name: Dump Project Environment

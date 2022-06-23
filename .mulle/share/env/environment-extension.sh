@@ -1,7 +1,7 @@
 #
 # Reset to empty
 #
-export MULLE_SDE_REFLECT_CALLBACKS="sourcetree:source"
+export MULLE_SDE_REFLECT_CALLBACKS="sourcetree:filesystem"
 
 
 #

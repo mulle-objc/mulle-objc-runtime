@@ -1,3 +1,12 @@
+## 0.21.0
+
+* fix `mulle_objc_signature_supply_typeinfo` to not suppress supplier
+* fix runtime initializing classes on shutdown needlessly
+* rename `_mulle_objc_searcharguments_superinit` and its ilk to `_mulle_objc_searcharguments_init_super` for consistency with other functions
+* change GLOBALs for Windows
+* rename `_mulle_objc_object_cacheonlylookup_implementation` to `_mulle_objc_object_lookup_implementation_cacheonly`
+
+
 ## 0.20.0
 
 * moved debug support out into mulle-objc-debug, which reduces the size of the runtime proper by 25%

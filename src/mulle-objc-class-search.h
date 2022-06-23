@@ -272,7 +272,7 @@ static inline void
 
 static inline void
    _mulle_objc_searcharguments_init_default( struct _mulle_objc_searcharguments *p,
-                                            mulle_objc_methodid_t methodid)
+                                             mulle_objc_methodid_t methodid)
 {
    p->args.mode       = MULLE_OBJC_SEARCH_DEFAULT;
    p->args.methodid   = methodid;

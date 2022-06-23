@@ -705,25 +705,35 @@ void   _mulle_objc_class_warn_alloc_before_initialize( struct _mulle_objc_class 
 
 
 MULLE_C_NEVER_INLINE
-void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *cls,
+void   __mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *cls,
                                                      void *obj)
 {
    struct _mulle_objc_universe   *universe;
-   mulle_objc_classid_t          classid;
+
+   universe = _mulle_objc_class_get_universe( cls);
+   mulle_objc_universe_trace( universe, "An instance %p of \"%s\" has been created "
+                                        "during universe finalization. "
+                                        "Try to avoid this.\n"
+                                        "(break on: __mulle_objc_class_warn_alloc_during_finalize)",
+                                     obj,
+                                     _mulle_objc_class_get_name( cls));
+   mulle_objc_universe_maybe_hang_or_abort( universe);
+}
+
+
+MULLE_C_NEVER_INLINE
+void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *cls,
+                                                     void *obj)
+{
+   mulle_objc_classid_t   classid;
 
    classid = _mulle_objc_class_get_classid( cls);
-   if( classid != 0x58bb178a)  // NSAutoreleasePool
-   {
-      universe = _mulle_objc_class_get_universe( cls);
-      mulle_objc_universe_trace( universe, "An instance %p of \"%s\" has been created "
-                                           "during universe finalization. "
-                                           "Try to avoid this.\n"
-                                           "(break on: _mulle_objc_class_warn_alloc_during_finalize)",
-                                        obj,
-                                        _mulle_objc_class_get_name( cls));
-      mulle_objc_universe_maybe_hang_or_abort( universe);
-   }
+   if( classid == 0x58bb178a)  // NSAutoreleasePool
+      return;
+
+   __mulle_objc_class_warn_alloc_during_finalize( cls, obj);
 }
+
 
 
 void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
