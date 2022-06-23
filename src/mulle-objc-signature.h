@@ -154,7 +154,7 @@ char   *_mulle_objc_signature_supply_typeinfo( char *types,
 
 //
 // you should be able to iterate through all types of a signature with
-// while( mulle_objc_signature_supply_typeinfo( types, &info))
+// while( mulle_objc_signature_supply_typeinfo( types, NULL, &info))
 //
 static inline char   *
    mulle_objc_signature_supply_typeinfo( char *types,
@@ -166,7 +166,7 @@ static inline char   *
    if( ! types || ! *types)
       return( NULL);
 
-   next = _mulle_objc_signature_supply_typeinfo( types, NULL, info);
+   next = _mulle_objc_signature_supply_typeinfo( types, supplier, info);
    return( next);
 }
 

@@ -42,7 +42,7 @@
 // JIT code.
 //
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0   // max 511
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  20  // max 1023
+#define MULLE_OBJC_RUNTIME_VERSION_MINOR  21  // max 1023
 #define MULLE_OBJC_RUNTIME_VERSION_PATCH  0   // max 255
 
 //
@@ -62,7 +62,7 @@
 
 //
 // Above is sufficient to get -O0 working.
-// The following lines are are de-inlining mulle-objc-runtime functions for
+// The following lines are de-inlining mulle-objc-runtime functions for
 // compatibility with -O1, -O2, -O3.
 //
 

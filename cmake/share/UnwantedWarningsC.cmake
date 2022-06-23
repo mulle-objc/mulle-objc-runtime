@@ -18,7 +18,7 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
       # move this to ObjC
       #
       if( "${MULLE_C_COMPILER_ID}" MATCHES "^(Clang|AppleClang|MulleClang|GNU)$")
-         set( UNWANTED_C_WARNINGS "-Wno-parentheses -Wno-int-to-void-pointer-cast")
+         set( UNWANTED_C_WARNINGS "-Wno-parentheses")
       else()
          if( "${MULLE_C_COMPILER_ID}" MATCHES "^(Intel|MSVC|MSVC-Clang|MSVC-MulleClang)$")
             # C4068: unwanted pragma

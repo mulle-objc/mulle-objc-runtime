@@ -38,16 +38,18 @@
 #include "mulle-objc-universe.h"
 
 //
-// these functions vector throught the universe,
+// these functions vector through the universe,
 // usually into a Foundation
 //
-static void   objc_exception_throw( void *exception, struct _mulle_objc_universe *universe)  // familar name
+static void   objc_exception_throw( void *exception,
+                                    struct _mulle_objc_universe *universe)  // familar name
 {
    universe->exceptionvectors.throw( universe, exception);
 }
 
 
-void   mulle_objc_exception_throw( void *exception, mulle_objc_classid_t universeid)
+void   mulle_objc_exception_throw( void *exception,
+                                   mulle_objc_classid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -56,7 +58,8 @@ void   mulle_objc_exception_throw( void *exception, mulle_objc_classid_t univers
 }
 
 
-void   mulle_objc_exception_tryenter( void *localExceptionData, mulle_objc_classid_t universeid)
+void   mulle_objc_exception_tryenter( void *localExceptionData,
+                                      mulle_objc_classid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -65,7 +68,8 @@ void   mulle_objc_exception_tryenter( void *localExceptionData, mulle_objc_class
 }
 
 
-void   mulle_objc_exception_tryexit( void *localExceptionData, mulle_objc_classid_t universeid)
+void   mulle_objc_exception_tryexit( void *localExceptionData,
+                                     mulle_objc_classid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -74,7 +78,8 @@ void   mulle_objc_exception_tryexit( void *localExceptionData, mulle_objc_classi
 }
 
 
-void   *mulle_objc_exception_extract( void *localExceptionData, mulle_objc_classid_t universeid)
+void   *mulle_objc_exception_extract( void *localExceptionData,
+                                      mulle_objc_classid_t universeid)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -83,7 +88,9 @@ void   *mulle_objc_exception_extract( void *localExceptionData, mulle_objc_class
 }
 
 
-int   _mulle_objc_exception_match( void *exception, mulle_objc_classid_t universeid, mulle_objc_classid_t classid)
+int   _mulle_objc_exception_match( void *exception,
+                                   mulle_objc_classid_t universeid,
+                                   mulle_objc_classid_t classid)
 {
    struct _mulle_objc_universe   *universe;
 

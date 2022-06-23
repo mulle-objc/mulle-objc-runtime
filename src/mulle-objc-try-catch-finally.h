@@ -48,22 +48,30 @@
 // these methods are known as builtins by the compiler
 //
 MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_exception_throw( void *exception, mulle_objc_universeid_t universe);
+void   mulle_objc_exception_throw( void *exception,
+                                   mulle_objc_universeid_t universe);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_exception_tryenter( void *localExceptionData, mulle_objc_universeid_t universe);
+void   mulle_objc_exception_tryenter( void *localExceptionData,
+                                      mulle_objc_universeid_t universe);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_exception_tryexit( void *localExceptionData, mulle_objc_universeid_t universe);
+void   mulle_objc_exception_tryexit( void *localExceptionData,
+                                     mulle_objc_universeid_t universe);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   *mulle_objc_exception_extract( void *localExceptionData, mulle_objc_universeid_t universe);
+void   *mulle_objc_exception_extract( void *localExceptionData,
+                                      mulle_objc_universeid_t universe);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int    _mulle_objc_exception_match( void *exception, mulle_objc_universeid_t universe, mulle_objc_classid_t classid);
+int    _mulle_objc_exception_match( void *exception,
+                                    mulle_objc_universeid_t universe,
+                                    mulle_objc_classid_t classid);
 
 
-static inline int  mulle_objc_exception_match( void *exception, mulle_objc_universeid_t universeid, mulle_objc_classid_t classid)
+static inline int  mulle_objc_exception_match( void *exception,
+                                               mulle_objc_universeid_t universeid,
+                                               mulle_objc_classid_t classid)
 {
    // short circuit, if classid is NSException
    if( classid == MULLE_OBJC_CLASSID( 0xa41284db))
