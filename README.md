@@ -9,7 +9,7 @@ It is designed to be suitable for massive multi-threading.
 
 | Release Version
 |-----------------------------------
- ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](https://github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-objc/mulle-objc-runtime/workflows)
+ ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](//github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com/mulle-objc/mulle-objc-runtime/actions)
 
 
 ## What's so different ?
@@ -44,16 +44,16 @@ only locks during `+initialize` on a per class basis.
 
 ## Required Libraries and Tools
 
-![Libraries and Tools](https://raw.githubusercontent.com/mulle-objc/mulle-objc-runtime/release/dox/mulle-objc-runtime-dependencies.png)
+![Libraries and Tools](//raw.githubusercontent.com/mulle-objc/mulle-objc-runtime/release/dox/mulle-objc-runtime-dependencies.png)
 
   Name         | Release Version
 ---------------|---------------------------------
-[mulle-aba](//github.com/mulle-concurrent/mulle-aba) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-aba.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-aba/workflows.svg?branch=release)](https://github.com/mulle-concurrent/mulle-aba/workflows)
-[mulle-allocator](//github.com/mulle-c/mulle-allocator) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-allocator.svg) [![Build Status](https://github.com/mulle-c/mulle-allocator/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-allocator/workflows)
-[mulle-c11](//github.com/mulle-c/mulle-c11) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-c11.svg) [![Build Status](https://github.com/mulle-c/mulle-c11/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-c11/workflows)
-[mulle-concurrent](//github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-concurrent.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-concurrent/workflows.svg?branch=release)](https://github.com/mulle-concurrent/mulle-concurrent/workflows)
-[mulle-thread](//github.com/mulle-concurrent/mulle-thread) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-thread.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-thread/workflows.svg?branch=release)](https://github.com/mulle-concurrent/mulle-thread/workflows)
-[mulle-vararg](//github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](https://github.com/mulle-c/mulle-vararg/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-vararg/workflows)
+[mulle-aba](//github.com/mulle-concurrent/mulle-aba) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-concurrent/mulle-aba.svg) [![Build Status](//github.com/mulle-concurrent/mulle-aba/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-aba/actions)
+[mulle-allocator](//github.com/mulle-c/mulle-allocator) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-c/mulle-allocator.svg) [![Build Status](//github.com/mulle-c/mulle-allocator/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-allocator/actions)
+[mulle-c11](//github.com/mulle-c/mulle-c11) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-c/mulle-c11.svg) [![Build Status](//github.com/mulle-c/mulle-c11/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-c11/actions)
+[mulle-concurrent](//github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-concurrent/mulle-concurrent.svg) [![Build Status](//github.com/mulle-concurrent/mulle-concurrent/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-concurrent/actions)
+[mulle-thread](//github.com/mulle-concurrent/mulle-thread) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-concurrent/mulle-thread.svg) [![Build Status](//github.com/mulle-concurrent/mulle-thread/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-thread/actions)
+[mulle-vararg](//github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](//github.com/mulle-c/mulle-vararg/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-vararg/actions)
 
 
 ## How to use it
@@ -84,7 +84,7 @@ API                                                  | Description
 [`_mulle_objc_method`](dox/API_METHOD.md)  et al.    | Deal with Methods
 [`_mulle_objc_object`](dox/API_OBJECT.md)  et al.    | Deal with Instances
 [`_mulle_objc_property`](dox/API_PROPERTY.md) et al. | Handle Properties
-[`_mulle_objc_runtime`](dox/API_RUNTIME.md)          | Work with the runtime
+[`_mulle_objc_universe`](dox/API_UNIVERSE.md)        | Work with the runtime universe
 
 
 ### Other functions
@@ -149,7 +149,7 @@ Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-objc-runtime 
 
 ```
 mulle-sde install --prefix /usr/local \
-   https://github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
+   //github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
 ```
 
 ### Manual Installation
