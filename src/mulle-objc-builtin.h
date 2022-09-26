@@ -54,8 +54,8 @@
 static inline void   *mulle_objc_object_call_copy( void *self)
 {
    return( mulle_objc_object_call_inline_partial( self,
-                                                MULLE_OBJC_COPY_METHODID,
-                                                self));
+                                                  MULLE_OBJC_COPY_METHODID,
+                                                  self));
 }
 
 
@@ -112,7 +112,8 @@ static inline void   mulle_objc_object_call_removeobject( void *self, void *valu
 
 //
 // this is called by the compiler for retain or copy of objects only
-// TODO: conceivably move this out of the runtime
+// TODO: conceivably move this out of the runtime. This should optimize
+// nicely, as is_copy/is_atomic are usually constants
 //
 static inline void
    mulle_objc_object_set_property_value( void *self,
