@@ -9,7 +9,7 @@ It is designed to be suitable for massive multi-threading.
 
 | Release Version
 |-----------------------------------
- ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](//github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com/mulle-objc/mulle-objc-runtime/actions)
+ ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](https://github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com/mulle-objc/mulle-objc-runtime/actions)
 
 
 ## What's so different ?
@@ -48,12 +48,12 @@ only locks during `+initialize` on a per class basis.
 
   Name         | Release Version
 ---------------|---------------------------------
-[mulle-aba](//github.com/mulle-concurrent/mulle-aba) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-concurrent/mulle-aba.svg) [![Build Status](//github.com/mulle-concurrent/mulle-aba/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-aba/actions)
-[mulle-allocator](//github.com/mulle-c/mulle-allocator) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-c/mulle-allocator.svg) [![Build Status](//github.com/mulle-c/mulle-allocator/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-allocator/actions)
-[mulle-c11](//github.com/mulle-c/mulle-c11) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-c/mulle-c11.svg) [![Build Status](//github.com/mulle-c/mulle-c11/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-c11/actions)
-[mulle-concurrent](//github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-concurrent/mulle-concurrent.svg) [![Build Status](//github.com/mulle-concurrent/mulle-concurrent/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-concurrent/actions)
-[mulle-thread](//github.com/mulle-concurrent/mulle-thread) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-concurrent/mulle-thread.svg) [![Build Status](//github.com/mulle-concurrent/mulle-thread/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-thread/actions)
-[mulle-vararg](//github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](//img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](//github.com/mulle-c/mulle-vararg/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-vararg/actions)
+[mulle-aba](//github.com/mulle-concurrent/mulle-aba) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-aba.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-aba/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-aba/actions)
+[mulle-allocator](//github.com/mulle-c/mulle-allocator) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-allocator.svg) [![Build Status](https://github.com/mulle-c/mulle-allocator/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-allocator/actions)
+[mulle-c11](//github.com/mulle-c/mulle-c11) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-c11.svg) [![Build Status](https://github.com/mulle-c/mulle-c11/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-c11/actions)
+[mulle-concurrent](//github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-concurrent.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-concurrent/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-concurrent/actions)
+[mulle-thread](//github.com/mulle-concurrent/mulle-thread) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-thread.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-thread/workflows.svg?branch=release)](//github.com/mulle-concurrent/mulle-thread/actions)
+[mulle-vararg](//github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](https://github.com/mulle-c/mulle-vararg/workflows/CI/badge.svg?branch=release)](//github.com/mulle-c/mulle-vararg/actions)
 
 
 ## How to use it
@@ -130,7 +130,7 @@ All platforms and compilers supported by
 
 Use [mulle-sde](//github.com/mulle-sde) to add mulle-objc-runtime to your project:
 
-```
+``` sh
 mulle-sde dependency add --c --github mulle-objc mulle-objc-runtime
 ```
 
@@ -147,9 +147,9 @@ way to installation mulle-objc-runtime.
 
 Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-objc-runtime and all dependencies:
 
-```
+``` sh
 mulle-sde install --prefix /usr/local \
-   //github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
+   https://github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
 ```
 
 ### Manual Installation
@@ -168,15 +168,13 @@ Requirements                                                       | Description
 
 Install into `/usr/local`:
 
-```
-mkdir build 2> /dev/null
-(
-   cd build ;
-   cmake -DCMAKE_INSTALL_PREFIX=/usr/local \
-         -DCMAKE_PREFIX_PATH=/usr/local \
-         -DCMAKE_BUILD_TYPE=Release .. ;
-   make install
-)
+``` sh
+cmake -B build \
+      -DCMAKE_INSTALL_PREFIX=/usr/local \
+      -DCMAKE_PREFIX_PATH=/usr/local \
+      -DCMAKE_BUILD_TYPE=Release &&
+cmake --build build --config Release &&
+cmake --install build --config Release
 ```
 
 ## Author
