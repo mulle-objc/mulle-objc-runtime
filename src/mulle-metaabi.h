@@ -37,6 +37,12 @@
 #define mulle_metaabi_h__
 
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdalign.h>
+#include <mulle-vararg/mulle-vararg.h>
+
+
 // maybe rename to kind ?
 enum mulle_metaabi_param
 {
