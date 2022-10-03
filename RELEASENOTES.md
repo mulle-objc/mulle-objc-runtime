@@ -1,3 +1,7 @@
+### 0.21.2
+
+* correct all version numbers
+
 ### 0.21.1
 
 * fix bug in `_mulle_objc_class_lookup_implementation_mode`
