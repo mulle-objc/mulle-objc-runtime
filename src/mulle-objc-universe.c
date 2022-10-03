@@ -411,7 +411,10 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 }
 
 
-static MULLE_C_NO_RETURN void   mulle_objc_fail_allocation( void *block, size_t size)
+static MULLE_C_NO_RETURN void
+   mulle_objc_fail_allocation( struct mulle_allocator *allocator,
+                               void *block,
+                               size_t size)
 {
    mulle_objc_universe_fail_code( NULL, ENOMEM);
 }
@@ -513,10 +516,11 @@ void   mulle_objc_thread_unset_threadinfo( struct _mulle_objc_universe *universe
 
 
 static int   abafree_nofail( void  *aba,
-                             void (*p_free)( void *),
-                             void *pointer)
+                             void (*p_free)( void *, void *),
+                             void *pointer,
+                             void *owner)
 {
-   if( _mulle_aba_free( aba, p_free, pointer))
+   if( _mulle_aba_free_owned_pointer( aba, p_free, pointer, owner))
       mulle_objc_universe_fail_errno( NULL);
    return( 0);
 }
@@ -1549,9 +1553,12 @@ static void
 }
 
 
-static int   fake_aba_free( void *aba, void (*free)( void *), void *block)
+static int   fake_aba_free( void *aba,
+                            void (*free)( void *, void *),
+                            void *block,
+                            void *owner)
 {
-   (*free)( block);
+   (*free)( block, owner);
    return( 0);
 }
 

@@ -62,8 +62,16 @@ static inline void   *mulle_objc_object_call_copy( void *self)
 static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 {
    return( mulle_objc_object_call_inline_partial( self,
-                                                MULLE_OBJC_MUTABLECOPY_METHODID,
-                                                self));
+                                                  MULLE_OBJC_MUTABLECOPY_METHODID,
+                                                  self));
+}
+
+
+static inline void   *mulle_objc_object_call_mulle_allocator( void *self)
+{
+   return( mulle_objc_object_call_inline_partial( self,
+                                                  MULLE_OBJC_MULLE_ALLOCATOR_METHODID,
+                                                  self));
 }
 
 
@@ -73,40 +81,41 @@ static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 static inline void   *mulle_objc_object_call_autorelease( void *self)
 {
    return( mulle_objc_object_call_inline_partial( self,
-                                                MULLE_OBJC_AUTORELEASE_METHODID,
-                                                self));
+                                                  MULLE_OBJC_AUTORELEASE_METHODID,
+                                                  self));
 }
 
 
 static inline void   mulle_objc_object_call_willchange( void *self)
 {
    mulle_objc_object_call_inline_partial( self,
-                                        MULLE_OBJC_WILLCHANGE_METHODID,
-                                        self);
+                                          MULLE_OBJC_WILLCHANGE_METHODID,
+                                          self);
 }
 
 
-static inline void   *mulle_objc_object_call_willreadrelationship( void *self, void *value)
+static inline void   *mulle_objc_object_call_willreadrelationship( void *self,
+                                                                   void *value)
 {
    return( mulle_objc_object_call_inline_partial( self,
-                                                MULLE_OBJC_WILLREADRELATIONSHIP_METHODID,
-                                                value));
+                                                  MULLE_OBJC_WILLREADRELATIONSHIP_METHODID,
+                                                  value));
 }
 
 
 static inline void   mulle_objc_object_call_addobject( void *self, void *value)
 {
    mulle_objc_object_call_inline_partial( self,
-                                        MULLE_OBJC_ADDOBJECT_METHODID,
-                                        value);
+                                          MULLE_OBJC_ADDOBJECT_METHODID,
+                                          value);
 }
 
 
 static inline void   mulle_objc_object_call_removeobject( void *self, void *value)
 {
    mulle_objc_object_call_inline_partial( self,
-                                        MULLE_OBJC_REMOVEOBJECT_METHODID,
-                                        value);
+                                          MULLE_OBJC_REMOVEOBJECT_METHODID,
+                                          value);
 }
 
 
@@ -139,6 +148,8 @@ static inline void
    else
       mulle_objc_object_retain( value);
 
+   assert( ! value || mulle_objc_object_call_mulle_allocator( value) ==
+                      mulle_objc_object_call_mulle_allocator( self));
    p_ivar = (void **) &((char *) self)[ offset];
    if( is_atomic)
    {
@@ -178,6 +189,8 @@ static inline void   mulle_objc_object_add_to_container( void *self,
    void   **p_ivar;
 
    p_ivar = (void **) &((char *) self)[ offset];
+   assert( ! value || mulle_objc_object_call_mulle_allocator( value) ==
+                      mulle_objc_object_call_mulle_allocator( self));
    mulle_objc_object_call_addobject( *p_ivar, value);
 }
 
@@ -207,6 +220,5 @@ static inline void   mulle_objc_object_will_read_relationship( void *self,
    p_ivar  = (void **) &((char *) self)[ offset];
    *p_ivar = mulle_objc_object_call_willreadrelationship( self, *p_ivar);
 }
-
 
 #endif

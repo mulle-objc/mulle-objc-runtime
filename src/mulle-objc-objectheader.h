@@ -120,7 +120,6 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class *
 }
 
 
-
 //
 // this is not atomic! only do this when noone else has
 // access (like during initialization)

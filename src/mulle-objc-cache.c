@@ -72,6 +72,21 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
    return( cache);
 }
 
+#ifdef MULLE_TEST
+struct _mulle_objc_cache   *mulle_objc_discarded_caches[ 0x8000];
+mulle_atomic_pointer_t     n_mulle_objc_discarded_caches;
+
+static void   discard_cache( struct _mulle_objc_cache *cache)
+{
+   intptr_t   n;
+
+   n = (intptr_t) _mulle_atomic_pointer_increment( &n_mulle_objc_discarded_caches);
+   if( n >= sizeof( mulle_objc_discarded_caches) / sizeof( void *))
+      abort();
+   mulle_objc_discarded_caches[ n - 1] = cache;
+}
+#endif
+
 
 void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
                                struct mulle_allocator *allocator)
@@ -81,7 +96,11 @@ void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
    assert( allocator);
 
    preserve = errno;
+#ifdef MULLE_TEST
+   discard_cache( cache);
+#else
    _mulle_allocator_free( allocator, cache);
+#endif
    errno    = preserve;
 }
 
@@ -94,7 +113,12 @@ void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
    assert( allocator);
 
    preserve = errno;
+#ifdef MULLE_TEST
+   discard_cache( cache);
+#else
    _mulle_allocator_abafree( allocator, cache);
+#endif
+
    errno    = preserve;
 }
 
@@ -325,7 +349,9 @@ struct _mulle_objc_cacheentry   *
    _mulle_atomic_pointer_nonatomic_write( &entry->value.pointer, pointer);
 
    _mulle_atomic_pointer_increment( &cache->n);
-
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+   entry->thread = 0;
+#endif
    return( entry);
 }
 
@@ -348,7 +374,9 @@ struct _mulle_objc_cacheentry   *
    _mulle_atomic_functionpointer_nonatomic_write( &entry->value.functionpointer, pointer);
 
    _mulle_atomic_pointer_increment( &cache->n);
-
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+   entry->thread = 0;
+#endif
    return( entry);
 }
 
@@ -398,7 +426,9 @@ struct _mulle_objc_cacheentry   *
 
    assert( ! entry->key.uniqueid);
    _mulle_atomic_pointer_write( &entry->key.pointer, (void *) (uintptr_t) uniqueid);
-
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+   entry->thread = mulle_thread_self();
+#endif
    return( entry);
 }
 
@@ -450,7 +480,9 @@ struct _mulle_objc_cacheentry   *
 
    assert( ! entry->key.uniqueid);
    _mulle_atomic_pointer_write( &entry->key.pointer, (void *) (uintptr_t) uniqueid);
-
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+   entry->thread = mulle_thread_self();
+#endif
    return( entry);
 }
 

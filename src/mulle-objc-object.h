@@ -76,6 +76,7 @@ static inline int  mulle_objc_object_get_taggedpointerindex( void *obj)
 #endif
 }
 
+
 //
 // this defeats faults, but benchmarks much better, if put into the inline
 // call routine

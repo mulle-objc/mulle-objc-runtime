@@ -103,6 +103,7 @@ enum
 
    _mulle_objc_property_setterclear       = 0x10000,  // setter clear
    _mulle_objc_property_autoreleaseclear  = 0x20000   // autorelease clear
+//   _mulle_objc_property_atomic          = 0x40000
 };
 
 
