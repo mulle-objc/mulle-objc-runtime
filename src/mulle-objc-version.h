@@ -49,7 +49,7 @@
 //
 // *** DONT FORGET TO EDIT mulle-objc-jit.inc TOO***
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (21 << 8) | 2)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0 << 20) | (21 << 8) | 1)
 
 //
 // these three values are read by the compiler(!)
