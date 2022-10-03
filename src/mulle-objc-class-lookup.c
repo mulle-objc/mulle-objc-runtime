@@ -46,10 +46,11 @@
 
 enum
 {
-   mulle_objc_class_lookup_nocache     = 0x1,
-   mulle_objc_class_lookup_noforward   = 0x2,
-   mulle_objc_class_lookup_lazyforward = 0x4,
-   mulle_objc_class_lookup_nofail      = 0x8
+   mulle_objc_class_lookup_readcache     = 0x1, // unused
+   mulle_objc_class_lookup_noforward     = 0x2,
+   mulle_objc_class_lookup_lazyforward   = 0x4,
+   mulle_objc_class_lookup_nofail        = 0x8,
+   mulle_objc_class_lookup_noupdatecache = 0x10 // don't write cache
 };
 
 
@@ -74,18 +75,20 @@ static inline
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
-   cache   = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
-   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
-   entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
-   entry   = (void *) &((char *) entries)[ offset];
-   p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-   imp     = (mulle_objc_implementation_t) p;
-   if( imp)
+   if( mode & mulle_objc_class_lookup_readcache)
    {
-      if( mode & mulle_objc_class_lookup_noforward)
-         if( _mulle_objc_class_is_forwardimplementation( cls, imp))
-            imp = 0;
-      return( imp);
+      imp = _mulle_objc_class_search_methodcache( cls, methodid);
+      if( imp)
+      {
+         if( mode & mulle_objc_class_lookup_noforward)
+            if( _mulle_objc_class_is_forwardimplementation( cls, imp))
+            {
+               if( mode & mulle_objc_class_lookup_nofail)
+                  _mulle_objc_class_fail_methodnotfound( cls, methodid);
+               imp = 0;
+            }
+         return( imp);
+      }
    }
 
    method = mulle_objc_class_defaultsearch_method( cls, methodid);
@@ -101,12 +104,13 @@ static inline
    {
       if( mode & mulle_objc_class_lookup_nofail)
          _mulle_objc_class_fail_methodnotfound( cls, methodid);
-      return( imp);
+      return( 0);
    }
 
-   imp = _mulle_objc_method_get_implementation( method);
-   if( ! (mode & mulle_objc_class_lookup_nocache))
+   if( ! (mode & mulle_objc_class_lookup_noupdatecache))
       _mulle_objc_class_fill_methodcache_with_method( cls, method, methodid);
+
+   imp = _mulle_objc_method_get_implementation( method);
    return( imp);
 }
 
@@ -137,7 +141,6 @@ mulle_objc_implementation_t
 }
 
 
-
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t methodid)
@@ -145,7 +148,7 @@ mulle_objc_implementation_t
    return( _mulle_objc_class_lookup_implementation_mode( cls,
                                                          methodid,
                                                          mulle_objc_class_lookup_lazyforward
-                                                         | mulle_objc_class_lookup_nocache));
+                                                         | mulle_objc_class_lookup_noupdatecache));
 }
 
 
@@ -166,7 +169,7 @@ mulle_objc_implementation_t
 {
    return( _mulle_objc_class_lookup_implementation_mode( cls,
                                                          methodid,
-                                                         mulle_objc_class_lookup_nocache
+                                                         mulle_objc_class_lookup_noupdatecache
                                                          | mulle_objc_class_lookup_noforward));
 }
 
@@ -177,7 +180,7 @@ mulle_objc_implementation_t
 {
    return( _mulle_objc_class_lookup_implementation_mode( cls,
                                                          methodid,
-                                                         mulle_objc_class_lookup_nocache
+                                                         mulle_objc_class_lookup_noupdatecache
                                                          | mulle_objc_class_lookup_lazyforward
                                                          | mulle_objc_class_lookup_nofail));
 }
