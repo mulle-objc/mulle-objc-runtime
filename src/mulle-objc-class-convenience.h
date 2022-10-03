@@ -51,9 +51,9 @@
 // struct _mulle_objc_object *
 
 static inline void *
-    __mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
-                                                  size_t extra,
-                                                  struct mulle_allocator *allocator)
+    _mulle_objc_infraclass_allocator_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
+                                                           size_t extra,
+                                                           struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader   *header;
    void                              *alloc;
@@ -95,9 +95,9 @@ static inline void *
 
 
 static inline void *
-    __mulle_objc_infraclass_alloc_instance_extra_nonzeroed( struct _mulle_objc_infraclass *infra,
-                                                            size_t extra,
-                                                            struct mulle_allocator *allocator)
+    _mulle_objc_infraclass_allocator_alloc_instance_extra_nonzeroed( struct _mulle_objc_infraclass *infra,
+                                                                     size_t extra,
+                                                                     struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader   *header;
    void                              *alloc;
@@ -139,13 +139,13 @@ static inline void *
 
 
 static inline void *
-    _mulle_objc_infraclass_alloc_instance_extra_nonzeroed( struct _mulle_objc_infraclass *infra,
-                                                           size_t extra)
+   _mulle_objc_infraclass_alloc_instance_extra_nonzeroed( struct _mulle_objc_infraclass *infra,
+                                                          size_t extra)
 {
    struct mulle_allocator   *allocator;
 
    allocator = _mulle_objc_infraclass_get_allocator( infra);
-   return( __mulle_objc_infraclass_alloc_instance_extra_nonzeroed( infra, extra, allocator));
+   return( _mulle_objc_infraclass_allocator_alloc_instance_extra_nonzeroed( infra, extra, allocator));
 }
 
 
@@ -169,9 +169,9 @@ static inline void  __mulle_objc_instance_will_free( void *obj)
 
 
 static inline void
-   __mulle_objc_infraclass_free_instance( struct _mulle_objc_infraclass *infra,
-                                          void *obj,
-                                          struct mulle_allocator *allocator)
+   _mulle_objc_infraclass_allocator_free_instance( struct _mulle_objc_infraclass *infra,
+                                                   void *obj,
+                                                   struct mulle_allocator *allocator)
 {
    struct _mulle_objc_objectheader   *header;
    struct _mulle_objc_class          *cls;
@@ -203,9 +203,8 @@ static inline void
    struct mulle_allocator   *allocator;
 
    allocator = _mulle_objc_infraclass_get_allocator( infra);
-   __mulle_objc_infraclass_free_instance( infra, obj, allocator);
+   _mulle_objc_infraclass_allocator_free_instance( infra, obj, allocator);
 }
-
 
 
 static inline void *
@@ -215,7 +214,7 @@ static inline void *
    struct mulle_allocator   *allocator;
 
    allocator = _mulle_objc_infraclass_get_allocator( infra);
-   return( __mulle_objc_infraclass_alloc_instance_extra( infra, extra, allocator));
+   return( _mulle_objc_infraclass_allocator_alloc_instance_extra( infra, extra, allocator));
 }
 
 

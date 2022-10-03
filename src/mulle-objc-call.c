@@ -57,13 +57,14 @@ MULLE_C_NEVER_INLINE static void *
                                          void *parameter,
                                          struct  _mulle_objc_class *cls)
 {
-   mulle_objc_implementation_t   imp;
    struct _mulle_objc_universe   *universe;
+   mulle_objc_implementation_t   imp;
 
    imp      = _mulle_objc_class_lookup_implementation_nofail( cls, methodid);
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.method_call)
       mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
+
    /*->*/
    return( (*imp)( obj, methodid, parameter));
 }

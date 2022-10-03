@@ -152,7 +152,7 @@ static inline struct _mulle_objc_universe *
    return( config->universe);
 }
 
-
+// the allocator, the config was allocated with
 static inline struct mulle_allocator *
    _mulle_objc_threadinfo_get_allocator( struct _mulle_objc_threadinfo *config)
 {

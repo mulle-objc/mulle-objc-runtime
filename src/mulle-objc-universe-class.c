@@ -86,7 +86,7 @@ static struct _mulle_objc_cacheentry *
    if( _mulle_objc_cachepivot_atomiccas_entries( &universe->cachepivot, cache->entries, old_cache->entries))
    {
       // trace future!
-
+      // new cache not being used
       _mulle_objc_cache_free( cache, allocator);
       return( NULL);
    }
@@ -147,6 +147,7 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
                                                struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_class        *cls;
    struct _mulle_objc_cacheentry   *entry;
 
    assert( infra);
@@ -155,6 +156,7 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
    //
    // here try to get most up to date value
    //
+   cls = _mulle_objc_infraclass_as_class( infra);
    for(;;)
    {
       cache = _mulle_objc_cachepivot_atomicget_cache( &universe->cachepivot);
@@ -162,7 +164,7 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
       {
          entry = _mulle_objc_universe_add_classcacheentry_swapcaches( universe,
                                                                       cache,
-                                                                      _mulle_objc_infraclass_as_class( infra));
+                                                                      cls);
          if( ! entry)
             continue;
          break;
@@ -173,7 +175,6 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
                                                    _mulle_objc_infraclass_get_classid( infra));
       if( entry)
       {
-         // trace here so we output the proper cache
          if( universe->debug.trace.class_cache)
             mulle_objc_universe_trace( universe,
                                        "added class %08x \"%s\" to "

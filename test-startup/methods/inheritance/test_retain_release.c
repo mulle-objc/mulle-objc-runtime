@@ -53,7 +53,7 @@ struct mulle_allocator  my_allocator =
 
 static void  *A_alloc( struct _mulle_objc_infraclass *self, mulle_objc_methodid_t _cmd)
 {
-   return( __mulle_objc_infraclass_alloc_instance_extra( self, 0, &my_allocator));
+   return( _mulle_objc_infraclass_allocator_alloc_instance_extra( self, 0, &my_allocator));
 }
 
 struct _gnu_mulle_objc_methodlist
@@ -116,7 +116,7 @@ static void   test_simple_retain_release( struct _mulle_objc_infraclass *A_infra
    struct _mulle_objc_object   *b;
 
    assert( instances == 0);
-   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
+   a = _mulle_objc_infraclass_allocator_alloc_instance_extra( A_infra, 0, &my_allocator);
    assert( instances == 1);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
@@ -137,7 +137,7 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
    struct _mulle_objc_object   *a;
    long                        retain_count;
 
-   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
+   a = _mulle_objc_infraclass_allocator_alloc_instance_extra( A_infra, 0, &my_allocator);
    _mulle_objc_object_constantify_noatomic( a);
 
    retain_count = mulle_objc_object_get_retaincount( a);
@@ -212,7 +212,7 @@ static void   test_dealloc_finalize( struct _mulle_objc_infraclass  *A_infra)
 
    mulle_objc_infraclass_add_methodlist_nofail( A_infra, (void *) &finalize_dealloc_methodlist);
 
-   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
+   a = _mulle_objc_infraclass_allocator_alloc_instance_extra( A_infra, 0, &my_allocator);
 
    mulle_objc_object_release( a);
    assert( finalized == 1);
@@ -229,7 +229,7 @@ static void   test_perform_finalize( struct _mulle_objc_infraclass  *A_infra)
 
    assert( dealloced == 0);
 
-   a = __mulle_objc_infraclass_alloc_instance_extra( A_infra, 0, &my_allocator);
+   a = _mulle_objc_infraclass_allocator_alloc_instance_extra( A_infra, 0, &my_allocator);
    assert( get_retaincount( a) == 0);
 
    mulle_objc_object_perform_finalize( a);

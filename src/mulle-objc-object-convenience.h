@@ -122,7 +122,7 @@ static inline void   __mulle_objc_instance_free( void *obj,
 
    cls   = _mulle_objc_object_get_isa( obj);
    infra = _mulle_objc_class_as_infraclass( cls);
-   __mulle_objc_infraclass_free_instance( infra, obj, allocator);
+   _mulle_objc_infraclass_allocator_free_instance( infra, obj, allocator);
 }
 
 

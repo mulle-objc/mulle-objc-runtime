@@ -75,6 +75,23 @@ struct _mulle_objc_methodcache
 }
 
 
+#ifdef MULLE_TEST
+struct _mulle_objc_methodcache   *mulle_objc_discarded_methodcaches[ 0x8000];
+mulle_atomic_pointer_t            n_mulle_objc_discarded_methodcaches;
+
+static void   discard_methodcache( struct _mulle_objc_methodcache *mcache)
+{
+   intptr_t   n;
+
+   n = (intptr_t) _mulle_atomic_pointer_increment( &n_mulle_objc_discarded_methodcaches);
+   if( n >= sizeof( mulle_objc_discarded_methodcaches) / sizeof( void *))
+      abort();
+   mulle_objc_discarded_methodcaches[ n - 1] = mcache;
+}
+#endif
+
+
+
 void   _mulle_objc_methodcache_free( struct _mulle_objc_methodcache *mcache,
                                      struct mulle_allocator *allocator)
 {
@@ -83,7 +100,11 @@ void   _mulle_objc_methodcache_free( struct _mulle_objc_methodcache *mcache,
    assert( allocator);
 
    preserve = errno;
+#ifdef MULLE_TEST
+   discard_methodcache( mcache);
+#else
    _mulle_allocator_free( allocator, mcache);
+#endif
    errno = preserve;
 }
 
@@ -96,7 +117,11 @@ void   _mulle_objc_methodcache_abafree( struct _mulle_objc_methodcache *mcache,
    assert( allocator);
 
    preserve = errno;
-   _mulle_allocator_abafree( allocator, mcache);
+#ifdef MULLE_TEST
+   discard_methodcache( mcache);
+#else
+   _mulle_allocator_free( allocator, mcache);
+#endif
    errno = preserve;
 }
 
@@ -136,12 +161,19 @@ static mulle_objc_walkcommand_t
            struct _mulle_objc_class *cls,
            struct _mulle_objc_cache *cache)
 {
+   struct _mulle_objc_cacheentry   *entry;
+
    assert( cache);
 
    if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
-      _mulle_objc_cache_inactivecache_add_pointer_entry( cache,
-                                                         _mulle_objc_method_get_implementation( method),
-                                                         method->descriptor.methodid);
+   {
+      entry = _mulle_objc_cache_inactivecache_add_pointer_entry( cache,
+                                                                 _mulle_objc_method_get_implementation( method),
+                                                                 method->descriptor.methodid);
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+      entry->cls = cls;
+#endif
+   }
 
    return( 0);
 }
@@ -221,12 +253,18 @@ struct _mulle_objc_cacheentry   *
    // for success..
    //
    entry = &empty_entry;
+
+   // only when invalidatin will we not get a new entry, cache is still
+   // fresh and single-thread here
    if( method)
    {
       imp   = _mulle_objc_method_get_implementation( method);
       entry = _mulle_objc_cache_inactivecache_add_functionpointer_entry( &mcache->cache,
                                                                          (mulle_functionpointer_t) imp,
                                                                          methodid);
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+      entry->cls = cls;
+#endif
    }
 
    //
@@ -242,6 +280,10 @@ struct _mulle_objc_cacheentry   *
                                                  mcache->cache.entries,
                                                  old_cache->cache.entries))
    {
+      if( universe->debug.trace.method_cache)
+         mulle_objc_universe_trace( universe,
+                                    "punt tmp cache %p as a new one is available",
+                                    mcache);
       // cas failed, so get rid of this and punt
       _mulle_objc_methodcache_free( mcache, allocator); // sic, can be unsafe deleted now
       return( NULL);
@@ -250,10 +292,10 @@ struct _mulle_objc_cacheentry   *
    if( universe->debug.trace.method_cache)
       mulle_objc_universe_trace( universe,
                                  "new method cache %p "
-                                 "(%u of %u used) for %s %08x \"%s\"",
+                                 "(%u of %u size used) for %s %08x \"%s\"",
                                  mcache,
-                                 _mulle_objc_cache_get_count( &old_cache->cache),
-                                 old_cache->cache.size,
+                                 _mulle_objc_cache_get_count( &mcache->cache),
+                                 mcache->cache.size,
                                  _mulle_objc_class_get_classtypename( cls),
                                  _mulle_objc_class_get_classid( cls),
                                  _mulle_objc_class_get_name( cls));
@@ -266,8 +308,7 @@ struct _mulle_objc_cacheentry   *
    // invalidating...
    //
    if( cls->universe->config.repopulate_caches &&
-       (strategy == MULLE_OBJC_CACHESIZE_GROW ||
-        strategy == MULLE_OBJC_CACHESIZE_GROW && ! method))
+       (strategy == MULLE_OBJC_CACHESIZE_GROW || ! method))
    {
       p        = &old_cache->cache.entries[ 0];
       sentinel = &p[ old_cache->cache.size];
@@ -328,6 +369,7 @@ MULLE_C_NEVER_INLINE void
       return;
 
    universe = _mulle_objc_class_get_universe( cls);
+
    // when we trace method calls, we don't cache ever
    if( universe->debug.trace.method_call)
       return;
@@ -348,24 +390,30 @@ MULLE_C_NEVER_INLINE void
    }
 
    //
-   //  try to get most up to date value
+   // try to get most up to date value
    //
    imp = _mulle_objc_method_get_implementation( method);
    do
    {
       cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
       if( _mulle_objc_universe_should_grow_cache( universe, cache))
+      {
          entry = _mulle_objc_class_add_cacheentry_swappmethodcache( cls,
                                                                     cache,
                                                                     method,
                                                                     uniqueid,
                                                                     MULLE_OBJC_CACHESIZE_GROW);
+      }
       else
       {
          entry = _mulle_objc_cache_add_functionpointer_entry( cache,
                                                               (mulle_functionpointer_t) imp,
                                                               uniqueid);
       }
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+      if( entry)
+         entry->cls = cls;
+#endif
    }
    while( ! entry);
 }
@@ -417,3 +465,6 @@ int   _mulle_objc_class_invalidate_methodcacheentry( struct _mulle_objc_class *c
 
    return( 0x1);
 }
+
+
+

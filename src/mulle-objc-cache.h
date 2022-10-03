@@ -44,6 +44,11 @@
 #include <assert.h>
 
 
+
+#ifdef MULLE_TEST
+//# define PEDANTIC_VERIFY
+#endif
+
 # pragma mark - method cache
 
 
@@ -59,8 +64,11 @@ enum mulle_objc_cachesizing_t
    MULLE_OBJC_CACHESIZE_GROW     = 2
 };
 
-
+#ifdef MULLE_TEST
+# define MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+#endif
 //
+
 // this sizeof() must be a power of 2 else stuff fails
 // because technically a functionpointer need not be the same size as a
 // void *, we differentiate here. Though when will this ever be useful in
@@ -70,14 +78,18 @@ struct _mulle_objc_cacheentry
 {
    union
    {
-      mulle_objc_uniqueid_t         uniqueid;
-      mulle_atomic_pointer_t        pointer;
+      mulle_objc_uniqueid_t            uniqueid;
+      mulle_atomic_pointer_t           pointer;
    } key;
    union
    {
       mulle_atomic_functionpointer_t   functionpointer;
       mulle_atomic_pointer_t           pointer;
    } value;
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+   mulle_thread_t                      thread;
+   struct _mulle_objc_class            *cls;
+#endif
 };
 
 
@@ -98,10 +110,16 @@ static inline void   mulle_objc_cache_init( struct _mulle_objc_cache *cache,
 
    // must be zero filled, don't want to assert everything though
    assert( ! _mulle_atomic_pointer_read( &cache->n));
-
    cache->size = size;
    // myhardworkbythesewordsguardedpleasedontsteal © Nat!
    cache->mask = (size - 1) * sizeof( struct _mulle_objc_cacheentry);    // preshift
+
+#ifdef PEDANTIC_VERIFY
+   for( unsigned char *a = (unsigned char *) cache->entries,
+                      *b = (unsigned char *) &cache->entries[ cache->size];
+        a < b;
+        assert( ! *a), a++);
+#endif
 }
 
 
