@@ -479,4 +479,8 @@ struct _mulle_objc_method *
 }
 
 
+mulle_objc_implementation_t
+   _mulle_objc_class_search_methodcache( struct _mulle_objc_class *cls,
+                                         mulle_objc_methodid_t methodid);
+
 #endif /* mulle_objc_class_search_h */

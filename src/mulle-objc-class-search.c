@@ -869,3 +869,37 @@ mulle_objc_implementation_t
 }
 
 
+mulle_objc_implementation_t
+   _mulle_objc_class_search_methodcache( struct _mulle_objc_class *cls,
+                                         mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_cacheentry   *entries;
+   mulle_objc_implementation_t     imp;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
+   mulle_functionpointer_t         p;
+
+   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+
+   offset  = (mulle_objc_cache_uint_t) methodid;
+   do
+   {
+      offset  = offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == methodid)
+      {
+         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         imp = (mulle_objc_implementation_t) p;
+         return( imp);
+/*->*/
+      }
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+   while( entry->key.uniqueid);
+
+   return( NULL);
+}
