@@ -1,3 +1,8 @@
+### 0.21.1
+
+* fix bug in `_mulle_objc_class_lookup_implementation_mode`
+This bugfix may make lookup functions slower, so regular execution should not be affected. Those lookups which are now slower can be easily fixed though. Just complain :)
+
 ## 0.21.0
 
 * fix `mulle_objc_signature_supply_typeinfo` to not suppress supplier
