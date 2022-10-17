@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <libraryRoots>
+      <file path="$PROJECT_DIR$/dependency/include" />
+    </libraryRoots>
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/.mulle" />
+      <file path="$PROJECT_DIR$/.vscode" />
+      <file path="$PROJECT_DIR$/dependency/bin" />
+      <file path="$PROJECT_DIR$/dependency/etc" />
+      <file path="$PROJECT_DIR$/dependency/lib" />
+      <file path="$PROJECT_DIR$/dependency/libexec" />
+      <file path="$PROJECT_DIR$/dependency/share" />
+      <file path="$PROJECT_DIR$/kitchen" />
+      <file path="$PROJECT_DIR$/research" />
+      <file path="$PROJECT_DIR$/stash" />
+      <file path="$PROJECT_DIR$/test/.mulle" />
+      <file path="$PROJECT_DIR$/test/dependency" />
+      <file path="$PROJECT_DIR$/test/kitchen" />
+    </excludeRoots>
+  </component>
+</project>
