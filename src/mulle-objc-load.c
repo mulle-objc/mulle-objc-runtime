@@ -548,15 +548,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
 
    if( mulle_objc_universe_add_infraclass( universe, infra))
    {
-      switch( errno)
-      {
-      default  :
-         mulle_objc_universe_fail_generic( universe,
-               "error addding class %08x \"%s\" to mulle_objc_universe %p "
-               "errno=%d\n",
-               infra->base.classid, infra->base.name, universe, errno);
-
-      case EFAULT : // how can this happen if we check for superclass up there ?
+      if( errno == EFAULT)
          mulle_objc_universe_fail_generic( universe,
                "error in mulle_objc_universe %p: "
                "superclass %08x \"%s\" of class %08x \"%s\" does not exist.\n",
@@ -565,12 +557,16 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
                 superclass ? superclass->base.name : "nil", // analyzer...
                 infra->base.classid, infra->base.name);
 
-      case EEXIST :
+      if( errno == EEXIST)
          mulle_objc_universe_fail_generic( universe,
                "error in mulle_objc_universe %p: "
                "duplicate class %08x \"%s\".\n",
                 universe, infra->base.classid, infra->base.name);
-      }
+
+      mulle_objc_universe_fail_generic( universe,
+            "error addding class %08x \"%s\" to mulle_objc_universe %p "
+            "errno=%d\n",
+            infra->base.classid, infra->base.name, universe, errno);
    }
 
    //
@@ -1468,6 +1464,12 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
    int                                     need_sort;
    static struct _mulle_objc_loaduniverse  empty;
    struct _mulle_objc_loaduniverse         *loaduniverse;
+   int                                     trace;
+
+   trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
+   if( trace)
+      fprintf( stderr, "%p: mulle-objc is enqueing loadinfo %p\n",
+                           (void *) mulle_thread_self(), info);
 
    // allow NULL input so mulle_objc_list can call this once, so the
    // linker can't optimize it away
@@ -1485,6 +1487,12 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
          abort();;
       }
    }
+
+   if( trace)
+      fprintf( stderr, "%p: mulle-objc is acquiring universe %d \"%s\"\n",
+                           (void *) mulle_thread_self(),
+                           loaduniverse->universeid,
+                           loaduniverse->universename ? loaduniverse->universename : "");
 
    universe = mulle_objc_global_register_universe( loaduniverse->universeid,
                                                    loaduniverse->universename);
@@ -1516,7 +1524,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
          if( universe->debug.trace.loadinfo)
          {
             mulle_objc_universe_trace( universe,
-                                       "loadinfo %p ignored on request\n",
+                                       "loadinfo %p ignored on request",
                                        info);
             mulle_objc_loadinfo_dump( info, "   ", universe);
          }
@@ -1653,7 +1661,18 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
 //
 void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
 {
+   int   trace;
+
+   trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
+   if( trace)
+      fprintf( stderr, "%p: mulle-objc is pushing loadinfo onto atinit %p\n",
+                           (void *) mulle_thread_self(), info);
+
    mulle_atinit( (void (*)( void *))_mulle_objc_loadinfo_enqueue_nofail, info, 0);
+
+   if( trace)
+      fprintf( stderr, "%p: mulle-objc did push loadinfo onto atinit %p\n",
+                              (void *) mulle_thread_self(), info);
 }
 
 

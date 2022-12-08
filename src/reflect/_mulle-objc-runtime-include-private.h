@@ -16,37 +16,37 @@
 
 // You can tweak the following #include with these commands.
 // (Use E0364339-E5A0-45C1-AFC7-87896F3FAA2A instead of mulle-atinit if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-atinit no-header`
-//    rename:             `mulle-sde dependency|library set mulle-atinit include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-atinit <up|down>`
+//    remove #include:: `mulle-sde dependency mark mulle-atinit no-header`
+//    rename:              `mulle-sde dependency|library set mulle-atinit include whatever.h`
+//    reorder:             `mulle-sde dependency move mulle-atinit <up|down>`
 //    toggle #include:    `mulle-sde dependency mark mulle-atinit [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-atinit [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-atinit [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-atinit no-platform-<uname>`
+//    toggle public:       `mulle-sde dependency mark mulle-atinit [no-]public`
+//    toggle optional:     `mulle-sde dependency mark mulle-atinit [no-]require`
+//    remove for platform: `mulle-sde dependency mark mulle-atinit no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-atinit/mulle-atinit.h>   // mulle-atinit
 
 // You can tweak the following #include with these commands.
 // (Use 9956BD7E-D6ED-44BC-B864-B2BAC12846D3 instead of mulle-atexit if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-atexit no-header`
-//    rename:             `mulle-sde dependency|library set mulle-atexit include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-atexit <up|down>`
+//    remove #include:: `mulle-sde dependency mark mulle-atexit no-header`
+//    rename:              `mulle-sde dependency|library set mulle-atexit include whatever.h`
+//    reorder:             `mulle-sde dependency move mulle-atexit <up|down>`
 //    toggle #include:    `mulle-sde dependency mark mulle-atexit [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-atexit [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-atexit [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-atexit no-platform-<uname>`
+//    toggle public:       `mulle-sde dependency mark mulle-atexit [no-]public`
+//    toggle optional:     `mulle-sde dependency mark mulle-atexit [no-]require`
+//    remove for platform: `mulle-sde dependency mark mulle-atexit no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
 
 // You can tweak the following #include with these commands.
 // (Use E67C3C5D-5B47-490D-B4FB-00C98540F287 instead of mulle-dlfcn if there are duplicate entries)
-//    remove:             `mulle-sde dependency mark mulle-dlfcn no-header`
-//    rename:             `mulle-sde dependency|library set mulle-dlfcn include whatever.h`
-//    reorder:            `mulle-sde dependency move mulle-dlfcn <up|down>`
+//    remove #include:: `mulle-sde dependency mark mulle-dlfcn no-header`
+//    rename:              `mulle-sde dependency|library set mulle-dlfcn include whatever.h`
+//    reorder:             `mulle-sde dependency move mulle-dlfcn <up|down>`
 //    toggle #include:    `mulle-sde dependency mark mulle-dlfcn [no-]import`
-//    toggle public:      `mulle-sde dependency mark mulle-dlfcn [no-]public`
-//    toggle optional:    `mulle-sde dependency mark mulle-dlfcn [no-]require`
-//    remove for platform:`mulle-sde dependency mark mulle-dlfcn no-platform-<uname>`
+//    toggle public:       `mulle-sde dependency mark mulle-dlfcn [no-]public`
+//    toggle optional:     `mulle-sde dependency mark mulle-dlfcn [no-]require`
+//    remove for platform: `mulle-sde dependency mark mulle-dlfcn no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-dlfcn/mulle-dlfcn.h>   // mulle-dlfcn
 

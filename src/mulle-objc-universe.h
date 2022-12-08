@@ -529,6 +529,12 @@ static inline struct _mulle_objc_garbagecollection  *
    return( &universe->garbage);
 }
 
+
+// sometimes convenient, when you have no headers
+// returns -1 if universe is NULL
+MULLE_OBJC_RUNTIME_GLOBAL
+int   mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe);
+
 //
 // Manages the current thread with ABA gc
 // the "foundation" autoreleasepool should do a periodic checkin

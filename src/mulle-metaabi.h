@@ -36,11 +36,10 @@
 #ifndef mulle_metaabi_h__
 #define mulle_metaabi_h__
 
+#include "include.h" // need mulle-c11 for stdalign
 
 #include <stdint.h>
 #include <stddef.h>
-#include <stdalign.h>
-#include <mulle-vararg/mulle-vararg.h>
 
 
 // maybe rename to kind ?

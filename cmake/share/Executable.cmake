@@ -43,23 +43,26 @@ if( NOT EXECUTABLE_SOURCES)
 endif()
 
 
-add_library( "_1_${EXECUTABLE_NAME}" OBJECT
+set( EXECUTABLE_COMPILE_TARGET "_1_${EXECUTABLE_NAME}")
+set( EXECUTABLE_LINK_TARGET "${EXECUTABLE_NAME}")
+
+add_library( ${EXECUTABLE_COMPILE_TARGET} OBJECT
    ${EXECUTABLE_SOURCES}
 )
 
 set( ALL_OBJECT_FILES
-   $<TARGET_OBJECTS:_1_${EXECUTABLE_NAME}>
+   $<TARGET_OBJECTS:${EXECUTABLE_COMPILE_TARGET}>
    ${OTHER_EXECUTABLE_OBJECT_FILES}
    ${OTHER_${EXECUTABLE_UPCASE_IDENTIFIER}_OBJECT_FILES}
 )
 
-set_target_properties( "_1_${EXECUTABLE_NAME}"
+set_target_properties( ${EXECUTABLE_COMPILE_TARGET}
    PROPERTIES
       CXX_STANDARD 11
 #      DEFINE_SYMBOL "${EXECUTABLE_UPCASE_IDENTIFIER}_SHARED_BUILD"
 )
 
-target_compile_definitions( "_1_${EXECUTABLE_NAME}" PRIVATE "${EXECUTABLE_UPCASE_IDENTIFIER}_BUILD")
+target_compile_definitions( ${EXECUTABLE_COMPILE_TARGET} PRIVATE "${EXECUTABLE_UPCASE_IDENTIFIER}_BUILD")
 
 # RPATH must be ahead of add_executable
 include( InstallRpath OPTIONAL)
@@ -72,7 +75,7 @@ if( LINK_PHASE)
    )
 
    add_dependencies( "${EXECUTABLE_NAME}"
-      "_1_${EXECUTABLE_NAME}"
+      ${EXECUTABLE_COMPILE_TARGET}
       ${EXECUTABLE_DEPENDENCY_NAMES}
    )
 
@@ -212,9 +215,3 @@ Frameworks aren't force loaded.")
       unset( __EXECUTABLE_SOURCES_UNSET)
    endif()
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../Executable.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

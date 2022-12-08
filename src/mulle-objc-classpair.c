@@ -206,7 +206,7 @@ void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair 
    if( universe->debug.trace.protocol_add)
       for( i = 0; i < n; i++)
          mulle_objc_universe_trace( universe,
-                                    "add protocol %08x \"%s\" to class %08x \"%s\"",
+                                    "bulk add protocol %08x \"%s\" to class %08x \"%s\"",
                                     uniqueids[ i],
                                     _mulle_objc_universe_describe_categoryid( universe, uniqueids[ i]),
                                     _mulle_objc_classpair_get_classid( pair),
@@ -228,11 +228,11 @@ void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
 }
 
 
-MULLE_C_NEVER_INLINE
-static void   _mulle_objc_universe_fail_einval( struct _mulle_objc_universe *universe)
-{
-  mulle_objc_universe_fail_code( universe, EINVAL);
-}
+//MULLE_C_NEVER_INLINE
+//static void   _mulle_objc_universe_fail_einval( struct _mulle_objc_universe *universe)
+//{
+//  mulle_objc_universe_fail_code( universe, EINVAL);
+//}
 
 
 MULLE_C_NEVER_INLINE
@@ -366,7 +366,7 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
       universe = _mulle_objc_classpair_get_universe( pair);
       if( universe->debug.trace.protocol_add || universe->debug.trace.dependency)
          mulle_objc_universe_trace( universe,
-                                    "added protcolclass %08x \"%s\" "
+                                    "add protocolclass %08x \"%s\" "
                                     "to class %08x \"%s\"",
                                     proto_infra->base.classid,
                                     proto_infra->base.name,

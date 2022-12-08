@@ -32,6 +32,8 @@ if( EXECUTABLE_NAME AND LINK_PHASE)
    endif()
 
 
+   message( STATUS "CREATE_MOTD_EXE is ${CREATE_MOTD_EXE}")
+
    #
    # there is no real order, in which these motds are generated
    # as they are hooked into the cmake dependency system
@@ -59,13 +61,9 @@ if( EXECUTABLE_NAME AND LINK_PHASE)
       )
 
       add_dependencies( "${EXECUTABLE_NAME}__motd__" ${EXECUTABLE_NAME})
+   else()
+      message( WARNING "Tool \"mulle-create-build-motd\" not found")
    endif()
 
    include( MotdAux OPTIONAL)
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../Motd.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

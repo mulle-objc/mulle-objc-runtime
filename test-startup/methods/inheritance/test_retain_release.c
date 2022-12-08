@@ -156,8 +156,7 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
 }
 
 
-# pragma mark -
-# pragma mark dealloc
+# pragma mark - dealloc
 
 static unsigned int   dealloced;
 static unsigned int   finalized;

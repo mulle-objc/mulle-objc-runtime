@@ -147,4 +147,27 @@ static inline void   mulle_objc_instance_free( void *obj)
    _mulle_objc_instance_free( obj);
 }
 
+
+static inline int
+   _mulle_objc_object_conformsto_protocolid( void *obj,
+                                             mulle_objc_protocolid_t protocolid)
+{
+   struct _mulle_objc_classpair    *pair;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_class        *cls;
+
+   cls   = _mulle_objc_object_get_isa( obj);
+   infra = _mulle_objc_class_as_infraclass( cls);
+   pair  = _mulle_objc_infraclass_get_classpair( infra);
+   return( _mulle_objc_classpair_conformsto_protocolid( pair, protocolid));
+}
+
+static inline int
+   mulle_objc_object_conformsto_protocolid( void *obj,
+                                            mulle_objc_protocolid_t protocolid)
+{
+   return( obj ? _mulle_objc_object_conformsto_protocolid( obj, protocolid) : 0);
+}
+
+
 #endif

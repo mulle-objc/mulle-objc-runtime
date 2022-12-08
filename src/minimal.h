@@ -48,12 +48,15 @@
 //
 #include <stdint.h>
 
-typedef uint32_t   mulle_objc_protocolid_t;
+typedef uint32_t   mulle_objc_classid_t;
 typedef uint32_t   mulle_objc_methodid_t;
+typedef uint32_t   mulle_objc_protocolid_t;
+typedef uint32_t   mulle_objc_universeid_t;
 
 struct _mulle_objc_infraclass;
 struct _mulle_objc_ivar;
 struct _mulle_objc_method;
+struct _mulle_objc_universe;
 
 
 #endif

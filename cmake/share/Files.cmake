@@ -21,28 +21,28 @@ include_directories( ${INCLUDE_DIRS})
 #
 # include files that get installed
 #
-if( EXISTS "cmake/DependenciesAndLibraries.cmake")
-   list( APPEND CMAKE_INCLUDES "cmake/DependenciesAndLibraries.cmake")
+if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
+   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
 else()
-   list( APPEND CMAKE_INCLUDES "cmake/share/DependenciesAndLibraries.cmake")
+   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/share/DependenciesAndLibraries.cmake")
 endif()
-if( EXISTS "cmake/_Dependencies.cmake")
-   list( APPEND CMAKE_INCLUDES "cmake/_Dependencies.cmake")
+if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/_Dependencies.cmake")
+   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/_Dependencies.cmake")
 else()
-   list( APPEND CMAKE_INCLUDES "cmake/reflect/_Dependencies.cmake")
+   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/reflect/_Dependencies.cmake")
 endif()
-if( EXISTS "cmake/_Libraries.cmake")
-   list( APPEND CMAKE_INCLUDES "cmake/_Libraries.cmake")
+if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/_Libraries.cmake")
+   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/_Libraries.cmake")
 else()
-   list( APPEND CMAKE_INCLUDES "cmake/reflect/_Libraries.cmake")
+   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/reflect/_Libraries.cmake")
 endif()
 
 # IDE visible cmake files, Headers etc. are no longer there by default
-if( EXISTS "CMakeLists.txt")
-   list( APPEND CMAKE_EDITABLE_FILES "CMakeLists.txt")
+if( EXISTS "${PROJECT_SOURCE_DIR}/CMakeLists.txt")
+   list( APPEND CMAKE_EDITABLE_FILES "${PROJECT_SOURCE_DIR}/CMakeLists.txt")
 endif()
 
-FILE( GLOB TMP_CMAKE_FILES cmake/*.cmake)
+FILE( GLOB TMP_CMAKE_FILES ${PROJECT_SOURCE_DIR}/cmake/*.cmake)
 list( APPEND CMAKE_EDITABLE_FILES ${TMP_CMAKE_FILES})
 
 include( PostFiles OPTIONAL)
@@ -67,9 +67,3 @@ set( PROJECT_INSTALLABLE_HEADERS
 )
 
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../Files.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

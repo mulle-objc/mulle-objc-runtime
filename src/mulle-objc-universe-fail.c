@@ -81,6 +81,47 @@ MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE void
 }
 
 
+char   *mulle_objc_known_name_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
+{
+   switch( uniqueid)
+   {
+   case MULLE_OBJC_ALLOC_METHODID          : return( "alloc");
+   case MULLE_OBJC_AUTORELEASE_METHODID    : return( "autorelease");
+   case MULLE_OBJC_CLASS_METHODID          : return( "class");
+   case MULLE_OBJC_COPY_METHODID           : return( "copy");
+   case MULLE_OBJC_DEALLOC_METHODID        : return( "dealloc");
+   case MULLE_OBJC_DEINITIALIZE_METHODID   : return( "deinitialize");
+   case MULLE_OBJC_DEPENDENCIES_METHODID   : return( "dependencies");
+   case MULLE_OBJC_FINALIZE_METHODID       : return( "finalize");
+   case MULLE_OBJC_FORWARD_METHODID        : return( "forward:");
+   case MULLE_OBJC_INITIALIZE_METHODID     : return( "initialize");
+   case MULLE_OBJC_INIT_METHODID           : return( "init");
+   case MULLE_OBJC_INSTANTIATE_METHODID    : return( "instantiate");
+   case MULLE_OBJC_LOAD_METHODID           : return( "load");
+   case MULLE_OBJC_MUTABLECOPY_METHODID    : return( "mutableCopy");
+   case MULLE_OBJC_OBJECT_METHODID         : return( "object");
+   case MULLE_OBJC_RELEASE_METHODID        : return( "release");
+   case MULLE_OBJC_RETAIN_METHODID         : return( "retain");
+   case MULLE_OBJC_RETAINCOUNT_METHODID    : return( "retainCount");
+   case MULLE_OBJC_UNLOAD_METHODID         : return( "unload");
+   case MULLE_OBJC_GENERIC_GETTER_METHODID : return( ":");
+   case MULLE_OBJC_WILLFINALIZE_METHODID   : return( "willFinalize");
+
+   case MULLE_OBJC_ADDOBJECT_METHODID       : return( "addObject:");
+   case MULLE_OBJC_REMOVEOBJECT_METHODID    : return( "removeObject:");
+   case MULLE_OBJC_WILLCHANGE_METHODID      : return( "willChange");
+   case MULLE_OBJC_WILLREADRELATIONSHIP_METHODID   : return( "willReadRelationship:");
+
+   case MULLE_OBJC_MULLE_ALLOCATOR_METHODID : return( "mulleAllocator");
+
+   case 0x47a9beb6                          : return( "MulleObjCLoader");
+   case 0x58bb178a                          : return( "NSAutoreleasePool");
+   case 0xa41284db                          : return( "NSException");
+   }
+   return( NULL);
+}
+
+
 MULLE_C_NO_RETURN static void
    _mulle_objc_abort_classnotfound( struct _mulle_objc_universe *universe,
                                       mulle_objc_classid_t missing_classid)
@@ -104,18 +145,6 @@ MULLE_C_NO_RETURN static void
    name       = cls ? _mulle_objc_class_get_name( cls) : "???";
    methodname = NULL;
 
-   // known methodids are not necessarily compiled in
-   switch( missing_method)
-   {
-   case MULLE_OBJC_AUTORELEASE_METHODID : methodname = "autorelease"; break;
-   case MULLE_OBJC_COPY_METHODID        : methodname = "copy"; break;
-   case MULLE_OBJC_DEALLOC_METHODID     : methodname = "dealloc"; break;
-   case MULLE_OBJC_FINALIZE_METHODID    : methodname = "finalize"; break;
-   case MULLE_OBJC_INITIALIZE_METHODID  : methodname = "initialize"; break;
-   case MULLE_OBJC_INIT_METHODID        : methodname = "init"; break;
-   case MULLE_OBJC_LOAD_METHODID        : methodname = "load"; break;
-   }
-
    if( ! methodname && universe)
    {
       desc = _mulle_objc_universe_lookup_descriptor( universe, missing_method);
@@ -124,6 +153,9 @@ MULLE_C_NO_RETURN static void
       else
          methodname = _mulle_objc_universe_search_hashstring( universe, missing_method);
    }
+
+   if( ! methodname)
+      methodname = mulle_objc_known_name_for_uniqueid( missing_method);
 
    // keep often seen output more user friendly
    if( ! methodname)

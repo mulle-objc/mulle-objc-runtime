@@ -47,6 +47,9 @@ if( NOT __ENVIRONMENT__CMAKE__)
       endif()
    endif()
 
+   message( STATUS "DEPENDENCY_DIR=${DEPENDENCY_DIR}")
+   message( STATUS "ADDICTION_DIR=${ADDICTION_DIR}")
+
    #
    # MULLE_SDK is dependency/addiction. Not sysroot!
    #
@@ -150,11 +153,6 @@ if( NOT __ENVIRONMENT__CMAKE__)
          endif()
 
          message( STATUS "TMP_SDK_RELEASE_PATH=${TMP_SDK_RELEASE_PATH}")
-         if( EXISTS "${TMP_SDK_RELEASE_PATH}/include")
-            message( STATUS "TMP_SDK_RELEASE_PATH=${TMP_SDK_RELEASE_PATH}/include exists")
-         else()
-            message( STATUS "TMP_SDK_RELEASE_PATH=${TMP_SDK_RELEASE_PATH}/include does not exist")
-         endif()
 
          if( EXISTS "${TMP_SDK_RELEASE_PATH}/include")
             set( TMP_CMAKE_INCLUDE_PATH
@@ -240,9 +238,3 @@ if( NOT __ENVIRONMENT__CMAKE__)
    include( EnvironmentAux OPTIONAL)
 
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../Environment.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

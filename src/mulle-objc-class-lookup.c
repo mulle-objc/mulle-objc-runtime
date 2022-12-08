@@ -64,13 +64,8 @@ static inline
                                                     mulle_objc_methodid_t methodid,
                                                     unsigned int mode)
 {
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_cacheentry    *entries;
-   struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_method        *method;
-   mulle_objc_cache_uint_t          offset;
    mulle_objc_implementation_t      imp;
-   mulle_functionpointer_t          p;
    int                              error;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));

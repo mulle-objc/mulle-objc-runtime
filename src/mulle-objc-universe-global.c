@@ -79,8 +79,8 @@ struct init_wrapper_for_windows
 	mulle_objc_universetable =
 {
 	{
-	  (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage,
-	  (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage
+	  { (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage },
+	  { (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage }
 	},
 	1848
 };

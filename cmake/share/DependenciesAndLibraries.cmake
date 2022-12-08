@@ -12,7 +12,14 @@ endif()
 # this.
 #
 include( _Libraries OPTIONAL)
-include( _Dependencies OPTIONAL)
+
+#
+# If we are in an IDE like CLion and the dependencies haven't been made yet
+# cmake is unhappy, try to avoid that.
+#
+if( IS_DIRECTORY "${DEPENDENCY_DIR}")
+   include( _Dependencies OPTIONAL)
+endif()
 
 #
 # This is an experiment to have "flat" headers. I don't use it though (yet)
@@ -25,9 +32,3 @@ if( INHERIT_DEPENDENCY_INCLUDES)
    # these generate -I arguments, that add to the user search path
    include_directories( ${INHERITED_INCLUDE_DIRS})
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../DependenciesAndLibraries.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

@@ -90,10 +90,12 @@ set_target_properties( "${FRAMEWORK_NAME}" PROPERTIES
 # executable. Especially with multiple Frameworks you don't want the static
 # libraries duplicated in all of them, so you mark them "no-link".
 #
-target_link_options( "${FRAMEWORK_NAME}" PRIVATE
--ObjC
--undefined dynamic_lookup
-)
+if( LINK_PHASE)
+   target_link_options( "${FRAMEWORK_NAME}" PRIVATE
+      -ObjC
+      -undefined dynamic_lookup
+   )
+endif()
 
 message( STATUS "INSTALL_PUBLIC_HEADERS=${INSTALL_PUBLIC_HEADERS}")
 message( STATUS "INSTALL_PRIVATE_HEADERS=${INSTALL_PRIVATE_HEADERS}")
@@ -113,9 +115,3 @@ if( __FRAMEWORK_FILES_UNSET )
    unset( FRAMEWORK_FILES)
    unset( __FRAMEWORK_FILES_UNSET)
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../Framework.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

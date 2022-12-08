@@ -40,6 +40,7 @@
 
 #include "mulle-objc-call.h"
 #include "mulle-objc-retain-release.h"
+#include "mulle-objc-object-convenience.h"
 
 #include <assert.h>
 
@@ -51,8 +52,13 @@
 // TODO: code a generic mulle_objc_object_call function that uses various
 //       callers dependening on optimization setting
 //
+#define MULLE_OBJC_NSCOPYING_PROTOCOLID          0x903fb1df
+#define MULLE_OBJC_NSMUTABLECOPYING_PROTOCOLID   0x4aa86031
+
+
 static inline void   *mulle_objc_object_call_copy( void *self)
 {
+   assert( ! self || mulle_objc_object_conformsto_protocolid( self, MULLE_OBJC_NSCOPYING_PROTOCOLID));
    return( mulle_objc_object_call_inline_partial( self,
                                                   MULLE_OBJC_COPY_METHODID,
                                                   self));
@@ -61,6 +67,7 @@ static inline void   *mulle_objc_object_call_copy( void *self)
 
 static inline void   *mulle_objc_object_call_mutablecopy( void *self)
 {
+   assert( ! self || mulle_objc_object_conformsto_protocolid( self, MULLE_OBJC_NSMUTABLECOPYING_PROTOCOLID));
    return( mulle_objc_object_call_inline_partial( self,
                                                   MULLE_OBJC_MUTABLECOPY_METHODID,
                                                   self));
@@ -118,6 +125,25 @@ static inline void   mulle_objc_object_call_removeobject( void *self, void *valu
                                           value);
 }
 
+#ifndef NDEBUG
+
+static inline void   assert_same_mulle_allocator( struct _mulle_objc_object *self,
+                                                  struct _mulle_objc_object *value)
+{
+   if( ! value)
+      return;
+   if( ! _mulle_objc_object_lookup_implementation_no_forward( self, MULLE_OBJC_MULLE_ALLOCATOR_METHODID))
+      return;
+   if( ! _mulle_objc_object_lookup_implementation_no_forward( value, MULLE_OBJC_MULLE_ALLOCATOR_METHODID))
+      return;
+
+   assert( mulle_objc_object_call_mulle_allocator( value) ==
+           mulle_objc_object_call_mulle_allocator( self));
+}
+
+#else
+# define assert_same_mulle_allocator( self, value)
+#endif
 
 //
 // this is called by the compiler for retain or copy of objects only
@@ -148,8 +174,8 @@ static inline void
    else
       mulle_objc_object_retain( value);
 
-   assert( ! value || mulle_objc_object_call_mulle_allocator( value) ==
-                      mulle_objc_object_call_mulle_allocator( self));
+   assert_same_mulle_allocator( self, value);
+
    p_ivar = (void **) &((char *) self)[ offset];
    if( is_atomic)
    {
@@ -189,8 +215,8 @@ static inline void   mulle_objc_object_add_to_container( void *self,
    void   **p_ivar;
 
    p_ivar = (void **) &((char *) self)[ offset];
-   assert( ! value || mulle_objc_object_call_mulle_allocator( value) ==
-                      mulle_objc_object_call_mulle_allocator( self));
+
+   assert_same_mulle_allocator( self, value);
    mulle_objc_object_call_addobject( *p_ivar, value);
 }
 

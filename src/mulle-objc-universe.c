@@ -74,8 +74,6 @@ static void   nop( struct _mulle_objc_universe  *universe,
 
 void   mulle_objc_hang( void)
 {
-   extern void   sleep(unsigned int seconds);
-
    fprintf( stderr, "Hanging for debugger to attach\n");
    for(;;)
       mulle_thread_yield();  // better for windows than sleep
@@ -642,6 +640,7 @@ static int   return_zero( void)
    return( 0);
 }
 
+
 void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
                                   struct mulle_allocator *allocator)
 {
@@ -678,7 +677,6 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_concurrent_hashmap_init( &universe->protocoltable, 64, allocator);
    _mulle_concurrent_hashmap_init( &universe->supertable, 256, allocator);
 
-
    _mulle_concurrent_hashmap_init( &universe->waitqueues.classestoload, 64, allocator);
    _mulle_concurrent_hashmap_init( &universe->waitqueues.categoriestoload, 32, allocator);
 
@@ -692,6 +690,10 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
       mulle_objc_universe_trace( universe, "universe tps       : %lx", universe->config.no_tagged_pointer ? 0 : 1);
       mulle_objc_universe_trace( universe, "init done");
    }
+
+   // TODO: currently I am too lazy to set this up
+   // preload a list of know selectors of the universe for easier debugging
+   //   _mulle_objc_universe_add_loadhashedstringlist( universe, &map);
 }
 
 
@@ -1807,6 +1809,12 @@ void  mulle_objc_global_release_defaultuniverse( void)
 }
 
 
+int   mulle_objc_universe_is_initialized( struct _mulle_objc_universe *universe)
+{
+   return( universe ? _mulle_objc_universe_is_initialized( universe) : -1);
+}
+
+
 # pragma mark - garbage collection
 
 static void   _mulle_objc_universe_init_gc( struct _mulle_objc_universe *universe)
@@ -2499,7 +2507,7 @@ int   _mulle_objc_universe_add_protocol( struct _mulle_objc_universe *universe,
    {
       if( universe->debug.trace.protocol_add)
          mulle_objc_universe_trace( universe,
-                                    "added protocol %08x \"%s\" (%p)",
+                                    "add protocol %08x \"%s\" (%p)",
                                     p->protocolid,
                                     p->name,
                                     p);
@@ -2744,6 +2752,8 @@ MULLE_C_NONNULL_RETURN
 char   *_mulle_objc_universe_describe_uniqueid( struct _mulle_objc_universe *universe,
                                                 mulle_objc_uniqueid_t uniqueid)
 {
+   extern char   *mulle_objc_known_name_for_uniqueid( mulle_objc_uniqueid_t uniqueid);
+
    char   *s;
 
    if( uniqueid == MULLE_OBJC_NO_UNIQUEID)
@@ -2751,6 +2761,8 @@ char   *_mulle_objc_universe_describe_uniqueid( struct _mulle_objc_universe *uni
    if( uniqueid == MULLE_OBJC_INVALID_UNIQUEID)
       return( "INVALID ID");
    s = _mulle_objc_universe_search_hashstring( universe, uniqueid);
+   if( ! s)
+      s = mulle_objc_known_name_for_uniqueid( uniqueid);
    return( s ? s : "???");
 }
 

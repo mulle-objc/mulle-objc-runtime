@@ -55,6 +55,7 @@ then
    . "${MULLE_ENV_SHARE_DIR}/environment-extension.sh"
 fi
 
+
 #
 # Global user settings
 #
@@ -81,6 +82,7 @@ then
    . "${MULLE_ENV_ETC_DIR}/environment-user-${MULLE_USERNAME}.sh"
 fi
 
+
 #
 # For more complex edits, that don't work with the cmdline tool
 # Therefore its not in a scope
@@ -89,5 +91,6 @@ if [ -f "${MULLE_ENV_ETC_DIR}/environment-custom.sh" ]
 then
    . "${MULLE_ENV_ETC_DIR}/environment-custom.sh"
 fi
+
 unset MULLE_ENV_ETC_DIR
 unset MULLE_ENV_SHARE_DIR

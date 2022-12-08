@@ -242,6 +242,11 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
    mulle_objc_global_lookup_infraclass_nofail( mulle_objc_universeid_t universeid,
                                                mulle_objc_classid_t classid);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_infraclass *
+   mulle_objc_global_lookup_infraclass( mulle_objc_universeid_t universeid,
+                                        mulle_objc_classid_t classid);
+
 
 #pragma mark - infraclass lookup via object, fastclass lookup then cached
 

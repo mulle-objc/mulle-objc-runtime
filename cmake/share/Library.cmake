@@ -74,52 +74,61 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
    # This also enables parallel builds, when the products for a link aren't
    # available yet.
    #
+
    if( LIBRARY_SOURCES)
-      add_library( "_1_${LIBRARY_NAME}" OBJECT
+      set( LIBRARY_COMPILE_TARGET "_1_${LIBRARY_NAME}")
+      set( LIBRARY_LINK_TARGET "${LIBRARY_NAME}")
+
+      add_library( ${LIBRARY_COMPILE_TARGET} OBJECT
          ${LIBRARY_SOURCES}
       )
 
       set( ALL_OBJECT_FILES
-         $<TARGET_OBJECTS:_1_${LIBRARY_NAME}>
+         $<TARGET_OBJECTS:${LIBRARY_COMPILE_TARGET}>
          ${ALL_OBJECT_FILES}
       )
 
-      set_target_properties( "_1_${LIBRARY_NAME}"
+      set_target_properties( ${LIBRARY_COMPILE_TARGET}
          PROPERTIES
             CXX_STANDARD 11
 #            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
       )
 
-      target_compile_definitions( "_1_${LIBRARY_NAME}" PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
+      target_compile_definitions( ${LIBRARY_COMPILE_TARGET} PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
 
       #
       # Sometimes needed for elder linux ? Seen on xenial, with mulle-mmap
       #
       if( BUILD_SHARED_LIBS)
-         set_property(TARGET "_1_${LIBRARY_NAME}" PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+         set_property( TARGET ${LIBRARY_COMPILE_TARGET} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
       endif()
+   else()
+      set( LIBRARY_COMPILE_TARGET "${LIBRARY_NAME}")
+      set( LIBRARY_LINK_TARGET "${LIBRARY_NAME}")
    endif()
 
 
    if( STAGE2_SOURCES)
-      add_library( "_2_${LIBRARY_NAME}" OBJECT
+      set( LIBRARY_STAGE2_TARGET "_2_${LIBRARY_NAME}")
+
+      add_library( ${LIBRARY_STAGE2_TARGET} OBJECT
          ${STAGE2_SOURCES}
          ${STAGE2_HEADERS}
       )
       set( ALL_OBJECT_FILES
          ${ALL_OBJECT_FILES}
-         $<TARGET_OBJECTS:_2_${LIBRARY_NAME}>
+         $<TARGET_OBJECTS:${LIBRARY_STAGE2_TARGET}>
       )
 
-      set_target_properties( "_2_${LIBRARY_NAME}"
+      set_target_properties( ${LIBRARY_STAGE2_TARGET}
          PROPERTIES
             CXX_STANDARD 11
 #            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
       )
-      target_compile_definitions( "_2_${LIBRARY_NAME}" PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
+      target_compile_definitions( ${LIBRARY_STAGE2_TARGET} PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
 
       if( BUILD_SHARED_LIBS)
-         set_property(TARGET "_2_${LIBRARY_NAME}" PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+         set_property(TARGET ${LIBRARY_STAGE2_TARGET} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
       endif()
    else()
       if( STAGE2_HEADERS)
@@ -146,9 +155,9 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
          ${LIBRARY_RESOURCES}
       )
 
-      add_dependencies( "${LIBRARY_NAME}" "_1_${LIBRARY_NAME}")
+      add_dependencies( "${LIBRARY_NAME}" ${LIBRARY_COMPILE_TARGET})
       if( STAGE2_SOURCES)
-         add_dependencies( "${LIBRARY_NAME}" "_2_${LIBRARY_NAME}")
+         add_dependencies( "${LIBRARY_NAME}" ${LIBRARY_STAGE2_TARGET})
       endif()
 
       # MEMO: DEFINE_SYMBOL is only active when building shared libs
@@ -239,9 +248,3 @@ if( __LIBRARY_RESOURCES_UNSET )
    unset( LIBRARY_RESOURCES)
    unset( __LIBRARY_RESOURCES_UNSET)
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../Library.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

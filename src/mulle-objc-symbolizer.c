@@ -115,19 +115,18 @@ static inline void  mmcarray_done( struct mmcarray *array)
 
 
 
-# pragma mark -
-# pragma mark petty accessors
+// # pragma mark -
+// # pragma mark petty accessors
+//
+// static inline unsigned int
+//    mmcarray_get_count( struct mmcarray *array)
+// {
+//    return( array->_count);
+// }
 
-static inline unsigned int
-   mmcarray_get_count( struct mmcarray *array)
-{
-   return( array->_count);
-}
 
 
-
-# pragma mark -
-# pragma mark operations
+# pragma mark - operations
 
 static int   mmcarray_grow( struct mmcarray *array)
 {
