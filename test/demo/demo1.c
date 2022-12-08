@@ -558,6 +558,9 @@ int   main( int argc, const char * argv[])
    fprintf( stderr, "-==> mulle_objc_fastlookup_infraclass_nofail()\n");
    cls = mulle_objc_global_lookup_infraclass_nofail( MULLE_OBJC_DEFAULTUNIVERSEID, ___Foo_classid);
 
+   fprintf( stderr, "-==> _mulle_objc_infraclass_setup_if_needed()\n");
+   _mulle_objc_infraclass_setup_if_needed( cls);
+
    fprintf( stderr, "-==> mulle_objc_infraclass_alloc_instance()\n");
    obj = mulle_objc_infraclass_alloc_instance( cls);
 

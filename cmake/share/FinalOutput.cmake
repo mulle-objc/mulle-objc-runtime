@@ -44,9 +44,3 @@ if( NOT __FINAL_OUTPUT_C_CMAKE__)
    include( FinalOutputAuxC OPTIONAL)
 
 endif()
-
-
-# extension : mulle-c/c-cmake
-# directory : project/all
-# template  : .../FinalOutput.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

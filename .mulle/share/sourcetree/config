@@ -1,1 +1,0 @@
-mulle-c11;${MULLE__C11_NODETYPE:-tar};no-all-load,no-cmake-inherit,no-import,no-link,no-recurse,no-singlephase;3CBCBD18-991F-4325-B8E1-A064DA364DBD;${MULLE__C11_URL:-https://github.com/mulle-c/mulle-c11/archive/${MULLE_TAG}.tar.gz};${MULLE__C11_BRANCH};${MULLE__C11_TAG:-latest};;
