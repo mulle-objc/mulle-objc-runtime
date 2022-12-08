@@ -119,6 +119,8 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
                                        mcache->cache.entries,
                                        universe->initial_methodcache.cache.entries);
    assert( found == universe->initial_methodcache.cache.entries);
+
+   ((void)(found)); // use :-/ for compiler
 }
 
 

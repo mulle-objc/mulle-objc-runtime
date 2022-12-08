@@ -501,6 +501,7 @@ static inline int
    return( (int32_t) _mulle_objc_universe_get_version( universe) >= 0);
 }
 
+
 static inline int
    _mulle_objc_universe_is_messaging( struct _mulle_objc_universe *universe)
 {

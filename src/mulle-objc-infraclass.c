@@ -608,7 +608,7 @@ loop:
    rover = mulle_concurrent_pointerarray_reverseenumerate( &infra->propertylists, n);
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
-      if( rval = _mulle_objc_propertylist_walk( list, f, infra, userinfo))
+      if( (rval = _mulle_objc_propertylist_walk( list, f, infra, userinfo)))
          return( rval);
    }
 
@@ -866,22 +866,23 @@ int   mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *
 }
 
 
-static struct _mulle_objc_method  *
-   _mulle_objc_infraclass_search_method_noinherit( struct _mulle_objc_infraclass *infra,
-                                                   mulle_objc_methodid_t methodid)
-{
-   struct _mulle_objc_searcharguments   search;
-   struct _mulle_objc_method            *method;
-   struct _mulle_objc_metaclass         *meta;
+// unused...
+// static struct _mulle_objc_method  *
+//    _mulle_objc_infraclass_search_method_noinherit( struct _mulle_objc_infraclass *infra,
+//                                                    mulle_objc_methodid_t methodid)
+// {
+//    struct _mulle_objc_searcharguments   search;
+//    struct _mulle_objc_method            *method;
+//    struct _mulle_objc_metaclass         *meta;
 
-   _mulle_objc_searcharguments_init_default( &search, methodid);
-   meta   = _mulle_objc_infraclass_get_metaclass( infra);
-   method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
-                                            &search,
-                                            -1,  // inherit nothing
-                                            NULL);
-   return( method);
-}
+//    _mulle_objc_searcharguments_init_default( &search, methodid);
+//    meta   = _mulle_objc_infraclass_get_metaclass( infra);
+//    method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
+//                                             &search,
+//                                             -1,  // inherit nothing
+//                                             NULL);
+//    return( method);
+// }
 
 
 static void   _mulle_objc_infraclass_call_unloadmethod( struct _mulle_objc_infraclass *infra,
@@ -919,7 +920,6 @@ static struct _mulle_objc_method  *
    struct _mulle_objc_searcharguments   search;
    struct _mulle_objc_method            *method;
    struct _mulle_objc_metaclass         *meta;
-   struct _mulle_objc_class             *cls;
 
    if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
       return( NULL);

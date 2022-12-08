@@ -178,19 +178,19 @@ static void   trace_method_search_fail( struct _mulle_objc_class *cls,
    struct _mulle_objc_universe   *universe;
 
    universe = _mulle_objc_class_get_universe( cls);
-   switch( error)
+   if( error == ENOENT)
    {
-   case ENOENT:
       mulle_objc_universe_trace( universe, "method not found");
-      break;
-
-   case EINVAL:
-      mulle_objc_universe_trace( universe, "invalid search call");
-      break;
-
-   default :
-      mulle_objc_universe_trace( universe, "method search error %d", error);
+      return;
    }
+
+   if( error == EINVAL)
+   {
+      mulle_objc_universe_trace( universe, "invalid search call");
+      return;
+   }
+
+   mulle_objc_universe_trace( universe, "method search error %d", error);
 }
 
 

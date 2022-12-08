@@ -16,3 +16,4 @@ mulle-sourcetree-graph
 mulle-match-to-cmake;optional
 mulle-match-to-c;optional
 cmake
+clion;optional

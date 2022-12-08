@@ -43,6 +43,7 @@ if( NOT __ALL_LOAD_C_CMAKE__)
    # symbols will be reexported. 
    #
    function( CreateForceAllLoadList listname outputname)
+      set( list "")
       if( ${listname})
          set( list ${BEGIN_ALL_LOAD})
          foreach( library ${${listname}})
@@ -67,9 +68,3 @@ if( NOT __ALL_LOAD_C_CMAKE__)
    include( AllLoadAuxC OPTIONAL)
 
 endif()
-
-
-# extension : mulle-c/c-cmake
-# directory : project/all
-# template  : .../AllLoadC.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

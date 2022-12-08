@@ -173,6 +173,7 @@ static mulle_objc_walkcommand_t
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
       entry->cls = cls;
 #endif
+      ((void)( entry));  // use
    }
 
    return( 0);

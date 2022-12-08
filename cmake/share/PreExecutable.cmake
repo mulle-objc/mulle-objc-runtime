@@ -13,9 +13,3 @@ include( UnwantedWarningsC) # after detection, before flags
 include( CompilerFlagsC)
 
 include( PreExecutableAuxC OPTIONAL)
-
-
-# extension : mulle-c/c-cmake
-# directory : project/all
-# template  : .../PreExecutable.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

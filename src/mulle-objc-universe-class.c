@@ -407,6 +407,7 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass  *
     mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid)
 {
+   // TODO: need to if here or rename to _ (preferable)
    assert( universe);
 
    if( universe->config.no_fast_call)
@@ -435,6 +436,18 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass  *
 
    universe = mulle_objc_global_get_universe_inline( universeid);
    return( mulle_objc_universe_lookup_infraclass_nofail( universe, classid));
+}
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_infraclass *
+   mulle_objc_global_lookup_infraclass( mulle_objc_universeid_t universeid,
+                                        mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = mulle_objc_global_get_universe_inline( universeid);
+   return( mulle_objc_universe_lookup_infraclass( universe, classid));
 }
 
 

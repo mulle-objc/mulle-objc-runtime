@@ -288,6 +288,7 @@ int   main( int argc, const char * argv[])
    // obj = [[Object alloc] init];
 
    cls = mulle_objc_global_lookup_infraclass_nofail( UNIVERSE_ID, ___Object_classid);
+   _mulle_objc_infraclass_setup_if_needed( cls);
    obj = mulle_objc_infraclass_alloc_instance( cls);
    obj = mulle_objc_object_call( obj, ___init__methodid, NULL);
 

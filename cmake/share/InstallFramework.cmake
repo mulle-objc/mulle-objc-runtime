@@ -18,9 +18,3 @@ if( LINK_PHASE)
    include( PostInstallFramework OPTIONAL)
 
 endif()
-
-
-# extension : mulle-sde/cmake
-# directory : project/all
-# template  : .../InstallFramework.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

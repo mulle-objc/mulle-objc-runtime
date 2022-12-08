@@ -39,9 +39,3 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
    include( CompilerFlagsAuxC OPTIONAL)
 
 endif()
-
-
-# extension : mulle-c/c-cmake
-# directory : project/all
-# template  : .../CompilerFlagsC.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

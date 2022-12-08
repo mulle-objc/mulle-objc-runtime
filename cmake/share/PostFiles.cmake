@@ -12,9 +12,3 @@ if( NOT __POST_FILES__CMAKE__)
    include( PostFilesAuxC OPTIONAL)
 
 endif()
-
-
-# extension : mulle-c/c-cmake
-# directory : project/all
-# template  : .../PostFiles.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

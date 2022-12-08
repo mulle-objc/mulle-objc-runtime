@@ -27,9 +27,3 @@ include( _Resources OPTIONAL)
 # You can put more source and resource file definitions here.
 #
 set( INSTALL_RESOURCES ${RESOURCES})
-
-
-# extension : mulle-sde/c-cmake
-# directory : project/all
-# template  : .../Resources.cmake
-# Suppress this comment with `export MULLE_SDE_GENERATE_FILE_COMMENTS=NO`

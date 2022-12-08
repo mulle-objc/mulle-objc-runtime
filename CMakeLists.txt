@@ -19,9 +19,9 @@ include( Files)
 ### Library
 
 if( HEADERS_PHASE)
-   install( FILES ${INSTALL_PUBLIC_HEADERS}  DESTINATION "include/mulle-objc-runtime")
-   install( FILES ${INSTALL_PRIVATE_HEADERS} DESTINATION "include/mulle-objc-runtime/private")
-   install( FILES ${CMAKE_INCLUDES}          DESTINATION "include/mulle-objc-runtime/cmake")
+   install( FILES ${INSTALL_PUBLIC_HEADERS}  DESTINATION "include/${PROJECT_NAME}")
+   install( FILES ${INSTALL_PRIVATE_HEADERS} DESTINATION "include/${PROJECT_NAME}/private")
+   install( FILES ${CMAKE_INCLUDES}          DESTINATION "include/${PROJECT_NAME}/cmake")
 
    # short cut out
    if( NOT COMPILE_PHASE AND NOT LINK_PHASE)
@@ -34,6 +34,18 @@ if( LINK_PHASE)
 endif()
 
 include( Library)
+
+# use LIBRARY_COMPILE_TARGET for compiler options
+target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
+if( NOT MSVC)
+target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
+endif()
+
+# use LIBRARY_LINK_TARGET for linker options
+if( LINK_PHASE)
+   target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+endif()
+
 include( InstallLibrary)
 
 

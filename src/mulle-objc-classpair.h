@@ -568,7 +568,8 @@ static inline int   _mulle_objc_class_has_protocolid( struct _mulle_objc_class *
 }
 
 
-static inline int   mulle_objc_class_conforms_to_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid)
+static inline int   mulle_objc_class_conforms_to_protocol( struct _mulle_objc_class *cls, 
+                                                           mulle_objc_protocolid_t protocolid)
 {
    struct _mulle_objc_classpair   *pair;
 
