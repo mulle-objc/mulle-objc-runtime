@@ -232,7 +232,6 @@ while( 0)
    _mulle_metaabi_push( ap, type, (value))
 
 
-
 /*
  * MetaABI struct reader
  * Useful to dynamically read up a metaabi block return value for interpreters
@@ -254,8 +253,6 @@ static inline void  *
    *(type *) _mulle_metaabi_reader_align_pointer( &args,                       \
                                                   sizeof( type),               \
                                                   alignof( struct{ type x; }))
-
-
 
 /*
  * conveniences
@@ -328,5 +325,18 @@ static inline void  *
 
 #define mulle_metaabi_next_union( ap, type) \
    _mulle_metaabi_next( ap, type)
+
+
+/*
+ * MetaABI introspection. Path to C transpiler support.
+ */
+
+// _Generic won't be available everywhere, but this is a define so that
+// should not impede compilation at least (will impede usage)
+#define mulle_metaabi_is_fp( x)  \
+   _Generic( (x) float: 1, double: 1, long double: 1, default: 0)
+
+#define mulle_metaabi_fits_in_voidptr( x) \
+   (alignof( x) <= alignof( void *) && sizeof( x) <= sizeof( void *))
 
 #endif

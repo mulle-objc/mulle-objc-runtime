@@ -23,14 +23,14 @@ static intptr_t   get_retaincount( void *obj)
 
 static unsigned int   instances;
 
-static void  *my_calloc( size_t n, size_t size)
+static void  *my_calloc( size_t n, size_t size, struct mulle_allocator *allocator)
 {
    ++instances;
    return( mulle_allocator_calloc( &mulle_testallocator, n, size));
 }
 
 
-static void  my_free( void *p)
+static void  my_free( void *p, struct mulle_allocator *allocator)
 {
    --instances;
    mulle_allocator_free( &mulle_testallocator, p);

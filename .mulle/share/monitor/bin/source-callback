@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#! /bin/sh
 #
 #   Copyright (c) 2018 Nat! - Mulle kybernetiK
 #   All rights reserved.
@@ -29,72 +29,30 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 #
+[ "${TRACE}" = 'YES' ] && set -x && : "$0" "$@"
+
 
 #
-# Overwrite inherited task and add mulle-mulle-sourcetree-to-c.
-# It would be nice to inherit this properly instead of clobbering it.
-# Also mulle-sourcetree-to-c doesn't really require cmake to exist, this
-# is another bug.
+# this script is used by mulle-monitor in monitor mode so that source changes
+# trigger rebuilds. It usually won't be executed during a `mulle-sde reflect`
 #
-sourcetree_task_run()
+
+
+main()
 {
-   log_entry "mulle-sde/c-cmake::sourcetree_task_run" "$@"
+#   local callback="$1"
+#   local action="$2"     # unused
+   local filename="$3"
+   local category="$4"
 
-   local runs
-
-   case "${MULLE_SOURCETREE_TO_CMAKE_RUN}" in
-      NO|DISABLE*|OFF)
-      ;;
-
-      *)
-         runs="cmake"
+   case "-${category}-" in
+      *-generated-*)
+         return 0
       ;;
    esac
 
-   case "${MULLE_SOURCETREE_TO_C_RUN}" in
-      NO|DISABLE*|OFF)
-      ;;
+   echo "craft"           # this selects the **task** to run
+}                        # none means no task
 
-      *)
-         r_comma_concat "${runs}" "c"
-         runs="${RVAL}"
-      ;;
-   esac
+main "$@"
 
-   if [ -z "${runs}" ]
-   then
-      return
-   fi
-
-   log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME:-.}${C_INFO} sourcetree ${C_RESET_BOLD}${MULLE_SOURCETREE_CONFIG_NAME:-config}"
-
-   local rval
-
-   rval=0
-   case ",${runs}," in
-      *,cmake,*)
-         exekutor mulle-sourcetree-to-cmake ${MULLE_TECHNICAL_FLAGS} "$@"
-         rval=$?
-         if [ $rval -ne 0 ]
-         then
-            log_error "mulle-sourcetree-to-cmake ${MULLE_TECHNICAL_FLAGS} $* failed ($rval)"
-         fi
-      ;;
-   esac
-
-   local rval2
-
-   rval2=0
-   case ",${runs}," in
-      *,c,*)
-         exekutor mulle-sourcetree-to-c ${MULLE_TECHNICAL_FLAGS} "$@"
-         rval2=$?
-         if [ $rval2 -ne 0 ]
-         then
-            log_error "mulle-sourcetree-to-c ${MULLE_TECHNICAL_FLAGS} $* failed ($rval2)"
-         fi
-      ;;
-   esac
-
-   [ $rval -eq 0 -a $rval2 -eq 0 ]
-}
