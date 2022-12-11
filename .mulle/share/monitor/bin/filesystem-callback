@@ -1,4 +1,4 @@
-#! /usr/bin/env bash
+#! /bin/sh
 #
 #   Copyright (c) 2018 Nat! - Mulle kybernetiK
 #   All rights reserved.
@@ -37,12 +37,12 @@
 #
 main()
 {
-   local action="$1"     # unused
-   local filename="$2"
-   local category="$3"
+#   local callback="$1"
+#   local action="$2"     # unused
+#   local filename="$3"
+#   local category="$4"
 
    echo "filesystem"     # this selects the **task** to run
 }                        # see mulle-sde task list for whats available
 
 main "$@"
-

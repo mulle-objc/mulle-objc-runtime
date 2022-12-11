@@ -18,7 +18,7 @@ jobs:
     - name: Set MULLE_HOSTNAME
       run: |
         name="${GITHUB_REF##*/}"
-        MULLE_HOSTNAME="ci-${name##*-}"
+        MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
         echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
 
     - name: Add to path
@@ -28,13 +28,13 @@ jobs:
       run:  env | sort
       
     - uses: actions/checkout@v2
-      if: ${{ ! env.ACT }}
+
 
     - uses: mulle-sde/github-ci@v1
-      if: ${{ ! env.ACT }}
+
 
     - uses: mulle-cc/github-ci@v4
-      if: ${{ ! env.ACT }}
+
 
     - name: Dump Project Environment
       run:  |

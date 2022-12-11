@@ -1,3 +1,9 @@
+## 0.22.0
+
+* rename some public `__` functions
+* fix bug in `_mulle_objc_class_lookup_implementation_mode`
+
+
 ### 0.21.1
 
 * fix bug in `_mulle_objc_class_lookup_implementation_mode`

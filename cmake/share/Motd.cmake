@@ -48,7 +48,7 @@ if( EXECUTABLE_NAME AND LINK_PHASE)
       endif()
       add_dependencies( "${EXECUTABLE_NAME}" "__cleanmotd__")
 
-      add_custom_target( "${EXECUTABLE_NAME}__motd__" ALL
+      add_custom_target( "_${EXECUTABLE_NAME}__motd__" ALL
          COMMAND ${CMAKE_COMMAND} -E env "MULLE_VIRTUAL_ROOT=${MULLE_VIRTUAL_ROOT}"
                         "${CREATE_MOTD_EXE}"
                         $ENV{CREATE_BUILD_MOTD_FLAGS}
@@ -60,7 +60,7 @@ if( EXECUTABLE_NAME AND LINK_PHASE)
          VERBATIM
       )
 
-      add_dependencies( "${EXECUTABLE_NAME}__motd__" ${EXECUTABLE_NAME})
+      add_dependencies( "_${EXECUTABLE_NAME}__motd__" ${EXECUTABLE_NAME})
    else()
       message( WARNING "Tool \"mulle-create-build-motd\" not found")
    endif()
