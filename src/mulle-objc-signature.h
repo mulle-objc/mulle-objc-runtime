@@ -44,50 +44,6 @@
 
 #include "mulle-metaabi.h"
 
-// these defines are compatible to other universes
-// but some aren't implemented in code yet
-// NOTE: Avoid adding ';' and ',' because of CSV and mulle-objc-list
-
-#define _C_ARY_B        '['
-#define _C_ARY_E        ']'
-#define _C_ATOM         '%'
-#define _C_BFLD         'b'
-#define _C_BOOL         'B'
-#define _C_CHARPTR      '*'
-#define _C_CHR          'c'
-#define _C_CLASS        '#'
-// #define _C_COMPLEX      'j'   // no support for this
-#define _C_DBL          'd'
-#define _C_FLT          'f'
-#define _C_FUNCTION     '?'  // same as undef. undef meaning "undefined size"
-#define _C_ID           '@'
-#define _C_INT          'i'
-#define _C_LNG          'l'
-#define _C_LNG_DBL      'D'
-#define _C_LNG_LNG      'q'
-#define _C_PTR          '^'
-#define _C_SEL          ':'
-#define _C_SHT          's'
-#define _C_STRUCT_B     '{'
-#define _C_STRUCT_E     '}'
-#define _C_UCHR         'C'
-#define _C_UINT         'I'
-#define _C_ULNG         'L'
-#define _C_ULNG_LNG     'Q'
-#define _C_UNDEF        '?'  // actually @? is a block, ^? is function pointer (so ?)
-#define _C_UNION_B      '('
-#define _C_UNION_E      ')'
-#define _C_USHT         'S'
-#define _C_VECTOR       '!'
-#define _C_VOID         'v'
-
-// these future defines are incompatible
-// % is like @ but it should be copyied instead of retained
-// = is like @ but it should not be retained
-#define _C_ASSIGN_ID    '='
-#define _C_COPY_ID      '~'
-#define _C_RETAIN_ID    _C_ID
-
 // union mulle_objc_scalarvalue
 // {
 //    char                    *c_atom;
@@ -317,13 +273,6 @@ MULLE_OBJC_RUNTIME_GLOBAL
 enum mulle_metaabi_param   mulle_objc_signature_get_metaabireturntype( char *type);
 
 
-// this method does not inspect the complete signature! only the type
-static inline enum mulle_metaabi_param
-   _mulle_objc_signature_get_metaabiparamtype( char *type)
-{
-   return( mulle_objc_signature_get_metaabireturntype( type)); // sic(!)
-}
-
 MULLE_OBJC_RUNTIME_GLOBAL
 size_t    _mulle_objc_signature_sizeof_metabistruct( char *type);
 
@@ -397,10 +346,6 @@ static inline void   _mulle_objc_sprint_untypedsignature( char *buf, size_t size
    }
    *buf = 0;
 }
-
-
-#define mulle_objc_type_fits_voidptr( x)  \
-   ((sizeof( x) <= sizeof( void *)) && (alignof( x) <= alignof( void *)))
 
 
 //
@@ -485,6 +430,27 @@ static inline int   _mulle_objc_type_is_object( char *type)
    return( 0);
 }
 
+
+static inline int   _mulle_objc_type_is_fp( char *type)
+{
+   type = _mulle_objc_signature_skip_type_qualifier( type);
+   switch( *type)
+   {
+   case _C_FLT     :
+   case _C_DBL     :
+   case _C_LNG_DBL :
+   case _C_VECTOR  :  // guess
+      return( 1);
+   }
+   return( 0);
+}
+
+static inline enum mulle_metaabi_param
+   _mulle_objc_signature_get_metaabiparamtype( char *type)
+{
+   type = _mulle_objc_signature_skip_type_qualifier( type);
+   return( _mulle_metaabi_get_metaabiparamtype( type));
+}
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */
 

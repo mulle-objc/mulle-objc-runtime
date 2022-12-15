@@ -726,60 +726,6 @@ char   *mulle_objc_signature_next_type( char *types)
 }
 
 
-#define type_fits_voidptr( x)  \
-   ((sizeof( x) <= sizeof( void *)) && (alignof( x) <= alignof( void *)))
-
-
-static enum mulle_metaabi_param
-   __mulle_objc_signature_get_metaabiparamtype( char *type)
-{
-   type = _mulle_objc_signature_skip_type_qualifier( type);
-   switch( *type)
-   {
-   case 0            :
-   case _C_VOID      : return( mulle_metaabi_param_void);
-   case _C_UNDEF     : return( mulle_metaabi_param_error);
-
-#ifdef _C_ATOM
-   case _C_ATOM      :
-#endif
-   case _C_BOOL      :
-   case _C_CHARPTR   :
-   case _C_RETAIN_ID :
-   case _C_COPY_ID   :
-   case _C_ASSIGN_ID :
-   case _C_CLASS     :
-   case _C_SEL       :
-   case _C_CHR       :
-   case _C_UCHR      :
-   case _C_SHT       :
-   case _C_USHT      :
-   case _C_INT       :
-   case _C_UINT      : return( mulle_metaabi_param_void_pointer);
-
-   case _C_LNG       : return( type_fits_voidptr( long)
-                                  ? mulle_metaabi_param_void_pointer
-                                  : mulle_metaabi_param_struct);
-   case _C_ULNG      : return( type_fits_voidptr( unsigned long)
-                                  ? mulle_metaabi_param_void_pointer
-                                  : mulle_metaabi_param_struct);
-   case _C_LNG_LNG   : return( type_fits_voidptr( long long)
-                                  ? mulle_metaabi_param_void_pointer
-                                  : mulle_metaabi_param_struct);
-   case _C_ULNG_LNG  : return( type_fits_voidptr( unsigned long long)
-                                  ? mulle_metaabi_param_void_pointer
-                                  : mulle_metaabi_param_struct);
-   case _C_PTR       : if( type[ 1] == '?')
-                          return( mulle_metaabi_param_void_pointer);
-                       return( type_fits_voidptr( void( *)( void))
-                                 ? mulle_metaabi_param_void_pointer
-                                 : mulle_metaabi_param_struct);
-   }
-   return( mulle_metaabi_param_struct);
-}
-
-
-
 enum mulle_metaabi_param
    mulle_objc_signature_get_metaabiparamtype( char *types)
 {
@@ -809,7 +755,7 @@ enum mulle_metaabi_param
    if( ! types)
       return( mulle_metaabi_param_void);
 
-   p_type = __mulle_objc_signature_get_metaabiparamtype( types);
+   p_type = _mulle_objc_signature_get_metaabiparamtype( types);
    if( p_type == mulle_metaabi_param_void_pointer)
    {
       // skip current
@@ -831,7 +777,7 @@ enum mulle_metaabi_param
       return( mulle_metaabi_param_error);
    }
 
-   return( __mulle_objc_signature_get_metaabiparamtype( type));
+   return( _mulle_objc_signature_get_metaabiparamtype( type));
 }
 
 

@@ -51,6 +51,52 @@ enum mulle_metaabi_param
    mulle_metaabi_param_struct        = 2
 };
 
+// these defines are compatible to other universes
+// but some aren't implemented in code yet
+// NOTE: Avoid adding ';' and ',' because of CSV and mulle-objc-list
+// MEMO: now part of mulle_metaabi, but probably should be its own header
+
+#define _C_ARY_B        '['
+#define _C_ARY_E        ']'
+#define _C_ATOM         '%'
+#define _C_BFLD         'b'
+#define _C_BOOL         'B'
+#define _C_CHARPTR      '*'
+#define _C_CHR          'c'
+#define _C_CLASS        '#'
+// #define _C_COMPLEX      'j'   // no support for this
+#define _C_DBL          'd'
+#define _C_FLT          'f'
+#define _C_FUNCTION     '?'  // same as undef. undef meaning "undefined size"
+#define _C_ID           '@'
+#define _C_INT          'i'
+#define _C_LNG          'l'
+#define _C_LNG_DBL      'D'
+#define _C_LNG_LNG      'q'
+#define _C_PTR          '^'
+#define _C_SEL          ':'
+#define _C_SHT          's'
+#define _C_STRUCT_B     '{'
+#define _C_STRUCT_E     '}'
+#define _C_UCHR         'C'
+#define _C_UINT         'I'
+#define _C_ULNG         'L'
+#define _C_ULNG_LNG     'Q'
+#define _C_UNDEF        '?'  // actually @? is a block, ^? is function pointer (so ?)
+#define _C_UNION_B      '('
+#define _C_UNION_E      ')'
+#define _C_USHT         'S'
+#define _C_VECTOR       '!'
+#define _C_VOID         'v'
+
+// these future defines are incompatible
+// % is like @ but it should be copyied instead of retained
+// = is like @ but it should not be retained
+#define _C_ASSIGN_ID    '='
+#define _C_COPY_ID      '~'
+#define _C_RETAIN_ID    _C_ID
+
+
 struct mulle_metaabi_reader
 {
    void   *p;
@@ -333,10 +379,57 @@ static inline void  *
 
 // _Generic won't be available everywhere, but this is a define so that
 // should not impede compilation at least (will impede usage)
-#define mulle_metaabi_is_fp( x)  \
-   _Generic( (x) float: 1, double: 1, long double: 1, default: 0)
+#define mulle_metaabi_is_fp( type)  \
+   _Generic( (type) float: 1, double: 1, long double: 1, default: 0)
 
-#define mulle_metaabi_fits_in_voidptr( x) \
-   (alignof( x) <= alignof( void *) && sizeof( x) <= sizeof( void *))
+#define mulle_metaabi_is_voidptr_storage_compatible( type) \
+   (alignof( type) <= alignof( void *) && sizeof( type) <= sizeof( void *))
+
+
+static inline enum mulle_metaabi_param   _mulle_metaabi_get_metaabiparamtype( char *type)
+{
+   switch( *type)
+   {
+   case 0            :
+   case _C_VOID      : return( mulle_metaabi_param_void);
+   case _C_UNDEF     : return( mulle_metaabi_param_error);
+
+#ifdef _C_ATOM
+   case _C_ATOM      :
+#endif
+   case _C_BOOL      :
+   case _C_CHARPTR   :
+   case _C_RETAIN_ID :
+   case _C_COPY_ID   :
+   case _C_ASSIGN_ID :
+   case _C_CLASS     :
+   case _C_SEL       :
+   case _C_CHR       :
+   case _C_UCHR      :
+   case _C_SHT       :
+   case _C_USHT      :
+   case _C_INT       :
+   case _C_UINT      : return( mulle_metaabi_param_void_pointer);
+
+   case _C_LNG       : return( mulle_metaabi_is_voidptr_storage_compatible( long)
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
+   case _C_ULNG      : return( mulle_metaabi_is_voidptr_storage_compatible( unsigned long)
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
+   case _C_LNG_LNG   : return( mulle_metaabi_is_voidptr_storage_compatible( long long)
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
+   case _C_ULNG_LNG  : return( mulle_metaabi_is_voidptr_storage_compatible( unsigned long long)
+                                  ? mulle_metaabi_param_void_pointer
+                                  : mulle_metaabi_param_struct);
+   case _C_PTR       : if( type[ 1] == '?')
+                          return( mulle_metaabi_param_void_pointer);
+                       return( mulle_metaabi_is_voidptr_storage_compatible( void( *)( void))
+                                 ? mulle_metaabi_param_void_pointer
+                                 : mulle_metaabi_param_struct);
+   default           : return( mulle_metaabi_param_struct);
+   }
+}
 
 #endif
