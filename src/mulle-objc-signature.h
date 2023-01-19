@@ -71,19 +71,22 @@
 // Type modifiers are no longer encoded in mulle-objc. They slow things down
 // and there is no interest in them. The DO stuff and GC is also obsolete
 //
-// #define _C_BYCOPY       'O'
-// #define _C_BYREF        'R'
-// #define _C_CONST        'r'  /*  mulle-c compiler doesn't emit it anymore */
-// #define _C_GCINVISIBLE  '|'  /* lol */
-// #define _C_ONEWAY       'V'
+#ifdef MULLE_OBJC_DEFINE_OBSOLETE_ENCODINGS
+# define _C_BYCOPY       'O'
+# define _C_BYREF        'R'
+# define _C_CONST        'r'  /*  mulle-c compiler doesn't emit it anymore */
+# define _C_GCINVISIBLE  '|'  /* lol */
+# define _C_ONEWAY       'V'
 
 //
 // Candidates for ressurrection ? They could be useful for introspecting
 // pointer parameters
 //
-// #define _C_IN           'n'
-// #define _C_INOUT        'N'
-// #define _C_OUT          'o'
+# define _C_IN           'n'
+# define _C_INOUT        'N'
+# define _C_OUT          'o'
+#endif
+
 
 struct mulle_objc_typeinfo
 {

@@ -1,12 +1,12 @@
-ar
-as
+ar;optional
+as;optional
 cc;optional
 clang;optional
 scan-build;optional
 diff
 gcc;optional
-ld
-nm
+ld;optional
+nm;optional
 valgrind;optional
 vgdb;optional
 valgrind.bin;optional

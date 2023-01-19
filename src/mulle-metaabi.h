@@ -36,11 +36,13 @@
 #ifndef mulle_metaabi_h__
 #define mulle_metaabi_h__
 
-#include "include.h" // need mulle-c11 for stdalign
+// #include "include.h" // need mulle-c11 for stdalign
 
 #include <stdint.h>
 #include <stddef.h>
-
+#include <mulle-c11/mulle-c11.h>
+#include <mulle-c11/mulle-c11-eval.h>
+#include <mulle-vararg/mulle-vararg.h>
 
 // maybe rename to kind ?
 enum mulle_metaabi_param
@@ -118,6 +120,7 @@ static inline struct mulle_metaabi_reader
    return( list);
 }
 
+
 static inline struct mulle_metaabi_writer
    mulle_metaabi_writer_make( void *buf)
 {
@@ -129,12 +132,12 @@ static inline struct mulle_metaabi_writer
 
 
 /* if you need to "manually" call a MetaABI function with a _param block
-   use mulle_metaabi_struct to generate it. DO NOT CALL IT
+   use mulle_metaabi_union to generate it. DO NOT CALL IT
    `_param` THOUGH (triggers a compiler bug).
 
    ex.
 
-   mulle_metaabi_struct( NSRange, NSUInteger)   param;
+   mulle_metaabi_union( NSUInteger, NSRange)   param;
 
    param.p = NSMakeRange( 1, 1);
    mulle_objc_object_call( obj, sel, &param);
@@ -144,10 +147,10 @@ static inline struct mulle_metaabi_writer
 #define mulle_metaabi_voidptr5( size)  \
    ( ((size) + sizeof( void *[ 5]) - 1) / sizeof( void *[ 5]) )
 
-#define mulle_metaabi_sizeof_struct(  size) \
+#define mulle_metaabi_sizeof_union(  size) \
    ( sizeof( void *[ 5]) * mulle_metaabi_voidptr5( size) )
 
-#define mulle_metaabi_struct( param_type, rval_type)                    \
+#define mulle_metaabi_union( rval_type, param_type)                     \
 union                                                                   \
 {                                                                       \
    rval_type    r;                                                      \
@@ -157,18 +160,18 @@ union                                                                   \
                       :  mulle_metaabi_voidptr5( sizeof( param_type))]; \
 }
 
-#define mulle_metaabi_struct_voidptr_return( param_type) \
-   mulle_metaabi_struct( param_type, void *)
+#define mulle_metaabi_union_voidptr_return( param_type) \
+   mulle_metaabi_union( void *, param_type)
 
-#define mulle_metaabi_struct_voidptr_parameter( return_type) \
-   mulle_metaabi_struct( void *, return_type)
+#define mulle_metaabi_union_voidptr_parameter( return_type) \
+   mulle_metaabi_union( return_type, void *)
 
 // quite the same, as we can't define void member. So just ignore
-#define mulle_metaabi_struct_void_return( param_type) \
-   mulle_metaabi_struct( param_type, void *)
+#define mulle_metaabi_union_void_return( param_type) \
+   mulle_metaabi_union( void *, param_type)
 
-#define mulle_metaabi_struct_void_parameter( return_type) \
-   mulle_metaabi_struct( void *, return_type)
+#define mulle_metaabi_union_void_parameter( return_type) \
+   mulle_metaabi_union( return_type, void *)
 
 
 /*
@@ -379,11 +382,14 @@ static inline void  *
 
 // _Generic won't be available everywhere, but this is a define so that
 // should not impede compilation at least (will impede usage)
-#define mulle_metaabi_is_fp( type)  \
-   _Generic( (type) float: 1, double: 1, long double: 1, default: 0)
+#define mulle_metaabi_is_fp_expression( expr)  \
+   _Generic( (expr), float: 1, double: 1, long double: 1, default: 0)
 
-#define mulle_metaabi_is_voidptr_storage_compatible( type) \
-   (alignof( type) <= alignof( void *) && sizeof( type) <= sizeof( void *))
+#define mulle_metaabi_is_voidptr_storage_compatible( type_or_expr) \
+   (alignof( type_or_expr) <= alignof( void *) && sizeof( type_or_expr) <= sizeof( void *))
+
+#define mulle_metaabi_is_voidptr_compatible_expression( expr) \
+   (mulle_metaabi_is_voidptr_storage_compatible( expr) && ! mulle_metaabi_is_fp_expression( expr))
 
 
 static inline enum mulle_metaabi_param   _mulle_metaabi_get_metaabiparamtype( char *type)

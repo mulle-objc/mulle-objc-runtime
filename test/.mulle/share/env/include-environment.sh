@@ -51,10 +51,13 @@ fi
 
 #
 # Load scopes according to priority now
+# put in local var for crazy old bashes
 #
-for scope in `printf "%s\n" "${scopes}" \
+prioscopes=`printf "%s\n" "${scopes}" \
               | PATH=/bin:/usr/bin sort -t';' -k2n -k1 \
               | PATH=/bin:/usr/bin sed -n -e 's/\(.*\);.*$/\1/p'`
+
+for scope in ${prioscopes}
 do
    case "${scope}" in
       e:*)
