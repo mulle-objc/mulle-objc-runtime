@@ -1,10 +1,10 @@
-ar
-as
+ar;optional
+as;optional
 cc;optional
 clang;optional
 scan-build;optional
 diff
 gcc;optional
-ld
-nm
-ranlib
+ld;optional
+nm;optional
+ranlib;optional
