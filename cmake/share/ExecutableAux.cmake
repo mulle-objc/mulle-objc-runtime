@@ -17,9 +17,12 @@ include( ExecutableAuxC OPTIONAL)
 # But we keep the code as is otherwise, because static frameworks are likely
 # to arrive sooner or later.
 #
-if( APPLE)
-   unset( FORCE_LOAD_PREFIX)
-endif()
+# --- this probably fixed something but its disastrous for plain
+#     mulle-objc-developer/objc-developer with static libraries
+#
+# if( APPLE)
+#    unset( FORCE_LOAD_PREFIX)
+# endif()
 
 
 if( NOT DEFINED EXECUTABLE_LIBRARY_LIST)

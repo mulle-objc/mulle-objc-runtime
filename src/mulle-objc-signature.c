@@ -66,28 +66,28 @@ static inline void   _CLEAR_RUNTIME_TYPE_INFO( struct mulle_objc_typeinfo *info)
 }
 
 
-#define __SUPPLY_RUNTIME_TYPE_INFO( info, type)                          \
-   (info)->natural_size          = sizeof( type);                        \
-   (info)->natural_alignment     = alignof( type);                       \
-   (info)->bits_struct_alignment = STRUCT_MEMBER_ALIGNMENT( type) * 8;   \
+#define __SUPPLY_RUNTIME_TYPE_INFO( info, type)                        \
+   (info)->natural_size          = sizeof( type);                      \
+   (info)->natural_alignment     = alignof( type);                     \
+   (info)->bits_struct_alignment = STRUCT_MEMBER_ALIGNMENT( type) * 8; \
    (info)->bits_size             = sizeof( type) * 8
 
-#define _SUPPLY_RUNTIME_C_TYPE_INFO( info, type)            \
-   do                                                       \
-   {                                                        \
-      __SUPPLY_RUNTIME_TYPE_INFO( info, type);              \
-      (info)->has_object            = 0;                    \
-      (info)->has_retainable_object = 0;                    \
-   }                                                        \
+#define _SUPPLY_RUNTIME_C_TYPE_INFO( info, type)                       \
+   do                                                                  \
+   {                                                                   \
+      __SUPPLY_RUNTIME_TYPE_INFO( info, type);                         \
+      (info)->has_object            = 0;                               \
+      (info)->has_retainable_object = 0;                               \
+   }                                                                   \
    while( 0)
 
-#define _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, type, retain) \
-   do                                                       \
-   {                                                        \
-      __SUPPLY_RUNTIME_TYPE_INFO( info, type);              \
-      (info)->has_object            = 1;                    \
-      (info)->has_retainable_object = retain;               \
-   }                                                        \
+#define _SUPPLY_RUNTIME_OBJC_TYPE_INFO( info, type, retain)            \
+   do                                                                  \
+   {                                                                   \
+      __SUPPLY_RUNTIME_TYPE_INFO( info, type);                         \
+      (info)->has_object            = 1;                               \
+      (info)->has_retainable_object = retain;                          \
+   }                                                                   \
    while( 0)
 
 
@@ -500,7 +500,7 @@ static char   *
             if( *type == '?')
             {
                _SUPPLY_RUNTIME_C_TYPE_INFO( info, void_function_pointer);
-               return( ++type);
+               return( type + 1);
             }
             _SUPPLY_RUNTIME_C_TYPE_INFO( info, void *);
          }
@@ -920,6 +920,6 @@ size_t   _mulle_objc_signature_sizeof_metabistruct( char *types)
    // (TODO: check that the compiler/runtime has done the right thing here
    // it's OK, if size is a little bit too large.
    size = info.invocation_offset + info.natural_size;
-   return( mulle_metaabi_sizeof_struct( size));
+   return( mulle_metaabi_sizeof_union( size));
 }
 

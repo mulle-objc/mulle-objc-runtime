@@ -36,19 +36,39 @@ if( NOT __ENVIRONMENT__CMAKE__)
    if( NOT DEPENDENCY_DIR)
       set( DEPENDENCY_DIR "$ENV{DEPENDENCY_DIR}")
       if( NOT DEPENDENCY_DIR)
-         set( DEPENDENCY_DIR "${MULLE_VIRTUAL_ROOT}/dependency")
+         find_program( MULLE_SDE mulle-sde)
+         if( MULLE_SDE)
+            execute_process(
+               OUTPUT_VARIABLE DEPENDENCY_DIR
+               COMMAND ${MULLE_SDE} dependency-dir
+               OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+         endif()
+         if( NOT DEPENDENCY_DIR)
+            set( DEPENDENCY_DIR "${MULLE_VIRTUAL_ROOT}/dependency")
+         endif()
       endif()
    endif()
 
    if( NOT ADDICTION_DIR)
       set( ADDICTION_DIR "$ENV{ADDICTION_DIR}")
       if( NOT ADDICTION_DIR)
-         set( ADDICTION_DIR "${MULLE_VIRTUAL_ROOT}/addiction")
+         find_program( MULLE_SDE mulle-sde)
+         if( MULLE_SDE)
+            execute_process(
+               OUTPUT_VARIABLE ADDICTION_DIR
+               COMMAND ${MULLE_SDE} addiction-dir
+               OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+         endif()
+         if( NOT ADDICTION_DIR)
+            set( ADDICTION_DIR "${MULLE_VIRTUAL_ROOT}/addiction")
+         endif()
       endif()
    endif()
 
-   message( STATUS "DEPENDENCY_DIR=${DEPENDENCY_DIR}")
-   message( STATUS "ADDICTION_DIR=${ADDICTION_DIR}")
+   message( STATUS "DEPENDENCY_DIR=\"${DEPENDENCY_DIR}\"")
+   message( STATUS "ADDICTION_DIR=\"${ADDICTION_DIR}\"")
 
    #
    # MULLE_SDK is dependency/addiction. Not sysroot!
@@ -100,10 +120,10 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # if( FALLBACK_BUILD_TYPE STREQUAL "Release")
    #    unset( FALLBACK_BUILD_TYPE)
    # endif()
-   message( STATUS "MULLE_SDK_PATH=${MULLE_SDK_PATH}")
+   message( STATUS "MULLE_SDK_PATH=\"${MULLE_SDK_PATH}\"")
 
    foreach( TMP_MULLE_SDK_PATH ${MULLE_SDK_PATH})
-      message( STATUS "TMP_MULLE_SDK_PATH=${TMP_MULLE_SDK_PATH}")
+      message( STATUS "TMP_MULLE_SDK_PATH=\"${TMP_MULLE_SDK_PATH}\"")
       #
       # Add build-type includes/libs first
       # Add Release as a fallback afterwards
@@ -152,7 +172,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
             set( TMP_SDK_RELEASE_PATH "${TMP_PREFIX}")
          endif()
 
-         message( STATUS "TMP_SDK_RELEASE_PATH=${TMP_SDK_RELEASE_PATH}")
+         message( STATUS "TMP_SDK_RELEASE_PATH=\"${TMP_SDK_RELEASE_PATH}\"")
 
          if( EXISTS "${TMP_SDK_RELEASE_PATH}/include")
             set( TMP_CMAKE_INCLUDE_PATH

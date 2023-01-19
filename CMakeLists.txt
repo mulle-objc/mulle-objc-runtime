@@ -35,15 +35,18 @@ endif()
 
 include( Library)
 
+message( STATUS "CMAKE_VERSION=${CMAKE_VERSION}")
 # use LIBRARY_COMPILE_TARGET for compiler options
-target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
-if( NOT MSVC)
-target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
-endif()
+if( ${CMAKE_VERSION} VERSION_GREATER "3.14.0") 
+   target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
+   if( NOT MSVC)
+      target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
+   endif()
 
-# use LIBRARY_LINK_TARGET for linker options
-if( LINK_PHASE)
-   target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+   # use LIBRARY_LINK_TARGET for linker options
+   if( LINK_PHASE)
+      target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+   endif()
 endif()
 
 include( InstallLibrary)

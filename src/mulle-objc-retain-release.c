@@ -201,3 +201,9 @@ void   mulle_objc_object_release( void *obj)
    mulle_objc_object_release_inline( obj);
 }
 
+
+// compatible to mulle-allocator
+void   _mulle_objc_object_release2( void *obj, void *unused)
+{
+   _mulle_objc_object_release_inline( obj);
+}

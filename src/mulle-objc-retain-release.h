@@ -296,6 +296,12 @@ void   *mulle_objc_object_retain( void *obj);
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_object_release( void *obj);
 
+//
+// does _mulle_objc_object_release_inline but with two parameteres
+// like mulle-allocator->free
+//
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_object_release2( void *obj, void *unused);
 
 # pragma mark - API
 

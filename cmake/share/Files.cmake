@@ -21,6 +21,8 @@ include_directories( ${INCLUDE_DIRS})
 #
 # include files that get installed
 #
+message( STATUS "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
+
 if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
    list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
 else()

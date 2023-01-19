@@ -14,6 +14,13 @@ then
 your convenience" >&2
 fi
 
+if [ -z "${MULLE_UNAME}" ]
+then
+   MULLE_UNAME="`PATH=/bin:/usr/bin uname -s 2> /dev/null | tr '[A-Z]' '[a-z]'`"
+   MULLE_UNAME="${MULLE_UNAME:-unknown}"
+   echo "Using ${MULLE_UNAME} as MULLE_UNAME for your convenience" >&2
+fi
+
 #
 # now read in custom envionment (required)
 #
@@ -34,7 +41,7 @@ case "${MULLE_SHELL_MODE}" in
          ;;
 
          *\\h*)
-            PS1="$(sed 's/\\h/\\h\['${envname}'\]/' <<< '${PS1}' )"
+            PS1="$(sed 's/\\h/\\h\['${envname}'\]/' <<< "${PS1}" )"
          ;;
 
          *)
@@ -46,8 +53,11 @@ case "${MULLE_SHELL_MODE}" in
       unset envname
 
       # install cd catcher
-      . "${MULLE_ENV_LIBEXEC_DIR}/mulle-env-cd.sh"
-      unset MULLE_ENV_LIBEXEC_DIR
+      if [ ! -z "${MULLE_ENV_LIBEXEC_DIR}" ]
+      then
+         . "${MULLE_ENV_LIBEXEC_DIR}/mulle-env-cd.sh"
+         unset MULLE_ENV_LIBEXEC_DIR
+      fi
 
       # install mulle-env-reload
 
@@ -71,7 +81,7 @@ case "${MULLE_SHELL_MODE}" in
       unset DEFAULT_IFS
       unset FILENAME
 
-      vardir="${MULLE_VIRTUAL_ROOT}/.mulle/var/${MULLE_HOSTNAME}"
+      vardir="${MULLE_VIRTUAL_ROOT}/.mulle/var/${MULLE_HOSTNAME:-unknown-host}"
       [ -d "${vardir}" ] || mkdir -p "${vardir}"
 
       HISTFILE="${vardir}/bash_history"

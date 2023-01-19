@@ -256,7 +256,7 @@ static void
                                         count_bits( bits),
                                         sizeof( struct _mulle_objc_descriptor));
 
-   assert( sizeof( int) <= 8);  // %d -> 20 signs max for 64 bit
+   MULLE_C_ASSERT( sizeof( int) <= 8);  // %d -> 20 signs max for 64 bit
 
    if( bits & is_getter)  // getter
    {
