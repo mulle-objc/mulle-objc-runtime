@@ -100,7 +100,7 @@ static void
    if( config->ignore_ivarhash_mismatch)
       fprintf( stderr, ", ignore ivarhash mismatch");
    fprintf( stderr, ", min:-O%u max:-O%u", config->min_optlevel, config->max_optlevel);
-   fprintf( stderr, ", cache fillrate: %u%%", config->cache_fillrate ? config->cache_fillrate : 25);
+   fprintf( stderr, ", cache fillrate: %d%%", config->cache_fillrate ? config->cache_fillrate : 25);
 }
 
 # pragma mark - environment
@@ -576,6 +576,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
       mulle_objc_universe_trace( universe, "use %s allocator: %p", kind, allocator);
 
    strncpy( universe->compilation, __DATE__ " "__TIME__ " " __FILE__, 128);
+   universe->compilation[ 127] = 0;
 
    assert( allocator->calloc);
    assert( allocator->free);
@@ -967,7 +968,8 @@ void
 
    if( ! universe->config.wait_threads_on_exit)
    {
-      universe->config.pedantic_exit = getenv_yes_no( "MULLE_OBJC_PEDANTIC_EXIT");
+      // might have been set earlier by coverage
+      universe->config.pedantic_exit |= mulle_objc_environment_get_yes_no( "MULLE_OBJC_PEDANTIC_EXIT");
       if( ! universe->config.pedantic_exit)
          return;
    }
@@ -976,7 +978,8 @@ void
    {
       if( universe->debug.trace.universe)
          mulle_objc_universe_trace( universe,
-                                    "atexit not installed as universe is not default. use mulle_objc_global_main_finish");
+                                    "atexit is not installed as the universe is \
+not the default universe. Use mulle_objc_global_main_finish.");
       return;
    }
 
@@ -1272,7 +1275,7 @@ static struct _mulle_objc_infraclass **
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
 
-   *n_classes = p_cls - array;
+   *n_classes = (unsigned int) (p_cls - array);
    return( array);
 }
 

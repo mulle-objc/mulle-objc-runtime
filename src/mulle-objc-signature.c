@@ -635,13 +635,13 @@ char   *_mulle_objc_signature_supply_typeinfo( char *types,
 
       // for the MetaABI block we want this aligned as safely as possible
       if( supplier->index == 2)
-         info->invocation_offset = mulle_address_align( supplier->invocation_offset, alignof( long double));
+         info->invocation_offset = (int32_t) mulle_address_align( supplier->invocation_offset, alignof( long double));
       else
-         info->invocation_offset = mulle_address_align( supplier->invocation_offset, info->bits_struct_alignment / 8);
+         info->invocation_offset = (int32_t) mulle_address_align( supplier->invocation_offset, info->bits_struct_alignment / 8);
       supplier->invocation_offset = info->invocation_offset + info->natural_size;
    }
    else
-      supplier->invocation_offset = (unsigned int) -1;  // invalidate
+      supplier->invocation_offset = -1;  // invalidate
 
    return( next);
 }
@@ -923,3 +923,66 @@ size_t   _mulle_objc_signature_sizeof_metabistruct( char *types)
    return( mulle_metaabi_sizeof_union( size));
 }
 
+
+int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
+{
+   int   c, d;
+   int   level;
+
+   a = _mulle_objc_signature_skip_type_qualifier( a);
+   b = _mulle_objc_signature_skip_type_qualifier( b);
+   c = *a;
+   d = *b;
+   if( c != d)
+      return( 0);
+
+   switch( c)
+   {
+   case _C_RETAIN_ID :
+   case _C_ASSIGN_ID :
+   case _C_COPY_ID   :
+      c = *++a;
+      d = *++b;
+      if( c != '<')
+         return( 1);
+      do
+      {
+         if( c != d || ! c)
+            return( 0);
+         c = *++a;
+         d = *++b;
+      }
+      while( c != '>');
+      return( 1);
+
+   case _C_STRUCT_B :
+   case _C_UNION_B  :
+   case _C_ARY_B    :
+      for(;;)
+      {
+         c = *++a;
+         d = *++b;
+         if( c != d || ! c)
+            return( 0);
+
+         switch( c)
+         {
+         case _C_STRUCT_B :
+         case _C_UNION_B  :
+         case _C_ARY_B    :
+            level++;
+            break;
+
+         case _C_STRUCT_E :
+         case _C_UNION_E  :
+         case _C_ARY_E    :
+            if( ! --level)
+               return( 0);
+         }
+      }
+      return( 1);
+
+   default :
+      return( 1);
+   }
+}

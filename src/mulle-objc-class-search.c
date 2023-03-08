@@ -413,6 +413,7 @@ static struct _mulle_objc_method   *
       if( search->args.classid != cls->classid)
          goto next_class;
       *mode += OFFSET_2_MODE;
+   default :
       break;
    }
 
@@ -435,6 +436,7 @@ static struct _mulle_objc_method   *
          if( search->args.categoryid != _mulle_objc_methodlist_get_categoryid( list))
             continue;
          *mode += OFFSET_3_MODE - OFFSET_2_MODE;
+      default :
          break;
       }
 
@@ -459,6 +461,7 @@ static struct _mulle_objc_method   *
          if( search->args.classid == cls->classid &&
              search->args.categoryid == _mulle_objc_methodlist_get_categoryid( list))
             continue;
+      default :
          break;
 
       case search_specific_method_3 :
@@ -510,6 +513,8 @@ static struct _mulle_objc_method   *
    case search_specific_method_2   :
       result->error = EINVAL;
       return( NULL);
+   default :
+      break;
    }
 
 next_class:
@@ -684,6 +689,8 @@ struct _mulle_objc_method   *
          trace_method_search_fail( cls, search, EINVAL);
       result->error = EINVAL;
       return( NULL);
+   default :
+       break;
    }
 
    // this can happen if hidden override detection is on

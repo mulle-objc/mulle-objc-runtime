@@ -72,6 +72,8 @@ struct _mulle_objc_universeconfig
    unsigned   no_tagged_pointer        : 1;  // don't use tagged pointers
    unsigned   no_fast_call             : 1;  // don't use fast method calls
    unsigned   repopulate_caches        : 1;  // useful for coverage analysis
+   unsigned   coverage                 : 1;  // memorize coverage env flag here
+   unsigned   no_classcuster_coverage  : 1;  // don't assume coverage of all direct classcluster subclasses
    unsigned   pedantic_exit            : 1;  // useful for leak checks
    unsigned   wait_threads_on_exit     : 1;  // useful for tests
    int        cache_fillrate;                // default is (0) can be 0-90

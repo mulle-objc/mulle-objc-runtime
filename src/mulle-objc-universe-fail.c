@@ -222,6 +222,7 @@ MULLE_C_NO_RETURN void
 
    va_start( args, format);
    mulle_objc_universe_failv_generic( universe, format, args);
+   va_end( args);
 }
 
 

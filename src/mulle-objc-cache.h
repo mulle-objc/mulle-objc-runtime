@@ -124,8 +124,9 @@ static inline void   mulle_objc_cache_init( struct _mulle_objc_cache *cache,
 
 
 
-static inline size_t   _mulle_objc_cache_get_resize( struct _mulle_objc_cache *cache,
-                                                     enum mulle_objc_cachesizing_t strategy)
+static inline mulle_objc_cache_uint_t
+   _mulle_objc_cache_get_resize( struct _mulle_objc_cache *cache,
+                                 enum mulle_objc_cachesizing_t strategy)
 {
    switch( strategy)
    {

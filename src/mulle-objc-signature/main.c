@@ -47,7 +47,6 @@ int   main( int argc, char *argv[])
    char                        **sentinel;
    char                        *next;
    char                        *s;
-   size_t                      len;
    struct mulle_objc_typeinfo  info;
 
    if( argc < 2 || ! strlen( argv[ 1]))

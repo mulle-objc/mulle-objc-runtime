@@ -328,7 +328,6 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
    struct _mulle_objc_method                 *method;
    struct _mulle_objc_universe               *universe;
    mulle_objc_uniqueid_t                     last;
-   unsigned int                              n;
 
    if( ! list)
    {
@@ -340,7 +339,6 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
    }
 
    /* register instance methods */
-   n     = 0;
    last  = MULLE_OBJC_MIN_UNIQUEID - 1;
    rover = _mulle_objc_methodlist_enumerate( list);
    while( method = _mulle_objc_methodlistenumerator_next( &rover))
@@ -358,13 +356,10 @@ int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
 
       last = method->descriptor.methodid;
       mulle_objc_universe_register_descriptor_nofail( cls->universe,
-                                                        &method->descriptor);
+                                                      &method->descriptor);
 
       if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
-      {
          cls->preloads++;
-      }
-      ++n;
    }
    _mulle_objc_methodlistenumerator_done( &rover);
 
