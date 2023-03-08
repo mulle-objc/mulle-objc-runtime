@@ -7,9 +7,49 @@ It follows the Apple "Objective-C 1 Runtime" and [adds many features](//www.mull
 from "Objective-C 2.0", but the runtime function calls are completely different.
 It is designed to be suitable for massive multi-threading.
 
-| Release Version
-|-----------------------------------
- ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](https://github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com/mulle-objc/mulle-objc-runtime/actions)
+| Release Version                                       | Release Notes
+|-------------------------------------------------------|--------------
+| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg?branch=release) [![Build Status](https://github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com/mulle-objc/mulle-objc-runtime/actions)| [RELEASENOTES](RELEASENOTES.md) |
+
+
+## API
+
+| Data structure                                       | Description
+|------------------------------------------------------|--------------------------------
+| [`_mulle_objc_class`](dox/API_CLASS.md)              | Deal with Classes
+| [`_mulle_objc_ivar`](dox/API_IVAR.md) et al.         | Instance variables
+| [`_mulle_objc_loadinfo`](dox/API_LOADINFO.md)        | Install Classes, Categories, Methods, Strings into the runtime
+| [`_mulle_objc_method`](dox/API_METHOD.md)  et al.    | Deal with Methods
+| [`_mulle_objc_object`](dox/API_OBJECT.md)  et al.    | Deal with Instances
+| [`_mulle_objc_property`](dox/API_PROPERTY.md) et al. | Handle Properties
+| [`_mulle_objc_universe`](dox/API_UNIVERSE.md)        | Work with the runtime universe
+
+
+| Function type                         | Description
+|---------------------------------------|-----------------------------------
+| [Global Functions](dox/API_GLOBAL.md) | Global functions  and conveniences
+| [Exceptions](dox/API_EXCEPTION.md)    | Raising exceptions
+| [Vararg extensions](dox/API_VARARG.md)| Dealing with variable arguments
+
+
+
+## Usage
+
+If you haven't used an Objective-C runtime before, it is useful to get to know
+the much better documented "Mac OS X Objective-C 1.0" runtime first.
+[Intro to the Objective-C Runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html)
+could be a good starting point.
+
+
+> #### C Caveat
+>
+> It you use `.c` files that include `<mulle-objc-runtime/mulle-objc-runtime.h>`
+> make sure that you compile with `__MULLE_OBJC_TPS__`, `__MULLE_OBJC_NO_TPS__`
+> `__MULLE_OBJC_FCS__`  `__MULLE_OBJC_NO_FCS__` as defined when compiling the
+> runtime. Since C-only compilations do not emit runtime information,
+> mismatches can not be checked by the runtime.
+> Easy fix: rename `.c` to `.m` and use **mulle-clang**
+
 
 
 ## What's so different ?
@@ -41,62 +81,7 @@ only locks during `+initialize` on a per class basis.
 
 * Multiple runtimes can coexist in differently named "universes".
 
-
-## Required Libraries and Tools
-
-![Libraries and Tools](//raw.githubusercontent.com/mulle-objc/mulle-objc-runtime/release/dox/mulle-objc-runtime-dependencies.png)
-
-  Name         | Release Version
----------------|---------------------------------
-[mulle-aba](//github.com/mulle-concurrent/mulle-aba) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-aba.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-aba/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-concurrent/mulle-aba/workflows/CI)
-[mulle-allocator](//github.com/mulle-c/mulle-allocator) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-allocator.svg) [![Build Status](https://github.com/mulle-c/mulle-allocator/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-allocator/workflows/CI)
-[mulle-c11](//github.com/mulle-c/mulle-c11) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-c11.svg) [![Build Status](https://github.com/mulle-c/mulle-c11/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-c11/workflows/CI)
-[mulle-concurrent](//github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-concurrent.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-concurrent/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-concurrent/mulle-concurrent/workflows/CI)
-[mulle-thread](//github.com/mulle-concurrent/mulle-thread) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-thread.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-thread/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-concurrent/mulle-thread/workflows/CI)
-[mulle-vararg](//github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](https://github.com/mulle-c/mulle-vararg/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-vararg/workflows/CI)
-
-
-## How to use it
-
-If you haven't used an Objective-C runtime before, it is useful to get to know
-the much better documented "Mac OS X Objective-C 1.0" runtime first.
-[Intro to the Objective-C Runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html)
-could be a good starting point.
-
-
-> #### C Caveat
->
-> It you use `.c` files that include `<mulle-objc-runtime/mulle-objc-runtime.h>`
-> make sure that you compile with `__MULLE_OBJC_TPS__`, `__MULLE_OBJC_NO_TPS__`
-> `__MULLE_OBJC_FCS__`  `__MULLE_OBJC_NO_FCS__` as defined when compiling the
-> runtime. Since C-only compilations do not emit runtime information,
-> mismatches can not be checked by the runtime.
-> Easy fix: rename `.c` to `.m` and use **mulle-clang**
-
-
-### Data structures
-
-API                                                  | Description
------------------------------------------------------|-----------------------------------
-[`_mulle_objc_class`](dox/API_CLASS.md)              | Deal with Classes
-[`_mulle_objc_ivar`](dox/API_IVAR.md) et al.         | Instance variables
-[`_mulle_objc_loadinfo`](dox/API_LOADINFO.md)        | Install Classes, Categories, Methods, Strings into the runtime
-[`_mulle_objc_method`](dox/API_METHOD.md)  et al.    | Deal with Methods
-[`_mulle_objc_object`](dox/API_OBJECT.md)  et al.    | Deal with Instances
-[`_mulle_objc_property`](dox/API_PROPERTY.md) et al. | Handle Properties
-[`_mulle_objc_universe`](dox/API_UNIVERSE.md)        | Work with the runtime universe
-
-
-### Other functions
-
-API                                   | Description
---------------------------------------|-----------------------------------
-[Global Functions](dox/API_GLOBAL.md) | Global functions  and conveniences
-[Exceptions](dox/API_EXCEPTION.md)    | Raising exceptions
-[Vararg extensions](dox/API_VARARG.md)| Dealing with variable arguments
-
-
-## Articles
+### Articles
 
 These articles give you some background about the **mulle-objc** runtime:
 
@@ -119,11 +104,18 @@ These articles give you some background about the **mulle-objc** runtime:
 If something is unclear, feel free to contact the author.
 
 
-### Platforms and Compilers
 
-All platforms and compilers supported by
-[mulle-c11](//github.com/mulle-c/mulle-c11/) and
-[mulle-thread](//github.com/mulle-concurrent/mulle-thread/).
+## Requirements
+
+|   Requirement         | Release Version  | Description
+|-----------------------|------------------|---------------
+| [mulle-concurrent](https://github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-concurrent.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-concurrent/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-concurrent/mulle-concurrent/workflows/CI) | 📶 A lock- and wait-free hashtable (and an array too), written in C
+| [mulle-vararg](https://github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](https://github.com/mulle-c/mulle-vararg/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-vararg/workflows/CI) |  ⏪ Access variable arguments in struct layout fashion in C
+| [mulle-atinit](https://github.com/mulle-core/mulle-atinit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atinit.svg) [![Build Status](https://github.com/mulle-core/mulle-atinit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atinit/workflows/CI) | 🤱🏼 Compatibility library for deterministic initializers
+| [mulle-atexit](https://github.com/mulle-core/mulle-atexit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atexit.svg) [![Build Status](https://github.com/mulle-core/mulle-atexit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atexit/workflows/CI) | 👼 Compatibility library to fix atexit
+| [mulle-dlfcn](https://github.com/mulle-core/mulle-dlfcn) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-dlfcn.svg) [![Build Status](https://github.com/mulle-core/mulle-dlfcn/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-dlfcn/workflows/CI) | ♿️ Shared library helper
+| [mulle-data](https://github.com/mulle-c/mulle-data) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-data.svg) [![Build Status](https://github.com/mulle-c/mulle-data/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-data/workflows/CI) | #️⃣ A collection of hash functions
+
 
 
 ## Add
@@ -131,19 +123,23 @@ All platforms and compilers supported by
 Use [mulle-sde](//github.com/mulle-sde) to add mulle-objc-runtime to your project:
 
 ``` sh
-mulle-sde dependency add --c --github mulle-objc mulle-objc-runtime
+mulle-sde add github:mulle-objc/mulle-objc-runtime
 ```
 
-Executables will need to link with [mulle-objc-runtime-startup](//github.com/mulle-objc/mulle-objc-runtime-startup) as well.
+To only add the sources of mulle-objc-runtime with dependency
+sources use [clib](https://github.com/clibs/clib):
+
+
+``` sh
+clib install --out src/mulle-objc mulle-objc/mulle-objc-runtime
+```
+
+Add `-isystem src/mulle-objc` to your `CFLAGS` and compile all the sources that were downloaded with your project.
 
 
 ## Install
 
-See [mulle-objc-developer](//github.com/mulle-objc/mulle-objc-developer) for the preferred
-way to installation mulle-objc-runtime.
-
-
-### mulle-sde
+### Install with mulle-sde
 
 Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-objc-runtime and all dependencies:
 
@@ -154,19 +150,8 @@ mulle-sde install --prefix /usr/local \
 
 ### Manual Installation
 
-
-Install the requirements:
-
-Requirements                                                       | Description
--------------------------------------------------------------------|-----------------------
-[mulle-atinit](//github.com/mulle-core/mulle-atinit)               | Cross-platform atinit support
-[mulle-atexit](//github.com/mulle-core/mulle-atexit)               | Cross-platform atexitsupport
-[mulle-concurrent](//github.com/mulle-concurrent/mulle-concurrent) | Concurrent hashmap and array
-[mulle-dlfcn](//github.com/mulle-core/mulle-dlfcn)                 | Cross-platform dlfcn support
-[mulle-stacktrace](//github.com/mulle-core/mulle-stacktrace)       | Cross-platform stacktrace support
-[mulle-vararg](//github.com/mulle-c/mulle-vararg)                  | Cross-platform atexit support
-
-Install into `/usr/local`:
+Install the [Requirements](#Requirements) and then
+install **mulle-objc-runtime** with [cmake](https://cmake.org):
 
 ``` sh
 cmake -B build \
@@ -179,7 +164,6 @@ cmake --install build --config Release
 
 ## Author
 
-[Nat!](//www.mulle-kybernetik.com/weblog) for
-[Mulle kybernetiK](//www.mulle-kybernetik.com) and
-[Codeon GmbH](//www.codeon.de)
+[Nat!](https://mulle-kybernetik.com/weblog) for Mulle kybernetiK
+
 

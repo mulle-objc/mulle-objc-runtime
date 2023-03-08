@@ -229,7 +229,7 @@ static inline void
    _mulle_objc_signatureenumerator_rval( struct mulle_objc_signatureenumerator *rover,
                                          struct mulle_objc_typeinfo *info)
 {
-   assert( rover->supplier.invocation_offset != (unsigned int) -1);
+   assert( rover->supplier.invocation_offset != (int32_t) -1);
 
    rover->rval.invocation_offset = rover->supplier.invocation_offset;
    memcpy( info, &rover->rval, sizeof( *info));
@@ -447,6 +447,14 @@ static inline int   _mulle_objc_type_is_fp( char *type)
    }
    return( 0);
 }
+
+//
+// Basically a strcmp, that knows when to quit (i.e. the next type is
+// coming up. Should be faster than parse and compare. Algorithm believes its
+// being fed only well formed types though.
+//
+int   _mulle_objc_type_is_equal_to_type( char *type_a, char *type_b);
+
 
 static inline enum mulle_metaabi_param
    _mulle_objc_signature_get_metaabiparamtype( char *type)

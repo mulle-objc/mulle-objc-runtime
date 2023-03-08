@@ -1489,7 +1489,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
    }
 
    if( trace)
-      fprintf( stderr, "%p: mulle-objc is acquiring universe %d \"%s\"\n",
+      fprintf( stderr, "%p: mulle-objc is acquiring universe %u \"%s\"\n",
                            (void *) mulle_thread_self(),
                            loaduniverse->universeid,
                            loaduniverse->universename ? loaduniverse->universename : "");

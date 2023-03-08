@@ -82,7 +82,7 @@ static void  dump_bits( unsigned int bits)
       delim=", ";
    }
 
-   fprintf( stderr, "%s-O%d", delim, (bits >> 8) & 0x7);
+   fprintf( stderr, "%s-O%u", delim, (bits >> 8) & 0x7);
 }
 
 

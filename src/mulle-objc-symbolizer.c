@@ -130,7 +130,7 @@ static inline void  mmcarray_done( struct mmcarray *array)
 
 static int   mmcarray_grow( struct mmcarray *array)
 {
-   unsigned int   new_size;
+   size_t   new_size;
 
    new_size = array->_size * 2;
    if( new_size < 2)
@@ -223,7 +223,7 @@ struct mmc *
 
    n      = array->_count;
    first  = 0;
-   last   = n - 1;
+   last   = (int) (n - 1);
    middle = (first + last) / 2;
 
    while( first <= last)

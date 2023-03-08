@@ -271,6 +271,7 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
    pair           = _mulle_objc_class_get_classpair( cls);
    infra          = _mulle_objc_classpair_get_infraclass( pair);
    current_thread = mulle_thread_self();
+
    //
    // Allow recursion to same class in same thread
    // if a second thread is incoming we want to lock, so that the other

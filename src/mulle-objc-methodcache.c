@@ -255,7 +255,7 @@ struct _mulle_objc_cacheentry   *
    //
    entry = &empty_entry;
 
-   // only when invalidatin will we not get a new entry, cache is still
+   // only when invalidating will we not get a new entry, cache is still
    // fresh and single-thread here
    if( method)
    {
@@ -329,9 +329,10 @@ struct _mulle_objc_cacheentry   *
 
       //
       // Cache might have changed again due to repopulation so pick out a
-      // new entry
+      // new entry (unless invalidating)
       //
-      entry = _mulle_objc_class_lookup_cacheentry( cls, methodid);
+      if( method)
+         entry = _mulle_objc_class_lookup_cacheentry( cls, methodid);
    }
 
    if( universe->debug.trace.method_cache)
@@ -421,7 +422,7 @@ MULLE_C_NEVER_INLINE void
 
 
 //
-// pass methodid = 0, to invalidate all
+// pass methodid = MULLE_OBJC_NO_UNIQUEID, to invalidate all
 //
 int   _mulle_objc_class_invalidate_methodcacheentry( struct _mulle_objc_class *cls,
                                                      mulle_objc_methodid_t methodid)
