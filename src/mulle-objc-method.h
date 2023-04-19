@@ -132,10 +132,10 @@ enum
 //
 struct _mulle_objc_descriptor
 {
-   mulle_objc_methodid_t   methodid;  // alignment to signature unclear!
+   mulle_objc_methodid_t   methodid;   // alignment to signature unclear!
    char                    *signature; // mulle_objc_compat: signature < name
    char                    *name;
-   int                     bits;  // todo: make this a mulle_atomic_pointer_t
+   int                     bits;       // TODO: make this a mulle_atomic_pointer_t
 };
 
 #define MULLE_OBJC_INVALID_DESCRIPTOR   ((struct _mulle_objc_descriptor *) -1)
@@ -149,6 +149,7 @@ static inline mulle_objc_methodid_t
 {
    return( desc->methodid);
 }
+
 
 static inline char   *
    _mulle_objc_descriptor_get_name( struct _mulle_objc_descriptor *desc)

@@ -86,6 +86,7 @@
 #include "mulle-objc-class-lookup.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-class-struct.h"
+#include "mulle-objc-csvdump.h"
 #include "mulle-objc-fastclasstable.h"
 #include "mulle-objc-fastmethodtable.h"
 #include "mulle-objc-infraclass.h"

@@ -62,7 +62,7 @@ filesystem_task_run()
       ;;
 
       *)
-         exekutor mulle-match-to-c ${MULLE_TECHNICAL_FLAGS} "$@"  || return $?
+         exekutor mulle-match-to-c ${MULLE_TECHNICAL_FLAGS} "$@"
          rval2=$?
       ;;
    esac
@@ -72,5 +72,33 @@ filesystem_task_run()
       log_error "mulle-match-to-c ${MULLE_TECHNICAL_FLAGS} $* failed ($rval2)"
    fi
 
-   [ $rval -eq 0 -a $rval2 -eq 0 ]   
+   local rval3
+
+   rval3=0
+   case "${MULLE_PROJECT_CLIB_JSON_RUN}" in
+      YES|ENABLE*|ON)
+         case "${PROJECT_DIALECT}" in
+            objc)
+               exekutor mulle-project-clib-json ${MULLE_TECHNICAL_FLAGS} \
+                                                -a src/reflect/objc-loader.inc \
+                                                -o "clib.json"
+               rval3=$?
+            ;;
+
+            *)
+               exekutor mulle-project-clib-json ${MULLE_TECHNICAL_FLAGS} \
+                                                -o "clib.json"
+               rval3=$?
+            ;;
+         esac
+      ;;
+   esac
+
+   if [ $rval3 -ne 0 ]
+   then
+      log_error "mulle-project-clib-json ${MULLE_TECHNICAL_FLAGS} failed ($rval3)"
+   fi
+
+
+   [ $rval -eq 0 -a $rval2 -eq 0 -o $rval3 -eq 0 ]
 }

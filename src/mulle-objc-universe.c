@@ -1444,18 +1444,31 @@ static void   free_gift( void *p, struct mulle_allocator *allocator)
 enum mulle_objc_universe_status
    _mulle_objc_universe_check_waitqueues( struct _mulle_objc_universe *universe)
 {
-   int   rval;
+   int           rval;
 
-   rval = mulle_objc_universe_is_ok;
+   unsigned int  n_classes;
+   unsigned int  n_categories;
+
+   rval         = mulle_objc_universe_is_ok;
+   n_classes    = mulle_concurrent_hashmap_count( &universe->waitqueues.classestoload);
+   n_categories = mulle_concurrent_hashmap_count( &universe->waitqueues.categoriestoload);
+   if( ! (n_classes + n_categories))
+      return( rval);
+
    /*
     * free various stuff
     */
-   if( mulle_concurrent_hashmap_count( &universe->waitqueues.classestoload))
+   universe->debug.trace.waiters_svg = getenv_yes_no( "MULLE_OBJC_TRACE_WAITERS_SVG");
+   if( universe->debug.trace.waiters_svg)
+      fprintf( stderr, "digraph waiters\n{\trankdir=\"LR\"\n\tnode [ shape=\"box\"]\n");
+
+   if( n_classes)
    {
       rval = mulle_objc_universe_is_incomplete;
-      fprintf( stderr, "mulle_objc_universe %p warning: the following "
-                       "classes failed to load:\n",
-                       universe);
+      if( ! universe->debug.trace.waiters_svg)
+         fprintf( stderr, "mulle_objc_universe %p warning: the following "
+                          "classes failed to load:\n",
+                          universe);
       if( _mulle_objc_universe_trylock_waitqueues( universe))
       {
          fprintf( stderr, "mulle_objc_universe %p error: the waitqueues "
@@ -1470,12 +1483,13 @@ enum mulle_objc_universe_status
       _mulle_objc_universe_unlock_waitqueues( universe);
    }
 
-   if( mulle_concurrent_hashmap_count( &universe->waitqueues.categoriestoload))
+   if( n_categories)
    {
       rval = mulle_objc_universe_is_incomplete;
-      fprintf( stderr, "mulle_objc_universe %p warning: the following "
-                       "categories failed to load:\n",
-                       universe);
+      if( ! universe->debug.trace.waiters_svg)
+         fprintf( stderr, "mulle_objc_universe %p warning: the following "
+                          "categories failed to load:\n",
+                          universe);
       if( _mulle_objc_universe_trylock_waitqueues( universe))
       {
          fprintf( stderr, "mulle_objc_universe %p error: the waitqueues "
@@ -1489,6 +1503,12 @@ enum mulle_objc_universe_status
                                    (void (*)()) mulle_objc_loadcategory_print_unfulfilled_dependency);
       _mulle_objc_universe_unlock_waitqueues( universe);
    }
+
+   if( universe->debug.trace.waiters_svg)
+      fprintf( stderr, "}\n");
+   else
+      fprintf( stderr, "You can get graphviz output by setting MULLE_OBJC_TRACE_WAITERS_SVG=YES\n");
+
    return( rval);
 }
 
@@ -2324,7 +2344,7 @@ static struct _mulle_objc_descriptor *
       break;
    default         :
       fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
-                       "and \"%s\" for method \"%s\"\n",
+                       "and \"%s\" for method \"%s\" (Tip: MULLE_OBJC_TRACE_LOAD=YES)\n",
                        universe,
                        dup->signature, p->signature, p->name);
    }

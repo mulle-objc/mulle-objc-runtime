@@ -43,6 +43,7 @@ src/mulle-objc-class-lookup.h
 src/mulle-objc-classpair.h
 src/mulle-objc-class-search.h
 src/mulle-objc-class-struct.h
+src/mulle-objc-csvdump.h
 src/mulle-objc-fastclasstable.h
 src/mulle-objc-fastenumeration.h
 src/mulle-objc-fastmethodtable.h

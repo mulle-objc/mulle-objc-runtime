@@ -10,42 +10,52 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
+message( STATUS "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
+
 include( PreFiles OPTIONAL)
 
 include( Headers OPTIONAL)
 include( Sources OPTIONAL)
 include( Resources OPTIONAL) 
 
-include_directories( ${INCLUDE_DIRS})
 
 #
-# include files that get installed
+# PROJECT_FILES (GUI Support)
 #
-message( STATUS "PROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\"")
+if( NOT DEFINED CACHE{INSTALL_CMAKE_INCLUDES})
+   if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/Definitions.cmake")
+      list( APPEND INSTALL_CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/Definitions.cmake")
+   endif()
+   if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
+      list( APPEND INSTALL_CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
+   else()
+      list( APPEND INSTALL_CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/share/DependenciesAndLibraries.cmake")
+   endif()
+   if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/_Dependencies.cmake")
+      list( APPEND INSTALL_CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/_Dependencies.cmake")
+   else()
+      list( APPEND INSTALL_CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/reflect/_Dependencies.cmake")
+   endif()
+   if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/_Libraries.cmake")
+      list( APPEND INSTALL_CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/_Libraries.cmake")
+   else()
+      list( APPEND INSTALL_CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/reflect/_Libraries.cmake")
+   endif()
+   set( INSTALL_CMAKE_INCLUDES ${INSTALL_CMAKE_INCLUDES} CACHE INTERNAL "cache these")
+endif()
 
-if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
-   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/DependenciesAndLibraries.cmake")
-else()
-   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/share/DependenciesAndLibraries.cmake")
-endif()
-if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/_Dependencies.cmake")
-   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/_Dependencies.cmake")
-else()
-   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/reflect/_Dependencies.cmake")
-endif()
-if( EXISTS "${PROJECT_SOURCE_DIR}/cmake/_Libraries.cmake")
-   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/_Libraries.cmake")
-else()
-   list( APPEND CMAKE_INCLUDES "${PROJECT_SOURCE_DIR}/cmake/reflect/_Libraries.cmake")
-endif()
 
-# IDE visible cmake files, Headers etc. are no longer there by default
-if( EXISTS "${PROJECT_SOURCE_DIR}/CMakeLists.txt")
-   list( APPEND CMAKE_EDITABLE_FILES "${PROJECT_SOURCE_DIR}/CMakeLists.txt")
-endif()
+if( NOT DEFINED CACHE{PROJCT_CMAKE_EDITABLE_FILES})
 
-FILE( GLOB TMP_CMAKE_FILES ${PROJECT_SOURCE_DIR}/cmake/*.cmake)
-list( APPEND CMAKE_EDITABLE_FILES ${TMP_CMAKE_FILES})
+   # IDE visible cmake files, Headers etc. are no longer there by default
+   if( EXISTS "${PROJECT_SOURCE_DIR}/CMakeLists.txt")
+      list( APPEND PROJCT_CMAKE_EDITABLE_FILES "${PROJECT_SOURCE_DIR}/CMakeLists.txt")
+   endif()
+
+   FILE( GLOB TMP_CMAKE_FILES ${PROJECT_SOURCE_DIR}/cmake/*.cmake)
+   list( APPEND PROJCT_CMAKE_EDITABLE_FILES ${TMP_CMAKE_FILES})
+   set( PROJCT_CMAKE_EDITABLE_FILES ${PROJCT_CMAKE_EDITABLE_FILES} CACHE INTERNAL "cache these")
+endif()
 
 include( PostFiles OPTIONAL)
 
@@ -57,15 +67,10 @@ set( PROJECT_FILES
    ${PUBLIC_GENERATED_HEADERS}
    ${PRIVATE_HEADERS}
    ${PRIVATE_GENERATED_HEADERS}
-   ${CMAKE_EDITABLE_FILES}
+   ${PROJCT_CMAKE_EDITABLE_FILES}
    ${RESOURCES}
 )
 
-set( PROJECT_INSTALLABLE_HEADERS
-   ${PUBLIC_HEADERS}
-   ${PUBLIC_GENERIC_HEADERS}
-   ${PUBLIC_GENERATED_HEADERS}
-   ${PRIVATE_HEADERS}
-)
+include_directories( ${INCLUDE_DIRS})
 
 endif()

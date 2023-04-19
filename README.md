@@ -9,7 +9,7 @@ It is designed to be suitable for massive multi-threading.
 
 | Release Version                                       | Release Notes
 |-------------------------------------------------------|--------------
-| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg?branch=release) [![Build Status](https://github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com/mulle-objc/mulle-objc-runtime/actions)| [RELEASENOTES](RELEASENOTES.md) |
+| ![Mulle kybernetiK tag](https://img.shields.io/github/tag//mulle-objc-runtime.svg?branch=release) [![Build Status](https://github.com//mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com//mulle-objc-runtime/actions)| [RELEASENOTES](RELEASENOTES.md) |
 
 
 ## API
@@ -109,13 +109,12 @@ If something is unclear, feel free to contact the author.
 
 |   Requirement         | Release Version  | Description
 |-----------------------|------------------|---------------
-| [mulle-concurrent](https://github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-concurrent/mulle-concurrent.svg) [![Build Status](https://github.com/mulle-concurrent/mulle-concurrent/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-concurrent/mulle-concurrent/workflows/CI) | 📶 A lock- and wait-free hashtable (and an array too), written in C
-| [mulle-vararg](https://github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-vararg.svg) [![Build Status](https://github.com/mulle-c/mulle-vararg/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-vararg/workflows/CI) |  ⏪ Access variable arguments in struct layout fashion in C
-| [mulle-atinit](https://github.com/mulle-core/mulle-atinit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atinit.svg) [![Build Status](https://github.com/mulle-core/mulle-atinit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atinit/workflows/CI) | 🤱🏼 Compatibility library for deterministic initializers
-| [mulle-atexit](https://github.com/mulle-core/mulle-atexit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atexit.svg) [![Build Status](https://github.com/mulle-core/mulle-atexit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atexit/workflows/CI) | 👼 Compatibility library to fix atexit
-| [mulle-dlfcn](https://github.com/mulle-core/mulle-dlfcn) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-dlfcn.svg) [![Build Status](https://github.com/mulle-core/mulle-dlfcn/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-dlfcn/workflows/CI) | ♿️ Shared library helper
-| [mulle-data](https://github.com/mulle-c/mulle-data) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-c/mulle-data.svg) [![Build Status](https://github.com/mulle-c/mulle-data/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-c/mulle-data/workflows/CI) | #️⃣ A collection of hash functions
-
+| [mulle-concurrent](https://github.com/mulle-concurrent/mulle-concurrent) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | 📶 A lock- and wait-free hashtable (and an array too), written in C
+| [mulle-vararg](https://github.com/mulle-c/mulle-vararg) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) |  ⏪ Access variable arguments in struct layout fashion in C
+| [mulle-atinit](https://github.com/mulle-core/mulle-atinit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | 🤱🏼 Compatibility library for deterministic initializers
+| [mulle-atexit](https://github.com/mulle-core/mulle-atexit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | 👼 Compatibility library to fix atexit
+| [mulle-dlfcn](https://github.com/mulle-core/mulle-dlfcn) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | ♿️ Shared library helper
+| [mulle-data](https://github.com/mulle-c/mulle-data) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | #️⃣ A collection of hash functions
 
 
 ## Add
@@ -123,7 +122,7 @@ If something is unclear, feel free to contact the author.
 Use [mulle-sde](//github.com/mulle-sde) to add mulle-objc-runtime to your project:
 
 ``` sh
-mulle-sde add github:mulle-objc/mulle-objc-runtime
+mulle-sde add github:/
 ```
 
 To only add the sources of mulle-objc-runtime with dependency
@@ -131,10 +130,10 @@ sources use [clib](https://github.com/clibs/clib):
 
 
 ``` sh
-clib install --out src/mulle-objc mulle-objc/mulle-objc-runtime
+clib install --out src/ /
 ```
 
-Add `-isystem src/mulle-objc` to your `CFLAGS` and compile all the sources that were downloaded with your project.
+Add `-isystem src/` to your `CFLAGS` and compile all the sources that were downloaded with your project.
 
 
 ## Install
@@ -145,7 +144,7 @@ Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-objc-runtime 
 
 ``` sh
 mulle-sde install --prefix /usr/local \
-   https://github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
+   https://github.com///archive/latest.tar.gz
 ```
 
 ### Manual Installation

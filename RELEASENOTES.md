@@ -1,3 +1,12 @@
+### 0.22.1
+
+* improved trace output
+* csv dumping is back in the runtime (from debug) for profile output
+* added `_mulle_objc_type_is_equal_to_type` function
+* improved coverage support
+* metaabi struct renamed to union, because.. it is a union
+* rename some metaabi macros to show if it matches a type or an expression or both
+
 ## 0.22.0
 
 * rename some public `__` functions
@@ -382,7 +391,7 @@ Variable                          | Description
 `MULLE_OBJC_TRACE_LOADINFO`       | more detailed output of the loadinfo
 `MULLE_OBJC_TRACE_CATEGORY_ADDS`  | trace universe category additions
 `MULLE_OBJC_TRACE_PROTOCOL_ADDS`  | trace universe protocol additions
-`MULLE_OBJC_WARN_STUCK_LOADABLES` | replaces ..._WARN_NOTLOADED_CLASSES and .._CATEGORIES
+`MULLE_OBJC_WARN_STUCK_LOADABLES` | replaces `..._WARN_NOTLOADED_CLASSES` and `.._CATEGORIES`
 
 
 ## 0.3.1

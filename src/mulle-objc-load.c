@@ -122,12 +122,12 @@ static mulle_objc_implementation_t
    mulle_objc_implementation_t    imp;
 
    method = mulle_objc_method_bsearch( methods->methods,
-                                      methods->n_methods,
-                                      MULLE_OBJC_DEPENDENCIES_METHODID);
+                                       methods->n_methods,
+                                       MULLE_OBJC_DEPENDENCIES_METHODID);
    if( ! method)
       return( 0);
 
-   imp     = _mulle_objc_method_get_implementation( method);
+   imp = _mulle_objc_method_get_implementation( method);
    return( imp);
 }
 
@@ -141,8 +141,8 @@ static struct _mulle_objc_dependency
 
    while( dependencies->classid)
    {
-       if( universe->debug.trace.dependency)
-            mulle_objc_universe_trace( universe, "+dependencies check class %08x \"%s\" ...",
+      if( universe->debug.trace.dependency)
+         mulle_objc_universe_trace( universe, "+dependencies check class %08x \"%s\" ...",
                              dependencies->classid,
                              _mulle_objc_universe_describe_classid( universe, dependencies->classid));
 
@@ -164,7 +164,7 @@ static struct _mulle_objc_dependency
 
       if( dependencies->categoryid)
       {
-       if( universe->debug.trace.dependency)
+         if( universe->debug.trace.dependency)
             mulle_objc_universe_trace( universe, "+dependencies check category %08x,%08x \"%s( %s)\" ....",
                                           dependencies->classid,
                                           dependencies->categoryid,
@@ -437,9 +437,14 @@ void
    if( universe->debug.print.stuck_class_coverage)
       printf( "%08x;%s;;\n", dependency.classid, s_class);
 
-   fprintf( stderr, "\t%08x \"%s\" waiting for class %08x \"%s\"\n",
-           info->classid, info->classname,
-           dependency.classid, s_class);
+   if( universe->debug.trace.waiters_svg)
+      fprintf( stderr, "\t\"%s\" -> \"%s\" [ label=\" waits for\" ]\n",
+              info->classname,
+              s_class);
+   else
+      fprintf( stderr, "\t%08x \"%s\" -> %08x \"%s\" [ label=\" waiting for class\" ]\n",
+              info->classid, info->classname,
+              dependency.classid, s_class);
 }
 
 
@@ -851,12 +856,17 @@ void
       if( universe->debug.print.stuck_class_coverage)
          printf( "%08x;%s;;\n", dependency.classid, s_class);
 
-      fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for "
-                       "class %08x \"%s\"\n",
-              info->classid, info->categoryid,
-              info->classname, info->categoryname,
-              dependency.classid,
-              s_class);
+      if( universe->debug.trace.waiters_svg)
+         fprintf( stderr, "\t\"%s( %s)\" -> \"%s\" [label=\" waits for\" ]\n",
+                 info->classname, info->categoryname,
+                 s_class);
+      else
+         fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for "
+                          "class %08x \"%s\"\n",
+                 info->classid, info->categoryid,
+                 info->classname, info->categoryname,
+                 dependency.classid,
+                 s_class);
       return;
    }
 
@@ -864,14 +874,20 @@ void
    if( universe->debug.print.stuck_category_coverage)
       printf( "%08x;%s;%08x;%s\n", dependency.classid, s_class, dependency.categoryid, s_category);
 
-   fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for "
-                    "category %08x,%08x \"%s( %s)\"\n",
-           info->classid, info->categoryid,
-           info->classname, info->categoryname,
-           dependency.classid,
-           dependency.categoryid,
-           s_class,
-           s_category);
+   if( universe->debug.trace.waiters_svg)
+      fprintf( stderr, "\t\"%s( %s)\" ->  \"%s( %s)\" [ label=\" waits for\" ]\n",
+              info->classname, info->categoryname,
+              s_class,
+              s_category);
+   else
+      fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for "
+                       "category %08x,%08x \"%s( %s)\"\n",
+              info->classid, info->categoryid,
+              info->classname, info->categoryname,
+              dependency.classid,
+              dependency.categoryid,
+              s_class,
+              s_category);
 }
 
 

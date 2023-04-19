@@ -38,16 +38,4 @@
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
 
-// You can tweak the following #include with these commands.
-// (Use E67C3C5D-5B47-490D-B4FB-00C98540F287 instead of mulle-dlfcn if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-dlfcn no-header`
-//    rename:              `mulle-sde dependency|library set mulle-dlfcn include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-dlfcn <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-dlfcn [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-dlfcn [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-dlfcn [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-dlfcn no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-dlfcn/mulle-dlfcn.h>   // mulle-dlfcn
-
 #endif

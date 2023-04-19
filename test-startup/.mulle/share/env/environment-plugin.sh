@@ -18,10 +18,10 @@ export MULLE_FETCH_SEARCH_PATH="${MULLE_VIRTUAL_ROOT}/.."
 #
 # Prefer symlinks to clones of git repos found in MULLE_FETCH_SEARCH_PATH
 #
-export MULLE_SOURCETREE_SYMLINK="YES"
+export MULLE_SOURCETREE_SYMLINK='YES'
 #
 #
 #
-export MULLE_SDE_INSTALLED_VERSION="2.0.0"
+export MULLE_SDE_INSTALLED_VERSION="2.2.0"
 
 
