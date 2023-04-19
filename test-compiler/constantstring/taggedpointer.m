@@ -45,51 +45,51 @@ SomeString  *abcdegilmoprstu = @"abcdegilmoprstu";
 
 @implementation SomeString5TaggedPointer : SomeString
 
-static inline char   *mulle_char5_get_charset( void)
-{
-   static const char  table[] =
-   {
-       0,  '.', 'A', 'C',  'D', 'E', 'I', 'N',
-      'O', 'P', 'S', 'T',  '_', 'a', 'b', 'c',
-      'd', 'e', 'f', 'g',  'h', 'i', 'l', 'm',
-      'n', 'o', 'p', 'r',  's', 't', 'u', 'y',
-      0  // bonus zero for tests :)
-   };
-   return( (char *) table);
-}
-
-
-static inline int   mulle_char5_decode_character( int c)
-{
-   assert( c >= 0 && c < 32);
-
-   return( mulle_char5_get_charset()[ c]);
-}
-
-
-size_t  mulle_char5_decode32_ascii( uint32_t value, char *dst, size_t len)
-{
-   char   *s;
-   char   *sentinel;
-   int    char5;
-
-   s        = dst;
-   sentinel = &s[ len];
-   while( s < sentinel)
-   {
-      if( ! value)
-         break;
-
-      char5 = value & 0x1F;
-      *s++  = (char) mulle_char5_decode_character( char5);
-
-      value >>= 5;
-   }
-   return( s - dst);
-}
-
-
-
+// static inline char   *mulle_char5_get_charset( void)
+// {
+//    static const char  table[] =
+//    {
+//        0,  '.', 'A', 'C',  'D', 'E', 'I', 'N',
+//       'O', 'P', 'S', 'T',  '_', 'a', 'b', 'c',
+//       'd', 'e', 'f', 'g',  'h', 'i', 'l', 'm',
+//       'n', 'o', 'p', 'r',  's', 't', 'u', 'y',
+//       0  // bonus zero for tests :)
+//    };
+//    return( (char *) table);
+// }
+//
+//
+// static inline int   mulle_char5_decode_character( int c)
+// {
+//    assert( c >= 0 && c < 32);
+//
+//    return( mulle_char5_get_charset()[ c]);
+// }
+//
+//
+// size_t  mulle_char5_decode32_ascii( uint32_t value, char *dst, size_t len)
+// {
+//    char   *s;
+//    char   *sentinel;
+//    int    char5;
+//
+//    s        = dst;
+//    sentinel = &s[ len];
+//    while( s < sentinel)
+//    {
+//       if( ! value)
+//          break;
+//
+//       char5 = value & 0x1F;
+//       *s++  = (char) mulle_char5_decode_character( char5);
+//
+//       value >>= 5;
+//    }
+//    return( s - dst);
+// }
+//
+//
+//
 size_t  mulle_char5_decode64_ascii( uint64_t value, char *dst, size_t len)
 {
    char   *s;
@@ -114,9 +114,9 @@ size_t  mulle_char5_decode64_ascii( uint64_t value, char *dst, size_t len)
 
 static inline size_t   mulle_char5_decode_ascii( uintptr_t value, char *src, size_t len)
 {
-   if( sizeof( uintptr_t) == sizeof( uint32_t))
-      return( mulle_char5_decode32_ascii( (uint32_t) value, src, len));
-   return( mulle_char5_decode64_ascii( value, src, len));
+ if( sizeof( uintptr_t) == sizeof( uint32_t))
+    return( mulle_char5_decode32_ascii( (uint32_t) value, src, len));
+ return( mulle_char5_decode64_ascii( value, src, len));
 }
 
 

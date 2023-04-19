@@ -2,4 +2,3 @@
 # These are public headers, that are auto-included in the envelope header
 
 *.h
-*.inc

@@ -133,6 +133,7 @@ struct _mulle_objc_universedebug
       unsigned   thread               : 1;
       unsigned   timestamp            : 1; // linux only for now
       unsigned   universe             : 1;
+      unsigned   waiters_svg          : 1;
    } trace;
 
    struct

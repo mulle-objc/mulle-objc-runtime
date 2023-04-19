@@ -12,15 +12,15 @@ if( NOT __STRING_CASE__CMAKE__)
    set( __STRING_CASE__CMAKE__ ON)
      function( snakeCaseString str var)
      # convert this to one word If present
-     string(REGEX REPLACE "ObjC" "Objc" value "${str}")
+     string( REGEX REPLACE "ObjC" "Objc" value "${str}")
 
      # insert an underscore before any upper case letter
      # which is not followed by another upper case letter
-     string(REGEX REPLACE "(.)([A-Z][a-z]+)" "\\1_\\2" value "${value}")
+     string( REGEX REPLACE "(.)([A-Z][a-z]+)" "\\1_\\2" value "${value}")
 
      # insert an underscore before any upper case letter
      # which is preseded by a lower case letter or number
-     string(REGEX REPLACE "([a-z0-9])([A-Z])" "\\1_\\2" value "${value}")
+     string( REGEX REPLACE "([a-z0-9])([A-Z])" "\\1_\\2" value "${value}")
 
      # replace non-identifier characters with an '_', for UTF8 this
      # may produce multiple _s we can't get easily rid off

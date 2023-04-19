@@ -16,7 +16,7 @@ fi
 
 if [ -z "${MULLE_UNAME}" ]
 then
-   MULLE_UNAME="`PATH=/bin:/usr/bin uname -s 2> /dev/null | tr '[A-Z]' '[a-z]'`"
+   MULLE_UNAME="`PATH=/bin:/usr/bin uname -s 2> /dev/null | tr '[:upper:]' '[:lower:]'`"
    MULLE_UNAME="${MULLE_UNAME:-unknown}"
    echo "Using ${MULLE_UNAME} as MULLE_UNAME for your convenience" >&2
 fi

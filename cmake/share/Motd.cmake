@@ -20,19 +20,17 @@ if( EXECUTABLE_NAME AND LINK_PHASE)
       if( MSVC)
          # TODO: adapt search path
          find_program( CREATE_MOTD_EXE mulle-create-build-motd.bat
-            PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/env/bin"
+            PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/$ENV{MULLE_USERNAME}/env/bin"
          )
       else()
          # will fail on WSL if .mulle/var is elsewhere`. should get
          # location from `mulle-env vardir env`
          find_program( CREATE_MOTD_EXE mulle-create-build-motd
-            PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/env/bin"
+            PATHS "${MULLE_VIRTUAL_ROOT}/.mulle/var/$ENV{MULLE_HOSTNAME}/$ENV{MULLE_USERNAME}/env/bin"
          )
       endif()
+      message( STATUS "CREATE_MOTD_EXE is ${CREATE_MOTD_EXE}")
    endif()
-
-
-   message( STATUS "CREATE_MOTD_EXE is ${CREATE_MOTD_EXE}")
 
    #
    # there is no real order, in which these motds are generated

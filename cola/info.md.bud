@@ -1,0 +1,52 @@
+## What's so different ?
+
+* Runtime objects (like classes and selectors) are not referenced by name, but
+by a unique ID. No special linker action required.
+
+* Parameters outside of `self` and `_cmd` are passed via `_param`, a single
+pointer to a struct. This simplifies a lot of code, especially forwarding code.
+Return values are also returned with the same struct. Optimizations are done for
+simple methods with only none or one parameter and none or one return value.
+
+* It uses inlineable method calls for superior performance. The user can
+specify "fast" classes and "fast" methods for extra speed in performance
+critical cases.
+
+* `retain`/`release` semantics are built in. These are non-overridable, which
+makes them a lot faster.
+
+* `isa` is not part of the instance, but instead prefixed to the instance.
+
+* `Protocol` as a type and an object does not exist anymore. Instead there is
+PROTOCOL which is basically the same as SEL and has compiler support.
+
+* No global lock, except when loading code. The runtime in normal operation
+only locks during `+initialize` on a per class basis.
+
+* Protections against the fragile base class problem
+
+* Multiple runtimes can coexist in differently named "universes".
+
+### Articles
+
+These articles give you some background about the **mulle-objc** runtime:
+
+1. [mulle-objc: a new Objective-C runtime](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_a_new_objective_c_.html)
+2. [mulle-objc: a meta calling convention](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_meta_call_convention.html)
+3. [mulle-objc: removing superflous ifs](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_the_superflous_if.html)
+3. [mulle-objc: inlined messaging](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_inlined_messaging.html)
+4. [mulle-objc: some research about selectors](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_selector_statistics.html)
+5. [mulle-objc: hashes for classes, selectors and protocols](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_selectors_are_hashes.html)
+6. [mulle_objc: object layout, retain counting, finalize](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_finalize_makes_a_comeback.html)
+7. [mulle_objc: inheriting methods from protocols](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_inheriting_from_protocols.html)
+8. [mulle_objc: present and absent language features](//www.mulle-kybernetik.com/weblog/2015/mulle_objc_present_and_absent.html)
+9. [mulle_objc: the trouble with @property](//www.mulle-kybernetik.com/weblog/2016/mulle_objc_property_trouble.html)
+10. [mulle_objc: ivar layout with @property](//www.mulle-kybernetik.com/weblog/2016/mulle_objc_ivar_layout.html)
+11. mulle_objc: technically speaking
+   1. [mulle-clang, technically speaking](//www.mulle-kybernetik.com/weblog/2016/mulle_objc_clang_technically.html)
+   2. [mulle-objc-runtime, technically speaking](//www.mulle-kybernetik.com/weblog/2016/mulle_objc_runtime_technically.html)
+   3. [MulleFoundation, technically speaking](//www.mulle-kybernetik.com/weblog/2016/mulle_objc_foundation_technically.html)
+
+If something is unclear, feel free to contact the author.
+
+

@@ -66,3 +66,6 @@ dox/super/calls-legacy.md
 version.old
 .ackrc
 wilted/
+mulle-template-composer-*
+mulle-markdown-preview-*.html
+build-*

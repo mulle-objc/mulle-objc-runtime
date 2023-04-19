@@ -15,39 +15,15 @@
 #define _mulle_objc_runtime_include_h__
 
 // You can tweak the following #include with these commands.
-// (Use 8ae0712b-418b-4a24-bd84-48cf5caf5e38 instead of mulle-concurrent if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-concurrent no-header`
-//    rename:              `mulle-sde dependency|library set mulle-concurrent include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-concurrent <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-concurrent [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-concurrent [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-concurrent [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-concurrent no-platform-<uname>`
+// (Use 8066A0F0-88B4-4E1F-AC6D-3EF08A277B4E instead of mulle-core if there are duplicate entries)
+//    remove #include:: `mulle-sde dependency mark mulle-core no-header`
+//    rename:              `mulle-sde dependency|library set mulle-core include whatever.h`
+//    reorder:             `mulle-sde dependency move mulle-core <up|down>`
+//    toggle #include:    `mulle-sde dependency mark mulle-core [no-]import`
+//    toggle public:       `mulle-sde dependency mark mulle-core [no-]public`
+//    toggle optional:     `mulle-sde dependency mark mulle-core [no-]require`
+//    remove for platform: `mulle-sde dependency mark mulle-core no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-concurrent/mulle-concurrent.h>   // mulle-concurrent
-
-// You can tweak the following #include with these commands.
-// (Use 3bb60fad-077f-41cc-b6d4-93c91f1d457a instead of mulle-vararg if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-vararg no-header`
-//    rename:              `mulle-sde dependency|library set mulle-vararg include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-vararg <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-vararg [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-vararg [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-vararg [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-vararg no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-vararg/mulle-vararg.h>   // mulle-vararg
-
-// You can tweak the following #include with these commands.
-// (Use F8EFF078-E086-4E88-9FA8-2A959923DF8B instead of mulle-data if there are duplicate entries)
-//    remove #include:: `mulle-sde dependency mark mulle-data no-header`
-//    rename:              `mulle-sde dependency|library set mulle-data include whatever.h`
-//    reorder:             `mulle-sde dependency move mulle-data <up|down>`
-//    toggle #include:    `mulle-sde dependency mark mulle-data [no-]import`
-//    toggle public:       `mulle-sde dependency mark mulle-data [no-]public`
-//    toggle optional:     `mulle-sde dependency mark mulle-data [no-]require`
-//    remove for platform: `mulle-sde dependency mark mulle-data no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-data/mulle-data.h>   // mulle-data
+#include <mulle-core/mulle-core.h>   // mulle-core
 
 #endif

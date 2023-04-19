@@ -8,13 +8,6 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 #
-# contents selected with patternfile ??-source--debug-sources
-#
-set( DEBUG_SOURCES
-src/debug/mulle-objc-lldb.c
-)
-
-#
 # contents selected with patternfile ??-source--signature-sources
 #
 set( SIGNATURE_SOURCES
@@ -33,6 +26,7 @@ src/mulle-objc-class-initialize.c
 src/mulle-objc-class-lookup.c
 src/mulle-objc-classpair.c
 src/mulle-objc-class-search.c
+src/mulle-objc-csvdump.c
 src/mulle-objc-fastenumeration.c
 src/mulle-objc-fastmethodtable.c
 src/mulle-objc-infraclass.c

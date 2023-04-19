@@ -43,12 +43,19 @@ if( NOT __CMAKE_TWEAKS_C_CMAKE__)
          # UNIXy gcc based
          cmake_minimum_required( VERSION 3.0)
       endif()
+      #
       # so we build static libs, but they might be linked into code
       # that needs -fPIC, but on some platforms (MUSL, COSMOPOLITAN)
-      # we don't want it
+      # we don't want PIC/PIE executables (why?)
+      #
+      # https://github.com/jart/cosmopolitan/issues/703
+      #
       if( COSMOPOLITAN OR MUSL_STATIC_ONLY)
-         set( CMAKE_POSITION_INDEPENDENT_CODE OFF)
          set( CMAKE_SKIP_RPATH ON)
+         # (230213) turn this on for mulle-objc-optimize
+         set( CMAKE_POSITION_INDEPENDENT_CODE ON)
+         # but don't link as such
+         set( CMAKE_EXE_LINKER_FLAGS -no-pie ${CMAKE_EXE_LINKER_FLAGS})
       else()
          set( CMAKE_POSITION_INDEPENDENT_CODE ON)
       endif()

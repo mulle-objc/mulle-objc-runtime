@@ -1,0 +1,18 @@
+## Usage
+
+If you haven't used an Objective-C runtime before, it is useful to get to know
+the much better documented "Mac OS X Objective-C 1.0" runtime first.
+[Intro to the Objective-C Runtime](//mikeash.com/pyblog/friday-qa-2009-03-13-intro-to-the-objective-c-runtime.html)
+could be a good starting point.
+
+
+> #### C Caveat
+>
+> It you use `.c` files that include `<mulle-objc-runtime/mulle-objc-runtime.h>`
+> make sure that you compile with `__MULLE_OBJC_TPS__`, `__MULLE_OBJC_NO_TPS__`
+> `__MULLE_OBJC_FCS__`  `__MULLE_OBJC_NO_FCS__` as defined when compiling the
+> runtime. Since C-only compilations do not emit runtime information,
+> mismatches can not be checked by the runtime.
+> Easy fix: rename `.c` to `.m` and use **mulle-clang**
+
+

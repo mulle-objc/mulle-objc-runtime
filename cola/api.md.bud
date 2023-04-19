@@ -1,0 +1,20 @@
+## API
+
+| Data structure                                       | Description
+|------------------------------------------------------|--------------------------------
+| [`_mulle_objc_class`](dox/API_CLASS.md)              | Deal with Classes
+| [`_mulle_objc_ivar`](dox/API_IVAR.md) et al.         | Instance variables
+| [`_mulle_objc_loadinfo`](dox/API_LOADINFO.md)        | Install Classes, Categories, Methods, Strings into the runtime
+| [`_mulle_objc_method`](dox/API_METHOD.md)  et al.    | Deal with Methods
+| [`_mulle_objc_object`](dox/API_OBJECT.md)  et al.    | Deal with Instances
+| [`_mulle_objc_property`](dox/API_PROPERTY.md) et al. | Handle Properties
+| [`_mulle_objc_universe`](dox/API_UNIVERSE.md)        | Work with the runtime universe
+
+
+| Function type                         | Description
+|---------------------------------------|-----------------------------------
+| [Global Functions](dox/API_GLOBAL.md) | Global functions  and conveniences
+| [Exceptions](dox/API_EXCEPTION.md)    | Raising exceptions
+| [Vararg extensions](dox/API_VARARG.md)| Dealing with variable arguments
+
+
