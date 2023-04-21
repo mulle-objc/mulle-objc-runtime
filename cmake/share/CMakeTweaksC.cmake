@@ -55,7 +55,7 @@ if( NOT __CMAKE_TWEAKS_C_CMAKE__)
          # (230213) turn this on for mulle-objc-optimize
          set( CMAKE_POSITION_INDEPENDENT_CODE ON)
          # but don't link as such
-         set( CMAKE_EXE_LINKER_FLAGS -no-pie ${CMAKE_EXE_LINKER_FLAGS})
+         set( CMAKE_EXE_LINKER_FLAGS "-no-pie ${CMAKE_EXE_LINKER_FLAGS}")
       else()
          set( CMAKE_POSITION_INDEPENDENT_CODE ON)
       endif()
