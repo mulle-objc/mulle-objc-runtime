@@ -461,10 +461,24 @@ void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe
 
 static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
 {
-   struct _mulle_objc_universe *universe;
+   struct _mulle_objc_universe           *universe;
+   struct mulle__pointerarrayenumerator  rover;
+   void                                  *linkedlist;
 
    if( ! config)
       return;
+
+   // get rid of reuse allocs if there are any
+   // this code is harmless if there aren't any reuse allocs
+   rover = _mulle__pointerarray_enumerate( &config->reuseallocsperclassindex);
+   while( _mulle__pointerarrayenumerator_next( &rover, &linkedlist))
+   {
+      mulle_linkedlistentry_walk( linkedlist,
+                                  (mulle_linkedlistentry_walk_callback_t *) mulle_allocator_free,
+                                  config->allocator);
+   }
+   mulle__pointerarrayenumerator_done( &rover);
+   _mulle__pointerarray_done( &config->reuseallocsperclassindex, config->allocator);
 
    universe = config->universe;
    if( config->userspace_destructor)
@@ -543,9 +557,9 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    char *kind;
 
    assert( universe);
-   assert( MULLE_THREAD_VERSION    >= ((2 << 20) | (2 << 8) | 0));
-   assert( MULLE_ALLOCATOR_VERSION >= ((1 << 20) | (5 << 8) | 0));
-   assert( MULLE_ABA_VERSION       >= ((1 << 20) | (1 << 8) | 1));
+   assert( MULLE__THREAD_VERSION    >= ((2 << 20) | (2 << 8) | 0));
+   assert( MULLE__ALLOCATOR_VERSION >= ((1 << 20) | (5 << 8) | 0));
+   assert( MULLE__ABA_VERSION       >= ((1 << 20) | (1 << 8) | 1));
 
    // check this also, easily fixable with padding
    if( sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1))

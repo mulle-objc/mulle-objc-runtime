@@ -112,7 +112,7 @@ static inline struct _mulle_objc_class *
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
-   if( __builtin_expect( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
+   if( MULLE_C_EXPECT( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
@@ -133,7 +133,7 @@ static inline struct _mulle_objc_class *
 
    // compiler should notice that #ifdef __MULLE_OBJC_NO_TPS__ index is always 0
    index = mulle_objc_object_get_taggedpointerindex( obj);
-   if( __builtin_expect( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
+   if( MULLE_C_EXPECT( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");

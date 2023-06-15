@@ -136,6 +136,7 @@ struct _mulle_objc_threadinfo
    uintptr_t                                nr;  // thread identifier short
    struct _mulle_objc_exceptionstackentry   *exception_stack;
    struct mulle_allocator                   *allocator;
+   struct mulle__pointerarray               reuseallocsperclassindex;
 
    // these will be called when mulle_objc_thread_unset_threadinfo is called
    // (or the thread dies)

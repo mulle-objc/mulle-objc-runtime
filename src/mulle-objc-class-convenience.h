@@ -39,12 +39,72 @@
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
 #include "mulle-objc-universe.h"
+#include "mulle-objc-infraclass-reuse.h"
+
 #include "include.h"
+
 
 
 // code not used in the universe, but useful for MulleObjC
 
 #pragma mark - instance creation
+
+
+
+static inline void   *_mulle_objc_infraclass_alloc_calloc( struct _mulle_objc_infraclass *infra,
+                                                           size_t size,
+                                                           struct mulle_allocator *allocator)
+{
+   void   *alloc;
+
+#if MULLE_OBJC_CLASS_REUSE_ALLOC == MULLE_OBJC_CLASS_REUSE_ALLOC_GLOBAL
+   alloc = _mulle_objc_infraclass_reuse_alloc( infra, size, allocator);
+   if( MULLE_C_LIKELY( alloc != NULL))
+      return( alloc);
+#endif
+#if MULLE_OBJC_CLASS_REUSE_ALLOC == MULLE_OBJC_CLASS_REUSE_ALLOC_THREAD
+   alloc = _mulle_objc_infraclass_reuse_alloc_thread( infra, size, allocator);
+   if( MULLE_C_LIKELY( alloc != NULL))
+      return( alloc);
+#endif
+   alloc = _mulle_allocator_calloc( allocator, 1, size);
+   return( alloc);
+}
+
+
+static inline void   *_mulle_objc_infraclass_alloc_malloc( struct _mulle_objc_infraclass *infra,
+                                                           size_t size,
+                                                           struct mulle_allocator *allocator)
+{
+   void   *alloc;
+
+#if MULLE_OBJC_CLASS_REUSE_ALLOC == MULLE_OBJC_CLASS_REUSE_ALLOC_GLOBAL
+   alloc = _mulle_objc_infraclass_reuse_alloc( infra, size, allocator);
+   if( MULLE_C_LIKELY( alloc != NULL))
+      return( alloc);
+#endif
+#if MULLE_OBJC_CLASS_REUSE_ALLOC == MULLE_OBJC_CLASS_REUSE_ALLOC_THREAD
+   alloc = _mulle_objc_infraclass_reuse_alloc_thread( infra, size, allocator);
+   if( MULLE_C_LIKELY( alloc != NULL))
+      return( alloc);
+#endif
+   alloc = _mulle_allocator_malloc( allocator, size);
+   return( alloc);
+}
+
+
+static inline void   _mulle_objc_infraclass_alloc_free( struct _mulle_objc_infraclass *infra,
+                                                        void *alloc,
+                                                        struct mulle_allocator *allocator)
+{
+#if MULLE_OBJC_CLASS_REUSE_ALLOC == MULLE_OBJC_CLASS_REUSE_ALLOC_GLOBAL
+   alloc = _mulle_objc_infraclass_keep_alloc( infra, alloc, allocator);
+#endif
+#if MULLE_OBJC_CLASS_REUSE_ALLOC == MULLE_OBJC_CLASS_REUSE_ALLOC_THREAD
+   alloc = _mulle_objc_infraclass_keep_alloc_thread( infra, alloc, allocator);
+#endif
+   _mulle_allocator_free( allocator, alloc);
+}
 
 
 // void as a return value is just easier to handle than
@@ -64,7 +124,7 @@ static inline void *
 
    size = _mulle_objc_infraclass_get_allocationsize( infra) + extra;
    // if extra < 0, then overflow would happen undetected
-   if( size <= extra)
+   if( MULLE_C_UNLIKELY( size <= extra))
       _mulle_allocator_fail( allocator, NULL, extra);
 
    // this is useful for debugging, but it's a small performance hit
@@ -72,7 +132,7 @@ static inline void *
    _mulle_atomic_pointer_increment( &infra->allocatedInstances);
 #endif
 
-   alloc     = _mulle_allocator_calloc( allocator, 1, size);
+   alloc     = _mulle_objc_infraclass_alloc_calloc( infra, size, allocator);
    cls       = _mulle_objc_infraclass_as_class( infra);
    metaextra = _mulle_objc_class_get_metaextrasize( cls);
    header    = _mulle_objc_alloc_get_objectheader( alloc, metaextra);
@@ -108,7 +168,7 @@ static inline void *
 
    size = _mulle_objc_infraclass_get_allocationsize( infra) + extra;
    // if extra < 0, then overflow would happen undetected
-   if( size <= extra)
+   if( MULLE_C_UNLIKELY( size <= extra))
       _mulle_allocator_fail( allocator, NULL, extra);
 
    // this is useful for debugging, but it's a small performance hit
@@ -116,7 +176,7 @@ static inline void *
    _mulle_atomic_pointer_increment( &infra->allocatedInstances);
 #endif
 
-   alloc     = _mulle_allocator_malloc( allocator, size);
+   alloc     = _mulle_objc_infraclass_alloc_malloc( infra, size, allocator);
    cls       = _mulle_objc_infraclass_as_class( infra);
    metaextra = _mulle_objc_class_get_metaextrasize( cls);
    header    = _mulle_objc_alloc_get_objectheader( alloc, metaextra);
@@ -192,7 +252,7 @@ static inline void
 
    cls   = _mulle_objc_infraclass_as_class( infra);
    alloc = _mulle_objc_objectheader_get_alloc( header, cls->headerextrasize);
-   _mulle_allocator_free( allocator, alloc);
+   _mulle_objc_infraclass_alloc_free( infra, alloc, allocator);
 }
 
 
@@ -260,16 +320,6 @@ static inline void *
    if( ! infra)
       return( NULL);
    return( _mulle_objc_infraclass_alloc_instance_extra( infra, extra));
-}
-
-// useless: just use a static variable in the @implementation
-static inline void *
-   _mulle_objc_infraclass_get_classextra( struct _mulle_objc_infraclass *infra)
-{
-   struct _mulle_objc_classpair   *pair;
-
-   pair = _mulle_objc_infraclass_get_classpair( infra);
-   return( _mulle_objc_classpair_get_classextra( pair));
 }
 
 #endif /* mulle_objc_class_universe_h */

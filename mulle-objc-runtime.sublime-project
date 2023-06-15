@@ -1,28 +1,110 @@
 {
-	"folders":
-	[
-		{
-			"path": ".",
-            "file_exclude_patterns": [
+   "sublimegdb_workingdir": "${folder:kitchen/Debug/mulle-objc-runtime}",
+   "sublimegdb_commandline": "mulle-gdb --interpreter=mi kitchen/Debug/mulle-objc-runtime",
+   "folders":
+   [
+      {
+         "path": ".",
+         "file_exclude_patterns":
+         [
             "*~",
             "*~.*",
+            "*.old",
             "*.chk",
             ".DS_Store",
             "._.DS_Store",
             "*.sublime-workspace",
             "tmp.*"
          ],
-         "folder_exclude_patterns": [
-             "package",
-             "stash",
-             "build",
-             "addiction",
-             "dependency",
-             "stash",
-             ".mulle-*",
-             ".git*"
+         "folder_exclude_patterns":
+         [
+            ".git",
+            ".mulle/var",
+            ".unison*",
+            "addiction",
+            "build",
+            "Build",
+            "kitchen",
+            "dependency",
+            "stash",
+            "var"
          ],
-
-		}
-	]
+         "binary_patterns":
+         [
+            "*.o",
+            "*.lib",
+            "*.log",
+            "*.a",
+            "*.so",
+            "*.exe",
+            "*.zip",
+            "*.tgz",
+            "*.bz2",
+            "*.xz",
+            "*.gif",
+            "*.png",
+            "*.jpg",
+            "*.tiff"
+         ]
+      }
+   ],
+   "build_systems":
+   [
+      {
+         "name": "Craft",
+         "cmd": [ "mulle-sde", "craft" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+      {
+         "name": "Craft Debug",
+         "cmd": [ "mulle-sde", "craft", "--debug" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+      {
+         "name": "Craft Release",
+         "cmd": [ "mulle-sde", "craft", "--release"],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+      {
+         "name": "Clean",
+         "cmd": [ "mulle-sde", "clean" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+      {
+         "name": "Clean Tidy",
+         "cmd": [ "mulle-sde", "clean", "tidy" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+      {
+         "name": "Clean Download Caches",
+         "cmd": [ "mulle-sde", "clean", "tidy", "archive", "mirror" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+      {
+         "name": "Reflect",
+         "cmd": [ "mulle-sde", "reflect" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+      {
+         "name": "Upgrade",
+         "cmd": [ "mulle-sde", "upgrade", "--clean" ],
+         "working_dir": "${project_path}",
+         "file_regex": "^(..[^:]*)(?::|\\()([0-9]+)(?::|\\))(?:([0-9]+):)?\\s*(.*)",
+         "env": { "NO_COLOR": "YES" }
+      },
+   ]
 }

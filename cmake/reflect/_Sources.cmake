@@ -30,6 +30,7 @@ src/mulle-objc-csvdump.c
 src/mulle-objc-fastenumeration.c
 src/mulle-objc-fastmethodtable.c
 src/mulle-objc-infraclass.c
+src/mulle-objc-infraclass-reuse.c
 src/mulle-objc-ivar.c
 src/mulle-objc-ivarlist.c
 src/mulle-objc-kvccache.c

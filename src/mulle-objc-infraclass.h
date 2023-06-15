@@ -50,6 +50,14 @@ struct _mulle_objc_ivarlist;
 struct _mulle_objc_property;
 struct _mulle_objc_method;
 
+//
+// use thread local storage instead of global storage for reusable allocs
+//
+#ifndef MULLE_OBJC_CLASS_REUSE_ALLOC_THREAD
+# define MULLE_OBJC_CLASS_REUSE_ALLOC_THREAD   1
+#endif
+
+
 
 enum _mulle_objc_infraclass_state
 {
@@ -89,6 +97,7 @@ struct _mulle_objc_infraclass
 
    struct mulle_allocator                    *allocator;  // must not be NULL
    mulle_atomic_pointer_t                    allocatedInstances;
+   struct _mulle_concurrent_linkedlist       reuseallocs;
 };
 
 
