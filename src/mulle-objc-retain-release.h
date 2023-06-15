@@ -127,12 +127,12 @@ static inline void   _mulle_objc_object_increment_retaincount( void *obj)
    struct _mulle_objc_objectheader    *header;
    intptr_t                           rc;
 
-   if( mulle_objc_taggedpointer_get_index( obj))
+   if( MULLE_C_LIKELY( mulle_objc_taggedpointer_get_index( obj)))
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
    rc     = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
-   if( rc <= MULLE_OBJC_INLINE_RELEASE)
+   if( MULLE_C_LIKELY( rc <= MULLE_OBJC_INLINE_RELEASE))
    {
       _mulle_atomic_pointer_increment( &header->_retaincount_1); // atomic increment needed
       return;
@@ -148,14 +148,14 @@ static inline int   _mulle_objc_object_decrement_retaincount_waszero( void *obj)
    struct _mulle_objc_objectheader    *header;
    intptr_t                           rc;
 
-   if( mulle_objc_taggedpointer_get_index( obj))
+   if( MULLE_C_LIKELY( mulle_objc_taggedpointer_get_index( obj)))
       return( 0);
 
    header = _mulle_objc_object_get_objectheader( obj);
    rc     = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
 
    assert( rc != -1 && rc != INTPTR_MIN);
-   if( rc <= MULLE_OBJC_INLINE_RELEASE)
+   if( MULLE_C_LIKELY( rc <= MULLE_OBJC_INLINE_RELEASE))
       return( (intptr_t) _mulle_atomic_pointer_decrement( &header->_retaincount_1) <= 0);
 
    //
@@ -176,12 +176,12 @@ static inline int   _mulle_objc_object_decrement_retaincount_waszero( void *obj)
 //
 // compiler should optimize that the mulle_objc_object_try_finalize_try_dealloc
 // is rarely taken, but
-// __builtin_expect( --header->retaincount_1 < 0, 0)
+// MULLE_C_EXPECT( --header->retaincount_1 < 0, 0)
 // didnt do anything for me
 //
 static inline void   _mulle_objc_object_release_inline( void *obj)
 {
-   if( _mulle_objc_object_decrement_retaincount_waszero( obj))
+   if( MULLE_C_UNLIKELY( _mulle_objc_object_decrement_retaincount_waszero( obj)))
       _mulle_objc_object_tryfinalizetrydealloc( obj);
 }
 

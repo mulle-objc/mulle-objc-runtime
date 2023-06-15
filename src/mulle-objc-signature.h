@@ -44,29 +44,29 @@
 
 #include "mulle-metaabi.h"
 
-// union mulle_objc_scalarvalue
-// {
-//    char                    *c_atom;
-//    intptr_t                c_bool;
-//    char                    *c_charptr;
-//    char                    c_chr;
-//    struct _mulle_objc_infraclas  c_class;
-//    double                  c_dbl;
-//    float                   c_flt;
-//    id                      c_id;
-//    int                     c_int;
-//    long                    c_lng;
-//    long double             c_lng_dbl;
-//    long long               c_lng_lng;
-//    mulle_objc_methodid_t   c_sel;
-//    short                   c_sht;
-//    unsigned char           c_uchr;
-//    unsigned long           c_ulng;
-//    unsigned long long      c_ulng_lng;
-//    unsigned short          c_usht;
-//    void                    *c_ptr;
-// };
-
+//   union mulle_objc_scalarvalue
+//   {
+//      char                            *c_atom;
+//      intptr_t                        c_bool;
+//      char                            *c_charptr;
+//      char                            c_chr;
+//      struct _mulle_objc_infraclass   c_class;
+//      double                          c_dbl;
+//      float                           c_flt;
+//      id                              c_id;
+//      int                             c_int;
+//      long                            c_lng;
+//      long double                     c_lng_dbl;
+//      long long                       c_lng_lng;
+//      mulle_objc_methodid_t           c_sel;
+//      short                           c_sht;
+//      unsigned char                   c_uchr;
+//      unsigned int                    c_uint;
+//      unsigned long                   c_ulng;
+//      unsigned long long              c_ulng_lng;
+//      unsigned short                  c_usht;
+//      void                            *c_ptr;
+//   } v;
 
 // Type modifiers are no longer encoded in mulle-objc. They slow things down
 // and there is no interest in them. The DO stuff and GC is also obsolete

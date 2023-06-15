@@ -936,6 +936,7 @@ int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
    if( c != d)
       return( 0);
 
+   level = 0;
    switch( c)
    {
    case _C_RETAIN_ID :

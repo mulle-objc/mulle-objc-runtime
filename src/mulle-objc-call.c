@@ -92,7 +92,7 @@ void   *mulle_objc_object_call( void *obj,
    mulle_objc_cache_uint_t          mask;
    mulle_objc_cache_uint_t          offset;
 
-   if( __builtin_expect( ! obj, 0))
+   if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    assert( mulle_objc_uniqueid_is_sane( methodid));

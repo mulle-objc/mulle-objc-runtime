@@ -48,6 +48,7 @@ src/mulle-objc-fastclasstable.h
 src/mulle-objc-fastenumeration.h
 src/mulle-objc-fastmethodtable.h
 src/mulle-objc-infraclass.h
+src/mulle-objc-infraclass-reuse.h
 src/mulle-objc-ivar.h
 src/mulle-objc-ivarlist.h
 src/mulle-objc-jit.inc

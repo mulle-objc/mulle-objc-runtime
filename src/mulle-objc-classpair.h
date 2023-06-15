@@ -264,6 +264,27 @@ static inline struct _mulle_objc_metaclass   *
    return( _mulle_objc_classpair_get_metaclass( pair));
 }
 
+// useless: just use a static variable in the @implementation
+static inline void *
+   _mulle_objc_infraclass_get_classextra( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_classpair   *pair;
+
+   pair = _mulle_objc_infraclass_get_classpair( infra);
+   return( _mulle_objc_classpair_get_classextra( pair));
+}
+
+
+static inline uint32_t
+   _mulle_objc_infraclass_get_classindex( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_classpair   *pair;
+
+   pair = _mulle_objc_infraclass_get_classpair( infra);
+   return( _mulle_objc_classpair_get_classindex( pair));
+}
+
+
 
 // code is here, because metaclass doesn't know about pair
 // could also look into .base->infraclass if already setup, but this oughta

@@ -376,6 +376,7 @@ struct _mulle_objc_universe
    mulle_atomic_pointer_t                   cachecount_1; // #1#
    mulle_atomic_pointer_t                   loadbits;
    mulle_atomic_pointer_t                   classindex;
+   mulle_atomic_pointer_t                   instancereuse; // (0:all, -1:none, other:future ideas...)
    mulle_thread_mutex_t                     lock;
    mulle_thread_tss_t                       threadkey;
 

@@ -48,6 +48,11 @@
 #include "mulle-objc-universe.h"
 
 
+
+/*
+ *
+ */
+
 void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
                                          struct mulle_allocator *allocator)
 {
@@ -60,11 +65,14 @@ void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
 #if 0
    _mulle_concurrent_hashmap_init( &infra->cvars, 0, allocator);
 #endif
-   universe          = _mulle_objc_infraclass_get_universe( infra);
-   objectallocator   = _mulle_objc_universe_get_foundationallocator( universe);
-   infra->allocator  = objectallocator
-                          ? objectallocator
-                          : _mulle_objc_universe_get_allocator( universe);
+#if 0 // zeroed memory, needs no init
+   _mulle_concurrent_linkedlist_init( &infra->reuseallocs);
+#endif
+   universe         = _mulle_objc_infraclass_get_universe( infra);
+   objectallocator  = _mulle_objc_universe_get_foundationallocator( universe);
+   infra->allocator = objectallocator
+                      ? objectallocator
+                      : _mulle_objc_universe_get_allocator( universe);
 }
 
 
@@ -74,6 +82,8 @@ void    _mulle_objc_infraclass_plusdone( struct _mulle_objc_infraclass *infra)
    // this is done earlier now
    _mulle_concurrent_hashmap_done( &infra->cvars);
 #endif
+   _mulle_objc_infraclass_free_reuseallocs( infra);
+   _mulle_concurrent_linkedlist_done( &infra->reuseallocs);
    _mulle_concurrent_pointerarray_done( &infra->ivarlists);
 
    // initially room for 2 categories with properties

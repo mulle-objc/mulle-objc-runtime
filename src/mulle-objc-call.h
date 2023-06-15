@@ -91,7 +91,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
                                           mulle_objc_methodid_t methodid,
                                           void *parameter)
 {
-   if( __builtin_expect( ! obj, 0))
+   if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    return( _mulle_objc_object_call( obj, methodid, parameter));
@@ -115,14 +115,14 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_methodcache  *mcache;
 
-   if( __builtin_expect( ! obj, 0))
+   if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    cls = _mulle_objc_object_get_isa( obj);
 
 #ifdef __MULLE_OBJC_FCS__
    index = mulle_objc_get_fastmethodtable_index( methodid);
-   if( __builtin_expect( index >= 0, MULLE_OBJC_CALL_PREFER_FCS))
+   if( MULLE_C_EXPECT( index >= 0, MULLE_OBJC_CALL_PREFER_FCS))
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
@@ -162,7 +162,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    mulle_objc_cache_uint_t          mask;
    mulle_objc_cache_uint_t          offset;
 
-   if( __builtin_expect( ! obj, 0))
+   if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    //
@@ -176,7 +176,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    // try to simplify to return( (*cls->vtab.methods[ index])( obj, methodid, parameter)
    //
    index = mulle_objc_get_fastmethodtable_index( methodid);
-   if( __builtin_expect( index >= 0, MULLE_OBJC_CALL_PREFER_FCS)) // prefer fast methods path
+   if( MULLE_C_EXPECT( index >= 0, MULLE_OBJC_CALL_PREFER_FCS)) // prefer fast methods path
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
@@ -190,7 +190,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    offset  = (mulle_objc_cache_uint_t) methodid & mask;
    entry   = (void *) &((char *) entries)[ offset];
 
-   if( __builtin_expect( (entry->key.uniqueid == methodid), 1))
+   if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
       f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
    else
    {
@@ -220,7 +220,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    mulle_objc_cache_uint_t         mask;
    mulle_objc_cache_uint_t         offset;
 
-   if( __builtin_expect( ! obj, 0))
+   if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
@@ -233,7 +233,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    offset  = (mulle_objc_cache_uint_t) methodid & mask;
    entry   = (void *) &((char *) entries)[ offset];
 
-   if( __builtin_expect( (entry->key.uniqueid == methodid), 1))
+   if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
       f = (mulle_objc_implementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
    else
    {
@@ -282,7 +282,7 @@ static inline void   *
    struct _mulle_objc_methodcache  *mcache;
    mulle_objc_implementation_t     imp;
 
-   if( __builtin_expect( ! obj, 0))
+   if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    cls     = _mulle_objc_object_get_isa( obj);
@@ -311,7 +311,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    mulle_objc_cache_uint_t          mask;
    mulle_objc_cache_uint_t          offset;
 
-   if( __builtin_expect( ! obj, 0))
+   if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    //
@@ -329,7 +329,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    offset  = (mulle_objc_cache_uint_t) superid & mask;
    entry   = (void *) &((char *) entries)[ offset];
 
-   if( __builtin_expect( (entry->key.uniqueid == superid), 1))
+   if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
       f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
    else
    {
