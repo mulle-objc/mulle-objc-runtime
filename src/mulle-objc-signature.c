@@ -562,8 +562,8 @@ char   *_mulle_objc_signature_supply_typeinfo( char *types,
                                   supplier->level,
                                   info,
                                   supplier->supplier
-                                    ? supplier->supplier
-                                    : _mulle_objc_signature_supply_scalar_typeinfo);
+                                  ? supplier->supplier
+                                  : _mulle_objc_signature_supply_scalar_typeinfo);
    if( ! next)  // broken ?
       return( NULL);
 
@@ -634,10 +634,10 @@ char   *_mulle_objc_signature_supply_typeinfo( char *types,
       assert( supplier->invocation_offset != (unsigned int) -1);
 
       // for the MetaABI block we want this aligned as safely as possible
-      if( supplier->index == 2)
-         info->invocation_offset = (int32_t) mulle_address_align( supplier->invocation_offset, alignof( long double));
-      else
-         info->invocation_offset = (int32_t) mulle_address_align( supplier->invocation_offset, info->bits_struct_alignment / 8);
+      info->invocation_offset     = (int32_t) mulle_address_align( supplier->invocation_offset,
+                                                                   supplier->index == 2
+                                                                   ? alignof( long double)
+                                                                   : info->bits_struct_alignment / 8);
       supplier->invocation_offset = info->invocation_offset + info->natural_size;
    }
    else
@@ -819,6 +819,26 @@ unsigned int   mulle_objc_signature_count_typeinfos( char *types)
 }
 
 
+int   _mulle_objc_ivarsignature_compare( char *a, char *b)
+{
+   struct mulle_objc_typeinfo  a_info;
+   struct mulle_objc_typeinfo  b_info;
+   int                         comparison;
+
+   // skip return value
+   a = _mulle_objc_signature_supply_typeinfo( a, NULL, &a_info);
+   b = _mulle_objc_signature_supply_typeinfo( b, NULL, &b_info);
+
+   if( ! a)
+      return( b ? -1 : 0);
+   if( ! b)
+      return( 1);
+
+   comparison = _mulle_objc_typeinfo_compare( &a_info, &b_info);
+   return( comparison);
+}
+
+
 int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
                                     struct mulle_objc_typeinfo *b)
 {
@@ -840,7 +860,7 @@ int   _mulle_objc_typeinfo_compare( struct mulle_objc_typeinfo *a,
 }
 
 
-int   _mulle_objc_signature_compare_lenient( char *a, char *b)
+int   _mulle_objc_methodsignature_compare_lenient( char *a, char *b)
 {
    struct mulle_objc_typeinfo  a_info;
    struct mulle_objc_typeinfo  b_info;

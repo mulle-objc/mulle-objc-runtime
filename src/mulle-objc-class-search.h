@@ -99,12 +99,12 @@ struct _mulle_objc_searchargumentscachable
       // should be 16 bytes on 32bit and 32 bytes on 64 bit
       struct
       {
-         mulle_objc_uniqueid_t   mode;
-         mulle_objc_methodid_t   methodid;
-         mulle_objc_classid_t    classid;
-         mulle_objc_classid_t    categoryid;
+         mulle_objc_uniqueid_t         mode;
+         mulle_objc_methodid_t         methodid;
+         mulle_objc_classid_t          classid;
+         mulle_objc_classid_t          categoryid;
       };
-      mulle_atomic_functionpointer_t      pointer;
+      mulle_atomic_functionpointer_t   pointer;
    };
 };
 

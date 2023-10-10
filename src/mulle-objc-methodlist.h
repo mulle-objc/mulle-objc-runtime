@@ -75,6 +75,10 @@ MULLE_OBJC_RUNTIME_GLOBAL
 char *
    _mulle_objc_methodlist_get_categoryname( struct _mulle_objc_methodlist *list);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+char *
+   _mulle_objc_methodlist_get_categoryorigin( struct _mulle_objc_methodlist *list);
+
 
 static inline mulle_objc_categoryid_t
    mulle_objc_methodlist_get_categoryid( struct _mulle_objc_methodlist *list)
@@ -88,6 +92,13 @@ static inline char *
 {
    return( list ? _mulle_objc_methodlist_get_categoryname( list) : NULL);
 }
+
+static inline char *
+   mulle_objc_methodlist_get_categoryorigin( struct _mulle_objc_methodlist *list)
+{
+   return( list ? _mulle_objc_methodlist_get_categoryorigin( list) : NULL);
+}
+
 
 
 static inline size_t   mulle_objc_sizeof_methodlist( unsigned int n_methods)

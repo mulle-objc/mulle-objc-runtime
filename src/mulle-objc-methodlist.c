@@ -71,8 +71,9 @@ mulle_objc_walkcommand_t
 }
 
 
-struct _mulle_objc_method  *_mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
-                                                                  mulle_objc_methodid_t methodid)
+struct _mulle_objc_method  *
+   _mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
+                                         mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *sentinel;
    struct _mulle_objc_method   *p;
@@ -94,8 +95,9 @@ struct _mulle_objc_method  *_mulle_objc_methodlist_linear_search( struct _mulle_
 }
 
 
-struct _mulle_objc_method  *_mulle_objc_methodlist_linear_impsearch( struct _mulle_objc_methodlist *list,
-                                                                     mulle_objc_implementation_t imp)
+struct _mulle_objc_method  *
+   _mulle_objc_methodlist_linear_impsearch( struct _mulle_objc_methodlist *list,
+                                            mulle_objc_implementation_t imp)
 {
    struct _mulle_objc_method   *sentinel;
    struct _mulle_objc_method   *p;
@@ -126,11 +128,12 @@ void   mulle_objc_methodlist_sort( struct _mulle_objc_methodlist *list)
 
 
 
-int  mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
-                                                  struct _mulle_objc_metaclass *meta,
-                                                  struct _mulle_objc_callqueue *loads)
+int
+   mulle_objc_methodlist_add_load_to_callqueue( struct _mulle_objc_methodlist *list,
+                                                struct _mulle_objc_metaclass *meta,
+                                                struct _mulle_objc_callqueue *loads)
 {
-   struct _mulle_objc_method            *method;
+   struct _mulle_objc_method      *method;
    mulle_objc_implementation_t    imp;
 
    assert( loads);
@@ -166,6 +169,7 @@ void
 
 
 
+// opaque because of struct _mulle_objc_loadcategory being somewat private
 mulle_objc_categoryid_t
    _mulle_objc_methodlist_get_categoryid( struct _mulle_objc_methodlist *list)
 {
@@ -183,4 +187,14 @@ char *
 
    category = list->loadcategory;
    return( category ? category->categoryname : NULL);
+}
+
+
+char *
+   _mulle_objc_methodlist_get_categoryorigin( struct _mulle_objc_methodlist *list)
+{
+   struct _mulle_objc_loadcategory   *category;
+
+   category = list->loadcategory;
+   return( category ? category->origin : NULL);
 }

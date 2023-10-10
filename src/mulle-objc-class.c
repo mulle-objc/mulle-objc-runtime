@@ -303,7 +303,7 @@ static int  invalidate_methodcacheentries( struct _mulle_objc_universe *universe
 // Solution: late categories may only add methods, not overwrite
 //
 void   mulle_objc_class_didadd_methodlist( struct _mulle_objc_class *cls,
-                                            struct _mulle_objc_methodlist *list)
+                                           struct _mulle_objc_methodlist *list)
 {
    //
    // now walk through the method list again
@@ -730,27 +730,37 @@ void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *c
 }
 
 
+static inline int   _mulle_objc_class_is_boring( struct _mulle_objc_class *cls)
+{
+   return( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_BORING_ALLOCATION));
+}
+
 
 void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
                                                void *obj,
                                                size_t extra)
 {
-   mulle_objc_classid_t   classid;
+   mulle_objc_classid_t          classid;
+   struct _mulle_objc_universe   *universe;
+
+   universe = _mulle_objc_class_get_universe( cls);
+
+   if( ! universe->debug.trace.instance)
+      return;
+   if( universe->debug.trace.instance == 1 && _mulle_objc_class_is_boring( cls))
+      return;
 
    classid = _mulle_objc_class_get_classid( cls);
-   if( classid != 0x58bb178a)  // NSAutoreleasePool
-   {
-      mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
-                        stderr,
-                        "[==] %p instance %p allocated (\"%s\" (%08x)) ",
-                        _mulle_objc_object_get_objectheader( obj),
-                        obj,
-                        _mulle_objc_class_get_name( cls),
-                        classid);
-      if( extra)
-         fprintf( stderr, " (+%ld)", (long) extra);
-      fputc( '\n', stderr);
-   }
+   mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
+                     stderr,
+                     "[==] %p instance %p allocated (\"%s\" (%08x)) ",
+                     _mulle_objc_object_get_objectheader( obj),
+                     obj,
+                     _mulle_objc_class_get_name( cls),
+                     classid);
+   if( extra)
+      fprintf( stderr, " (+%ld)", (long) extra);
+   fputc( '\n', stderr);
 }
 
 
@@ -771,21 +781,28 @@ void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infracla
    if( _mulle_objc_universe_is_deinitializing( universe))
       _mulle_objc_class_warn_alloc_during_finalize( cls, obj);
 
-   if( universe->debug.trace.instance)
-      _mulle_objc_class_trace_alloc_instance( cls, obj, extra);
+   _mulle_objc_class_trace_alloc_instance( cls, obj, extra);
 }
+
 
 
 // we don't have a mulle-objc-object.c so here
 void   _mulle_objc_object_trace_operation( void *obj, char *operation)
 {
-   struct _mulle_objc_class   *cls;
-   mulle_objc_classid_t       classid;
+   struct _mulle_objc_class      *cls;
+   mulle_objc_classid_t          classid;
+   struct _mulle_objc_universe   *universe;
 
-   cls     = _mulle_objc_object_get_isa( obj);
+   cls      = _mulle_objc_object_get_isa( obj);
+   universe = _mulle_objc_class_get_universe( cls);
+
+   if( ! universe->debug.trace.instance)
+      return;
+   if( universe->debug.trace.instance == 1 && _mulle_objc_class_is_boring( cls))
+      return;
+
    classid = _mulle_objc_class_get_classid( cls);
-   if( classid != 0x58bb178a)  // NSAutoreleasePool
-      mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
+   mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
                         stderr,
                         "[==] %p instance %p %s (\"%s\" (%08x))\n",
                         _mulle_objc_object_get_objectheader( obj),
@@ -844,4 +861,22 @@ int   _mulle_objc_class_has_direct_relation_to_class( struct _mulle_objc_class *
    while( walker);
 
    return( 0);
+}
+
+
+struct _mulle_objc_methodlist *
+   mulle_objc_class_find_methodlist( struct _mulle_objc_class *cls,
+                                     mulle_objc_categoryid_t categoryid)
+{
+   struct _mulle_objc_methodlist                    *list;
+   struct mulle_concurrent_pointerarrayenumerator   rover;
+
+   rover = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
+   while( list = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   {
+      if( _mulle_objc_methodlist_get_categoryid( list) == categoryid)
+         break;
+   }
+   mulle_concurrent_pointerarrayenumerator_done( &rover);
+   return( list);
 }

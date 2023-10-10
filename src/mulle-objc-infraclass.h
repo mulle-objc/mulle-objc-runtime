@@ -534,10 +534,10 @@ mulle_objc_walkcommand_t
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	mulle_objc_infraclass_walk( struct _mulle_objc_infraclass   *infra,
-                              enum mulle_objc_walkpointertype_t  type,
-                              mulle_objc_walkcallback_t callback,
-                              void *parent,
-                              void *userinfo);
+                               enum mulle_objc_walkpointertype_t  type,
+                               mulle_objc_walkcallback_t callback,
+                               void *parent,
+                               void *userinfo);
 
 #pragma mark - some other methods, that are only defined on infraclass
 
