@@ -125,92 +125,107 @@ struct _mulle_objc_property
 
 # pragma mark - property petty accessors
 
-static inline char   *_mulle_objc_property_get_name( struct _mulle_objc_property *property)
+static inline char   *
+   _mulle_objc_property_get_name( struct _mulle_objc_property *property)
 {
    return( property->name);
 }
 
 
-static inline char   *_mulle_objc_property_get_signature( struct _mulle_objc_property *property)
+static inline char   *
+   _mulle_objc_property_get_signature( struct _mulle_objc_property *property)
 {
    return( property->signature);
 }
 
 
-static inline mulle_objc_propertyid_t  _mulle_objc_property_get_propertyid( struct _mulle_objc_property *property)
+static inline mulle_objc_propertyid_t
+   _mulle_objc_property_get_propertyid( struct _mulle_objc_property *property)
 {
    return( property->propertyid);
 }
 
 
 // can be 0 if @dynamic
-static inline mulle_objc_ivarid_t  _mulle_objc_property_get_ivarid( struct _mulle_objc_property *property)
+static inline mulle_objc_ivarid_t
+   _mulle_objc_property_get_ivarid( struct _mulle_objc_property *property)
 {
    return( property->ivarid);
 }
 
 
-static inline mulle_objc_methodid_t    _mulle_objc_property_get_getter( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   _mulle_objc_property_get_getter( struct _mulle_objc_property *property)
 {
    return( property->getter);
 }
 
 
-static inline mulle_objc_methodid_t    _mulle_objc_property_get_setter( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   _mulle_objc_property_get_setter( struct _mulle_objc_property *property)
 {
    return( property->setter);
 }
 
 
-static inline mulle_objc_methodid_t    _mulle_objc_property_get_adder( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   _mulle_objc_property_get_adder( struct _mulle_objc_property *property)
 {
    return( property->adder);
 }
 
 
-static inline mulle_objc_methodid_t    _mulle_objc_property_get_remover( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   _mulle_objc_property_get_remover( struct _mulle_objc_property *property)
 {
    return( property->remover);
 }
 
 
-static inline uint32_t   _mulle_objc_property_get_bits( struct _mulle_objc_property *property)
+static inline uint32_t
+   _mulle_objc_property_get_bits( struct _mulle_objc_property *property)
 {
    return( property->bits);
 }
 
 
-static inline uint32_t   _mulle_objc_property_is_dynamic( struct _mulle_objc_property *property)
+static inline uint32_t
+   _mulle_objc_property_is_dynamic( struct _mulle_objc_property *property)
 {
    return( (property->bits & _mulle_objc_property_dynamic) ? 1 : 0);
 }
 
 
-static inline uint32_t   _mulle_objc_property_is_readonly( struct _mulle_objc_property *property)
+static inline uint32_t
+   _mulle_objc_property_is_readonly( struct _mulle_objc_property *property)
 {
    return( (property->bits & _mulle_objc_property_readonly) ? 1 : 0);
 }
 
 
-static inline uint32_t   _mulle_objc_property_is_observable( struct _mulle_objc_property *property)
+static inline uint32_t
+   _mulle_objc_property_is_observable( struct _mulle_objc_property *property)
 {
    return( (property->bits & _mulle_objc_property_observable) ? 1 : 0);
 }
 
 
-static inline uint32_t   _mulle_objc_property_is_relationship( struct _mulle_objc_property *property)
+static inline uint32_t
+   _mulle_objc_property_is_relationship( struct _mulle_objc_property *property)
 {
    return( (property->bits & _mulle_objc_property_relationship) ? 1 : 0);
 }
 
 
-static inline uint32_t   _mulle_objc_property_is_container( struct _mulle_objc_property *property)
+static inline uint32_t
+   _mulle_objc_property_is_container( struct _mulle_objc_property *property)
 {
    return( (property->bits & _mulle_objc_property_container) ? 1 : 0);
 }
 
 
-static inline uint32_t   _mulle_objc_property_is_nonserializable( struct _mulle_objc_property *property)
+static inline uint32_t
+   _mulle_objc_property_is_nonserializable( struct _mulle_objc_property *property)
 {
    return( (property->bits & _mulle_objc_property_nonserializable) ? 1 : 0);
 }
@@ -257,51 +272,75 @@ void   mulle_objc_property_sort( struct _mulle_objc_property *properties,
 
 # pragma mark - API
 
-static inline char   *mulle_objc_property_get_name( struct _mulle_objc_property *property)
+static inline char   *
+   mulle_objc_property_get_name( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_name( property) : NULL);
+   return( property
+           ? _mulle_objc_property_get_name( property)
+           : NULL);
 }
 
 
-static inline char   *mulle_objc_property_get_signature( struct _mulle_objc_property *property)
+static inline char   *
+   mulle_objc_property_get_signature( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_signature( property) : NULL);
+   return( property
+           ? _mulle_objc_property_get_signature( property)
+           : NULL);
 }
 
 
-static inline mulle_objc_propertyid_t  mulle_objc_property_get_propertyid( struct _mulle_objc_property *property)
+static inline mulle_objc_propertyid_t
+   mulle_objc_property_get_propertyid( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_propertyid( property) : MULLE_OBJC_NO_PROPERTYID);
+   return( property
+           ? _mulle_objc_property_get_propertyid( property)
+           : MULLE_OBJC_NO_PROPERTYID);
 }
 
 
-static inline mulle_objc_methodid_t    mulle_objc_property_get_getter( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   mulle_objc_property_get_getter( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_getter( property) : MULLE_OBJC_NO_METHODID);
+   return( property
+           ? _mulle_objc_property_get_getter( property)
+           : MULLE_OBJC_NO_METHODID);
 }
 
 
-static inline mulle_objc_methodid_t    mulle_objc_property_get_setter( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   mulle_objc_property_get_setter( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_setter( property) : MULLE_OBJC_NO_METHODID);
+   return( property
+           ? _mulle_objc_property_get_setter( property)
+           : MULLE_OBJC_NO_METHODID);
 }
 
 
-static inline mulle_objc_methodid_t    mulle_objc_property_get_adder( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   mulle_objc_property_get_adder( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_adder( property) : MULLE_OBJC_NO_METHODID);
+   return( property
+           ? _mulle_objc_property_get_adder( property)
+           : MULLE_OBJC_NO_METHODID);
 }
 
 
-static inline mulle_objc_methodid_t    mulle_objc_property_get_remover( struct _mulle_objc_property *property)
+static inline mulle_objc_methodid_t
+   mulle_objc_property_get_remover( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_remover( property) : MULLE_OBJC_NO_METHODID);
+   return( property
+           ? _mulle_objc_property_get_remover( property)
+           : MULLE_OBJC_NO_METHODID);
 }
 
 
-static inline uint32_t    mulle_objc_property_get_bits( struct _mulle_objc_property *property)
+static inline uint32_t
+   mulle_objc_property_get_bits( struct _mulle_objc_property *property)
 {
-   return( property ? _mulle_objc_property_get_bits( property) : MULLE_OBJC_NO_METHODID);
+   return( property
+           ? _mulle_objc_property_get_bits( property)
+           : MULLE_OBJC_NO_METHODID);
 }
 
 

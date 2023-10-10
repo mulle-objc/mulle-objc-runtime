@@ -129,8 +129,8 @@ static void  test( SEL a, SEL b)
    b_name      = mulle_objc_method_get_name( b_method);
    b_signature = mulle_objc_method_get_signature( b_method);
 
-   rval[ 0]    = _mulle_objc_signature_compare_lenient( a_signature, b_signature);
-   rval[ 1]    = _mulle_objc_signature_compare( a_signature, b_signature);
+   rval[ 0]    = _mulle_objc_methodsignature_compare_lenient( a_signature, b_signature);
+   rval[ 1]    = _mulle_objc_methodsignature_compare( a_signature, b_signature);
    rval[ 2]    = _mulle_objc_signature_compare_strict( a_signature, b_signature);
 
    printf( "%s,%s | compare( %s, %s) | %s,%s,%s\n",

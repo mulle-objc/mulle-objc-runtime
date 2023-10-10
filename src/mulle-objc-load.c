@@ -910,14 +910,28 @@ static int  mulle_objc_loadcategory_is_sane( struct _mulle_objc_loadcategory *in
 
 
 static void  fail_duplicate_category( struct _mulle_objc_classpair *pair,
-                                                 struct _mulle_objc_loadcategory *info)
+                                      struct _mulle_objc_loadcategory *info)
 {
    struct _mulle_objc_universe    *universe;
+   struct _mulle_objc_methodlist  *category;
+   struct _mulle_objc_infraclass  *infra;
+   struct _mulle_objc_metaclass   *meta;
+   struct _mulle_objc_class       *cls;
    char                           *info_origin;
    char                           *pair_origin;
 
-   universe     = _mulle_objc_classpair_get_universe( pair);
-   pair_origin = _mulle_objc_classpair_get_origin( pair);
+   universe    = _mulle_objc_classpair_get_universe( pair);
+   infra       = _mulle_objc_classpair_get_infraclass( pair);
+   cls         = _mulle_objc_infraclass_as_class( infra);
+   category    = mulle_objc_class_find_methodlist( cls, info->categoryid);
+   if( ! category)
+   {
+      meta     = _mulle_objc_classpair_get_metaclass( pair);
+      cls      = _mulle_objc_metaclass_as_class( meta);
+      category = mulle_objc_class_find_methodlist( cls, info->categoryid);
+   }
+
+   pair_origin = mulle_objc_methodlist_get_categoryorigin( category);
    if( ! pair_origin)
       pair_origin = "<unknown origin>";
 

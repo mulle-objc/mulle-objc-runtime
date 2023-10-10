@@ -79,6 +79,10 @@ enum _mulle_objc_class_state
    MULLE_OBJC_CLASS_FIXED_SIZE_CACHE   = 0x0004,
    MULLE_OBJC_CLASS_NO_SEARCH_CACHE    = 0x0008,
 
+   // class will not be traced in trace.instance (for NSAutoreleasePool
+   // or _MulleObjCAutoreleaseAllocation)
+   MULLE_OBJC_CLASS_IS_BORING_ALLOCATION     = 0x0080,
+
    // infra/meta flags
    _MULLE_OBJC_CLASS_WARN_PROTOCOL           = 0x0100,
    _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        = 0x0200,

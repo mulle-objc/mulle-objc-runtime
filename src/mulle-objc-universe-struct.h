@@ -119,7 +119,7 @@ struct _mulle_objc_universedebug
       unsigned   dependency           : 1;
       unsigned   fastclass_add        : 1;
       unsigned   initialize           : 1;  // also traces +load/+uninitialize etc.
-      unsigned   instance             : 1;
+      unsigned   instance             : 2;  // 1: all 2: skip boring
       unsigned   hashstrings          : 1;
       unsigned   loadinfo             : 1;
       unsigned   method_cache         : 1;

@@ -72,7 +72,7 @@ typedef void   *(*mulle_objc_implementation_t)( void *,
 //
 
 
-// this enum is inside bits shifted << 16
+// this enum is inside ->bits, shifted << 16
 enum _mulle_objc_methodfamily
 {
    _mulle_objc_methodfamily_none        = 0,

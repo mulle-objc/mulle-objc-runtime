@@ -109,14 +109,8 @@ static void
 // TODO: figure out how fast getenv is and possibly cache it
 //       since we are using it a lot
 //
-int   mulle_objc_environment_get_yes_no_default( char *name, int default_value)
+static int   get_yes_no( char *s)
 {
-   char   *s;
-
-   s = name ? getenv( name) : NULL;
-   if( ! s)
-      return( default_value);
-
    switch( *s)
    {
    case 'f' :
@@ -129,6 +123,17 @@ int   mulle_objc_environment_get_yes_no_default( char *name, int default_value)
    return( 1);
 }
 
+int   mulle_objc_environment_get_yes_no_default( char *name, int default_value)
+{
+   char   *s;
+
+   s = name ? getenv( name) : NULL;
+   if( ! s)
+      return( default_value);
+
+   return( get_yes_no( s));
+}
+
 
 int   mulle_objc_environment_get_int( char *name, int min, int max, int default_value)
 {
@@ -138,6 +143,10 @@ int   mulle_objc_environment_get_int( char *name, int min, int max, int default_
    s = name ? getenv( name) : NULL;
    if( ! s)
       return( default_value);
+
+   // also allow YES/NO (for trace.instance)
+   if( (*s >= 'A' && *s <= 'Z') || (*s >= 'a' && *s <= 'z'))
+      return( get_yes_no( s));
 
    value = strtol( s, NULL, 0);
    if( value >= min && value <= max)
@@ -349,7 +358,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.class_cache     = getenv_yes_no( "MULLE_OBJC_TRACE_CLASS_CACHE");
    universe->debug.trace.dependency      = getenv_yes_no( "MULLE_OBJC_TRACE_DEPENDENCY");
    universe->debug.trace.fastclass_add   = getenv_yes_no( "MULLE_OBJC_TRACE_FASTCLASS_ADD");
-   universe->debug.trace.instance        = getenv_yes_no( "MULLE_OBJC_TRACE_INSTANCE");
+   universe->debug.trace.instance        = mulle_objc_environment_get_int( "MULLE_OBJC_TRACE_INSTANCE", 0, 2, 0);
    universe->debug.trace.initialize      = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");
    universe->debug.trace.hashstrings     = getenv_yes_no( "MULLE_OBJC_TRACE_HASHSTRINGS");
    universe->debug.trace.loadinfo        = getenv_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
@@ -2330,10 +2339,10 @@ static struct _mulle_objc_descriptor *
       comparison = 0;
       break;
    case MULLE_OBJC_WARN_METHOD_TYPE_LENIENT :
-      comparison = _mulle_objc_signature_compare_lenient( dup->signature, p->signature);
+      comparison = _mulle_objc_methodsignature_compare_lenient( dup->signature, p->signature);
       break;
    case MULLE_OBJC_WARN_METHOD_TYPE_NORMAL :
-      comparison = _mulle_objc_signature_compare( dup->signature, p->signature);
+      comparison = _mulle_objc_methodsignature_compare( dup->signature, p->signature);
       break;
    case MULLE_OBJC_WARN_METHOD_TYPE_STRICT :
       comparison = _mulle_objc_signature_compare_strict( dup->signature, p->signature);

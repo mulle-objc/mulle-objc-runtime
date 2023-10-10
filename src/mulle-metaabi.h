@@ -56,6 +56,7 @@ enum mulle_metaabi_param
 // these defines are compatible to other universes
 // but some aren't implemented in code yet
 // NOTE: Avoid adding ';' and ',' because of CSV and mulle-objc-list
+//       and mulle_objc_property signature
 // MEMO: now part of mulle_metaabi, but probably should be its own header
 
 #define _C_ARY_B        '['
