@@ -1488,8 +1488,9 @@ char   *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
 // it's calle indirectly via mulle_atinit on participating platforms
 // (those that use ELF)
 //
-static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
+static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
 {
+   struct _mulle_objc_loadinfo             *info = _info;
    struct _mulle_objc_universe             *universe;
    int                                     need_sort;
    static struct _mulle_objc_loaduniverse  empty;
@@ -1692,13 +1693,19 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *
 void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
 {
    int   trace;
+   char  *comment;
 
    trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
    if( trace)
       fprintf( stderr, "%p: mulle-objc is pushing loadinfo onto atinit %p\n",
                            (void *) mulle_thread_self(), info);
-
-   mulle_atinit( (void (*)( void *))_mulle_objc_loadinfo_enqueue_nofail, info, 0);
+   //
+   // comment must be static, can't and wont be freed
+   // (so must remain until mulle_atinit is through)
+   //
+   comment = info ? mulle_objc_loadinfo_get_originator( info) : NULL;
+   comment = comment ? comment : "_mulle_objc_loadinfo";
+   mulle_atinit( _mulle_objc_loadinfo_enqueue_nofail, info, 0, comment);
 
    if( trace)
       fprintf( stderr, "%p: mulle-objc did push loadinfo onto atinit %p\n",

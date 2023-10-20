@@ -42,8 +42,8 @@
 // JIT code.
 //
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0   // max 511
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  22  // max 1023
-#define MULLE_OBJC_RUNTIME_VERSION_PATCH  1   // max 255
+#define MULLE_OBJC_RUNTIME_VERSION_MINOR  23  // max 1023
+#define MULLE_OBJC_RUNTIME_VERSION_PATCH  0   // max 255
 
 //
 // up the number if binary loads are incompatible

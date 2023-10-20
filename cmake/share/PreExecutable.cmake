@@ -9,7 +9,7 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 include( CompilerDetectionC)
-include( UnwantedWarningsC) # after detection, before flags
+include( CompilerWarningsC) # after detection, before flags
 include( CompilerFlagsC)
 
 include( PreExecutableAuxC OPTIONAL)

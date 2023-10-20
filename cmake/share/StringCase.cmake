@@ -10,9 +10,13 @@
 #
 if( NOT __STRING_CASE__CMAKE__)
    set( __STRING_CASE__CMAKE__ ON)
-     function( snakeCaseString str var)
+   function( snakeCaseString str var)
      # convert this to one word If present
      string( REGEX REPLACE "ObjC" "Objc" value "${str}")
+
+     # turns mulle-scion into MULLE__SCION to distinguish from
+     # MulleScion -> MULLE_SCION
+     string( REGEX REPLACE "-" "__" value "${value}")
 
      # insert an underscore before any upper case letter
      # which is not followed by another upper case letter
