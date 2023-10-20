@@ -190,7 +190,7 @@ static void
                                  "call +[%s initialize]",
                                  _mulle_objc_metaclass_get_name( meta));
 
-   imp   = _mulle_objc_method_get_implementation( initialize);
+   imp = _mulle_objc_method_get_implementation( initialize);
    if( universe->debug.trace.method_call)
       mulle_objc_class_trace_call( &meta->base,  // sic!
                                    infra,
@@ -199,7 +199,7 @@ static void
                                    imp);
    (*imp)( (struct _mulle_objc_object *) infra,
            MULLE_OBJC_INITIALIZE_METHODID,
-           NULL);
+           (struct _mulle_objc_object *) infra);
 
    if( universe->debug.trace.initialize)
       mulle_objc_universe_trace( universe,
@@ -334,8 +334,6 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
    mulle_thread_mutex_unlock( initialize_lock);
    return( 0);
 }
-
-
 
 
 #pragma mark - empty_cache calls

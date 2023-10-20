@@ -14,8 +14,6 @@ if( LINK_PHASE)
 
    include( PreInstallExecutable OPTIONAL)
 
-   include( InstallRpath OPTIONAL)
-
    install( TARGETS ${INSTALL_EXECUTABLE_TARGETS} DESTINATION "bin")
    foreach( TMP_NAME ${INSTALL_EXECUTABLE_TARGETS})
       string( MAKE_C_IDENTIFIER "${TMP_NAME}" TMP_IDENTIFIER)

@@ -9,18 +9,14 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
    endif()
 
-   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OTHER_C_FLAGS} ${UNWANTED_C_WARNINGS}")
-   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OTHER_C_FLAGS} ${UNWANTED_C_WARNINGS}")
+   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OTHER_C_FLAGS} ${WANTED_C_WARNINGS} ${UNWANTED_C_WARNINGS}")
+   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OTHER_C_FLAGS} ${WANTED_C_WARNINGS} ${UNWANTED_C_WARNINGS}")
 
    if( CMAKE_BUILD_TYPE)
       string( TOUPPER "${CMAKE_BUILD_TYPE}" TMP_CONFIGURATION_NAME)
       add_definitions( "-D${TMP_CONFIGURATION_NAME}" )
       if( NOT (TMP_CONFIGURATION_NAME STREQUAL "DEBUG"))
          add_definitions( "-DNDEBUG" )
-      else()
-         if( "${MULLE_C_COMPILER_ID}" MATCHES "^(Clang|MulleClang)$")
-            set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wuninitialized")
-         endif()
       endif()
    endif()
 
@@ -35,6 +31,18 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
    if( BUILD_SHARED_LIBS)
       set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMULLE_INCLUDE_DYNAMIC=1")
    endif()
+
+   #
+   # MEMO: mulle-clang is currently too old for "mold", it doesn't know about
+   #       that linker yet.
+   #
+   # if( "${CMAKE_C_COMPILER_ID}" MATCHES "^(Clang|MulleClang)$")
+   #    find_program( MOLD_LINKER "mold")
+   #    if( MOLD_LINKER)
+   #       set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=mold")
+   #    endif()
+   # endif()
+
    # load in flags defined by other plugins, presumably Objective-C
    include( CompilerFlagsAuxC OPTIONAL)
 
