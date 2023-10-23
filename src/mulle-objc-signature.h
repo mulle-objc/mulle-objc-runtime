@@ -177,9 +177,9 @@ struct mulle_objc_signatureenumerator
 static inline struct mulle_objc_signatureenumerator
    mulle_objc_signature_enumerate( char *types)
 {
-   struct mulle_objc_signatureenumerator  rover;
+   struct mulle_objc_signatureenumerator  rover = { 0 };
 
-   rover.types  = (types && *types) ? types : NULL;
+   rover.types = (types && *types) ? types : NULL;
    if( ! rover.types)
       return( rover);
 
@@ -189,7 +189,6 @@ static inline struct mulle_objc_signatureenumerator
                                                          &rover.rval);
    rover.types = (rover.types && *rover.types) ? rover.types : NULL;
 
-   memset( &rover.supplier, 0, sizeof( struct mulle_objc_signaturesupplier));
    return( rover);
 }
 
