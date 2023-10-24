@@ -55,9 +55,9 @@ static void   free_nada( void *self)
 }
 
 
+#define N_OBJECTS 0x8000
+#define N_LOOPS   0x1000
 
-#define N_OBJECTS  0x8000
-#define N_LOOPS    0x1000 
 
 static void  run_loops( unsigned int n)
 {
@@ -95,6 +95,19 @@ static void  run_nada( unsigned int n)
 }
 
 
+// https://stackoverflow.com/questions/365458/how-can-i-detect-if-a-program-is-running-from-within-valgrind
+static int   tests_run_within_valgrind (void)
+{
+   char   *s;
+
+   s = getenv ("LD_PRELOAD");
+   if( s == NULL)
+      return(  0);
+   return( strstr (s, "/valgrind/") != NULL ||
+           strstr (s, "/vgpreload") != NULL);
+}
+
+
 
 //
 // memo: be sure to compile everything with --no-mulle-test-define and -O3
@@ -104,6 +117,11 @@ static void  run_nada( unsigned int n)
 int   main( void)
 {
    mulle_absolutetime_t   start, end;
+   unsigned long          loops;
+
+   loops = N_LOOPS;
+   if( tests_run_within_valgrind())
+      loops >>= 8;
 
    run_loops( 1);       // warmup 
 
@@ -120,7 +138,7 @@ int   main( void)
 #endif   
 
    start = mulle_absolutetime_now();
-   run_loops( N_LOOPS);
+   run_loops( loops);
    end   = mulle_absolutetime_now();
 
    fprintf( stderr, "elapsed: %.5gs\n", end - start);
