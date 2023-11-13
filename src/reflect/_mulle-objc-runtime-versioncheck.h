@@ -5,33 +5,18 @@
 #ifndef mulle_objc_runtime_versioncheck_h__
 #define mulle_objc_runtime_versioncheck_h__
 
-#if defined( MULLE__ATEXIT_VERSION)
-# ifndef MULLE__ATEXIT_VERSION_MIN
-#  define MULLE__ATEXIT_VERSION_MIN  ((0 << 20) | (0 << 8) | 14)
+#if defined( MULLE__CORE_VERSION)
+# ifndef MULLE__CORE_VERSION_MIN
+#  define MULLE__CORE_VERSION_MIN  ((0UL << 20) | (2 << 8) | 0)
 # endif
-# ifndef MULLE__ATEXIT_VERSION_MAX
-#  define MULLE__ATEXIT_VERSION_MAX  ((0 << 20) | (1 << 8) | 0)
+# ifndef MULLE__CORE_VERSION_MAX
+#  define MULLE__CORE_VERSION_MAX  ((0UL << 20) | (3 << 8) | 0)
 # endif
-# if MULLE__ATEXIT_VERSION < MULLE__ATEXIT_VERSION_MIN
-#  error "mulle-atexit is too old"
+# if MULLE__CORE_VERSION < MULLE__CORE_VERSION_MIN
+#  error "mulle-core is too old"
 # endif
-# if MULLE__ATEXIT_VERSION >= MULLE__ATEXIT_VERSION_MAX
-#  error "mulle-atexit is too new"
-# endif
-#endif
-
-#if defined( MULLE__ATINIT_VERSION)
-# ifndef MULLE__ATINIT_VERSION_MIN
-#  define MULLE__ATINIT_VERSION_MIN  ((0 << 20) | (0 << 8) | 11)
-# endif
-# ifndef MULLE__ATINIT_VERSION_MAX
-#  define MULLE__ATINIT_VERSION_MAX  ((0 << 20) | (1 << 8) | 0)
-# endif
-# if MULLE__ATINIT_VERSION < MULLE__ATINIT_VERSION_MIN
-#  error "mulle-atinit is too old"
-# endif
-# if MULLE__ATINIT_VERSION >= MULLE__ATINIT_VERSION_MAX
-#  error "mulle-atinit is too new"
+# if MULLE__CORE_VERSION >= MULLE__CORE_VERSION_MAX
+#  error "mulle-core is too new"
 # endif
 #endif
 

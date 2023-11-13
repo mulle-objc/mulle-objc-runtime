@@ -267,17 +267,17 @@ void   mmcarray_csvdump( struct mmcarray *array,
    sentinel = &p[ array->_count];
    while( p < sentinel)
    {
-      fprintf( fp, "%08x", _mulle_objc_class_get_classid( p->class));
+      fprintf( fp, "%08lx", (unsigned long) _mulle_objc_class_get_classid( p->class));
       fprintf( fp, ";%s", _mulle_objc_class_get_name( p->class));
 
       categoryid = mulle_objc_methodlist_get_categoryid( p->list);
-      fprintf( fp, ";%08x", categoryid);
+      fprintf( fp, ";%08lx", (unsigned long) categoryid);
       s = mulle_objc_methodlist_get_categoryname( p->list);
       fprintf( fp, ";%s", s ? s : "");
 
       if( mmc_snprint( p, universe, buf, sizeof( buf)) < 0)
-         fprintf( fp, "%08x;%p\n",
-                      _mulle_objc_method_get_methodid( p->method),
+         fprintf( fp, "%08lx;%p\n",
+                      (unsigned long) _mulle_objc_method_get_methodid( p->method),
                       (void *) _mulle_objc_method_get_implementation( p->method));
       else
          fprintf( fp, "%s;%p\n", buf, (void *) _mulle_objc_method_get_implementation( p->method));

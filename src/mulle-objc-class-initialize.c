@@ -90,10 +90,10 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
       // trace this before the switch
       if( universe->debug.trace.method_cache)
          mulle_objc_universe_trace( universe, "new initial cache %p "
-                                    "on %s %08x \"%s\" (%p) with %u entries",
+                                    "on %s %08lx \"%s\" (%p) with %u entries",
                                     mcache,
                                     _mulle_objc_class_get_classtypename( cls),
-                                    _mulle_objc_class_get_classid( cls),
+                                    (unsigned long) _mulle_objc_class_get_classid( cls),
                                     _mulle_objc_class_get_name( cls),
                                     cls,
                                     mcache->cache.size);
@@ -108,9 +108,9 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
       mcache = &universe->empty_methodcache;
       if( universe->debug.trace.method_cache)
          mulle_objc_universe_trace( universe, "use \"always empty cache\" on "
-                                    "%s %08x \"%s\" (%p)",
+                                    "%s %08lx \"%s\" (%p)",
                                     _mulle_objc_class_get_classtypename( cls),
-                                    _mulle_objc_class_get_classid( cls),
+                                    (unsigned long) _mulle_objc_class_get_classid( cls),
                                     _mulle_objc_class_get_name( cls),
                                     cls);
       // empty cache doesn't count towards "problem" caches

@@ -104,10 +104,10 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
    {
       bitname = _mulle_objc_global_lookup_state_bit_name( bit);
       mulle_objc_universe_trace( universe,
-                                 "%s %08x \"%s\" (%p) "
+                                 "%s %08lx \"%s\" (%p) "
                                  "gained the 0x%x bit (%s)",
                                  _mulle_objc_class_get_classtypename( cls),
-                                 cls->classid, cls->name,
+                                 (unsigned long) cls->classid, cls->name,
                                  cls,
                                  bit, bitname ? bitname : "???");
    }
@@ -753,11 +753,11 @@ void   _mulle_objc_class_trace_alloc_instance( struct _mulle_objc_class *cls,
    classid = _mulle_objc_class_get_classid( cls);
    mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
                      stderr,
-                     "[==] %p instance %p allocated (\"%s\" (%08x)) ",
+                     "[==] %p instance %p allocated (\"%s\" (%08lx)) ",
                      _mulle_objc_object_get_objectheader( obj),
                      obj,
                      _mulle_objc_class_get_name( cls),
-                     classid);
+                     (unsigned long) classid);
    if( extra)
       fprintf( stderr, " (+%ld)", (long) extra);
    fputc( '\n', stderr);
@@ -804,12 +804,12 @@ void   _mulle_objc_object_trace_operation( void *obj, char *operation)
    classid = _mulle_objc_class_get_classid( cls);
    mulle_objc_universe_fprintf( _mulle_objc_class_get_universe( cls),
                         stderr,
-                        "[==] %p instance %p %s (\"%s\" (%08x))\n",
+                        "[==] %p instance %p %s (\"%s\" (%08lx))\n",
                         _mulle_objc_object_get_objectheader( obj),
                         obj,
                         operation,
                         _mulle_objc_class_get_name( cls),
-                        classid);
+                        (unsigned long) classid);
 }
 
 

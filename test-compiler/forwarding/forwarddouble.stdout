@@ -1,0 +1,4 @@
++[Foo _negativeDouble:]: 18.48
+double: -18.48
++[Foo _negativeFloat:]: 18.48
+float:  -18.48

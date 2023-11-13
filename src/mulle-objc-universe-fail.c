@@ -271,6 +271,7 @@ MULLE_C_NO_RETURN void
 
    va_start( args, format);
    mulle_objc_universe_failv_inconsistency( universe, format, args);
+   // va_end( args);  // some sanitizers hate on this being there, some on not being there
 }
 
 

@@ -111,8 +111,8 @@ int   mulle_objc_uniqueid_is_sane_string( mulle_objc_uniqueid_t uniqueid, char *
       if( uniqueid != correct)
       {
          fprintf( stderr, "error: String \"%s\" should have "
-                 "uniqueid %08x but has uniqueid %08x\n",
-                 s, correct, uniqueid);
+                 "uniqueid %08lx but has uniqueid %08lx\n",
+                 s, (unsigned long) correct, (unsigned long)uniqueid);
          errno = EINVAL;  // this is needed for tests
          return( 0);
       }

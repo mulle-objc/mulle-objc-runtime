@@ -279,7 +279,7 @@ static void
          abort();
 
       getter            = space++;
-      getter->bits      = _mulle_objc_methodfamily_getter << _mulle_objc_methodfamily_shift;
+      getter->bits      = (unsigned long) _mulle_objc_methodfamily_getter << _mulle_objc_methodfamily_shift;
       getter->methodid  = property->propertyid;
       getter->name      = property->name;
 
@@ -297,7 +297,7 @@ static void
       struct _mulle_objc_descriptor  *setter;
 
       setter            = space++;
-      setter->bits      = _mulle_objc_methodfamily_setter << _mulle_objc_methodfamily_shift;
+      setter->bits      = (unsigned long) _mulle_objc_methodfamily_setter << _mulle_objc_methodfamily_shift;
       setter->methodid  = property->setter;
 
       _mulle_objc_universe_set_setter_name_signature( universe,
@@ -314,7 +314,7 @@ static void
       struct _mulle_objc_descriptor  *adder;
 
       adder            = space++;
-      adder->bits      = _mulle_objc_methodfamily_adder << _mulle_objc_methodfamily_shift;
+      adder->bits      = (unsigned long) _mulle_objc_methodfamily_adder << _mulle_objc_methodfamily_shift;
       adder->methodid  = property->adder;
 
       _mulle_objc_universe_set_setter_name_signature( universe,
@@ -331,7 +331,7 @@ static void
       struct _mulle_objc_descriptor  *remover;
 
       remover            = space++;
-      remover->bits      = _mulle_objc_methodfamily_remover << _mulle_objc_methodfamily_shift;
+      remover->bits      = (unsigned long) _mulle_objc_methodfamily_remover << _mulle_objc_methodfamily_shift;
       remover->methodid  = property->remover;
 
       _mulle_objc_universe_set_setter_name_signature( universe,
@@ -646,8 +646,8 @@ static mulle_objc_walkcommand_t
    struct _mulle_objc_universe  *universe;
 
    universe = _mulle_objc_classpair_get_universe( pair);
-   fprintf( stderr, "\t%08x \"%s\"\n",
-            categoryid,
+   fprintf( stderr, "\t%08lx \"%s\"\n",
+            (unsigned long) categoryid,
            _mulle_objc_universe_describe_categoryid( universe, categoryid));
    return( 0);
 }

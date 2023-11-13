@@ -305,11 +305,11 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
    // adding a category twice is very bad
    if( _mulle_objc_classpair_has_categoryid( pair, categoryid))
    {
-      fprintf( stderr, "mulle_objc_universe %p error: category %08x for"
-                       " class %08x \"%s\" is already loaded\n",
+      fprintf( stderr, "mulle_objc_universe %p error: category %08lx for"
+                       " class %08lx \"%s\" is already loaded\n",
               universe,
-              categoryid,
-              _mulle_objc_classpair_get_classid( pair),
+              (unsigned long) categoryid,
+              (unsigned long) _mulle_objc_classpair_get_classid( pair),
               _mulle_objc_classpair_get_name( pair));
       _mulle_objc_classpair_fail_einval( pair);
    }
@@ -320,13 +320,13 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
    {
       if( universe->debug.warn.protocolclass)
          if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
-            fprintf( stderr, "mulle_objc_universe %p warning: class %08x \"%s\""
+            fprintf( stderr, "mulle_objc_universe %p warning: class %08lx \"%s\""
                              " is a protocolclass and gains a"
-                             " category %08x \"%s( %s)\"\n",
+                             " category %08lx \"%s( %s)\"\n",
                     universe,
-                    _mulle_objc_classpair_get_classid( pair),
+                    (unsigned long) _mulle_objc_classpair_get_classid( pair),
                     _mulle_objc_classpair_get_name( pair),
-                    categoryid,
+                    (unsigned long)  categoryid,
                     _mulle_objc_classpair_get_name( pair),
                     _mulle_objc_universe_describe_categoryid( universe, categoryid));
    }
@@ -335,10 +335,10 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
 
    if( universe->debug.trace.category_add || universe->debug.trace.dependency)
       mulle_objc_universe_trace( universe,
-                                 "added category %08x \"%s\" to class %08x \"%s\"",
-                                 categoryid,
+                                 "added category %08lx \"%s\" to class %08lx \"%s\"",
+                                 (unsigned long)  categoryid,
                                  _mulle_objc_universe_describe_categoryid( universe, categoryid),
-                                 _mulle_objc_classpair_get_classid( pair),
+                                 (unsigned long)  _mulle_objc_classpair_get_classid( pair),
                                  _mulle_objc_classpair_get_name( pair));
 
 }
@@ -366,11 +366,11 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
       universe = _mulle_objc_classpair_get_universe( pair);
       if( universe->debug.trace.protocol_add || universe->debug.trace.dependency)
          mulle_objc_universe_trace( universe,
-                                    "add protocolclass %08x \"%s\" "
-                                    "to class %08x \"%s\"",
-                                    proto_infra->base.classid,
+                                    "add protocolclass %08lx \"%s\" "
+                                    "to class %08lx \"%s\"",
+                                    (unsigned long) proto_infra->base.classid,
                                     proto_infra->base.name,
-                                    _mulle_objc_classpair_get_classid( pair),
+                                    (unsigned long) _mulle_objc_classpair_get_classid( pair),
                                     _mulle_objc_classpair_get_name( pair));
 
    }
@@ -465,9 +465,9 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
       {
          if( universe->debug.trace.protocol_add)
             mulle_objc_universe_trace( universe,
-                                       "class %08x \"%s\" "
+                                       "class %08lx \"%s\" "
                                        "has become a protocolclass",
-                                       _mulle_objc_infraclass_get_classid( proto_cls),
+                                       (unsigned long) _mulle_objc_infraclass_get_classid( proto_cls),
                                        _mulle_objc_infraclass_get_name( proto_cls));
       }
 
@@ -599,16 +599,12 @@ void
 
    universe = _mulle_objc_classpair_get_universe( pair);
 
+   mulle_alloca_do( protocolids, mulle_objc_protocolid_t, protocols->n_protocols)
    {
-#ifdef _WIN32
-      mulle_objc_protocolid_t  *protocolids =  alloca( protocols->n_protocols * sizeof( mulle_objc_protocolid_t));
-#else
-      auto mulle_objc_protocolid_t    protocolids[ protocols->n_protocols];
-#endif
+      q        = protocolids;
 
       p        = protocols->protocols;
       sentinel = &p[ protocols->n_protocols];
-      q        = protocolids;
 
       for(; p < sentinel; ++p)
       {
@@ -622,11 +618,11 @@ void
 
          if( universe->debug.trace.protocol_add)
             mulle_objc_universe_trace( universe,
-                                       "add protocol %08x \"%s\" to class "
-                                       "%08x \"%s\"",
-                                       p->protocolid,
+                                       "add protocol %08lx \"%s\" to class "
+                                       "%08lx \"%s\"",
+                                       (unsigned long) p->protocolid,
                                        p->name,
-                                       _mulle_objc_classpair_get_classid( pair),
+                                       (unsigned long) _mulle_objc_classpair_get_classid( pair),
                                        _mulle_objc_classpair_get_name( pair));
          *q++ = p->protocolid;
       }

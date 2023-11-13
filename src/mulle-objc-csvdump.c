@@ -91,19 +91,19 @@ static void
    if( categoryid)
    {
       categoryname = mulle_objc_methodlist_get_categoryname( result->list);
-      fprintf( fp, "%08x;%s;%08x;%s;",
-              _mulle_objc_class_get_classid( result->class),
+      fprintf( fp, "%08lx;%s;%08lx;%s;",
+              (unsigned long) _mulle_objc_class_get_classid( result->class),
               classname,
-              categoryid,
+              (unsigned long) categoryid,
               categoryname);
    }
    else
-      fprintf( fp, "%08x;%s;;;",
-              _mulle_objc_class_get_classid( result->class),
+      fprintf( fp, "%08lx;%s;;;",
+              (unsigned long) _mulle_objc_class_get_classid( result->class),
               classname);
 
-   fprintf( fp, "%08x;%c%s\n",
-           _mulle_objc_method_get_methodid( result->method),
+   fprintf( fp, "%08lx;%c%s\n",
+           (unsigned long) _mulle_objc_method_get_methodid( result->method),
            _mulle_objc_class_is_metaclass( result->class) ? '+' : '-',
            _mulle_objc_method_get_name( result->method));
 }
@@ -161,8 +161,8 @@ void
          mulle_objc_universe_fail_inconsistency( mulle_objc_class_get_universe( cls),
                                                  "universe information has disappeared");
 
-      fprintf( fp, "%08x;%s;",
-              _mulle_objc_class_get_classid( cls),
+      fprintf( fp, "%08lx;%s;",
+              (unsigned long) _mulle_objc_class_get_classid( cls),
               _mulle_objc_class_get_name( cls));
 
       mulle_objc_searchresult_csvdump_to_fp( &result, fp);
@@ -309,8 +309,8 @@ void
       }
 
       nada = 0;
-      fprintf( fp, "%08x;%s\n",
-              _mulle_objc_infraclass_get_classid( infra),
+      fprintf( fp, "%08lx;%s\n",
+              (unsigned long) _mulle_objc_infraclass_get_classid( infra),
               _mulle_objc_infraclass_get_name( infra));
    }
    mulle_concurrent_hashmapenumerator_done( &rover);
@@ -338,8 +338,8 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
        return;
    }
 
-   fprintf( fp, "%08x;%c%s;%u;%u;%x\n",
-           _mulle_objc_class_get_classid( cls),
+   fprintf( fp, "%08lx;%c%s;%u;%u;%x\n",
+           (unsigned long) _mulle_objc_class_get_classid( cls),
            prefix,
            _mulle_objc_class_get_name( cls),
            _mulle_objc_cache_get_count( cache),
@@ -464,8 +464,8 @@ void   mulle_objc_loadinfo_csvdump_terse_to_fp( struct _mulle_objc_loadinfo *inf
    _fprint_csv_version( fp, info->version.runtime);
    _fprint_csv_version( fp, info->version.foundation);
    _fprint_csv_version( fp, info->version.user);
-   fprintf( fp, "%d;",  (info->version.bits >> 8) & 0x7);
-   fprintf( fp, "0x%x", info->version.bits);
+   fprintf( fp, "%u;",  (unsigned int) ((info->version.bits >> 8) & 0x7));
+   fprintf( fp, "0x%lx", (unsigned long) info->version.bits);
    fprintf( fp, "\n");
 }
 
