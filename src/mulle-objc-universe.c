@@ -406,7 +406,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
    if( universe->debug.print.universe_config)
    {
-      fprintf( stderr, "mulle-objc-universe %p: v%u.%u.%u (load-version: %u) (",
+      fprintf( stderr, "mulle-objc-universe %p: v%d.%d.%d (load-version: %d) (",
          universe,
          MULLE_OBJC_RUNTIME_VERSION_MAJOR,
          MULLE_OBJC_RUNTIME_VERSION_MINOR,
@@ -566,9 +566,6 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    char *kind;
 
    assert( universe);
-   assert( MULLE__THREAD_VERSION    >= ((2 << 20) | (2 << 8) | 0));
-   assert( MULLE__ALLOCATOR_VERSION >= ((1 << 20) | (5 << 8) | 0));
-   assert( MULLE__ABA_VERSION       >= ((1 << 20) | (1 << 8) | 1));
 
    // check this also, easily fixable with padding
    if( sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1))
@@ -965,7 +962,7 @@ static void   mulle_objc_global_atexit( void)
    universe = __mulle_objc_global_get_defaultuniverse();
    if( ! universe)
    {
-      mulle_objc_universe_trace( universe, "atexit does nothing as there is no default universe");
+      fprintf( stderr, "atexit does nothing as there is no default universe\n");
       return;
    }
 
@@ -2046,8 +2043,8 @@ struct _mulle_objc_classpair *
    if( classid != correct)
    {
       fprintf( stderr, "mulle_objc_universe error: Class \"%s\" should have "
-                       "classid %08x but has classid %08x\n", name,
-                       correct, classid);
+                       "classid %08lx but has classid %08lx\n", name,
+                       (unsigned long) correct, (unsigned long) classid);
       errno = EINVAL;
       return( NULL);
    }

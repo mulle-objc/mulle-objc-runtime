@@ -142,8 +142,8 @@ static struct _mulle_objc_dependency
    while( dependencies->classid)
    {
       if( universe->debug.trace.dependency)
-         mulle_objc_universe_trace( universe, "+dependencies check class %08x \"%s\" ...",
-                             dependencies->classid,
+         mulle_objc_universe_trace( universe, "+dependencies check class %08lx \"%s\" ...",
+                             (unsigned long)  dependencies->classid,
                              _mulle_objc_universe_describe_classid( universe, dependencies->classid));
 
       if( ! infra || (_mulle_objc_infraclass_get_classid( infra) != dependencies->classid))
@@ -154,9 +154,9 @@ static struct _mulle_objc_dependency
             if( universe->debug.trace.dependency)
             {
                mulle_objc_universe_trace( universe,
-                                          "+dependencies class %08x \"%s\" is not present yet",
-                                            dependencies->classid,
-                                            _mulle_objc_universe_describe_classid( universe, dependencies->classid));
+                                          "+dependencies class %08lx \"%s\" is not present yet",
+                                          (unsigned long) dependencies->classid,
+                                          _mulle_objc_universe_describe_classid( universe, dependencies->classid));
             }
             return( *dependencies);
          }
@@ -165,9 +165,9 @@ static struct _mulle_objc_dependency
       if( dependencies->categoryid)
       {
          if( universe->debug.trace.dependency)
-            mulle_objc_universe_trace( universe, "+dependencies check category %08x,%08x \"%s( %s)\" ....",
-                                          dependencies->classid,
-                                          dependencies->categoryid,
+            mulle_objc_universe_trace( universe, "+dependencies check category %08lx,%08lx \"%s( %s)\" ....",
+                                          (unsigned long) dependencies->classid,
+                                          (unsigned long) dependencies->categoryid,
                                           _mulle_objc_universe_describe_classid( universe, dependencies->classid),
                                           _mulle_objc_universe_describe_categoryid( universe, dependencies->categoryid));
 
@@ -177,9 +177,9 @@ static struct _mulle_objc_dependency
             if( universe->debug.trace.dependency)
             {
                mulle_objc_universe_trace( universe,
-                                          "+dependencies category %08x,%08x \"%s( %s)\" is not present yet",
-                                          dependencies->classid,
-                                          dependencies->categoryid,
+                                          "+dependencies category %08lx,%08lx \"%s( %s)\" is not present yet",
+                                          (unsigned long) dependencies->classid,
+                                          (unsigned long) dependencies->categoryid,
                                           _mulle_objc_universe_describe_classid( universe, dependencies->classid),
                                           _mulle_objc_universe_describe_categoryid( universe, dependencies->categoryid));
             }
@@ -198,8 +198,8 @@ static struct _mulle_objc_dependency
 static void  loadclass_fprintf( FILE *fp,
                                struct _mulle_objc_loadclass *info)
 {
-   fprintf( fp, "class %08x \"%s\" (%p)",
-           info->classid, info->classname, info);
+   fprintf( fp, "class %08lx \"%s\" (%p)",
+           (unsigned long) info->classid, info->classname, info);
 }
 
 
@@ -278,10 +278,10 @@ static int   mulle_objc_loadclass_delayedadd( struct _mulle_objc_loadclass *info
 
    if( universe->debug.trace.dependency)
       loadclass_trace( info, universe,
-                      "waits on list %p for class %08x \"%s\" to load "
+                      "waits on list %p for class %08lx \"%s\" to load "
                       "(or to gain more categories) ",
                       list,
-                      missingclassid,
+                      (unsigned long) missingclassid,
                       _mulle_objc_universe_describe_classid( universe, missingclassid));
 
    return( 0);
@@ -337,7 +337,7 @@ static struct _mulle_objc_dependency
 
 #if 0
    if( universe->debug.trace.dependency)
-      loadclass_trace( info, universe, "dependency check superclass %08x \"%s\" ...",
+      loadclass_trace( info, universe, "dependency check superclass %08lx \"%s\" ...",
                        info->superclassid,
                        info->superclassname);
 #endif
@@ -350,9 +350,9 @@ static struct _mulle_objc_dependency
       if( ! superclass)
       {
          if( universe->debug.trace.dependency)
-           loadclass_trace( info, universe, "superclass %08x \"%s\" is "
+           loadclass_trace( info, universe, "superclass %08lx \"%s\" is "
                                             "not present yet",
-                                            info->superclassid,
+                                            (unsigned long) info->superclassid,
                                             info->superclassname);
          dependency.classid    = info->superclassid;
          dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
@@ -361,10 +361,10 @@ static struct _mulle_objc_dependency
 
       if( strcmp( info->superclassname, superclass->base.name))
          mulle_objc_universe_fail_generic( universe,
-             "error in mulle_objc_universe %p: hash collision %08x "
+             "error in mulle_objc_universe %p: hash collision %08lx "
              "for classnames \"%s\" \"%s\"",
              universe,
-             info->superclassid,
+             (unsigned long) info->superclassid,
              info->superclassname,
              superclass->base.name);
    }
@@ -392,7 +392,7 @@ static struct _mulle_objc_dependency
             continue;
 #if 0
          if( universe->debug.trace.dependency)
-            loadclass_trace( info, universe, "dependency check protocolclass %08x \"%s\" ...",
+            loadclass_trace( info, universe, "dependency check protocolclass %08lx \"%s\" ...",
                              *classid_p,
                              _mulle_objc_universe_describe_classid( universe, *classid_p));
 #endif
@@ -401,9 +401,9 @@ static struct _mulle_objc_dependency
          {
             if( universe->debug.trace.dependency)
             {
-               loadclass_trace( info, universe, "protocolclass %08x \"%s\" is "
+               loadclass_trace( info, universe, "protocolclass %08lx \"%s\" is "
                                                 "not present yet",
-                               *classid_p,
+                               (unsigned long) *classid_p,
                                _mulle_objc_universe_describe_classid( universe, *classid_p));
             }
 
@@ -435,16 +435,16 @@ void
 
    s_class = _mulle_objc_universe_describe_classid( universe, dependency.classid);
    if( universe->debug.print.stuck_class_coverage)
-      printf( "%08x;%s;;\n", dependency.classid, s_class);
+      printf( "%08lx;%s;;\n", (unsigned long) dependency.classid, s_class);
 
    if( universe->debug.trace.waiters_svg)
       fprintf( stderr, "\t\"%s\" -> \"%s\" [ label=\" waits for\" ]\n",
               info->classname,
               s_class);
    else
-      fprintf( stderr, "\t%08x \"%s\" -> %08x \"%s\" [ label=\" waiting for class\" ]\n",
-              info->classid, info->classname,
-              dependency.classid, s_class);
+      fprintf( stderr, "\t%08lx \"%s\" -> %08lx \"%s\" [ label=\" waiting for class\" ]\n",
+              (unsigned long) info->classid, info->classname,
+              (unsigned long) dependency.classid, s_class);
 }
 
 
@@ -556,22 +556,22 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
       if( errno == EFAULT)
          mulle_objc_universe_fail_generic( universe,
                "error in mulle_objc_universe %p: "
-               "superclass %08x \"%s\" of class %08x \"%s\" does not exist.\n",
+               "superclass %08lx \"%s\" of class %08lx \"%s\" does not exist.\n",
                 universe,
-                superclass ? superclass->base.classid : 0,  // analyzer...
+                superclass ? (unsigned long) superclass->base.classid : 0L,  // analyzer...
                 superclass ? superclass->base.name : "nil", // analyzer...
-                infra->base.classid, infra->base.name);
+                (unsigned long) infra->base.classid, infra->base.name);
 
       if( errno == EEXIST)
          mulle_objc_universe_fail_generic( universe,
                "error in mulle_objc_universe %p: "
-               "duplicate class %08x \"%s\".\n",
-                universe, infra->base.classid, infra->base.name);
+               "duplicate class %08lx \"%s\".\n",
+                universe, (unsigned long) infra->base.classid, infra->base.name);
 
       mulle_objc_universe_fail_generic( universe,
-            "error addding class %08x \"%s\" to mulle_objc_universe %p "
+            "error addding class %08lx \"%s\" to mulle_objc_universe %p "
             "errno=%d\n",
-            infra->base.classid, infra->base.name, universe, errno);
+            (unsigned long) infra->base.classid, infra->base.name, universe, errno);
    }
 
    //
@@ -659,8 +659,8 @@ static void   mulle_objc_loadclasslist_enqueue_nofail( struct _mulle_objc_loadcl
 static void  loadcategory_fprintf( FILE *fp,
                             struct _mulle_objc_loadcategory *info)
 {
-   fprintf( fp, "category %08x,%08x \"%s( %s)\" (%p)",
-           info->classid, info->categoryid,
+   fprintf( fp, "category %08lx,%08lx \"%s( %s)\" (%p)",
+           (unsigned long) info->classid, (unsigned long) info->categoryid,
            info->classname, info->categoryname,
            info);
 }
@@ -707,9 +707,9 @@ static int  mulle_objc_loadcategory_delayedadd( struct _mulle_objc_loadcategory 
       mulle_objc_universe_fail_errno( universe);
 
    if( universe->debug.trace.dependency)
-      loadcategory_trace( info, universe, "waits for class %08x \"%s\" to load "
+      loadcategory_trace( info, universe, "waits for class %08lx \"%s\" to load "
                          "or gain more categories on list %p",
-                         missingclassid,
+                         (unsigned long) missingclassid,
                          _mulle_objc_universe_describe_classid( universe, missingclassid),
                          list);
 
@@ -783,8 +783,8 @@ static struct _mulle_objc_dependency
       if( universe->debug.trace.dependency)
       {
          loadcategory_trace( info, universe,
-                             "its class %08x \"%s\" is not present yet",
-                             info->classid,
+                             "its class %08lx \"%s\" is not present yet",
+                             (unsigned long) info->classid,
                              info->classname);
       }
       dependency.classid    = info->classid;
@@ -807,9 +807,9 @@ static struct _mulle_objc_dependency
             if( universe->debug.trace.dependency)
             {
                loadcategory_trace( info, universe,
-                                   "protocolclass %08x \"%s\" is not present yet",
-                                   *classid_p,
-                                  _mulle_objc_universe_describe_classid( universe, *classid_p));
+                                   "protocolclass %08lx \"%s\" is not present yet",
+                                   (unsigned long) *classid_p,
+                                   _mulle_objc_universe_describe_classid( universe, *classid_p));
             }
             dependency.classid    = *classid_p;
             dependency.categoryid = MULLE_OBJC_NO_CATEGORYID;
@@ -854,25 +854,25 @@ void
    if( dependency.categoryid == MULLE_OBJC_NO_CATEGORYID)
    {
       if( universe->debug.print.stuck_class_coverage)
-         printf( "%08x;%s;;\n", dependency.classid, s_class);
+         printf( "%08lx;%s;;\n", (unsigned long) dependency.classid, s_class);
 
       if( universe->debug.trace.waiters_svg)
          fprintf( stderr, "\t\"%s( %s)\" -> \"%s\" [label=\" waits for\" ]\n",
                  info->classname, info->categoryname,
                  s_class);
       else
-         fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for "
-                          "class %08x \"%s\"\n",
-                 info->classid, info->categoryid,
+         fprintf( stderr, "\tCategory %08lx,%08lx \"%s( %s)\" is waiting for "
+                          "class %08lx \"%s\"\n",
+                 (unsigned long) info->classid, (unsigned long) info->categoryid,
                  info->classname, info->categoryname,
-                 dependency.classid,
+                 (unsigned long) dependency.classid,
                  s_class);
       return;
    }
 
    s_category = _mulle_objc_universe_describe_categoryid( universe, dependency.categoryid);
    if( universe->debug.print.stuck_category_coverage)
-      printf( "%08x;%s;%08x;%s\n", dependency.classid, s_class, dependency.categoryid, s_category);
+      printf( "%08lx;%s;%08lx;%s\n", (unsigned long) dependency.classid, s_class, (unsigned long) dependency.categoryid, s_category);
 
    if( universe->debug.trace.waiters_svg)
       fprintf( stderr, "\t\"%s( %s)\" ->  \"%s( %s)\" [ label=\" waits for\" ]\n",
@@ -880,12 +880,12 @@ void
               s_class,
               s_category);
    else
-      fprintf( stderr, "\tCategory %08x,%08x \"%s( %s)\" is waiting for "
-                       "category %08x,%08x \"%s( %s)\"\n",
-              info->classid, info->categoryid,
+      fprintf( stderr, "\tCategory %08lx,%08lx \"%s( %s)\" is waiting for "
+                       "category %08lx,%08lx \"%s( %s)\"\n",
+              (unsigned long) info->classid, (unsigned long) info->categoryid,
               info->classname, info->categoryname,
-              dependency.classid,
-              dependency.categoryid,
+              (unsigned long) dependency.classid,
+              (unsigned long) dependency.categoryid,
               s_class,
               s_category);
 }
@@ -940,14 +940,14 @@ static void  fail_duplicate_category( struct _mulle_objc_classpair *pair,
       info_origin = "<unknown origin>";
 
    mulle_objc_universe_fail_generic( universe,
-      "error in mulle_objc_universe %p: category %08x \"%s( %s)\" (%s) "
-      "is already present in class %08x \"%s\" (%s).\n",
+      "error in mulle_objc_universe %p: category %08lx \"%s( %s)\" (%s) "
+      "is already present in class %08lx \"%s\" (%s).\n",
           universe,
-          info->categoryid,
+          (unsigned long) info->categoryid,
           info->classname,
           info->categoryname ? info->categoryname : "???",
           info_origin,
-          _mulle_objc_classpair_get_classid( pair),
+          (unsigned long) _mulle_objc_classpair_get_classid( pair),
           _mulle_objc_classpair_get_name( pair),
           pair_origin);
 }
@@ -971,21 +971,21 @@ static mulle_objc_classid_t
 
    if( strcmp( info->classname, infra->base.name))
       mulle_objc_universe_fail_generic( universe,
-         "error in mulle_objc_universe %p: hashcollision %08x "
+         "error in mulle_objc_universe %p: hashcollision %08lx "
          "for classnames \"%s\" and \"%s\"\n",
-            universe, info->classid, info->classname, infra->base.name);
+            universe, (unsigned long) info->classid, info->classname, infra->base.name);
    if( info->classivarhash != infra->ivarhash)
       mulle_objc_universe_fail_generic( universe,
-         "error in mulle_objc_universe %p: class %08x \"%s\" of "
-         "category %08x \"%s( %s)\" has changed (load:0x%x->class:0x%x). Recompile %s\n",
+         "error in mulle_objc_universe %p: class %08lx \"%s\" of "
+         "category %08lx \"%s( %s)\" has changed (load:0x%lx->class:0x%lx). Recompile %s\n",
             universe,
-            info->classid,
+            (unsigned long) info->classid,
             info->classname,
-            info->categoryid,
+            (unsigned long) info->categoryid,
             info->classname,
             info->categoryname ? info->categoryname : "???",
-            info->classivarhash,
-            infra->ivarhash,
+            (unsigned long) info->classivarhash,
+            (unsigned long) infra->ivarhash,
             info->origin ? info->origin : "<unknown origin>");
 
    pair = _mulle_objc_infraclass_get_classpair( infra);
@@ -1302,8 +1302,8 @@ static void   call_load( struct _mulle_objc_metaclass *meta,
 
    if( universe->debug.trace.initialize)
      mulle_objc_universe_trace( universe,
-                                "%08x \"%s\" call +[%s load]",
-                                _mulle_objc_metaclass_get_classid( meta),
+                                "%08lx \"%s\" call +[%s load]",
+                                (unsigned long) _mulle_objc_metaclass_get_classid( meta),
                                 _mulle_objc_metaclass_get_name( meta),
                                 _mulle_objc_metaclass_get_name( meta));
 
@@ -1520,9 +1520,9 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
    }
 
    if( trace)
-      fprintf( stderr, "%p: mulle-objc is acquiring universe %u \"%s\"\n",
+      fprintf( stderr, "%p: mulle-objc is acquiring universe %lu \"%s\"\n",
                            (void *) mulle_thread_self(),
-                           loaduniverse->universeid,
+                           (unsigned long) loaduniverse->universeid,
                            loaduniverse->universename ? loaduniverse->universename : "");
 
    universe = mulle_objc_global_register_universe( loaduniverse->universeid,

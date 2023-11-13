@@ -132,8 +132,8 @@ int  mulle_objc_protocol_is_sane( struct _mulle_objc_protocol *p)
       correct = mulle_objc_protocolid_from_string( p->name);
       if( correct != p->protocolid)
          fprintf( stderr, "mulle_objc_universe warning: \"%s\" has \
-protocolid %08x but should have protocolid %08x\n",
-                           p->name, p->protocolid, correct);
+protocolid %08lx but should have protocolid %08lx\n",
+                           p->name, (unsigned long) p->protocolid, (unsigned long) correct);
    }
 #endif
    return( 1);

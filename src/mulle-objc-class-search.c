@@ -101,10 +101,10 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
    {
       mulle_objc_universe_trace_nolf( universe,
                                       "start search for "
-                                      "imp %p in %s %08x \"%s\"",
+                                      "imp %p in %s %08lx \"%s\"",
                                       search->imp,
                                       _mulle_objc_class_get_classtypename( cls),
-                                      _mulle_objc_class_get_classid( cls),
+                                      (unsigned long) _mulle_objc_class_get_classid( cls),
                                       _mulle_objc_class_get_name( cls));
    }
    else
@@ -112,11 +112,11 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
       name = _mulle_objc_universe_describe_methodid( universe, search->args.methodid);
       mulle_objc_universe_trace_nolf( universe,
                                       "start search for "
-                                      "methodid %08x \"%s\" in %s %08x \"%s\"",
+                                      "methodid %08x \"%s\" in %s %08lx \"%s\"",
                                       search->args.methodid,
                                       name,
                                       _mulle_objc_class_get_classtypename( cls),
-                                      _mulle_objc_class_get_classid( cls),
+                                      (unsigned long) _mulle_objc_class_get_classid( cls),
                                       _mulle_objc_class_get_name( cls));
    }
 
@@ -130,20 +130,20 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
       return;
 
    case search_specific_method :
-      fprintf( stderr, " (specific=%08x,%08x)\n",
-              search->args.classid,
-              search->args.categoryid);
+      fprintf( stderr, " (specific=%08lx,%08lx)\n",
+              (unsigned long) search->args.classid,
+              (unsigned long) search->args.categoryid);
       return;
 
    case search_super_method :
-      fprintf( stderr, " (super=%08x)\n",
-              search->args.classid);
+      fprintf( stderr, " (super=%08lx)\n",
+              (unsigned long) search->args.classid);
       return;
 
    case search_overridden_method :
-      fprintf( stderr, " (overridden=%08x,%08x)\n",
-              search->args.classid,
-              search->args.categoryid);
+      fprintf( stderr, " (overridden=%08lx,%08lx)\n",
+              (unsigned long) search->args.classid,
+              (unsigned long) search->args.categoryid);
       return;
    }
    fprintf( stderr, "\n");
@@ -215,9 +215,9 @@ static void   trace_method_found( struct _mulle_objc_class *cls,
    else
       fprintf( stderr, "\"%s\"", _mulle_objc_class_get_name( cls));
 
-   fprintf( stderr, " methodid %08x ( \"%s\")\"\n",
-           method->descriptor.methodid,
-           method->descriptor.name);
+   fprintf( stderr, " methodid %08lx ( \"%s\")\"\n",
+            (unsigned long) method->descriptor.methodid,
+            method->descriptor.name);
 }
 
 

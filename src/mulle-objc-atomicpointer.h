@@ -41,6 +41,7 @@
 
 #include <stdio.h>
 
+
 struct _mulle_objc_class;
 struct _mulle_objc_object;
 struct _mulle_objc_uniqueidarray;
@@ -71,28 +72,7 @@ union _mulle_objc_uniqueidarraypointer_t
 // https://stackoverflow.com/questions/2741683/how-to-format-a-function-pointer
 // buf must be s_mulle_objc_sprintf_functionpointer_buffer
 
-#if ! defined(__LITTLE_ENDIAN__) && ! defined(__BIG_ENDIAN__)
-# if defined( __BYTE_ORDER__) && defined( __ORDER_LITTLE_ENDIAN__) && defined( __ORDER_LITTLE_ENDIAN__)
-#  if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#   define __LITTLE_ENDIAN__  0
-#   define __BIG_ENDIAN__     1
-#  else
-#   define __LITTLE_ENDIAN__  1
-#   define __BIG_ENDIAN__     0
-#  endif
-# else
-#  if defined( __LITTE_ENDIAN__) && defined( __BIG_ENDIAN__)
-#   error Both __LITTLE_ENDIAN__ and __BIG_ENDIAN__ defined
-#  else
-#   ifdef _WIN32
-#    define __LITTLE_ENDIAN__  1
-#    define __BIG_ENDIAN__     0
-#   else
-#    error Neither __LITTLE_ENDIAN__ nor __BIG_ENDIAN__ defined
-#   endif
-#  endif
-# endif
-#endif
+
 
 #define s_mulle_objc_sprintf_functionpointer_buffer (2 + sizeof( mulle_functionpointer_t) * 2 + 1)
 

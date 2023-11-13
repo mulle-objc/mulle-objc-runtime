@@ -111,9 +111,11 @@ static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassid
       if( protocols)
          protocol = _mulle_objc_protocollist_search( protocols, protoid);
       if( protocol)
-         fprintf( stderr, "%s@class %s;\n%s@protocol %s;\n", prefix, protocol->name, prefix, protocol->name);
+         fprintf( stderr, "%s@class %s;\n%s@protocol %s;\n",
+                          prefix, protocol->name, prefix, protocol->name);
       else
-         fprintf( stderr, "%s@class %08x;\n%s@protocol #%08x;\n", prefix, protoid, prefix, protoid);
+         fprintf( stderr, "%s@class %08lx;\n%s@protocol #%08lx;\n",
+                          prefix, (unsigned long) protoid, prefix, (unsigned long) protoid);
    }
 }
 
@@ -140,13 +142,13 @@ static void   loadprotocols_dump( struct _mulle_objc_protocollist *protocols)
 
 static void   loadmethod_dump( struct _mulle_objc_method *method, char *prefix, char type)
 {
-   fprintf( stderr, "%s %c%s; // id=%08x signature=\"%s\" bits=0x%x\n",
+   fprintf( stderr, "%s %c%s; // id=%08lx signature=\"%s\" bits=0x%lx\n",
             prefix,
             type,
             method->descriptor.name,
-            method->descriptor.methodid,
+            (unsigned long) method->descriptor.methodid,
             method->descriptor.signature,
-            method->descriptor.bits);
+            (unsigned long) method->descriptor.bits);
 
 }
 
@@ -167,38 +169,38 @@ static void   loadsuper_dump( struct _mulle_objc_super *p,
    if( ! methodname && universe)
       methodname = _mulle_objc_universe_describe_methodid( universe, p->superid);
 
-   fprintf( stderr, "%s // super %08x \"%s\" is class %08x \"%s\" "
-                    "and method %08x \"%s\"\n",
+   fprintf( stderr, "%s // super %08lx \"%s\" is class %08lx \"%s\" "
+                    "and method %08lx \"%s\"\n",
            prefix,
-           p->superid,
+           (unsigned long) p->superid,
            p->name,
-           p->classid, classname,
-           p->methodid, methodname);
+           (unsigned long)  p->classid, classname,
+           (unsigned long)  p->methodid, methodname);
 }
 
 
 static void   loadivar_dump( struct _mulle_objc_ivar *ivar, char *prefix)
 {
-   fprintf( stderr, "%s    %s; // @%ld id=%08x signature=\"%s\"\n",
+   fprintf( stderr, "%s    %s; // @%ld id=%08lx signature=\"%s\"\n",
            prefix,
            ivar->descriptor.name,
            (long) ivar->offset,
-           ivar->descriptor.ivarid,
+           (unsigned long) ivar->descriptor.ivarid,
            ivar->descriptor.signature);
 }
 
 
 static void   loadproperty_dump( struct _mulle_objc_property *property, char *prefix)
 {
-   fprintf( stderr, "%s @property %s; // id=%08x ivarid=%08x signature=\"%s\" get=%08x set=%08x bits=0x%x\n",
+   fprintf( stderr, "%s @property %s; // id=%08lx ivarid=%08lx signature=\"%s\" get=%08lx set=%08lx bits=0x%lx\n",
            prefix,
            property->name,
-           property->propertyid,
-           property->ivarid,
+           (unsigned long) property->propertyid,
+           (unsigned long) property->ivarid,
            property->signature,
-           property->getter,
-           property->setter,
-           property->bits);
+           (unsigned long) property->getter,
+           (unsigned long) property->setter,
+           (unsigned long) property->bits);
 }
 
 
@@ -216,7 +218,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
    if( p->protocols)
       loadprotocols_dump( p->protocols);
 
-   fprintf( stderr, " // %08x", p->classid);
+   fprintf( stderr, " // %08lx", (unsigned long) p->classid);
    if( p->origin)
       fprintf( stderr, ", %s", p->origin);
 
@@ -298,7 +300,7 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
    if( p->protocols)
       loadprotocols_dump( p->protocols);
 
-   fprintf( stderr, " // %08x,%08x", p->classid, p->categoryid);
+   fprintf( stderr, " // %08lx,%08lx", (unsigned long) p->classid, (unsigned long) p->categoryid);
    if( p->origin)
       fprintf( stderr, ", %s", p->origin);
    fprintf( stderr, "\n");

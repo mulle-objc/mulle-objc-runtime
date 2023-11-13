@@ -430,15 +430,15 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
          if( desc)
             fprintf( stderr, " %s]", desc->name);
          else
-            fprintf( stderr, " #%08x]", methodid);
+            fprintf( stderr, " #%08lx]", (unsigned long) methodid);
       }
 
       isa = _mulle_objc_object_get_isa_universe( obj, universe);
-      fprintf( stderr, " @%p %s (%p, %x, %p)\n",
+      fprintf( stderr, " @%p %s (%p, #%08lx, %p)\n",
                imp,
                _mulle_objc_class_get_name( isa),
                obj,
-               methodid,
+               (unsigned long) methodid,
                parameter);
    }
    mulle_thread_mutex_unlock( &universe->debug.lock);
