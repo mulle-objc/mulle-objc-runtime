@@ -35,7 +35,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    Foo                            *foo;
    struct _mulle_objc_universe    *universe;

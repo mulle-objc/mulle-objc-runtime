@@ -42,7 +42,7 @@ void  alone()
 @end
 
 
-main()
+int   main( void)
 {
    alone();
    [A bar];

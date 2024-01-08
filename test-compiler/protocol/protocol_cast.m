@@ -33,7 +33,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    [Foo class];
    return( 0);

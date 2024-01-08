@@ -30,7 +30,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    printf( "%s = %s\n",
       mulle_objc_global_lookup_methodname( 0, @selector( :)),

@@ -7,18 +7,19 @@
 //
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 #include <stdio.h>
+#include <stdint.h>
 
 
 //
 // TODO: move these to other .c file and link
 //
-void   print_double( void *self, mulle_objc_methodid_t _cmd, double x)
+void   print_double( void *self, uint32_t _cmd, double x)
 {
    printf( "%.2f\n", x);
 }
 
 
-void   print_char( void *self, mulle_objc_methodid_t _cmd, char x)
+void   print_char( void *self, uint32_t _cmd, char x)
 {
    printf( "%d\n", x);
 }

@@ -32,7 +32,7 @@
 
 @end
 
-main()
+int   main( void)
 {
    [Foo callWhateverWithCGRect:18.48];
    return( 0);

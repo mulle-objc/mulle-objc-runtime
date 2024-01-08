@@ -33,7 +33,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    Class   cls;
    id      obj;

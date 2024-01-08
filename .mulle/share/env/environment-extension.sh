@@ -23,6 +23,12 @@ export MULLE_MATCH_IGNORE_PATH=""
 
 
 #
+# mulle-c and mulle-objc projects have an actual latest tag, so don't resolve
+#
+export MULLE_SOURCETREE_RESOLVE_TAG="NO"
+
+
+#
 # tell mulle-sde to keep files protected from read/write changes
 #
 export MULLE_SDE_PROTECT_PATH="cmake/share"

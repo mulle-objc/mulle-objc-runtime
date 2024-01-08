@@ -22,7 +22,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    Class   cls;
 

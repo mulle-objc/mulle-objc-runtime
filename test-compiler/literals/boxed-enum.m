@@ -15,7 +15,7 @@
 + (id) numberWithInt:(int) x
 {
    printf( "%d\n", x);
-   return( 1);
+   return( (id) 1);
 }
 
 @end

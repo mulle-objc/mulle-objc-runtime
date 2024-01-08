@@ -611,10 +611,10 @@ struct _mulle_objc_method   *
                                    unsigned int inheritance,
                                    struct _mulle_objc_searchresult *result)
 {
-   struct _mulle_objc_method                *method;
-   enum internal_search_mode                mode;
-   static struct _mulle_objc_searchresult   dummy;  // make static to reduce stack pain
-   int                                      trace;
+   struct _mulle_objc_method         *method;
+   enum internal_search_mode         mode;
+   struct _mulle_objc_searchresult   dummy; 
+   int                               trace;
 
    if( ! result)
       result = &dummy;

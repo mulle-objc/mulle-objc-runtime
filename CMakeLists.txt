@@ -62,7 +62,7 @@ src/mulle-objc-uniqueid.c
 set( EXECUTABLE_DEPENDENCY_NAMES
 mulle-objc-runtime)
 # only need the hash function
-set( EXECUTABLE_LIBRARY_LIST "${MULLE_CORE_LIBRARY}")
+set( EXECUTABLE_LIBRARY_LIST "${MULLE__CORE_LIBRARY}")
 
 include( Executable)
 

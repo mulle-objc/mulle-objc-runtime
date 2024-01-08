@@ -30,7 +30,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    printf( "%s\n", offsetof( struct{ @defs( Foo); }, _a) == 0 ? "PASS" : "FAIL");
    printf( "%s\n", offsetof( struct{ @defs( Foo); }, _a) < offsetof( struct{ @defs( Foo); }, _b) ? "PASS" : "FAIL");

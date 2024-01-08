@@ -8,7 +8,7 @@ SEL   sels[] =
 };
 
 
-main()
+int   main( void)
 {
    // happy if it compiles
    return( 0);

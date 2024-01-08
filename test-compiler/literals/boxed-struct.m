@@ -19,7 +19,7 @@
              objCType:(char *) type
 {
    printf( "%s\n", type);
-   return( 1);
+   return( (id) 1);
 }
 
 @end

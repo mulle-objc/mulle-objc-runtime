@@ -173,7 +173,7 @@ label:
 @end
 
 
-main()
+int   main( void)
 {
    [Foo test1:(id) 0x18 :(id) 0x48];
    [Foo test2:(id) 0x18 :(id) 0x48];

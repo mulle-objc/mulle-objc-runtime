@@ -32,7 +32,7 @@
 
 
 
-main()
+int   main( void)
 {
    Bar  *bar;
 

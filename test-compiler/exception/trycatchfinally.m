@@ -13,7 +13,7 @@
 
 + (id) new
 {
-   return( [mulle_objc_infraclass_alloc_instance( self) init]);
+   return( [(id) mulle_objc_infraclass_alloc_instance( (struct mulle_objc_infraclass *) self) init]);
 }
 
 - (void) dealloc
@@ -34,7 +34,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    NSException   *exception;
    @try
