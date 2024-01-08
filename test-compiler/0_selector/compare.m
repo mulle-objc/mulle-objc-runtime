@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 
-main()
+int   main( void)
 {
    SEL  sel;
 

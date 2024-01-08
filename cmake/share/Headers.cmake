@@ -57,6 +57,10 @@ set( TMP_HEADERS ${PUBLIC_HEADERS}
 )
 ResolveFileSymlinksIfNeeded( TMP_HEADERS INSTALL_PUBLIC_HEADERS)
 
+#
+# Do not install generated private headers and include-private.h
+# which aren't valid outside of the project scope.
+#
 set( TMP_HEADERS ${PRIVATE_HEADERS})
 if( TMP_HEADERS)
    list( REMOVE_ITEM TMP_HEADERS "include-private.h")

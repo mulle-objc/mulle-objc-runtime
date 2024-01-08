@@ -1,0 +1,6 @@
+# This is the fallback if patterns file with smaller numbers fail.
+# These are project headers, that are not included anywhere so far
+# and not even exported as private!
+
+*.inc
+

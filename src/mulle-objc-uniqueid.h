@@ -213,7 +213,7 @@ typedef mulle_objc_uniqueid_t   mulle_objc_universeid_t;
 
 static inline int  mulle_objc_universeid_is_sane( mulle_objc_classid_t uniqueid)
 {
-   return( mulle_objc_universeid_is_sane( uniqueid));
+   return( mulle_objc_uniqueid_is_sane( uniqueid));
 }
 
 

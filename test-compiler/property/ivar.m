@@ -23,7 +23,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    Class   cls;
    struct _mulle_objc_ivar   *ivar;

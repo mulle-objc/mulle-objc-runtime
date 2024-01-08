@@ -1,7 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 
-main()
+int  main( void)
 {
    printf( "%08x\n", @selector( vfl));
 }

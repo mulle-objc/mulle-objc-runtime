@@ -52,7 +52,7 @@
 
 
 
-main()
+int   main( void)
 {
    [Foobar nop];
    return( 0);

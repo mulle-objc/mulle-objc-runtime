@@ -21,7 +21,7 @@ static void  test_2( mulle_objc_uniqueid_t first, ...)
 }
 
 
-main()
+int   main( void)
 {
    printf( "%x, %x, %x\n", @selector( a), @selector( b), @selector( c));
 

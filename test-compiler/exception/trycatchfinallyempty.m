@@ -29,7 +29,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    NSException   *exception;
 

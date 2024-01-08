@@ -44,7 +44,7 @@ enum
 @end
 
 
-main()
+int   main( void)
 {
    id   foo;
 

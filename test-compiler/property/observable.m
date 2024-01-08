@@ -40,7 +40,7 @@ static inline rect  MakeRect( float x, float y, float w, float h)
 
 
 
-main()
+int   main( void)
 {
    Class   cls;
    Bar     *obj;

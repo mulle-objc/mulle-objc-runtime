@@ -40,7 +40,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # distinctions, the paths will be different
    #
    # Slight change. MULLE_SDK_PATH contains now addiction_dir
-   # and depedency_dir, but notthing else. The configuration/sdk/platform
+   # and depedency_dir, but nothing else. The configuration/sdk/platform
    # is passed in MULLE_SDK_SUBDIR
    #
    if( NOT MULLE_SDK_PATH)
@@ -55,9 +55,15 @@ if( NOT __ENVIRONMENT__CMAKE__)
       list( GET MULLE_SDK_PATH 1 ADDICTION_DIR)
 
       option( DEPENDENCY_IGNORE_SYSTEM_LIBARIES "Ignore system library paths in search for dependencies" ON)
+      if( NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
+         message( WARNING "Will also search system paths for dependencies, as MULLE_SDK_PATH is not set")
+      endif()
    else()
       if( NOT MULLE_SDK_SUBDIR)
          set( MULLE_SDK_SUBDIR "${CMAKE_BUILD_TYPE}")
+      endif()
+      if( NOT MULLE_SDK_SUBDIR)
+         set( MULLE_SDK_SUBDIR "Debug")
       endif()
       option( DEPENDENCY_IGNORE_SYSTEM_LIBARIES "Ignore system library paths in search for dependencies" OFF)
    endif()
@@ -79,9 +85,6 @@ if( NOT __ENVIRONMENT__CMAKE__)
       endif()
    endif()
 
-   if( NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
-      message( WARNING "Will also search system paths for dependencies")
-   endif()
 
    message( STATUS "DEPENDENCY_DIR=\"${DEPENDENCY_DIR}\"")
    list( APPEND ADDITIONAL_BIN_PATH "${DEPENDENCY_DIR}/bin")

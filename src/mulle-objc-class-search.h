@@ -265,8 +265,8 @@ static inline void
    _mulle_objc_searchargumentscacheable_assert( &p->args);
 
    assert( p->args.mode >= MULLE_OBJC_SEARCH_DEFAULT && p->args.mode <= MULLE_OBJC_SEARCH_PREVIOUS_METHOD);
-   assert( ! (p->args.mode == MULLE_OBJC_SEARCH_PREVIOUS_METHOD || p->args.mode == MULLE_OBJC_SEARCH_IMP) ||
-             (p->previous_method != 0));
+   assert( (p->args.mode == MULLE_OBJC_SEARCH_PREVIOUS_METHOD && p->previous_method != 0) ||
+           (p->args.mode != MULLE_OBJC_SEARCH_PREVIOUS_METHOD && p->previous_method == 0));
 }
 
 

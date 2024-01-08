@@ -45,7 +45,7 @@
 @end
 
 
-main()
+int   main( void)
 {
    Foo                  *foo;
    unsigned long long   value;

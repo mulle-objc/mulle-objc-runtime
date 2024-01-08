@@ -41,7 +41,7 @@ SomeString  *bar = @"bar";
 @end
 
 
-main()
+int   main( void)
 {
    struct _mulle_objc_universe    *universe;
 

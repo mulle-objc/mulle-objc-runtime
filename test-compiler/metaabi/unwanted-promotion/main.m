@@ -8,6 +8,10 @@
 #include <stdint.h>
 
 
+extern void   print_double( void *self, uint32_t _cmd, double x);
+extern void   print_char( void *self, uint32_t _cmd, char x);
+
+
 int main(int argc, const char * argv[])
 {
    char   c;

@@ -11,6 +11,6 @@
 @end
 
 
-main()
+int   main( void)
 {
 }

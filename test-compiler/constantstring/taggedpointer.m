@@ -9,21 +9,21 @@
 }
 @end
 
-SomeString  *a = @"a";
-SomeString  *ab = @"ab";
-SomeString  *abc = @"abc";
-SomeString  *abcd = @"abcd";
-SomeString  *abcde = @"abcde";
-SomeString  *abcdeg = @"abcdeg";
-SomeString  *abcdegi = @"abcdegi";
-SomeString  *abcdegil = @"abcdegil";
-SomeString  *abcdegilm = @"abcdegilm";
-SomeString  *abcdegilmo = @"abcdegilmo";
-SomeString  *abcdegilmop = @"abcdegilmop";
-SomeString  *abcdegilmopr = @"abcdegilmopr";
-SomeString  *abcdegilmoprs = @"abcdegilmoprs";
-SomeString  *abcdegilmoprst = @"abcdegilmoprst";
-SomeString  *abcdegilmoprstu = @"abcdegilmoprstu";
+SomeString  *a = (SomeString *) @"a";
+SomeString  *ab = (SomeString *) @"ab";
+SomeString  *abc = (SomeString *) @"abc";
+SomeString  *abcd = (SomeString *) @"abcd";
+SomeString  *abcde = (SomeString *) @"abcde";
+SomeString  *abcdeg = (SomeString *) @"abcdeg";
+SomeString  *abcdegi = (SomeString *) @"abcdegi";
+SomeString  *abcdegil = (SomeString *) @"abcdegil";
+SomeString  *abcdegilm = (SomeString *) @"abcdegilm";
+SomeString  *abcdegilmo = (SomeString *) @"abcdegilmo";
+SomeString  *abcdegilmop = (SomeString *) @"abcdegilmop";
+SomeString  *abcdegilmopr = (SomeString *) @"abcdegilmopr";
+SomeString  *abcdegilmoprs = (SomeString *) @"abcdegilmoprs";
+SomeString  *abcdegilmoprst = (SomeString *) @"abcdegilmoprst";
+SomeString  *abcdegilmoprstu = (SomeString *) @"abcdegilmoprstu";
 
 
 @implementation SomeString
@@ -67,29 +67,29 @@ SomeString  *abcdegilmoprstu = @"abcdegilmoprstu";
 // }
 //
 //
-// size_t  mulle_char5_decode32_ascii( uint32_t value, char *dst, size_t len)
-// {
-//    char   *s;
-//    char   *sentinel;
-//    int    char5;
-//
-//    s        = dst;
-//    sentinel = &s[ len];
-//    while( s < sentinel)
-//    {
-//       if( ! value)
-//          break;
-//
-//       char5 = value & 0x1F;
-//       *s++  = (char) mulle_char5_decode_character( char5);
-//
-//       value >>= 5;
-//    }
-//    return( s - dst);
-// }
-//
-//
-//
+size_t  mulle_char5_decode32_ascii( uint32_t value, char *dst, size_t len)
+{
+   char   *s;
+   char   *sentinel;
+   int    char5;
+
+   s        = dst;
+   sentinel = &s[ len];
+   while( s < sentinel)
+   {
+      if( ! value)
+         break;
+
+      char5 = value & 0x1F;
+      *s++  = (char) mulle_char5_decode_character( char5);
+
+      value >>= 5;
+   }
+   return( s - dst);
+}
+
+
+
 size_t  mulle_char5_decode64_ascii( uint64_t value, char *dst, size_t len)
 {
    char   *s;
@@ -197,18 +197,18 @@ static inline size_t   mulle_char7_decode_ascii( uintptr_t value, char *src, siz
 @end
 
 
-main()
+int   main( void)
 {
    struct _mulle_objc_universe  *universe;
    struct _mulle_objc_class     *cls;
 
    universe = mulle_objc_global_get_universe( 0);
-   cls      = [SomeString class];
+   cls      = (struct _mulle_objc_class *) [SomeString class];
    _mulle_objc_universe_set_staticstringclass( universe, cls);
 
-   cls     = [SomeString5TaggedPointer class];
+   cls     = (struct _mulle_objc_class *)  [SomeString5TaggedPointer class];
    _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x1);
-   cls     = [SomeString7TaggedPointer class];
+   cls     = (struct _mulle_objc_class *)  [SomeString7TaggedPointer class];
    _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x3);
 
    [@"surely not a tagged pointer because its too long." print];

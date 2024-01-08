@@ -2,7 +2,7 @@
 
 
 
-main()
+int   main( void)
 {
    static SEL   array[] =
    {

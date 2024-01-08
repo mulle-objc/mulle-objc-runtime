@@ -6,21 +6,11 @@
 //  Copyright © 2015 Mulle kybernetiK. All rights reserved.
 //
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <mulle-c11/mulle-c11-integer.h>
 
 
 #include <limits.h>
 #include <float.h>
-
-
-typedef uintptr_t   NSUInteger;
-typedef intptr_t    NSInteger;
-
-#define NSIntegerMax    ((NSInteger) (((NSUInteger) -1) >> 1))
-#define NSIntegerMin    (-((NSInteger) (((NSUInteger) -1) >> 1)) - 1)
-#define NSUIntegerMax   ((NSUInteger) -1)
-#define NSUIntegerMin   0
-
-#define NSINTEGER_DEFINED
 
 
 typedef struct
@@ -119,10 +109,18 @@ static inline int   NSEqualRanges( NSRange range1, NSRange range2)
 @end
 
 
-static void   print_assert( int a)
+static void   _print_assert( int a, char *s)
 {
-   printf( "%s\n", a ? "PASS" : "FAIL");
+   if( a)
+      printf( "PASS\n");
+   else
+      printf( "FAIL: %s\n", s);
 }
+
+
+#define print_assert( expr) \
+   _print_assert( expr, #expr)
+
 
 
 int main(int argc, const char * argv[])
