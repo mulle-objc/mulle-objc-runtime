@@ -122,7 +122,7 @@ static int   test_while( char *s)
 
    n = mulle_objc_signature_count_typeinfos( s);
    i = 0;
-   while( next = mulle_objc_signature_next_type( s))
+   while( (next = mulle_objc_signature_next_type( s)))
    {
       printf( "#%d = %.*s\n", i, next ? (int) (next - s) : 255, s);
       s = next;
@@ -148,7 +148,7 @@ static int   test_while_info( char *s)
    n = mulle_objc_signature_count_typeinfos( s);
    i = 0;
 
-   while( next = mulle_objc_signature_supply_typeinfo( s, NULL, &info))
+   while( (next = mulle_objc_signature_supply_typeinfo( s, NULL, &info)))
    {
       printf( "#%d: type=%s\n", i, info.type ? info.type : "NULL");
       s = next;

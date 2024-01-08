@@ -616,52 +616,55 @@ struct abc
 + (long long) returnLongLongWithInt:(int) v
 {
    printf( "%s (%d)", __FUNCTION__, v);
-   return( 1849LL);
+   return( 1850LL);
 }
 
 + (long long) returnLongLongWithLongLong:(long long) v
 {
    printf( "%s (%lld)", __FUNCTION__, v);
-   return( 1850LL);
+   return( 1851LL);
 }
 
 
 + (long long) returnLongLongWithFloat:(float) v
 {
    printf( "%s (%g)", __FUNCTION__, v);
-   return( 1851LL);
+   return( 1852LL);
 }
 
 + (long long) returnLongLongWithDouble:(double) v
 {
    printf( "%s (%g)", __FUNCTION__, v);
-   return( 1852LL);
+   return( 1853LL);
 }
 
 + (long long) returnLongLongWithVoidptr:(void *) v
 {
    printf( "%s (%p)", __FUNCTION__, v);
-#if 1
+#if 0
+   // LATER: no idea what this was about... keeping for when I understand it
+   //        again... (maybe the bug was fixes interim ?)
+   //
    // this is not good. v is not necessarily inside the _param block
    // because it could be copied outside to a stack position. _param
    // should be available here, but the compiler doesn't give, which 
-   // is crazy bug!
+   // is a crazy bug!
    mulle_metaabi_return( 1853LL, (void *) &v);
 #else   
-   return( 1853LL);
+   return( 1854LL);
 #endif   
 }
 
 + (long long) returnLongLongWithStruct:(struct abc) v
 {
    printf( "%s (%c %g %d)", __FUNCTION__, v.a, v.b, v.c);
-   return( 1854LL);
+   return( 1855LL);
 }
 
 + (long long) returnLongLongWithChar:(char) a double:(double) b int:(int) c
 {
    printf( "%s (%c %g %d)", __FUNCTION__, a, b, c);
-   return( 1855LL);
+   return( 1856LL);
 }
 
 
