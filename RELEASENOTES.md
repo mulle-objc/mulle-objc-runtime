@@ -1,3 +1,15 @@
+## 0.23.0
+
+* fix endless recursion in to hither unused function `mulle_objc_universeid_is_sane`
+* fix an assert in class-search, that curiously was never triggered
+* changed a lot of printf formats so that they also should work on 16 bit systems
+* changed the bits field in `_mulle_objc_descriptor` from `int` to ``uint32_t`` (for the future benefit of 16 bit systems)
+* rename method signature methods from `_signature_` to `_methodsignature_`
+* added `_mulle_objc_ivarsignature_compare`
+* you can now mark classes as being boring allocations (e.g. NSAutoreleasePool) `MULLE_OBJC_CLASS_IS_BORING_ALLOCATION` as to not show up in `MULLE_OBJC_TRACE_INSTANCE,` except when set to 2
+* allow instance reuse on a global or infraclass level
+
+
 ### 0.22.1
 
 * improved trace output
