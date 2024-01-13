@@ -12,20 +12,12 @@
    dependencies =
    (
       {
-         description="📶 A lock- and wait-free hashtable (and an array too), written in C";
+         description="🌋 Almagamated library of mulle-core and mulle-c";
          domain="github";
-         name="mulle-concurrent";
-         repo="mulle-concurrent";
-         url="https://github.com/mulle-concurrent/mulle-concurrent";
-         user="mulle-concurrent";
-      },
-      {
-         description=" ⏪ Access variable arguments in struct layout fashion in C";
-         domain="github";
-         name="mulle-vararg";
-         repo="mulle-vararg";
-         url="https://github.com/mulle-c/mulle-vararg";
-         user="mulle-c";
+         name="mulle-core";
+         repo="mulle-core";
+         url="https://github.com/mulle-core/mulle-core";
+         user="mulle-core";
       },
       {
          description="🤱🏼 Compatibility library for deterministic initializers";
@@ -42,22 +34,6 @@
          repo="mulle-atexit";
          url="https://github.com/mulle-core/mulle-atexit";
          user="mulle-core";
-      },
-      {
-         description="♿️ Shared library helper";
-         domain="github";
-         name="mulle-dlfcn";
-         repo="mulle-dlfcn";
-         url="https://github.com/mulle-core/mulle-dlfcn";
-         user="mulle-core";
-      },
-      {
-         description="#️⃣ A collection of hash functions";
-         domain="github";
-         name="mulle-data";
-         repo="mulle-data";
-         url="https://github.com/mulle-c/mulle-data";
-         user="mulle-c";
       }
-   )
+   );
 }
