@@ -127,11 +127,6 @@ If something is unclear, feel free to contact the author.
 
 ## Add
 
-**This project is a component of the [mulle-core](//github.com/mulle-core/mulle-core) library. As such you usually will *not* add or install it
-individually, unless you specifically do not want to link against
-`mulle-core`.**
-
-
 ### Add as an individual component
 
 Use [mulle-sde](//github.com/mulle-sde) to add mulle-objc-runtime to your project:
