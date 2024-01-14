@@ -117,9 +117,9 @@ If something is unclear, feel free to contact the author.
 
 |   Requirement         | Release Version  | Description
 |-----------------------|------------------|---------------
-| [mulle-core](https://github.com/mulle-core/mulle-core) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | 🌋 Almagamated library of mulle-core and mulle-c
-| [mulle-atinit](https://github.com/mulle-core/mulle-atinit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | 🤱🏼 Compatibility library for deterministic initializers
-| [mulle-atexit](https://github.com/mulle-core/mulle-atexit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag//.svg) [![Build Status](https://github.com///workflows/CI/badge.svg?branch=release)](https://github.com///actions/workflows/mulle-sde-ci.yml) | 👼 Compatibility library to fix atexit
+| [mulle-core](https://github.com/mulle-core/mulle-core) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core.svg) [![Build Status](https://github.com/mulle-core/mulle-core/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core/actions/workflows/mulle-sde-ci.yml) | 🌋 Almagamated library of mulle-core and mulle-c
+| [mulle-atinit](https://github.com/mulle-core/mulle-atinit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atinit.svg) [![Build Status](https://github.com/mulle-core/mulle-atinit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atinit/actions/workflows/mulle-sde-ci.yml) | 🤱🏼 Compatibility library for deterministic initializers
+| [mulle-atexit](https://github.com/mulle-core/mulle-atexit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atexit.svg) [![Build Status](https://github.com/mulle-core/mulle-atexit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atexit/actions/workflows/mulle-sde-ci.yml) | 👼 Compatibility library to fix atexit
 
 
 ## Add
@@ -151,7 +151,7 @@ Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-objc-runtime 
 
 ``` sh
 mulle-sde install --prefix /usr/local \
-   https://github.com///archive/latest.tar.gz
+   https://github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
 ```
 
 ### Manual Installation

@@ -7,7 +7,7 @@
       user="mulle-objc";
       repo="mulle-objc-runtime";
       homepage="https://github.com/mulle-objc/mulle-objc-runtime";
-      license="BSD-3-Clause"
+      license="BSD-3-Clause";
    };
    dependencies =
    (
