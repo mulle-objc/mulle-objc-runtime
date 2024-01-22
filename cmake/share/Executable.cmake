@@ -147,12 +147,13 @@ If these are regular C libraries, be sure, that they are marked as
 Frameworks aren't force loaded.")
       endif()
 
-
+      # mulle-atinit and mulle-atexit end up here, not good if you
+      # just used mulle-sde/c-developer
       if( STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES)
          message( FATAL_ERROR "STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES \
-\"${STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES}\" are not linked to ${EXECUTABLE_NAME}.
-STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES is an Objective-C feature, but this
-project is seemingly not setup for Objective-C.")
+\"${STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES}\" are not linked to ${EXECUTABLE_NAME}. \
+STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES is a mulle-c/c-developer feature, but this \
+project is seemingly not setup for it.")
       endif()
 
       if( FORCE_STARTUP_ALL_LOAD_DEPENDENCY_FRAMEWORKS)
