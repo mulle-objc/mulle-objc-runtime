@@ -41,7 +41,6 @@ make
 mkdir;required
 mknod
 more
-more;required
 mount
 mulle-column
 mv;required

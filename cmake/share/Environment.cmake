@@ -30,6 +30,25 @@ if( NOT __ENVIRONMENT__CMAKE__)
          set( MULLE_VIRTUAL_ROOT "${PROJECT_SOURCE_DIR}")
       endif()
    endif()
+   file( TO_CMAKE_PATH ${MULLE_VIRTUAL_ROOT} MULLE_VIRTUAL_ROOT)
+
+   macro( mulle_append_unique_existing_path list_name item)
+      set( item_index -1) # supposedly makes local
+      list( FIND ${list_name} "${item}" item_index)
+      if( ${item_index} EQUAL -1)
+         if( NOT EXISTS "${item}")
+            list( APPEND ${list_name} "${item}")
+         endif()
+      endif()
+   endmacro()
+
+   macro( mulle_append_list list_name other_list)
+      set( item "") # supposedly makes local
+      foreach( item ${${other_list}})
+         list( APPEND ${list_name} "${item}")
+      endforeach()
+   endmacro()
+
 
    #
    # MULLE_SDK is dependency/addiction. Not sysroot!
@@ -85,25 +104,8 @@ if( NOT __ENVIRONMENT__CMAKE__)
       endif()
    endif()
 
-
-   macro( mulle_append_unique_existing_path list_name item)
-      set( item_index -1) # supposedly makes local
-      list( FIND ${list_name} "${item}" item_index)
-      if( ${item_index} EQUAL -1)
-         if( NOT EXISTS "${item}")
-            list( APPEND ${list_name} "${item}")
-         endif()
-      endif()
-   endmacro()
-
-   macro( mulle_append_list list_name other_list)
-      set( item "") # supposedly makes local
-      foreach( item ${${other_list}})
-         list( APPEND ${list_name} "${item}")
-      endforeach()
-   endmacro()
-
-   message( STATUS "DEPENDENCY_DIR=\"${DEPENDENCY_DIR}\"")
+   # needed for windows
+   file( TO_CMAKE_PATH ${DEPENDENCY_DIR} DEPENDENCY_DIR)
    list( APPEND ADDITIONAL_BIN_PATH "${DEPENDENCY_DIR}/bin")
 
    if( NOT ADDICTION_DIR)
@@ -128,6 +130,9 @@ if( NOT __ENVIRONMENT__CMAKE__)
       set( MULLE_SDK_PATH
          "${DEPENDENCY_DIR}"
          "${ADDICTION_DIR}")
+
+      # needed for windows
+      file( TO_CMAKE_PATH ${ADDICTION_DIR} ADDICTION_DIR)
       list( APPEND ADDITIONAL_BIN_PATH "${ADDICTION_DIR}/bin")
       message( STATUS "ADDICTION_DIR=\"${ADDICTION_DIR}\"")
    else()
@@ -136,6 +141,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
       unset( ADDICTION_DIR)
       set( MULLE_SDK_PATH "${DEPENDENCY_DIR}")
    endif()
+
 
    # where the output is installed by other dependencies
    set( MULLE_SDK_DEPENDENCY_DIR "${DEPENDENCY_DIR}/${MULLE_SDK_SUBDIR}")
@@ -189,10 +195,10 @@ if( NOT __ENVIRONMENT__CMAKE__)
          list( APPEND TMP_CMAKE_LIBRARY_PATH "${TMP_MULLE_SDK_PATH}/lib")
          list( APPEND TMP_CMAKE_FRAMEWORK_PATH "${TMP_MULLE_SDK_PATH}/Frameworks")
       else()
-         mulle_append_unique_existing_path( APPEND TMP_CMAKE_INCLUDE_PATH "${TMP_MULLE_SDK_PATH}/include")
-         mulle_append_unique_existing_path( APPEND TMP_INCLUDE_DIRS "${TMP_MULLE_SDK_PATH}/include")
-         mulle_append_unique_existing_path( APPEND TMP_CMAKE_LIBRARY_PATH "${TMP_MULLE_SDK_PATH}/lib")
-         mulle_append_unique_existing_path( APPEND TMP_CMAKE_FRAMEWORK_PATH "${TMP_MULLE_SDK_PATH}/Frameworks")
+         mulle_append_unique_existing_path( TMP_CMAKE_INCLUDE_PATH "${TMP_MULLE_SDK_PATH}/include")
+         mulle_append_unique_existing_path( TMP_INCLUDE_DIRS "${TMP_MULLE_SDK_PATH}/include")
+         mulle_append_unique_existing_path( TMP_CMAKE_LIBRARY_PATH "${TMP_MULLE_SDK_PATH}/lib")
+         mulle_append_unique_existing_path( TMP_CMAKE_FRAMEWORK_PATH "${TMP_MULLE_SDK_PATH}/Frameworks")
       endif()
 
       #
@@ -249,7 +255,6 @@ if( NOT __ENVIRONMENT__CMAKE__)
       endforeach()
       unset( TMP_FRAMEWORK_PATH)
    endif()
-
 
    #
    # add "d" to library names on windows MSVC for debugging libraries
