@@ -7,10 +7,10 @@
 
 #if defined( MULLE__CORE_VERSION)
 # ifndef MULLE__CORE_VERSION_MIN
-#  define MULLE__CORE_VERSION_MIN  ((0UL << 20) | (2 << 8) | 0)
+#  define MULLE__CORE_VERSION_MIN  ((0UL << 20) | (3 << 8) | 0)
 # endif
 # ifndef MULLE__CORE_VERSION_MAX
-#  define MULLE__CORE_VERSION_MAX  ((0UL << 20) | (3 << 8) | 0)
+#  define MULLE__CORE_VERSION_MAX  ((0UL << 20) | (4 << 8) | 0)
 # endif
 # if MULLE__CORE_VERSION < MULLE__CORE_VERSION_MIN
 #  error "mulle-core is too old"
