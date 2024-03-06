@@ -154,8 +154,6 @@ static inline struct _mulle_objc_infraclass  *
     _mulle_objc_universe_inlinelookup_infraclass( struct _mulle_objc_universe *universe,
                                                   mulle_objc_classid_t classid)
 {
-   int                             index;
-   struct _mulle_objc_infraclass   *infra;
    MULLE_OBJC_RUNTIME_GLOBAL
    struct _mulle_objc_infraclass  *
         _mulle_objc_universe_lookup_infraclass( struct _mulle_objc_universe *universe,
@@ -166,11 +164,16 @@ static inline struct _mulle_objc_infraclass  *
    assert( classid);
 
 #ifdef __MULLE_OBJC_FCS__
-   index = mulle_objc_get_fastclasstable_index( classid);
-   if( index >= 0)
    {
-      infra = mulle_objc_fastclasstable_get_infraclass( &universe->fastclasstable, index);
-      return( infra);
+      int                             index;
+      struct _mulle_objc_infraclass   *infra;
+
+      index = mulle_objc_get_fastclasstable_index( classid);
+      if( index >= 0)
+      {
+         infra = mulle_objc_fastclasstable_get_infraclass( &universe->fastclasstable, index);
+         return( infra);
+      }
    }
 #endif
    return( _mulle_objc_universe_lookup_infraclass_nofast( universe, classid));
@@ -181,23 +184,25 @@ static inline struct _mulle_objc_infraclass  *
     _mulle_objc_universe_lookup_infraclass_inline_nofail( struct _mulle_objc_universe *universe,
                                                           mulle_objc_classid_t classid)
 {
-   int                             index;
-   struct _mulle_objc_infraclass   *infra;
    MULLE_OBJC_RUNTIME_GLOBAL
    struct _mulle_objc_infraclass  *
         _mulle_objc_universe_lookup_infraclass( struct _mulle_objc_universe *universe,
                                                 mulle_objc_classid_t classid);
-
    assert( universe);
    assert( _mulle_objc_universe_is_messaging( universe));
    assert( classid);
 
 #ifdef __MULLE_OBJC_FCS__
-   index = mulle_objc_get_fastclasstable_index( classid);
-   if( index >= 0)
    {
-      infra = mulle_objc_fastclasstable_get_infraclass_nofail( &universe->fastclasstable, index);
-      return( infra);
+      int                             index;
+      struct _mulle_objc_infraclass   *infra;
+
+      index = mulle_objc_get_fastclasstable_index( classid);
+      if( index >= 0)
+      {
+         infra = mulle_objc_fastclasstable_get_infraclass_nofail( &universe->fastclasstable, index);
+         return( infra);
+      }
    }
 #endif
    return( _mulle_objc_universe_lookup_infraclass_nofail_nofast( universe, classid));

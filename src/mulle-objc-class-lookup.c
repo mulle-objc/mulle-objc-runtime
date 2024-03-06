@@ -147,7 +147,6 @@ mulle_objc_implementation_t
 }
 
 
-// does not update the cache, no forward
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_noforward( struct _mulle_objc_class *cls,
                                                       mulle_objc_methodid_t methodid)
@@ -158,6 +157,7 @@ mulle_objc_implementation_t
 }
 
 
+// does not update the cache, no forward
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache_noforward( struct _mulle_objc_class *cls,
                                                               mulle_objc_methodid_t methodid)

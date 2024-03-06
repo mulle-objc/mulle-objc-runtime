@@ -149,6 +149,7 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cacheentry   *entry;
+   unsigned int                    fillrate;
 
    assert( infra);
    assert( universe);
@@ -156,11 +157,12 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
    //
    // here try to get most up to date value
    //
-   cls = _mulle_objc_infraclass_as_class( infra);
+   cls      = _mulle_objc_infraclass_as_class( infra);
+   fillrate = _mulle_objc_universe_get_cache_fillrate( universe);
    for(;;)
    {
       cache = _mulle_objc_cachepivot_atomicget_cache( &universe->cachepivot);
-      if( _mulle_objc_universe_should_grow_cache( universe, cache))
+      if( _mulle_objc_cache_should_grow( cache, fillrate))
       {
          entry = _mulle_objc_universe_add_classcacheentry_swapcaches( universe,
                                                                       cache,

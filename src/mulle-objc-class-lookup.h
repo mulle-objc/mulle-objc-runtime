@@ -104,7 +104,7 @@ mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nocache( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t methodid);
 
-// goes through cache returns an implementation if cached, trys to fill cache otherwise
+// goes through cache returns an implementation if cached, tries to fill cache otherwise
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_noforward( struct _mulle_objc_class *cls,

@@ -551,6 +551,13 @@ static inline int
 }
 
 
+static inline unsigned int 
+   _mulle_objc_universe_get_cache_fillrate( struct _mulle_objc_universe *universe)
+{
+   return( universe->config.cache_fillrate);
+}
+
+
 #pragma mark - non concurrent memory allocation
 
 // use for universe stuff, like classes, methods, properties, ivars

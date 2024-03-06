@@ -197,8 +197,7 @@ static void   trace_method_search_fail( struct _mulle_objc_class *cls,
 static void   trace_method_found( struct _mulle_objc_class *cls,
                                   struct _mulle_objc_searcharguments *search,
                                   struct _mulle_objc_methodlist *list,
-                                  struct _mulle_objc_method *method,
-                                  struct mulle_concurrent_pointerarrayreverseenumerator *rover)
+                                  struct _mulle_objc_method *method)
 {
    struct _mulle_objc_universe   *universe;
    char                          *categoryname;
@@ -387,6 +386,7 @@ static struct _mulle_objc_method   *
    struct _mulle_objc_class                                *supercls;
    struct _mulle_objc_methodlist                           *list;
    struct mulle_concurrent_pointerarrayreverseenumerator   rover;
+   unsigned int                                            i;
    unsigned int                                            n;
    unsigned int                                            tmp;
 
@@ -420,11 +420,15 @@ static struct _mulle_objc_method   *
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
    assert( n);
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
-      n = 1;
+      n = 1;  // this works: see how concurrent_pointerarray_reverseenumerate
 
+   i     = 0;
    rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
+      if( (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CLASS) && ++i == n)
+         break;
+
       switch( *mode)
       {
       case search_overridden_method_2 :
@@ -494,7 +498,7 @@ static struct _mulle_objc_method   *
          method->descriptor.bits |= _mulle_objc_method_searched_and_found;
 
          if( universe->debug.trace.method_searches)
-            trace_method_found( cls, search, list, method, &rover);
+            trace_method_found( cls, search, list, method);
 
          mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
          return( method);
@@ -719,7 +723,7 @@ struct _mulle_objc_method   *
 }
 
 
-struct _mulle_objc_method  *
+struct _mulle_objc_method *
    _mulle_objc_class_defaultsearch_method( struct _mulle_objc_class *cls,
                                            mulle_objc_methodid_t methodid,
                                            int *error)
@@ -747,7 +751,7 @@ struct _mulle_objc_method  *
 }
 
 
-struct _mulle_objc_method  *
+struct _mulle_objc_method *
    mulle_objc_class_search_non_inherited_method( struct _mulle_objc_class *cls,
                                                  mulle_objc_methodid_t methodid,
                                                  int *error)
@@ -775,7 +779,7 @@ struct _mulle_objc_method  *
 
 # pragma mark - forwarding
 
-static inline struct _mulle_objc_method   *
+static inline struct _mulle_objc_method *
    _mulle_objc_class_search_forwardmethod( struct _mulle_objc_class *cls,
                                            int *error)
 {
@@ -789,7 +793,7 @@ static inline struct _mulle_objc_method   *
 }
 
 
-struct _mulle_objc_method    *
+struct _mulle_objc_method *
    _mulle_objc_class_lazyget_forwardmethod( struct _mulle_objc_class *cls,
                                             int *error)
 {
@@ -833,15 +837,17 @@ MULLE_C_NO_RETURN void
 
    universe = _mulle_objc_class_get_universe( cls);
    if( error != ENOENT)
-       mulle_objc_universe_fail_inconsistency( universe, "mulle_objc_universe: \"forward:\" method has wrong id in %sclass \"%s\"",
+       mulle_objc_universe_fail_inconsistency( universe,
+                                               "mulle_objc_universe: \"forward:\" method has wrong id in %sclass \"%s\"",
                                                prefix,
                                                name);
    if( missing_method)
       mulle_objc_universe_fail_methodnotfound( universe, cls, missing_method);
 
-   mulle_objc_universe_fail_inconsistency( universe, "mulle_objc_universe: missing \"forward:\" method in %sclass \"%s\"",
-                                                     prefix,
-                                                     name);
+   mulle_objc_universe_fail_inconsistency( universe,
+                                           "mulle_objc_universe: missing \"forward:\" method in %sclass \"%s\"",
+                                           prefix,
+                                           name);
 }
 
 

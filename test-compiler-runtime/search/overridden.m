@@ -116,7 +116,7 @@ static void   test_overridden( id obj,
       abort();
 
    imp = _mulle_objc_method_get_implementation( method);
-   (*imp)( obj, methodsel, obj);
+   mulle_objc_implementation_invoke( imp, obj, methodsel, obj);
 
    assert( ! memcmp( &args, &before, sizeof( args)));
 
@@ -125,7 +125,7 @@ static void   test_overridden( id obj,
       abort();
 
    imp = _mulle_objc_method_get_implementation( method);
-   (*imp)( obj, methodsel, obj);
+   mulle_objc_implementation_invoke( imp, obj, methodsel, obj);
 }
 
 

@@ -85,6 +85,37 @@ MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls);
 
 
+
+# pragma mark - stuff that can not be in struct
+
+static inline size_t
+   _mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
+{
+   return( cls->allocationsize -
+           sizeof( struct _mulle_objc_objectheader) -
+           cls->headerextrasize);
+}
+
+
+// deprecated
+static inline size_t
+   _mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
+{
+   return( _mulle_objc_class_get_instancesize( cls));
+}
+
+
+static inline struct _mulle_objc_metaclass   *
+   _mulle_objc_class_get_metaclass( struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_objectheader   *header;
+
+   header = _mulle_objc_object_get_objectheader( (struct _mulle_objc_object *) cls);
+   return( (struct _mulle_objc_metaclass *) _mulle_objc_objectheader_get_isa( header));
+}
+
+
+
 # pragma mark - convenience accessors
 
 static inline unsigned int
@@ -107,7 +138,7 @@ static inline unsigned int
 # pragma mark - method caches
 
 static inline struct _mulle_objc_cache *
-   _mulle_objc_class_get_methodcache( struct _mulle_objc_class *cls)
+   _mulle_objc_class_get_cache_of_methods( struct _mulle_objc_class *cls)
 {
    return( _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot));
 }
@@ -122,7 +153,8 @@ static inline void
 {
    if( ! cls)
       return;
-   _mulle_objc_class_invalidate_methodcacheentry( cls, MULLE_OBJC_NO_METHODID);
+   _mulle_objc_class_invalidate_methodcacheentry( cls, 
+                                                  MULLE_OBJC_NO_METHODID);
 }
 
 

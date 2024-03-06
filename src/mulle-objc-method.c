@@ -36,6 +36,7 @@
 #include "mulle-objc-method.h"
 
 #include "mulle-objc-universe.h"
+#include "mulle-objc-methodidconstants.h"
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
@@ -134,3 +135,5 @@ unsigned int   mulle_objc_count_selector_arguments( char *s)
          ++n;
    return( n);
 }
+
+

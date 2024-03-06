@@ -37,6 +37,7 @@
 
 #include "include-private.h"
 
+#include "mulle-objc-class-struct.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-universe-class.h"
 #include "mulle-objc-universe.h"

@@ -66,7 +66,7 @@ MULLE_C_NEVER_INLINE static void *
       mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
 
    /*->*/
-   return( (*imp)( obj, methodid, parameter));
+   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
 }
 
 
@@ -112,7 +112,7 @@ void   *mulle_objc_object_call( void *obj,
          p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp = (mulle_objc_implementation_t) p;
 /*->*/
-         return( (*imp)( obj, methodid, parameter));
+         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
       }
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
@@ -129,14 +129,14 @@ void   *_mulle_objc_object_call( void *obj,
                                  mulle_objc_methodid_t methodid,
                                  void *parameter)
 {
-   mulle_objc_implementation_t      imp;
-   mulle_functionpointer_t          p;
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_cacheentry    *entries;
-   struct _mulle_objc_cacheentry    *entry;
-   struct _mulle_objc_class         *cls;
-   mulle_objc_cache_uint_t          mask;
-   mulle_objc_cache_uint_t          offset;
+   mulle_objc_implementation_t     imp;
+   mulle_functionpointer_t         p;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
@@ -155,7 +155,7 @@ void   *_mulle_objc_object_call( void *obj,
          p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp = (mulle_objc_implementation_t) p;
 /*->*/
-         return( (*imp)( obj, methodid, parameter));
+         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
       }
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
@@ -210,7 +210,8 @@ static void   *_mulle_objc_object_call_class( void *obj,
       {
          p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp     = (mulle_objc_implementation_t) p;
-/*->*/   return( (*imp)( obj, methodid, parameter));
+/*->*/
+         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
       }
 
       if( ! entry->key.uniqueid)
@@ -260,7 +261,7 @@ static void   *_mulle_objc_object_call2( void *obj,
          p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp     = (mulle_objc_implementation_t) p;
 /*->*/
-         return( (*imp)( obj, methodid, parameter));
+         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
       }
    }
    while( entry->key.uniqueid);
@@ -368,7 +369,7 @@ void   mulle_objc_objects_call( void **objects,
       }
 
       // TODO: this doesn't trace yet
-      (*lastSelIMP[ i])( p, methodid, params);
+      mulle_objc_implementation_invoke( lastSelIMP[ i], p, methodid, params);
    }
 }
 
@@ -445,3 +446,86 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 }
 
 
+
+
+
+// In a "regular" callchain, we want to have basically two scenarios:
+// _init and _dealloc. With _init we want to initialize basics first and
+// then progress to the more sophisticated categories in the back.
+// With _dealloc, we want to go from back to front.
+// As the saying is you go back and forth.. so init dealloc , back and forth
+// The usual search direction is "back" to "front" so thats the usual movement.
+//
+
+
+// used by _init. overridden method come last
+void   _mulle_objc_object_callchain_back( void *obj,
+                                          mulle_objc_methodid_t methodid,
+                                          void *parameter)
+{
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_method       *method;
+   struct _mulle_objc_methodlist   *list;
+   unsigned int                    inheritance;
+   unsigned int                    once;
+   mulle_objc_implementation_t     imp;
+
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   cls         = _mulle_objc_object_get_isa( obj);
+   inheritance = _mulle_objc_class_get_inheritance( cls);
+
+   // i mean should we honor this if we explicitly want to to do
+   // a call chain ? probably...
+   once        = (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES);
+
+   // enumerator forward
+   mulle_concurrent_pointerarray_for( &cls->methodlists, list)
+   {
+      method = _mulle_objc_methodlist_search( list, methodid);
+      if( method)
+      {
+         imp   = _mulle_objc_method_get_implementation( method);
+         mulle_objc_implementation_invoke( imp, obj, methodid, parameter);
+      }
+      if( once)
+         break;
+   }
+}
+
+
+//
+// used by _dealloc:  overridden method come first
+//
+// and probably also by other calls, since this is the natural direction
+//
+void   _mulle_objc_object_callchain_forth( void *obj,
+                                           mulle_objc_methodid_t methodid,
+                                           void *parameter)
+{
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_method       *method;
+   struct _mulle_objc_methodlist   *list;
+   unsigned int                    inheritance;
+   unsigned int                    n;
+   mulle_objc_implementation_t     imp;
+
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   cls         = _mulle_objc_object_get_isa( obj);
+   inheritance = _mulle_objc_class_get_inheritance( cls);
+
+   n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
+   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
+      n = 1;
+
+   mulle_concurrent_pointerarray_for_reverse( &cls->methodlists, n, list)
+   {
+      method = _mulle_objc_methodlist_search( list, methodid);
+      if( method)
+      {
+         imp = _mulle_objc_method_get_implementation( method);
+         mulle_objc_implementation_invoke( imp, obj, methodid, parameter);
+      }
+   }
+}

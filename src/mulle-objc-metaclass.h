@@ -56,17 +56,6 @@ struct _mulle_objc_metaclass
 };
 
 
-static inline void   _mulle_objc_metaclass_plusinit( struct _mulle_objc_metaclass *meta,
-                                              struct mulle_allocator *allocator)
-{
-}
-
-
-static inline void   _mulle_objc_metaclass_plusdone( struct _mulle_objc_metaclass *meta)
-{
-}
-
-
 static inline struct _mulle_objc_class   *_mulle_objc_metaclass_as_class( struct _mulle_objc_metaclass *meta)
 {
    return( &meta->base);
@@ -79,6 +68,25 @@ static inline struct _mulle_objc_metaclass   *_mulle_objc_class_as_metaclass( st
 
    return( (struct _mulle_objc_metaclass *) cls);
 }
+
+
+#pragma mark - init
+
+
+static inline void   _mulle_objc_metaclass_plusinit( struct _mulle_objc_metaclass *meta,
+                                                     struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_class   *cls;
+
+   cls = _mulle_objc_metaclass_as_class( meta);
+   _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE);
+}
+
+
+static inline void   _mulle_objc_metaclass_plusdone( struct _mulle_objc_metaclass *meta)
+{
+}
+
 
 
 #pragma mark - sanity check

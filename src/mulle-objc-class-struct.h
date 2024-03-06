@@ -44,7 +44,6 @@
 #include "mulle-objc-cache.h"
 #include "mulle-objc-fastmethodtable.h"
 #include "mulle-objc-kvccache.h"
-#include "mulle-objc-objectheader.h"
 #include "mulle-objc-uniqueid.h"
 #include "mulle-objc-methodcache.h"
 
@@ -65,6 +64,7 @@ enum
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS           = 0x04,
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES = 0x08,
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META       = 0x10,
+   MULLE_OBJC_CLASS_DONT_INHERIT_CLASS               = 0x20
 };
 
 
@@ -74,30 +74,37 @@ enum
 
 enum _mulle_objc_class_state
 {
-   MULLE_OBJC_CLASS_CACHE_READY        = 0x0001,
-   MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE = 0x0002,
-   MULLE_OBJC_CLASS_FIXED_SIZE_CACHE   = 0x0004,
-   MULLE_OBJC_CLASS_NO_SEARCH_CACHE    = 0x0008,
+   MULLE_OBJC_CLASS_CACHE_READY             = 0x0001,
+   MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE      = 0x0002,
+   MULLE_OBJC_CLASS_FIXED_SIZE_CACHE        = 0x0004,
+   MULLE_OBJC_CLASS_NO_SEARCH_CACHE         = 0x0008,
 
+   //
+   // future: object header will contain thread id, the bit will be turned
+   //         off my immutable marked classes or by the user, if he wants to
+   //         create an instance that employs locking. Also all classes are
+   //         by default no thread affine (and implicitly all TPS objects)
+   //
+   MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE    = 0x0040,
    // class will not be traced in trace.instance (for NSAutoreleasePool
    // or _MulleObjCAutoreleaseAllocation)
-   MULLE_OBJC_CLASS_IS_BORING_ALLOCATION     = 0x0080,
+   MULLE_OBJC_CLASS_IS_BORING_ALLOCATION    = 0x0080,
 
    // infra/meta flags
-   _MULLE_OBJC_CLASS_WARN_PROTOCOL           = 0x0100,
-   _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        = 0x0200,
-   _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  = 0x0400,
-   _MULLE_OBJC_CLASS_LOAD_SCHEDULED          = 0x0800,
-   MULLE_OBJC_CLASS_FINALIZE_DONE            = 0x2000,  // no _, can be used on its own
-   MULLE_OBJC_CLASS_INITIALIZING             = 0x4000,  // no _, can be used on its own
-   MULLE_OBJC_CLASS_INITIALIZE_DONE          = 0x8000,  // no _, can be used on its own
+   _MULLE_OBJC_CLASS_WARN_PROTOCOL          = 0x0100,
+   _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS       = 0x0200,
+   _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY = 0x0400,
+   _MULLE_OBJC_CLASS_LOAD_SCHEDULED         = 0x0800,
+   MULLE_OBJC_CLASS_FINALIZE_DONE           = 0x2000,  // no _, can be used on its own
+   MULLE_OBJC_CLASS_INITIALIZING            = 0x4000,  // no _, can be used on its own
+   MULLE_OBJC_CLASS_INITIALIZE_DONE         = 0x8000,  // no _, can be used on its own
 
-   MULLE_OBJC_CLASS_FOUNDATION_BIT0    = 0x00010000,
-   MULLE_OBJC_CLASS_FOUNDATION_BIT1    = 0x00020000,
-   MULLE_OBJC_CLASS_FOUNDATION_BIT15   = 0x00800000,
+   MULLE_OBJC_CLASS_FOUNDATION_BIT0         = 0x00010000,
+   MULLE_OBJC_CLASS_FOUNDATION_BIT1         = 0x00020000,
+   MULLE_OBJC_CLASS_FOUNDATION_BIT15        = 0x00800000,
 
-   MULLE_OBJC_CLASS_USER_BIT0          = 0x01000000,
-   MULLE_OBJC_CLASS_USER_BIT15         = (int) 0x80000000U
+   MULLE_OBJC_CLASS_USER_BIT0               = 0x01000000,
+   MULLE_OBJC_CLASS_USER_BIT15              = (int) 0x80000000U
 };
 
 
@@ -190,23 +197,6 @@ static inline size_t
 }
 
 
-static inline size_t
-   _mulle_objc_class_get_instancesize( struct _mulle_objc_class *cls)
-{
-   return( cls->allocationsize -
-           sizeof( struct _mulle_objc_objectheader) -
-           cls->headerextrasize);
-}
-
-
-// deprecated
-static inline size_t
-   _mulle_objc_class_get_instance_size( struct _mulle_objc_class *cls)
-{
-   return( _mulle_objc_class_get_instancesize( cls));
-}
-
-
 static inline unsigned int
    _mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
 {
@@ -231,6 +221,13 @@ static inline void
 int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
                                        unsigned int bit);
 
+//
+// 1 means successfully cleared
+// 0 means is already clear
+//
+int   _mulle_objc_class_clear_state_bit( struct _mulle_objc_class *cls,
+                                        unsigned int bit);
+
 static inline unsigned int
    _mulle_objc_class_get_state_bit( struct _mulle_objc_class *cls,
                                     unsigned int bit)
@@ -240,6 +237,20 @@ static inline unsigned int
    old = _mulle_atomic_pointer_read( &cls->state);
    return( (unsigned int) (uintptr_t) old & bit);
 }
+
+
+static inline int   _mulle_objc_class_is_boring( struct _mulle_objc_class *cls)
+{
+   return( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_BORING_ALLOCATION));
+}
+
+
+// this bit is
+static inline int   _mulle_objc_class_is_threadaffine( struct _mulle_objc_class *cls)
+{
+   return( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE));
+}
+
 
 
 char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit);
@@ -290,16 +301,6 @@ static inline int   _mulle_objc_class_is_infraclass( struct _mulle_objc_class *c
 static inline int   _mulle_objc_class_is_metaclass( struct _mulle_objc_class *cls)
 {
    return( cls->infraclass != NULL);
-}
-
-
-static inline struct _mulle_objc_metaclass   *
-   _mulle_objc_class_get_metaclass( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_objectheader   *header;
-
-   header = _mulle_objc_object_get_objectheader( (struct _mulle_objc_object *) cls);
-   return( (struct _mulle_objc_metaclass *) _mulle_objc_objectheader_get_isa( header));
 }
 
 

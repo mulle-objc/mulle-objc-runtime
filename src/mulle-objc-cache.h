@@ -65,7 +65,7 @@ enum mulle_objc_cachesizing_t
 };
 
 #ifdef MULLE_TEST
-# define MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+# define MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
 #endif
 //
 
@@ -86,7 +86,7 @@ struct _mulle_objc_cacheentry
       mulle_atomic_functionpointer_t   functionpointer;
       mulle_atomic_pointer_t           pointer;
    } value;
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
    mulle_thread_t                      thread;
    struct _mulle_objc_class            *cls;
 #endif
@@ -150,6 +150,17 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_cache  *
 }
 
 
+// The cache pivot indexes into the middle of the cache at the entries. The 
+// meta info of the cache is above. With a simple CAS the Class can exchange
+// caches.
+//                      +-----------------------------------------------------------+   
+// +-----------------+  |  Cache                                                    |
+// | Class.          |  |   meta info                                               |
+// |    cachepivot -------> entries[ 0] = { 0, 0}                                   |
+// +-----------------+  |   entries[ 1] = { @selector( foo), (*foo)( id, SEL, ...)} |
+//                      |   entries[ 2] = { 0, 0}                                   |
+//                      |   entries[ 3] = { 0, 0}                                   |
+//                      +-----------------------------------------------------------+
 struct _mulle_objc_cachepivot
 {
    mulle_atomic_pointer_t   entries; // for atomic XCHG with pointer indirection
@@ -232,7 +243,7 @@ static inline mulle_objc_cache_uint_t
 }
 
 
-static inline mulle_objc_uniqueid_t
+static inline mulle_objc_cache_uint_t
     _mulle_objc_cache_get_size( struct _mulle_objc_cache *cache)
 {
    return( cache->size);
@@ -244,6 +255,10 @@ static inline mulle_objc_cache_uint_t
 {
    return( cache->mask);
 }
+
+
+int   _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache, 
+                                     unsigned int fillrate);
 
 
 # pragma mark - cache allocation
@@ -291,14 +306,64 @@ struct _mulle_objc_cacheentry   *
 
 # pragma mark - cache method lookup
 
-MULLE_OBJC_RUNTIME_GLOBAL
+static inline
 void   *_mulle_objc_cache_lookup_pointer( struct _mulle_objc_cache *cache,
-                                          mulle_objc_uniqueid_t uniqueid);
+                                          mulle_objc_uniqueid_t uniqueid)
+{
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   mulle_objc_cache_uint_t         offset;
+   mulle_objc_cache_uint_t         mask;
 
-MULLE_OBJC_RUNTIME_GLOBAL
-mulle_functionpointer_t
-   _mulle_objc_cache_lookup_functionpointer( struct _mulle_objc_cache *cache,
-                                             mulle_objc_uniqueid_t uniqueid);
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
+
+   entries = cache->entries;
+   mask    = cache->mask;
+
+   offset  = (mulle_objc_cache_uint_t) uniqueid;
+   for(;;)
+   {
+      offset = (mulle_objc_cache_uint_t) offset & mask;
+      entry  = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == uniqueid)
+         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+
+      if( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer))
+         return( 0);
+
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+}
+
+static inline
+mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle_objc_cache *cache,
+                                                                   mulle_objc_uniqueid_t uniqueid)
+{
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   mulle_objc_cache_uint_t         offset;
+   mulle_objc_cache_uint_t         mask;
+
+   assert( mulle_objc_uniqueid_is_sane( uniqueid));
+
+   entries = cache->entries;
+   mask    = cache->mask;
+
+   offset  = (mulle_objc_cache_uint_t) uniqueid;
+   for(;;)
+   {
+      offset = (mulle_objc_cache_uint_t) offset & mask;
+      entry  = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == uniqueid)
+         return( _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer));
+
+      if( ! _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer))
+         return( 0);
+
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+}
+
 
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_cache_uint_t

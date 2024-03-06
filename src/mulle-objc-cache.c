@@ -72,6 +72,7 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
    return( cache);
 }
 
+
 #ifdef MULLE_TEST
 struct _mulle_objc_cache   *mulle_objc_discarded_caches[ 0x8000];
 mulle_atomic_pointer_t     n_mulle_objc_discarded_caches;
@@ -120,64 +121,6 @@ void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
 #endif
 
    errno    = preserve;
-}
-
-
-void   *_mulle_objc_cache_lookup_pointer( struct _mulle_objc_cache *cache,
-                                          mulle_objc_uniqueid_t uniqueid)
-{
-   struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_cacheentry   *entry;
-   mulle_objc_cache_uint_t         offset;
-   mulle_objc_cache_uint_t         mask;
-
-   assert( mulle_objc_uniqueid_is_sane( uniqueid));
-
-   entries = cache->entries;
-   mask    = cache->mask;
-
-   offset  = (mulle_objc_cache_uint_t) uniqueid;
-   for(;;)
-   {
-      offset = (mulle_objc_cache_uint_t) offset & mask;
-      entry = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == uniqueid)
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-
-      if( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer))
-         return( NULL);
-
-      offset += sizeof( struct _mulle_objc_cacheentry);
-   }
-}
-
-
-mulle_functionpointer_t  _mulle_objc_cache_lookup_functionpointer( struct _mulle_objc_cache *cache,
-                                                                   mulle_objc_uniqueid_t uniqueid)
-{
-   struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_cacheentry   *entry;
-   mulle_objc_cache_uint_t         offset;
-   mulle_objc_cache_uint_t         mask;
-
-   assert( mulle_objc_uniqueid_is_sane( uniqueid));
-
-   entries = cache->entries;
-   mask    = cache->mask;
-
-   offset  = (mulle_objc_cache_uint_t) uniqueid;
-   for(;;)
-   {
-      offset = (mulle_objc_cache_uint_t) offset & mask;
-      entry  = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == uniqueid)
-         return( _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer));
-
-      if( ! _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer))
-         return( NULL);
-
-      offset += sizeof( struct _mulle_objc_cacheentry);
-   }
 }
 
 
@@ -261,6 +204,24 @@ mulle_objc_cache_uint_t
 
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
+}
+
+
+int   _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache, 
+                                     unsigned int fillrate)
+{
+   size_t   used;
+   size_t   size;
+
+   used = (size_t) _mulle_atomic_pointer_read( &cache->n);
+   size = cache->size;
+
+   if( ! fillrate)
+      return( used * 3 >= size);  // have cache filled to a third
+
+   assert( fillrate >= 1 && fillrate <= 90);
+
+   return( used * 100 >= size * fillrate);
 }
 
 
@@ -349,7 +310,7 @@ struct _mulle_objc_cacheentry   *
    _mulle_atomic_pointer_nonatomic_write( &entry->value.pointer, pointer);
 
    _mulle_atomic_pointer_increment( &cache->n);
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
    entry->thread = 0;
 #endif
    return( entry);
@@ -374,7 +335,7 @@ struct _mulle_objc_cacheentry   *
    _mulle_atomic_functionpointer_nonatomic_write( &entry->value.functionpointer, pointer);
 
    _mulle_atomic_pointer_increment( &cache->n);
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
    entry->thread = 0;
 #endif
    return( entry);
@@ -426,13 +387,17 @@ struct _mulle_objc_cacheentry   *
 
    assert( ! entry->key.uniqueid);
    _mulle_atomic_pointer_write( &entry->key.pointer, (void *) (uintptr_t) uniqueid);
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
    entry->thread = mulle_thread_self();
 #endif
    return( entry);
 }
 
 
+//
+// this will return an entry, except if for some reason the CAS didn't work
+// in which case you should retry
+//
 struct _mulle_objc_cacheentry   *
    _mulle_objc_cache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
                                                 mulle_functionpointer_t pointer,
@@ -480,7 +445,7 @@ struct _mulle_objc_cacheentry   *
 
    assert( ! entry->key.uniqueid);
    _mulle_atomic_pointer_write( &entry->key.pointer, (void *) (uintptr_t) uniqueid);
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
    entry->thread = mulle_thread_self();
 #endif
    return( entry);

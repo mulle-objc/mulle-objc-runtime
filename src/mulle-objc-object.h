@@ -116,10 +116,51 @@ static inline struct _mulle_objc_class *
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
-   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");
+   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly aligned ?");
    infra    = universe->taggedpointers.pointerclass[ index];
    return( _mulle_objc_infraclass_as_class( infra));
 }
+
+
+MULLE_C_CONST_RETURN
+MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
+   _mulle_objc_object_get_thread( struct _mulle_objc_object *obj)
+{
+#ifdef __MULLE_OBJC_TAO__
+   unsigned int                      index;
+   struct _mulle_objc_objectheader   *header;
+
+   // TPS are not thread affine always
+   index = mulle_objc_object_get_taggedpointerindex( obj);
+   if( index)
+      return( 0);
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   return( _mulle_objc_objectheader_get_thread( header));
+#else
+   return( 0);
+#endif
+}
+
+
+MULLE_C_ALWAYS_INLINE static inline void
+   _mulle_objc_object_set_thread( struct _mulle_objc_object *obj, mulle_thread_t thread)
+{
+#ifdef __MULLE_OBJC_TAO__
+   unsigned int                      index;
+   struct _mulle_objc_objectheader   *header;
+
+   // TPS are not thread affine always
+   index = mulle_objc_object_get_taggedpointerindex( obj);
+   if( index)
+      return;
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   return( _mulle_objc_objectheader_set_thread( header, thread));
+#endif
+}
+
+
 
 //
 // don't use isa in most cases, use get_class (defined elsewhere)
@@ -136,7 +177,7 @@ static inline struct _mulle_objc_class *
    if( MULLE_C_EXPECT( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
-   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly initialized ?");
+   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly aligned ?");
    infra = universe->taggedpointers.pointerclass[ index];
    return( _mulle_objc_infraclass_as_class( infra));
 }

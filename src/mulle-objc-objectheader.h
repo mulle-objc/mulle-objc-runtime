@@ -40,21 +40,28 @@
 
 #include <assert.h>
 
-
-struct _mulle_objc_class;
+#include "mulle-objc-class-struct.h"
 struct _mulle_objc_object;
 
 
 //
 // this is ahead of the actual instance
 // isa must be underscored
-// It is important, that on 64 bit it's 16 byte size, because then a following
-// class can provide an isa pointer with 4 zero ls bits
+// It is important, that on 64 bit it's 16 byte size aligned, because then a
+// following class can provide an isa pointer with 4 zero ls bits, which is
+// needed for __MULLE_TPS_.
 // If the class has "headerextrasize" then there is space ahead of the header
 // still, which leads us to the alloc.
 //
 struct _mulle_objc_objectheader
 {
+   //
+   // in tests its inconvenient to have variable sizes, since it breaks
+   //
+#if defined( __MULLE_OBJC_TAO__) || defined( MULLE_TEST) || defined( MULLE_OBJC_TAO_OBJECT_HEADER)
+   void                        *_align;
+   mulle_thread_t              _thread;
+#endif
    mulle_atomic_pointer_t      _retaincount_1;  // negative means finalized
    struct _mulle_objc_class    *_isa;
 };
@@ -120,6 +127,33 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class *
 }
 
 
+MULLE_C_CONST_RETURN
+MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
+   _mulle_objc_objectheader_get_thread( struct _mulle_objc_objectheader *header)
+{
+#ifdef __MULLE_OBJC_TAO__
+   return( header->_thread);
+#else
+   return( 0);
+#endif
+}
+
+
+//
+// this need not be atomic, it would be one object setting the affinity
+// and then handing it over to another thread
+//
+MULLE_C_ALWAYS_INLINE static inline void
+   _mulle_objc_objectheader_set_thread( struct _mulle_objc_objectheader *header,
+                                        mulle_thread_t thread)
+{
+#ifdef __MULLE_OBJC_TAO__
+   header->_thread = thread;
+#endif
+}
+
+
+
 //
 // this is not atomic! only do this when noone else has
 // access (like during initialization)
@@ -138,7 +172,7 @@ static inline void
 enum
 {
    _mulle_objc_memory_is_not_zeroed = 0,
-   _mulle_objc_memory_is_zeroed = 1
+   _mulle_objc_memory_is_zeroed     = 1
 };
 
 static inline void
@@ -153,7 +187,10 @@ static inline void
               0,
               sizeof( *header) - sizeof( struct _mulle_objc_class *) + headerextrasize);
    _mulle_objc_objectheader_set_isa( header, cls);
-
+#ifdef __MULLE_OBJC_TAO__
+   if( _mulle_objc_class_is_threadaffine( cls))
+      header->_thread = mulle_thread_self();
+#endif
 }
 
 #endif

@@ -305,12 +305,14 @@ static struct _mulle_objc_dependency
    if( universe->debug.trace.dependency)
       loadclass_trace( info, universe, "call +[%s dependencies]", info->classname);
 
-    dependencies = (*imp)( NULL, MULLE_OBJC_DEPENDENCIES_METHODID, NULL);
-    if( ! dependencies)
-       mulle_objc_universe_fail_generic( universe, "error in mulle_objc_universe %p: %s "
-                                                   "returned NULL for +dependencies\n",
-                                                   universe,
-                                                   info->classname);
+   // because we do a "fake" (non-self) call here, we don't route this through
+   // mulle_objc_implementation_invoke, which would crash
+   dependencies =  (*imp)( NULL, MULLE_OBJC_DEPENDENCIES_METHODID, NULL);
+   if( ! dependencies)
+      mulle_objc_universe_fail_generic( universe, "error in mulle_objc_universe %p: %s "
+                                                  "returned NULL for +dependencies\n",
+                                                  universe,
+                                                  info->classname);
 
    return( _mulle_objc_universe_fulfill_dependencies( universe, NULL, dependencies));
 }
@@ -1309,9 +1311,9 @@ static void   call_load( struct _mulle_objc_metaclass *meta,
 
    // the "meta" class is not the object passed
    infra = _mulle_objc_metaclass_get_infraclass( meta);
-   (*imp)( (struct _mulle_objc_object *) _mulle_objc_infraclass_as_class( infra),
-                                         sel,
-                                         _mulle_objc_metaclass_as_class( meta));
+   mulle_objc_implementation_invoke( imp, (struct _mulle_objc_object *) _mulle_objc_infraclass_as_class( infra),
+                                          sel,
+                                          _mulle_objc_metaclass_as_class( meta));
 }
 
 
@@ -1320,6 +1322,7 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
 {
    unsigned int   optlevel;
    int            load_tps;
+   int            load_tao;
    int            mismatch;
    uintptr_t      bits;
 
@@ -1405,6 +1408,32 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
                                         ? MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS
                                         : MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS);
 
+
+   //
+   // Check for thread affine objects (TAO). What can happen ?
+   // A mismatch always crashes, because the object header is different.
+   //
+   load_tao = ! ! (info->version.bits & _mulle_objc_loadinfo_threadaffineobjects);
+#ifdef __MULLE_OBJC_TAO__
+   if( ! load_tao)
+   {
+      mulle_objc_loadinfo_dump( info, "loadinfo:   ", universe);
+      mulle_objc_universe_fail_inconsistency( universe,
+         "mulle_objc_universe %p: the universe is configured for "
+         "thread affine objects, but classes are compiled differently",
+             universe);
+   }
+#else
+   if( load_tao)
+   {
+      mulle_objc_loadinfo_dump( info, "loadinfo:   ", universe);
+      mulle_objc_universe_fail_inconsistency( universe,
+         "mulle_objc_universe %p: the universe is not configured for "
+         "thread affine objects, but classes are compiled differently",
+             universe);
+   }
+#endif
+
    //
    // check that if a universename is given, that tps is off
    //
@@ -1466,12 +1495,15 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
 }
 
 
-char   *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info)
+char   *mulle_objc_loadinfo_get_origin( struct _mulle_objc_loadinfo *info)
 {
    char  *s;
 
    if( ! info)
       mulle_objc_universe_fail_code( NULL, EINVAL);
+
+   if( info->origin && *info->origin)
+      return( info->origin);
 
    s = NULL;
    if( info->loadclasslist && info->loadclasslist->n_loadclasses)
@@ -1587,7 +1619,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
       char   *s;
       char   *sep;
 
-      s = mulle_objc_loadinfo_get_originator( info);
+      s = mulle_objc_loadinfo_get_origin( info);
       sep = ": ";
       if( ! s || !strlen( s))
          s = sep = "";
@@ -1703,7 +1735,7 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
    // comment must be static, can't and wont be freed
    // (so must remain until mulle_atinit is through)
    //
-   comment = info ? mulle_objc_loadinfo_get_originator( info) : NULL;
+   comment = info ? mulle_objc_loadinfo_get_origin( info) : NULL;
    comment = comment ? comment : "_mulle_objc_loadinfo";
    mulle_atinit( _mulle_objc_loadinfo_enqueue_nofail, info, 0, comment);
 

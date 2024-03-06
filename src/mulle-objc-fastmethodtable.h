@@ -45,7 +45,6 @@
 
 
 
-
 #define MULLE_OBJC_S_FASTMETHODS    24
 
 //
@@ -72,21 +71,6 @@ void _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *table
 
 static inline void   _mulle_objc_fastmethodtable_done(  struct _mulle_objc_fastmethodtable *table)
 {
-}
-
-
-MULLE_C_ALWAYS_INLINE
-static inline void   *
-   _mulle_objc_fastmethodtable_invoke( void *obj,
-                                       mulle_objc_methodid_t methodid,
-                                       void *param,
-                                       struct _mulle_objc_fastmethodtable *table,
-                                       unsigned int index)
-{
-   mulle_objc_implementation_t   imp;
-
-   imp = (mulle_objc_implementation_t) _mulle_atomic_pointer_read( &table->methods[ index].pointer);
-   return( (*imp)( obj, methodid, param));
 }
 
 

@@ -50,6 +50,7 @@
 typedef void   *(*mulle_objc_implementation_t)( void *,
                                                 mulle_objc_methodid_t,
                                                 void *);
+
 //
 // idea... add a bit to this _mulle_objc_descriptor, that the compiler
 // sets, if this method is expected to override a method (maybe differentiate
