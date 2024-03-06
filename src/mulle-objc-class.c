@@ -80,8 +80,9 @@ char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit)
 }
 
 
-int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
-                                       unsigned int bit)
+static int   __mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
+                                               unsigned int bit,
+                                               int clear)
 {
    void   *state;
    void   *old;
@@ -92,8 +93,11 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
 
    do
    {
-      old   = _mulle_atomic_pointer_read( &cls->state);
-      state = (void *) ((uintptr_t) old | bit);
+      old = _mulle_atomic_pointer_read( &cls->state);
+      if( clear)
+         state = (void *) ((uintptr_t) old & ~bit);
+      else
+         state = (void *) ((uintptr_t) old | bit);
       if( state == old)
          return( 0);
    }
@@ -115,6 +119,21 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
 }
 
 
+int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
+                                       unsigned int bit)
+{
+   return( __mulle_objc_class_set_state_bit( cls, bit, 0)); // 0 sets
+}
+
+
+int   _mulle_objc_class_clear_state_bit( struct _mulle_objc_class *cls,
+                                         unsigned int bit)
+{
+   return( __mulle_objc_class_set_state_bit( cls, bit, 1)); // 1 clears
+}
+
+
+
 # pragma mark - initialization / deallocation
 
 void   *_mulle_objc_object_call_class_needcache( void *obj,
@@ -133,24 +152,24 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
 {
    assert( universe);
 
-   cls->name             = name;
+   cls->name            = name;
 
-   cls->superclass       = superclass;
+   cls->superclass      = superclass;
    if( superclass)
    {
-      cls->superclassid  = superclass->classid;
-      cls->inheritance   = superclass->inheritance;
+      cls->superclassid = superclass->classid;
+      cls->inheritance  = superclass->inheritance;
    }
    else
    {
-      cls->superclassid  = MULLE_OBJC_NO_CLASSID;
-      cls->inheritance   = universe->classdefaults.inheritance;
+      cls->superclassid = MULLE_OBJC_NO_CLASSID;
+      cls->inheritance  = universe->classdefaults.inheritance;
    }
-   //   cls->nextclass        = superclass;
-   cls->classid          = classid;
-   cls->allocationsize   = sizeof( struct _mulle_objc_objectheader) + instancesize + headerextrasize;
-   cls->headerextrasize  = headerextrasize;
-   cls->universe         = universe;
+   //   cls->nextclass       = superclass;
+   cls->classid         = classid;
+   cls->allocationsize  = sizeof( struct _mulle_objc_objectheader) + instancesize + headerextrasize;
+   cls->headerextrasize = headerextrasize;
+   cls->universe        = universe;
 
    _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->initial_methodcache.cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
@@ -514,6 +533,7 @@ mulle_objc_walkcommand_t
    mulle_objc_walkcommand_t                                rval;
    struct _mulle_objc_methodlist                           *list;
    struct mulle_concurrent_pointerarrayreverseenumerator   rover;
+   unsigned int                                            i;
    unsigned int                                            n;
    unsigned int                                            tmp;
 
@@ -528,9 +548,13 @@ mulle_objc_walkcommand_t
    if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
       n = 1;
 
+   i = 0;
    rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
+      if( (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CLASS) && ++i == n)
+            break;
+
       if( rval = _mulle_objc_methodlist_walk( list, f, cls, userinfo))
       {
          if( rval < mulle_objc_walk_ok)
@@ -727,12 +751,6 @@ void   _mulle_objc_class_warn_alloc_during_finalize( struct _mulle_objc_class *c
       return;
 
    __mulle_objc_class_warn_alloc_during_finalize( cls, obj);
-}
-
-
-static inline int   _mulle_objc_class_is_boring( struct _mulle_objc_class *cls)
-{
-   return( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_BORING_ALLOCATION));
 }
 
 

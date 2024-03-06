@@ -37,6 +37,7 @@
 
 #include "mulle-objc-universe.h"
 #include "mulle-objc-class.h"
+#include "mulle-objc-call.h"
 
 #include "include-private.h"
 #include <stdlib.h>
@@ -67,7 +68,7 @@ static inline void   queue_entry_set( struct _queue_entry *q,
 // ensure each entry is only executed once
 static inline void   queue_entry_execute( struct _queue_entry *q)
 {
-   (*q->imp)( q->obj, q->uniqueid, q->imp);
+   mulle_objc_implementation_invoke( q->imp, q->obj, q->uniqueid, q->imp);
 }
 
 

@@ -5,6 +5,15 @@
 //  Created by Nat! on 19/11/14.
 //  Copyright (c) 2014 Mulle kybernetiK. All rights reserved.
 //
+#ifndef __MULLE_OBJC__
+# define __MULLE_OBJC_NO_TPS__
+# define __MULLE_OBJC_FCS__
+# ifdef DEBUG
+#  define __MULLE_OBJC_TAO__
+# else
+#  define __MULLE_OBJC_NO_TAO__
+# endif
+#endif
 
 #define __TEST_VERSION
 
@@ -19,12 +28,6 @@ static int JIT_PATCH        = MULLE_OBJC_RUNTIME_VERSION_PATCH;
 #undef MULLE_OBJC_RUNTIME_VERSION_MAJOR
 #undef MULLE_OBJC_RUNTIME_VERSION_MINOR
 #undef MULLE_OBJC_RUNTIME_VERSION_PATCH
-
-#ifndef __MULLE_OBJC__
-# define __MULLE_OBJC_NO_TPS__
-# define __MULLE_OBJC_FCS__
-#endif
-
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 #include <stdio.h>

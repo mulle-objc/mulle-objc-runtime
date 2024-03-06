@@ -364,8 +364,6 @@ static inline mulle_objc_classid_t
 }
 
 
-
-
 //
 // cls: class to start search
 // methodid: method to search for

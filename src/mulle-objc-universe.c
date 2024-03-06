@@ -1312,9 +1312,9 @@ static void   _mulle_objc_constantobject_dealloc( struct _mulle_objc_object *obj
       _mulle_objc_object_deconstantify_noatomic( obj);
 
    if( imp)
-     (*imp)( obj, deallocSel, obj);
+      mulle_objc_implementation_invoke( imp, obj, deallocSel, obj);
    else
-     mulle_objc_object_call( obj, 0x9929eb3d /* @selector( dealloc) */, NULL);
+      mulle_objc_object_call( obj, 0x9929eb3d /* @selector( dealloc) */, NULL);
 }
 
 
@@ -2070,6 +2070,13 @@ struct _mulle_objc_classpair *
                                   0,
                                   _mulle_objc_memory_is_zeroed);
 
+   // _mulle_objc_objectheader_init will set _thread, because we haven't
+   // set the proper bits yet...
+#ifdef __MULLE_OBJC_TAO__
+   pair->infraclassheader._thread = 0;
+   pair->metaclassheader._thread  = 0;
+#endif
+
    _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);
    _mulle_objc_object_constantify_noatomic( &pair->metaclass.base);
 
@@ -2276,23 +2283,6 @@ void   _mulle_objc_universe_set_fastclass( struct _mulle_objc_universe *universe
                   _mulle_objc_infraclass_get_name( old),
                   index);
    }
-}
-
-# pragma mark - cache
-
-int   _mulle_objc_universe_should_grow_cache( struct _mulle_objc_universe *universe,
-                                              struct _mulle_objc_cache *cache)
-{
-   size_t   used;
-   size_t   size;
-
-   used = (size_t) _mulle_atomic_pointer_read( &cache->n);
-   size = cache->size;
-
-   if( ! universe->config.cache_fillrate)
-      return( used * 3 >= size);  // have cache filled to a third
-
-   return( used * 100 >= size * universe->config.cache_fillrate);
 }
 
 

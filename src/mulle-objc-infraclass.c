@@ -35,6 +35,7 @@
 //
 #include "mulle-objc-infraclass.h"
 
+#include "mulle-objc-class-struct.h"
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-classpair.h"
@@ -917,7 +918,10 @@ static void   _mulle_objc_infraclass_call_unloadmethod( struct _mulle_objc_infra
    }
 
    imp = _mulle_objc_method_get_implementation( method);
-   (*imp)( infra, _mulle_objc_method_get_methodid( method), infra);
+   mulle_objc_implementation_invoke( imp,
+                                     infra,
+                                     _mulle_objc_method_get_methodid( method),
+                                     infra);
 }
 
 

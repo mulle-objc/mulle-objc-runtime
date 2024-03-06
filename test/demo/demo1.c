@@ -8,6 +8,11 @@
 #ifndef __MULLE_OBJC__
 # define __MULLE_OBJC_NO_TPS__
 # define __MULLE_OBJC_FCS__
+# if defined( DEBUG) || ! defined( __OPTIMIZE__)
+#  define __MULLE_OBJC_TAO__
+# else
+#  define __MULLE_OBJC_NO_TAO__
+# endif
 #endif
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
@@ -493,6 +498,13 @@ struct _gnu_mulle_objc_superlist  super_list =
 #endif
 
 
+#ifdef __MULLE_OBJC_TAO__
+# define TAO_BIT   0x100
+#else
+# define TAO_BIT   0
+#endif
+
+
 static struct _mulle_objc_loadinfo  load_info =
 {
    {
@@ -500,7 +512,7 @@ static struct _mulle_objc_loadinfo  load_info =
       MULLE_OBJC_RUNTIME_VERSION,
       0,
       0,
-      TPS_BIT | FCS_BIT
+      TPS_BIT | FCS_BIT | TAO_BIT
    },
    NULL,
    (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us

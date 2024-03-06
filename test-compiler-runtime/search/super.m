@@ -111,13 +111,13 @@ static void   test_super( id obj,
 
    method = mulle_objc_class_search_method( &infraclass->base, &args, infraclass->base.inheritance, NULL);
    imp    = _mulle_objc_method_get_implementation( method);
-   (*imp)( obj, methodsel, obj);
+   mulle_objc_implementation_invoke( imp, obj, methodsel, obj);
 
    assert( ! memcmp( &args, &before, sizeof( args)));
 
    method = mulle_objc_class_search_method( &metaclass->base, &args, metaclass->base.inheritance, NULL);
    imp    = _mulle_objc_method_get_implementation( method);
-   (*imp)( obj, methodsel, obj);
+   mulle_objc_implementation_invoke( imp, obj, methodsel, obj);
 }
 
 

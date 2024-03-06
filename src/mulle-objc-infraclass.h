@@ -40,6 +40,7 @@
 
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-class-struct.h"
+#include "mulle-objc-class.h"
 #include "mulle-objc-walktypes.h"
 
 #include <assert.h>
@@ -159,7 +160,7 @@ static inline struct _mulle_objc_infraclass   *
 static inline struct _mulle_objc_infraclass   *
    mulle_objc_infraclass_get_superclass( struct _mulle_objc_infraclass *infra)
 {
-   return( infra ?  (struct _mulle_objc_infraclass *) infra->base.superclass : NULL);
+   return( infra ? (struct _mulle_objc_infraclass *) infra->base.superclass : NULL);
 }
 
 
@@ -527,9 +528,9 @@ mulle_objc_walkcommand_t
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	_mulle_objc_infraclass_walk_properties( struct _mulle_objc_infraclass *infra,
-                                          unsigned int inheritance,
-                                          mulle_objc_walkpropertiescallback_t f,
-                                          void *userinfo);
+                                           unsigned int inheritance,
+                                           mulle_objc_walkpropertiescallback_t f,
+                                           void *userinfo);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t

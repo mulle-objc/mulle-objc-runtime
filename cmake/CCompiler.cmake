@@ -11,7 +11,11 @@ message( STATUS "C_COMPILER_NAME is ${C_COMPILER_NAME}")
 
 add_definitions( -D__MULLE_OBJC_TPS__)     ## tagged pointers runtime (alternative: __MULLE_OBJC_NO_TPS__)
 add_definitions( -D__MULLE_OBJC_FCS__)     ## fast method calls (alternative: __MULLE_OBJC_NO_FCS__)
-#
+if( CMAKE_BUILD_TYPE MATCHES "^Debug")
+   add_definitions( -D__MULLE_OBJC_TAO__)  ## thread affine object (alternative: __MULLE_OBJC_NO_TAO__)
+else()
+   add_definitions( -D__MULLE_OBJC_NO_TAO__)  ## thread affine object (alternative: __MULLE_OBJC_NO_TAO__)
+endif()
 ## see below also for compiler specifica
 #if( NOT "${C_COMPILER_NAME}" MATCHES "mulle-cl*")
 #else()

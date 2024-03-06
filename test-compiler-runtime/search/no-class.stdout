@@ -1,0 +1,9 @@
+a not found in class A
+b not found in class A
+a_c found in class A
+b_c not found in class A
+
+a found in class B
+b not found in class B
+a_c found in class B
+b_c found in class B

@@ -44,11 +44,15 @@
 
 
 struct _mulle_objc_class;
-
+struct _mulle_objc_universe;
 
 //
 // as we don't want to pollute other caches with this, have a separate
-// cache struct for methods
+// cache struct for methods. MEMO: the method cache is not like
+// mulle_pointermap, where the keys and values are in separate array, rather
+// here the key/values are together. This is presumed to be better for
+// locality of reference, since we expect very little looping in most cases.
+// But this has never been tested.
 //
 struct _mulle_objc_methodcache
 {
@@ -72,11 +76,15 @@ struct _mulle_objc_methodcache
    mulle_objc_implementation_t   (*superlookup2)( struct _mulle_objc_class *, mulle_objc_superid_t);
 
 
-   struct _mulle_objc_cache        cache;
+   struct _mulle_objc_cache      cache;
 };
 
 
 
+//
+// the mcache must have been properly allocated and zeroed before you call
+// this method (i.e. don't use it, use mulle_objc_methodcache_new)
+//
 static inline void   mulle_objc_methodcache_init( struct _mulle_objc_methodcache *mcache,
                                                   mulle_objc_cache_uint_t size)
 {
@@ -90,7 +98,7 @@ static inline void   mulle_objc_methodcache_init( struct _mulle_objc_methodcache
 
 
 
-// these functions don't perturn errno, though they allocate
+// these functions don't return errno, though they allocate
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_methodcache   *mulle_objc_methodcache_new( mulle_objc_cache_uint_t size,
                                                               struct mulle_allocator *allocator);
@@ -108,9 +116,8 @@ void   _mulle_objc_methodcache_abafree( struct _mulle_objc_methodcache *cache,
 MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_methodcache  *
     _mulle_objc_cache_get_methodcache_from_cache( struct _mulle_objc_cache *cache)
 {
-   return( (void *) &((char *) cache)[ -(int)  offsetof( struct _mulle_objc_methodcache, cache)]);
+   return( (void *) &((char *) cache)[ -(int) offsetof( struct _mulle_objc_methodcache, cache)]);
 }
-
 
 
 //
@@ -127,7 +134,112 @@ struct _mulle_objc_methodcachepivot
 };
 
 
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_methodcache  *
+   _mulle_objc_methodcachepivot_get_methodcache( struct _mulle_objc_methodcachepivot *cachepivot)
+{
+   struct _mulle_objc_cacheentry     *entries;
+   struct _mulle_objc_cache          *cache;
+   struct _mulle_objc_methodcache    *methodcache;
 
+   entries     = _mulle_objc_cachepivot_atomicget_entries( &cachepivot->pivot);
+   cache       = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   methodcache = _mulle_objc_cache_get_methodcache_from_cache( cache);
+   return( methodcache);
+}
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_methodcachepivot_swap( struct _mulle_objc_methodcachepivot *pivot,
+                                         struct _mulle_objc_methodcache *mcache,
+                                         struct _mulle_objc_methodcache *old_cache,
+                                         struct mulle_allocator *allocator);
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_cacheentry *
+    _mulle_objc_methodcachepivot_add_method( struct _mulle_objc_methodcachepivot *cachepivot,
+                                             struct _mulle_objc_method *method,
+                                             mulle_objc_uniqueid_t uniqueid,
+                                             unsigned int fillrate,
+                                             struct mulle_allocator *allocator);
+
+
+
+//
+// this method does not use any callbacks and loops, so its fairly hefty
+//
+MULLE_C_ALWAYS_INLINE static inline 
+mulle_objc_implementation_t
+   mulle_objc_methodcachepivot_lookup_inline_null( struct _mulle_objc_methodcachepivot *cachepivot,
+                                                   mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   mulle_objc_cache_uint_t          mask;
+   mulle_objc_cache_uint_t          offset;
+   mulle_functionpointer_t          p;
+
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   // MEMO: When inlining, we are "fine" if the cache is stale
+   entries = _mulle_objc_cachepivot_atomicget_entries( &cachepivot->pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+   offset  = (mulle_objc_cache_uint_t) methodid;
+   do
+   {
+      offset  = offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == methodid)
+      {
+         p = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         return( (mulle_objc_implementation_t) p);
+      }
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+   while( entry->key.uniqueid);
+
+   return( 0);
+}
+
+
+MULLE_C_ALWAYS_INLINE static inline 
+mulle_objc_implementation_t
+   mulle_objc_methodcachepivot_lookup_inline( struct _mulle_objc_methodcachepivot *cachepivot,
+                                              mulle_objc_methodid_t methodid)
+{
+   mulle_objc_implementation_t      f;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_methodcache   *mcache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   mulle_objc_cache_uint_t          mask;
+   mulle_objc_cache_uint_t          offset;
+
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   // MEMO: When inlining, we are "fine" if the cache is stale
+   entries = _mulle_objc_cachepivot_atomicget_entries( &cachepivot->pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+
+   offset  = (mulle_objc_cache_uint_t) methodid & mask;
+   entry   = (void *) &((char *) entries)[ offset];
+
+   if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
+      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+   else
+   {
+      mcache = _mulle_objc_cache_get_methodcache_from_cache( cache);
+      f      = mcache->call2;
+   }
+   return( f);
+}
+
+
+
+// Conveniences for class
 MULLE_OBJC_RUNTIME_GLOBAL
 void
     _mulle_objc_class_fill_methodcache_with_method( struct _mulle_objc_class *cls,

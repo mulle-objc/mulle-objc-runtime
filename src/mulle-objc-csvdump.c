@@ -187,7 +187,7 @@ void
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
    assert( n);
    if( _mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
-      n = 1;
+      n = 1; // this works though it its a reverse enumetator, will get 0
 
    result.class = cls;
 
@@ -330,7 +330,7 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_cache   *cache;
 
-   cache = _mulle_objc_class_get_methodcache( cls);
+   cache = _mulle_objc_class_get_cache_of_methods( cls);
 
    if( ! _mulle_objc_cache_get_count( cache) &&
        ! _mulle_objc_cache_get_size( cache))
@@ -459,7 +459,7 @@ void   mulle_objc_loadinfo_csvdump_terse_to_fp( struct _mulle_objc_loadinfo *inf
    if( ! fp)
       mulle_objc_universe_fail_code( NULL, EINVAL);
 
-   s = mulle_objc_loadinfo_get_originator( info);
+   s = mulle_objc_loadinfo_get_origin( info);
    fprintf( fp, "%s;", s ? s : "");
    _fprint_csv_version( fp, info->version.runtime);
    _fprint_csv_version( fp, info->version.foundation);

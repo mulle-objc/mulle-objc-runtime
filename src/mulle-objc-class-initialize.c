@@ -197,9 +197,11 @@ static void
                                    MULLE_OBJC_INITIALIZE_METHODID,
                                    NULL,
                                    imp);
-   (*imp)( (struct _mulle_objc_object *) infra,
-           MULLE_OBJC_INITIALIZE_METHODID,
-           (struct _mulle_objc_object *) infra);
+
+   mulle_objc_implementation_invoke( imp,
+                                    (struct _mulle_objc_object *) infra,
+                                    MULLE_OBJC_INITIALIZE_METHODID,
+                                    (struct _mulle_objc_object *) infra);
 
    if( universe->debug.trace.initialize)
       mulle_objc_universe_trace( universe,
@@ -351,7 +353,7 @@ static void   *_mulle_objc_object_call_slow( void *obj,
    cls    = _mulle_objc_object_get_isa( obj);
    method = mulle_objc_class_search_method_nofail( cls, methodid);
    imp    = _mulle_objc_method_get_implementation( method);
-   return( (*imp)( obj, methodid, parameter));
+   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
 }
 
 
@@ -365,7 +367,7 @@ static void   *_mulle_objc_object_call_class_slow( void *obj,
 
    method = mulle_objc_class_search_method_nofail( cls, methodid);
    imp    = _mulle_objc_method_get_implementation( method);
-   return( (*imp)( obj, methodid, parameter));
+   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
 }
 
 

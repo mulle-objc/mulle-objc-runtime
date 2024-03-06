@@ -71,7 +71,7 @@ struct _mulle_objc_dependency
 // We changed the fast method ids in 0.19. Does that mean we have to up the
 // load version ? No the runtime version check should be sufficient ?
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   17
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   18
 
 
 // future idea: specify more than one universe
@@ -239,8 +239,9 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_optlevel_1   = (1 << 8),
    _mulle_objc_loadinfo_optlevel_2   = (2 << 8),
    _mulle_objc_loadinfo_optlevel_3   = (3 << 8),
-   _mulle_objc_loadinfo_optlevel_s   = (7 << 8)
+   _mulle_objc_loadinfo_optlevel_s   = (7 << 8),
 
+   _mulle_objc_loadinfo_threadaffineobjects = 0x100
    // lower 16 bits for universe
 
    // next 12 bits free for foundation (future: somehow)
@@ -278,14 +279,13 @@ struct _mulle_objc_loadinfo
    struct _mulle_objc_loadstringlist         *loadstringlist;
    struct _mulle_objc_loadhashedstringlist   *loadhashedstringlist;  // optional for debugging
 
-   // v5 could have this ?
-   //    char   *originator;        // can be nil, compiler writes __FILE__ here when executing in -O0
+   char   *origin;
 };
 
 
 // should give the file that was used to compile it, if available
 // can return NULL
-char  *mulle_objc_loadinfo_get_originator( struct _mulle_objc_loadinfo *info);
+char  *mulle_objc_loadinfo_get_origin( struct _mulle_objc_loadinfo *info);
 
 # pragma mark  - "master" load call
 

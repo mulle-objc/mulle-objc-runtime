@@ -8,7 +8,13 @@
 #ifndef __MULLE_OBJC__
 # define __MULLE_OBJC_NO_TPS__
 # define __MULLE_OBJC_FCS__
+# ifdef DEBUG
+#  define __MULLE_OBJC_TAO__
+# else
+#  define __MULLE_OBJC_NO_TAO__
+# endif
 #endif
+
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 

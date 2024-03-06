@@ -139,7 +139,9 @@ static inline void *
    _mulle_objc_objectheader_init( header, cls, metaextra, _mulle_objc_memory_is_zeroed);
 
    obj       = _mulle_objc_objectheader_get_object( header);
-
+#ifdef __MULLE_OBJC_TPS__
+   assert( ((uintptr_t) obj & 0x3) == 0);
+#endif
 // only add this trace query for debugging because it slows things down!
 #if DEBUG
    {

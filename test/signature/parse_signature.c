@@ -8,6 +8,11 @@
 #ifndef __MULLE_OBJC__
 # define __MULLE_OBJC_NO_TPS__
 # define __MULLE_OBJC_FCS__
+# if defined( DEBUG) || ! defined( __OPTIMIZE__)
+#  define __MULLE_OBJC_TAO__
+# else
+#  define __MULLE_OBJC_NO_TAO__
+# endif
 #endif
 
 
