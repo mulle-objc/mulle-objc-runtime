@@ -29,6 +29,7 @@ src/mulle-objc-class-search.c
 src/mulle-objc-csvdump.c
 src/mulle-objc-fastenumeration.c
 src/mulle-objc-fastmethodtable.c
+src/mulle-objc-impcache.c
 src/mulle-objc-infraclass.c
 src/mulle-objc-infraclass-reuse.c
 src/mulle-objc-ivar.c
@@ -38,7 +39,6 @@ src/mulle-objc-load.c
 src/mulle-objc-loadinfo.c
 src/mulle-objc-metaclass.c
 src/mulle-objc-method.c
-src/mulle-objc-methodcache.c
 src/mulle-objc-methodlist.c
 src/mulle-objc-property.c
 src/mulle-objc-propertylist.c

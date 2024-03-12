@@ -50,43 +50,71 @@
 
 #pragma mark - cache support
 
+
+MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_cacheentry *
-   _mulle_objc_class_lookup_cacheentry( struct _mulle_objc_class *cls,
-                                        mulle_objc_methodid_t methodid)
+   _mulle_objc_class_probe_cacheentry_inline( struct _mulle_objc_class *cls,
+                                              mulle_objc_superid_t methodid)
 {
    struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_cacheentry   *entry;
    struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   mulle_objc_cache_uint_t         mask;
    mulle_objc_cache_uint_t         offset;
 
-   assert( mulle_objc_uniqueid_is_sane( methodid));
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;
 
-   cache   = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
-   offset  = _mulle_objc_cache_find_entryoffset( cache, methodid);
-   entries = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
-   entry   = (void *) &((char *) entries)[ offset];
-   return( entry);
+   offset  = (mulle_objc_cache_uint_t) methodid;
+   do
+   {
+      offset  = offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == methodid)
+         return( entry);
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+   while( entry->key.uniqueid);
+
+   return( NULL);
 }
 
 
-// only searches cache, returns what there
+MULLE_C_ALWAYS_INLINE
 static inline mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_cacheonly( struct _mulle_objc_class *cls,
-                                                      mulle_objc_methodid_t methodid)
+   _mulle_objc_class_probe_implementation_inline( struct _mulle_objc_class *cls,
+                                                  mulle_objc_superid_t methodid)
 {
    struct _mulle_objc_cacheentry   *entry;
-   mulle_functionpointer_t         p;
+   mulle_objc_implementation_t     imp;
 
-   entry   = _mulle_objc_class_lookup_cacheentry( cls, methodid);
-   p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-   return( (mulle_objc_implementation_t) p);
+   entry = _mulle_objc_class_probe_cacheentry_inline( cls, methodid);
+   imp   = entry
+           ? (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer)
+           : 0;
+
+   return( imp);
 }
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_cacheentry *
+   _mulle_objc_class_probe_cacheentry( struct _mulle_objc_class *cls,
+                                       mulle_objc_methodid_t methodid);
+
+// only searches cache, returns what there
+MULLE_OBJC_RUNTIME_GLOBAL
+mulle_objc_implementation_t
+   _mulle_objc_class_probe_implementation( struct _mulle_objc_class *cls,
+                                           mulle_objc_methodid_t methodid);
 
 
 # pragma mark - method lookup
 
 // goes through cache returns an implementation if cached, NULL otherwise
 // will return forward: if nothing found and (!) put it into the cache
+
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
     _mulle_objc_class_lookup_implementation( struct _mulle_objc_class *cls,
@@ -99,10 +127,12 @@ mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nofail( struct _mulle_objc_class *cls,
                                                    mulle_objc_methodid_t methodid);
 
+// used by NSObject, which can't be sure that the cache is not yet properly
+// set up yet
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_nocache( struct _mulle_objc_class *cls,
-                                                    mulle_objc_methodid_t methodid);
+   _mulle_objc_class_lookup_implementation_nofill( struct _mulle_objc_class *cls,
+                                                      mulle_objc_methodid_t methodid);
 
 // goes through cache returns an implementation if cached, tries to fill cache otherwise
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -113,76 +143,108 @@ mulle_objc_implementation_t
 // this will not update the cache
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_nocache_noforward( struct _mulle_objc_class *cls,
+   _mulle_objc_class_lookup_implementation_noforward_nofill( struct _mulle_objc_class *cls,
                                                               mulle_objc_methodid_t methodid);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_nocache_nofail( struct _mulle_objc_class *cls,
-                                                           mulle_objc_methodid_t methodid);
-
-# pragma mark - method super lookup
+   _mulle_objc_class_lookup_implementation_nofail_nofill( struct _mulle_objc_class *cls,
+                                                             mulle_objc_methodid_t methodid);
 
 
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
-static inline mulle_objc_implementation_t
-   _mulle_objc_object_superlookup_implementation_inline_nofail( void *obj,
-                                                                mulle_objc_superid_t superid)
-{
-   struct _mulle_objc_class        *cls;
-   mulle_objc_implementation_t     imp;
-   struct _mulle_objc_methodcache  *mcache;
-   struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_cacheentry   *entries;
-
-   //
-   // never forget, the superid contains the methodid and the classid
-   //
-   cls     = _mulle_objc_object_get_isa( obj);
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mcache  = _mulle_objc_cache_get_methodcache_from_cache( cache);
-
-   imp     = (*mcache->superlookup)( cls, superid);
-   return( imp);
-}
-
-// this is just the non-inline variant of above
-MULLE_OBJC_RUNTIME_GLOBAL
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
-mulle_objc_implementation_t
-   _mulle_objc_object_superlookup_implementation_nofail( void *obj,
-                                                         mulle_objc_superid_t superid);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
-mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
-                                                        mulle_objc_superid_t superid);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
-mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation_nocache_nofail( struct _mulle_objc_class *cls,
-                                                                mulle_objc_superid_t superid);
-
-
-# pragma mark - methodcache refresh
+# pragma mark - impcache refresh
 
 
 // refresh functions, do not check the cache, do the slow search immediately
 // and then update cache. If you don't want to update the cache use a
 // search directly.
 
-
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
-   _mulle_objc_class_superrefresh_implementation_nofail( struct _mulle_objc_class *cls,
+   _mulle_objc_class_refresh_superimplementation_nofail( struct _mulle_objc_class *cls,
                                                          mulle_objc_superid_t superid);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_refresh_implementation_nofail( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t methodid);
+                                                    mulle_objc_methodid_t methodid);
+
+# pragma mark - super lookup
+
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+static inline struct _mulle_objc_super *
+   _mulle_objc_class_lookup_super_nofail( struct _mulle_objc_class *cls,
+                                          mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_universe  *universe;
+   struct _mulle_objc_super     *p;
+
+   //
+   // since "previous_method" in args will not be accessed" this is OK to cast
+   // and obviously cheaper than making a copy
+   //
+   universe = _mulle_objc_class_get_universe( cls);
+   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
+
+   return( p);
+}
+
+
+# pragma mark - method super lookup
+
+
+
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+static inline mulle_objc_implementation_t
+   _mulle_objc_class_lookup_superimplementation_inline_nofail( struct _mulle_objc_class *cls,
+                                                               mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t   imp;
+
+   imp = _mulle_objc_class_probe_implementation_inline( cls, superid);
+   if( ! imp)
+      imp = _mulle_objc_class_refresh_superimplementation_nofail( cls, superid);
+   return( imp);
+}
+
+
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+mulle_objc_implementation_t
+   _mulle_objc_class_search_superimplementation_nofail( struct _mulle_objc_class *cls,
+                                                                mulle_objc_superid_t superid);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+mulle_objc_implementation_t
+   _mulle_objc_class_lookup_superimplementation_nofail( struct _mulle_objc_class *cls,
+                                                        mulle_objc_superid_t superid);
+
+// this is just the non-inline variant of above
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_lookup_superimplementation_inline_nofail( void *obj,
+                                                                mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_class   *cls;
+
+   cls = _mulle_objc_object_get_isa( obj);
+   return( _mulle_objc_class_lookup_superimplementation_inline_nofail( cls, superid));
+}
+
+
+// used by debugger code
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+mulle_objc_implementation_t
+   _mulle_objc_object_lookup_superimplementation_noforward_nofill( void *obj,
+                                                                      mulle_objc_superid_t superid);
+
+// this is just the non-inline variant of above
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+mulle_objc_implementation_t
+   _mulle_objc_object_lookup_superimplementation_nofail( void *obj,
+                                                         mulle_objc_superid_t superid);
+
 
 #endif

@@ -45,7 +45,7 @@
 #include "mulle-objc-fastmethodtable.h"
 #include "mulle-objc-kvccache.h"
 #include "mulle-objc-uniqueid.h"
-#include "mulle-objc-methodcache.h"
+#include "mulle-objc-impcache.h"
 
 
 struct _mulle_objc_class;
@@ -78,7 +78,6 @@ enum _mulle_objc_class_state
    MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE      = 0x0002,
    MULLE_OBJC_CLASS_FIXED_SIZE_CACHE        = 0x0004,
    MULLE_OBJC_CLASS_NO_SEARCH_CACHE         = 0x0008,
-
    //
    // future: object header will contain thread id, the bit will be turned
    //         off my immutable marked classes or by the user, if he wants to
@@ -116,7 +115,7 @@ enum _mulle_objc_class_state
 //
 struct _mulle_objc_class
 {
-   struct _mulle_objc_methodcachepivot     cachepivot;  // DON'T MOVE
+   struct _mulle_objc_impcachepivot     cachepivot;  // DON'T MOVE
 
    /* ^^^ keep above like this, or change mulle_objc_fastmethodtable fault */
 
@@ -152,6 +151,7 @@ struct _mulle_objc_class
    struct _mulle_objc_kvccachepivot        kvc;
    mulle_atomic_pointer_t                  state;
 
+   void                                    *userinfo;       // a void pointer for userinfo
 #ifdef __MULLE_OBJC_FCS__
    struct _mulle_objc_fastmethodtable      vtab;  // dont' move it up, debugs nicer here
 #endif
@@ -211,6 +211,21 @@ static inline void
    assert( (unsigned short) inheritance == inheritance);
 
    cls->inheritance = (unsigned short) inheritance;
+}
+
+
+static inline void *
+   _mulle_objc_class_get_userinfo( struct _mulle_objc_class *cls)
+{
+   return( cls->userinfo);
+}
+
+
+static inline void
+   _mulle_objc_class_set_userinfo( struct _mulle_objc_class *cls,
+                                    void *userinfo)
+{
+   cls->userinfo = userinfo;
 }
 
 

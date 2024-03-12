@@ -72,23 +72,23 @@ struct _mulle_objc_class;
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_ivar  *
-  _mulle_objc_ivarlist_linear_search( struct _mulle_objc_ivarlist *list,
+  _mulle_objc_ivarlist_find( struct _mulle_objc_ivarlist *list,
                                       mulle_objc_ivarid_t ivarid);
 
-static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_binary_search( struct _mulle_objc_ivarlist *list,
+static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_search( struct _mulle_objc_ivarlist *list,
                                                                             mulle_objc_ivarid_t ivarid)
 {
    return( _mulle_objc_ivar_bsearch( list->ivars, list->n_ivars, ivarid));
 }
 
 
-static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_search( struct _mulle_objc_ivarlist *list,
-                                                                      mulle_objc_ivarid_t ivarid)
+static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_search_smart( struct _mulle_objc_ivarlist *list,
+                                                                           mulle_objc_ivarid_t ivarid)
 
 {
    if( list->n_ivars >= 14)
-      return( _mulle_objc_ivarlist_binary_search( list, ivarid));
-   return( _mulle_objc_ivarlist_linear_search( list, ivarid));
+      return( _mulle_objc_ivarlist_search( list, ivarid));
+   return( _mulle_objc_ivarlist_find( list, ivarid));
 }
 
 

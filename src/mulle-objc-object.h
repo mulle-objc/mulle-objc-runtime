@@ -122,6 +122,23 @@ static inline struct _mulle_objc_class *
 }
 
 
+
+//
+// don't use isa in most cases, use get_class (defined elsewhere)
+//
+MULLE_C_ALWAYS_INLINE_NONNULL_RETURN
+static inline struct _mulle_objc_class *
+   _mulle_objc_object_get_non_tps_isa( void *obj)
+{
+   struct _mulle_objc_objectheader  *header;
+
+   assert( mulle_objc_object_get_taggedpointerindex( obj) == 0);
+   header = _mulle_objc_object_get_objectheader( obj);
+   return( _mulle_objc_objectheader_get_isa( header));
+}
+
+
+
 MULLE_C_CONST_RETURN
 MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
    _mulle_objc_object_get_thread( struct _mulle_objc_object *obj)

@@ -166,11 +166,12 @@ static inline mulle_objc_implementation_t
    _mulle_objc_metaclass_lookup_superimplementation( struct _mulle_objc_metaclass *meta,
                                                      mulle_objc_superid_t superid)
 {
-   extern mulle_objc_implementation_t
-      _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
+   MULLE_OBJC_RUNTIME_GLOBAL
+   mulle_objc_implementation_t
+      _mulle_objc_class_lookup_superimplementation_nofail( struct _mulle_objc_class *cls,
                                                            mulle_objc_superid_t superid);
 
-   return( _mulle_objc_class_superlookup_implementation_nofail( &meta->base, superid));
+   return( _mulle_objc_class_lookup_superimplementation_nofail( &meta->base, superid));
 }
 
 

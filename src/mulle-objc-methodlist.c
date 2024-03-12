@@ -72,7 +72,7 @@ mulle_objc_walkcommand_t
 
 
 struct _mulle_objc_method  *
-   _mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
+   _mulle_objc_methodlist_find( struct _mulle_objc_methodlist *list,
                                          mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_method   *sentinel;

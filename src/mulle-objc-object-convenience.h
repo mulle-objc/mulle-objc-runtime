@@ -45,6 +45,7 @@
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-class-convenience.h"
 #include "mulle-objc-call.h"
+#include "mulle-objc-uniqueid.h"
 
 // methods on class shortcuts
 
@@ -55,13 +56,13 @@ static inline char   *_mulle_objc_object_get_isa_name( void *obj)
 
 
 static inline mulle_objc_implementation_t
-    _mulle_objc_object_lookup_implementation_cacheonly( void *obj,
-                                                       mulle_objc_methodid_t methodid)
+    _mulle_objc_object_probe_implementation( void *obj,
+                                             mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   return( _mulle_objc_class_lookup_implementation_cacheonly( cls, methodid));
+   return( _mulle_objc_class_probe_implementation( cls, methodid));
 }
 
 
@@ -88,7 +89,7 @@ static inline mulle_objc_implementation_t
 
 
 static inline struct _mulle_objc_method   *
-    _mulle_objc_object_defaultsearch_method( void *obj,
+    _mulle_objc_object_search_method_default( void *obj,
                                              mulle_objc_methodid_t methodid)
 {
    struct _mulle_objc_class   *cls;

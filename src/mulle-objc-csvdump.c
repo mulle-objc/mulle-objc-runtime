@@ -137,7 +137,7 @@ void
    if( ! cls || ! fp)
       mulle_objc_universe_fail_code( NULL, EINVAL);
 
-   cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
+   cache = _mulle_objc_cachepivot_get_cache_atomic( &cls->cachepivot.pivot);
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return;
 
@@ -330,7 +330,7 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_cache   *cache;
 
-   cache = _mulle_objc_class_get_cache_of_methods( cls);
+   cache = _mulle_objc_class_get_impcache_cache( cls);
 
    if( ! _mulle_objc_cache_get_count( cache) &&
        ! _mulle_objc_cache_get_size( cache))

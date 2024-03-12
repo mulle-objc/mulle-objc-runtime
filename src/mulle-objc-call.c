@@ -39,7 +39,7 @@
 #include "mulle-objc-class-lookup.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-universe-class.h"
-#include "mulle-objc-methodcache.h"
+#include "mulle-objc-impcache.h"
 #include "mulle-objc-methodlist.h"
 #include "mulle-objc-object.h"
 #include "mulle-objc-universe.h"
@@ -50,28 +50,11 @@
 #include <stdlib.h>
 
 
-// this is needed so we can call tracing (at least in -O0 situations)
-MULLE_C_NEVER_INLINE static void *
-   _mulle_objc_object_call_class_nofail( void *obj,
-                                         mulle_objc_methodid_t methodid,
-                                         void *parameter,
-                                         struct  _mulle_objc_class *cls)
-{
-   struct _mulle_objc_universe   *universe;
-   mulle_objc_implementation_t   imp;
-
-   imp      = _mulle_objc_class_lookup_implementation_nofail( cls, methodid);
-   universe = _mulle_objc_class_get_universe( cls);
-   if( universe->debug.trace.method_call)
-      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
-
-   /*->*/
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
-}
-
+//
+// MEMO: these functions need to go through the memory cache vectors
+//
 
 #pragma mark - non-inline API calls
-
 
 
 // we can't do the FCS code here, because its just super slow if
@@ -83,85 +66,17 @@ void   *mulle_objc_object_call( void *obj,
                                 mulle_objc_methodid_t methodid,
                                 void *parameter)
 {
-   mulle_objc_implementation_t      imp;
-   mulle_functionpointer_t          p;
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_cacheentry    *entries;
-   struct _mulle_objc_cacheentry    *entry;
-   struct _mulle_objc_class         *cls;
-   mulle_objc_cache_uint_t          mask;
-   mulle_objc_cache_uint_t          offset;
-
-   if( MULLE_C_UNLIKELY( ! obj))
-      return( obj);
-
-   assert( mulle_objc_uniqueid_is_sane( methodid));
-
-   cls     = _mulle_objc_object_get_isa( obj);
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;
-
-   offset  = (mulle_objc_cache_uint_t) methodid;
-   do
-   {
-      offset  = offset & mask;
-      entry   = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == methodid)
-      {
-         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-         imp = (mulle_objc_implementation_t) p;
-/*->*/
-         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
-      }
-      offset += sizeof( struct _mulle_objc_cacheentry);
-   }
-   while( entry->key.uniqueid);
-/*->*/
-
-   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
+   return( mulle_objc_object_call_inline( obj, methodid, parameter));
 }
 
 
-// as above but not obj check
+// as above but no obj check
 MULLE_C_NEVER_INLINE
 void   *_mulle_objc_object_call( void *obj,
                                  mulle_objc_methodid_t methodid,
                                  void *parameter)
 {
-   mulle_objc_implementation_t     imp;
-   mulle_functionpointer_t         p;
-   struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_class        *cls;
-   mulle_objc_cache_uint_t         mask;
-   mulle_objc_cache_uint_t         offset;
-
-   assert( mulle_objc_uniqueid_is_sane( methodid));
-
-   cls     = _mulle_objc_object_get_isa( obj);
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;
-
-   offset  = (mulle_objc_cache_uint_t) methodid;
-   do
-   {
-      offset  = offset & mask;
-      entry   = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == methodid)
-      {
-         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-         imp = (mulle_objc_implementation_t) p;
-/*->*/
-         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
-      }
-      offset += sizeof( struct _mulle_objc_cacheentry);
-   }
-   while( entry->key.uniqueid);
-/*->*/
-   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
+   return( _mulle_objc_object_call_inline( obj, methodid, parameter));
 }
 
 
@@ -180,6 +95,8 @@ void   *mulle_objc_object_supercall( void *obj,
 # pragma mark - normal callbacks for memorycache
 
 
+// MEMO: these callbacks obviously don't go through the memory cache vectors
+//       again.
 static void   *_mulle_objc_object_call_class( void *obj,
                                               mulle_objc_methodid_t methodid,
                                               void *parameter,
@@ -196,7 +113,7 @@ static void   *_mulle_objc_object_call_class( void *obj,
    assert( obj);
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;
 
@@ -221,8 +138,10 @@ static void   *_mulle_objc_object_call_class( void *obj,
    }
 /*->*/
 
-   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
-}
+
+   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
+   /*->*/
+   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));}
 
 
 //
@@ -246,7 +165,7 @@ static void   *_mulle_objc_object_call2( void *obj,
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
    cls     = _mulle_objc_object_get_isa( obj);
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;
 
@@ -267,7 +186,9 @@ static void   *_mulle_objc_object_call2( void *obj,
    while( entry->key.uniqueid);
 /*->*/
 
-   return( _mulle_objc_object_call_class_nofail( obj, methodid, parameter, cls));
+   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
+   /*->*/
+   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
 }
 
 
@@ -276,19 +197,70 @@ static void   *_mulle_objc_object_call2( void *obj,
 // collision, it skips the first found entry. This is not called directly
 // but placed into the method cache.
 //
-static mulle_objc_implementation_t
-   _mulle_objc_class_superlookup2_implementation_nofail( struct _mulle_objc_class *cls,
-                                                         mulle_objc_superid_t superid)
+static void *
+   _mulle_objc_object_supercall( void *obj,
+                                 mulle_objc_methodid_t methodid,
+                                 void *parameter,
+                                 struct _mulle_objc_class *cls,
+                                 mulle_objc_superid_t superid)
 {
    mulle_objc_implementation_t     imp;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_universe     *universe;
    mulle_objc_cache_uint_t         mask;
    mulle_objc_cache_uint_t         offset;
    mulle_functionpointer_t         p;
 
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;
+
+   offset  = (mulle_objc_cache_uint_t) superid;
+   do
+   {
+      offset  = offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == superid)
+      {
+         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         imp = (mulle_objc_implementation_t) p;
+/*->*/   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+
+      }
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+   while( entry->key.uniqueid);
+/*->*/
+   imp = _mulle_objc_class_refresh_superimplementation_nofail( cls, superid);
+/*->*/
+
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe->debug.trace.method_call)
+      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
+
+   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+}
+
+
+static void *
+   _mulle_objc_object_supercall2( void *obj,
+                                  mulle_objc_methodid_t methodid,
+                                  void *parameter,
+                                  struct _mulle_objc_class *cls,
+                                  mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t     imp;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_universe     *universe;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
+   mulle_functionpointer_t         p;
+
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;
 
@@ -302,23 +274,27 @@ static mulle_objc_implementation_t
       {
          p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp = (mulle_objc_implementation_t) p;
-/*->*/   return( imp);
+/*->*/   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+
       }
    }
    while( entry->key.uniqueid);
 /*->*/
-   imp = _mulle_objc_class_superrefresh_implementation_nofail( cls, superid);
-   // TODO: this doesn't trace yet
-   return( imp);
+   imp = _mulle_objc_class_refresh_superimplementation_nofail( cls, superid);
+/*->*/
+   universe = _mulle_objc_class_get_universe( cls);
+   if( universe->debug.trace.method_call)
+      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
+   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
 }
 
 
-void  _mulle_objc_methodcache_init_normal_callbacks( struct _mulle_objc_methodcache *p)
+void  _mulle_objc_impcache_init_normal_callbacks( struct _mulle_objc_impcache *p)
 {
-   p->call         = _mulle_objc_object_call_class;
-   p->call2        = _mulle_objc_object_call2;
-   p->superlookup  = _mulle_objc_class_superlookup_implementation_nofail;  // public actually
-   p->superlookup2 = _mulle_objc_class_superlookup2_implementation_nofail;
+   p->call       = _mulle_objc_object_call_class;
+   p->call2      = _mulle_objc_object_call2;
+   p->supercall  = _mulle_objc_object_supercall;  // public actually
+   p->supercall2 = _mulle_objc_object_supercall2;
 }
 
 
@@ -369,12 +345,14 @@ void   mulle_objc_objects_call( void **objects,
       }
 
       // TODO: this doesn't trace yet
+
       mulle_objc_implementation_invoke( lastSelIMP[ i], p, methodid, params);
    }
 }
 
 
 # pragma mark - trace method
+
 
 void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
                                     void *obj,
@@ -446,9 +424,6 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 }
 
 
-
-
-
 // In a "regular" callchain, we want to have basically two scenarios:
 // _init and _dealloc. With _init we want to initialize basics first and
 // then progress to the more sophisticated categories in the back.
@@ -456,10 +431,8 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 // As the saying is you go back and forth.. so init dealloc , back and forth
 // The usual search direction is "back" to "front" so thats the usual movement.
 //
-
-
 // used by _init. overridden method come last
-void   _mulle_objc_object_callchain_back( void *obj,
+void   _mulle_objc_object_call_chained_back( void *obj,
                                           mulle_objc_methodid_t methodid,
                                           void *parameter)
 {
@@ -499,9 +472,9 @@ void   _mulle_objc_object_callchain_back( void *obj,
 //
 // and probably also by other calls, since this is the natural direction
 //
-void   _mulle_objc_object_callchain_forth( void *obj,
-                                           mulle_objc_methodid_t methodid,
-                                           void *parameter)
+void   _mulle_objc_object_call_chained_forth( void *obj,
+                                              mulle_objc_methodid_t methodid,
+                                              void *parameter)
 {
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_method       *method;

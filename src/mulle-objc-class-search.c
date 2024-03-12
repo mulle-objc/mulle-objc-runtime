@@ -812,7 +812,7 @@ struct _mulle_objc_method *
 }
 
 
-MULLE_C_NO_RETURN void
+void
    _mulle_objc_class_fail_methodnotfound( struct _mulle_objc_class *cls,
                                            mulle_objc_methodid_t missing_method)
 {
@@ -823,7 +823,7 @@ MULLE_C_NO_RETURN void
 }
 
 
-MULLE_C_NO_RETURN void
+void
    _mulle_objc_class_fail_fowardmethodnotfound( struct _mulle_objc_class *cls,
                                                 mulle_objc_methodid_t missing_method,
                                                 int error)
@@ -851,7 +851,7 @@ MULLE_C_NO_RETURN void
 }
 
 
-MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
+struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t missing_method)
 {
@@ -882,37 +882,28 @@ mulle_objc_implementation_t
 }
 
 
-mulle_objc_implementation_t
-   _mulle_objc_class_search_methodcache( struct _mulle_objc_class *cls,
-                                         mulle_objc_methodid_t methodid)
+struct _mulle_objc_method *
+   _mulle_objc_class_supersearch_method_nofail( struct _mulle_objc_class *cls,
+                                                mulle_objc_superid_t superid)
 {
-   struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_cacheentry   *entries;
-   mulle_objc_implementation_t     imp;
-   mulle_objc_cache_uint_t         mask;
-   mulle_objc_cache_uint_t         offset;
-   mulle_functionpointer_t         p;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_searcharguments   args;
+   struct _mulle_objc_super             *p;
 
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;  // preshifted so we can just AND it to entries
+   //
+   // since "previous_method" in args will not be accessed" this is OK to cast
+   // and obviously cheaper than making a copy
+   //
+   universe = _mulle_objc_class_get_universe( cls);
+   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   offset  = (mulle_objc_cache_uint_t) methodid;
-   do
-   {
-      offset  = offset & mask;
-      entry   = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == methodid)
-      {
-         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-         imp = (mulle_objc_implementation_t) p;
-         return( imp);
-/*->*/
-      }
-      offset += sizeof( struct _mulle_objc_cacheentry);
-   }
-   while( entry->key.uniqueid);
-
-   return( NULL);
+   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
+   method   = mulle_objc_class_search_method( cls,
+                                              &args,
+                                              cls->inheritance,
+                                              NULL);
+   if( ! method)
+      method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, args.args.methodid);
+   return( method);
 }

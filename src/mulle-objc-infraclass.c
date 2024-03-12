@@ -144,7 +144,7 @@ struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _m
 
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
-      property = _mulle_objc_propertylist_search( list, propertyid);
+      property = _mulle_objc_propertylist_search_smart( list, propertyid);
       if( property)
          return( property);
    }
@@ -517,7 +517,7 @@ struct _mulle_objc_ivar   *_mulle_objc_infraclass_search_ivar( struct _mulle_obj
 
    while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
    {
-      ivar = _mulle_objc_ivarlist_search( list, ivarid);
+      ivar = _mulle_objc_ivarlist_search_smart( list, ivarid);
       if( ivar)
          return( ivar);
    }
@@ -890,7 +890,7 @@ int   mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *
 //    meta   = _mulle_objc_infraclass_get_metaclass( infra);
 //    method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
 //                                             &search,
-//                                             -1,  // inherit nothing
+//                                             ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,  // inherit nothing
 //                                             NULL);
 //    return( method);
 // }
@@ -942,7 +942,7 @@ static struct _mulle_objc_method  *
    meta   = _mulle_objc_infraclass_get_metaclass( infra);
    method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
                                             &search,
-                                            -1,  // inherit nothing
+                                            ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,  // inherit nothing
                                             NULL);
    return( method);
 }

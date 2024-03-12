@@ -69,6 +69,8 @@ static inline struct _mulle_objc_method  *
 {
    int   error;
 
+   if( ! cls)
+      return( NULL);
    return( _mulle_objc_class_defaultsearch_method( cls, methodid, &error));
 }
 
@@ -412,7 +414,8 @@ struct _mulle_objc_method   *
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
-MULLE_C_NONNULL_RETURN struct _mulle_objc_method *
+MULLE_C_NONNULL_RETURN
+struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail(
                               struct _mulle_objc_class *cls,
                               mulle_objc_methodid_t missing_method);
@@ -427,8 +430,8 @@ struct _mulle_objc_method  *
 
 # pragma mark - regular search
 
-MULLE_C_NONNULL_RETURN static inline
-struct _mulle_objc_method *
+MULLE_C_NONNULL_RETURN MULLE_C_CONST_RETURN
+static inline struct _mulle_objc_method *
    mulle_objc_class_search_method_nofail( struct _mulle_objc_class *cls,
                                           mulle_objc_methodid_t methodid)
 {
@@ -441,44 +444,48 @@ struct _mulle_objc_method *
    return( method);
 }
 
-# pragma mark - super search
 
-
-MULLE_C_NONNULL_RETURN static inline
-struct _mulle_objc_method *
-   mulle_objc_class_supersearch_method_nofail( struct _mulle_objc_class *cls,
-                                               mulle_objc_superid_t superid)
+MULLE_C_NONNULL_RETURN MULLE_C_CONST_RETURN
+static inline mulle_objc_implementation_t
+   mulle_objc_class_search_implementation_nofail( struct _mulle_objc_class *cls,
+                                                 mulle_objc_methodid_t methodid)
 {
-  MULLE_OBJC_RUNTIME_GLOBAL
-   struct _mulle_objc_super   *
-      _mulle_objc_universe_lookup_super_nofail( struct _mulle_objc_universe *universe,
-                                                  mulle_objc_superid_t superid);
+   struct _mulle_objc_method *method;
 
-   struct _mulle_objc_method             *method;
-   struct _mulle_objc_universe           *universe;
-   struct _mulle_objc_searcharguments    args;
-   struct _mulle_objc_super              *p;
-
-   //
-   // since "previous_method" in args will not be accessed" this is OK to cast
-   // and obviously cheaper than making a copy
-   //
-   universe = _mulle_objc_class_get_universe( cls);
-   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
-
-   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
-   method = mulle_objc_class_search_method( cls,
-                                            &args,
-                                            cls->inheritance,
-                                            NULL);
-   if( ! method)
-      method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, args.args.methodid);
-   return( method);
+   method = mulle_objc_class_search_method_nofail( cls, methodid);
+   return( _mulle_objc_method_get_implementation( method));
 }
 
 
-mulle_objc_implementation_t
-   _mulle_objc_class_search_methodcache( struct _mulle_objc_class *cls,
-                                         mulle_objc_methodid_t methodid);
+# pragma mark - super search
+
+
+MULLE_C_NONNULL_RETURN
+struct _mulle_objc_method *
+   _mulle_objc_class_supersearch_method_nofail( struct _mulle_objc_class *cls,
+                                                mulle_objc_superid_t superid);
+
+
+MULLE_C_NONNULL_RETURN MULLE_C_CONST_RETURN
+static inline mulle_objc_implementation_t
+   _mulle_objc_class_supersearch_implementation_nofail( struct _mulle_objc_class *cls,
+                                                        mulle_objc_methodid_t superid)
+{
+   struct _mulle_objc_method *method;
+
+   method = _mulle_objc_class_supersearch_method_nofail( cls, superid);
+   return( _mulle_objc_method_get_implementation( method));
+}
 
 #endif /* mulle_objc_class_search_h */
+
+
+// Conveniences for class
+// cachepivot can be NULL, in which case the impcachepivot of class is
+// used
+MULLE_OBJC_RUNTIME_GLOBAL
+void
+    _mulle_objc_class_fill_impcache( struct _mulle_objc_class *cls,
+                                     struct _mulle_objc_impcachepivot *cachepivot,
+                                     struct _mulle_objc_method *method,
+                                     mulle_objc_uniqueid_t uniqueid);

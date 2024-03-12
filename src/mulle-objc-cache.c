@@ -125,7 +125,7 @@ void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
 
 
 // used by benchmark code
-int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache,
+int   _mulle_objc_cache_probe_entryindex( struct _mulle_objc_cache *cache,
                                          mulle_objc_uniqueid_t uniqueid)
 {
    int                             index;
@@ -170,7 +170,7 @@ int   _mulle_objc_cache_find_entryindex( struct _mulle_objc_cache *cache,
 // (at least at the moment)
 //
 mulle_objc_cache_uint_t
-   _mulle_objc_cache_find_entryoffset( struct _mulle_objc_cache *cache,
+   _mulle_objc_cache_probe_entryoffset( struct _mulle_objc_cache *cache,
                                        mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entries;
@@ -293,14 +293,14 @@ unsigned int   mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cach
 // has enough space (!)
 
 struct _mulle_objc_cacheentry   *
-   _mulle_objc_cache_inactivecache_add_pointer_entry( struct _mulle_objc_cache *cache,
-                                                      void *pointer,
-                                                      mulle_objc_uniqueid_t uniqueid)
+   _mulle_objc_cache_add_pointer_inactive( struct _mulle_objc_cache *cache,
+                                            void *pointer,
+                                            mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
 
-   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
+   offset = _mulle_objc_cache_probe_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
@@ -318,14 +318,14 @@ struct _mulle_objc_cacheentry   *
 
 
 struct _mulle_objc_cacheentry   *
-   _mulle_objc_cache_inactivecache_add_functionpointer_entry( struct _mulle_objc_cache *cache,
-                                                              mulle_functionpointer_t pointer,
-                                                              mulle_objc_uniqueid_t uniqueid)
+   _mulle_objc_cache_add_functionpointer_inactive( struct _mulle_objc_cache *cache,
+                                                   mulle_functionpointer_t pointer,
+                                                   mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entry;
    mulle_objc_uniqueid_t           offset;
 
-   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
+   offset = _mulle_objc_cache_probe_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
@@ -358,7 +358,7 @@ struct _mulle_objc_cacheentry   *
    //
    // entries pointer never changes in cache..
    //
-   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
+   offset = _mulle_objc_cache_probe_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    //
@@ -413,7 +413,7 @@ struct _mulle_objc_cacheentry   *
    //
    // entries pointer never changes in cache..
    //
-   offset = _mulle_objc_cache_find_entryoffset( cache, uniqueid);
+   offset = _mulle_objc_cache_probe_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    //

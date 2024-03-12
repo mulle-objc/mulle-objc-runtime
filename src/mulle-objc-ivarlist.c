@@ -41,7 +41,7 @@
 #include <assert.h>
 
 
-struct _mulle_objc_ivar  *_mulle_objc_ivarlist_linear_search( struct _mulle_objc_ivarlist *list,
+struct _mulle_objc_ivar  *_mulle_objc_ivarlist_find( struct _mulle_objc_ivarlist *list,
                                                               mulle_objc_ivarid_t ivarid)
 {
    struct _mulle_objc_ivar   *sentinel;

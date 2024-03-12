@@ -253,10 +253,10 @@ static inline mulle_objc_implementation_t
 {
    MULLE_OBJC_RUNTIME_GLOBAL
    mulle_objc_implementation_t
-      _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
+      _mulle_objc_class_lookup_superimplementation_nofail( struct _mulle_objc_class *cls,
                                                            mulle_objc_superid_t superid);
 
-   return( _mulle_objc_class_superlookup_implementation_nofail( &infra->base, superid));
+   return( _mulle_objc_class_lookup_superimplementation_nofail( &infra->base, superid));
 }
 
 

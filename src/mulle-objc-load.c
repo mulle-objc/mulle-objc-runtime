@@ -1166,9 +1166,9 @@ char   *_mulle_objc_loadhashedstring_bsearch( struct _mulle_objc_loadhashedstrin
 }
 
 
-char   *_mulle_objc_loadhashedstring_search( struct _mulle_objc_loadhashedstring *buf,
-                                             unsigned int n,
-                                             mulle_objc_uniqueid_t search)
+char   *_mulle_objc_loadhashedstring_find( struct _mulle_objc_loadhashedstring *buf,
+                                           unsigned int n,
+                                           mulle_objc_uniqueid_t search)
 {
    struct _mulle_objc_loadhashedstring   *p;
    struct _mulle_objc_loadhashedstring   *sentinel;

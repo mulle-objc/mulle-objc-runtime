@@ -71,7 +71,7 @@ char   *_mulle_objc_propertysignature_next_types( char *s, char *types)
 
 struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_property *buf,
                                                              unsigned int n,
-                                                            mulle_objc_propertyid_t search)
+                                                             mulle_objc_propertyid_t search)
 {
    int        first;
    int        last;

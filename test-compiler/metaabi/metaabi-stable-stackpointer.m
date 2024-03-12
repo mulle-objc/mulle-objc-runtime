@@ -35,29 +35,24 @@ int   main( int argc, const char * argv[])
    void   *sp;
    int    i;
 
-   // theory: first call needs to warm up the cache so there - could -
-   //         be a difference in stack pointers between the first and
-   //         second call
-   [Foo callWithA:1.0
-                b:2.0
-                c:3.0
-                d:4.0
-                e:5.0
-                f:6.0];
-
+   // theory: first call needs to run initialize to setup cache which will be
+   //         empty.
+   //         second call will then fill the cache
+   //         third call will be from cached and then the sp should be stable
+   //         starting from the fourth call
    sp = 0;
 
    // now the stackpointer should remain stable
-   for( i = 0; i < 999; i++)
+   for( i = 1; i <= 1000; i++)
    {
       osp = sp;
-      sp = [Foo callWithA:1.0
-                        b:2.0
-                        c:3.0
-                        d:4.0
-                        e:5.0
-                        f:6.0];
-      if( i != 0 && sp != osp)
+      sp  = [Foo callWithA:1.0
+                         b:2.0
+                         c:3.0
+                         d:4.0
+                         e:5.0
+                         f:6.0];
+      if( i >= 4 && sp != osp)
       {
          fprintf( stderr, "FAIL\n");
          return( 1);
