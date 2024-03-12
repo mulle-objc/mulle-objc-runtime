@@ -95,10 +95,10 @@ static inline mulle_thread_t
    // the universe is winding down and releasing stuff
    // could ask [NSThread isMultithreaded], but it seems wrong
    universe = _mulle_objc_object_get_universe( obj);
-   return( ! _mulle_objc_universe_is_deinitializing( universe));
+   if( _mulle_objc_universe_is_deinitializing( universe))
+      return( 0);
+   return( object_thread);
 }
-
-
 
 
 static inline void  *
@@ -111,17 +111,14 @@ static inline void  *
    // we could f.e. save the thread affinity into the object and check
    // if we match
 #ifndef NDEBUG
-   mulle_thread_t                affinity_thread;
-   struct _mulle_objc_universe   *universe;
+   mulle_thread_t    affinity_thread;
+   extern MULLE_C_NO_RETURN
+   void  mulle_objc_object_fail_thread_affinity( struct _mulle_objc_object *obj,
+                                                 mulle_thread_t affinity_thread);
 
    affinity_thread = _mulle_objc_is_object_called_by_wrong_thread( self, sel);
    if( affinity_thread)
-   {
-      universe = _mulle_objc_object_get_universe( self);
-      mulle_objc_universe_fail_generic( universe,
-                                        "Object %p with affinity to thread %p called from wrong thread",
-                                        self, affinity_thread);
-   }
+      mulle_objc_object_fail_thread_affinity( self, affinity_thread);;
 #endif
    return( (*imp)( self, sel, param));
 }
