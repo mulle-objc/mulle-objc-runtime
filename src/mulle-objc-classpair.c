@@ -316,7 +316,7 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
    }
 
 
-   infra    = _mulle_objc_classpair_get_infraclass( pair);
+   infra = _mulle_objc_classpair_get_infraclass( pair);
    if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
    {
       if( universe->debug.warn.protocolclass)

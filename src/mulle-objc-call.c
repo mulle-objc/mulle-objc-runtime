@@ -502,3 +502,25 @@ void   _mulle_objc_object_call_chained_forth( void *obj,
       }
    }
 }
+
+
+
+void  mulle_objc_object_fail_thread_affinity( struct _mulle_objc_object *obj,
+                                              mulle_thread_t affinity_thread)
+{
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_class      *cls;
+   int                           ismeta;
+
+   universe = _mulle_objc_object_get_universe( obj);
+   cls      = _mulle_objc_object_get_isa( obj);
+   ismeta   = _mulle_objc_class_is_metaclass( cls);
+
+   mulle_objc_universe_fail_generic( universe,
+                                     "%s <%s %p> with affinity to thread %p called from wrong thread %p",
+                                     ismeta ? "Class" : "Object",
+                                     _mulle_objc_class_get_name( cls),
+                                     obj,
+                                     affinity_thread,
+                                     mulle_thread_self());
+}

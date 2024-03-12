@@ -157,31 +157,19 @@ void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cl
 
 
 static void
-   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infraclass *infra)
+   mulle_objc_metaclass_execute_initialize_method( struct _mulle_objc_metaclass *meta,
+                                                   struct _mulle_objc_method *initialize,
+                                                   struct _mulle_objc_infraclass *infra)
 {
-   struct _mulle_objc_method       *initialize;
-   struct _mulle_objc_universe     *universe;
-   struct _mulle_objc_metaclass    *meta;
-   mulle_objc_implementation_t     imp;
-   char                            *name;
-   int                             preserve;
+   mulle_objc_implementation_t   imp;
+   struct _mulle_objc_universe   *universe;
 
-   preserve = errno;
-
-   universe = _mulle_objc_infraclass_get_universe( infra);
-   meta     = _mulle_objc_infraclass_get_metaclass( infra);
-   name     = _mulle_objc_infraclass_get_name( infra);
-
-   // grab code from superclass
-   // this is useful for MulleObjCSingleton
-   initialize = mulle_objc_class_defaultsearch_method( &meta->base,
-                                                       MULLE_OBJC_INITIALIZE_METHODID);
+   universe = _mulle_objc_metaclass_get_universe( meta);
    if( ! initialize)
    {
       if( universe->debug.trace.initialize)
-         mulle_objc_universe_trace( universe, "no +[%s initialize] found", name);
-
-      errno = preserve;
+         mulle_objc_universe_trace( universe, "no +[%s initialize] found",
+                                               _mulle_objc_metaclass_get_name( meta));
       return;
    }
 
@@ -207,8 +195,77 @@ static void
       mulle_objc_universe_trace( universe,
                                  "done +[%s initialize]",
                                  _mulle_objc_metaclass_get_name( meta));
+}
+
+
+static void
+   _mulle_objc_metaclass_call_initialize( struct _mulle_objc_metaclass *meta,
+                                          unsigned inheritance,
+                                          struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_method            *initialize;
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_searchresult      result;
+   int                                  preserve;
+
+   preserve = errno;
+
+   _mulle_objc_searcharguments_init_default( &search, MULLE_OBJC_INITIALIZE_METHODID);
+   initialize = mulle_objc_class_search_method( &meta->base,
+                                                &search,
+                                                inheritance,
+                                                &result);
+
+   mulle_objc_metaclass_execute_initialize_method( meta, initialize, infra);
+
    errno = preserve;
 }
+
+
+static void
+   _mulle_objc_infraclass_call_initialize( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_metaclass   *meta;
+   struct _mulle_objc_class       *cls;
+   unsigned int                   inheritance;
+
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+      return;
+
+
+   meta         = _mulle_objc_infraclass_get_metaclass( infra);
+   cls          = _mulle_objc_metaclass_as_class( meta);
+   inheritance  = _mulle_objc_class_get_inheritance( cls);
+   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
+   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
+   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
+
+   _mulle_objc_metaclass_call_initialize( meta, inheritance, infra);
+}
+
+
+static void
+   _mulle_objc_infraclass_call_protocolclasses_initialize( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_classpair                 *pair;
+   struct _mulle_objc_protocolclassenumerator   rover;
+   struct _mulle_objc_infraclass                *protocolclass;
+   struct _mulle_objc_metaclass                 *metaprotocolclass;
+
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+      return;
+
+   pair  = _mulle_objc_infraclass_get_classpair( infra);
+   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
+   while( protocolclass = _mulle_objc_protocolclassenumerator_next( &rover))
+   {
+      metaprotocolclass  = _mulle_objc_infraclass_get_metaclass( protocolclass);
+      // just inherit from class nothing else
+      _mulle_objc_metaclass_call_initialize( metaprotocolclass, ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS, infra);
+   }
+   _mulle_objc_protocolclassenumerator_done( &rover);
+}
+
 
 
 static void  _mulle_objc_infraclass_setup_superclasses( struct _mulle_objc_infraclass *infra)
@@ -320,7 +377,9 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
          //       messaged before the subclass, it isn't guaranteed that it has
          //       completed.
          _mulle_objc_infraclass_call_initialize( infra);
-
+         // finally we run the protocol classes initialize, it seems the
+         // right place now
+         _mulle_objc_infraclass_call_protocolclasses_initialize( infra);
          _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
 
          // now we can let it rip
