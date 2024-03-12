@@ -554,16 +554,8 @@ static int   abafree_nofail( void  *aba,
 static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *universe,
                                                  struct mulle_allocator *allocator)
 {
-   extern void   *_mulle_objc_object_call_needcache( void *obj,
-                                                        mulle_objc_methodid_t methodid,
-                                                        void *parameter);
-   extern mulle_objc_implementation_t
-      _mulle_objc_class_superlookup_needcache( struct _mulle_objc_class *cls,
-                                                mulle_objc_superid_t superid);
-
-
    void   mulle_objc_vprintf_abort( char *format, va_list args);
-   char *kind;
+   char   *kind;
 
    assert( universe);
 
@@ -609,8 +601,8 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    // the initial cache is place into classes, thatz haven't run +initialize
    // yes, with the callbacks need to properly call
    // +initialize and other things
-   _mulle_objc_methodcache_init_initial_callbacks( &universe->initial_methodcache);
-   _mulle_objc_methodcache_init_empty_callbacks( &universe->empty_methodcache);
+   _mulle_objc_impcache_init_initial_callbacks( &universe->initial_impcache);
+   _mulle_objc_impcache_init_empty_callbacks( &universe->empty_impcache);
 
    universe->memory.allocator         = *allocator;
    universe->memory.allocator.aba     = &universe->garbage.aba;
@@ -1757,7 +1749,7 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
 
    _mulle_objc_universe_free_classgraph( universe);
 
-   cache = _mulle_objc_cachepivot_atomicget_cache( &universe->cachepivot);
+   cache = _mulle_objc_cachepivot_get_cache_atomic( &universe->cachepivot);
    if( cache != &universe->empty_cache)
       _mulle_objc_cache_free( cache, allocator);
 
@@ -2582,22 +2574,36 @@ mulle_objc_walkcommand_t
                                         mulle_objc_walk_protocols_callback callback,
                                         void *userinfo)
 {
-   mulle_objc_walkcommand_t                    cmd;
-   struct _mulle_objc_protocol                 *protocol;
-   struct mulle_concurrent_hashmapenumerator   rover;
+   mulle_objc_walkcommand_t      cmd;
+   struct _mulle_objc_protocol   *protocol;
+   struct _mulle_objc_protocol   *skip;
+   void                          *hash;
+   int                           rval;
 
    if( ! universe || ! callback)
       return( mulle_objc_walk_error);
 
-   cmd   = mulle_objc_walk_done;
-   rover = mulle_concurrent_hashmap_enumerate( &universe->protocoltable);  // slow!
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &protocol))
+   cmd  = mulle_objc_walk_done;
+   skip = NULL;
+again:
+   mulle_concurrent_hashmap_for( &universe->protocoltable, hash, protocol, rval)
    {
+      if( skip)
+      {
+         if( protocol == skip)
+            skip = NULL;
+         continue;
+      }
       cmd = (*callback)( universe, protocol, userinfo);
       if( mulle_objc_walkcommand_is_stopper( cmd))
          break;
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
+
+   if( rval == EBUSY)
+   {
+      skip = protocol;
+      goto again;
+   }
 
    return( cmd);
 }
@@ -2613,8 +2619,8 @@ char   *_mulle_objc_universe_lookup_category( struct _mulle_objc_universe *unive
 
 
 int   _mulle_objc_universe_add_category( struct _mulle_objc_universe *universe,
-                                        mulle_objc_categoryid_t categoryid,
-                                        char *name)
+                                         mulle_objc_categoryid_t categoryid,
+                                         char *name)
 
 {
    char   *dup;
@@ -2704,14 +2710,12 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
 
 void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe)
 {
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   struct _mulle_objc_object                        *string;
-   struct mulle_allocator                           *allocator;
-   int                                              flag;
+   struct _mulle_objc_object   *string;
+   struct mulle_allocator      *allocator;
+   int                         flag;
 
-   flag  = universe->debug.trace.string_add;
-   rover = mulle_concurrent_pointerarray_enumerate( &universe->staticstrings);
-   while( string = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   flag = universe->debug.trace.string_add;
+   mulle_concurrent_pointerarray_for( &universe->staticstrings, string)
    {
       _mulle_objc_object_set_isa( string,
                                  _mulle_objc_infraclass_as_class( universe->foundation.staticstringclass));
@@ -2721,7 +2725,6 @@ void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_univ
                                     ((struct _NSConstantString *) string)->_storage,
                                     string);
    }
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
 
    // if so configured wipe the list
    // effectivey _mulle_objc_universe_didchange_staticstringclass should then
@@ -2761,19 +2764,16 @@ void   _mulle_objc_universe_add_loadhashedstringlist( struct _mulle_objc_univers
 char  *_mulle_objc_universe_search_hashstring( struct _mulle_objc_universe *universe,
                                                mulle_objc_uniqueid_t hash)
 {
-   struct mulle_concurrent_pointerarrayenumerator   rover;
-   struct _mulle_objc_loadhashedstringlist          *map;
-   char                                             *s;
+   struct _mulle_objc_loadhashedstringlist   *map;
+   char                                      *s;
 
-   s     = NULL;
-   rover = mulle_concurrent_pointerarray_enumerate( &universe->hashnames);
-   while( map = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   s = NULL;
+   mulle_concurrent_pointerarray_for( &universe->hashnames, map)
    {
-      s = mulle_objc_loadhashedstringlist_bsearch( map, hash);
+      s = mulle_objc_loadhashedstringlist_search( map, hash);
       if( s)
          break;
    }
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
 
    return( s);
 }
@@ -2953,12 +2953,12 @@ static int   mulle_objc_infraclass_is_subclass( struct _mulle_objc_infraclass *i
 
 
 static mulle_objc_walkcommand_t
-      invalidate_classcaches_callback( struct _mulle_objc_universe *universe,
-                                        void *p,
-                                        enum mulle_objc_walkpointertype_t type,
-                                        char *key,
-                                        void *parent,
-                                        void *userinfo)
+   invalidate_classcaches_callback( struct _mulle_objc_universe *universe,
+                                     void *p,
+                                     enum mulle_objc_walkpointertype_t type,
+                                     char *key,
+                                     void *parent,
+                                     void *userinfo)
 {
    struct _mulle_objc_infraclass   *infra = p;
    struct _mulle_objc_infraclass   *kindofcls = userinfo;
@@ -2966,12 +2966,12 @@ static mulle_objc_walkcommand_t
 
    if( mulle_objc_infraclass_is_subclass( infra, kindofcls))
    {
-      mulle_objc_class_invalidate_methodcache( _mulle_objc_infraclass_as_class( infra));
+      mulle_objc_class_invalidate_impcache( _mulle_objc_infraclass_as_class( infra));
       _mulle_objc_class_invalidate_kvccache( _mulle_objc_infraclass_as_class( infra));
 
       meta = _mulle_objc_infraclass_get_metaclass( infra);
 
-      mulle_objc_class_invalidate_methodcache( _mulle_objc_metaclass_as_class( meta));
+      mulle_objc_class_invalidate_impcache( _mulle_objc_metaclass_as_class( meta));
       _mulle_objc_class_invalidate_kvccache( _mulle_objc_metaclass_as_class( meta));
    }
    return( mulle_objc_walk_ok);

@@ -177,7 +177,7 @@ struct _mulle_objc_kvcinfo  *
    struct _mulle_objc_kvcinfo      *info;
 
    keyid = mulle_objc_uniqueid_from_string( key);
-   info  = _mulle_objc_cache_lookup_pointer(  (struct _mulle_objc_cache *) cache, keyid);
+   info  = _mulle_objc_cache_probe_pointer(  (struct _mulle_objc_cache *) cache, keyid);
    if( ! info)
       return( NULL);
 

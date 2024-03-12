@@ -117,7 +117,7 @@ static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassid
 
       protocol = NULL;
       if( protocols)
-         protocol = _mulle_objc_protocollist_search( protocols, protoid);
+         protocol = _mulle_objc_protocollist_search_smart( protocols, protoid);
       if( protocol)
          fprintf( fp, "%s@class %s;\n%s@protocol %s;\n",
                           prefix, protocol->name, prefix, protocol->name);
@@ -175,10 +175,10 @@ static void   loadsuper_dump( struct _mulle_objc_super *p,
    char   *methodname;
 
    // because we aren't sorted necessarily use slow search
-   classname  = mulle_objc_loadhashedstringlist_search( strings, p->classid);
+   classname  = mulle_objc_loadhashedstringlist_find( strings, p->classid);
    if( ! classname)
       classname = _mulle_objc_universe_describe_classid( universe, p->superid);
-   methodname = mulle_objc_loadhashedstringlist_search( strings, p->methodid);
+   methodname = mulle_objc_loadhashedstringlist_find( strings, p->methodid);
    if( ! methodname && universe)
       methodname = _mulle_objc_universe_describe_methodid( universe, p->superid);
 

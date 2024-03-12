@@ -41,7 +41,7 @@
 #include "mulle-objc-class.h"
 #include "mulle-objc-classpair.h"
 #include "mulle-objc-cache.h"
-#include "mulle-objc-methodcache.h"
+#include "mulle-objc-impcache.h"
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-metaclass.h"
 #include "mulle-objc-method.h"
@@ -63,8 +63,9 @@ static inline mulle_thread_t
    _mulle_objc_is_object_called_by_wrong_thread( void *obj,
                                                  mulle_objc_methodid_t sel)
 {
-   mulle_thread_t   object_thread;
-   mulle_thread_t   curr_thread;
+   mulle_thread_t                object_thread;
+   mulle_thread_t                curr_thread;
+   struct _mulle_objc_universe   *universe;
 
    // this is no problem, as these are known to be threadsafe
    if( sel == MULLE_OBJC_RELEASE_METHODID || sel == MULLE_OBJC_RETAIN_METHODID)
@@ -87,7 +88,14 @@ static inline mulle_thread_t
    //    return( 0);
    // }
 
-   return( object_thread != curr_thread ? object_thread : 0);
+   if( object_thread == curr_thread)
+      return( 0);
+
+   // OK so its wrong, but are we still multi-threaded ? could be that
+   // the universe is winding down and releasing stuff
+   // could ask [NSThread isMultithreaded], but it seems wrong
+   universe = _mulle_objc_object_get_universe( obj);
+   return( ! _mulle_objc_universe_is_deinitializing( universe));
 }
 
 
@@ -184,18 +192,19 @@ static inline void   *
 // use this for -O3. -O3 is the cmake default. But the "full" inline
 // is a bit much for default release IMO
 //
-MULLE_C_ALWAYS_INLINE static inline void  *
+MULLE_C_ALWAYS_INLINE
+static inline void  *
    mulle_objc_object_call_inline_partial( void *obj,
                                           mulle_objc_methodid_t methodid,
                                           void *parameter)
 {
 #ifdef __MULLE_OBJC_FCS__
-   int                        index;
+   int                             index;
 #endif
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_methodcache  *mcache;
+   struct _mulle_objc_impcache  *icache;
 
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
@@ -208,10 +217,10 @@ MULLE_C_ALWAYS_INLINE static inline void  *
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mcache  = _mulle_objc_cache_get_methodcache_from_cache( cache);
-   return( (*mcache->call)( obj, methodid, parameter, cls));
+   icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
+   return( (*icache->call)( obj, methodid, parameter, cls));
 }
 
 
@@ -227,25 +236,23 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // use this for -fobjc-inline-calls=0 == none
 //
 //
-MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_call_inline( void *obj,
-                                  mulle_objc_methodid_t methodid,
-                                  void *parameter)
+MULLE_C_ALWAYS_INLINE
+static inline void  *
+   _mulle_objc_object_call_inline( void *obj,
+                                   mulle_objc_methodid_t methodid,
+                                   void *parameter)
 {
 #ifdef __MULLE_OBJC_FCS__
    int                              index;
 #endif
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_methodcache   *mcache;
+   struct _mulle_objc_impcache   *icache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_class         *cls;
    mulle_objc_cache_uint_t          mask;
    mulle_objc_cache_uint_t          offset;
-
-   if( MULLE_C_UNLIKELY( ! obj))
-      return( obj);
 
    //
    // with tagged pointers inlining starts to become useless, because this
@@ -265,7 +272,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
    // MEMO: When inlining, we are "fine" if the cache is stale
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;  // preshifted so we can just AND it to entries
 
@@ -276,10 +283,23 @@ MULLE_C_ALWAYS_INLINE static inline void  *
       f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
    else
    {
-      mcache = _mulle_objc_cache_get_methodcache_from_cache( cache);
-      f      = mcache->call2;
+      icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+      f      = icache->call2;
    }
    return( mulle_objc_implementation_invoke( f, obj, methodid, parameter));
+}
+
+
+MULLE_C_ALWAYS_INLINE
+static inline void  *
+   mulle_objc_object_call_inline( void *obj,
+                                   mulle_objc_methodid_t methodid,
+                                   void *parameter)
+{
+   if( MULLE_C_UNLIKELY( ! obj))
+      return( obj);
+
+   return( _mulle_objc_object_call_inline( obj, methodid, parameter));
 }
 
 
@@ -294,7 +314,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
                                                    void *parameter)
 {
    mulle_objc_implementation_t     f;
-   struct _mulle_objc_methodcache  *mcache;
+   struct _mulle_objc_impcache  *icache;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
@@ -308,7 +328,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
    cls     = _mulle_objc_object_get_isa( obj);
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;  // preshifted so we can just AND it to entries
 
@@ -319,8 +339,8 @@ MULLE_C_ALWAYS_INLINE static inline void  *
       f = (mulle_objc_implementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
    else
    {
-      mcache = _mulle_objc_cache_get_methodcache_from_cache( cache);
-      f      = mcache->call2;
+      icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+      f      = icache->call2;
    }
    return( mulle_objc_implementation_invoke( f, obj, methodid, parameter));
 }
@@ -361,19 +381,17 @@ static inline void   *
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_methodcache  *mcache;
-   mulle_objc_implementation_t     imp;
+   struct _mulle_objc_impcache  *icache;
 
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
    cls     = _mulle_objc_object_get_isa( obj);
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mcache  = _mulle_objc_cache_get_methodcache_from_cache( cache);
+   icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
 
-   imp     = (*mcache->superlookup)( cls, superid);
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+   return( (*icache->supercall)( obj, methodid, parameter, cls, superid));
 }
 
 
@@ -386,7 +404,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 {
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_methodcache   *mcache;
+   struct _mulle_objc_impcache   *icache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_class         *cls;
@@ -404,7 +422,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    mask    = cache->mask;  // preshifted so we can just AND it to entries
 
@@ -412,13 +430,12 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    entry   = (void *) &((char *) entries)[ offset];
 
    if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
-      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
-   else
    {
-      mcache = _mulle_objc_cache_get_methodcache_from_cache( cache);
-      f      = (*mcache->superlookup2)( cls, superid);
+      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+      return( mulle_objc_implementation_invoke( f, obj, methodid, parameter));
    }
-   return( mulle_objc_implementation_invoke( f, obj, methodid, parameter));
+   icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+   return( (*icache->supercall2)( obj, methodid, parameter, cls, superid));
 }
 
 
@@ -443,44 +460,44 @@ void   mulle_objc_objects_call( void **objects,
 
 
 // a call chain looks somewhat like this:
-// @implementation A      - init { _mulle_objc_object_callchain_back( self, @selector( _init), self); return( self); }
+// @implementation A      - init { _mulle_objc_object_call_chained_back( self, @selector( _init), self); return( self); }
 // @implementation A( X)  - _init { printf( "X\n"); }
 // @implementation A( Y)  - _init { printf( "Y\n"); }
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_object_callchain_back( void *obj,
+void   _mulle_objc_object_call_chained_back( void *obj,
                                           mulle_objc_methodid_t methodid,
                                           void *parameter);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_object_callchain_forth( void *obj,
+void   _mulle_objc_object_call_chained_forth( void *obj,
                                            mulle_objc_methodid_t methodid,
                                            void *parameter);
 
 
 MULLE_C_ALWAYS_INLINE
 static inline void
-   mulle_objc_object_callchain_back( void *obj,
+   mulle_objc_object_call_chained_back( void *obj,
                                      mulle_objc_methodid_t methodid,
                                      void *parameter)
 {
    if( MULLE_C_UNLIKELY( ! obj))
       return;
 
-   _mulle_objc_object_callchain_back( obj, methodid, parameter);
+   _mulle_objc_object_call_chained_back( obj, methodid, parameter);
 }
 
 
 MULLE_C_ALWAYS_INLINE
 static inline void
-   mulle_objc_object_callchain_forth( void *obj,
+   mulle_objc_object_call_chained_forth( void *obj,
                                       mulle_objc_methodid_t methodid,
                                       void *parameter)
 {
    if( MULLE_C_UNLIKELY( ! obj))
       return;
 
-   _mulle_objc_object_callchain_forth( obj, methodid, parameter);
+   _mulle_objc_object_call_chained_forth( obj, methodid, parameter);
 }
 
 
@@ -489,7 +506,7 @@ static inline void
 # pragma mark - special initial setup calls
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void  _mulle_objc_methodcache_init_normal_callbacks( struct _mulle_objc_methodcache *p);
+void  _mulle_objc_impcache_init_normal_callbacks( struct _mulle_objc_impcache *p);
 
 
 #pragma mark - low level support

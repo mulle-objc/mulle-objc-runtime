@@ -65,22 +65,22 @@ void   mulle_objc_protocollist_sort( struct _mulle_objc_protocollist *list);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_protocol  *
-   _mulle_objc_protocollist_linear_search( struct _mulle_objc_protocollist *list,
+   _mulle_objc_protocollist_find( struct _mulle_objc_protocollist *list,
                                            mulle_objc_protocolid_t protocolid);
 
-static inline struct _mulle_objc_protocol  *_mulle_objc_protocollist_binary_search( struct _mulle_objc_protocollist *list,
+static inline struct _mulle_objc_protocol  *_mulle_objc_protocollist_search( struct _mulle_objc_protocollist *list,
                                                                                     mulle_objc_protocolid_t protocolid)
 {
    return( _mulle_objc_protocol_bsearch( list->protocols, list->n_protocols, protocolid));
 }
 
 
-static inline struct _mulle_objc_protocol  *_mulle_objc_protocollist_search( struct _mulle_objc_protocollist *list,
-                                                                                 mulle_objc_protocolid_t protocolid)
+static inline struct _mulle_objc_protocol  *_mulle_objc_protocollist_search_smart( struct _mulle_objc_protocollist *list,
+                                                                                   mulle_objc_protocolid_t protocolid)
 {
    if( list->n_protocols >= 14) // 14 is a researched value (i7)
-      return( _mulle_objc_protocollist_binary_search( list, protocolid));
-   return( _mulle_objc_protocollist_linear_search( list, protocolid));
+      return( _mulle_objc_protocollist_search( list, protocolid));
+   return( _mulle_objc_protocollist_find( list, protocolid));
 }
 
 

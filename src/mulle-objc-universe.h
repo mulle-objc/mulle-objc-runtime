@@ -278,7 +278,7 @@ int   _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_u
 
 
 static inline int
-   mulle_objc_universe_search_free_taggedpointerclass( struct _mulle_objc_universe *universe)
+   mulle_objc_universe_find_free_taggedpointerclass( struct _mulle_objc_universe *universe)
 {
    unsigned int   i;
 
@@ -460,6 +460,7 @@ static inline void   *
 
 #pragma mark - debug support for foundation (with gifting)
 
+// this is not thread safe
 static inline void   mulle_objc_universe_set_path( struct _mulle_objc_universe *universe,
                                                    char *s)
 {
@@ -621,6 +622,7 @@ static inline void
 
 #pragma mark - classes
 
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_classpair   *
    mulle_objc_universe_new_classpair( struct _mulle_objc_universe *universe,
                                       mulle_objc_classid_t  classid,
@@ -719,9 +721,10 @@ struct _mulle_objc_super   *
                                       mulle_objc_superid_t superid);
 
 MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_CONST_NONNULL_RETURN
 struct _mulle_objc_super   *
    _mulle_objc_universe_lookup_super_nofail( struct _mulle_objc_universe *universe,
-                                               mulle_objc_superid_t superid);
+                                             mulle_objc_superid_t superid);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_universe_add_super( struct _mulle_objc_universe *universe,

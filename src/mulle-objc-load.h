@@ -188,16 +188,16 @@ void   mulle_objc_loadhashedstring_sort( struct _mulle_objc_loadhashedstring *me
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
-char   *_mulle_objc_loadhashedstring_search( struct _mulle_objc_loadhashedstring *buf,
+char   *_mulle_objc_loadhashedstring_find( struct _mulle_objc_loadhashedstring *buf,
                                              unsigned int n,
                                              mulle_objc_uniqueid_t search);
 
 static inline char   *
-   mulle_objc_loadhashedstringlist_search( struct _mulle_objc_loadhashedstringlist *map,
+   mulle_objc_loadhashedstringlist_find( struct _mulle_objc_loadhashedstringlist *map,
                                            mulle_objc_uniqueid_t search)
 {
    if( map)
-      return( _mulle_objc_loadhashedstring_search( map->loadentries, map->n_loadentries, search));
+      return( _mulle_objc_loadhashedstring_find( map->loadentries, map->n_loadentries, search));
    return( NULL);
 }
 
@@ -208,7 +208,7 @@ char   *_mulle_objc_loadhashedstring_bsearch( struct _mulle_objc_loadhashedstrin
                                               mulle_objc_uniqueid_t search);
 
 static inline char   *
-   mulle_objc_loadhashedstringlist_bsearch( struct _mulle_objc_loadhashedstringlist *map,
+   mulle_objc_loadhashedstringlist_search( struct _mulle_objc_loadhashedstringlist *map,
                                             mulle_objc_uniqueid_t search)
 {
    if( map)

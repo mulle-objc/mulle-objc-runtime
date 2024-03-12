@@ -112,7 +112,7 @@ void   mulle_objc_methodlist_sort( struct _mulle_objc_methodlist *list);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_method  *
-   _mulle_objc_methodlist_linear_search( struct _mulle_objc_methodlist *list,
+   _mulle_objc_methodlist_find( struct _mulle_objc_methodlist *list,
                                          mulle_objc_methodid_t methodid);
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_method  *
@@ -133,7 +133,7 @@ static inline struct _mulle_objc_method  *
 {
    if( list->n_methods >= 14) // 14 is a researched value (i7)
       return( _mulle_objc_methodlist_binary_search( list, methodid));
-   return( _mulle_objc_methodlist_linear_search( list, methodid));
+   return( _mulle_objc_methodlist_find( list, methodid));
 }
 
 

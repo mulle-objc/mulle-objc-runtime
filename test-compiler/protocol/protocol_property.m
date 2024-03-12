@@ -19,7 +19,7 @@
    mulle_objc_implementation_t   imp;
 
    cls = _mulle_objc_object_get_isa( self);
-   imp = _mulle_objc_class_get_cached_implementation( cls, sel);
+   imp = _mulle_objc_class_probe_implementation( cls, sel);
    if( imp)
       return( 1);
    if( mulle_objc_class_lookup_method( cls, sel))

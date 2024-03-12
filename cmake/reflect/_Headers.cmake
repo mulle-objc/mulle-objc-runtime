@@ -47,6 +47,7 @@ src/mulle-objc-csvdump.h
 src/mulle-objc-fastclasstable.h
 src/mulle-objc-fastenumeration.h
 src/mulle-objc-fastmethodtable.h
+src/mulle-objc-impcache.h
 src/mulle-objc-infraclass.h
 src/mulle-objc-infraclass-reuse.h
 src/mulle-objc-ivar.h
@@ -56,7 +57,6 @@ src/mulle-objc-kvccache.h
 src/mulle-objc-load.h
 src/mulle-objc-loadinfo.h
 src/mulle-objc-metaclass.h
-src/mulle-objc-methodcache.h
 src/mulle-objc-method.h
 src/mulle-objc-methodidconstants.h
 src/mulle-objc-methodlist.h

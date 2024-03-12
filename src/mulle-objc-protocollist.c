@@ -71,7 +71,7 @@ mulle_objc_walkcommand_t
 
 
 struct _mulle_objc_protocol  *
-   _mulle_objc_protocollist_linear_search( struct _mulle_objc_protocollist *list,
+   _mulle_objc_protocollist_find( struct _mulle_objc_protocollist *list,
                                            mulle_objc_protocolid_t protocolid)
 {
    struct _mulle_objc_protocol   *sentinel;

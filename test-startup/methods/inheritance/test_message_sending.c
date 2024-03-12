@@ -95,7 +95,7 @@ void   test_message_sending()
    for( i = 0; i < 1000; i++)
    {
       methodid = methodlist->methods[ i].descriptor.methodid;
-      assert( i == 500 || ! _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_cls, methodid));
+      assert( i == 500 || ! _mulle_objc_class_probe_implementation( (void *) A_cls, methodid));
       desc = _mulle_objc_universe_lookup_descriptor( universe, methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
       rval = mulle_objc_object_call( A_obj, methodid, NULL);
@@ -103,7 +103,7 @@ void   test_message_sending()
       // when the very first call hits "A", it's slow mode due to
       // +initialize having to run. The first call runs uncached, but
       // subsequent calls must have been cached
-      assert( ! i || _mulle_objc_class_lookup_implementation_cacheonly( (void *) A_infra, methodid));
+      assert( ! i || _mulle_objc_class_probe_implementation( (void *) A_infra, methodid));
    }
 
 #if DEBUG
@@ -113,7 +113,7 @@ void   test_message_sending()
       unsigned int               i, n;
       struct _mulle_objc_cache   *A_cache;
 
-      A_cache = _mulle_objc_class_get_cache_of_methods( A_cls);
+      A_cache = _mulle_objc_class_get_impcache_cache( A_cls);
 
       // run it again to get cache size stable
       do
@@ -126,7 +126,7 @@ void   test_message_sending()
             assert( rval == (void *) methodlist->methods[ i].descriptor.methodid);
          }
       }
-      while( _mulle_objc_class_get_cache_of_methods( A_cls)->size != old);
+      while( _mulle_objc_class_get_impcache_cache( A_cls)->size != old);
 
       printf( "cache size  : %d\n", (int) _mulle_objc_cache_size( ));
       printf( "cache mask  : 0x%llx\n", (long long) _mulle_objc_cache_mask( A_cache));

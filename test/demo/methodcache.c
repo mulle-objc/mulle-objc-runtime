@@ -37,7 +37,7 @@
 
 struct demo_class
 {
-   struct _mulle_objc_methodcachepivot   cachepivot[ N_CACHES];
+   struct _mulle_objc_impcachepivot   cachepivot[ N_CACHES];
 };
 
 
@@ -46,7 +46,7 @@ static void  demo_class_print_cache( struct demo_class *cls, unsigned int index)
    struct _mulle_objc_cache        *cache;
    mulle_objc_cache_uint_t         i, n;
 
-   cache = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot[ index].pivot);
+   cache = _mulle_objc_cachepivot_get_cache_atomic( &cls->cachepivot[ index].pivot);
    n     = _mulle_objc_cache_get_size( cache);
 
    fprintf( stderr, "%d:\n", index);
@@ -156,7 +156,8 @@ int  main( int argc, char *argv[])
    unsigned int                     i;
    unsigned int                     j;
    unsigned int                     k;
-   struct _mulle_objc_methodcache   *mcache;
+   struct _mulle_objc_impcache   *icache;
+   struct _mulle_objc_method        *method;
    struct mulle_allocator           *allocator;
    mulle_objc_implementation_t      imp;
 
@@ -167,28 +168,31 @@ int  main( int argc, char *argv[])
 
    for( i = 0; i < N_CACHES; i++)
    {
-      mcache = mulle_objc_methodcache_new( 4, allocator);
+      icache = mulle_objc_impcache_new( 4, allocator);
 
       // we don't have these callbacks
-      mcache->call         = 0;
-      mcache->call2        = 0;
-      mcache->superlookup  = 0;  
-      mcache->superlookup2 = 0;
+      icache->call       = 0;
+      icache->call2      = 0;
+      icache->supercall  = 0;
+      icache->supercall2 = 0;
 
       // MEMO: as the cache will grow, first two methods will be evicted
       //       again
-      if( _mulle_objc_methodcachepivot_swap( &cls.cachepivot[ i],
-                                             mcache,
+      if( _mulle_objc_impcachepivot_swap( &cls.cachepivot[ i],
+                                             icache,
                                              NULL,
                                              allocator))
          abort();
 
       for( j = 0; j < N_METHODS; j++)
-          _mulle_objc_methodcachepivot_add_method( &cls.cachepivot[ i],
-                                                   &methods[ j],
-                                                   methods[ j].descriptor.methodid,
-                                                   0,
-                                                   allocator);      
+      {
+         method = &methods[ j];
+          _mulle_objc_impcachepivot_fill( &cls.cachepivot[ i],
+                                                           _mulle_objc_method_get_implementation( method),
+                                                           _mulle_objc_method_get_methodid( method),
+                                                           0,
+                                                           allocator);
+      }
    }
 
    for( i = 0; i < N_CACHES; i++)
@@ -198,7 +202,7 @@ int  main( int argc, char *argv[])
 retry:
         // demo_class_print_cache( &cls, i);
 
-         imp = mulle_objc_methodcachepivot_lookup_inline_null( &cls.cachepivot[ i],
+         imp = _mulle_objc_impcachepivot_probe_inline( &cls.cachepivot[ i],
                                                                methods[ j].descriptor.methodid);
          if( imp)
             (*imp)( NULL, methods[ j].descriptor.methodid, NULL);
@@ -207,14 +211,15 @@ retry:
             for( k = 0; k < N_METHODS; k++)
                if( methods[ k].descriptor.methodid == methods[ j].descriptor.methodid)
                {
-                  _mulle_objc_methodcachepivot_add_method( &cls.cachepivot[ i],
-                                                           &methods[ k],
-                                                           methods[ k].descriptor.methodid,
-                                                           0,
-                                                           allocator); 
+                  method = &methods[ k];
+                  _mulle_objc_impcachepivot_fill( &cls.cachepivot[ i],
+                                                                   _mulle_objc_method_get_implementation( method),
+                                                                   _mulle_objc_method_get_methodid( method),
+                                                                   0,
+                                                                   allocator);
                   goto retry;     
                }
-            // lookup method somehow and add to methodcache
+            // lookup method somehow and add to impcache
          }
       }
    }
@@ -222,10 +227,10 @@ retry:
    // get rid of it
    for( i = 0; i < N_CACHES; i++)
    {
-      mcache = _mulle_objc_methodcachepivot_get_methodcache( &cls.cachepivot[ i]);
-      _mulle_objc_methodcachepivot_swap( &cls.cachepivot[ i],
+      icache = _mulle_objc_impcachepivot_get_impcache( &cls.cachepivot[ i]);
+      _mulle_objc_impcachepivot_swap( &cls.cachepivot[ i],
                                          NULL,
-                                         mcache,
+                                         icache,
                                          allocator);
    }
 

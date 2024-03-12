@@ -52,7 +52,7 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_universe     *universe;
    mulle_objc_implementation_t     imp;
-   struct _mulle_objc_methodcache  *mcache;
+   struct _mulle_objc_impcache  *icache;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
 
@@ -62,7 +62,7 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
 
    // looking up methods, should be thread safe
    {
-      imp = _mulle_objc_class_lookup_implementation_nocache_nofail( cls, methodid);
+      imp = _mulle_objc_class_lookup_implementation_nofail_nofill( cls, methodid);
 
       // don't cache it when tracing
       if( ! universe->debug.trace.method_call)
@@ -70,10 +70,10 @@ static void   *_mulle_objc_object_handle_fastmethodtablefault( void *obj,
    }
 
    // go through class call to hit +initialize
-   entries = _mulle_objc_cachepivot_atomicget_entries( &cls->cachepivot.pivot);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mcache  = _mulle_objc_cache_get_methodcache_from_cache( cache);
-   return( (mcache->call)( obj, methodid, param, cls));
+   icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
+   return( (icache->call)( obj, methodid, param, cls));
 }
 
 

@@ -76,23 +76,23 @@ mulle_objc_walkcommand_t
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_property  *
-   _mulle_objc_propertylist_linear_search( struct _mulle_objc_propertylist *list,
+   _mulle_objc_propertylist_find( struct _mulle_objc_propertylist *list,
                                            mulle_objc_propertyid_t propertyid);
 
-static inline struct _mulle_objc_property  *_mulle_objc_propertylist_binary_search( struct _mulle_objc_propertylist *list,
+static inline struct _mulle_objc_property  *_mulle_objc_propertylist_search( struct _mulle_objc_propertylist *list,
                                                                                     mulle_objc_propertyid_t propertyid)
 {
    return( _mulle_objc_property_bsearch( list->properties, list->n_properties, propertyid));
 }
 
 
-static inline struct _mulle_objc_property  *_mulle_objc_propertylist_search( struct _mulle_objc_propertylist *list,
-                                                                             mulle_objc_propertyid_t propertyid)
+static inline struct _mulle_objc_property  *_mulle_objc_propertylist_search_smart( struct _mulle_objc_propertylist *list,
+                                                                                   mulle_objc_propertyid_t propertyid)
 
 {
    if( list->n_properties >= 14) // 14 is a resarched value for i7
-      return( _mulle_objc_propertylist_binary_search( list, propertyid));
-   return( _mulle_objc_propertylist_linear_search( list, propertyid));
+      return( _mulle_objc_propertylist_search( list, propertyid));
+   return( _mulle_objc_propertylist_find( list, propertyid));
 }
 
 

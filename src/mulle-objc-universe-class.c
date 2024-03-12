@@ -81,9 +81,9 @@ static struct _mulle_objc_cacheentry *
    if( ! cache)
       return( NULL);
 
-   entry = _mulle_objc_cache_inactivecache_add_pointer_entry( cache, cls, cls->classid);
+   entry = _mulle_objc_cache_add_pointer_inactive( cache, cls, cls->classid);
 
-   if( _mulle_objc_cachepivot_atomiccas_entries( &universe->cachepivot, cache->entries, old_cache->entries))
+   if( _mulle_objc_cachepivot_cas_entries( &universe->cachepivot, cache->entries, old_cache->entries))
    {
       // trace future!
       // new cache not being used
@@ -142,9 +142,10 @@ static struct _mulle_objc_cacheentry *
 }
 
 
-MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
-   _mulle_objc_universe_fill_classcache_class( struct _mulle_objc_universe *universe,
-                                               struct _mulle_objc_infraclass *infra)
+MULLE_C_NONNULL_RETURN
+struct _mulle_objc_cacheentry *
+   _mulle_objc_universe_fill_classcache( struct _mulle_objc_universe *universe,
+                                                       struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_class        *cls;
@@ -161,7 +162,7 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
    fillrate = _mulle_objc_universe_get_cache_fillrate( universe);
    for(;;)
    {
-      cache = _mulle_objc_cachepivot_atomicget_cache( &universe->cachepivot);
+      cache = _mulle_objc_cachepivot_get_cache_atomic( &universe->cachepivot);
       if( _mulle_objc_cache_should_grow( cache, fillrate))
       {
          entry = _mulle_objc_universe_add_classcacheentry_swapcaches( universe,
@@ -192,21 +193,67 @@ MULLE_C_NONNULL_RETURN static struct _mulle_objc_cacheentry *
 }
 
 
-static struct _mulle_objc_cacheentry   *
-   _mulle_objc_universe_fill_classcache( struct _mulle_objc_universe *universe,
-                                         mulle_objc_classid_t classid)
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_universe_refresh_classcache_nocallback( struct _mulle_objc_universe *universe,
+                                                        mulle_objc_classid_t classid)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_cacheentry   *entry;
 
-   infra = _mulle_objc_universe_lookup_infraclass_nocache_nofast( universe, classid);
+   infra = _mulle_concurrent_hashmap_lookup( &universe->classtable, classid);
    if( ! infra)
       return( NULL);
 
-   entry = _mulle_objc_universe_fill_classcache_class( universe, infra);
+   entry = _mulle_objc_universe_fill_classcache( universe, infra);
    assert( entry);
    return( entry);
 }
+
+
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_universe_refresh_classcache( struct _mulle_objc_universe *universe,
+                                                   mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_cacheentry   *entry;
+   int                             preserve;
+   int                             retry;
+
+   retry = 0;
+   for(;;)
+   {
+      infra = _mulle_concurrent_hashmap_lookup( &universe->classtable, classid);
+      if( infra)
+      {
+         entry = _mulle_objc_universe_fill_classcache( universe, infra);
+         assert( entry);
+         return( entry);
+      }
+
+      if( retry)
+         return( NULL);
+
+      // preserve errno for use
+      preserve = errno;
+      (*universe->classdefaults.class_is_missing)( universe, classid);
+      errno = preserve;
+      retry++;
+   }
+}
+
+
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_universe_refresh_classcache_nofail( struct _mulle_objc_universe *universe,
+                                                   mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_cacheentry   *entry;
+
+   entry = _mulle_objc_universe_refresh_classcache( universe, classid);
+   if( ! entry)
+      mulle_objc_universe_fail_classnotfound( universe, classid);
+   return( entry);
+}
+
 
 
 void   _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *universe)
@@ -220,7 +267,7 @@ void   _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *
    do
    {
       expect_entries = old_entries;
-      old_entries    = _mulle_objc_cachepivot_atomiccweakcas_entries( &universe->cachepivot,
+      old_entries    = _mulle_objc_cachepivot_weakcas_entries( &universe->cachepivot,
                                                                       universe->empty_cache.entries,
                                                                       old_entries);
       if( old_entries == universe->empty_cache.entries)
@@ -235,69 +282,7 @@ void   _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *
 
 
 
-MULLE_C_CONST_NONNULL_RETURN static struct _mulle_objc_cacheentry *
-    _mulle_objc_universe_fill_classcache_nofail( struct _mulle_objc_universe *universe,
-                                                   mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_infraclass   *infra;
-   struct _mulle_objc_cacheentry   *entry;
-
-   infra   = _mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast( universe, classid);
-   assert( mulle_objc_class_is_current_thread_registered( (void *)  infra));
-
-   entry = _mulle_objc_universe_fill_classcache_class( universe, infra);
-   return( entry);
-}
-
-
 #pragma mark - infraclass lookup, cached but no fast lookup
-
-struct _mulle_objc_infraclass   *
-   _mulle_objc_universe_lookup_infraclass_nocache_nofast( struct _mulle_objc_universe *universe,
-                                                          mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_infraclass    *infra;
-   int                              retry;
-   int                              preserve;
-
-
-   retry = 1;
-   for(;;)
-   {
-      infra = _mulle_objc_universe_inlinelookup_infraclass_nocache_nofast( universe, classid);
-      if( infra)
-      {
-         assert( _mulle_objc_infraclass_get_classid( infra) == classid);
-         return( infra);
-      }
-
-      if( ! retry)
-        return( NULL);
-
-      retry = 0;
-
-      // preserve errno for user
-      preserve = errno;
-      (*universe->classdefaults.class_is_missing)( universe, classid);
-      errno    = preserve;
-   }
-}
-
-
-MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_infraclass   *
-   _mulle_objc_universe_lookup_infraclass_nocache_nofail_nofast( struct _mulle_objc_universe *universe,
-                                                                 mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_infraclass   *infra;
-
-   assert( mulle_objc_uniqueid_is_sane( classid));
-
-   infra = _mulle_objc_universe_lookup_infraclass_nocache_nofast( universe, classid);
-   if( infra)
-      return( infra);
-
-   mulle_objc_universe_fail_classnotfound( universe, classid);
-}
 
 
 // used by the debugger
@@ -315,44 +300,6 @@ MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass *
 //
 #pragma mark - infraclass lookup, cached but no fast lookup
 
-//
-// will place class into cache, will not check for fastclass
-//
-struct _mulle_objc_infraclass  *
-    _mulle_objc_universe_lookup_infraclass_nofast( struct _mulle_objc_universe *universe,
-                                                   mulle_objc_classid_t classid)
-{
-   struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_cacheentry   *entry;
-   mulle_objc_cache_uint_t         offset;
-   mulle_objc_cache_uint_t         mask;
-
-   entries = _mulle_objc_cachepivot_atomicget_entries( &universe->cachepivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;
-
-   offset  = (mulle_objc_cache_uint_t) classid;
-   for(;;)
-   {
-      offset  = offset & mask;
-      entry   = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == classid)
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-
-      if( ! entry->key.uniqueid)
-      {
-         entry = _mulle_objc_universe_fill_classcache( universe, classid);
-         if( ! entry)
-            return( NULL);
-
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-      }
-
-      offset += sizeof( struct _mulle_objc_cacheentry);
-   }
-}
-
 
 //
 // class must exist, otherwise pain
@@ -362,33 +309,7 @@ MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_infraclass  *
     _mulle_objc_universe_lookup_infraclass_nofail_nofast( struct _mulle_objc_universe *universe,
                                                           mulle_objc_classid_t classid)
 {
-   struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_cacheentry   *entry;
-   mulle_objc_cache_uint_t         offset;
-   mulle_objc_cache_uint_t         mask;
-
-   entries = _mulle_objc_cachepivot_atomicget_entries( &universe->cachepivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;
-
-   offset  = (mulle_objc_cache_uint_t) classid;
-   for(;;)
-   {
-      offset  = offset & mask;
-      entry   = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == classid)
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-
-      if( entry->key.uniqueid)
-      {
-         offset += sizeof( struct _mulle_objc_cacheentry);
-         continue;
-      }
-
-      entry = _mulle_objc_universe_fill_classcache_nofail( universe, classid);
-      return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
-   }
+   return( _mulle_objc_universe_lookup_infraclass_inline_nofail_nofast( universe, classid));
 }
 
 
@@ -400,21 +321,30 @@ struct _mulle_objc_infraclass  *
                                             mulle_objc_classid_t classid)
 {
    if( universe->config.no_fast_call)
-      return( _mulle_objc_universe_lookup_infraclass_nofast( universe, classid));
-   return( _mulle_objc_universe_inlinelookup_infraclass( universe, classid));
+      return( _mulle_objc_universe_lookup_infraclass_inline_nofast( universe, classid));
+   return( _mulle_objc_universe_lookup_infraclass_inline( universe, classid));
 }
 
 
 MULLE_C_NONNULL_RETURN struct _mulle_objc_infraclass  *
     mulle_objc_universe_lookup_infraclass_nofail( struct _mulle_objc_universe *universe,
-                                                   mulle_objc_classid_t classid)
+                                                  mulle_objc_classid_t classid)
 {
    // TODO: need to if here or rename to _ (preferable)
    assert( universe);
 
    if( universe->config.no_fast_call)
-      return( _mulle_objc_universe_lookup_infraclass_nofail_nofast( universe, classid));
+      return( _mulle_objc_universe_lookup_infraclass_inline_nofail_nofast( universe, classid));
    return( _mulle_objc_universe_lookup_infraclass_inline_nofail( universe, classid));
+}
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_infraclass  *
+    _mulle_objc_universe_lookup_infraclass_nofast( struct _mulle_objc_universe *universe,
+                                                   mulle_objc_classid_t classid)
+{
+   return( _mulle_objc_universe_lookup_infraclass_inline_nofast( universe, classid));
 }
 
 

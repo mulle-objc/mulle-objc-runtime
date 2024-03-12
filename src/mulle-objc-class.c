@@ -171,7 +171,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->headerextrasize = headerextrasize;
    cls->universe        = universe;
 
-   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->initial_methodcache.cache.entries);
+   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->initial_impcache.cache.entries);
    _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
 
    _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &universe->memory.allocator);
@@ -186,7 +186,7 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
                                struct mulle_allocator *allocator)
 {
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_methodcache   *mcache;
+   struct _mulle_objc_impcache   *icache;
 
    assert( cls);
    assert( allocator);
@@ -198,10 +198,10 @@ void   _mulle_objc_class_done( struct _mulle_objc_class *cls,
 
    _mulle_objc_class_invalidate_kvccache( cls);
 
-   cache  = _mulle_objc_cachepivot_atomicget_cache( &cls->cachepivot.pivot);
-   mcache = _mulle_objc_cache_get_methodcache_from_cache( cache);
-   if( mcache != &cls->universe->empty_methodcache && mcache != &cls->universe->initial_methodcache)
-      _mulle_objc_methodcache_free( mcache, allocator);
+   cache  = _mulle_objc_cachepivot_get_cache_atomic( &cls->cachepivot.pivot);
+   icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+   if( icache != &cls->universe->empty_impcache && icache != &cls->universe->initial_impcache)
+      _mulle_objc_impcache_free( icache, allocator);
 }
 
 
@@ -281,7 +281,7 @@ int   _mulle_objc_class_is_sane( struct _mulle_objc_class *cls)
 # pragma mark - caches
 
 
-static int  invalidate_methodcacheentries( struct _mulle_objc_universe *universe,
+static int  invalidate_impcacheentries( struct _mulle_objc_universe *universe,
                                            struct _mulle_objc_class *cls,
                                            enum mulle_objc_walkpointertype_t type,
                                            char *key,
@@ -300,7 +300,7 @@ static int  invalidate_methodcacheentries( struct _mulle_objc_universe *universe
    // if caches have been cleaned for class, it's done
    rover = _mulle_objc_methodlist_enumerate( list);
    while( method = _mulle_objc_methodlistenumerator_next( &rover))
-      if( _mulle_objc_class_invalidate_methodcacheentry( cls, method->descriptor.methodid))
+      if( _mulle_objc_class_invalidate_impcacheentry( cls, method->descriptor.methodid))
          break;
    _mulle_objc_methodlistenumerator_done( &rover);
 
@@ -335,7 +335,7 @@ void   mulle_objc_class_didadd_methodlist( struct _mulle_objc_class *cls,
       // this optimization works as long as you are installing plain classes.
       // So if we have some caches, we need to do this otherwise we don't
       if( _mulle_atomic_pointer_read( &cls->universe->cachecount_1))
-         mulle_objc_universe_walk_classes( cls->universe, (mulle_objc_walkcallback_t) invalidate_methodcacheentries, list);
+         mulle_objc_universe_walk_classes( cls->universe, (mulle_objc_walkcallback_t) invalidate_impcacheentries, list);
    }
 }
 

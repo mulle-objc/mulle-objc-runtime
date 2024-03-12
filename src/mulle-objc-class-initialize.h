@@ -40,7 +40,7 @@
 
 
 struct _mulle_objc_class;
-struct _mulle_objc_methodcache;
+struct _mulle_objc_impcache;
 
 
 //
@@ -55,10 +55,10 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cls);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void  _mulle_objc_methodcache_init_initial_callbacks( struct _mulle_objc_methodcache *p);
+void  _mulle_objc_impcache_init_initial_callbacks( struct _mulle_objc_impcache *p);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void  _mulle_objc_methodcache_init_empty_callbacks( struct _mulle_objc_methodcache *p);
+void  _mulle_objc_impcache_init_empty_callbacks( struct _mulle_objc_impcache *p);
 
 
 #endif

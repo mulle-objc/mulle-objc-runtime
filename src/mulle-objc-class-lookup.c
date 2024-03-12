@@ -38,19 +38,37 @@
 #include "include-private.h"
 
 #include "mulle-objc-class-search.h"
-#include "mulle-objc-methodcache.h"
+#include "mulle-objc-impcache.h"
 #include "mulle-objc-call.h"
 
 
 # pragma mark -
 
+
+
+mulle_objc_implementation_t
+   _mulle_objc_class_probe_implementation( struct _mulle_objc_class *cls,
+                                           mulle_objc_methodid_t methodid)
+{
+   return( _mulle_objc_class_probe_implementation_inline( cls, methodid));
+}
+
+
+struct _mulle_objc_cacheentry *
+   _mulle_objc_class_probe_cacheentry( struct _mulle_objc_class *cls,
+                                       mulle_objc_superid_t methodid)
+{
+   return( _mulle_objc_class_probe_cacheentry_inline( cls, methodid));
+}
+
+
 enum
 {
-   mulle_objc_class_lookup_readcache     = 0x1, // unused
-   mulle_objc_class_lookup_noforward     = 0x2,
-   mulle_objc_class_lookup_lazyforward   = 0x4,
-   mulle_objc_class_lookup_nofail        = 0x8,
-   mulle_objc_class_lookup_noupdatecache = 0x10 // don't write cache
+   mulle_objc_class_lookup_noprobe     = 0x1,   // unused
+   mulle_objc_class_lookup_noforward   = 0x2,
+   mulle_objc_class_lookup_lazyforward = 0x4,
+   mulle_objc_class_lookup_nofail      = 0x8,
+   mulle_objc_class_lookup_nofill      = 0x10   // don't write cache
 };
 
 
@@ -70,9 +88,9 @@ static inline
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
-   if( mode & mulle_objc_class_lookup_readcache)
+   if( ! (mode & mulle_objc_class_lookup_noprobe))
    {
-      imp = _mulle_objc_class_search_methodcache( cls, methodid);
+      imp = _mulle_objc_class_probe_implementation( cls, methodid);
       if( imp)
       {
          if( mode & mulle_objc_class_lookup_noforward)
@@ -102,8 +120,8 @@ static inline
       return( 0);
    }
 
-   if( ! (mode & mulle_objc_class_lookup_noupdatecache))
-      _mulle_objc_class_fill_methodcache_with_method( cls, method, methodid);
+   if( ! (mode & mulle_objc_class_lookup_nofill))
+      _mulle_objc_class_fill_impcache( cls, NULL, method, methodid);
 
    imp = _mulle_objc_method_get_implementation( method);
    return( imp);
@@ -137,13 +155,13 @@ mulle_objc_implementation_t
 
 
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_nocache( struct _mulle_objc_class *cls,
-                                                    mulle_objc_methodid_t methodid)
+   _mulle_objc_class_lookup_implementation_nofill( struct _mulle_objc_class *cls,
+                                                      mulle_objc_methodid_t methodid)
 {
    return( _mulle_objc_class_lookup_implementation_mode( cls,
                                                          methodid,
                                                          mulle_objc_class_lookup_lazyforward
-                                                         | mulle_objc_class_lookup_noupdatecache));
+                                                         | mulle_objc_class_lookup_nofill));
 }
 
 
@@ -159,114 +177,25 @@ mulle_objc_implementation_t
 
 // does not update the cache, no forward
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_nocache_noforward( struct _mulle_objc_class *cls,
+   _mulle_objc_class_lookup_implementation_noforward_nofill( struct _mulle_objc_class *cls,
                                                               mulle_objc_methodid_t methodid)
 {
    return( _mulle_objc_class_lookup_implementation_mode( cls,
                                                          methodid,
-                                                         mulle_objc_class_lookup_noupdatecache
+                                                         mulle_objc_class_lookup_nofill
                                                          | mulle_objc_class_lookup_noforward));
 }
 
 
 mulle_objc_implementation_t
-   _mulle_objc_class_lookup_implementation_nocache_nofail( struct _mulle_objc_class *cls,
+   _mulle_objc_class_lookup_implementation_nofail_nofill( struct _mulle_objc_class *cls,
                                                            mulle_objc_methodid_t methodid)
 {
    return( _mulle_objc_class_lookup_implementation_mode( cls,
                                                          methodid,
-                                                         mulle_objc_class_lookup_noupdatecache
+                                                         mulle_objc_class_lookup_nofill
                                                          | mulle_objc_class_lookup_lazyforward
                                                          | mulle_objc_class_lookup_nofail));
-}
-
-
-/*
- * super call
- */
-
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
-mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation_nocache_nofail( struct _mulle_objc_class *cls,
-                                                                mulle_objc_superid_t superid)
-{
-   struct _mulle_objc_method             *method;
-   struct _mulle_objc_universe           *universe;
-   struct _mulle_objc_searcharguments    args;
-   struct _mulle_objc_super              *p;
-   mulle_objc_implementation_t           imp;
-
-   //
-   // since "previous_method" in args will not be accessed" this is OK to cast
-   // and obviously cheaper than making a copy
-   //
-   universe = _mulle_objc_class_get_universe( cls);
-   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
-
-   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
-   method = mulle_objc_class_search_method( cls,
-                                            &args,
-                                            cls->inheritance,
-                                            NULL);
-   if( ! method)
-      method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, args.args.methodid);
-
-   imp = _mulle_objc_method_get_implementation( method);
-   return( imp);
-}
-
-
-//
-// fills the cache
-//
-mulle_objc_implementation_t
-   _mulle_objc_class_superlookup_implementation_nofail( struct _mulle_objc_class *cls,
-                                                        mulle_objc_superid_t superid)
-{
-   struct _mulle_objc_method             *method;
-   struct _mulle_objc_universe           *universe;
-   struct _mulle_objc_searcharguments    args;
-   struct _mulle_objc_super              *p;
-   mulle_objc_implementation_t           imp;
-
-   //
-   // since "previous_method" in args will not be accessed" this is OK to cast
-   // and obviously cheaper than making a copy
-   //
-   universe = _mulle_objc_class_get_universe( cls);
-   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
-
-   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
-   method = mulle_objc_class_search_method( cls,
-                                            &args,
-                                            cls->inheritance,
-                                            NULL);
-   if( ! method)
-      method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, args.args.methodid);
-   imp = _mulle_objc_method_get_implementation( method);
-
-   _mulle_objc_class_fill_methodcache_with_method( cls, method, superid);
-   return( imp);
-}
-
-
-
-//
-// this is used for calling super. It's the same for metaclasses and
-// infraclasses. The superid is hash( <classname> ';' <methodname>)
-// Since it is a super call, obj is known to be non-nil.
-//
-mulle_objc_implementation_t
-   _mulle_objc_class_superrefresh_implementation_nofail( struct _mulle_objc_class *cls,
-                                                         mulle_objc_superid_t superid)
-{
-   struct _mulle_objc_method      *method;
-   mulle_objc_implementation_t    imp;
-
-   method = mulle_objc_class_supersearch_method_nofail( cls, superid);
-   imp    = _mulle_objc_method_get_implementation( method);
-   _mulle_objc_class_fill_methodcache_with_method( cls, method, superid);
-   return( imp);
 }
 
 
@@ -280,8 +209,116 @@ mulle_objc_implementation_t
 
    method = mulle_objc_class_search_method_nofail( cls, methodid);
    imp    = _mulle_objc_method_get_implementation( method);
-   _mulle_objc_class_fill_methodcache_with_method( cls, method, methodid);
+   _mulle_objc_class_fill_impcache( cls, NULL, method, methodid);
 
    return( imp);
 }
 
+
+
+/*
+ * super call
+ */
+
+//
+// this is used for calling super. It's the same for metaclasses and
+// infraclasses. The superid is hash( <classname> ';' <methodname>)
+//
+mulle_objc_implementation_t
+   _mulle_objc_class_refresh_superimplementation_nofail( struct _mulle_objc_class *cls,
+                                                         mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_method      *method;
+   mulle_objc_implementation_t    imp;
+
+   method = _mulle_objc_class_supersearch_method_nofail( cls, superid);
+   imp    = _mulle_objc_method_get_implementation( method);
+   _mulle_objc_class_fill_impcache( cls, NULL, method, superid);
+   return( imp);
+}
+
+
+
+/* lookup cache first */
+
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+mulle_objc_implementation_t
+   _mulle_objc_class_search_superimplementation_nofail( struct _mulle_objc_class *cls,
+                                                                mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_method             *method;
+   struct _mulle_objc_universe           *universe;
+   struct _mulle_objc_searcharguments    args;
+   struct _mulle_objc_super              *p;
+   mulle_objc_implementation_t           imp;
+
+
+   //
+   // since "previous_method" in args will not be accessed" this is OK to cast
+   // and obviously cheaper than making a copy
+   //
+   universe = _mulle_objc_class_get_universe( cls);
+   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
+
+   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
+   method = mulle_objc_class_search_method( cls,
+                                            &args,
+                                            cls->inheritance,
+                                            NULL);
+   if( ! method)
+      method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, args.args.methodid);
+
+   imp = _mulle_objc_method_get_implementation( method);
+   return( imp);
+}
+
+
+mulle_objc_implementation_t
+   _mulle_objc_object_lookup_superimplementation_noforward_nofill( void *obj,
+                                                                      mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_class              *cls;
+   struct _mulle_objc_method             *method;
+   struct _mulle_objc_universe           *universe;
+   struct _mulle_objc_searcharguments    args;
+   struct _mulle_objc_super              *p;
+   mulle_objc_implementation_t           imp;
+
+
+   //
+   // since "previous_method" in args will not be accessed" this is OK to cast
+   // and obviously cheaper than making a copy
+   //
+   cls      = _mulle_objc_object_get_isa( obj);
+   universe = _mulle_objc_class_get_universe( cls);
+   p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
+
+   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
+   method = mulle_objc_class_search_method( cls,
+                                            &args,
+                                            cls->inheritance,
+                                            NULL);
+   if( ! method)
+      return( 0);
+
+   imp = _mulle_objc_method_get_implementation( method);
+   return( imp);
+}
+
+//
+// fills the cache
+//
+mulle_objc_implementation_t
+   _mulle_objc_class_lookup_superimplementation_nofail( struct _mulle_objc_class *cls,
+                                                        mulle_objc_superid_t superid)
+{
+   return( _mulle_objc_class_lookup_superimplementation_inline_nofail( cls, superid));
+}
+
+
+mulle_objc_implementation_t
+   _mulle_objc_object_lookup_superimplementation_nofail( void *obj,
+                                                         mulle_objc_superid_t superid)
+{
+   return( _mulle_objc_object_lookup_superimplementation_inline_nofail( obj, superid));
+}
