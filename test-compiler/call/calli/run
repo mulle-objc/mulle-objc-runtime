@@ -1,0 +1,44 @@
+#! /bin/sh
+
+for call in "" 1 2 3 4 5
+do
+   for optimization in "" 0 1 2 3 4 fast s z
+   do
+      if [ -z "${call}" ]
+      then
+         if [ -z "${optimization}" ]
+         then
+            echo "" > calli.cflags
+            outputfile="calli.none.stdout"
+         else
+            echo "-O${optimization}" > calli.cflags
+            outputfile="calli.O${optimization}.stdout"
+         fi
+      else
+         if [ -z "${optimization}" ]
+         then
+            echo "-fobjc-inline-method-calls=${call}" > calli.cflags
+            outputfile="calli.f${call}.stdout"
+         else
+            echo "-O${optimization} -fobjc-inline-method-calls=${call}" > calli.cflags
+            outputfile="calli.O${optimization}-f${call}.stdout"
+         fi
+      fi
+
+
+      if [ -f "${outputfile}" ]
+      then
+         cp "${outputfile}" calli.stdout
+         mulle-sde test run call/calli/calli.m
+      else
+         echo
+         cat calli.cflags
+         echo
+
+         rm calli.stdout
+         mulle-sde -vv test run --no-run-script --keep-exe call/calli/calli.m
+         ./calli.exe > "${outputfile}"
+      fi
+   done
+done
+
