@@ -61,7 +61,7 @@ void   *_mulle_objc_infraclass_keep_alloc( struct _mulle_objc_infraclass *infra,
    // though slightly superflous if instance won't get reclaimed, wasting time
    // during free is probably preferable to make reuse faster
    //
-   size = _mulle_objc_infraclass_get_instancesize( infra);
+   size = _mulle_objc_infraclass_get_allocationsize( infra);
    memset( alloc, 0, size);
 
    _mulle_concurrent_linkedlist_add( &infra->reuseallocs, &entry->_link);

@@ -229,7 +229,7 @@ static inline struct _mulle_objc_kvcinfo  *
    struct _mulle_objc_kvccache        *cache;
 
    pivot = _mulle_objc_class_get_kvccachepivot( cls);
-   cache = _mulle_objc_kvccachepivot_atomicget_cache( pivot);
+   cache = _mulle_objc_kvccachepivot_get_cache_atomic( pivot);
    return( _mulle_objc_kvccache_lookup_kvcinfo( cache, key));
 }
 

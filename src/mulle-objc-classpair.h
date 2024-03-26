@@ -53,6 +53,7 @@ struct _mulle_objc_loadclass;
 
 #define _MULLE_OBJC_CLASSPAIR_PADDING     (0x10 - ((sizeof( struct _mulle_objc_infraclass) + sizeof( struct _mulle_objc_objectheader)) & 0xF))
 
+//#define _MULLE_OBJC_CLASSPAIR_TAO_MAGIC   0x18723543
 //
 // Put all the common information like
 // protocolids, categoryids and the like into the classpair
@@ -80,10 +81,7 @@ struct _mulle_objc_classpair
    struct _mulle_objc_loadclass              *loadclass;
 
    uint32_t                                  classindex;       // set when added
-
-// classExtra makes no sense, you can just as well create a static struct
-// somewhere and it's even more flexible   
-   double                                    _classextra[ 1];  // will not exist if classextra is 0
+//   uint32_t                                  taoprotection;
 };
 
 
@@ -96,6 +94,15 @@ void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
 MULLE_OBJC_RUNTIME_GLOBAL
 void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator);
+
+// defined in mulle-objc-classpair.c so its in this header
+struct _mulle_objc_classpair *
+   mulle_objc_universe_new_classpair( struct _mulle_objc_universe *universe,
+                                      mulle_objc_classid_t  classid,
+                                      char *name,
+                                      size_t instancesize,
+                                      size_t classextra,
+                                      struct _mulle_objc_infraclass *superclass);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void    _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
@@ -112,7 +119,7 @@ void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
 
 static inline size_t   mulle_objc_classpair_size( size_t extrasize)
 {
-   return( sizeof( struct _mulle_objc_classpair) - sizeof( double) + extrasize);
+   return( sizeof( struct _mulle_objc_classpair) + extrasize);
 }
 
 
@@ -173,18 +180,12 @@ static inline char   *
    return( pair->loadclass ? pair->loadclass->origin : 0);
 }
 
-// useless: just use a static variable in the @implementation
-static inline void   *
-   _mulle_objc_classpair_get_classextra( struct _mulle_objc_classpair *pair)
-{
-   return( pair->_classextra);
-}
-
 
 static inline void
    _mulle_objc_classpair_set_classindex( struct _mulle_objc_classpair *pair,
                                          uint32_t classindex)
 {
+//   assert( pair->taoprotection == _MULLE_OBJC_CLASSPAIR_TAO_MAGIC);
    pair->classindex = classindex;
 }
 
@@ -192,6 +193,7 @@ static inline void
 static inline uint32_t
    _mulle_objc_classpair_get_classindex( struct _mulle_objc_classpair *pair)
 {
+//   assert( pair->taoprotection == _MULLE_OBJC_CLASSPAIR_TAO_MAGIC);
    return( pair->classindex);
 }
 
@@ -262,16 +264,6 @@ static inline struct _mulle_objc_metaclass   *
 
    pair = _mulle_objc_infraclass_get_classpair( infra);
    return( _mulle_objc_classpair_get_metaclass( pair));
-}
-
-// useless: just use a static variable in the @implementation
-static inline void *
-   _mulle_objc_infraclass_get_classextra( struct _mulle_objc_infraclass *infra)
-{
-   struct _mulle_objc_classpair   *pair;
-
-   pair = _mulle_objc_infraclass_get_classpair( infra);
-   return( _mulle_objc_classpair_get_classextra( pair));
 }
 
 

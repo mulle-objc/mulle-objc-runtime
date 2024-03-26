@@ -70,6 +70,7 @@ void   test_message_sending()
       methodlist->methods[ i].descriptor.name      = storage->names[ i];
       methodlist->methods[ i].descriptor.methodid  = mulle_objc_methodid_from_string( storage->names[ i]);
       methodlist->methods[ i].descriptor.signature = "@:";
+      methodlist->methods[ i].descriptor.bits      = _mulle_objc_method_user_attribute_4;  // threadsafe so it gets into the cache
 
       //printf( "#%04d: %s -> %lld\n", i, methods[ i].descriptor.name, (int64_t) methods[ i].descriptor.methodid);
    }
@@ -78,7 +79,7 @@ void   test_message_sending()
    mulle_objc_methodlist_sort( methodlist);
 
    // mark this one as preload
-   methodlist->methods[ 500].descriptor.bits = _mulle_objc_method_preload;
+   methodlist->methods[ 500].descriptor.bits |= _mulle_objc_method_preload;
 
    // for( i = 0; i < 1000; i++)
    //   printf( "#%04d: %s -> %llx\n", i, methodlist->methods[ i]->descriptor.name, (int64_t) methodlist->methods[ i]->descriptor.methodid);

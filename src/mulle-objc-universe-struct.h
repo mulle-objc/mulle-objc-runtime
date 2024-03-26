@@ -86,7 +86,9 @@ enum
 {
    MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS = 0x1,
    MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS    = 0x2,
-   MULLE_OBJC_UNIVERSE_HAVE_TPS_CLASSES  = 0x4
+   MULLE_OBJC_UNIVERSE_HAVE_TPS_CLASSES  = 0x4,
+   MULLE_OBJC_UNIVERSE_HAVE_NO_TAO_LOADS = 0x8,
+   MULLE_OBJC_UNIVERSE_HAVE_TAO_LOADS    = 0x10
 };
 
 
@@ -102,11 +104,23 @@ enum
 // Debug the universe. Use environment variables to set these
 // bits.
 //
+
+
+enum
+{
+   MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT  = 1,
+   MULLE_OBJC_UNIVERSE_CALL_TAO_BIT    = 2
+};
+
 struct _mulle_objc_universedebug
 {
    mulle_thread_mutex_t              lock;  // used for trace
    mulle_atomic_pointer_t            thread_counter;
    int                               (*count_stackdepth)( void);
+
+   // moved into its own int for slightly better access
+   // but now also has a bit for tao chec
+   int                               method_call;
 
    struct
    {
@@ -123,7 +137,6 @@ struct _mulle_objc_universedebug
       unsigned   hashstrings          : 1;
       unsigned   loadinfo             : 1;
       unsigned   method_cache         : 1;
-      unsigned   method_call          : 1;
       unsigned   descriptor_add       : 1;
       unsigned   protocol_add         : 1;
       unsigned   state_bit            : 1;
@@ -141,6 +154,7 @@ struct _mulle_objc_universedebug
       unsigned   protocolclass          : 1;
       unsigned   stuck_loadable         : 1;  // set by default
       unsigned   method_type            : 2;
+      unsigned   method_bits            : 1;
       unsigned   crash                  : 1;
       unsigned   hang                   : 1;
    } warn;
@@ -288,9 +302,9 @@ struct _mulle_objc_foundation
 {
    struct _mulle_objc_universefriend    universefriend;
    struct _mulle_objc_infraclass        *staticstringclass;
-   struct mulle_allocator               *allocator;   // allocator for objects, must not be NULL
-   size_t                               headerextrasize; // usually 0, will be copied into each class
-   mulle_objc_classid_t                 rootclassid; // NSObject = e9e78cbd
+   struct mulle_allocator               *allocator;       // allocator for objects, must not be NULL
+   size_t                               headerextrasize;  // usually 0, will be copied into each class
+   mulle_objc_classid_t                 rootclassid;      // NSObject = e9e78cbd
 };
 
 
@@ -349,13 +363,14 @@ struct _mulle_objc_universe
    // try to keep this region stable for version checks >
 
    mulle_atomic_pointer_t                   version;
+   mulle_atomic_pointer_t                   loadbits; // debugger can see if we have TAO or not
    char                                     *path;
 
    // try to keep this region stable for debugger and callbacks >
 
    struct mulle_concurrent_hashmap          classtable;  /// keep it here for debugger
    struct mulle_concurrent_hashmap          descriptortable;
-   struct mulle_concurrent_hashmap          varyingsignaturedescriptortable;
+   struct mulle_concurrent_hashmap          varyingtypedescriptortable;
    struct mulle_concurrent_hashmap          protocoltable;
    struct mulle_concurrent_hashmap          categorytable;
    struct mulle_concurrent_hashmap          supertable;
@@ -374,7 +389,6 @@ struct _mulle_objc_universe
 
    mulle_atomic_pointer_t                   retaincount_1;
    mulle_atomic_pointer_t                   cachecount_1; // #1#
-   mulle_atomic_pointer_t                   loadbits;
    mulle_atomic_pointer_t                   classindex;
    mulle_atomic_pointer_t                   instancereuse; // (0:all, -1:none, other:future ideas...)
    mulle_thread_mutex_t                     lock;
@@ -568,11 +582,54 @@ MULLE_C_NONNULL_RETURN static inline struct mulle_allocator *
 }
 
 
+// kinda bad that its defined here like this or ?
+static inline void   mulle_buffer_add_define( struct mulle_buffer *buffer, char *name)
+{
+   mulle_buffer_add_string_if_empty( buffer, " ");
+   mulle_buffer_sprintf( buffer, "-D%s", name);
+}
+
+//
+// inline, so that we can observe changes in user and linked code
+//
+static inline char   *mulle_objc_global_preprocessor_string( struct mulle_allocator *allocator)
+{
+   char  *s;
+
+   mulle_buffer_do_string( buffer, NULL, s)
+   {
+#ifdef __MULLE_OBJC_TPS__
+      mulle_buffer_add_define( buffer, "__MULLE_OBJC_TPS__");
+#endif
+#ifdef __MULLE_OBJC_NO_TPS__
+      mulle_buffer_add_define( buffer, "__MULLE_OBJC_NO_TPS__");
+#endif
+#ifdef __MULLE_OBJC_FCS__
+      mulle_buffer_add_define( buffer, "__MULLE_OBJC_FCS__");
+#endif
+#ifdef __MULLE_OBJC_NO_FCS__
+      mulle_buffer_add_define( buffer, "__MULLE_OBJC_NO_FCS__");
+#endif
+#ifdef __MULLE_OBJC_TAO__
+      mulle_buffer_add_define( buffer, "__MULLE_OBJC_TAO__");
+#endif
+#ifdef __MULLE_OBJC_NO_TAO__
+      mulle_buffer_add_define( buffer, "__MULLE_OBJC_NO_TAO__");
+#endif
+#ifdef MULLE_OBJC_TAO_OBJECT_HEADER
+      mulle_buffer_add_string_if_empty( buffer, " ");
+      mulle_buffer_sprintf( buffer, "-DMULLE_OBJC_TAO_OBJECT_HEADER=%d", MULLE_OBJC_TAO_OBJECT_HEADER);
+#endif
+   }
+   return( s);
+}
+
 //
 // #1#: whenever a caches contents change, this variable should be incremented
 //      if that is adhered to, then we can checkout the value before a
 //      methodlist update and afterwards, and deduce if a costly cache flush
 //      is necessary.
 //
+
 
 #endif

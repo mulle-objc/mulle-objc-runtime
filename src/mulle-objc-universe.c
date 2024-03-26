@@ -92,7 +92,8 @@ void   mulle_objc_universe_maybe_hang_or_abort( struct _mulle_objc_universe *uni
 static void
    _mulle_objc_universeconfig_dump( struct _mulle_objc_universeconfig *config)
 {
-   fprintf( stderr, ", %stagged pointers", config->no_tagged_pointer ? "no " : "");
+   fprintf( stderr, "%stagged pointers", config->no_tagged_pointer ? "no " : "");
+
    fprintf( stderr, ", %sfast calls", config->no_fast_call ? "no " : "");
    if( config->forget_strings)
       fprintf( stderr, ", forget strings");
@@ -219,7 +220,7 @@ static void   trace_preamble( struct _mulle_objc_universe *universe)
    sep=":";
 
    // if we dump a lot, indent traces and be less verbose
-   if( universe->debug.trace.method_call ||
+   if( (universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT) ||
        universe->debug.trace.instance)
    {
       format = "    %s%s ";
@@ -328,6 +329,8 @@ void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
 
 static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe  *universe)
 {
+   char   *s;
+
    universe->debug.warn.method_type  = mulle_objc_environment_get_int( "MULLE_OBJC_WARN_METHOD_TYPE",
                                                                         MULLE_OBJC_WARN_METHOD_TYPE_NORMAL,
                                                                         MULLE_OBJC_WARN_METHOD_TYPE_NONE,
@@ -349,6 +352,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
       universe->debug.warn.protocolclass  = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
       universe->debug.warn.stuck_loadable = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
       universe->debug.warn.crash          = getenv_yes_no( "MULLE_OBJC_WARN_CRASH");
+      universe->debug.warn.method_bits    = getenv_yes_no( "MULLE_OBJC_WARN_METHOD_BITS");
    }
    universe->debug.warn.hang             = getenv_yes_no( "MULLE_OBJC_WARN_HANG");
 
@@ -363,7 +367,6 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.hashstrings     = getenv_yes_no( "MULLE_OBJC_TRACE_HASHSTRINGS");
    universe->debug.trace.loadinfo        = getenv_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
-   universe->debug.trace.method_call     = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALL");  // totally excessive!
    universe->debug.trace.method_searches = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCH");  // fairly excessive!
    universe->debug.trace.descriptor_add  = getenv_yes_no( "MULLE_OBJC_TRACE_DESCRIPTOR_ADD");
    universe->debug.trace.protocol_add    = getenv_yes_no( "MULLE_OBJC_TRACE_PROTOCOL_ADD");
@@ -373,6 +376,11 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.tagged_pointer  = getenv_yes_no( "MULLE_OBJC_TRACE_TAGGED_POINTER");
    universe->debug.trace.timestamp       = getenv_yes_no( "MULLE_OBJC_TRACE_TIMESTAMP");
    universe->debug.trace.thread          = getenv_yes_no( "MULLE_OBJC_TRACE_THREAD");
+
+   universe->debug.method_call           = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALL") ? MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT : 0;  // totally excessive!
+   universe->debug.method_call          |= getenv_yes_no_default( "MULLE_OBJC_CHECK_TAO", MULLE_OBJC_TAO_OBJECT_HEADER)
+                                           ? MULLE_OBJC_UNIVERSE_CALL_TAO_BIT
+                                           : 0;
 
    if( getenv_yes_no( "MULLE_OBJC_TRACE_CACHE"))
    {
@@ -414,6 +422,10 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
          MULLE_OBJC_RUNTIME_LOAD_VERSION);
       _mulle_objc_universeconfig_dump( &universe->config);
       fprintf( stderr, ")\n");
+
+      s = mulle_objc_global_preprocessor_string( &mulle_stdlib_allocator);
+      fprintf( stderr, "%s\n", s);
+      mulle_allocator_free( &mulle_stdlib_allocator, s);
    }
 }
 
@@ -686,7 +698,7 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_concurrent_hashmap_init( &universe->categorytable, 128, allocator);
    _mulle_concurrent_hashmap_init( &universe->classtable, 128, allocator);
    _mulle_concurrent_hashmap_init( &universe->descriptortable, 2048, allocator);
-   _mulle_concurrent_hashmap_init( &universe->varyingsignaturedescriptortable, 8, allocator);
+   _mulle_concurrent_hashmap_init( &universe->varyingtypedescriptortable, 8, allocator);
    _mulle_concurrent_hashmap_init( &universe->protocoltable, 64, allocator);
    _mulle_concurrent_hashmap_init( &universe->supertable, 256, allocator);
 
@@ -1047,7 +1059,6 @@ static void
    trace = universe->debug.trace.universe;
    if( trace)
    	universe_trace( universe, "trying to lock the universe down for bang");
-
 
    // ensure only one thread is going at it
    for(;;)
@@ -1575,7 +1586,7 @@ static void
    _mulle_concurrent_hashmap_done( &universe->supertable);
    _mulle_concurrent_hashmap_done( &universe->protocoltable);
    _mulle_concurrent_hashmap_done( &universe->descriptortable);
-   _mulle_concurrent_hashmap_done( &universe->varyingsignaturedescriptortable);
+   _mulle_concurrent_hashmap_done( &universe->varyingtypedescriptortable);
    _mulle_concurrent_hashmap_done( &universe->classtable);
    _mulle_concurrent_hashmap_done( &universe->categorytable);
 
@@ -1951,152 +1962,6 @@ struct _mulle_objc_universe  *
 }
 
 
-//
-// this is low level, you don't use it
-// the outcome is a class (piece) that in itself must be sane
-//
-
-
-// (no instances here yet..)
-//   @interface NSObject
-//     NSObject ---isa--> meta-NSObject  (1)
-//     NSObject ---superclass--> nil
-//     meta-NSObject ---isa--> meta-NSObject (2)
-//     meta-NSObject ---superclass--> NSObject (3)
-//
-//   @interface Foo : NSObject
-//     Foo ---isa--> meta-Foo (1)
-//     Foo ---superclass--> NSObject
-//     meta-Foo ---isa--> meta-NSObject (2)
-//     meta-Foo ---superclass--> meta-NSObject
-//
-//   @interface Bar : Foo
-//     Bar ---isa--> meta-Bar (1)
-//     Bar ---superclass--> Foo
-//     meta-Bar ---isa--> meta-NSObject (2)
-//     meta-Bar ---superclass--> meta-Foo
-//
-// a class-pair is a class and a meta-class
-//
-// every class has a superclass except the root class
-// every meta-class has a superclass
-//
-// (1) every class's isa points to its meta-class sibling
-// (2) every meta-class's isa points to the root meta-class
-// (3) the root meta-class's superclass is the root class
-//
-// what is the use of the meta-class. It's basically just
-// there to hold a method cache for class methods.
-//
-struct _mulle_objc_classpair *
-   mulle_objc_universe_new_classpair( struct _mulle_objc_universe *universe,
-                                      mulle_objc_classid_t  classid,
-                                      char *name,
-                                      size_t instancesize,
-                                      size_t classextra,
-                                      struct _mulle_objc_infraclass *superclass)
-{
-   struct _mulle_objc_classpair   *pair;
-   struct _mulle_objc_metaclass   *super_meta;
-   struct _mulle_objc_metaclass   *super_meta_isa;
-   struct mulle_allocator         *allocator;
-   mulle_objc_classid_t           correct;
-   size_t                         size;
-
-   if( ! universe)
-   {
-      errno = EINVAL;
-      return( NULL);
-   }
-
-   allocator = _mulle_objc_universe_get_allocator( universe);
-   if( _mulle_objc_universe_is_uninitialized( universe) || ! allocator)
-   {
-      fprintf( stderr, "mulle_objc_universe error: The universe %p has not "
-                       "been set up yet. You probably forgot to link the "
-                       "startup library\n", universe);
-      errno = ENXIO;
-      return( NULL);
-   }
-
-   if( classid == MULLE_OBJC_NO_CLASSID || classid == MULLE_OBJC_INVALID_CLASSID)
-   {
-      errno = EINVAL;
-      return( NULL);
-   }
-
-   if( ! name || ! strlen( name))
-   {
-      errno = EINVAL;
-      return( NULL);
-   }
-
-   correct = mulle_objc_classid_from_string( name);
-   if( classid != correct)
-   {
-      fprintf( stderr, "mulle_objc_universe error: Class \"%s\" should have "
-                       "classid %08lx but has classid %08lx\n", name,
-                       (unsigned long) correct, (unsigned long) classid);
-      errno = EINVAL;
-      return( NULL);
-   }
-
-   super_meta     = NULL;
-   super_meta_isa = NULL;
-   if( superclass)
-   {
-      super_meta     = _mulle_objc_infraclass_get_metaclass( superclass);
-      super_meta_isa = _mulle_objc_class_get_metaclass( &super_meta->base);
-      assert( super_meta_isa);
-   }
-
-   // classes are freed by hand so don't use the gifting calloc
-   size = mulle_objc_classpair_size( classextra);
-   pair = _mulle_allocator_calloc( allocator, 1, size);
-
-   // classes have no extra meta, should they though ?
-   _mulle_objc_objectheader_init( &pair->infraclassheader, &pair->metaclass.base, 0, _mulle_objc_memory_is_zeroed);
-   _mulle_objc_objectheader_init( &pair->metaclassheader,
-                                  super_meta_isa ? _mulle_objc_metaclass_as_class( super_meta_isa)
-                                                 : _mulle_objc_infraclass_as_class( &pair->infraclass),
-                                  0,
-                                  _mulle_objc_memory_is_zeroed);
-
-   // _mulle_objc_objectheader_init will set _thread, because we haven't
-   // set the proper bits yet...
-#ifdef __MULLE_OBJC_TAO__
-   pair->infraclassheader._thread = 0;
-   pair->metaclassheader._thread  = 0;
-#endif
-
-   _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);
-   _mulle_objc_object_constantify_noatomic( &pair->metaclass.base);
-
-   _mulle_objc_class_init( &pair->infraclass.base,
-                           name,
-                           instancesize,
-                           universe->foundation.headerextrasize,
-                           classid,
-                           superclass ? &superclass->base : NULL,
-                           universe);
-   _mulle_objc_class_init( &pair->metaclass.base,
-                           name,
-                           sizeof( struct _mulle_objc_class),
-                           universe->foundation.headerextrasize,
-                           classid,
-                           super_meta ? &super_meta->base : &pair->infraclass.base,
-                           universe);
-
-   _mulle_objc_infraclass_plusinit( &pair->infraclass, allocator);
-   _mulle_objc_metaclass_plusinit( &pair->metaclass, allocator);
-   _mulle_objc_classpair_plusinit( pair, allocator);
-
-   _mulle_objc_class_set_infraclass( &pair->metaclass.base, &pair->infraclass);
-
-   return( pair);
-}
-
-
 
 /* don't check for ivar_hash, as this is too painful for application
    universe hacks. Only during loading
@@ -2284,7 +2149,8 @@ static struct _mulle_objc_descriptor *
    _mulle_objc_universe_register_descriptor( struct _mulle_objc_universe *universe,
                                              struct _mulle_objc_descriptor *p)
 {
-   int                             comparison;
+   int                             signature_comparison;
+   int                             bit_comparison;
    struct _mulle_objc_descriptor   *dup;
 
    dup = _mulle_concurrent_hashmap_register( &universe->descriptortable, p->methodid, p);
@@ -2315,25 +2181,29 @@ static struct _mulle_objc_descriptor *
    {
    default :
    case MULLE_OBJC_WARN_METHOD_TYPE_NONE :
-      comparison = 0;
+      signature_comparison = 0;
       break;
    case MULLE_OBJC_WARN_METHOD_TYPE_LENIENT :
-      comparison = _mulle_objc_methodsignature_compare_lenient( dup->signature, p->signature);
+      signature_comparison = _mulle_objc_methodsignature_compare_lenient( dup->signature, p->signature);
       break;
    case MULLE_OBJC_WARN_METHOD_TYPE_NORMAL :
-      comparison = _mulle_objc_methodsignature_compare( dup->signature, p->signature);
+      signature_comparison = _mulle_objc_methodsignature_compare( dup->signature, p->signature);
       break;
    case MULLE_OBJC_WARN_METHOD_TYPE_STRICT :
-      comparison = _mulle_objc_signature_compare_strict( dup->signature, p->signature);
+      signature_comparison = _mulle_objc_signature_compare_strict( dup->signature, p->signature);
       break;
    }
 
-   if( ! comparison)
+   bit_comparison = 0;
+   if( universe->debug.warn.method_bits)
+      bit_comparison = ! _mulle_objc_method_bits_type_equal( dup->bits, p->bits);
+
+   if( ! signature_comparison && ! bit_comparison)
       return( dup);
 
    // the value in the table is unimportant. I might write a hashset
    // for this, but I am too lazy now.
-   _mulle_concurrent_hashmap_register( &universe->varyingsignaturedescriptortable, p->methodid, (void *) 0x1848);
+   _mulle_concurrent_hashmap_register( &universe->varyingtypedescriptortable, p->methodid, (void *) 0x1848);
 
    //
    // hack: so ':' can be used without warning as a shortcut selector
@@ -2344,11 +2214,25 @@ static struct _mulle_objc_descriptor *
    case 0xf0cb86d3 : // :
    case 0x872e2a5d : // data
       break;
+
    default         :
-      fprintf( stderr, "mulle_objc_universe %p warning: varying types \"%s\" "
-                       "and \"%s\" for method \"%s\" (Tip: MULLE_OBJC_TRACE_LOAD=YES)\n",
-                       universe,
-                       dup->signature, p->signature, p->name);
+      if( ! bit_comparison)
+         fprintf( stderr, "mulle_objc_universe %p warning: varying signatures \"%s\" "
+                          "and \"%s\" for method \"%s\" (Tip: MULLE_OBJC_TRACE_LOAD=YES)\n",
+                          universe,
+                          dup->signature, p->signature, p->name);
+      else
+         if( ! signature_comparison)
+            fprintf( stderr, "mulle_objc_universe %p warning: varying bits 0x%lx "
+                             "and 0x%lx for method \"%s\" (Tip: MULLE_OBJC_TRACE_LOAD=YES)\n",
+                             universe,
+                             (unsigned long)dup->bits, (unsigned long) p->bits, p->name);
+         else
+            fprintf( stderr, "mulle_objc_universe %p warning: varying signatures/bits \"%s\"/0x%lx "
+                             "and \"%s\"/0x%lx for method \"%s\" (Tip: MULLE_OBJC_TRACE_LOAD=YES)\n",
+                             universe,
+                             dup->signature, (unsigned long) dup->bits,
+                             p->signature, (unsigned long) p->bits, p->name);
    }
    return( dup);
 }

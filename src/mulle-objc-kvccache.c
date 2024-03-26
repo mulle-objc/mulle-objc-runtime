@@ -110,9 +110,9 @@ static struct _mulle_objc_cacheentry *
       return( NULL);
 
    entry = _mulle_objc_kvccache_inactivecache_add_entry( cache, info, keyid);
-   if( _mulle_objc_kvccachepivot_atomiccas_entries( pivot,
-                                                    cache->base.entries,
-                                                    old_cache->base.entries))
+   if( _mulle_objc_kvccachepivot_cas_entries( pivot,
+                                              cache->base.entries,
+                                              old_cache->base.entries))
    {
       _mulle_objc_kvccache_free( cache, allocator);
       return( NULL);
@@ -138,7 +138,7 @@ int    _mulle_objc_kvccachepivot_set_kvcinfo( struct _mulle_objc_kvccachepivot *
 
    for(;;)
    {
-      cache = _mulle_objc_kvccachepivot_atomicget_cache( pivot);
+      cache = _mulle_objc_kvccachepivot_get_cache_atomic( pivot);
       if( (size_t) _mulle_atomic_pointer_read( &cache->base.n) >= (cache->base.size >> 1))  // 50% fill rate should be OK
       {
          entry = _mulle_objc_kvccachepivot_add_cacheentry_by_swapping_caches( pivot,
@@ -196,11 +196,11 @@ int   _mulle_objc_kvccachepivot_invalidate( struct _mulle_objc_kvccachepivot *pi
 
    do
    {
-      old_entries = _mulle_objc_kvccachepivot_atomicget_entries( pivot);
+      old_entries = _mulle_objc_kvccachepivot_get_entries_atomic( pivot);
       if( old_entries == &empty_cache->base.entries[ 0])
          return( 0);
    }
-   while( _mulle_objc_kvccachepivot_atomiccas_entries( pivot,
+   while( _mulle_objc_kvccachepivot_cas_entries( pivot,
                                                        &empty_cache->base.entries[ 0],
                                                        old_entries));
 

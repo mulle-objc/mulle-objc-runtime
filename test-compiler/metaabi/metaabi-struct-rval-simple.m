@@ -18,7 +18,7 @@ struct mulle_clang_objccompilerinfo
    unsigned int   runtime_version;
 } __mulle_objc_objccompilerinfo =
 {
-   17,
+   18,
    1848
 };
 

@@ -179,12 +179,12 @@ static void
                                  _mulle_objc_metaclass_get_name( meta));
 
    imp = _mulle_objc_method_get_implementation( initialize);
-   if( universe->debug.trace.method_call)
-      mulle_objc_class_trace_call( &meta->base,  // sic!
-                                   infra,
-                                   MULLE_OBJC_INITIALIZE_METHODID,
-                                   NULL,
-                                   imp);
+   if( universe->debug.method_call)
+      mulle_objc_class_debug_imp_call( &meta->base, // sic /
+                                       imp,
+                                       infra,
+                                       MULLE_OBJC_INITIALIZE_METHODID,
+                                       NULL);
 
    mulle_objc_implementation_invoke( imp,
                                     (struct _mulle_objc_object *) infra,
@@ -411,6 +411,7 @@ static void   *_mulle_objc_object_call_class_slow( void *obj,
    mulle_objc_implementation_t   imp;
 
    method = mulle_objc_class_search_method_nofail( cls, methodid);
+   mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
    imp    = _mulle_objc_method_get_implementation( method);
    return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
 }
@@ -426,6 +427,7 @@ static void   *_mulle_objc_object_call2_slow( void *obj,
 
    cls    = _mulle_objc_object_get_isa( obj);
    method = mulle_objc_class_search_method_nofail( cls, methodid);
+   mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
    imp    = _mulle_objc_method_get_implementation( method);
    return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
 }
@@ -435,8 +437,8 @@ static void *
    _mulle_objc_object_supercall_slow( void *obj,
                                       mulle_objc_methodid_t methodid,
                                       void *parameter,
-                                      struct _mulle_objc_class *cls,
-                                      mulle_objc_superid_t superid)
+                                      mulle_objc_superid_t superid,
+                                      struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_method     *method;
    mulle_objc_implementation_t   imp;
@@ -444,8 +446,9 @@ static void *
    MULLE_C_UNUSED( obj);
 
    method = _mulle_objc_class_supersearch_method_nofail( cls, superid);
+   mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
    imp    = _mulle_objc_method_get_implementation( method);
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+   return( (*imp)( obj, methodid, parameter));
 }
 
 
@@ -486,16 +489,20 @@ static void *
    _mulle_objc_object_supercall_needcache( void *obj,
                                            mulle_objc_methodid_t methodid,
                                            void *parameter,
-                                           struct _mulle_objc_class *cls,
-                                           mulle_objc_superid_t superid)
+                                           mulle_objc_superid_t superid,
+                                           struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t   imp;
+   struct _mulle_objc_method     *method;
 
    // happens when we do +[super initialize] in +initialize
    _mulle_objc_class_setup( cls);
+
    // this is slow and uncached as we need it
-   imp = _mulle_objc_class_search_superimplementation_nofail( cls, superid);
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+   method = _mulle_objc_class_search_supermethod_nofail( cls, superid);
+   mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
+   imp    = _mulle_objc_method_get_implementation( method);
+   return( (*imp)( obj, methodid, parameter));
 }
 
 

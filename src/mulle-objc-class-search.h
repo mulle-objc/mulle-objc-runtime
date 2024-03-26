@@ -119,8 +119,7 @@ struct _mulle_objc_searchargumentscachable
 // This is something the compiler can do for us at compile time!
 //
 static inline uintptr_t
-   _mulle_objc_searchargumentscachable_hash( struct _mulle_objc_searchargumentscachable
-                                          *args)
+   _mulle_objc_searchargumentscachable_hash( struct _mulle_objc_searchargumentscachable *args)
 {
    uintptr_t   hash;
 
@@ -134,10 +133,8 @@ static inline uintptr_t
 
 
 static inline int
-   _mulle_objc_searchargumentscachable_equals( struct _mulle_objc_searchargumentscachable
-                                               *a,
-                                               struct _mulle_objc_searchargumentscachable
-                                               *b)
+   _mulle_objc_searchargumentscachable_equals( struct _mulle_objc_searchargumentscachable *a,
+                                               struct _mulle_objc_searchargumentscachable *b)
 {
    // in estimated order of likeliness of difference
    return( a->methodid   == b->methodid &&
@@ -485,7 +482,7 @@ static inline mulle_objc_implementation_t
 // used
 MULLE_OBJC_RUNTIME_GLOBAL
 void
-    _mulle_objc_class_fill_impcache( struct _mulle_objc_class *cls,
-                                     struct _mulle_objc_impcachepivot *cachepivot,
-                                     struct _mulle_objc_method *method,
-                                     mulle_objc_uniqueid_t uniqueid);
+   _mulle_objc_class_fill_impcache_method( struct _mulle_objc_class *cls,
+                                           struct _mulle_objc_impcachepivot *cachepivot,
+                                           struct _mulle_objc_method *method,
+                                           mulle_objc_uniqueid_t uniqueid);

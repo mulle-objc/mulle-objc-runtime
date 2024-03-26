@@ -105,12 +105,15 @@ enum _mulle_objc_methodfamily
 
 enum
 {
+   _mulle_objc_method_type_equality_mask        = 0x0C,  // other bits can vary from class to class
+
    _mulle_objc_method_check_unexpected_override = 0x01,
    _mulle_objc_method_preload                   = 0x02,
    _mulle_objc_method_aam                       = 0x04,
    _mulle_objc_method_variadic                  = 0x08,
    _mulle_objc_method_guessed_signature         = 0x10,
    _mulle_objc_method_designated_initializer    = 0x20,
+
 
    // this "coverage" bit gets set, when a method has been searched and found.
    // Should setting the bit be atomic, though it will never be cleared ?
@@ -121,10 +124,32 @@ enum
    _mulle_objc_method_searched_and_found        = 0x80,
 
    _mulle_objc_methodfamily_mask                = 0x3F0000,
+
+   // user mask (MSB is currently used by MulleThreadSafeObject to mark
+   // methods which should not lock)
+   _mulle_objc_method_user_mask                 = 0x00F800,
+   // these can be set like this:
+   // #pragma clang attribute push(__attribute__((annotate("objc_user_0"))), apply_to = objc_method)
+   _mulle_objc_method_user_attribute_0          = 0x000800,
+   _mulle_objc_method_user_attribute_1          = 0x001000,
+   _mulle_objc_method_user_attribute_2          = 0x002000,
+   _mulle_objc_method_user_attribute_3          = 0x004000,
+   _mulle_objc_method_user_attribute_4          = 0x008000  // used by #threadsafe
 };
 
 
 #define  _mulle_objc_methodfamily_shift   16
+#define  _mulle_objc_method_user_shift    11
+
+
+static inline int   _mulle_objc_method_bits_type_equal( int a, int b)
+{
+   // check user mask and important type bits, if differs fail early
+   // method family is not important
+   if( (a ^ b) & (_mulle_objc_method_user_mask|_mulle_objc_method_type_equality_mask))
+      return( 0);
+   return( 1);
+}
 
 
 # pragma mark - descriptor
@@ -201,6 +226,22 @@ static inline enum _mulle_objc_methodfamily
 }
 
 
+
+static inline int
+   _mulle_objc_descriptor_get_user_bits( struct _mulle_objc_descriptor *desc)
+{
+   return( (unsigned long) (desc->bits & _mulle_objc_method_user_mask) >> _mulle_objc_method_user_shift);
+}
+
+
+static inline int
+   _mulle_objc_descriptor_set_user_bits( struct _mulle_objc_descriptor *desc, int bits)
+{
+   assert( bits >= 0 && bits < 0x20);
+   return( (desc->bits & ~_mulle_objc_method_user_mask) | ((uint32_t) bits << _mulle_objc_method_user_shift));
+}
+
+
 static inline int
    _mulle_objc_descriptor_is_init_method( struct _mulle_objc_descriptor *desc)
 {
@@ -234,6 +275,15 @@ static inline int
 {
    return( _mulle_objc_descriptor_get_methodfamily( desc) == _mulle_objc_methodfamily_remover);
 }
+
+
+//
+// this compares by name, signature and bits, for use in (mulle) qsort_r
+//
+MULLE_OBJC_RUNTIME_GLOBAL
+int  _mulle_objc_descriptor_compare_r( void **a,
+                                       void **b,
+                                       void *unused);
 
 
 
@@ -356,6 +406,7 @@ static inline struct _mulle_objc_method   *
 
 #pragma mark - qsort
 
+// this compares by methodid only
 MULLE_OBJC_RUNTIME_GLOBAL
 int  _mulle_objc_method_compare( struct _mulle_objc_method *a,
                                  struct _mulle_objc_method *b);
@@ -401,6 +452,13 @@ static inline struct _mulle_objc_descriptor *
 {
    return( method ? _mulle_objc_method_get_descriptor( method) : NULL);
 }
+
+
+static inline int   _mulle_objc_method_is_threadaffine( struct _mulle_objc_method *method)
+{
+   return( ! (_mulle_objc_method_get_bits( method) & _mulle_objc_method_user_attribute_4));
+}
+
 
 
 /* compatibility stuff for Foundation */
