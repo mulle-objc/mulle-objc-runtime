@@ -696,10 +696,10 @@ static inline struct _mulle_objc_descriptor *
 }
 
 static inline struct _mulle_objc_descriptor *
-   _mulle_objc_universe_lookup_varyingsignaturedescriptor( struct _mulle_objc_universe *universe,
-                                                           mulle_objc_methodid_t methodid)
+   _mulle_objc_universe_lookup_varyingtypedescriptor( struct _mulle_objc_universe *universe,
+                                                      mulle_objc_methodid_t methodid)
 {
-   return( _mulle_concurrent_hashmap_lookup( &universe->varyingsignaturedescriptortable, methodid));
+   return( _mulle_concurrent_hashmap_lookup( &universe->varyingtypedescriptortable, methodid));
 }
 
 

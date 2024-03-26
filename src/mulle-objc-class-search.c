@@ -389,6 +389,7 @@ static struct _mulle_objc_method   *
    unsigned int                                            i;
    unsigned int                                            n;
    unsigned int                                            tmp;
+   unsigned int                                            superinheritance;
 
 
    // only enable first (@implementation of class) on demand
@@ -563,11 +564,20 @@ next_class:
    supercls = search_superclass( cls, inheritance);
    if( supercls)
    {
+      //
+      // Usually we inherit what super wants, its actually quite dangerous
+      // to override this in searches (better only do this in direct
+      // NSObject subclasses, as the playground is known)
+      //
+      superinheritance = (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_INHERITANCE)
+                         ? inheritance
+                         : supercls->inheritance;
+
       method = __mulle_objc_class_search_method( supercls,
-                                                search,
-                                                supercls->inheritance,
-                                                result,
-                                                mode);
+                                                 search,
+                                                 superinheritance,
+                                                 result,
+                                                 mode);
       if( method != MULLE_OBJC_METHOD_SEARCH_FAIL)
       {
          if( ! method)

@@ -121,7 +121,7 @@ mulle_objc_implementation_t
                                              mulle_objc_methodid_t methodid);
 
 
-// knows about trace and empty cache, forwards
+// this will not fail if class has no forward method declared (who needs this ?)
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_nofail( struct _mulle_objc_class *cls,
@@ -158,6 +158,11 @@ mulle_objc_implementation_t
 // refresh functions, do not check the cache, do the slow search immediately
 // and then update cache. If you don't want to update the cache use a
 // search directly.
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_method *
+   _mulle_objc_class_refresh_supermethod_nofail( struct _mulle_objc_class *cls,
+                                                 mulle_objc_superid_t superid);
+
 
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
@@ -168,6 +173,11 @@ MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
    _mulle_objc_class_refresh_implementation_nofail( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t methodid);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_method *
+   _mulle_objc_class_refresh_method_nofail( struct _mulle_objc_class *cls,
+                                            mulle_objc_methodid_t methodid);
 
 # pragma mark - super lookup
 
@@ -208,10 +218,26 @@ static inline mulle_objc_implementation_t
 }
 
 
+
 MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
-mulle_objc_implementation_t
+struct _mulle_objc_method *
+   _mulle_objc_class_search_supermethod_nofail( struct _mulle_objc_class *cls,
+                                                mulle_objc_superid_t superid);
+
+
+MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+static inline mulle_objc_implementation_t
    _mulle_objc_class_search_superimplementation_nofail( struct _mulle_objc_class *cls,
-                                                                mulle_objc_superid_t superid);
+                                                                mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_method            *method;
+   mulle_objc_implementation_t          imp;
+
+   method = _mulle_objc_class_search_supermethod_nofail( cls, superid);
+   imp    = _mulle_objc_method_get_implementation( method);
+   return( imp);
+}
+
 
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
@@ -234,7 +260,7 @@ static inline mulle_objc_implementation_t
 
 // used by debugger code
 MULLE_OBJC_RUNTIME_GLOBAL
-MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
+MULLE_C_CONST_RETURN
 mulle_objc_implementation_t
    _mulle_objc_object_lookup_superimplementation_noforward_nofill( void *obj,
                                                                       mulle_objc_superid_t superid);

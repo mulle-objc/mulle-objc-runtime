@@ -11,7 +11,8 @@ For gcc the `-m32` flag is the ticket.
 
 ```
 mulle-sde -v -DCFLAGS=-m32 test craft
-mulle-sde -v -DMULLE_ARCH=i686 -DCFLAGS=-m32 test run canary.m
+mulle-sde -v -DMULLE_ARCH=i686 -DCFLAGS=-m32 test run canary-tao.m
+mulle-sde -v -DMULLE_ARCH=i686 -DCFLAGS=-m32 test run canary-no-tao.m
 ```
 
 ## Prerequisites

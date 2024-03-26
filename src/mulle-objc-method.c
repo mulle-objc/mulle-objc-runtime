@@ -80,6 +80,30 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
 
 #pragma mark - qsort
 
+int  _mulle_objc_descriptor_compare_r( void **p_a,
+                                       void **p_b,
+                                       void *unused)
+{
+   struct _mulle_objc_descriptor   *a = *p_a;
+   struct _mulle_objc_descriptor   *b = *p_b;
+   int                             cmp;
+   long                            diff;
+
+   MULLE_C_UNUSED( unused);
+
+   cmp = strcmp( a->name, b->name);
+   if( cmp)
+      return( cmp);
+
+   cmp = strcmp( a->signature, b->signature);
+   if( cmp)
+      return( cmp);
+
+   diff = (long) a->bits - (long) b->bits;
+   return( diff < 0 ? -1 : ! ! diff);
+}
+
+
 int  _mulle_objc_method_compare( struct _mulle_objc_method *a, struct _mulle_objc_method *b)
 {
    mulle_objc_methodid_t   a_id;

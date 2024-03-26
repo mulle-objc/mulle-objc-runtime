@@ -131,14 +131,14 @@ struct _mulle_objc_kvccachepivot
 };
 
 
-static inline struct _mulle_objc_kvccache  *_mulle_objc_kvccachepivot_atomicget_cache( struct _mulle_objc_kvccachepivot *pivot)
+static inline struct _mulle_objc_kvccache  *_mulle_objc_kvccachepivot_get_cache_atomic( struct _mulle_objc_kvccachepivot *pivot)
 {
    return( (struct _mulle_objc_kvccache *) _mulle_objc_cachepivot_get_cache_atomic( (struct _mulle_objc_cachepivot *) pivot));
 }
 
 
 MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry  *_mulle_objc_kvccachepivot_atomicget_entries( struct _mulle_objc_kvccachepivot *p)
+static inline struct _mulle_objc_cacheentry  *_mulle_objc_kvccachepivot_get_entries_atomic( struct _mulle_objc_kvccachepivot *p)
 {
    return( _mulle_objc_cachepivot_get_entries_atomic( (struct _mulle_objc_cachepivot *) p));
 }
@@ -146,9 +146,9 @@ static inline struct _mulle_objc_cacheentry  *_mulle_objc_kvccachepivot_atomicge
 
 
 static inline int
-   _mulle_objc_kvccachepivot_atomiccas_entries( struct _mulle_objc_kvccachepivot *p,
-                                                struct _mulle_objc_cacheentry  *new_entries,
-                                                struct _mulle_objc_cacheentry  *old_entries)
+   _mulle_objc_kvccachepivot_cas_entries( struct _mulle_objc_kvccachepivot *p,
+                                          struct _mulle_objc_cacheentry  *new_entries,
+                                          struct _mulle_objc_cacheentry  *old_entries)
 {
    return( _mulle_objc_cachepivot_cas_entries( (struct _mulle_objc_cachepivot *) p, new_entries, old_entries));
 }

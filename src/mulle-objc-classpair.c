@@ -39,6 +39,7 @@
 
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-class.h"
+#include "mulle-objc-retain-release.h"
 #include "mulle-objc-universe-class.h"
 #include "mulle-objc-universe.h"
 
@@ -60,6 +61,8 @@ void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
                                           &universe->empty_uniqueidarray);
    _mulle_atomic_pointer_nonatomic_write( &pair->p_categoryids.pointer,
                                           &universe->empty_uniqueidarray);
+
+//   pair->taoprotection = _MULLE_OBJC_CLASSPAIR_TAO_MAGIC;
 }
 
 
@@ -83,6 +86,153 @@ void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
       mulle_objc_uniqueidarray_abafree( array, allocator);
 
    _mulle_concurrent_pointerarray_done( &pair->protocolclasses);
+}
+
+
+
+//
+// this is low level, you don't use it
+// the outcome is a class (piece) that in itself must be sane
+//
+
+
+// (no instances here yet..)
+//   @interface NSObject
+//     NSObject ---isa--> meta-NSObject  (1)
+//     NSObject ---superclass--> nil
+//     meta-NSObject ---isa--> meta-NSObject (2)
+//     meta-NSObject ---superclass--> NSObject (3)
+//
+//   @interface Foo : NSObject
+//     Foo ---isa--> meta-Foo (1)
+//     Foo ---superclass--> NSObject
+//     meta-Foo ---isa--> meta-NSObject (2)
+//     meta-Foo ---superclass--> meta-NSObject
+//
+//   @interface Bar : Foo
+//     Bar ---isa--> meta-Bar (1)
+//     Bar ---superclass--> Foo
+//     meta-Bar ---isa--> meta-NSObject (2)
+//     meta-Bar ---superclass--> meta-Foo
+//
+// a class-pair is a class and a meta-class
+//
+// every class has a superclass except the root class
+// every meta-class has a superclass
+//
+// (1) every class's isa points to its meta-class sibling
+// (2) every meta-class's isa points to the root meta-class
+// (3) the root meta-class's superclass is the root class
+//
+// what is the use of the meta-class. It's basically just
+// there to hold a method cache for class methods.
+//
+struct _mulle_objc_classpair *
+   mulle_objc_universe_new_classpair( struct _mulle_objc_universe *universe,
+                                      mulle_objc_classid_t  classid,
+                                      char *name,
+                                      size_t instancesize,
+                                      size_t classextra,
+                                      struct _mulle_objc_infraclass *superclass)
+{
+   struct _mulle_objc_classpair   *pair;
+   struct _mulle_objc_metaclass   *super_meta;
+   struct _mulle_objc_metaclass   *super_meta_isa;
+   struct mulle_allocator         *allocator;
+   mulle_objc_classid_t           correct;
+   size_t                         size;
+
+   if( ! universe)
+   {
+      errno = EINVAL;
+      return( NULL);
+   }
+
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   if( _mulle_objc_universe_is_uninitialized( universe) || ! allocator)
+   {
+      fprintf( stderr, "mulle_objc_universe error: The universe %p has not "
+                       "been set up yet. You probably forgot to link the "
+                       "startup library\n", universe);
+      errno = ENXIO;
+      return( NULL);
+   }
+
+   if( classid == MULLE_OBJC_NO_CLASSID || classid == MULLE_OBJC_INVALID_CLASSID)
+   {
+      errno = EINVAL;
+      return( NULL);
+   }
+
+   if( ! name || ! strlen( name))
+   {
+      errno = EINVAL;
+      return( NULL);
+   }
+
+   correct = mulle_objc_classid_from_string( name);
+   if( classid != correct)
+   {
+      fprintf( stderr, "mulle_objc_universe error: Class \"%s\" should have "
+                       "classid %08lx but has classid %08lx\n", name,
+                       (unsigned long) correct, (unsigned long) classid);
+      errno = EINVAL;
+      return( NULL);
+   }
+
+   super_meta     = NULL;
+   super_meta_isa = NULL;
+   if( superclass)
+   {
+      super_meta     = _mulle_objc_infraclass_get_metaclass( superclass);
+      super_meta_isa = _mulle_objc_class_get_metaclass( &super_meta->base);
+      assert( super_meta_isa);
+   }
+
+   // classes are freed by hand so don't use the gifting calloc
+   size = mulle_objc_classpair_size( classextra);
+   pair = _mulle_allocator_calloc( allocator, 1, size);
+
+   // classes have no extra meta, should they though ?
+   _mulle_objc_objectheader_init( &pair->infraclassheader, &pair->metaclass.base, 0, _mulle_objc_memory_is_zeroed);
+   _mulle_objc_objectheader_init( &pair->metaclassheader,
+                                  super_meta_isa ? _mulle_objc_metaclass_as_class( super_meta_isa)
+                                                 : _mulle_objc_infraclass_as_class( &pair->infraclass),
+                                  0,
+                                  _mulle_objc_memory_is_zeroed);
+
+   // _mulle_objc_objectheader_init will set _thread, because we haven't
+   // set the proper bits yet...
+#if MULLE_OBJC_TAO_OBJECT_HEADER
+   pair->infraclassheader._thread = 0;
+   pair->metaclassheader._thread  = 0;
+#endif
+
+   _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);
+   _mulle_objc_object_constantify_noatomic( &pair->metaclass.base);
+
+   _mulle_objc_class_init( &pair->infraclass.base,
+                           name,
+                           instancesize,
+                           universe->foundation.headerextrasize,
+                           classid,
+                           superclass ? &superclass->base : NULL,
+                           universe);
+   _mulle_objc_class_init( &pair->metaclass.base,
+                           name,
+                           sizeof( struct _mulle_objc_class),
+                           universe->foundation.headerextrasize,
+                           classid,
+                           super_meta ? &super_meta->base : &pair->infraclass.base,
+                           universe);
+
+   _mulle_objc_infraclass_plusinit( &pair->infraclass, allocator);
+   _mulle_objc_metaclass_plusinit( &pair->metaclass, allocator);
+   _mulle_objc_classpair_plusinit( pair, allocator);
+
+   _mulle_objc_class_set_infraclass( &pair->metaclass.base, &pair->infraclass);
+
+   return( pair);
 }
 
 

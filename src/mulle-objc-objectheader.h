@@ -44,6 +44,16 @@
 struct _mulle_objc_object;
 
 
+// do it like this, so we can easily test compile without header
+// for TAO canary test
+#ifndef MULLE_OBJC_TAO_OBJECT_HEADER
+# if (defined( __MULLE_OBJC_TAO__) || defined( MULLE_TEST) ) && ! defined( MULLE_OBJC_NO_TAO_OBJECT_HEADER)
+#  define MULLE_OBJC_TAO_OBJECT_HEADER  1
+# else
+#  define MULLE_OBJC_TAO_OBJECT_HEADER  0
+# endif
+#endif
+
 //
 // this is ahead of the actual instance
 // isa must be underscored
@@ -58,7 +68,7 @@ struct _mulle_objc_objectheader
    //
    // in tests its inconvenient to have variable sizes, since it breaks
    //
-#if defined( __MULLE_OBJC_TAO__) || defined( MULLE_TEST) || defined( MULLE_OBJC_TAO_OBJECT_HEADER)
+#if MULLE_OBJC_TAO_OBJECT_HEADER
    void                        *_align;
    mulle_thread_t              _thread;
 #endif
@@ -131,7 +141,7 @@ MULLE_C_CONST_RETURN
 MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
    _mulle_objc_objectheader_get_thread( struct _mulle_objc_objectheader *header)
 {
-#ifdef __MULLE_OBJC_TAO__
+#if MULLE_OBJC_TAO_OBJECT_HEADER
    return( header->_thread);
 #else
    return( 0);
@@ -147,7 +157,7 @@ MULLE_C_ALWAYS_INLINE static inline void
    _mulle_objc_objectheader_set_thread( struct _mulle_objc_objectheader *header,
                                         mulle_thread_t thread)
 {
-#ifdef __MULLE_OBJC_TAO__
+#if MULLE_OBJC_TAO_OBJECT_HEADER
    header->_thread = thread;
 #endif
 }
@@ -187,7 +197,7 @@ static inline void
               0,
               sizeof( *header) - sizeof( struct _mulle_objc_class *) + headerextrasize);
    _mulle_objc_objectheader_set_isa( header, cls);
-#ifdef __MULLE_OBJC_TAO__
+#if MULLE_OBJC_TAO_OBJECT_HEADER
    if( _mulle_objc_class_is_threadaffine( cls))
       header->_thread = mulle_thread_self();
 #endif

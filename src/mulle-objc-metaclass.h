@@ -181,7 +181,7 @@ static inline void
 {
    MULLE_OBJC_RUNTIME_GLOBAL
    void   mulle_objc_class_add_methodlist_nofail( struct _mulle_objc_class *cls,
-                                                         struct _mulle_objc_methodlist *list);
+                                                  struct _mulle_objc_methodlist *list);
 
    mulle_objc_class_add_methodlist_nofail( &meta->base, list);
 }

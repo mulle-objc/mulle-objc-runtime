@@ -87,10 +87,9 @@ static void    map_f( struct mulle_concurrent_hashmap *table,
                       struct _mulle_objc_callqueue *loads,
                       struct _mulle_objc_universe *universe)
 {
-   struct mulle_concurrent_pointerarray            *list;
-   struct mulle_concurrent_pointerarrayenumerator  rover;
-   struct mulle_allocator                          *allocator;
-   void                                            *value;
+   struct mulle_concurrent_pointerarray   *list;
+   struct mulle_allocator                 *allocator;
+   void                                   *value;
 
    if( ! table)
       return;
@@ -103,10 +102,10 @@ static void    map_f( struct mulle_concurrent_hashmap *table,
    // just tear out the table (no-one can write into it concurrently)
    _mulle_concurrent_hashmap_remove( table, uniqueid, list);
 
-   rover = mulle_concurrent_pointerarray_enumerate( list);
-   while( value = mulle_concurrent_pointerarrayenumerator_next( &rover))
+   mulle_concurrent_pointerarray_for( list, value)
+   {
       (*f)( value, loads, universe);
-   mulle_concurrent_pointerarrayenumerator_done( &rover);
+   }
 
    _mulle_concurrent_pointerarray_done( list);
 
@@ -1433,6 +1432,13 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
              universe);
    }
 #endif
+
+   // we set this anyway for the debugger (easier to find)
+   _mulle_objc_universe_set_loadbit( universe,
+                                     load_tao
+                                        ? MULLE_OBJC_UNIVERSE_HAVE_TAO_LOADS
+                                        : MULLE_OBJC_UNIVERSE_HAVE_NO_TAO_LOADS);
+
 
    //
    // check that if a universename is given, that tps is off

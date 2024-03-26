@@ -66,7 +66,7 @@ void   *mulle_objc_object_call( void *obj,
                                 mulle_objc_methodid_t methodid,
                                 void *parameter)
 {
-   return( mulle_objc_object_call_inline( obj, methodid, parameter));
+   return( mulle_objc_object_call_inline_full( obj, methodid, parameter));
 }
 
 
@@ -76,7 +76,7 @@ void   *_mulle_objc_object_call( void *obj,
                                  mulle_objc_methodid_t methodid,
                                  void *parameter)
 {
-   return( _mulle_objc_object_call_inline( obj, methodid, parameter));
+   return( _mulle_objc_object_call_inline_full( obj, methodid, parameter));
 }
 
 
@@ -87,26 +87,222 @@ void   *mulle_objc_object_supercall( void *obj,
                                      void *parameter,
                                      mulle_objc_superid_t superid)
 {
-   return( mulle_objc_object_supercall_inline( obj, methodid, parameter, superid));
+   return( mulle_objc_object_supercall_inline_full( obj, methodid, parameter, superid));
 }
 
+
+
+
+# pragma mark - trace method
+
+void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
+                                    void *obj,
+                                    mulle_objc_methodid_t methodid,
+                                    void *parameter,
+                                    mulle_objc_implementation_t imp,
+                                    struct _mulle_objc_method *method)
+{
+   struct _mulle_objc_descriptor        *desc;
+   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_class             *isa;
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_searchresult      result;
+   unsigned int                         inheritance;
+   char                                 *name;
+   int                                  frames;
+
+   universe = _mulle_objc_class_get_universe( cls);
+   //
+   // What is basically wrong here is, that we should be searching for the
+   // class that implements the method, not the called class
+   // This is fairly expensive though...
+   //
+   if( ! method)
+   {
+      inheritance = _mulle_objc_class_get_inheritance( cls);
+      _mulle_objc_searcharguments_init_imp( &search, imp);
+      method = mulle_objc_class_search_method( cls,
+                                               &search,
+                                               inheritance,
+                                               &result);
+      assert( method);
+   }
+
+   // get from method (might have been passed in as nil)
+   imp = _mulle_objc_method_get_implementation( method);
+
+   mulle_thread_mutex_lock( &universe->debug.lock);
+   {
+      mulle_objc_universe_trace_preamble( universe);
+
+      fprintf( stderr, "[::] ");
+      frames = (*universe->debug.count_stackdepth)();
+      while( frames--)
+         fputc( ' ', stderr);
+      fprintf( stderr, "%c[", _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
+
+      if( method)
+      {
+         fprintf( stderr, "%s", _mulle_objc_class_get_name( result.class));
+         name = mulle_objc_methodlist_get_categoryname( result.list);
+         if( name)
+            fprintf( stderr, "(%s)", name);
+         fprintf( stderr, " %s]", _mulle_objc_method_get_name( method));
+      }
+      else
+      {
+         // fallback in case...
+         fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
+         desc     = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+         if( desc)
+            fprintf( stderr, " %s]", desc->name);
+         else
+            fprintf( stderr, " #%08lx]", (unsigned long) methodid);
+      }
+
+      isa = _mulle_objc_object_get_isa_universe( obj, universe);
+      fprintf( stderr, " @%p %s (%p, #%08lx, %p)\n",
+               imp,
+               _mulle_objc_class_get_name( isa),
+               obj,
+               (unsigned long) methodid,
+               parameter);
+   }
+   mulle_thread_mutex_unlock( &universe->debug.lock);
+}
+
+
+
+static void   mulle_objc_object_fail_thread_affinity( struct _mulle_objc_object *obj,
+                                                      mulle_thread_t affinity_thread,
+                                                      char *name)
+{
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_class      *cls;
+   int                           ismeta;
+
+   cls      = _mulle_objc_object_get_isa( obj);
+   ismeta   = _mulle_objc_class_is_metaclass( cls);
+   universe = _mulle_objc_class_get_universe( cls);
+
+   mulle_objc_universe_fail_generic( universe,
+                                     "%s <%s %p> with affinity to thread %p gets a -%s call from thread %p",
+                                     ismeta ? "Class" : "Object",
+                                     _mulle_objc_class_get_name( cls),
+                                     obj,
+                                     affinity_thread,
+                                     name,
+                                     mulle_thread_self());
+}
+
+
+// MEMO: TAO and the Cache
+//
+// When we do TAO, we need to call this often. The idea is that all methods
+// that are "threadsafe" can be moved into cache. Not threadsafe methods
+// are kept out of the cache, therefore "refail" and will get checked again.
+// Once TAO is disabled, these will be back in the cache and everything is
+// proceeding as foreseen.
+//
+// "Direct" method invocations suffer though.
+//
+void   mulle_objc_object_taocheck_call( void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        struct _mulle_objc_method *method)
+{
+   mulle_thread_t                  object_thread;
+   mulle_thread_t                  curr_thread;
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_descriptor   *desc;
+
+   //
+   // these are no problem, as they are known to be threadsafe and
+   // we want to get rid of them ASAP as they come in often
+   // forward: is is really threadsafe ?
+   //
+   if( methodid == MULLE_OBJC_RELEASE_METHODID
+       || methodid == MULLE_OBJC_RETAIN_METHODID
+       || methodid == MULLE_OBJC_AUTORELEASE_METHODID)
+      return;
+
+   object_thread = _mulle_objc_object_get_thread( obj);
+   if( ! object_thread)
+      return;
+
+   curr_thread = mulle_thread_self();
+
+   //
+   // dealloc is single threaded by default, change affinity to current thread
+   // this way objects can dealloc in a worker thread (though how did they
+   // get there ?)
+   //
+   // if( sel == MULLE_OBJC_DEALLOC_METHODID)
+   // {
+   //    _mulle_objc_object_set_thread( obj, curr_thread);
+   //    return( 0);
+   // }
+
+   if( object_thread == curr_thread)
+      return;
+
+   //
+   // check if selector references an -init or -dealloc method as these
+   // are always thread safe (unless seriously misused)
+   //
+   if( ! method)
+   {
+      cls    = _mulle_objc_object_get_isa( obj);
+      method = mulle_objc_class_defaultsearch_method( cls, methodid);
+      assert( method); // can't fail at this point
+   }
+
+   // if threadsafe bit is set, then we are fiiiine
+   // this probably shouldn't be in here, but some foundation callback
+   if( ! _mulle_objc_method_is_threadaffine( method))
+      return;
+
+   desc = _mulle_objc_method_get_descriptor( method);
+   switch( _mulle_objc_descriptor_get_methodfamily( desc))
+   {
+   case _mulle_objc_methodfamily_init    :
+   case _mulle_objc_methodfamily_dealloc :
+      return;
+   }
+
+   // forward: is not "methodid", that's what we foward to
+   if( method->descriptor.methodid == MULLE_OBJC_FORWARD_METHODID)
+      return;
+
+   // OK so its wrong, but are we still multi-threaded ? could be that
+   // the universe is winding down and releasing stuff
+   // could ask [NSThread isMultithreaded], but it seems wrong
+   universe = _mulle_objc_object_get_universe( obj);
+   if( _mulle_objc_universe_is_deinitializing( universe))
+      return;
+
+   mulle_objc_object_fail_thread_affinity( obj, object_thread, _mulle_objc_descriptor_get_name( desc));
+}
 
 
 # pragma mark - normal callbacks for memorycache
 
 
+//
 // MEMO: these callbacks obviously don't go through the memory cache vectors
-//       again.
-static void   *_mulle_objc_object_call_class( void *obj,
-                                              mulle_objc_methodid_t methodid,
-                                              void *parameter,
-                                              struct _mulle_objc_class *cls)
+//       again. Also here is tracing and toachecking implemented
+//
+static void   *_mulle_objc_object_callback_class( void *obj,
+                                                  mulle_objc_methodid_t methodid,
+                                                  void *parameter,
+                                                  struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t      imp;
    mulle_functionpointer_t          p;
    struct _mulle_objc_cache         *cache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
+   struct _mulle_objc_method        *method;
    mulle_objc_cache_uint_t          mask;
    mulle_objc_cache_uint_t          offset;
 
@@ -125,23 +321,26 @@ static void   *_mulle_objc_object_call_class( void *obj,
 
       if( entry->key.uniqueid == methodid)
       {
-         p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-         imp     = (mulle_objc_implementation_t) p;
-/*->*/
-         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         imp = (mulle_objc_implementation_t) p;
+         // direct cache hit, no trace(!), no tao check needed
+         break;
       }
 
       if( ! entry->key.uniqueid)
+      {
+         method = _mulle_objc_class_refresh_method_nofail( cls, methodid);
+         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
+         imp    = _mulle_objc_method_get_implementation( method);
          break;
-
+      }
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
-/*->*/
 
-
-   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
    /*->*/
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));}
+   // do not use invoke in method calls
+   return( (*imp)( obj, methodid, parameter));
+}
 
 
 //
@@ -149,28 +348,29 @@ static void   *_mulle_objc_object_call_class( void *obj,
 // collision, it skips the first found entry. This method is put into
 // the method cache, you don't call it directly.
 //
-static void   *_mulle_objc_object_call2( void *obj,
-                                         mulle_objc_methodid_t methodid,
-                                         void *parameter)
+static void   *_mulle_objc_object_callback2( void *obj,
+                                             mulle_objc_methodid_t methodid,
+                                             void *parameter)
 {
-   mulle_objc_implementation_t      imp;
-   mulle_functionpointer_t          p;
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_cacheentry    *entries;
-   struct _mulle_objc_cacheentry    *entry;
-   struct _mulle_objc_class         *cls;
-   mulle_objc_cache_uint_t          mask;
-   mulle_objc_cache_uint_t          offset;
+   mulle_objc_implementation_t     imp;
+   mulle_functionpointer_t         p;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_method       *method;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
 
    assert( mulle_objc_uniqueid_is_sane( methodid));
 
-   cls     = _mulle_objc_object_get_isa( obj);
-   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;
+   cls      = _mulle_objc_object_get_isa( obj);
+   entries  = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache    = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask     = cache->mask;
 
    offset  = (mulle_objc_cache_uint_t) methodid;
-   do
+   for(;;)
    {
       offset += sizeof( struct _mulle_objc_cacheentry);
       offset  = offset & mask;
@@ -179,16 +379,21 @@ static void   *_mulle_objc_object_call2( void *obj,
       {
          p       = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp     = (mulle_objc_implementation_t) p;
-/*->*/
-         return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+         // no debug, since we don't put methods in the cache if we trace
+         break;
+      }
+
+      if( ! entry->key.uniqueid)
+      {
+         method = _mulle_objc_class_refresh_method_nofail( cls, methodid);
+         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
+         imp    = _mulle_objc_method_get_implementation( method);
+         break;
       }
    }
-   while( entry->key.uniqueid);
-/*->*/
 
-   imp = _mulle_objc_class_refresh_implementation_nofail( cls, methodid);
    /*->*/
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+   return( (*imp)( obj, methodid, parameter));
 }
 
 
@@ -198,17 +403,17 @@ static void   *_mulle_objc_object_call2( void *obj,
 // but placed into the method cache.
 //
 static void *
-   _mulle_objc_object_supercall( void *obj,
-                                 mulle_objc_methodid_t methodid,
-                                 void *parameter,
-                                 struct _mulle_objc_class *cls,
-                                 mulle_objc_superid_t superid)
+   _mulle_objc_object_supercallback( void *obj,
+                                     mulle_objc_methodid_t methodid,
+                                     void *parameter,
+                                     mulle_objc_superid_t superid,
+                                     struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t     imp;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_method       *method;
    mulle_objc_cache_uint_t         mask;
    mulle_objc_cache_uint_t         offset;
    mulle_functionpointer_t         p;
@@ -218,7 +423,7 @@ static void *
    mask    = cache->mask;
 
    offset  = (mulle_objc_cache_uint_t) superid;
-   do
+   for(;;)
    {
       offset  = offset & mask;
       entry   = (void *) &((char *) entries)[ offset];
@@ -226,36 +431,34 @@ static void *
       {
          p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp = (mulle_objc_implementation_t) p;
-/*->*/   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
-
+         break;
+      }
+      if( ! entry->key.uniqueid)
+      {
+         method = _mulle_objc_class_refresh_supermethod_nofail( cls, superid);
+         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
+         imp    = _mulle_objc_method_get_implementation( method);
+         break;
       }
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
-   while( entry->key.uniqueid);
 /*->*/
-   imp = _mulle_objc_class_refresh_superimplementation_nofail( cls, superid);
-/*->*/
-
-   universe = _mulle_objc_class_get_universe( cls);
-   if( universe->debug.trace.method_call)
-      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
-
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+   return( (*imp)( obj, methodid, parameter));
 }
 
 
 static void *
-   _mulle_objc_object_supercall2( void *obj,
-                                  mulle_objc_methodid_t methodid,
-                                  void *parameter,
-                                  struct _mulle_objc_class *cls,
-                                  mulle_objc_superid_t superid)
+   _mulle_objc_object_supercallback2( void *obj,
+                                      mulle_objc_methodid_t methodid,
+                                      void *parameter,
+                                      mulle_objc_superid_t superid,
+                                      struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t     imp;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_method       *method;
    mulle_objc_cache_uint_t         mask;
    mulle_objc_cache_uint_t         offset;
    mulle_functionpointer_t         p;
@@ -265,7 +468,7 @@ static void *
    mask    = cache->mask;
 
    offset  = (mulle_objc_cache_uint_t) superid;
-   do
+   for(;;)
    {
       offset += sizeof( struct _mulle_objc_cacheentry);
       offset  = offset & mask;
@@ -274,27 +477,27 @@ static void *
       {
          p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
          imp = (mulle_objc_implementation_t) p;
-/*->*/   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+         break;
+      }
 
+      if( ! entry->key.uniqueid)
+      {
+         method = _mulle_objc_class_refresh_supermethod_nofail( cls, superid);
+         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
+         imp    = _mulle_objc_method_get_implementation( method);
+         break;
       }
    }
-   while( entry->key.uniqueid);
-/*->*/
-   imp = _mulle_objc_class_refresh_superimplementation_nofail( cls, superid);
-/*->*/
-   universe = _mulle_objc_class_get_universe( cls);
-   if( universe->debug.trace.method_call)
-      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp);
-   return( mulle_objc_implementation_invoke( imp, obj, methodid, parameter));
+   return( (*imp)( obj, methodid, parameter));
 }
 
 
 void  _mulle_objc_impcache_init_normal_callbacks( struct _mulle_objc_impcache *p)
 {
-   p->call       = _mulle_objc_object_call_class;
-   p->call2      = _mulle_objc_object_call2;
-   p->supercall  = _mulle_objc_object_supercall;  // public actually
-   p->supercall2 = _mulle_objc_object_supercall2;
+   p->call       = _mulle_objc_object_callback_class;
+   p->call2      = _mulle_objc_object_callback2;
+   p->supercall  = _mulle_objc_object_supercallback;  // public actually
+   p->supercall2 = _mulle_objc_object_supercallback2;
 }
 
 
@@ -344,84 +547,12 @@ void   mulle_objc_objects_call( void **objects,
          assert( imp);
       }
 
-      // TODO: this doesn't trace yet
-
+      // this should use mulle_objc_implementation_invoke
       mulle_objc_implementation_invoke( lastSelIMP[ i], p, methodid, params);
    }
 }
 
-
-# pragma mark - trace method
-
-
-void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
-                                    void *obj,
-                                    mulle_objc_methodid_t methodid,
-                                    void *parameter,
-                                    mulle_objc_implementation_t imp)
-{
-   struct _mulle_objc_descriptor        *desc;
-   struct _mulle_objc_universe          *universe;
-   struct _mulle_objc_method            *method;
-   struct _mulle_objc_class             *isa;
-   struct _mulle_objc_searcharguments   search;
-   struct _mulle_objc_searchresult      result;
-   unsigned int                         inheritance;
-   char                                 *name;
-   int                                  frames;
-
-   universe = _mulle_objc_class_get_universe( cls);
-   //
-   // What is basically wrong here is, that we should be searching for the
-   // class that implements the method, not the called class
-   // This is fairly expensive though...
-   //
-   inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_searcharguments_init_imp( &search, imp);
-   method = mulle_objc_class_search_method( cls,
-                                            &search,
-                                            inheritance,
-                                            &result);
-
-   mulle_thread_mutex_lock( &universe->debug.lock);
-   {
-      mulle_objc_universe_trace_preamble( universe);
-
-      fprintf( stderr, "[::] ");
-      frames = (*universe->debug.count_stackdepth)();
-      while( frames--)
-         fputc( ' ', stderr);
-      fprintf( stderr, "%c[", _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
-
-      if( method)
-      {
-         fprintf( stderr, "%s", _mulle_objc_class_get_name( result.class));
-         name = mulle_objc_methodlist_get_categoryname( result.list);
-         if( name)
-            fprintf( stderr, "(%s)", name);
-         fprintf( stderr, " %s]", _mulle_objc_method_get_name( method));
-      }
-      else
-      {
-         // fallback in case...
-         fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
-         desc     = _mulle_objc_universe_lookup_descriptor( universe, methodid);
-         if( desc)
-            fprintf( stderr, " %s]", desc->name);
-         else
-            fprintf( stderr, " #%08lx]", (unsigned long) methodid);
-      }
-
-      isa = _mulle_objc_object_get_isa_universe( obj, universe);
-      fprintf( stderr, " @%p %s (%p, #%08lx, %p)\n",
-               imp,
-               _mulle_objc_class_get_name( isa),
-               obj,
-               (unsigned long) methodid,
-               parameter);
-   }
-   mulle_thread_mutex_unlock( &universe->debug.lock);
-}
+# pragma mark -  call back and forth
 
 
 // In a "regular" callchain, we want to have basically two scenarios:
@@ -433,8 +564,8 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
 //
 // used by _init. overridden method come last
 void   _mulle_objc_object_call_chained_back( void *obj,
-                                          mulle_objc_methodid_t methodid,
-                                          void *parameter)
+                                             mulle_objc_methodid_t methodid,
+                                             void *parameter)
 {
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_method       *method;
@@ -459,6 +590,7 @@ void   _mulle_objc_object_call_chained_back( void *obj,
       if( method)
       {
          imp   = _mulle_objc_method_get_implementation( method);
+         // this should use mulle_objc_implementation_invoke
          mulle_objc_implementation_invoke( imp, obj, methodid, parameter);
       }
       if( once)
@@ -498,29 +630,10 @@ void   _mulle_objc_object_call_chained_forth( void *obj,
       if( method)
       {
          imp = _mulle_objc_method_get_implementation( method);
+         // this should use mulle_objc_implementation_invoke
          mulle_objc_implementation_invoke( imp, obj, methodid, parameter);
       }
    }
 }
 
 
-
-void  mulle_objc_object_fail_thread_affinity( struct _mulle_objc_object *obj,
-                                              mulle_thread_t affinity_thread)
-{
-   struct _mulle_objc_universe   *universe;
-   struct _mulle_objc_class      *cls;
-   int                           ismeta;
-
-   universe = _mulle_objc_object_get_universe( obj);
-   cls      = _mulle_objc_object_get_isa( obj);
-   ismeta   = _mulle_objc_class_is_metaclass( cls);
-
-   mulle_objc_universe_fail_generic( universe,
-                                     "%s <%s %p> with affinity to thread %p called from wrong thread %p",
-                                     ismeta ? "Class" : "Object",
-                                     _mulle_objc_class_get_name( cls),
-                                     obj,
-                                     affinity_thread,
-                                     mulle_thread_self());
-}

@@ -237,7 +237,58 @@ unsigned int   mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cac
 }
 
 
-unsigned int   mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cache *cache,
+unsigned int   mulle_objc_cache_calculate_hits( struct _mulle_objc_cache *cache,
+                                                unsigned int counts[ 4])
+{
+   unsigned int                     total;
+   mulle_objc_cache_uint_t          offset;
+   mulle_objc_cache_uint_t          mask;
+   mulle_objc_cache_uint_t          steps;
+   mulle_objc_cache_uint_t          expected;
+   struct _mulle_objc_cacheentry   *p;
+   struct _mulle_objc_cacheentry   *sentinel;
+
+   memset( counts, 0, sizeof( unsigned int) * 4);
+
+   if( ! cache || ! cache->size)
+      return( 0);
+
+   if( ! _mulle_atomic_pointer_read( &cache->n))
+      return( 0);
+
+   p        = cache->entries;
+   sentinel = &p[ cache->size];
+   mask     = cache->mask;
+   total    = 0;
+   offset   = 0;
+
+   for( ; p < sentinel; p++)
+   {
+      if( p->key.uniqueid)
+      {
+         expected = (p->key.uniqueid & mask);
+         if( expected > offset) // wrap around
+         {
+            steps  = cache->size * sizeof( struct _mulle_objc_cacheentry) - expected;
+            steps += offset;
+         }
+         else
+            steps = (offset - expected);
+         steps /= sizeof( struct _mulle_objc_cacheentry);
+         if( steps > 3)
+            steps = 3;
+         counts[ steps]++;
+         ++total;
+      }
+
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+
+   return( total);
+}
+
+
+unsigned int   mulle_objc_cache_calculate_percentage( struct _mulle_objc_cache *cache,
                                                          unsigned int *percentages,
                                                          unsigned int size)
 {
@@ -285,6 +336,7 @@ unsigned int   mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cach
    }
    return( n);
 }
+
 
 
 # pragma mark - add
@@ -450,6 +502,97 @@ struct _mulle_objc_cacheentry   *
 #endif
    return( entry);
 }
+
+
+// MEMO: used by MulleThreadSafeObject
+
+int   _mulle_objc_cachepivot_swap( struct _mulle_objc_cachepivot *pivot,
+                                   struct _mulle_objc_cache *cache,
+                                   struct _mulle_objc_cache *old_cache,
+                                   struct mulle_allocator *allocator)
+{
+   //
+   // an initial_impcache ? this is getting called too early
+   // an empty_cache ? this is getting called wrong
+   //
+   if( _mulle_objc_cachepivot_cas_entries( pivot,
+                                           cache->entries,
+                                           old_cache ? old_cache->entries : NULL))
+   {
+      // cas failed, so get rid of this and punt
+      _mulle_objc_cache_free( cache, allocator); // sic, can be unsafe deleted now
+      return( -1);
+   }
+
+
+   _mulle_objc_cache_abafree( old_cache, allocator);
+   return( 0);
+}
+
+
+struct _mulle_objc_cache *
+   _mulle_objc_cache_grow_with_strategy( struct _mulle_objc_cache  *old_cache,
+                                         enum mulle_objc_cachesizing_t strategy,
+                                         struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_cache  *cache;
+   mulle_objc_cache_uint_t   new_size;
+
+   // a new beginning.. let it be filled anew
+   // could ask the universe here what to do as new size
+
+   new_size  = _mulle_objc_cache_get_resize( old_cache, strategy);
+   cache     = mulle_objc_cache_new( new_size, allocator);
+
+   return( cache);
+}
+
+
+
+// uniqueid can be a methodid or superid!
+struct _mulle_objc_cacheentry *
+    _mulle_objc_cachepivot_fill_functionpointer( struct _mulle_objc_cachepivot *pivot,
+                                                 mulle_functionpointer_t imp,
+                                                 mulle_objc_uniqueid_t uniqueid,
+                                                 unsigned int fillrate,
+                                                 struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cache        *old_cache;
+   struct _mulle_objc_cacheentry   *entry;
+
+   assert( pivot);
+   assert( imp);
+
+   //
+   // try to get most up to date value
+   //
+   for(;;)
+   {
+      cache = _mulle_objc_cachepivot_get_cache_atomic( pivot);
+      if( _mulle_objc_cache_should_grow( cache, fillrate))
+      {
+         old_cache = cache;
+         cache     = _mulle_objc_cache_grow_with_strategy( old_cache,
+                                                           MULLE_OBJC_CACHESIZE_GROW,
+                                                           allocator);
+
+         // doesn't really matter, if this fails or succeeds we just try
+         // again
+         _mulle_objc_cachepivot_swap( pivot, cache, old_cache, allocator);
+         continue;
+      }
+
+      entry = _mulle_objc_cache_add_functionpointer_entry( cache,
+                                                           (mulle_functionpointer_t) imp,
+                                                           uniqueid);
+      if( entry)
+         break;
+   }
+
+   return( entry);
+}
+
 
 
 

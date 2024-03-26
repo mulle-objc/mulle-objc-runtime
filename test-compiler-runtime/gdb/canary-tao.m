@@ -1,3 +1,5 @@
+#define MULLE_OBJC_TAO_OBJECT_HEADER 1
+
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 #include <stdio.h>

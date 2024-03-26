@@ -59,68 +59,79 @@
 
 
 
-static inline mulle_thread_t
-   _mulle_objc_is_object_called_by_wrong_thread( void *obj,
-                                                 mulle_objc_methodid_t sel)
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
+                                    void *obj,
+                                    mulle_objc_methodid_t methodid,
+                                    void *parameter,
+                                    mulle_objc_implementation_t imp,
+                                    struct _mulle_objc_method *method);  // method can be NULL
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_object_taocheck_call( void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        struct _mulle_objc_method *method);  // method can be NULL
+
+
+static inline void   mulle_objc_class_debug_imp_call( struct _mulle_objc_class *cls,
+                                                      mulle_objc_implementation_t imp,
+                                                      void *obj,
+                                                      mulle_objc_methodid_t methodid,
+                                                      void *parameter)
 {
-   mulle_thread_t                object_thread;
-   mulle_thread_t                curr_thread;
    struct _mulle_objc_universe   *universe;
 
-   // this is no problem, as these are known to be threadsafe
-   if( sel == MULLE_OBJC_RELEASE_METHODID || sel == MULLE_OBJC_RETAIN_METHODID)
-      return( 0);
-
-   object_thread = _mulle_objc_object_get_thread( obj);
-   if( ! object_thread)
-      return( 0);
-
-   curr_thread = mulle_thread_self();
-
-   //
-   // dealloc is single threaded by default, change affinity to current thread
-   // this way objects can dealloc in a worker thread (though how did they
-   // get there ?)
-   //
-   // if( sel == MULLE_OBJC_DEALLOC_METHODID)
-   // {
-   //    _mulle_objc_object_set_thread( obj, curr_thread);
-   //    return( 0);
-   // }
-
-   if( object_thread == curr_thread)
-      return( 0);
-
-   // OK so its wrong, but are we still multi-threaded ? could be that
-   // the universe is winding down and releasing stuff
-   // could ask [NSThread isMultithreaded], but it seems wrong
-   universe = _mulle_objc_object_get_universe( obj);
-   if( _mulle_objc_universe_is_deinitializing( universe))
-      return( 0);
-   return( object_thread);
+   universe = _mulle_objc_object_get_universe( cls);
+   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT)
+      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp, NULL);
+   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TAO_BIT)
+      mulle_objc_object_taocheck_call( obj, methodid, NULL);
 }
 
 
+static inline void   mulle_objc_class_debug_method_call( struct _mulle_objc_class *cls,
+                                                         struct _mulle_objc_method *method,
+                                                         void *obj,
+                                                         mulle_objc_methodid_t methodid,
+                                                         void *parameter)
+{
+   struct _mulle_objc_universe   *universe;
+
+   universe = _mulle_objc_object_get_universe( cls);
+   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT)
+      mulle_objc_class_trace_call( cls, obj, methodid, parameter, 0, method);
+   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TAO_BIT)
+      mulle_objc_object_taocheck_call( obj, methodid, method);
+}
+
+
+static inline
+void   mulle_objc_implementation_debug( mulle_objc_implementation_t imp,
+                                        void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter)
+
+{
+   struct _mulle_objc_class     *cls;
+
+   cls = _mulle_objc_object_get_isa( obj);
+   mulle_objc_class_debug_imp_call( cls, imp, obj, methodid, parameter);
+}
+
+
+
+MULLE_C_ALWAYS_INLINE
 static inline void  *
    mulle_objc_implementation_invoke( mulle_objc_implementation_t imp,
                                      void *self,
                                      mulle_objc_methodid_t sel,
-                                     void *param)
+                                     void *parameter)
 {
-   // get object meta information and run a custom checker code on it
-   // we could f.e. save the thread affinity into the object and check
-   // if we match
-#ifndef NDEBUG
-   mulle_thread_t    affinity_thread;
-   extern MULLE_C_NO_RETURN
-   void  mulle_objc_object_fail_thread_affinity( struct _mulle_objc_object *obj,
-                                                 mulle_thread_t affinity_thread);
-
-   affinity_thread = _mulle_objc_is_object_called_by_wrong_thread( self, sel);
-   if( affinity_thread)
-      mulle_objc_object_fail_thread_affinity( self, affinity_thread);;
+   // this is slow
+#if defined( DEBUG) || defined( MULLE_OBJC_INCLUDE_TRACE_CODE)
+   mulle_objc_implementation_debug( imp, self, sel, parameter);
 #endif
-   return( (*imp)( self, sel, param));
+   return( (*imp)( self, sel, parameter));
 }
 
 
@@ -226,11 +237,12 @@ static inline void  *
 //// Unfortunately llvm sometimes really produces pathetic code.
 //
 //
-// use this for -fobjc-inline-calls=4 == full
-// use this for -fobjc-inline-calls=3 == partial
-// use this for -fobjc-inline-calls=2 == partial
-// use this for -fobjc-inline-calls=1 == minimal, keep in sync with -Olevel
-// use this for -fobjc-inline-calls=0 == none
+// use this for -fobjc-inline-method-calls=5 == full (loop completely inline)
+// use this for -fobjc-inline-method-calls=4 == standard
+// use this for -fobjc-inline-method-calls=3 == partial
+// use this for -fobjc-inline-method-calls=2 == partial
+// use this for -fobjc-inline-method-calls=1 == minimal, keep in sync with -Olevel
+// use this for -fobjc-inline-method-calls=0 == none
 //
 //
 MULLE_C_ALWAYS_INLINE
@@ -266,7 +278,7 @@ static inline void  *
       return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
 #endif
 
-   assert( mulle_objc_uniqueid_is_sane( methodid));
+   assert( methodid);
 
    // MEMO: When inlining, we are "fine" if the cache is stale
    entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
@@ -283,7 +295,8 @@ static inline void  *
       icache = _mulle_objc_cache_get_impcache_from_cache( cache);
       f      = icache->call2;
    }
-   return( mulle_objc_implementation_invoke( f, obj, methodid, parameter));
+   // don't use invoke, because the checking will be done in icache->call2
+   return( (*f)( obj, methodid, parameter));
 }
 
 
@@ -301,6 +314,90 @@ static inline void  *
 
 
 //
+// same as above, but we don't stop at the first miss. This adds some looping
+// code to the inlined function, you might or might not deep acceptable. So
+// if we miss the cache, we got to call2, which checks the cache again. If
+// that ever becomes a problem we need to add a call3 (also for super), but
+// I don't see it)
+//
+MULLE_C_ALWAYS_INLINE
+static inline void  *
+   _mulle_objc_object_call_inline_full( void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter)
+{
+#ifdef __MULLE_OBJC_FCS__
+   int                              index;
+#endif
+   mulle_objc_implementation_t      f;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_impcache   *icache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   struct _mulle_objc_class         *cls;
+   mulle_objc_cache_uint_t          mask;
+   mulle_objc_cache_uint_t          offset;
+
+   //
+   // with tagged pointers inlining starts to become useless, because this
+   // _mulle_objc_object_get_isa function produces too much code IMO
+   //
+   cls = _mulle_objc_object_get_isa( obj);
+
+#ifdef __MULLE_OBJC_FCS__
+   //
+   // try to simplify to return( (*cls->vtab.methods[ index])( obj, methodid, parameter)
+   //
+   index = mulle_objc_get_fastmethodtable_index( methodid);
+   if( MULLE_C_EXPECT( index >= 0, MULLE_OBJC_CALL_PREFER_FCS)) // prefer fast methods path
+      return( _mulle_objc_fastmethodtable_invoke( obj, methodid, parameter, &cls->vtab, index));
+#endif
+
+   assert( methodid);
+
+   // MEMO: When inlining, we are "fine" if the cache is stale
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+   offset  = (mulle_objc_cache_uint_t) methodid;
+   for(;;)
+   {
+      offset  = (mulle_objc_cache_uint_t) offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+
+      if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
+      {
+         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+         break;
+      }
+
+      if( ! entry->key.uniqueid)
+      {
+         icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+         f      = icache->call2;
+         break;
+      }
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+   // don't use invoke, because the checking will be done in icache->call2
+   return( (*f)( obj, methodid, parameter));
+}
+
+
+MULLE_C_ALWAYS_INLINE
+static inline void  *
+   mulle_objc_object_call_inline_full( void *obj,
+                                       mulle_objc_methodid_t methodid,
+                                       void *parameter)
+{
+   if( MULLE_C_UNLIKELY( ! obj))
+      return( obj);
+
+   return( _mulle_objc_object_call_inline_full( obj, methodid, parameter));
+}
+
+
+//
 // this is the method to use, when the selector is variable. This doesn't
 // do or attempt FCS, which would be too slow if the selector is not a
 // constant.
@@ -311,7 +408,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
                                                    void *parameter)
 {
    mulle_objc_implementation_t     f;
-   struct _mulle_objc_impcache  *icache;
+   struct _mulle_objc_impcache     *icache;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
@@ -322,7 +419,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
-   assert( mulle_objc_uniqueid_is_sane( methodid));
+   assert( methodid);
 
    cls     = _mulle_objc_object_get_isa( obj);
    entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
@@ -339,7 +436,63 @@ MULLE_C_ALWAYS_INLINE static inline void  *
       icache = _mulle_objc_cache_get_impcache_from_cache( cache);
       f      = icache->call2;
    }
-   return( mulle_objc_implementation_invoke( f, obj, methodid, parameter));
+   // don't use invoke, because the checking will be done in icache->call2
+   return( (*f)( obj, methodid, parameter));
+}
+
+
+
+//
+// this is the method to use, when the selector is variable. This doesn't
+// do or attempt FCS, which would be too slow if the selector is not a
+// constant.
+//
+MULLE_C_ALWAYS_INLINE static inline void  *
+   mulle_objc_object_call_variablemethodid_inline_full( void *obj,
+                                                        mulle_objc_methodid_t methodid,
+                                                       void *parameter)
+{
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
+
+   if( MULLE_C_UNLIKELY( ! obj))
+      return( obj);
+
+   assert( methodid);
+
+   cls     = _mulle_objc_object_get_isa( obj);
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+   offset  = (mulle_objc_cache_uint_t) methodid;
+
+   for(;;)
+   {
+      offset  = (mulle_objc_cache_uint_t) offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+
+      if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
+      {
+         f = (mulle_objc_implementation_t) _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         break;
+      }
+
+      if( ! entry->key.uniqueid)
+      {
+         icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+         f      = icache->call2;
+         break;
+      }
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+   // don't use invoke, because the checking will be done in icache->call2
+   return( (*f)( obj, methodid, parameter));
 }
 
 
@@ -378,7 +531,7 @@ static inline void   *
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_impcache  *icache;
+   struct _mulle_objc_impcache     *icache;
 
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
@@ -388,7 +541,7 @@ static inline void   *
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
 
-   return( (*icache->supercall)( obj, methodid, parameter, cls, superid));
+   return( (*icache->supercall)( obj, methodid, parameter, superid, cls));
 }
 
 
@@ -401,7 +554,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 {
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_impcache   *icache;
+   struct _mulle_objc_impcache      *icache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_class         *cls;
@@ -429,22 +582,67 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
    {
       f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
-      return( mulle_objc_implementation_invoke( f, obj, methodid, parameter));
+         // don't use invoke, because the checking will be done in icache->supercall2
+      return( (*f)( obj, methodid, parameter));
    }
    icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-   return( (*icache->supercall2)( obj, methodid, parameter, cls, superid));
+   return( (*icache->supercall2)( obj, methodid, parameter, superid, cls));
 }
 
 
-MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
-                                    void *obj,
-                                    mulle_objc_methodid_t methodid,
-                                    void *parameter,
-                                    mulle_objc_implementation_t imp);
+MULLE_C_ALWAYS_INLINE static inline void  *
+   mulle_objc_object_supercall_inline_full( void *obj,
+                                           mulle_objc_methodid_t methodid,
+                                           void *parameter,
+                                           mulle_objc_superid_t superid)
+{
+   mulle_objc_implementation_t      f;
+   struct _mulle_objc_cache         *cache;
+   struct _mulle_objc_impcache      *icache;
+   struct _mulle_objc_cacheentry    *entries;
+   struct _mulle_objc_cacheentry    *entry;
+   struct _mulle_objc_class         *cls;
+   mulle_objc_cache_uint_t          mask;
+   mulle_objc_cache_uint_t          offset;
+
+   if( MULLE_C_UNLIKELY( ! obj))
+      return( obj);
+
+   //
+   // with tagged pointers inlining starts to become useless, because this
+   // _mulle_objc_object_get_isa function produces too much code IMO
+   //
+   cls = _mulle_objc_object_get_isa( obj);
+
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+   offset  = (mulle_objc_cache_uint_t) superid;
+   for(;;)
+   {
+      offset  = (mulle_objc_cache_uint_t) offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+
+      if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
+      {
+         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+         // don't use invoke, because the checking will be done in icache->supercall2
+         return( (*f)( obj, methodid, parameter));
+      }
+
+      if( ! entry->key.uniqueid)
+      {
+         icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+         return( (*icache->supercall2)( obj, methodid, parameter, superid, cls));
+      }
+
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+}
 
 
-//
 // this is useful for calling a list of objects efficiently, it is assumed that
 // class/methods do not change during its run
 //
@@ -463,20 +661,20 @@ void   mulle_objc_objects_call( void **objects,
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_object_call_chained_back( void *obj,
-                                          mulle_objc_methodid_t methodid,
-                                          void *parameter);
+                                             mulle_objc_methodid_t methodid,
+                                             void *parameter);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_object_call_chained_forth( void *obj,
-                                           mulle_objc_methodid_t methodid,
-                                           void *parameter);
+                                              mulle_objc_methodid_t methodid,
+                                              void *parameter);
 
 
 MULLE_C_ALWAYS_INLINE
 static inline void
    mulle_objc_object_call_chained_back( void *obj,
-                                     mulle_objc_methodid_t methodid,
-                                     void *parameter)
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter)
 {
    if( MULLE_C_UNLIKELY( ! obj))
       return;
@@ -488,8 +686,8 @@ static inline void
 MULLE_C_ALWAYS_INLINE
 static inline void
    mulle_objc_object_call_chained_forth( void *obj,
-                                      mulle_objc_methodid_t methodid,
-                                      void *parameter)
+                                         mulle_objc_methodid_t methodid,
+                                         void *parameter)
 {
    if( MULLE_C_UNLIKELY( ! obj))
       return;

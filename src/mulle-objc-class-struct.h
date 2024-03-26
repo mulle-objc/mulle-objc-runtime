@@ -57,6 +57,7 @@ struct _mulle_objc_propertylist;
 struct _mulle_objc_universe;
 
 
+// memo: also used in mulle-gdb
 enum
 {
    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS          = 0x01,
@@ -64,7 +65,11 @@ enum
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS           = 0x04,
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES = 0x08,
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META       = 0x10,
-   MULLE_OBJC_CLASS_DONT_INHERIT_CLASS               = 0x20
+   MULLE_OBJC_CLASS_DONT_INHERIT_CLASS               = 0x20,
+   // this is a special flag set on searches only and not on the class itself
+   // it means, keep the inheritance value for superclass searches and don't
+   // take it from the superclass
+   MULLE_OBJC_CLASS_DONT_INHERIT_INHERITANCE         = 0x40
 };
 
 
@@ -115,7 +120,7 @@ enum _mulle_objc_class_state
 //
 struct _mulle_objc_class
 {
-   struct _mulle_objc_impcachepivot     cachepivot;  // DON'T MOVE
+   struct _mulle_objc_impcachepivot        cachepivot;  // DON'T MOVE
 
    /* ^^^ keep above like this, or change mulle_objc_fastmethodtable fault */
 
@@ -143,8 +148,8 @@ struct _mulle_objc_class
 
    // vvv - from here on the debugger doesn't care
 
-   uintptr_t                               headerextrasize;  // memory before the header
-   uintptr_t                               extensionoffset;  // 4 later #1#
+   uint16_t                                headerextrasize;  // memory before the header
+   uint16_t                                extensionoffset;  // 4 later #1#
 
    struct _mulle_objc_method               *forwardmethod;
 
@@ -260,12 +265,10 @@ static inline int   _mulle_objc_class_is_boring( struct _mulle_objc_class *cls)
 }
 
 
-// this bit is
 static inline int   _mulle_objc_class_is_threadaffine( struct _mulle_objc_class *cls)
 {
    return( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE));
 }
-
 
 
 char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit);

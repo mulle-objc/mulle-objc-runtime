@@ -121,7 +121,7 @@ static inline
    }
 
    if( ! (mode & mulle_objc_class_lookup_nofill))
-      _mulle_objc_class_fill_impcache( cls, NULL, method, methodid);
+      _mulle_objc_class_fill_impcache_method( cls, NULL, method, methodid);
 
    imp = _mulle_objc_method_get_implementation( method);
    return( imp);
@@ -199,6 +199,19 @@ mulle_objc_implementation_t
 }
 
 
+struct _mulle_objc_method *
+   _mulle_objc_class_refresh_method_nofail( struct _mulle_objc_class *cls,
+                                            mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_method     *method;
+
+   method = mulle_objc_class_search_method_nofail( cls, methodid);
+   _mulle_objc_class_fill_impcache_method( cls, NULL, method, methodid);
+   return( method);
+}
+
+
+
 
 mulle_objc_implementation_t
    _mulle_objc_class_refresh_implementation_nofail( struct _mulle_objc_class *cls,
@@ -208,9 +221,9 @@ mulle_objc_implementation_t
    mulle_objc_implementation_t   imp;
 
    method = mulle_objc_class_search_method_nofail( cls, methodid);
-   imp    = _mulle_objc_method_get_implementation( method);
-   _mulle_objc_class_fill_impcache( cls, NULL, method, methodid);
+   _mulle_objc_class_fill_impcache_method( cls, NULL, method, methodid);
 
+   imp    = _mulle_objc_method_get_implementation( method);
    return( imp);
 }
 
@@ -219,6 +232,18 @@ mulle_objc_implementation_t
 /*
  * super call
  */
+
+struct _mulle_objc_method *
+   _mulle_objc_class_refresh_supermethod_nofail( struct _mulle_objc_class *cls,
+                                                 mulle_objc_superid_t superid)
+{
+   struct _mulle_objc_method      *method;
+
+   method = _mulle_objc_class_supersearch_method_nofail( cls, superid);
+   _mulle_objc_class_fill_impcache_method( cls, NULL, method, superid);
+   return( method);
+}
+
 
 //
 // this is used for calling super. It's the same for metaclasses and
@@ -232,8 +257,8 @@ mulle_objc_implementation_t
    mulle_objc_implementation_t    imp;
 
    method = _mulle_objc_class_supersearch_method_nofail( cls, superid);
+   _mulle_objc_class_fill_impcache_method( cls, NULL, method, superid);
    imp    = _mulle_objc_method_get_implementation( method);
-   _mulle_objc_class_fill_impcache( cls, NULL, method, superid);
    return( imp);
 }
 
@@ -242,16 +267,14 @@ mulle_objc_implementation_t
 /* lookup cache first */
 
 MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
-mulle_objc_implementation_t
-   _mulle_objc_class_search_superimplementation_nofail( struct _mulle_objc_class *cls,
-                                                                mulle_objc_superid_t superid)
+struct _mulle_objc_method *
+   _mulle_objc_class_search_supermethod_nofail( struct _mulle_objc_class *cls,
+                                                mulle_objc_superid_t superid)
 {
-   struct _mulle_objc_method             *method;
-   struct _mulle_objc_universe           *universe;
-   struct _mulle_objc_searcharguments    args;
-   struct _mulle_objc_super              *p;
-   mulle_objc_implementation_t           imp;
-
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_searcharguments   args;
+   struct _mulle_objc_super             *p;
 
    //
    // since "previous_method" in args will not be accessed" this is OK to cast
@@ -267,9 +290,7 @@ mulle_objc_implementation_t
                                             NULL);
    if( ! method)
       method = _mulle_objc_class_get_forwardmethod_lazy_nofail( cls, args.args.methodid);
-
-   imp = _mulle_objc_method_get_implementation( method);
-   return( imp);
+   return( method);
 }
 
 
@@ -277,12 +298,12 @@ mulle_objc_implementation_t
    _mulle_objc_object_lookup_superimplementation_noforward_nofill( void *obj,
                                                                       mulle_objc_superid_t superid)
 {
-   struct _mulle_objc_class              *cls;
-   struct _mulle_objc_method             *method;
-   struct _mulle_objc_universe           *universe;
-   struct _mulle_objc_searcharguments    args;
-   struct _mulle_objc_super              *p;
-   mulle_objc_implementation_t           imp;
+   struct _mulle_objc_class             *cls;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_searcharguments   args;
+   struct _mulle_objc_super             *p;
+   mulle_objc_implementation_t          imp;
 
 
    //

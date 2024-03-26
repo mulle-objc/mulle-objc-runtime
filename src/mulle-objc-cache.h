@@ -67,8 +67,11 @@ enum mulle_objc_cachesizing_t
 #ifdef MULLE_TEST
 # define MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
 #endif
-//
 
+
+struct _mulle_objc_cachepivot;
+
+//
 // this sizeof() must be a power of 2 else stuff fails
 // because technically a functionpointer need not be the same size as a
 // void *, we differentiate here. Though when will this ever be useful in
@@ -123,6 +126,20 @@ static inline void   mulle_objc_cache_init( struct _mulle_objc_cache *cache,
 }
 
 
+# pragma mark - cache allocation
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
+                                                  struct mulle_allocator *allocator);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
+                               struct mulle_allocator *allocator);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
+                                  struct mulle_allocator *allocator);
+
 
 static inline mulle_objc_cache_uint_t
    _mulle_objc_cache_get_resize( struct _mulle_objc_cache *cache,
@@ -150,89 +167,6 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_cache  *
 }
 
 
-// The cache pivot indexes into the middle of the cache at the entries. The 
-// meta info of the cache is above. With a simple CAS the Class can exchange
-// caches.
-//                      +-----------------------------------------------------------+   
-// +-----------------+  |  Cache                                                    |
-// | Class.          |  |   meta info                                               |
-// |    cachepivot -------> entries[ 0] = { 0, 0}                                   |
-// +-----------------+  |   entries[ 1] = { @selector( foo), (*foo)( id, SEL, ...)} |
-//                      |   entries[ 2] = { 0, 0}                                   |
-//                      |   entries[ 3] = { 0, 0}                                   |
-//                      +-----------------------------------------------------------+
-struct _mulle_objc_cachepivot
-{
-   mulle_atomic_pointer_t   entries; // for atomic XCHG with pointer indirection
-};
-
-
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry  *
-   _mulle_objc_cachepivot_get_entries_nonatomic( struct _mulle_objc_cachepivot *p)
-{
-   return( _mulle_atomic_pointer_nonatomic_read( &p->entries));
-}
-
-
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cache *
-   _mulle_objc_cachepivot_get_cache_nonatomic( struct _mulle_objc_cachepivot *p)
-{
-   struct _mulle_objc_cacheentry  *entries;
-
-   entries = _mulle_objc_cachepivot_get_entries_nonatomic( p);
-   return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
-}
-
-
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry *
-   _mulle_objc_cachepivot_get_entries_atomic( struct _mulle_objc_cachepivot *p)
-{
-   return( (void *) _mulle_atomic_pointer_read( &p->entries));
-}
-
-
-static inline struct _mulle_objc_cacheentry  *
-   _mulle_objc_cachepivot_set_entries_atomic( struct _mulle_objc_cachepivot *p,
-                                             struct _mulle_objc_cacheentry *new_entries)
-{
-   return( _mulle_atomic_pointer_set( &p->entries, new_entries));
-}
-
-
-// will return 0 if successful
-static inline int
-   _mulle_objc_cachepivot_cas_entries( struct _mulle_objc_cachepivot *p,
-                                             struct _mulle_objc_cacheentry *new_entries,
-                                             struct _mulle_objc_cacheentry *old_entries)
-{
-   assert( old_entries != new_entries);
-   return( ! _mulle_atomic_pointer_cas( &p->entries, new_entries, old_entries));
-}
-
-
-static inline struct _mulle_objc_cacheentry  *
-   _mulle_objc_cachepivot_weakcas_entries( struct _mulle_objc_cachepivot *p,
-                                                  struct _mulle_objc_cacheentry *new_entries,
-                                                  struct _mulle_objc_cacheentry *old_entries)
-{
-   assert( old_entries != new_entries);
-   return( __mulle_atomic_pointer_weakcas( &p->entries, new_entries, old_entries));
-}
-
-
-static inline struct _mulle_objc_cache  *
-   _mulle_objc_cachepivot_get_cache_atomic( struct _mulle_objc_cachepivot *p)
-{
-   struct _mulle_objc_cacheentry   *entries;
-
-   entries = _mulle_objc_cachepivot_get_entries_atomic( p);
-   return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
-}
-
-
 # pragma mark - cache petty accessors
 
 static inline mulle_objc_cache_uint_t
@@ -257,23 +191,16 @@ static inline mulle_objc_cache_uint_t
 }
 
 
-int   _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache, 
+static inline struct _mulle_objc_cacheentry *
+    _mulle_objc_cache_get_entries( struct _mulle_objc_cache *cache)
+{
+   return( cache->entries);
+}
+
+
+
+int   _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache,
                                      unsigned int fillrate);
-
-
-# pragma mark - cache allocation
-
-MULLE_OBJC_RUNTIME_GLOBAL
-struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
-                                                  struct mulle_allocator *allocator);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
-                               struct mulle_allocator *allocator);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
-                                  struct mulle_allocator *allocator);
 
 
 # pragma mark - cache add entry, fails if cache too small
@@ -386,10 +313,125 @@ int   _mulle_objc_cache_probe_entryindex( struct _mulle_objc_cache *cache,
 MULLE_OBJC_RUNTIME_GLOBAL
 unsigned int   mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cache *cache);
 
-// gives percentage of relative indexes high percentages[ 0] is good. size must be > 1
+// Checks each entry and calculates how many loops it must for a cache lookup
+// returns the number of cache entries:
+//
+// count[ 0] : perfect hits
+// count[ 1] : one step required
+// count[ 2] : two steps required
+// count[ 3] : three or more steps required
+//
 MULLE_OBJC_RUNTIME_GLOBAL
-unsigned int  mulle_objc_cache_calculate_hitpercentage( struct _mulle_objc_cache *cache,
-                                                        unsigned int *percentages,
-                                                        unsigned int size);
+unsigned int   mulle_objc_cache_calculate_hits( struct _mulle_objc_cache *cache,
+                                                unsigned int count[ 4]);
+
+
+
+
+// The cache pivot indexes into the middle of the cache at the entries. The
+// meta info of the cache is above. With a simple CAS the Class can exchange
+// caches.
+//                              +---------------------------------------------+
+// +----------------+           |  Cache                                      |
+// | Class.         |           |   meta info                                 |
+// |    cachepivot ----entries----> entries[ 0] = { 0, 0}                     |
+// +----------------+           |   entries[ 1] = { @selector( foo), foo_imp} |
+//                              |   entries[ 2] = { 0, 0}                     |
+//                              |   entries[ 3] = { 0, 0}                     |
+//                              +---------------------------------------------+
+struct _mulle_objc_cachepivot
+{
+   mulle_atomic_pointer_t   entries; // for atomic XCHG with pointer indirection
+};
+
+
+MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_cacheentry  *
+   _mulle_objc_cachepivot_get_entries_nonatomic( struct _mulle_objc_cachepivot *p)
+{
+   return( _mulle_atomic_pointer_nonatomic_read( &p->entries));
+}
+
+
+MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_cache *
+   _mulle_objc_cachepivot_get_cache_nonatomic( struct _mulle_objc_cachepivot *p)
+{
+   struct _mulle_objc_cacheentry  *entries;
+
+   entries = _mulle_objc_cachepivot_get_entries_nonatomic( p);
+   return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
+}
+
+
+MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_cacheentry *
+   _mulle_objc_cachepivot_get_entries_atomic( struct _mulle_objc_cachepivot *p)
+{
+   return( (void *) _mulle_atomic_pointer_read( &p->entries));
+}
+
+
+static inline struct _mulle_objc_cacheentry  *
+   _mulle_objc_cachepivot_set_entries_atomic( struct _mulle_objc_cachepivot *p,
+                                             struct _mulle_objc_cacheentry *new_entries)
+{
+   return( _mulle_atomic_pointer_set( &p->entries, new_entries));
+}
+
+
+// will return 0 if successful
+static inline int
+   _mulle_objc_cachepivot_cas_entries( struct _mulle_objc_cachepivot *p,
+                                       struct _mulle_objc_cacheentry *new_entries,
+                                       struct _mulle_objc_cacheentry *old_entries)
+{
+   assert( old_entries != new_entries);
+   return( ! _mulle_atomic_pointer_cas( &p->entries, new_entries, old_entries));
+}
+
+
+static inline struct _mulle_objc_cacheentry  *
+   _mulle_objc_cachepivot_weakcas_entries( struct _mulle_objc_cachepivot *p,
+                                           struct _mulle_objc_cacheentry *new_entries,
+                                           struct _mulle_objc_cacheentry *old_entries)
+{
+   assert( old_entries != new_entries);
+   return( __mulle_atomic_pointer_weakcas( &p->entries, new_entries, old_entries));
+}
+
+
+static inline struct _mulle_objc_cache  *
+   _mulle_objc_cachepivot_get_cache_atomic( struct _mulle_objc_cachepivot *p)
+{
+   struct _mulle_objc_cacheentry   *entries;
+
+   entries = _mulle_objc_cachepivot_get_entries_atomic( p);
+   return( _mulle_objc_cacheentry_get_cache_from_entries( entries));
+}
+
+
+// returns -1 if failed
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_cachepivot_swap( struct _mulle_objc_cachepivot *pivot,
+                                   struct _mulle_objc_cache *cache,
+                                   struct _mulle_objc_cache *old_cache,
+                                   struct mulle_allocator *allocator);
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_cache *
+   _mulle_objc_cache_grow_with_strategy( struct _mulle_objc_cache  *old_cache,
+                                         enum mulle_objc_cachesizing_t strategy,
+                                         struct mulle_allocator *allocator);
+
+// uniqueid can be a methodid or superid!
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_cacheentry *
+    _mulle_objc_cachepivot_fill_functionpointer( struct _mulle_objc_cachepivot *pivot,
+                                                 mulle_functionpointer_t imp,
+                                                 mulle_objc_uniqueid_t uniqueid,
+                                                 unsigned int fillrate,
+                                                 struct mulle_allocator *allocator);
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_cache__) */
