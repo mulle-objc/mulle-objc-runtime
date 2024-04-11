@@ -284,7 +284,7 @@ struct Foo
 
 static void   *Foo_init( struct Foo *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   self = (void *) mulle_objc_object_supercall( (void *) self, _cmd, _params, ___Foo_init_superid);
+   self = (void *) mulle_objc_object_call_super( (void *) self, _cmd, _params, ___Foo_init_superid);
 
    self->a = 1;
    self->b = 2;
@@ -499,7 +499,7 @@ struct _gnu_mulle_objc_superlist  super_list =
 
 
 #ifdef __MULLE_OBJC_TAO__
-# define TAO_BIT   0x100
+# define TAO_BIT   0x10
 #else
 # define TAO_BIT   0
 #endif

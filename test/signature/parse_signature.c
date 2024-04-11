@@ -98,7 +98,7 @@ static int   test_info( char *s)
       printf( "#%d type= %s\n", i, info.type ? info.type : "NULL");
       printf( "#%d pure_type_end= %s\n", i, info.pure_type_end ? info.pure_type_end : "NULL");
       printf( "#%d name= %s\n", i, info.name ? info.name : "NULL");
-      printf( "#%d n_members= %d\n", i, info.n_members);
+      printf( "#%d n_members= %ld\n", i, (long) info.n_members);
       printf( "#%d has_object= %d\n", i, info.has_object);
       printf( "#%d has_object= %d\n", i, info.has_object);
 
