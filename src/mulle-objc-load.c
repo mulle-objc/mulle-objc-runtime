@@ -946,7 +946,7 @@ static void  fail_duplicate_category( struct _mulle_objc_classpair *pair,
           universe,
           (unsigned long) info->categoryid,
           info->classname,
-          info->categoryname ? info->categoryname : "???",
+          info->categoryname ? info->categoryname : "<optimized away>",
           info_origin,
           (unsigned long) _mulle_objc_classpair_get_classid( pair),
           _mulle_objc_classpair_get_name( pair),
@@ -984,10 +984,10 @@ static mulle_objc_classid_t
             info->classname,
             (unsigned long) info->categoryid,
             info->classname,
-            info->categoryname ? info->categoryname : "???",
+            info->categoryname ? info->categoryname : "<optimized away>",
             (unsigned long) info->classivarhash,
             (unsigned long) infra->ivarhash,
-            info->origin ? info->origin : "<unknown origin>");
+            info->origin ? info->origin : "<optimized away>");
 
    pair = _mulle_objc_infraclass_get_classpair( infra);
    meta = _mulle_objc_classpair_get_metaclass( pair);
@@ -1387,7 +1387,7 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    //
    load_tps = ! (info->version.bits & _mulle_objc_loadinfo_notaggedptrs);
 
-   bits     = _mulle_objc_universe_get_loadbits( universe);
+   bits     = _mulle_objc_universe_get_loadbits_inline( universe);
 
    mismatch = (load_tps && (bits & MULLE_OBJC_UNIVERSE_HAVE_NO_TPS_LOADS)) ||
               (! load_tps && (bits & MULLE_OBJC_UNIVERSE_HAVE_TPS_LOADS));
@@ -1601,6 +1601,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
       }
    }
 
+   // this will also set some bits in the runtime
    mulle_objc_universe_assert_loadinfo( universe, info);
 
    if( universe->debug.trace.loadinfo)

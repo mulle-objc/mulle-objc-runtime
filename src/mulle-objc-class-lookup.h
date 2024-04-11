@@ -91,7 +91,7 @@ static inline mulle_objc_implementation_t
 
    entry = _mulle_objc_class_probe_cacheentry_inline( cls, methodid);
    imp   = entry
-           ? (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer)
+           ? (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer)
            : 0;
 
    return( imp);
@@ -228,7 +228,7 @@ struct _mulle_objc_method *
 MULLE_C_CONST_RETURN MULLE_C_NONNULL_RETURN
 static inline mulle_objc_implementation_t
    _mulle_objc_class_search_superimplementation_nofail( struct _mulle_objc_class *cls,
-                                                                mulle_objc_superid_t superid)
+                                                        mulle_objc_superid_t superid)
 {
    struct _mulle_objc_method            *method;
    mulle_objc_implementation_t          imp;

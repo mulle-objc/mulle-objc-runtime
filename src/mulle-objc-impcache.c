@@ -319,11 +319,11 @@ static inline void
 //
 static struct _mulle_objc_cacheentry   *
    _mulle_objc_impcache_preload_inactive_with_class( struct _mulle_objc_impcache *icache,
-                                                        struct _mulle_objc_impcache *old_cache,
-                                                        enum mulle_objc_cachesizing_t strategy,
-                                                        struct _mulle_objc_class *cls,
-                                                        mulle_objc_implementation_t imp,
-                                                        mulle_objc_uniqueid_t uniqueid)
+                                                     struct _mulle_objc_impcache *old_cache,
+                                                     enum mulle_objc_cachesizing_t strategy,
+                                                     struct _mulle_objc_class *cls,
+                                                     mulle_objc_implementation_t imp,
+                                                     mulle_objc_uniqueid_t uniqueid)
 
 {
    struct _mulle_objc_cacheentry   *entry;
@@ -352,8 +352,8 @@ static struct _mulle_objc_cacheentry   *
    if( imp)
    {
       entry = _mulle_objc_cache_add_functionpointer_inactive( &icache->cache,
-                                                                         (mulle_functionpointer_t) imp,
-                                                                         uniqueid);
+                                                              (mulle_functionpointer_t) imp,
+                                                              uniqueid);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
       entry->cls = cls;
 #endif
@@ -407,9 +407,9 @@ static struct _mulle_objc_cacheentry   *
 static MULLE_C_NEVER_INLINE
 struct _mulle_objc_cacheentry *
    _mulle_objc_class_convenient_swap_impcache( struct _mulle_objc_class *cls,
-                                                  mulle_objc_implementation_t imp,
-                                                  mulle_objc_uniqueid_t uniqueid,
-                                                  enum mulle_objc_cachesizing_t strategy)
+                                               mulle_objc_implementation_t imp,
+                                               mulle_objc_uniqueid_t uniqueid,
+                                               enum mulle_objc_cachesizing_t strategy)
 {
    struct _mulle_objc_impcache        *icache;
    struct _mulle_objc_impcache        *old_cache;
@@ -445,9 +445,9 @@ struct _mulle_objc_cacheentry *
                                  _mulle_objc_class_get_name( cls));
 
 
-   assert( _mulle_atomic_pointer_nonatomic_read( &cachepivot->pivot.entries)
+   assert( _mulle_atomic_pointer_read_nonatomic( &cachepivot->pivot.entries)
             != universe->empty_impcache.cache.entries);
-   assert( _mulle_atomic_pointer_nonatomic_read( &cachepivot->pivot.entries)
+   assert( _mulle_atomic_pointer_read_nonatomic( &cachepivot->pivot.entries)
             != universe->initial_impcache.cache.entries);
 
    allocator = _mulle_objc_universe_get_allocator( universe);
@@ -472,17 +472,18 @@ struct _mulle_objc_cacheentry *
 
 
 // uniqueid can also be a superid!
-static struct _mulle_objc_cacheentry *
+struct _mulle_objc_cacheentry *
     _mulle_objc_class_add_imp_to_impcachepivot( struct _mulle_objc_class *cls,
-                                                   struct _mulle_objc_impcachepivot *cachepivot,
-                                                   mulle_objc_implementation_t imp,
-                                                   mulle_objc_uniqueid_t uniqueid)
+                                                struct _mulle_objc_impcachepivot *cachepivot,
+                                                mulle_objc_implementation_t imp,
+                                                mulle_objc_uniqueid_t uniqueid)
 {
-   struct _mulle_objc_cache              *cache;
-   struct _mulle_objc_cacheentry         *entry;
-   struct _mulle_objc_universe           *universe;
-   unsigned int                          fillrate;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_universe     *universe;
+   unsigned int                    fillrate;
 
+   assert( cls);
    assert( imp);
 
    if( ! cachepivot)

@@ -74,3 +74,4 @@ coverage*.html
 *.gcno
 cola/wilted/
 demo/
+*.executable

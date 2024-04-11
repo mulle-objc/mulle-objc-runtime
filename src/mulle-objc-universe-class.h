@@ -106,7 +106,7 @@ struct _mulle_objc_infraclass  *
       offset  = offset & mask;
       entry   = (void *) &((char *) entries)[ offset];
       if( entry->key.uniqueid == classid)
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+         return( _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
       if( ! entry->key.uniqueid)
          return( NULL);
       offset += sizeof( struct _mulle_objc_cacheentry);
@@ -165,7 +165,7 @@ struct _mulle_objc_infraclass  *
       if( ! entry)
          return( NULL);
 
-      infra = _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+      infra = _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
    }
    return( infra);
 }
@@ -203,7 +203,7 @@ static inline struct _mulle_objc_infraclass  *
       offset  = offset & mask;
       entry   = (void *) &((char *) entries)[ offset];
       if( entry->key.uniqueid == classid)
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+         return( _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
 
       if( entry->key.uniqueid)
       {
@@ -212,7 +212,7 @@ static inline struct _mulle_objc_infraclass  *
       }
 
       entry = _mulle_objc_universe_refresh_classcache_nofail( universe, classid);
-      return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+      return( _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
    }
 }
 

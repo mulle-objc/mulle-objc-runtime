@@ -12,10 +12,6 @@
 @end
 
 
-@interface B < A>
-@end
-
-
 @implementation A
 + (void) x
 {
@@ -25,6 +21,11 @@
 {
    printf( "%s\n", __PRETTY_FUNCTION__);
 }
+@end
+
+
+
+@interface B < A>
 @end
 
 

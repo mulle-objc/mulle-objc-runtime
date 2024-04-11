@@ -50,8 +50,8 @@
    struct _mulle_objc_infraclass         *infra;
    struct _mulle_objc_class              *cls;
 
-   infra = (struct _mulle_objc_infraclass *) self;
-   cls   = _mulle_objc_infraclass_as_class( infra);
+   infra             = (struct _mulle_objc_infraclass *) self;
+   cls               = _mulle_objc_infraclass_as_class( infra);
    cls->inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_CLASS;
 }
 
@@ -134,19 +134,19 @@
 @end
 
 
-static void   test_no_class( struct _mulle_objc_class *cls, char *name)
+static void   test_no_class( struct _mulle_objc_infraclass *infra, char *name)
 
 {
    struct _mulle_objc_searcharguments    args;
+   struct _mulle_objc_class              *cls;
    mulle_objc_methodid_t                 sel;
    mulle_objc_implementation_t           imp;
 
+   cls = _mulle_objc_infraclass_as_class( infra);
    sel = mulle_objc_methodid_from_string( name);
    imp = _mulle_objc_class_lookup_implementation_noforward( cls, sel);
    printf( "%s %sfound in class %s\n", name, imp ? "" : "not ", mulle_objc_class_get_name( cls));
 }
-
-
 
 
 int   main()

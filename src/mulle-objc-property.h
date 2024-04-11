@@ -102,8 +102,9 @@ enum
    _mulle_objc_property_observable        = 0x04000,  // -willChange
 
    _mulle_objc_property_setterclear       = 0x10000,  // setter clear
-   _mulle_objc_property_autoreleaseclear  = 0x20000   // autorelease clear
+   _mulle_objc_property_autoreleaseclear  = 0x20000,  // autorelease clear
 //   _mulle_objc_property_atomic          = 0x40000
+   _mulle_objc_property_fake              = 0x80000   // fake property use by MulleObject
 };
 
 
@@ -111,15 +112,15 @@ enum
 
 struct _mulle_objc_property
 {
-   mulle_objc_propertyid_t    propertyid;
-   mulle_objc_propertyid_t    ivarid;
-   char                       *name;
-   char                       *signature;  // hmmm...
-   mulle_objc_methodid_t      getter;
-   mulle_objc_methodid_t      setter;
-   mulle_objc_methodid_t      adder;
-   mulle_objc_methodid_t      remover;
-   uint32_t                   bits;        // for pointers/objects
+   mulle_objc_propertyid_t   propertyid;
+   mulle_objc_propertyid_t   ivarid;
+   char                      *name;
+   char                      *signature;  // hmmm...
+   mulle_objc_methodid_t     getter;
+   mulle_objc_methodid_t     setter;
+   mulle_objc_methodid_t     adder;
+   mulle_objc_methodid_t     remover;
+   uint32_t                  bits;        // for pointers/objects
 };
 
 

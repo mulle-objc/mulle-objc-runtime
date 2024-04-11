@@ -135,7 +135,7 @@ static char  *_mulle_objc_signature_supply_bitfield_typeinfo( char *type,
    int   len;
 
    len = atoi( type);
-   if( (uint16_t) len != len)
+   if( len < 0)
       abort();
 
    while( *type >= '0' && *type <= '9')
@@ -143,7 +143,7 @@ static char  *_mulle_objc_signature_supply_bitfield_typeinfo( char *type,
 
    if( info)
    {
-      info->n_members             = (uint16_t) len;
+      info->n_members             = (unsigned int) len;
       info->bits_size             = info->n_members;
       info->natural_size          = (((info->n_members + 7) / 8) + sizeof( int) - 1) / sizeof( int);
       info->natural_alignment     = 0;    // they have none
@@ -158,12 +158,12 @@ static char  *_mulle_objc_signature_supply_bitfield_typeinfo( char *type,
 static void   _update_array_typeinfo_with_length( struct mulle_objc_typeinfo *info,
                                                   unsigned int len)
 {
-   if( (uint16_t) len != len)
+   if( (uint32_t) len != len)
       abort();
 
    info->bits_size    *= len;
    info->natural_size *= len;
-   info->n_members     = (uint16_t) len;
+   info->n_members     = (uint32_t) len;
 }
 
 
@@ -250,7 +250,7 @@ static inline void   _finalize_struct_typeinfo( struct mulle_objc_typeinfo *info
 
    info->bits_size    = (uint32_t) mulle_address_align( info->bits_size, info->bits_struct_alignment);
    info->natural_size = info->bits_size / 8;
-   info->n_members    = (uint16_t) n;
+   info->n_members    = n;
 }
 
 
@@ -331,10 +331,10 @@ static void   _update_union_typeinfo_with_member_typeinfo( struct mulle_objc_typ
 static inline void   _finalize_union_typeinfo( struct mulle_objc_typeinfo *info,
                                                unsigned int n)
 {
-   if( (uint16_t) n != n)
+   if( (uint32_t) n != n)
       abort();
 
-   info->n_members = (uint16_t) n;
+   info->n_members = (uint32_t) n;
 }
 
 
@@ -1006,4 +1006,130 @@ int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
    default :
       return( 1);
    }
+}
+
+
+
+
+
+// this is pre-alpha
+static int   types_are_compatible( char *a, int a_len,
+                                   char *b, int b_len)
+{
+   char   *s;
+
+   if( a_len && b_len)
+   {
+      // all kinds ob objects are compatible
+      if( (*a == _C_ASSIGN_ID || *a == _C_COPY_ID || *a == _C_RETAIN_ID)
+          && (*b == _C_ASSIGN_ID || *b == _C_COPY_ID || *b== _C_RETAIN_ID))
+      {
+         return( 1);
+      }
+
+      switch( *a)
+      {
+      case _C_ASSIGN_ID :
+      case _C_COPY_ID   :
+      case _C_RETAIN_ID :
+         switch( *b)
+         {
+         case _C_ASSIGN_ID :
+         case _C_COPY_ID   :
+         case _C_RETAIN_ID :
+            return( 1);
+         }
+         return( 0);
+
+      case _C_STRUCT_B :
+         if( *b != _C_STRUCT_B)
+            return( 1);
+
+         // its more complicated than this though
+         s = memchr( a, '=', a_len);
+         if( s)
+         {
+            s      = s + 1;
+            a_len -= s - a;
+            a      = s;
+         }
+
+         s = memchr( b, '=', b_len);
+         if( s)
+         {
+            s      = s + 1;
+            b_len -= s - b;
+            b      = s;
+         }
+         break;
+
+      case _C_LNG_LNG  :
+      case _C_ULNG_LNG :
+         switch( *b)
+         {
+         case _C_LNG_LNG  :
+         case _C_ULNG_LNG :
+            return( 1);
+         }
+         return( 0);
+
+      case _C_LNG  :
+      case _C_ULNG :
+         switch( *b)
+         {
+         case _C_LNG  :
+         case _C_ULNG :
+            return( 1);
+         }
+         return( 0);
+
+      case _C_INT  :
+      case _C_UINT :
+         switch( *b)
+         {
+         case _C_INT  :
+         case _C_UINT :
+            return( 1);
+         }
+         return( 0);
+
+      }
+
+      //
+      // we want to have {CGFloat2=ff} and {CGPoint=ff} to be compatible
+      //
+   }
+
+   return( ! strncmp( a, b, a_len < b_len ? a_len : b_len));
+}
+
+
+int   _mulle_objc_typeinfo_is_compatible( struct mulle_objc_typeinfo *a,
+                                          struct mulle_objc_typeinfo *b)
+{
+   size_t   a_len;
+   size_t   b_len;
+
+   a_len = a->pure_type_end - a->type;
+   b_len = b->pure_type_end - b->type;
+
+   return( types_are_compatible( a->type, a_len, b->type, b_len));
+}
+
+
+int   _mulle_objc_ivarsignature_is_compatible( char *a, char *b)
+{
+   struct mulle_objc_typeinfo   a_info;
+   struct mulle_objc_typeinfo   b_info;
+
+   // skip return value
+   a = _mulle_objc_signature_supply_typeinfo( a, NULL, &a_info);
+   b = _mulle_objc_signature_supply_typeinfo( b, NULL, &b_info);
+
+   if( ! a)
+      return( b ? 0 : 1);
+   if( ! b)
+      return( 0);
+
+   return( _mulle_objc_typeinfo_is_compatible( &a_info, &b_info));
 }

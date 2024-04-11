@@ -52,7 +52,7 @@ uintptr_t  __mulle_objc_object_get_retaincount( void *obj)
    if( retaincount_1 == MULLE_OBJC_SLOW_RELEASE)
    {
        // if this recurses, it's the implementors fault, must not call __mulle_objc_object_get_retaincount
-      return( (uintptr_t)  mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_RELEASE_METHODID, obj));
+      return( (uintptr_t)  mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_RETAINCOUNT_METHODID, obj));
    }
    if( retaincount_1 == -1)
       return( 0);

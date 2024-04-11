@@ -97,9 +97,10 @@ struct _mulle_objc_ivar   *_mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *bu
                                                      unsigned int n,
                                                      mulle_objc_ivarid_t search);
 
-static inline struct _mulle_objc_ivar   *mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *buf,
-                                                                  unsigned int n,
-                                                                  mulle_objc_ivarid_t search)
+static inline struct _mulle_objc_ivar   *
+   mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *buf,
+                            unsigned int n,
+                            mulle_objc_ivarid_t search)
 {
    if( ! buf || (int) n <= 0)
       return( NULL);

@@ -309,60 +309,31 @@ static struct _mulle_objc_method  *
 }
 
 
-
-//
-// if we are in the metaclass root, we would wrap to the infraclass
-// That we don't want IF there are protocolclasses. In case of
-// protocolclasses, we instead would like to wrap to the infraclass of
-// the protocolclass, after the meta paths through the protocolclasses
-// have been exhausted
-//
-static struct _mulle_objc_class   *search_superclass( struct _mulle_objc_class *cls,
-                                                      unsigned int inheritance)
+static struct _mulle_objc_method  *
+   _mulle_objc_class_search_method_super( struct _mulle_objc_class *cls,
+                                          struct _mulle_objc_searcharguments *search,
+                                          unsigned int inheritance,
+                                          struct _mulle_objc_searchresult *result,
+                                          enum internal_search_mode *mode)
 {
-   struct _mulle_objc_classpair                 *pair;
-   struct _mulle_objc_protocolclassenumerator   rover;
-   struct _mulle_objc_infraclass                *infra;
-   struct _mulle_objc_metaclass                 *meta;
-   struct _mulle_objc_class                     *supercls;
-   struct _mulle_objc_class                     *protocls;
+   unsigned int                superinheritance;
+   struct _mulle_objc_method   *method;
 
-   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS)
-      return( NULL);
+   //
+   // Usually we inherit what super wants, its actually quite dangerous
+   // to override this in searches (better only do this in direct
+   // NSObject subclasses, as the playground is known)
+   //
+   superinheritance = (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_INHERITANCE)
+                      ? inheritance
+                      : cls->inheritance;
 
-   supercls =_mulle_objc_class_get_superclass( cls);
-   if( _mulle_objc_class_is_infraclass( cls))
-      return( supercls);
-   if( _mulle_objc_class_is_metaclass( supercls))
-      return( supercls);
-
-   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META))
-   {
-      // Ok we'd be transitioning from metaclass to infraclass
-      // Use protocolclass if available
-      protocls = NULL;
-
-      pair  = _mulle_objc_class_get_classpair( cls);
-      rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-
-      for(;;)
-      {
-         infra = _mulle_objc_protocolclassenumerator_next( &rover);
-         if( ! infra)
-            break;
-
-         meta     = _mulle_objc_infraclass_get_metaclass( infra);
-         protocls = _mulle_objc_metaclass_as_class( meta);
-         if( protocls != cls)
-         {
-            supercls = protocls;
-            break;
-         }
-      }
-      _mulle_objc_protocolclassenumerator_done( &rover);
-   }
-
-   return( supercls);
+   method = __mulle_objc_class_search_method( cls,
+                                              search,
+                                              superinheritance,
+                                              result,
+                                              mode);
+   return( method);
 }
 
 
@@ -389,8 +360,6 @@ static struct _mulle_objc_method   *
    unsigned int                                            i;
    unsigned int                                            n;
    unsigned int                                            tmp;
-   unsigned int                                            superinheritance;
-
 
    // only enable first (@implementation of class) on demand
    //  ->[0]    : implementation
@@ -558,26 +527,78 @@ next_class:
       }
    }
 
+   // We have:
+   //  @interface A         -a {}; +a{};
+   //  @interface B : A     -b {}; +b{};
+   //  @interface C < X, Y> -c {}; +c{};
+   //  @interface D : C     -d {}; +d{};
+   //  @protocolclass X     -x {}; +x{};
+   //  @protocolclass Y     -y {}; +y{};
    //
-   // searching the superclass for owner seems wanted
+   // Invariably at this point we have searched the protocols < X, Y>.
+   // now the is a divergence depending on:
    //
-   supercls = search_superclass( cls, inheritance);
-   if( supercls)
-   {
-      //
-      // Usually we inherit what super wants, its actually quite dangerous
-      // to override this in searches (better only do this in direct
-      // NSObject subclasses, as the playground is known)
-      //
-      superinheritance = (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_INHERITANCE)
-                         ? inheritance
-                         : supercls->inheritance;
+   //
+   // |    cls       | supercls    | action
+   // |--------------|-------------|------------
+   // | A infra      | null        | stop
+   // | A meta       | A infra     | search A infra
+   // | B infra      | A infra     | search A infra
+   // | B meta       | A meta      | search A meta
+   // | C infra      | null        | stop
+   // | C meta       | C infra     | search Y,X,C infra
+   // | D infra      | C infra     | search C infra
+   // | D meta       | C meta      | search D meta
+   //
+   supercls =_mulle_objc_class_get_superclass( cls);
+   if( ! supercls)
+      return( found);
 
-      method = __mulle_objc_class_search_method( supercls,
-                                                 search,
-                                                 superinheritance,
-                                                 result,
-                                                 mode);
+   if( _mulle_objc_class_is_metaclass( cls) && _mulle_objc_class_is_infraclass( supercls))
+   {
+      if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META))
+      {
+         tmp = 0;
+         if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
+            tmp |= MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES;
+
+         //
+         // A protocol could well have a category of the same name and it would
+         // match, which would be unexpected or would it ? Probably not.
+         // Generally: MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES is not
+         // enabled, so it is a non-issue.
+         //
+         method = _mulle_objc_class_protocol_search_method( cls,
+                                                            search,
+                                                            tmp,
+                                                            result,
+                                                            mode);
+         if( method != MULLE_OBJC_METHOD_SEARCH_FAIL)
+         {
+            if( ! method)
+               return( NULL);
+
+            if( found != MULLE_OBJC_METHOD_SEARCH_FAIL)
+            {
+               result->error = EEXIST;
+               return( NULL);
+            }
+
+            if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
+               return( method);
+
+            found = method;
+         }
+      }
+   }
+
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   {
+      method = _mulle_objc_class_search_method_super( supercls,
+                                                      search,
+                                                      inheritance,
+                                                      result,
+                                                      mode);
       if( method != MULLE_OBJC_METHOD_SEARCH_FAIL)
       {
          if( ! method)
@@ -592,7 +613,7 @@ next_class:
          if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
             return( method);
 
-         found = method;
+         found = method;  // ???
       }
    }
 

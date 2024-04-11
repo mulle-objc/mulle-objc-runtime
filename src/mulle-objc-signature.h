@@ -90,21 +90,21 @@
 
 struct mulle_objc_typeinfo
 {
-   char       *type;                // not a copy(!) keep your passed in in "types" around, will be past "const"
-   char       *pure_type_end;       // if you have "{?=QQ}16", will point just after '}'
-   char       *name;                // @"NSString", @"<X>"  will be "NSString" in quotes!
+   char          *type;                // not a copy(!) keep your passed in in "types" around, will be past "const"
+   char          *pure_type_end;       // if you have "{?=QQ}16", will point just after '}'
+   char          *name;                // @"NSString", @"<X>"  will be "NSString" in quotes!
 
-   int32_t    invocation_offset;    // only set if used with the enumerator, useful ONLY for NSInvocation!!
+   int32_t       invocation_offset;    // only set if used with the enumerator, useful ONLY for NSInvocation!!
 
-   uint32_t   natural_size;
-   uint32_t   bits_size;
+   size_t        natural_size;
+   size_t        bits_size;
 
-   uint16_t   bits_struct_alignment;
-   uint16_t   natural_alignment;
+   uint16_t      bits_struct_alignment;
+   uint16_t      natural_alignment;
 
-   uint16_t   n_members;        // 0, for scalar, n: for union (members), array(len), bitfield(len), struct( members)
-   char       has_object;
-   char       has_retainable_object;
+   unsigned int  n_members;        // 0, for scalar, n: for union (members), array(len), bitfield(len), struct( members)
+   char          has_object;
+   char          has_retainable_object;
 };
 
 
@@ -465,6 +465,22 @@ static inline enum mulle_metaabi_param
    type = _mulle_objc_signature_skip_type_qualifier( type);
    return( _mulle_metaabi_get_metaabiparamtype( type));
 }
+
+
+/*
+ * PRE-ALPHA
+ *
+ * _mulle_objc_typeinfo_is_compatible
+ * _mulle_objc_ivarsignature_is_compatible
+ *
+ * These are some crude functions that I need in CoreAnimation and MulleObject
+ * but they are too simplistic for general use. Still they are here so I
+ * don't have to maintain multiple copies...
+ */
+int   _mulle_objc_typeinfo_is_compatible( struct mulle_objc_typeinfo *a,
+                                          struct mulle_objc_typeinfo *b);
+int   _mulle_objc_ivarsignature_is_compatible( char *a, char *b);
+
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */
 
