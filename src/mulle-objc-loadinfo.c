@@ -56,40 +56,37 @@
 static void  dump_bits( unsigned int bits, FILE *fp)
 {
    char   *delim;
+   int    optLevel;
+   int    inlineLevel;
 
-   delim ="";
+   delim = "";
    if( bits & _mulle_objc_loadinfo_unsorted)
    {
       fprintf( fp, "unsorted");
-      delim=", ";
+      delim = " ";
    }
 
    if( bits & _mulle_objc_loadinfo_aaomode)
    {
       fprintf( fp, "%s.aam", delim);
-      delim=", ";
-   }
-
-   if( bits & _mulle_objc_loadinfo_notaggedptrs)
-   {
-      fprintf( fp, "%s-fobjc-no-tps", delim);
-      delim=", ";
-   }
-
-   if( bits & _mulle_objc_loadinfo_nofastcalls)
-   {
-      fprintf( fp, "%s-fobjc-no-fcs", delim);
-      delim=", ";
-   }
-
-   if( bits & _mulle_objc_loadinfo_threadaffineobjects)
-   {
-      fprintf( fp, "%s-fobjc-tao", delim);
-      delim=", ";
+      delim = " ";
    }
 
 
-   fprintf( fp, "%s-O%u", delim, (bits >> 8) & 0x7);
+   fprintf( fp, "%s-f%sobjc-tps", delim, (bits & _mulle_objc_loadinfo_notaggedptrs)        ? "no-" : "");
+   delim = " ";
+
+   fprintf( fp, "%s-f%sobjc-fcs", delim, (bits & _mulle_objc_loadinfo_nofastcalls)         ? "no-" : "");
+   fprintf( fp, "%s-f%sobjc-tao", delim, (bits & _mulle_objc_loadinfo_threadaffineobjects) ? ""    : "no-");
+
+   optLevel = (bits >> 8) & 0xF;
+   if( optLevel >= 0x8)
+      fprintf( fp, "%s-O%c", delim, optLevel == 0xF ? 's' : 'z');
+   else
+      fprintf( fp, "%s-O%u", delim, optLevel);
+
+   inlineLevel = (bits >> 12) & 0x7;
+   fprintf( fp, "%s-fobjc-inline-method-calls=%u", delim, inlineLevel);
 }
 
 
@@ -422,8 +419,7 @@ void   mulle_objc_loadinfo_dump_fp( struct _mulle_objc_loadinfo *info,
    fprintf( fp, "%s", prefix);
 
    origin = mulle_objc_loadinfo_get_origin( info);
-   if( origin)
-      fprintf( fp, "\"%s\" ", origin);
+   fprintf( fp, "\"%s\" ", origin ? origin : "<optimized away>");
 
    print_version( "universe", info->version.runtime, fp);
    print_version( ", foundation", info->version.foundation, fp);

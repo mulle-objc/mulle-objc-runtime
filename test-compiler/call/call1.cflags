@@ -1,1 +1,2 @@
--O1 -fobjc-inline-method-calls=5
+Debug: -O1 -fobjc-tao -fobjc-inline-method-calls=5
+-O1 -fno-objc-tao -fobjc-inline-method-calls=5

@@ -277,6 +277,12 @@ static inline int
 }
 
 
+static inline int   _mulle_objc_descriptor_is_threadaffine( struct _mulle_objc_descriptor *desc)
+{
+   return( ! (desc->bits & _mulle_objc_method_user_attribute_4));
+}
+
+
 //
 // this compares by name, signature and bits, for use in (mulle) qsort_r
 //
@@ -284,8 +290,6 @@ MULLE_OBJC_RUNTIME_GLOBAL
 int  _mulle_objc_descriptor_compare_r( void **a,
                                        void **b,
                                        void *unused);
-
-
 
 # pragma mark - method descriptor consistency
 
@@ -458,7 +462,6 @@ static inline int   _mulle_objc_method_is_threadaffine( struct _mulle_objc_metho
 {
    return( ! (_mulle_objc_method_get_bits( method) & _mulle_objc_method_user_attribute_4));
 }
-
 
 
 /* compatibility stuff for Foundation */

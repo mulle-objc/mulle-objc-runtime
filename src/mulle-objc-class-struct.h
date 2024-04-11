@@ -157,12 +157,14 @@ struct _mulle_objc_class
    mulle_atomic_pointer_t                  state;
 
    void                                    *userinfo;       // a void pointer for userinfo
+
 #ifdef __MULLE_OBJC_FCS__
-   struct _mulle_objc_fastmethodtable      vtab;  // dont' move it up, debugs nicer here
+   struct _mulle_objc_fastmethodtable      vtab;            // dont' move it up, debugs nicer here
 #endif
 };
 
-
+// MEMO: if you compile without __MULLE_OBJC_FCS__ the debugger may be
+//       unhappy because the offsets between infra and meta ain't right anymore
 
 # pragma mark - petty accessors
 
@@ -219,6 +221,7 @@ static inline void
 }
 
 
+// used by MulleThreadSafeObject
 static inline void *
    _mulle_objc_class_get_userinfo( struct _mulle_objc_class *cls)
 {

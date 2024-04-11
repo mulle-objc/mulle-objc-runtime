@@ -71,6 +71,7 @@ char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit)
    case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        : return( "IS_PROTOCOLCLASS");
    case _MULLE_OBJC_CLASS_LOAD_SCHEDULED          : return( "LOAD_SCHEDULED");
    case _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  : return( "HAS_CLEARABLE_PROPERTY");
+   case MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE     : return( "NOT_THREAD_AFFINE");
    case MULLE_OBJC_CLASS_INITIALIZING             : return( "INITIALIZING");
    case MULLE_OBJC_CLASS_INITIALIZE_DONE          : return( "INITIALIZE_DONE");
    case MULLE_OBJC_CLASS_FOUNDATION_BIT0          : return( "FOUNDATION #0");
@@ -101,7 +102,7 @@ static int   __mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
       if( state == old)
          return( 0);
    }
-   while( ! _mulle_atomic_pointer_weakcas( &cls->state, state, old));
+   while( ! _mulle_atomic_pointer_cas_weak( &cls->state, state, old));
 
    universe = _mulle_objc_class_get_universe( cls);
    if( universe->debug.trace.state_bit)
@@ -171,8 +172,8 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->headerextrasize = headerextrasize;
    cls->universe        = universe;
 
-   _mulle_atomic_pointer_nonatomic_write( &cls->cachepivot.pivot.entries, universe->initial_impcache.cache.entries);
-   _mulle_atomic_pointer_nonatomic_write( &cls->kvc.entries, universe->empty_cache.entries);
+   _mulle_atomic_pointer_write_nonatomic( &cls->cachepivot.pivot.entries, universe->initial_impcache.cache.entries);
+   _mulle_atomic_pointer_write_nonatomic( &cls->kvc.entries, universe->empty_cache.entries);
 
    _mulle_concurrent_pointerarray_init( &cls->methodlists, 0, &universe->memory.allocator);
 
@@ -212,7 +213,7 @@ static int  _mulle_objc_class_methodlists_are_sane( struct _mulle_objc_class *cl
    void   *storage;
 
    // need at least one possibly empty message list
-   storage = _mulle_atomic_pointer_nonatomic_read( &cls->methodlists.storage.pointer);
+   storage = _mulle_atomic_pointer_read_nonatomic( &cls->methodlists.storage.pointer);
    if( ! storage || ! mulle_concurrent_pointerarray_get_count( &cls->methodlists))
    {
       errno = ECHILD;
@@ -340,8 +341,8 @@ void   mulle_objc_class_didadd_methodlist( struct _mulle_objc_class *cls,
 }
 
 
-int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
-                                        struct _mulle_objc_methodlist *list)
+int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
+                                                struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;
    struct _mulle_objc_method                 *method;
@@ -398,7 +399,7 @@ int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
       return( -1);
    }
 
-   rval = _mulle_objc_class_add_methodlist( cls, list);
+   rval = _mulle_objc_class_add_methodlist_nocache( cls, list);
    if( ! rval)
       mulle_objc_class_didadd_methodlist( cls, list);
    return( rval);

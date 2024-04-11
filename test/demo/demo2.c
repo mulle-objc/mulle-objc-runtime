@@ -222,7 +222,7 @@ struct _mulle_objc_loadclasslist class_list =
 #endif
 
 #ifdef __MULLE_OBJC_TAO__
-# define TAO_BIT   0x100
+# define TAO_BIT   0x10
 #else
 # define TAO_BIT   0
 #endif

@@ -108,7 +108,7 @@ int   mulle_objc_infraclass_is_sane( struct _mulle_objc_infraclass *infra)
       return( 0);
 
    // need at least one possibly empty ivar list
-   storage = _mulle_atomic_pointer_nonatomic_read( &infra->ivarlists.storage.pointer);
+   storage = _mulle_atomic_pointer_read_nonatomic( &infra->ivarlists.storage.pointer);
    if( ! storage || ! mulle_concurrent_pointerarray_get_count( &infra->ivarlists))
    {
       errno = ECHILD;
@@ -116,7 +116,7 @@ int   mulle_objc_infraclass_is_sane( struct _mulle_objc_infraclass *infra)
    }
 
    // need at least one possibly empty property list
-   storage = _mulle_atomic_pointer_nonatomic_read( &infra->propertylists.storage.pointer);
+   storage = _mulle_atomic_pointer_read_nonatomic( &infra->propertylists.storage.pointer);
    if( ! storage || ! mulle_concurrent_pointerarray_get_count( &infra->propertylists))
    {
       errno = ECHILD;
@@ -976,17 +976,6 @@ void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infr
 }
 
 
-void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra)
-{
-   struct _mulle_objc_method     *method;
-
-   method = _mulle_objc_infraclass_search_method_noinherit_noinitialize( infra,
-                                                                         MULLE_OBJC_DEINITIALIZE_METHODID);
-   if( method)
-      _mulle_objc_infraclass_call_unloadmethod( infra, method, "deinitialize", NULL);
-}
-
-
 // in reverse order
 void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
 {
@@ -1011,7 +1000,10 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
       if( ! method)
          break;
 
-      _mulle_objc_infraclass_call_unloadmethod( infra, method, "unload", _mulle_objc_methodlist_get_categoryname( result.list));
+      _mulle_objc_infraclass_call_unloadmethod( infra,
+                                                method,
+                                                "unload",
+                                                _mulle_objc_methodlist_get_categoryname( result.list));
       _mulle_objc_searcharguments_init_previous( &search, method);
    }
 }

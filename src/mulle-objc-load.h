@@ -230,19 +230,29 @@ static inline void   mulle_objc_loadhashedstringlist_sort( struct _mulle_objc_lo
 //
 enum _mulle_objc_loadinfobits
 {
-   _mulle_objc_loadinfo_unsorted      = 0x1,
-   _mulle_objc_loadinfo_aaomode       = 0x2,
-   _mulle_objc_loadinfo_notaggedptrs  = 0x4,
-   _mulle_objc_loadinfo_nofastcalls   = 0x8,
+   // 8 bits universe bits
+   _mulle_objc_loadinfo_unsorted            = 0x1,
+   _mulle_objc_loadinfo_aaomode             = 0x2,
+   _mulle_objc_loadinfo_notaggedptrs        = 0x4,
+   _mulle_objc_loadinfo_nofastcalls         = 0x8,
+   _mulle_objc_loadinfo_threadaffineobjects = 0x10,
 
-   _mulle_objc_loadinfo_optlevel_0   = (0 << 8),  // actual values...
-   _mulle_objc_loadinfo_optlevel_1   = (1 << 8),
-   _mulle_objc_loadinfo_optlevel_2   = (2 << 8),
-   _mulle_objc_loadinfo_optlevel_3   = (3 << 8),
-   _mulle_objc_loadinfo_optlevel_s   = (7 << 8),
+   // 0x20, 0x40, 0x80 still unused
 
-   _mulle_objc_loadinfo_threadaffineobjects = 0x100
-   // lower 16 bits for universe
+   // 4 bits opti level
+   _mulle_objc_loadinfo_optlevel_0          = (0 << 8),  // actual values...
+   _mulle_objc_loadinfo_optlevel_1          = (1 << 8),
+   _mulle_objc_loadinfo_optlevel_2          = (2 << 8),
+   _mulle_objc_loadinfo_optlevel_3          = (3 << 8),
+   _mulle_objc_loadinfo_optlevel_s          = (7 << 8),  
+
+   // 3 bits inline level
+   _mulle_objc_loadinfo_inlinelevel_none    = (0 << 12),
+   _mulle_objc_loadinfo_inlinelevel_minimal = (1 << 12),
+   _mulle_objc_loadinfo_inlinelevel_partial = (2 << 12),
+   _mulle_objc_loadinfo_inlinelevel_default = (3 << 12),
+   _mulle_objc_loadinfo_inlinelevel_full    = (4 << 12),
+   // 1 bit unused
 
    // next 12 bits free for foundation (future: somehow)
    // last  4 bits free for user       (future: somehow)

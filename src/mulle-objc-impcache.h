@@ -68,6 +68,10 @@ struct _mulle_objc_impcache
    void   *(*call2)( void *, mulle_objc_methodid_t, void *);
 
    //
+   // TODO: for complete inlining code, it would be good to have call3
+   //       where the callback does not search through the cache again
+   //
+
    // super calls
    void   *(*supercall)( void *, mulle_objc_methodid_t, void *,
                          mulle_objc_superid_t, struct _mulle_objc_class *);
@@ -146,15 +150,14 @@ static inline struct _mulle_objc_cache  *
 }
 
 
-
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_impcache  *
    _mulle_objc_impcachepivot_get_impcache( struct _mulle_objc_impcachepivot *cachepivot)
 {
-   struct _mulle_objc_cache       *cache;
-   struct _mulle_objc_impcache    *impcache;
+   struct _mulle_objc_cache      *cache;
+   struct _mulle_objc_impcache   *impcache;
 
-   cache       = _mulle_objc_impcachepivot_get_impcache_cache( cachepivot);
+   cache    = _mulle_objc_impcachepivot_get_impcache_cache( cachepivot);
    impcache = _mulle_objc_cache_get_impcache_from_cache( cache);
    return( impcache);
 }
@@ -183,7 +186,7 @@ struct _mulle_objc_cacheentry *
 MULLE_C_ALWAYS_INLINE static inline 
 mulle_objc_implementation_t
    _mulle_objc_impcachepivot_probe_inline( struct _mulle_objc_impcachepivot *cachepivot,
-                                                   mulle_objc_uniqueid_t uniqueid)
+                                           mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cache         *cache;
    struct _mulle_objc_cacheentry    *entries;
@@ -242,7 +245,7 @@ mulle_objc_implementation_t
    entry   = (void *) &((char *) entries)[ offset];
 
    if( MULLE_C_LIKELY( entry->key.uniqueid == uniqueid))
-      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
    else
    {
       icache = _mulle_objc_cache_get_impcache_from_cache( cache);
@@ -251,6 +254,14 @@ mulle_objc_implementation_t
    return( f);
 }
 
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+struct _mulle_objc_cacheentry *
+    _mulle_objc_class_add_imp_to_impcachepivot( struct _mulle_objc_class *cls,
+                                                struct _mulle_objc_impcachepivot *cachepivot,
+                                                mulle_objc_implementation_t imp,
+                                                mulle_objc_uniqueid_t uniqueid);
 
 
 #endif

@@ -141,7 +141,7 @@ void
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return;
 
-   p        = _mulle_atomic_pointer_nonatomic_read( &cls->cachepivot.pivot.entries);
+   p        = _mulle_atomic_pointer_read_nonatomic( &cls->cachepivot.pivot.entries);
    sentinel = &p[ cache->size];
 
    while( p < sentinel)

@@ -30,6 +30,10 @@
 
 
 @implementation B
+- (void) w
+{
+   printf( "%s\n", __PRETTY_FUNCTION__);
+}
 + (void) z
 {
    printf( "%s\n", __PRETTY_FUNCTION__);
@@ -37,9 +41,19 @@
 @end
 
 
+@interface C : B
+@end
+
+
+@implementation C
+@end
+
+
+
 int   main()
 {
-   [B x];
-   [B y];
-   [B z];
+   [C w];
+   [C x];
+   [C y];
+   [C z];
 }

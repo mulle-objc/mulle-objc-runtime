@@ -259,9 +259,9 @@ void   *_mulle_objc_cache_probe_pointer( struct _mulle_objc_cache *cache,
       offset = (mulle_objc_cache_uint_t) offset & mask;
       entry  = (void *) &((char *) entries)[ offset];
       if( entry->key.uniqueid == uniqueid)
-         return( _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+         return( _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
 
-      if( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer))
+      if( ! _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer))
          return( 0);
 
       offset += sizeof( struct _mulle_objc_cacheentry);
@@ -349,7 +349,7 @@ MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_cacheentry  *
    _mulle_objc_cachepivot_get_entries_nonatomic( struct _mulle_objc_cachepivot *p)
 {
-   return( _mulle_atomic_pointer_nonatomic_read( &p->entries));
+   return( _mulle_atomic_pointer_read_nonatomic( &p->entries));
 }
 
 
@@ -392,12 +392,12 @@ static inline int
 
 
 static inline struct _mulle_objc_cacheentry  *
-   _mulle_objc_cachepivot_weakcas_entries( struct _mulle_objc_cachepivot *p,
+   _mulle_objc_cachepivot_cas_weak_entries( struct _mulle_objc_cachepivot *p,
                                            struct _mulle_objc_cacheentry *new_entries,
                                            struct _mulle_objc_cacheentry *old_entries)
 {
    assert( old_entries != new_entries);
-   return( __mulle_atomic_pointer_weakcas( &p->entries, new_entries, old_entries));
+   return( __mulle_atomic_pointer_cas_weak( &p->entries, new_entries, old_entries));
 }
 
 

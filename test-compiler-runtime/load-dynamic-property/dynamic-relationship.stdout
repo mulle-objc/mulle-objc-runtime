@@ -4,7 +4,7 @@ getter 25ed3ca4
 method "-value" (i16@0:8)
 setter 4ddcb6e4
 method "-setValue:" (v20@0:8i16)
-adder 2972e68b
-method "-addToValue:" (v20@0:8i16)
-remover 0d2b8f80
-method "-removeFromValue:" (v20@0:8i16)
+adder 00000000
+method "-NULL" (NULL)
+remover 00000000
+method "-NULL" (NULL)

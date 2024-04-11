@@ -267,7 +267,7 @@ void   _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *
    do
    {
       expect_entries = old_entries;
-      old_entries    = _mulle_objc_cachepivot_weakcas_entries( &universe->cachepivot,
+      old_entries    = _mulle_objc_cachepivot_cas_weak_entries( &universe->cachepivot,
                                                                       universe->empty_cache.entries,
                                                                       old_entries);
       if( old_entries == universe->empty_cache.entries)

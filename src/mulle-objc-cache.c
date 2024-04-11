@@ -156,7 +156,7 @@ int   _mulle_objc_cache_probe_entryindex( struct _mulle_objc_cache *cache,
             return( -1);
       }
       else
-         if( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer))
+         if( ! _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer))
             return( -1);
 
       offset += sizeof( struct _mulle_objc_cacheentry);
@@ -199,7 +199,7 @@ mulle_objc_cache_uint_t
             return( offset);
       }
       else
-         if( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer))
+         if( ! _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer))
             return( offset);
 
       offset += sizeof( struct _mulle_objc_cacheentry);
@@ -356,10 +356,10 @@ struct _mulle_objc_cacheentry   *
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
-   assert( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+   assert( ! _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
 
    entry->key.uniqueid = uniqueid;
-   _mulle_atomic_pointer_nonatomic_write( &entry->value.pointer, pointer);
+   _mulle_atomic_pointer_write_nonatomic( &entry->value.pointer, pointer);
 
    _mulle_atomic_pointer_increment( &cache->n);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
@@ -381,7 +381,7 @@ struct _mulle_objc_cacheentry   *
    entry  = (void *) &((char *) cache->entries)[ offset];
 
    assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
-   assert( ! _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer));
+   assert( ! _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
 
    entry->key.uniqueid = uniqueid;
    _mulle_atomic_functionpointer_nonatomic_write( &entry->value.functionpointer, pointer);

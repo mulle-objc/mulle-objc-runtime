@@ -53,7 +53,7 @@
 MULLE_C_NO_RETURN void
    _mulle_objc_vprintf_abort( char *format, va_list args)
 {
-   vfprintf( stderr, format ? format : "???", args);
+   mulle_vfprintf( stderr, format ? format : "???", args);
    fprintf( stderr, "\n");
 
    // could improve this with symbolification but, it's a) debug
@@ -301,8 +301,8 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_methodnotfound( struct _mulle_objc_universe *universe,
-                                             struct _mulle_objc_class *cls,
-                                             mulle_objc_methodid_t methodid)
+                                            struct _mulle_objc_class *cls,
+                                            mulle_objc_methodid_t methodid)
 {
    if (! universe || _mulle_objc_universe_is_uninitialized(universe))
       _mulle_objc_abort_methodnotfound( universe, cls, methodid);

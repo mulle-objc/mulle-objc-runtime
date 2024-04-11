@@ -212,7 +212,7 @@ static inline void   _mulle_objc_object_constantify_noatomic( void *obj)
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
+   _mulle_atomic_pointer_write_nonatomic( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
 }
 
 
@@ -227,7 +227,7 @@ static inline void   _mulle_objc_object_deconstantify_noatomic( void *obj)
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) 0);
+   _mulle_atomic_pointer_write_nonatomic( &header->_retaincount_1, (void *) 0);
 }
 
 
@@ -242,7 +242,7 @@ static inline void   _mulle_objc_object_slowify_noatomic( void *obj)
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) MULLE_OBJC_SLOW_RELEASE);
+   _mulle_atomic_pointer_write_nonatomic( &header->_retaincount_1, (void *) MULLE_OBJC_SLOW_RELEASE);
 }
 
 
@@ -254,7 +254,7 @@ static inline void   _mulle_objc_object_deslowify_noatomic( void *obj)
       return;
 
    header = _mulle_objc_object_get_objectheader( obj);
-   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, (void *) 0);
+   _mulle_atomic_pointer_write_nonatomic( &header->_retaincount_1, (void *) 0);
 }
 
 

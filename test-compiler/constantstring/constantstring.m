@@ -46,7 +46,7 @@ int   main( void)
    struct _mulle_objc_universe    *universe;
 
    universe = mulle_objc_global_get_universe( __MULLE_OBJC_UNIVERSEID__);
-   _mulle_objc_universe_set_staticstringclass( universe, [SomeString class]);
+   _mulle_objc_universe_set_staticstringclass( universe, [SomeString class], 1);
 
    [foo print];
    [bar print];

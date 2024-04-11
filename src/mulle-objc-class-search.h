@@ -474,7 +474,6 @@ static inline mulle_objc_implementation_t
    return( _mulle_objc_method_get_implementation( method));
 }
 
-#endif /* mulle_objc_class_search_h */
 
 
 // Conveniences for class
@@ -486,3 +485,77 @@ void
                                            struct _mulle_objc_impcachepivot *cachepivot,
                                            struct _mulle_objc_method *method,
                                            mulle_objc_uniqueid_t uniqueid);
+
+
+
+struct mulle_objc_clobberchainenumerator
+{
+   struct _mulle_objc_class            *cls;
+   struct _mulle_objc_searcharguments  args;
+   struct _mulle_objc_searchresult     result;
+};
+
+
+static inline struct mulle_objc_clobberchainenumerator
+   mulle_objc_class_clobberchain_enumerate( struct _mulle_objc_class *cls,
+                                            mulle_objc_methodid_t methodid)
+{
+   struct mulle_objc_clobberchainenumerator   rover;
+
+   rover = (struct mulle_objc_clobberchainenumerator) { cls };
+   _mulle_objc_searcharguments_init_default( &rover.args, methodid);
+   return( rover);
+}
+
+
+static inline int
+   _mulle_objc_clobberchainenumerator_next( struct mulle_objc_clobberchainenumerator *rover,
+                                            mulle_objc_implementation_t *imp)
+{
+   unsigned int                inheritance;
+   struct _mulle_objc_method   *method;
+
+   if( ! rover->cls)
+      return( 0);
+
+   inheritance = _mulle_objc_class_get_inheritance( rover->cls)
+                 | MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS
+                 | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
+                 | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES
+                 | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
+
+   method = mulle_objc_class_search_method( rover->cls,
+                                            &rover->args,
+                                            inheritance,
+                                            &rover->result);
+   if( ! method)
+      return( 0);
+
+   _mulle_objc_searcharguments_init_overridden( &rover->args,
+                                                rover->args.args.methodid,
+                                                mulle_objc_searchresult_get_classid( &rover->result),
+                                                mulle_objc_searchresult_get_categoryid( &rover->result));
+   *imp = _mulle_objc_method_get_implementation( method);
+   return( 1);
+}
+
+
+static inline void
+   mulle_objc_clobberchainenumerator_done( struct mulle_objc_clobberchainenumerator *rover)
+{
+}
+
+
+#define mulle_objc_class_clobberchain_for( cls, sel, item)                                    \
+   assert( sizeof( item) == sizeof( mulle_objc_implementation_t));                            \
+   for( struct mulle_objc_clobberchainenumerator                                              \
+           rover__ ## item = mulle_objc_class_clobberchain_enumerate( (cls), (sel)),          \
+           *rover__  ## item ## __i = (void *) 0;                                             \
+        ! rover__  ## item ## __i;                                                            \
+        rover__ ## item ## __i = (mulle_objc_clobberchainenumerator_done( &rover__ ## item),  \
+                                   (void *) 1))                                               \
+      while( _mulle_objc_clobberchainenumerator_next( &rover__ ## item,                       \
+                                                     (mulle_objc_implementation_t *) &item))
+
+
+#endif /* mulle_objc_class_search_h */

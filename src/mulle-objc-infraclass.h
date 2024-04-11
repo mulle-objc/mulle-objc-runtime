@@ -564,9 +564,6 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_categories_unload( struct _mulle_objc_infraclass *infra);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra);
-
-MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_finalize( struct _mulle_objc_infraclass *infra);
 
 MULLE_OBJC_RUNTIME_GLOBAL

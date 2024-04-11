@@ -245,8 +245,13 @@ static inline void *
 
 #pragma mark - loadbits and tagged pointer support
 
+MULLE_OBJC_RUNTIME_GLOBAL
+uintptr_t
+   _mulle_objc_universe_get_loadbits( struct _mulle_objc_universe *universe);
+
+
 static inline uintptr_t
-   _mulle_objc_universe_get_loadbits( struct _mulle_objc_universe *universe)
+   _mulle_objc_universe_get_loadbits_inline( struct _mulle_objc_universe *universe)
 {
    return( (uintptr_t) _mulle_atomic_pointer_read( &universe->loadbits));
 }
@@ -695,6 +700,12 @@ static inline struct _mulle_objc_descriptor *
    return( _mulle_concurrent_hashmap_lookup( &universe->descriptortable, methodid));
 }
 
+// get name from methodid for example
+struct _mulle_objc_descriptor *
+   mulle_objc_universe_lookup_descriptor_nofail( struct _mulle_objc_universe *universe,
+                                                 mulle_objc_methodid_t methodid);
+
+
 static inline struct _mulle_objc_descriptor *
    _mulle_objc_universe_lookup_varyingtypedescriptor( struct _mulle_objc_universe *universe,
                                                       mulle_objc_methodid_t methodid)
@@ -875,14 +886,18 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
                                               struct _mulle_objc_object *string);
 
 // this changes the class of ALL (!) static strings to -> foundation.staticstringclass
+// the compiler will have made the default NSConstantStrings already constant.
+// Hand rolled strings you need to constantify.
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
-void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe);
+void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe,
+                                                         int constantify);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
 void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
-                                                  struct _mulle_objc_infraclass *infra);
+                                                  struct _mulle_objc_infraclass *infra,
+                                                  int constantify);
 
 MULLE_C_NONNULL_FIRST
 static inline struct _mulle_objc_infraclass  *

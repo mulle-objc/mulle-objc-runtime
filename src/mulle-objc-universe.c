@@ -607,7 +607,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    assert( allocator->realloc);
 
    assert( _mulle_objc_universe_is_transitioning( universe)); // != 0!
-   _mulle_atomic_pointer_nonatomic_write( &universe->cachepivot.entries,
+   _mulle_atomic_pointer_write_nonatomic( &universe->cachepivot.entries,
                                           universe->empty_cache.entries);
 
    // the initial cache is place into classes, thatz haven't run +initialize
@@ -709,7 +709,7 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    {
       uintptr_t   bits;
 
-      bits  = _mulle_objc_universe_get_loadbits( universe);
+      bits  = _mulle_objc_universe_get_loadbits_inline( universe);
 
       mulle_objc_universe_trace( universe, "universe load bits : %lx", bits);
       mulle_objc_universe_trace( universe, "universe tps       : %lx", universe->config.no_tagged_pointer ? 0 : 1);
@@ -749,7 +749,7 @@ struct _mulle_objc_universe  *
    if( ! universe)
       mulle_objc_universe_fail_perror( NULL, "mulle_objc_create_universe");
 
-   _mulle_atomic_pointer_nonatomic_write( &universe->version,
+   _mulle_atomic_pointer_write_nonatomic( &universe->version,
                                           (void *) mulle_objc_universe_is_uninitialized);
 
    // should be gifted (afterwards), if this isn't read only
@@ -1128,6 +1128,13 @@ void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
 
 # pragma mark - TPS and Loadbits
 
+uintptr_t
+   _mulle_objc_universe_get_loadbits( struct _mulle_objc_universe *universe)
+{
+   return( _mulle_objc_universe_get_loadbits_inline( universe));
+}
+
+
 void  _mulle_objc_universe_set_loadbit( struct _mulle_objc_universe *universe,
                                         uintptr_t bit)
 {
@@ -1136,12 +1143,12 @@ void  _mulle_objc_universe_set_loadbit( struct _mulle_objc_universe *universe,
 
    do
    {
-      oldbits = _mulle_objc_universe_get_loadbits( universe);
+      oldbits = _mulle_objc_universe_get_loadbits_inline( universe);
       newbits = oldbits | bit;
-      if( oldbits != newbits)
+      if( oldbits == newbits)
          return;
    }
-   while( ! _mulle_atomic_pointer_weakcas( &universe->loadbits, (void *) newbits, (void *) oldbits));
+   while( ! _mulle_atomic_pointer_cas_weak( &universe->loadbits, (void *) newbits, (void *) oldbits));
 }
 
 
@@ -1369,8 +1376,6 @@ static void
 }
 
 
-
-
 static void
    _mulle_objc_universe_call_infraclasses( struct _mulle_objc_universe *universe,
                                            void (*f)( struct _mulle_objc_infraclass *))
@@ -1386,7 +1391,7 @@ static void
    array     = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
    _mulle_objc_universe_reversesort_infraclasses_by_classindex( array, n_classes);
 
-   // then call deinitalize to get rid of static cvars
+   // then call deinitialize to get rid of static cvars
    p        = array;
    sentinel = &p[ n_classes];
    while( p < sentinel)
@@ -2280,9 +2285,8 @@ struct _mulle_objc_descriptor *
 
 
 struct _mulle_objc_descriptor *
-   mulle_objc_universe_register_descriptor_nofail(
-      struct _mulle_objc_universe *universe,
-      struct _mulle_objc_descriptor *p)
+   mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
+                                                  struct _mulle_objc_descriptor *p)
 {
    if( ! universe)
       mulle_objc_universe_fail_code( universe, EINVAL);
@@ -2290,6 +2294,22 @@ struct _mulle_objc_descriptor *
       mulle_objc_universe_fail_code( universe, EINVAL);
 
    return( _mulle_objc_universe_register_descriptor_nofail( universe, p));
+}
+
+
+struct _mulle_objc_descriptor *
+   mulle_objc_universe_lookup_descriptor_nofail( struct _mulle_objc_universe *universe,
+                                                 mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_descriptor *p;
+
+   if( ! universe)
+      mulle_objc_universe_fail_code( universe, EINVAL);
+
+   p = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+   if( ! p)
+      mulle_objc_universe_fail_descriptornotfound( universe, methodid);
+   return( p);
 }
 
 
@@ -2592,11 +2612,18 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
 }
 
 
-void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe)
+void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe,
+                                                         int constantify)
 {
    struct _mulle_objc_object   *string;
    struct mulle_allocator      *allocator;
    int                         flag;
+
+   if( constantify)
+      mulle_concurrent_pointerarray_for( &universe->staticstrings, string)
+      {
+         _mulle_objc_object_constantify_noatomic( string);
+      }
 
    flag = universe->debug.trace.string_add;
    mulle_concurrent_pointerarray_for( &universe->staticstrings, string)
@@ -2626,13 +2653,14 @@ void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_univ
 
 
 void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
-                                                  struct _mulle_objc_infraclass *infra)
+                                                  struct _mulle_objc_infraclass *infra,
+                                                  int constantify)
 {
    assert( universe);
    assert( infra);
 
    universe->foundation.staticstringclass = infra;
-   _mulle_objc_universe_didchange_staticstringclass( universe);
+   _mulle_objc_universe_didchange_staticstringclass( universe, constantify);
 }
 
 

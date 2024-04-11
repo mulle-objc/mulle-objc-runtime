@@ -42,6 +42,7 @@
 #include "mulle-objc-impcache.h"
 #include "mulle-objc-methodlist.h"
 #include "mulle-objc-object.h"
+#include "mulle-objc-retain-release.h"
 #include "mulle-objc-universe.h"
 
 #include "include-private.h"
@@ -82,12 +83,12 @@ void   *_mulle_objc_object_call( void *obj,
 
 
 MULLE_C_NEVER_INLINE
-void   *mulle_objc_object_supercall( void *obj,
+void   *mulle_objc_object_call_super( void *obj,
                                      mulle_objc_methodid_t methodid,
                                      void *parameter,
                                      mulle_objc_superid_t superid)
 {
-   return( mulle_objc_object_supercall_inline_full( obj, methodid, parameter, superid));
+   return( mulle_objc_object_call_super_inline_full( obj, methodid, parameter, superid));
 }
 
 
@@ -95,18 +96,18 @@ void   *mulle_objc_object_supercall( void *obj,
 
 # pragma mark - trace method
 
-void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
-                                    void *obj,
-                                    mulle_objc_methodid_t methodid,
-                                    void *parameter,
-                                    mulle_objc_implementation_t imp,
-                                    struct _mulle_objc_method *method)
+void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
+                                        void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter,
+                                        struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_descriptor        *desc;
    struct _mulle_objc_universe          *universe;
    struct _mulle_objc_class             *isa;
    struct _mulle_objc_searcharguments   search;
    struct _mulle_objc_searchresult      result;
+   struct _mulle_objc_method            *method;
    unsigned int                         inheritance;
    char                                 *name;
    int                                  frames;
@@ -117,19 +118,14 @@ void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
    // class that implements the method, not the called class
    // This is fairly expensive though...
    //
-   if( ! method)
-   {
-      inheritance = _mulle_objc_class_get_inheritance( cls);
-      _mulle_objc_searcharguments_init_imp( &search, imp);
-      method = mulle_objc_class_search_method( cls,
-                                               &search,
-                                               inheritance,
-                                               &result);
-      assert( method);
-   }
 
-   // get from method (might have been passed in as nil)
-   imp = _mulle_objc_method_get_implementation( method);
+   // we need the result for display, so need to re-search method
+   inheritance = _mulle_objc_class_get_inheritance( cls);
+   _mulle_objc_searcharguments_init_imp( &search, imp);
+   method = mulle_objc_class_search_method( cls,
+                                            &search,
+                                            inheritance,
+                                            &result);
 
    mulle_thread_mutex_lock( &universe->debug.lock);
    {
@@ -207,13 +203,13 @@ static void   mulle_objc_object_fail_thread_affinity( struct _mulle_objc_object 
 // "Direct" method invocations suffer though.
 //
 void   mulle_objc_object_taocheck_call( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        struct _mulle_objc_method *method)
+                                        mulle_objc_methodid_t methodid)
 {
    mulle_thread_t                  object_thread;
    mulle_thread_t                  curr_thread;
    struct _mulle_objc_universe     *universe;
    struct _mulle_objc_class        *cls;
+   struct _mulle_objc_method       *method;
    struct _mulle_objc_descriptor   *desc;
 
    //
@@ -224,7 +220,23 @@ void   mulle_objc_object_taocheck_call( void *obj,
    if( methodid == MULLE_OBJC_RELEASE_METHODID
        || methodid == MULLE_OBJC_RETAIN_METHODID
        || methodid == MULLE_OBJC_AUTORELEASE_METHODID)
+   {
       return;
+   }
+   
+   //
+   // special case -finalize is not really threadsafe, but if the retainCount
+   // is 0, we conclude only one thread still has access to the object and
+   // we let it pass (we are in the simple -finalize/-dealloc). Unfortunately
+   // when accessors are used to clear properties, this check won't
+   // catch this. So we generalize to just do this check for all methods,
+   // the only method scopes, where this should actually be true are -finalize
+   // (if called before dealloc) and -dealloc.
+   if( // methodid == MULLE_OBJC_FINALIZE_METHODID &&
+       _mulle_objc_object_get_retaincount( obj) == 0)
+   {
+      return;
+   }
 
    object_thread = _mulle_objc_object_get_thread( obj);
    if( ! object_thread)
@@ -250,12 +262,10 @@ void   mulle_objc_object_taocheck_call( void *obj,
    // check if selector references an -init or -dealloc method as these
    // are always thread safe (unless seriously misused)
    //
-   if( ! method)
-   {
-      cls    = _mulle_objc_object_get_isa( obj);
-      method = mulle_objc_class_defaultsearch_method( cls, methodid);
-      assert( method); // can't fail at this point
-   }
+   cls    = _mulle_objc_object_get_isa( obj);
+   method = mulle_objc_class_defaultsearch_method( cls, methodid);
+   if( ! method)  // must be forward, so check later
+      return;
 
    // if threadsafe bit is set, then we are fiiiine
    // this probably shouldn't be in here, but some foundation callback
@@ -330,8 +340,8 @@ static void   *_mulle_objc_object_callback_class( void *obj,
       if( ! entry->key.uniqueid)
       {
          method = _mulle_objc_class_refresh_method_nofail( cls, methodid);
-         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
          imp    = _mulle_objc_method_get_implementation( method);
+         imp    = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
          break;
       }
       offset += sizeof( struct _mulle_objc_cacheentry);
@@ -386,8 +396,8 @@ static void   *_mulle_objc_object_callback2( void *obj,
       if( ! entry->key.uniqueid)
       {
          method = _mulle_objc_class_refresh_method_nofail( cls, methodid);
-         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
          imp    = _mulle_objc_method_get_implementation( method);
+         imp    = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
          break;
       }
    }
@@ -403,7 +413,7 @@ static void   *_mulle_objc_object_callback2( void *obj,
 // but placed into the method cache.
 //
 static void *
-   _mulle_objc_object_supercallback( void *obj,
+   _mulle_objc_object_call_superback( void *obj,
                                      mulle_objc_methodid_t methodid,
                                      void *parameter,
                                      mulle_objc_superid_t superid,
@@ -436,8 +446,8 @@ static void *
       if( ! entry->key.uniqueid)
       {
          method = _mulle_objc_class_refresh_supermethod_nofail( cls, superid);
-         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
          imp    = _mulle_objc_method_get_implementation( method);
+         imp    = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
          break;
       }
       offset += sizeof( struct _mulle_objc_cacheentry);
@@ -448,7 +458,7 @@ static void *
 
 
 static void *
-   _mulle_objc_object_supercallback2( void *obj,
+   _mulle_objc_object_call_superback2( void *obj,
                                       mulle_objc_methodid_t methodid,
                                       void *parameter,
                                       mulle_objc_superid_t superid,
@@ -483,8 +493,8 @@ static void *
       if( ! entry->key.uniqueid)
       {
          method = _mulle_objc_class_refresh_supermethod_nofail( cls, superid);
-         mulle_objc_class_debug_method_call( cls, method, obj, methodid, parameter);
          imp    = _mulle_objc_method_get_implementation( method);
+         imp    = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
          break;
       }
    }
@@ -496,8 +506,8 @@ void  _mulle_objc_impcache_init_normal_callbacks( struct _mulle_objc_impcache *p
 {
    p->call       = _mulle_objc_object_callback_class;
    p->call2      = _mulle_objc_object_callback2;
-   p->supercall  = _mulle_objc_object_supercallback;  // public actually
-   p->supercall2 = _mulle_objc_object_supercallback2;
+   p->supercall  = _mulle_objc_object_call_superback;  // public actually
+   p->supercall2 = _mulle_objc_object_call_superback2;
 }
 
 

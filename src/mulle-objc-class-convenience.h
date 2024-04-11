@@ -249,7 +249,7 @@ static inline void
    memset( obj, 0xad, _mulle_objc_class_get_instancesize( header->_isa));
 
    header->_isa = (void *) (intptr_t) 0xDEADDEADDEADDEAD;
-   _mulle_atomic_pointer_nonatomic_write( &header->_retaincount_1, 0x0); // sic
+   _mulle_atomic_pointer_write_nonatomic( &header->_retaincount_1, 0x0); // sic
 #endif
 
    cls   = _mulle_objc_infraclass_as_class( infra);

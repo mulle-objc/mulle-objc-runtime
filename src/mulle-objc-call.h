@@ -60,48 +60,32 @@
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_class_trace_call( struct _mulle_objc_class *cls,
-                                    void *obj,
-                                    mulle_objc_methodid_t methodid,
-                                    void *parameter,
-                                    mulle_objc_implementation_t imp,
-                                    struct _mulle_objc_method *method);  // method can be NULL
+void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
+                                        void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter,
+                                        struct _mulle_objc_class *cls);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_object_taocheck_call( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        struct _mulle_objc_method *method);  // method can be NULL
+                                        mulle_objc_methodid_t methodid);
 
 
-static inline void   mulle_objc_class_debug_imp_call( struct _mulle_objc_class *cls,
-                                                      mulle_objc_implementation_t imp,
-                                                      void *obj,
-                                                      mulle_objc_methodid_t methodid,
-                                                      void *parameter)
+static inline mulle_objc_implementation_t
+   _mulle_objc_implementation_debug( mulle_objc_implementation_t imp,
+                                     void *obj,
+                                     mulle_objc_methodid_t methodid,
+                                     void *parameter,
+                                     struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_universe   *universe;
 
    universe = _mulle_objc_object_get_universe( cls);
    if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT)
-      mulle_objc_class_trace_call( cls, obj, methodid, parameter, imp, NULL);
+      mulle_objc_implementation_trace( imp, obj, methodid, parameter, cls);
    if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TAO_BIT)
-      mulle_objc_object_taocheck_call( obj, methodid, NULL);
-}
-
-
-static inline void   mulle_objc_class_debug_method_call( struct _mulle_objc_class *cls,
-                                                         struct _mulle_objc_method *method,
-                                                         void *obj,
-                                                         mulle_objc_methodid_t methodid,
-                                                         void *parameter)
-{
-   struct _mulle_objc_universe   *universe;
-
-   universe = _mulle_objc_object_get_universe( cls);
-   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT)
-      mulle_objc_class_trace_call( cls, obj, methodid, parameter, 0, method);
-   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TAO_BIT)
-      mulle_objc_object_taocheck_call( obj, methodid, method);
+      mulle_objc_object_taocheck_call( obj, methodid);
+   return( imp);
 }
 
 
@@ -115,7 +99,7 @@ void   mulle_objc_implementation_debug( mulle_objc_implementation_t imp,
    struct _mulle_objc_class     *cls;
 
    cls = _mulle_objc_object_get_isa( obj);
-   mulle_objc_class_debug_imp_call( cls, imp, obj, methodid, parameter);
+   _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
 }
 
 
@@ -256,7 +240,7 @@ static inline void  *
 #endif
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_impcache   *icache;
+   struct _mulle_objc_impcache      *icache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_class         *cls;
@@ -289,7 +273,7 @@ static inline void  *
    entry   = (void *) &((char *) entries)[ offset];
 
    if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
-      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
    else
    {
       icache = _mulle_objc_cache_get_impcache_from_cache( cache);
@@ -367,7 +351,7 @@ static inline void  *
 
       if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
       {
-         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
          break;
       }
 
@@ -403,9 +387,9 @@ static inline void  *
 // constant.
 //
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_call_variablemethodid_inline( void *obj,
-                                                   mulle_objc_methodid_t methodid,
-                                                   void *parameter)
+   mulle_objc_object_call_variable_inline( void *obj,
+                                           mulle_objc_methodid_t methodid,
+                                           void *parameter)
 {
    mulle_objc_implementation_t     f;
    struct _mulle_objc_impcache     *icache;
@@ -448,9 +432,9 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // constant.
 //
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_call_variablemethodid_inline_full( void *obj,
-                                                        mulle_objc_methodid_t methodid,
-                                                       void *parameter)
+   mulle_objc_object_call_inline_full_variable( void *obj,
+                                                mulle_objc_methodid_t methodid,
+                                                void *parameter)
 {
    mulle_objc_implementation_t     f;
    struct _mulle_objc_impcache     *icache;
@@ -501,9 +485,9 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // in code/semantics
 //
 MULLE_C_ALWAYS_INLINE static inline
-void   *mulle_objc_object_call_variablemethodid( void *obj,
-                                                 mulle_objc_methodid_t methodid,
-                                                 void *parameter)
+void   *mulle_objc_object_call_variable( void *obj,
+                                         mulle_objc_methodid_t methodid,
+                                         void *parameter)
 {
    return( mulle_objc_object_call( obj, methodid, parameter));
 }
@@ -514,7 +498,7 @@ void   *mulle_objc_object_call_variablemethodid( void *obj,
 // MULLE_C_ARTIFICIAL
 // same as above just not inlining
 MULLE_OBJC_RUNTIME_GLOBAL
-void   *mulle_objc_object_supercall( void *obj,
+void   *mulle_objc_object_call_super( void *obj,
                                      mulle_objc_methodid_t methodid,
                                      void *parameter,
                                      mulle_objc_superid_t superid);
@@ -523,10 +507,10 @@ void   *mulle_objc_object_supercall( void *obj,
 
 MULLE_C_ALWAYS_INLINE
 static inline void   *
-   mulle_objc_object_supercall_inline_partial( void *obj,
-                                               mulle_objc_methodid_t methodid,
-                                               void *parameter,
-                                               mulle_objc_superid_t superid)
+   mulle_objc_object_call_super_inline_partial( void *obj,
+                                                mulle_objc_methodid_t methodid,
+                                                void *parameter,
+                                                mulle_objc_superid_t superid)
 {
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cache        *cache;
@@ -547,10 +531,10 @@ static inline void   *
 
 
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_supercall_inline( void *obj,
-                                       mulle_objc_methodid_t methodid,
-                                       void *parameter,
-                                       mulle_objc_superid_t superid)
+   mulle_objc_object_call_super_inline( void *obj,
+                                        mulle_objc_methodid_t methodid,
+                                        void *parameter,
+                                        mulle_objc_superid_t superid)
 {
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
@@ -581,7 +565,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
    if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
    {
-      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
          // don't use invoke, because the checking will be done in icache->supercall2
       return( (*f)( obj, methodid, parameter));
    }
@@ -591,10 +575,10 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
 
 MULLE_C_ALWAYS_INLINE static inline void  *
-   mulle_objc_object_supercall_inline_full( void *obj,
-                                           mulle_objc_methodid_t methodid,
-                                           void *parameter,
-                                           mulle_objc_superid_t superid)
+   mulle_objc_object_call_super_inline_full( void *obj,
+                                             mulle_objc_methodid_t methodid,
+                                             void *parameter,
+                                             mulle_objc_superid_t superid)
 {
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
@@ -627,7 +611,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
       if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
       {
-         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_nonatomic_read( &entry->value.pointer);
+         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
          // don't use invoke, because the checking will be done in icache->supercall2
          return( (*f)( obj, methodid, parameter));
       }

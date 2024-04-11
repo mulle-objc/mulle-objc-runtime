@@ -204,7 +204,7 @@ int   main( void)
 
    universe = mulle_objc_global_get_universe( 0);
    cls      = (struct _mulle_objc_class *) [SomeString class];
-   _mulle_objc_universe_set_staticstringclass( universe, cls);
+   _mulle_objc_universe_set_staticstringclass( universe, cls, 1);
 
    cls     = (struct _mulle_objc_class *)  [SomeString5TaggedPointer class];
    _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x1);

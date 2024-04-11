@@ -98,6 +98,16 @@ MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_methodnotfound( struct _mulle_objc_universe *universe,
                                             struct _mulle_objc_class *class,
                                             mulle_objc_methodid_t methodid);
+
+static inline
+MULLE_C_NO_RETURN
+void
+   mulle_objc_universe_fail_descriptornotfound( struct _mulle_objc_universe *universe,
+                                                mulle_objc_methodid_t methodid)
+{
+   mulle_objc_universe_fail_methodnotfound( universe, NULL, methodid);
+}
+
 MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe);
 

@@ -73,7 +73,7 @@ struct _mulle_objc_class;
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_ivar  *
   _mulle_objc_ivarlist_find( struct _mulle_objc_ivarlist *list,
-                                      mulle_objc_ivarid_t ivarid);
+                             mulle_objc_ivarid_t ivarid);
 
 static inline struct _mulle_objc_ivar  *_mulle_objc_ivarlist_search( struct _mulle_objc_ivarlist *list,
                                                                             mulle_objc_ivarid_t ivarid)

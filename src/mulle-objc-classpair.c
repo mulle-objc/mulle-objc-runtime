@@ -57,9 +57,9 @@ void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
 
    _mulle_concurrent_pointerarray_init( &pair->protocolclasses, 0, allocator);
 
-   _mulle_atomic_pointer_nonatomic_write( &pair->p_protocolids.pointer,
+   _mulle_atomic_pointer_write_nonatomic( &pair->p_protocolids.pointer,
                                           &universe->empty_uniqueidarray);
-   _mulle_atomic_pointer_nonatomic_write( &pair->p_categoryids.pointer,
+   _mulle_atomic_pointer_write_nonatomic( &pair->p_categoryids.pointer,
                                           &universe->empty_uniqueidarray);
 
 //   pair->taoprotection = _MULLE_OBJC_CLASSPAIR_TAO_MAGIC;
@@ -77,11 +77,11 @@ void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
 
    mulle_thread_mutex_done( &pair->lock);
 
-   array = _mulle_atomic_pointer_nonatomic_read( &pair->p_protocolids.pointer);
+   array = _mulle_atomic_pointer_read_nonatomic( &pair->p_protocolids.pointer);
    if( array != &universe->empty_uniqueidarray)
       mulle_objc_uniqueidarray_abafree( array, allocator);
 
-   array = _mulle_atomic_pointer_nonatomic_read( &pair->p_categoryids.pointer);
+   array = _mulle_atomic_pointer_read_nonatomic( &pair->p_categoryids.pointer);
    if( array != &universe->empty_uniqueidarray)
       mulle_objc_uniqueidarray_abafree( array, allocator);
 
@@ -226,11 +226,12 @@ struct _mulle_objc_classpair *
                            super_meta ? &super_meta->base : &pair->infraclass.base,
                            universe);
 
+   _mulle_objc_class_set_infraclass( &pair->metaclass.base, &pair->infraclass);
+
    _mulle_objc_infraclass_plusinit( &pair->infraclass, allocator);
    _mulle_objc_metaclass_plusinit( &pair->metaclass, allocator);
    _mulle_objc_classpair_plusinit( pair, allocator);
 
-   _mulle_objc_class_set_infraclass( &pair->metaclass.base, &pair->infraclass);
 
    return( pair);
 }
@@ -314,7 +315,7 @@ void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pai
 
    do
       old = _mulle_atomic_pointer_read( pointer);
-   while( ! _mulle_atomic_pointer_weakcas( pointer, array, old));
+   while( ! _mulle_atomic_pointer_cas_weak( pointer, array, old));
 
    universe = _mulle_objc_classpair_get_universe( pair);
    if( array == &universe->empty_uniqueidarray)
@@ -349,7 +350,7 @@ void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair 
       array = _mulle_atomic_pointer_read( pointer);
       copy  = _mulle_objc_uniqueidarray_by_adding_ids( array, n, uniqueids, allocator);
    }
-   while( ! _mulle_atomic_pointer_weakcas( pointer, copy, array));
+   while( ! _mulle_atomic_pointer_cas_weak( pointer, copy, array));
 
    if( array != &universe->empty_uniqueidarray)
       mulle_objc_uniqueidarray_abafree( array, allocator);

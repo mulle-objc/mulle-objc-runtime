@@ -253,8 +253,8 @@ static inline void
 
 // this function doesn't invalidate caches!
 MULLE_OBJC_RUNTIME_GLOBAL
-int   _mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
-                                        struct _mulle_objc_methodlist *list);
+int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
+                                                struct _mulle_objc_methodlist *list);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_class_add_methodlist( struct _mulle_objc_class *cls,
