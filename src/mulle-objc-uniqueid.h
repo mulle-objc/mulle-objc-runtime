@@ -275,6 +275,6 @@ MULLE_OBJC_RUNTIME_GLOBAL
 unsigned int   _mulle_objc_uniqueid_arraycount( mulle_objc_uniqueid_t *ids);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int  _mulle_objc_uniqueid_qsortcompare( mulle_objc_uniqueid_t *a, mulle_objc_uniqueid_t *b);
+int   _mulle_objc_uniqueid_compare_r( void *_a, void *_b, void *thunk);
 
 #endif

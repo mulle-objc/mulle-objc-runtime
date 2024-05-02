@@ -137,7 +137,8 @@ struct _mulle_objc_loadclasslist
 
 static inline size_t  mulle_objc_sizeof_loadclasslist( unsigned int n_loadclasses)
 {
-   return( sizeof( struct _mulle_objc_loadclasslist) + (n_loadclasses - 1) * sizeof( struct _mulle_objc_loadclass *));
+   return( sizeof( struct _mulle_objc_loadclasslist) +
+                  (n_loadclasses - 1) * sizeof( struct _mulle_objc_loadclass *));
 }
 
 
@@ -150,7 +151,8 @@ struct _mulle_objc_loadcategorylist
 
 static inline size_t  mulle_objc_sizeof_loadcategorylist( unsigned int n_load_categories)
 {
-   return( sizeof( struct _mulle_objc_loadcategorylist) + (n_load_categories - 1) * sizeof( struct _mulle_objc_loadcategory *));
+   return( sizeof( struct _mulle_objc_loadcategorylist) +
+           (n_load_categories - 1) * sizeof( struct _mulle_objc_loadcategory *));
 }
 
 

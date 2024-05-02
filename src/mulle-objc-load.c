@@ -614,10 +614,11 @@ static void
 
 static void   _mulle_objc_loadclass_sort_lists( struct _mulle_objc_loadclass *lcls)
 {
-   qsort( lcls->protocolclassids,
-          _mulle_objc_uniqueid_arraycount( lcls->protocolclassids),
-          sizeof( mulle_objc_protocolid_t),
-          (int (*)()) _mulle_objc_uniqueid_qsortcompare);
+   mulle_qsort_r( lcls->protocolclassids,
+                  _mulle_objc_uniqueid_arraycount( lcls->protocolclassids),
+                  sizeof( mulle_objc_protocolid_t),
+                  _mulle_objc_uniqueid_compare_r,
+                  NULL);
    mulle_objc_ivarlist_sort( lcls->instancevariables);
    mulle_objc_methodlist_sort( lcls->instancemethods);
    mulle_objc_methodlist_sort( lcls->classmethods);
@@ -1069,10 +1070,11 @@ static void
 
 static void   _mulle_objc_loadcategory_sort_lists( struct _mulle_objc_loadcategory *lcat)
 {
-   qsort( lcat->protocolclassids,
-          _mulle_objc_uniqueid_arraycount( lcat->protocolclassids),
-          sizeof( mulle_objc_protocolid_t),
-          (int (*)()) _mulle_objc_uniqueid_qsortcompare);
+   mulle_qsort_r( lcat->protocolclassids,
+                  _mulle_objc_uniqueid_arraycount( lcat->protocolclassids),
+                  sizeof( mulle_objc_protocolid_t),
+                  _mulle_objc_uniqueid_compare_r,
+                  NULL);
 
    mulle_objc_methodlist_sort( lcat->instancemethods);
    mulle_objc_methodlist_sort( lcat->classmethods);
@@ -1183,11 +1185,13 @@ char   *_mulle_objc_loadhashedstring_find( struct _mulle_objc_loadhashedstring *
    return( NULL);
 }
 
-int  _mulle_objc_loadhashedstring_compare( struct _mulle_objc_loadhashedstring *a,
-                                           struct _mulle_objc_loadhashedstring *b)
+
+int  _mulle_objc_loadhashedstring_compare_r( void *_a, void *_b, void *thunk)
 {
-   mulle_objc_uniqueid_t   a_id;
-   mulle_objc_uniqueid_t   b_id;
+   struct _mulle_objc_loadhashedstring    *a = _a;
+   struct _mulle_objc_loadhashedstring    *b = _b;
+   mulle_objc_uniqueid_t                  a_id;
+   mulle_objc_uniqueid_t                  b_id;
 
    a_id = a->uniqueid;
    b_id = b->uniqueid;
@@ -1203,10 +1207,11 @@ void   mulle_objc_loadhashedstring_sort( struct _mulle_objc_loadhashedstring *me
    if( ! methods)
       return;
 
-   qsort( methods,
-         n,
-         sizeof( struct _mulle_objc_loadhashedstring),
-         (int(*)())  _mulle_objc_loadhashedstring_compare);
+   mulle_qsort_r( methods,
+                  n,
+                  sizeof( struct _mulle_objc_loadhashedstring),
+                  _mulle_objc_loadhashedstring_compare_r,
+                  NULL);
 }
 
 

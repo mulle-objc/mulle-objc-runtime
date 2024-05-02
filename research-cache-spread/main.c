@@ -19,13 +19,19 @@
 #endif
 
 
-static int   compare_unsigned_int( unsigned int  *a, unsigned int *b)
+// The comparison function must return an integer less than, equal to, or
+// greater than zero if the first argument is considered to be respectively
+// less than, equal
+// to, or greater than the second.
+
+static int   unsigned_int_compare_r( void  *_a, void *_b, void *thunk)
 {
-   if( *a > *b)
-      return( -1);
+   unsigned int  *a = _a;
+   unsigned int  *b = _b;
+
    if( *a < *b)
-      return( 1);
-   return( 0);
+      return( -1);
+   return( *a > *b);
 }
 
 
@@ -82,7 +88,7 @@ int main(int argc, const char * argv[])
       slots[ value]++;
    }
 
-   qsort( slots, n_slots, sizeof( unsigned int), (void *) compare_unsigned_int);
+   mulle_qsort( slots, n_slots, sizeof( unsigned int), unsigned_int_compare_r, NULL);
 
 
    /* auswerten */

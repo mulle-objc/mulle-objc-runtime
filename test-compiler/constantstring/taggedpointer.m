@@ -206,10 +206,16 @@ int   main( void)
    cls      = (struct _mulle_objc_class *) [SomeString class];
    _mulle_objc_universe_set_staticstringclass( universe, cls, 1);
 
+   // 0x1 constant must be in "tune" with the compiler
    cls     = (struct _mulle_objc_class *)  [SomeString5TaggedPointer class];
    _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x1);
-   cls     = (struct _mulle_objc_class *)  [SomeString7TaggedPointer class];
-   _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x3);
+
+   // 0x4 constant must be in "tune" with the compiler
+   if( mulle_objc_get_taggedpointer_mask() > 0x4)
+   {
+      cls     = (struct _mulle_objc_class *)  [SomeString7TaggedPointer class];
+      _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x4);
+   }
 
    [@"surely not a tagged pointer because its too long." print];
    [@"." print];

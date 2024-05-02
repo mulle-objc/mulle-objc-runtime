@@ -120,6 +120,11 @@ static inline intptr_t   mulle_objc_object_get_retaincount( void *obj)
    return( obj ? _mulle_objc_object_get_retaincount( obj) : 0);
 }
 
+// for use by class implementors of -retainCount
+MULLE_OBJC_RUNTIME_GLOBAL
+uintptr_t  _mulle_objc_object_get_retaincount_notps_noslow( void *obj);
+
+
 
 // TODO: getting a bit too fat for inlining or ?
 static inline void   _mulle_objc_object_increment_retaincount( void *obj)
@@ -232,7 +237,9 @@ static inline void   _mulle_objc_object_deconstantify_noatomic( void *obj)
 
 
 //
-// Don't use this either, except when setting up the object
+// Don't use this either, except when setting up the object, you have to 
+// manage the retainCount manually though and can't use the _retaincount_1
+// of the object header.
 //
 static inline void   _mulle_objc_object_slowify_noatomic( void *obj)
 {

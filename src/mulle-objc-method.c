@@ -80,16 +80,14 @@ struct _mulle_objc_method   *_mulle_objc_method_bsearch( struct _mulle_objc_meth
 
 #pragma mark - qsort
 
-int  _mulle_objc_descriptor_compare_r( void **p_a,
-                                       void **p_b,
-                                       void *unused)
+int  _mulle_objc_descriptor_pointer_compare_r( void **_a, void **_b, void *thunk)
 {
-   struct _mulle_objc_descriptor   *a = *p_a;
-   struct _mulle_objc_descriptor   *b = *p_b;
+   struct _mulle_objc_descriptor   *a = * (struct _mulle_objc_descriptor **) _a;
+   struct _mulle_objc_descriptor   *b = * (struct _mulle_objc_descriptor **) _b;
    int                             cmp;
    long                            diff;
 
-   MULLE_C_UNUSED( unused);
+   MULLE_C_UNUSED( thunk);
 
    cmp = strcmp( a->name, b->name);
    if( cmp)
@@ -104,10 +102,14 @@ int  _mulle_objc_descriptor_compare_r( void **p_a,
 }
 
 
-int  _mulle_objc_method_compare( struct _mulle_objc_method *a, struct _mulle_objc_method *b)
+int  _mulle_objc_method_compare_r( void *_a, void *_b, void *thunk)
 {
-   mulle_objc_methodid_t   a_id;
-   mulle_objc_methodid_t   b_id;
+   struct _mulle_objc_method   *a = _a;
+   struct _mulle_objc_method   *b = _b;
+   mulle_objc_methodid_t       a_id;
+   mulle_objc_methodid_t       b_id;
+
+   MULLE_C_UNUSED( thunk);
 
    a_id = a->descriptor.methodid;
    b_id = b->descriptor.methodid;
@@ -123,7 +125,7 @@ void   mulle_objc_method_sort( struct _mulle_objc_method *methods,
    if( ! methods)
       return;
 
-   qsort( methods, n, sizeof( struct _mulle_objc_method), (int (*)()) _mulle_objc_method_compare);
+   mulle_qsort_r( methods, n, sizeof( struct _mulle_objc_method), _mulle_objc_method_compare_r, NULL);
 }
 
 

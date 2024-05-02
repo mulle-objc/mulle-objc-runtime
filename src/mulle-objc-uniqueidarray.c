@@ -42,10 +42,11 @@
 static inline void
    _mulle_objc_uniqueidarray_sort( struct _mulle_objc_uniqueidarray  *p)
 {
-   qsort( p->entries,
-          p->n,
-          sizeof( mulle_objc_uniqueid_t),
-          (int (*)()) _mulle_objc_uniqueid_qsortcompare);
+   mulle_qsort_r( p->entries,
+                  p->n,
+                  sizeof( mulle_objc_uniqueid_t),
+                  _mulle_objc_uniqueid_compare_r,
+                  NULL);
 }
 
 
@@ -53,10 +54,11 @@ struct _mulle_objc_uniqueidarray
    *_mulle_objc_uniqueidarray_by_adding_ids( struct _mulle_objc_uniqueidarray  *p,
                                              unsigned int m,
                                              mulle_objc_uniqueid_t *uniqueids,
+                                             int sort,
                                              struct mulle_allocator *allocator)
 {
    struct _mulle_objc_uniqueidarray  *copy;
-   unsigned int   n;
+   unsigned int                       n;
 
    n = p->n + m;
 
@@ -67,7 +69,8 @@ struct _mulle_objc_uniqueidarray
 
    copy->n = n;
 
-   _mulle_objc_uniqueidarray_sort( copy);
+   if( sort)
+      _mulle_objc_uniqueidarray_sort( copy);
 
    return( copy);
 }
