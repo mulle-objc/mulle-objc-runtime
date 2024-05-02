@@ -1,0 +1,66 @@
++[A returnChar] -> 'V'
++[A returnCharWithChar:] (18) -> 'f'
++[A returnCharWithInt:] (1848) -> 'L'
++[A returnCharWithLongLong:] (1848) -> ' '
++[A returnCharWithFloat:] (18.48) -> 'B'
++[A returnCharWithDouble:] (18.48) -> 'o'
++[A returnCharWithVoidptr:] (0x1848) -> 'c'
++[A returnCharWithStruct:] ('b' 18.48 1848) -> 'h'
++[A returnCharWithChar:double:int:] ('b' 18.48 1848) -> 'u'
++[A returnCharWithVA:] (4 , 1, 8, 4, 8) -> 'm'
++[A returnIntWithInt:] (1848) -> 1847
++[A returnInt] -> 1848
++[A returnIntWithFloat:] (18.48) -> 1849
++[A returnIntWithDouble:] (18.48) -> 1850
++[A returnIntWithVoidptr:] (0x1848) -> 1851
++[A returnIntWithStruct:] ('b' 18.48 1848) -> 1852
++[A returnIntWithChar:double:int:] ('b' 18.48 1848) -> 1853
++[A returnIntWithVA:] (4 , 1, 8, 4, 8) -> 1854
++[A returnLongLong] -> 1848
++[A returnLongLongWithChar:] (18) -> 1849
++[A returnLongLongWithInt:] (1848) -> 1850
++[A returnLongLongWithLongLong:] (1848) -> 1851
++[A returnLongLongWithFloat:] (18.48) -> 1852
++[A returnLongLongWithDouble:] (18.48) -> 1853
++[A returnLongLongWithVoidptr:] (0x1848) -> 1854
++[A returnLongLongWithStruct:] (b 18.48 1848) -> 1855
++[A returnLongLongWithChar:double:int:] (b 18.48 1848) -> 1856
++[A returnLongLongWithVA:] (4 , 1, 8, 4, 8) -> 1856
++[A returnVoidWithInt:] (1848)
++[A returnVoid]
++[A returnVoidWithFloat:] (18.48)
++[A returnVoidWithDouble:] (18.48)
++[A returnVoidWithVoidptr:] (0x1848)
++[A returnVoidWithStruct:] ('b' 18.48 1848)
++[A returnVoidWithTinyStruct:] ('V' 'f' 'L')
++[A returnVoidWithChar:double:int:] ('b' 18.48 1848)
++[A returnVoidWithVA:] (4 , 1, 8, 4, 8)
++[A returnFloatWithInt:] (1848) -> 18.47
++[A returnFloat] -> 18.48
++[A returnFloatWithFloat:] (18.48) -> 18.49
++[A returnFloatWithDouble:] (18.48) -> 18.5
++[A returnFloatWithVoidptr:] (0x1848) -> 18.51
++[A returnFloatWithStruct:] ('b' 18.48 1848) -> 18.52
++[A returnFloatWithChar:double:int:] ('b' 18.48 1848) -> 18.53
++[A returnFloatWithVA:] (4 , 1, 8, 4, 8) -> 18.54
++[A returnDouble] -> 18.48
++[A returnDoubleWithFloat:] (18.48) -> 18.49
++[A returnDoubleWithDouble:] (18.48) -> 18.5
++[A returnDoubleWithVoidptr:] (0x1848) -> 18.51
++[A returnDoubleWithStruct:] ('b' 18.48 1848) -> 18.52
++[A returnDoubleWithChar:double:int:] ('b' 18.48 1848) -> 18.53
++[A returnDoubleWithVA:] (4 , 1, 8, 4, 8) -> 18.54
++[A returnVoidptr] -> 0x738
++[A returnVoidptrWithFloat:] (18.48) -> 0x739
++[A returnVoidptrWithDouble:] (18.48) -> 0x73a
++[A returnVoidptrWithVoidptr:] (0x1848) -> 0x73b
++[A returnVoidptrWithStruct:] ('b' 18.48 1848) -> 0x73c
++[A returnVoidptrWithChar:double:int:] ('b' 18.48 1848) -> 0x73d
++[A returnVoidptrWithVA:] (4 , 1, 8, 4, 8) -> 0x73e
++[A returnStruct] -> a='a' b=18.48 c=1848
++[A returnStructWithFloat:] (18.48) -> a='a' b=18.48 c=1859
++[A returnStructWithDouble:] (18.48) -> a='a' b=18.48 c=1850
++[A returnStructWithVoidptr:] (0x1848) -> a='a' b=18.48 c=1851
++[A returnStructWithStruct:] ('b' 18.48 1848) -> a='a' b=18.48 c=1852
++[A returnStructWithChar:double:int:] ('b' 18.48 1848) -> a='a' b=18.48 c=1853
++[A returnStructWithVA:] (4 , 1, 8, 4, 8) -> a='a' b=18.48 c=1854
