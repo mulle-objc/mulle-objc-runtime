@@ -17,7 +17,7 @@
 
 
 // metaABI wise it's known that (a) we get a _param block for a double
-// (b) that block is at least 5 doubles wide
+// (b) that block is at least 5 void * wide
 // (c) we can reuse that block if we don't care about its contents anymore
 // (d) a return value will be written into _param on return, but that's of
 //     no concern here.
@@ -26,13 +26,13 @@
           keepAlive:(double *) x
           keepAlive:(double *) y
 {
-   double  *p = (double *) _param;
+   void  **p = (void *) _param;
 
-   p[ 0] = (double) 1.0;
-   p[ 1] = (double) 2.0;
-   p[ 2] = (double) 3.0;
-   p[ 3] = (double) 4.0;
-   p[ 4] = (double) 5.0;
+   p[ 0] = (void *) 1;
+   p[ 1] = (void *) 2;
+   p[ 2] = (void *) 3;
+   p[ 3] = (void *) 4;
+   p[ 4] = (void *) 5;
 }
 
 @end

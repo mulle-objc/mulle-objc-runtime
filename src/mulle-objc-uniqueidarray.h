@@ -42,9 +42,15 @@
 #include <assert.h>
 
 
+//
+// _mulle_objc_uniqueidarray is sometimes sorted and sometimes not.
+// categoryids and protocolids are sorted, but protocolclassids aren't
+// So use search or find with caution...
+//
 struct _mulle_objc_uniqueidarray
 {
    unsigned int            n;
+   int                     autosort;        // this is a constant
    mulle_objc_uniqueid_t   entries[ 1];
 };
 
@@ -56,7 +62,13 @@ static inline  struct _mulle_objc_uniqueidarray  *
    mulle_objc_alloc_uniqueidarray( unsigned int n,
                                    struct mulle_allocator *allocator)
 {
-   return( mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_uniqueidarray) - sizeof( mulle_objc_uniqueid_t) + n * sizeof( mulle_objc_uniqueid_t)));
+   struct _mulle_objc_uniqueidarray   *array;
+   size_t                             size;
+
+   size  = sizeof( struct _mulle_objc_uniqueidarray) - sizeof( mulle_objc_uniqueid_t)
+           + n * sizeof( mulle_objc_uniqueid_t);
+   array = mulle_allocator_calloc( allocator, 1, size);
+   return( array);
 }
 
 
@@ -75,30 +87,31 @@ static inline void
 }
 
 
-// returns sorted
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_uniqueidarray
    *_mulle_objc_uniqueidarray_by_adding_ids( struct _mulle_objc_uniqueidarray  *p,
                                              unsigned int m,
                                              mulle_objc_uniqueid_t *uniqueids,
+                                             int sort,
                                              struct mulle_allocator *allocator);
 
-// returns sorted
 static inline struct _mulle_objc_uniqueidarray
    *_mulle_objc_uniqueidarray_by_adding_uniqueidarray( struct _mulle_objc_uniqueidarray  *p,
                                                        struct _mulle_objc_uniqueidarray  *q,
+                                                       int sort,
                                                        struct mulle_allocator *allocator)
 {
-   return( _mulle_objc_uniqueidarray_by_adding_ids( p, q->n, q->entries, allocator));
+   return( _mulle_objc_uniqueidarray_by_adding_ids( p, q->n, q->entries, sort, allocator));
 }
 
 
 static inline struct _mulle_objc_uniqueidarray
    *_mulle_objc_uniqueidarray_by_adding_id( struct _mulle_objc_uniqueidarray  *p,
                                             mulle_objc_uniqueid_t uniqueid,
+                                            int sort,
                                             struct mulle_allocator *allocator)
 {
-   return( _mulle_objc_uniqueidarray_by_adding_ids( p, 1, &uniqueid, allocator));
+   return( _mulle_objc_uniqueidarray_by_adding_ids( p, 1, &uniqueid, sort, allocator));
 }
 
 
@@ -133,5 +146,27 @@ static inline int
 
    return( 0);
 }
+
+
+
+static inline int
+   _mulle_objc_uniqueidarray_find( struct _mulle_objc_uniqueidarray  *array,
+                                   mulle_objc_uniqueid_t search)
+{
+   mulle_objc_uniqueid_t   *sentinel;
+   mulle_objc_uniqueid_t   *p;
+
+   assert( search != MULLE_OBJC_NO_UNIQUEID && search != MULLE_OBJC_INVALID_UNIQUEID);
+
+   p        = &array->entries[ 0];
+   sentinel = &p[ array->n];
+   while( p < sentinel)
+   {
+      if( *p == search)
+         return( 1);
+   }
+   return( 0);
+}
+
 
 #endif /* mulle_objc_uniqueidarray_h */

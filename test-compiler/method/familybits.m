@@ -346,7 +346,7 @@ int  main( void)
                                       0,
                                       add_descriptor,
                                       descriptors);
-      mulle_pointerarray_qsort_r( descriptors, _mulle_objc_descriptor_compare_r, NULL);
+      mulle_pointerarray_qsort_r( descriptors, _mulle_objc_descriptor_pointer_compare_r, NULL);
       mulle_pointerarray_for( descriptors, desc)
       {
          print_desc( desc);

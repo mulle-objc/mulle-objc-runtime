@@ -329,7 +329,8 @@ void  _mulle_objc_classpair_set_uniqueidarray( struct _mulle_objc_classpair *pai
 void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
                                                    mulle_atomic_pointer_t *pointer,
                                                    unsigned int n,
-                                                   mulle_objc_uniqueid_t *uniqueids)
+                                                   mulle_objc_uniqueid_t *uniqueids,
+                                                   int sort)
 {
    struct _mulle_objc_uniqueidarray   *array;
    struct _mulle_objc_uniqueidarray   *copy;
@@ -348,7 +349,7 @@ void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair 
          mulle_objc_uniqueidarray_free( copy, allocator);
 
       array = _mulle_atomic_pointer_read( pointer);
-      copy  = _mulle_objc_uniqueidarray_by_adding_ids( array, n, uniqueids, allocator);
+      copy  = _mulle_objc_uniqueidarray_by_adding_ids( array, n, uniqueids, sort, allocator);
    }
    while( ! _mulle_atomic_pointer_cas_weak( pointer, copy, array));
 
@@ -742,7 +743,9 @@ void
    struct _mulle_objc_universe   *universe;
    struct _mulle_objc_protocol   *p;
    struct _mulle_objc_protocol   *sentinel;
-
+#ifndef NDEBUG
+   mulle_objc_protocolid_t       before = 0;
+#endif
    if( ! pair)
       _mulle_objc_classpair_fail_einval( pair);
 
@@ -768,6 +771,11 @@ void
 
          mulle_objc_universe_add_protocol_nofail( universe, p);
 
+         // protocolids must be sorted
+#ifndef NDEBUG
+         assert( p->protocolid > before);
+         before = p->protocolid;
+#endif
          if( universe->debug.trace.protocol_add)
             mulle_objc_universe_trace( universe,
                                        "add protocol %08lx \"%s\" to class "

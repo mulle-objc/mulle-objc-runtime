@@ -287,9 +287,7 @@ static inline int   _mulle_objc_descriptor_is_threadaffine( struct _mulle_objc_d
 // this compares by name, signature and bits, for use in (mulle) qsort_r
 //
 MULLE_OBJC_RUNTIME_GLOBAL
-int  _mulle_objc_descriptor_compare_r( void **a,
-                                       void **b,
-                                       void *unused);
+int  _mulle_objc_descriptor_pointer_compare_r( void **_a, void **_b, void *thunk);
 
 # pragma mark - method descriptor consistency
 
@@ -412,8 +410,8 @@ static inline struct _mulle_objc_method   *
 
 // this compares by methodid only
 MULLE_OBJC_RUNTIME_GLOBAL
-int  _mulle_objc_method_compare( struct _mulle_objc_method *a,
-                                 struct _mulle_objc_method *b);
+int   _mulle_objc_method_compare_r( void *a, void *b, void *thunk);
+
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_method_sort( struct _mulle_objc_method *methods,

@@ -78,10 +78,12 @@ struct _mulle_objc_ivar   *_mulle_objc_ivar_bsearch( struct _mulle_objc_ivar *bu
 
 #pragma mark - qsort
 
-int   _mulle_objc_ivar_compare( struct _mulle_objc_ivar *a, struct _mulle_objc_ivar *b)
+int   _mulle_objc_ivar_compare_r( void *_a, void *_b, void *thunk)
 {
-   mulle_objc_ivarid_t   a_id;
-   mulle_objc_ivarid_t   b_id;
+   struct _mulle_objc_ivar   *a = _a;
+   struct _mulle_objc_ivar   *b = _b;
+   mulle_objc_ivarid_t       a_id;
+   mulle_objc_ivarid_t       b_id;
 
    a_id = a->descriptor.ivarid;
    b_id = b->descriptor.ivarid;
@@ -96,5 +98,5 @@ void   mulle_objc_ivar_sort( struct _mulle_objc_ivar *ivars, unsigned int n)
    if( ! ivars)
       return;
 
-   qsort( ivars, n, sizeof( struct _mulle_objc_ivar), (int(*)())  _mulle_objc_ivar_compare);
+   mulle_qsort_r( ivars, n, sizeof( struct _mulle_objc_ivar), _mulle_objc_ivar_compare_r, NULL);
 }

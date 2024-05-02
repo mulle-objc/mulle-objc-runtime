@@ -112,7 +112,7 @@ static inline struct _mulle_objc_ivar   *
 # pragma mark - qsort
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int   _mulle_objc_ivar_compare( struct _mulle_objc_ivar *a, struct _mulle_objc_ivar *b);
+int   _mulle_objc_ivar_compare_r( void *_a, void *_b, void *thunk);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_ivar_sort( struct _mulle_objc_ivar *ivars, unsigned int n);

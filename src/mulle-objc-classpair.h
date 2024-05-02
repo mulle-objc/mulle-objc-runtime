@@ -339,9 +339,10 @@ static inline void
    void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
                                                       mulle_atomic_pointer_t *pointer,
                                                       unsigned int n,
-                                                      mulle_objc_uniqueid_t *uniqueids);
+                                                      mulle_objc_uniqueid_t *uniqueids,
+                                                      int sort);
 
-   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_categoryids.pointer, n, categoryids);
+   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_categoryids.pointer, n, categoryids, 1);
 }
 
 
@@ -448,9 +449,10 @@ static inline void
    void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
                                                       mulle_atomic_pointer_t *pointer,
                                                       unsigned int n,
-                                                      mulle_objc_uniqueid_t *uniqueids);
+                                                      mulle_objc_uniqueid_t *uniqueids,
+                                                      int sort);
 
-   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_protocolids.pointer, n, protocolids);
+   _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_protocolids.pointer, n, protocolids, 1);
 }
 
 

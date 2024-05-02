@@ -135,12 +135,52 @@ unsigned int   _mulle_objc_uniqueid_arraycount( mulle_objc_uniqueid_t *ids)
 }
 
 
-int  _mulle_objc_uniqueid_qsortcompare( mulle_objc_uniqueid_t *a, mulle_objc_uniqueid_t *b)
+int   _mulle_objc_uniqueid_compare_r( void *_a, void *_b, void *thunk)
 {
-   intptr_t   diff;
+   mulle_objc_uniqueid_t   *a = _a;
+   mulle_objc_uniqueid_t   *b = _b;
+   mulle_objc_methodid_t   a_id;
+   mulle_objc_methodid_t   b_id;
 
-   diff = (intptr_t) *a - (intptr_t) *b;
-   if( diff < 0)
+   MULLE_C_UNUSED( thunk);
+
+   a_id = *a;
+   b_id = *b;
+   if( a_id < b_id)
       return( -1);
-   return( ! ! diff);
+   return( a_id != b_id);
 }
+   // #include <stdio.h>
+   //
+   // int main() {
+   //     // Define the range of values for a and b
+   //     unsigned char   a_values[] = {0x0, 0x1, 0x3F, 0x40, 0x7F, 0xFF};
+   //     unsigned char   b_values[] = {0x0, 0x1, 0x3F, 0x40, 0x7F, 0xFF};
+   //     unsigned char   a;
+   //     unsigned char   b;
+   //
+   //     // Iterate over all combinations of a and b
+   //     for (int i = 0; i < sizeof(a_values) / sizeof(a_values[0]); i++) {
+   //         for (int j = 0; j < sizeof(b_values) / sizeof(b_values[0]); j++) {
+   //
+   //             // Calculate the difference
+   //             a = a_values[i];
+   //             b = b_values[j];
+   //             unsigned char diff = a - b;
+   //
+   //             // Print the table row
+   //             printf("| %02X | %02X | %02X | %d | %d\n", a, b, diff & 0xFF,
+   //                      a < b ? -1 : (a == b) ? 0 : 1,
+   //                      a < diff ? -1 : (! diff ? 0 : 1));
+   //         }
+   //     }
+   //
+   //     return 0;
+   //
+   // diff = *a - *b;
+   // if( *a < *b)
+   //    return( -1);
+   // return( *a != *b);
+
+
+

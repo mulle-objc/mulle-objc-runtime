@@ -143,12 +143,15 @@ static inline struct mulle_metaabi_writer
    param.p = NSMakeRange( 1, 1);
    mulle_objc_object_call( obj, sel, &param);
    return( param.rval);
+
+   MEMO: for 32 bit architectures shouldn't we change this to double[5]
+         instead of void *[ 5] ?
 */
 
 #define mulle_metaabi_voidptr5( size)  \
    ( ((size) + sizeof( void *[ 5]) - 1) / sizeof( void *[ 5]) )
 
-#define mulle_metaabi_sizeof_union(  size) \
+#define mulle_metaabi_sizeof_union( size) \
    ( sizeof( void *[ 5]) * mulle_metaabi_voidptr5( size) )
 
 #define mulle_metaabi_union( rval_type, param_type)                     \

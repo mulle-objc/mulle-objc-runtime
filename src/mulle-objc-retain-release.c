@@ -40,6 +40,25 @@
 
 
 
+uintptr_t  _mulle_objc_object_get_retaincount_notps_noslow( void *obj)
+{
+   struct _mulle_objc_objectheader    *header;
+   intptr_t                            retaincount_1;
+
+   header        = _mulle_objc_object_get_objectheader( obj);
+   retaincount_1 = _mulle_objc_objectheader_get_retaincount_1( header);
+   if( retaincount_1 == MULLE_OBJC_NEVER_RELEASE)
+      return( MULLE_OBJC_NEVER_RELEASE);
+   assert( retaincount_1 != MULLE_OBJC_SLOW_RELEASE);
+   if( retaincount_1 == -1)
+      return( 0);
+   if( retaincount_1 < 0)
+      return( retaincount_1 - INTPTR_MIN);
+   return( retaincount_1 + 1);
+}
+
+
+// for the compiler, does slow release if request
 uintptr_t  __mulle_objc_object_get_retaincount( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
