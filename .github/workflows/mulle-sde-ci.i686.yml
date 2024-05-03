@@ -1,0 +1,52 @@
+name: CI-32bit
+
+on:
+  push:
+    branches:
+      - release
+  pull_request:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: release
+  OTHER_PROJECTS: "MulleFoundation/mulle-foundation-developer;
+mulle-objc/mulle-objc-developer;
+mulle-c/mulle-c-developer;"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest] # macos-latest,
+
+    steps:
+    - name: Set MULLE_HOSTNAME
+      run: |
+        name="${GITHUB_REF##*/}"
+        MULLE_HOSTNAME="${MULLE_HOSTNAME:-ci-${name##*-}}"
+        echo "MULLE_HOSTNAME=${MULLE_HOSTNAME}" >> $GITHUB_ENV
+
+    - name: Add to path
+      run:  echo "$HOME/bin" >> $GITHUB_PATH
+
+    - name: Add 32 bit stuff
+      run:  |
+        dpkg --add-architecture i386
+        apt-get update
+        apt-get install libc6:i386 gcc-multilib
+
+    - uses: actions/checkout@v3
+
+    - uses: mulle-sde/github-ci@v1
+
+    - uses: mulle-cc/github-ci@v4
+
+    - name: Dump Project Environment
+      run:  |
+        [ ! -d .mulle/etc/env ] || ls -l .mulle/etc/env/environment*.sh
+        mulle-sde environment
+
+    - name: Mulle-SDE Test 32 bit
+      run: |
+        [ ! -d test ] || mulle-sde -v -DMULLE_ARCH=i686 -DCFLAGS=-m32 test
