@@ -198,7 +198,7 @@ static struct _mulle_objc_methodlist  Object_instance_methodlist =
       {
          {
             ___init__methodid,	// descriptor.methodid
-            "@:",                // descriptor.signature
+            "@@:",                // descriptor.signature
             "init",		         // descriptor.name
             0			            // descriptor.bits
          },
@@ -343,7 +343,7 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
       {
          {
             ___init__methodid,
-            "@:",
+            "@@:",
             "init",
             0
          },
@@ -352,7 +352,7 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
       {
          {
             ___setA_b___methodid,
-            "@:ii",
+            "^v@:ii",
             "setA:b:",
             0
          },
@@ -407,7 +407,7 @@ static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
       {
          {
             ___print__methodid,
-            "@:",
+            "^v@:",
             "print",
             0
          },
