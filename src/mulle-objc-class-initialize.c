@@ -63,77 +63,103 @@ static mulle_objc_cache_uint_t
 }
 
 
-// this runs when the class is locked,
-static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cls)
+//
+// this runs before +initialize, so the method cache won't be used during
+// +initialize
+//
+static void   _mulle_objc_class_setup_initialize_cache( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_universe      *universe;
+   struct _mulle_objc_universe   *universe;
    struct _mulle_objc_impcache   *icache;
-   struct mulle_allocator           *allocator;
-   mulle_objc_cache_uint_t          n_entries;
-   void                             *found;
+   void                          *found;
 
    // now setup the cache and let it rip, except when we don't ever want one
-   universe  = _mulle_objc_class_get_universe( cls);
-
-   // your chance to change the cache algorithm and initital size
-   n_entries = _class_search_minimpcachesize( cls);
-   if( universe->callbacks.will_init_cache)
-      n_entries = (*universe->callbacks.will_init_cache)( universe, cls, n_entries);
-
-   if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
-   {
-      allocator = _mulle_objc_universe_get_allocator( universe);
-      icache    = mulle_objc_impcache_new( n_entries, allocator);
-
-      assert( icache);
-
-      // trace this before the switch
-      if( universe->debug.trace.method_cache)
-         mulle_objc_universe_trace( universe, "new initial cache %p "
-                                    "on %s %08lx \"%s\" (%p) with %u entries",
-                                    icache,
-                                    _mulle_objc_class_get_classtypename( cls),
-                                    (unsigned long) _mulle_objc_class_get_classid( cls),
-                                    _mulle_objc_class_get_name( cls),
-                                    cls,
-                                    icache->cache.size);
-      //
-      // count #caches. As long as there are zero true caches, the universe can
-      // be much faster adding methods.
-      //
-      _mulle_atomic_pointer_increment( &cls->universe->cachecount_1);
-   }
-   else
-   {
-      icache = &universe->empty_impcache;
-      if( universe->debug.trace.method_cache)
-         mulle_objc_universe_trace( universe, "use \"always empty cache\" on "
-                                    "%s %08lx \"%s\" (%p)",
-                                    _mulle_objc_class_get_classtypename( cls),
-                                    (unsigned long) _mulle_objc_class_get_classid( cls),
-                                    _mulle_objc_class_get_name( cls),
-                                    cls);
-      // empty cache doesn't count towards "problem" caches
-   }
+   universe = _mulle_objc_class_get_universe( cls);
+   icache   = &universe->empty_impcache;
+   if( universe->debug.trace.method_cache)
+      mulle_objc_universe_trace( universe, "use \"always empty cache\" on for +initialize "
+                                           "%s %08lx \"%s\" (%p)",
+                                           _mulle_objc_class_get_classtypename( cls),
+                                           (unsigned long) _mulle_objc_class_get_classid( cls),
+                                           _mulle_objc_class_get_name( cls),
+                                           cls);
+   // empty cache doesn't count towards "problem" caches
    found = __mulle_atomic_pointer_cas( &cls->cachepivot.pivot.entries,
                                        icache->cache.entries,
                                        universe->initial_impcache.cache.entries);
    assert( found == universe->initial_impcache.cache.entries);
 
-   ((void)(found)); // use :-/ for compiler
+   MULLE_C_UNUSED( found); // use :-/ for compiler
 }
 
 
-static void
-   _mulle_objc_class_setup_initial_cache_if_needed( struct _mulle_objc_class *cls)
+// this runs when the class is locked,
+static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cls,
+                                                     struct _mulle_objc_impcache_callback *callback)
 {
-   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
+   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_impcache   *icache;
+   struct mulle_allocator        *allocator;
+   mulle_objc_cache_uint_t       n_entries;
+   void                          *found;
+
+   // always empty cache is already installed
+   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return;
 
-   _mulle_objc_class_setup_initial_cache( cls);
+   // your chance to change the cache algorithm and initial size
+   universe  = _mulle_objc_class_get_universe( cls);
+   n_entries = _class_search_minimpcachesize( cls);
+   if( universe->callbacks.will_init_cache)
+      n_entries = (*universe->callbacks.will_init_cache)( universe, cls, n_entries);
+
+
+   allocator = _mulle_objc_universe_get_allocator( universe);
+   icache    = mulle_objc_impcache_new( n_entries, callback, allocator);
+
+   assert( icache);
+
+   // trace this before the switch
+   if( universe->debug.trace.method_cache)
+      mulle_objc_universe_trace( universe, "new initial cache %p "
+                                 "on %s %08lx \"%s\" (%p) with %u entries",
+                                 icache,
+                                 _mulle_objc_class_get_classtypename( cls),
+                                 (unsigned long) _mulle_objc_class_get_classid( cls),
+                                 _mulle_objc_class_get_name( cls),
+                                 cls,
+                                 icache->cache.size);
+   //
+   // count #caches. As long as there are zero true caches, the universe can
+   // be much faster adding methods.
+   //
+   _mulle_atomic_pointer_increment( &cls->universe->cachecount_1);
+
+   //
+   // if someone else setup the cache during +initialize, that's OK, but
+   // he must have set MULLE_OBJC_CLASS_CACHE_READY to ON so this
+   // _mulle_objc_class_setup_initial_cache won't even be called
+   //
+   found = __mulle_atomic_pointer_cas( &cls->cachepivot.pivot.entries,
+                                       icache->cache.entries,
+                                       universe->empty_impcache.cache.entries);
+   assert( found == universe->empty_impcache.cache.entries);
+
+   MULLE_C_UNUSED( found); // use :-/ for compiler
+}
+
+
+int   _mulle_objc_class_setup_initial_cache_if_needed( struct _mulle_objc_class *cls,
+                                                       struct _mulle_objc_impcache_callback *callback)
+{
+   if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
+      return( 0);
+
+   _mulle_objc_class_setup_initial_cache( cls, callback);
 
    // this marks the class as ready to run
    _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY);
+   return( 1);
 }
 
 
@@ -157,69 +183,67 @@ void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cl
 
 
 static void
-   mulle_objc_metaclass_execute_initialize_method( struct _mulle_objc_metaclass *meta,
-                                                   struct _mulle_objc_method *initialize,
-                                                   struct _mulle_objc_infraclass *infra)
+   _mulle_objc_metaclass_call_initialize_deinitialize( struct _mulle_objc_metaclass *meta,
+                                                       unsigned int inheritance,
+                                                       mulle_objc_methodid_t methodid,
+                                                       struct _mulle_objc_infraclass *infra)
 {
-   mulle_objc_implementation_t   imp;
-   struct _mulle_objc_universe   *universe;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_universe          *universe;
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_searchresult      result;
+   int                                  preserve;
+   int                                  is_initialize;
+   mulle_objc_implementation_t          imp;
+
+   preserve = errno;
+
+   _mulle_objc_searcharguments_init_default( &search, methodid);
+   method = mulle_objc_class_search_method( &meta->base,
+                                            &search,
+                                            inheritance,
+                                            &result);
 
    universe = _mulle_objc_metaclass_get_universe( meta);
-   if( ! initialize)
+
+   if( ! method)
    {
       if( universe->debug.trace.initialize)
-         mulle_objc_universe_trace( universe, "no +[%s (de)initialize] found",
-                                               _mulle_objc_metaclass_get_name( meta));
+      {
+         is_initialize = (methodid == MULLE_OBJC_INITIALIZE_METHODID);
+         mulle_objc_universe_trace( universe, "no +[%s %sinitialize] found",
+                                               _mulle_objc_metaclass_get_name( meta),
+                                               is_initialize ? "" : "de");
+      }
       return;
    }
 
    if( universe->debug.trace.initialize)
       mulle_objc_universe_trace( universe,
-                                 "call +[%s %s]",
-                                 _mulle_objc_metaclass_get_name( meta),
-                                 _mulle_objc_method_get_name( initialize));
+                                 "call +[%s %s] for class \"%s\"",
+                                 _mulle_objc_class_get_name( result.class),
+                                 _mulle_objc_method_get_name( method),
+                                 _mulle_objc_infraclass_get_name( infra));
 
-   imp = _mulle_objc_method_get_implementation( initialize);
-   if( universe->debug.method_call)
-      _mulle_objc_implementation_debug( imp,
-                                        infra,
-                                        _mulle_objc_method_get_methodid( initialize),
-                                        NULL,
-                                        &meta->base); // sic /
+   imp = _mulle_objc_method_get_implementation( method);
+//   if( universe->debug.method_call)
+//      _mulle_objc_implementation_debug( imp,
+//                                        infra,
+//                                        _mulle_objc_method_get_methodid( initialize),
+//                                        NULL,
+//                                        &meta->base); // sic /
 
    mulle_objc_implementation_invoke( imp,
                                     (struct _mulle_objc_object *) infra,
-                                    _mulle_objc_method_get_methodid( initialize),
+                                    _mulle_objc_method_get_methodid( method),
                                     (struct _mulle_objc_object *) infra);
 
    if( universe->debug.trace.initialize)
       mulle_objc_universe_trace( universe,
-                                 "done +[%s %s]",
-                                 _mulle_objc_metaclass_get_name( meta),
-                                 _mulle_objc_method_get_name( initialize));
-}
-
-
-static void
-   _mulle_objc_metaclass_call_initialize( struct _mulle_objc_metaclass *meta,
-                                          unsigned inheritance,
-                                          mulle_objc_methodid_t methodid,
-                                          struct _mulle_objc_infraclass *infra)
-{
-   struct _mulle_objc_method            *initialize;
-   struct _mulle_objc_searcharguments   search;
-   struct _mulle_objc_searchresult      result;
-   int                                  preserve;
-
-   preserve = errno;
-
-   _mulle_objc_searcharguments_init_default( &search, methodid);
-   initialize = mulle_objc_class_search_method( &meta->base,
-                                                &search,
-                                                inheritance,
-                                                &result);
-
-   mulle_objc_metaclass_execute_initialize_method( meta, initialize, infra);
+                                 "done +[%s %s] for class \"%s\"",
+                                 _mulle_objc_class_get_name( result.class),
+                                 _mulle_objc_method_get_name( method),
+                                 _mulle_objc_infraclass_get_name( infra));
 
    errno = preserve;
 }
@@ -230,10 +254,16 @@ static void
 {
    struct _mulle_objc_classpair                 *pair;
    struct _mulle_objc_protocolclassenumerator   rover;
+   struct _mulle_objc_infraclass                *superclass;
    struct _mulle_objc_infraclass                *protocolclass;
    struct _mulle_objc_metaclass                 *metaprotocolclass;
 
    assert( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
+
+   // call all +initialize protocolclass methods for superclass first
+   superclass = _mulle_objc_infraclass_get_superclass( infra);
+   if( superclass)
+      _mulle_objc_infraclass_call_protocolclasses_initialize( superclass);
 
    pair  = _mulle_objc_infraclass_get_classpair( infra);
    rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
@@ -241,10 +271,10 @@ static void
    {
       metaprotocolclass  = _mulle_objc_infraclass_get_metaclass( protocolclass);
       // just inherit from class nothing else
-      _mulle_objc_metaclass_call_initialize( metaprotocolclass,
-                                             ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,
-                                             MULLE_OBJC_INITIALIZE_METHODID,
-                                             infra);
+      _mulle_objc_metaclass_call_initialize_deinitialize( metaprotocolclass,
+                                                          ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,
+                                                          MULLE_OBJC_INITIALIZE_METHODID,
+                                                          infra);
    }
    _mulle_objc_protocolclassenumerator_done( &rover);
 }
@@ -267,9 +297,12 @@ static void
    inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
    inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
    inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
+   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE;
 
-   _mulle_objc_metaclass_call_initialize( meta, inheritance, MULLE_OBJC_INITIALIZE_METHODID, infra);
-
+   _mulle_objc_metaclass_call_initialize_deinitialize( meta,
+                                                       inheritance,
+                                                       MULLE_OBJC_INITIALIZE_METHODID,
+                                                       infra);
    //
    _mulle_objc_infraclass_call_protocolclasses_initialize( infra);
 }
@@ -280,6 +313,7 @@ static void
 {
    struct _mulle_objc_classpair                        *pair;
    struct _mulle_objc_protocolclassreverseenumerator   rover;
+   struct _mulle_objc_infraclass                       *superclass;
    struct _mulle_objc_infraclass                       *protocolclass;
    struct _mulle_objc_metaclass                        *metaprotocolclass;
 
@@ -291,12 +325,18 @@ static void
    {
       metaprotocolclass = _mulle_objc_infraclass_get_metaclass( protocolclass);
       // just inherit from class nothing else
-      _mulle_objc_metaclass_call_initialize( metaprotocolclass,
-                                             ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,
-                                             MULLE_OBJC_DEINITIALIZE_METHODID,
-                                             infra);
+      _mulle_objc_metaclass_call_initialize_deinitialize( metaprotocolclass,
+                                                          ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,
+                                                          MULLE_OBJC_DEINITIALIZE_METHODID,
+                                                          infra);
    }
    _mulle_objc_protocolclassreverseenumerator_done( &rover);
+
+   // call all +initialize protocolclass methods for superclass first
+   superclass = _mulle_objc_infraclass_get_superclass( infra);
+   if( superclass)
+      _mulle_objc_infraclass_call_protocolclasses_deinitialize( superclass);
+
 }
 
 
@@ -323,7 +363,7 @@ void
    inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
    inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
 
-   _mulle_objc_metaclass_call_initialize( meta, inheritance, MULLE_OBJC_DEINITIALIZE_METHODID, infra);
+   _mulle_objc_metaclass_call_initialize_deinitialize( meta, inheritance, MULLE_OBJC_DEINITIALIZE_METHODID, infra);
 }
 
 
@@ -375,6 +415,10 @@ static void  _mulle_objc_metaclass_setup_superclass( struct _mulle_objc_metaclas
       _mulle_objc_infraclass_setup_if_needed( infra);
    }
 }
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_impcache_callback  _mulle_objc_impcache_callback_empty;
 
 
 int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
@@ -429,6 +473,7 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
          _mulle_objc_metaclass_setup_superclass( meta);
          _mulle_objc_infraclass_setup_superclasses( infra);
 
+
          // MEMO: we are in state MULLE_OBJC_INFRACLASS_INITIALIZING, but
          //       not yet MULLE_OBJC_INFRACLASS_INITIALIZE_DONE. The
          //       superclasses are setup already though. And they ran
@@ -436,12 +481,23 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
          //       It is only guaranteed that +initialize on the superclass is
          //       messaged before the subclass, it isn't guaranteed that it has
          //       completed.
-         _mulle_objc_infraclass_call_initialize( infra);
-         _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
 
-         // now we can let it rip
-         _mulle_objc_class_setup_initial_cache_if_needed( _mulle_objc_metaclass_as_class( meta));
-         _mulle_objc_class_setup_initial_cache_if_needed( _mulle_objc_infraclass_as_class( infra));
+         _mulle_objc_class_setup_initialize_cache( _mulle_objc_metaclass_as_class( meta));
+         _mulle_objc_class_setup_initialize_cache( _mulle_objc_infraclass_as_class( infra));
+
+         _mulle_objc_infraclass_call_initialize( infra);
+
+         //
+         // now we can let it rip, NULL is standard callbacks
+         // We can not do _mulle_objc_infraclass_call_initialize before
+         // because we then get into recursion problems setting up the
+         // cache. If we want to change the cache callbacks, we do what ?
+         //
+         _mulle_objc_class_setup_initial_cache_if_needed( _mulle_objc_metaclass_as_class( meta), NULL);
+         _mulle_objc_class_setup_initial_cache_if_needed( _mulle_objc_infraclass_as_class( infra), NULL);
+
+
+         _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE);
       }
       else
       {
@@ -506,13 +562,17 @@ static void *
 }
 
 
-void  _mulle_objc_impcache_init_empty_callbacks( struct _mulle_objc_impcache *p)
+struct _mulle_objc_impcache_callback  _mulle_objc_impcache_callback_empty =
 {
-   p->call       = _mulle_objc_object_call_class_slow;
-   p->call2      = _mulle_objc_object_call2_slow;
-   p->supercall  = _mulle_objc_object_call_super_slow;
-   p->supercall2 = _mulle_objc_object_call_super_slow;
-}
+   .call                       = _mulle_objc_object_call_class_slow,
+   .call_cache_collision       = _mulle_objc_object_call2_slow,
+   .call_cache_miss            = _mulle_objc_object_call2_slow,
+   .refresh_method_nofail      = _mulle_objc_class_refresh_method_nofail,
+   .supercall                  = _mulle_objc_object_call_super_slow,
+   .supercall_cache_collision  = _mulle_objc_object_call_super_slow,
+   .supercall_cache_miss       = _mulle_objc_object_call_super_slow,
+   .refresh_supermethod_nofail = _mulle_objc_class_refresh_supermethod_nofail
+};
 
 
 #pragma mark - initial_impcache callbacks
@@ -560,11 +620,16 @@ static void *
 
 
 
-void  _mulle_objc_impcache_init_initial_callbacks( struct _mulle_objc_impcache *p)
+struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_initial =
 {
-   p->call       = _mulle_objc_object_call_class_needcache;
-   p->call2      = _mulle_objc_object_call2_needcache;
-   p->supercall  = _mulle_objc_object_call_super_needcache;
-   p->supercall2 = _mulle_objc_object_call_super_needcache;
-}
+   .call                       = _mulle_objc_object_call_class_needcache,
+   .call_cache_collision       = _mulle_objc_object_call2_needcache,
+   .call_cache_miss            = _mulle_objc_object_call2_needcache,
+   .supercall                  = _mulle_objc_object_call_super_needcache,
+   .supercall_cache_collision  = _mulle_objc_object_call_super_needcache,
+   .supercall_cache_miss       = _mulle_objc_object_call_super_needcache,
+
+   .refresh_method_nofail      = _mulle_objc_class_refresh_method_nofail,
+   .refresh_supermethod_nofail = _mulle_objc_class_refresh_supermethod_nofail
+};
 

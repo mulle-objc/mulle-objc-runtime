@@ -76,7 +76,7 @@ struct _gnu_mulle_objc_methodlist   A_infra_methodlist =
             "release",
             0
          },
-         (void *) mulle_objc_object_release
+         _mulle_objc_object_release
       },
       {
          {
@@ -85,7 +85,7 @@ struct _gnu_mulle_objc_methodlist   A_infra_methodlist =
             "retain",
             0
          },
-         (void *) mulle_objc_object_retain
+         _mulle_objc_object_retain
       },
    }
 };
@@ -120,11 +120,11 @@ static void   test_simple_retain_release( struct _mulle_objc_infraclass *A_infra
    assert( instances == 1);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
-   b = mulle_objc_object_retain( a);
+   b = mulle_objc_object_call_retain( a);
    assert( a == b);
    assert( mulle_objc_object_get_retaincount( a) == 2);
 
-   mulle_objc_object_release( a);
+   mulle_objc_object_call_release( a);
    assert( mulle_objc_object_get_retaincount( a) == 1);
 
    __mulle_objc_instance_free( a, &my_allocator);
@@ -141,13 +141,13 @@ static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_in
    _mulle_objc_object_constantify_noatomic( a);
 
    retain_count = mulle_objc_object_get_retaincount( a);
-   mulle_objc_object_retain( a);
+   mulle_objc_object_call_retain( a);
    assert( mulle_objc_object_get_retaincount( a) == retain_count);
 
-   mulle_objc_object_release( a);
+   mulle_objc_object_call_release( a);
    assert( mulle_objc_object_get_retaincount( a) == retain_count);
 
-   mulle_objc_object_release( a);
+   mulle_objc_object_call_release( a);
    assert( mulle_objc_object_get_retaincount( a) == retain_count);
    assert( instances == 1);
 
@@ -213,7 +213,7 @@ static void   test_dealloc_finalize( struct _mulle_objc_infraclass  *A_infra)
 
    a = _mulle_objc_infraclass_allocator_alloc_instance_extra( A_infra, 0, &my_allocator);
 
-   mulle_objc_object_release( a);
+   mulle_objc_object_call_release( a);
    assert( finalized == 1);
    assert( dealloced == 1);
 
@@ -236,7 +236,7 @@ static void   test_perform_finalize( struct _mulle_objc_infraclass  *A_infra)
    assert( finalized == 1);
    assert( dealloced == 0);
 
-   mulle_objc_object_release( a);
+   mulle_objc_object_call_release( a);
    assert( dealloced == 1);
    assert( finalized == 1);
 

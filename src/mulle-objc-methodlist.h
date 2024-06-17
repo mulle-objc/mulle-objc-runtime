@@ -248,4 +248,18 @@ static inline void  mulle_objc_methodlistenumerator_done( struct _mulle_objc_met
       _mulle_objc_methodlistenumerator_done( rover);
 }
 
+
+// created by make-container-for.sh _mulle_objc_methodlist
+
+#define mulle_objc_methodlist_for( name, item)                                              \
+   assert( sizeof( item) == sizeof( void *));                                               \
+   for( struct _mulle_objc_methodlistenumerator                                             \
+           rover__ ## item = mulle_objc_methodlist_enumerate( name),                        \
+           *rover__  ## item ## __i = (void *) 0;                                           \
+        ! rover__  ## item ## __i;                                                          \
+        rover__ ## item ## __i = (mulle_objc_methodlistenumerator_done( &rover__ ## item),  \
+                                   (void *) 1))                                             \
+      while( (item = _mulle_objc_methodlistenumerator_next( &rover__ ## item)))
+
+
 #endif /* defined(__MULLE_OBJC__mulle_objc_methodlist__) */

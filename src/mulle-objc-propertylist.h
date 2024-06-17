@@ -179,4 +179,19 @@ static inline void  mulle_objc_propertylistenumerator_done( struct _mulle_objc_p
       _mulle_objc_propertylistenumerator_done( rover);
 }
 
+
+
+// created by make-container-for.sh _mulle_objc_propertylist
+
+#define mulle_objc_propertylist_for( name, item)                                             \
+   assert( sizeof( item) == sizeof( void *));                                                \
+   for( struct _mulle_objc_propertylistenumerator                                            \
+           rover__ ## item = mulle_objc_propertylist_enumerate( name),                       \
+           *rover__  ## item ## __i = (void *) 0;                                            \
+        ! rover__  ## item ## __i;                                                           \
+        rover__ ## item ## __i = (mulle_objc_propertylistenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                              \
+      while( (item = _mulle_objc_propertylistenumerator_next( &rover__ ## item)))
+
+
 #endif

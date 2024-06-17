@@ -114,7 +114,7 @@ void   test_message_sending()
       unsigned int               i, n;
       struct _mulle_objc_cache   *A_cache;
 
-      A_cache = _mulle_objc_class_get_impcache_cache( A_cls);
+      A_cache = _mulle_objc_class_get_impcache_cache_atomic( A_cls);
 
       // run it again to get cache size stable
       do
@@ -127,7 +127,7 @@ void   test_message_sending()
             assert( rval == (void *) methodlist->methods[ i].descriptor.methodid);
          }
       }
-      while( _mulle_objc_class_get_impcache_cache( A_cls)->size != old);
+      while( _mulle_objc_class_get_impcache_cache_atomic( A_cls)->size != old);
 
       printf( "cache size  : %d\n", (int) _mulle_objc_cache_size( ));
       printf( "cache mask  : 0x%llx\n", (long long) _mulle_objc_cache_mask( A_cache));

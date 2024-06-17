@@ -481,11 +481,34 @@ static inline struct _mulle_objc_protocolclassenumerator
 }
 
 
+static inline struct _mulle_objc_protocolclassenumerator
+   mulle_objc_classpair_enumerate_protocolclasses( struct _mulle_objc_classpair *pair)
+{
+   struct _mulle_objc_protocolclassenumerator  rover;
+
+   if( ! pair)
+   {
+      memset( &rover, 0, sizeof( rover));
+      return( rover);
+   }
+   return( _mulle_objc_classpair_enumerate_protocolclasses( pair));
+}
+
+
 static inline void
    _mulle_objc_protocolclassenumerator_done( struct _mulle_objc_protocolclassenumerator *rover)
 {
    mulle_concurrent_pointerarrayenumerator_done( &rover->list_rover);
 }
+
+
+static inline void
+   mulle_objc_protocolclassenumerator_done( struct _mulle_objc_protocolclassenumerator *rover)
+{
+   if( rover)
+      _mulle_objc_protocolclassenumerator_done( rover);
+}
+
 
 
 static inline struct _mulle_objc_infraclass  *
@@ -497,6 +520,25 @@ static inline struct _mulle_objc_infraclass  *
 
 struct _mulle_objc_infraclass  *
    _mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover);
+
+
+static inline struct _mulle_objc_infraclass  *
+   mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
+{
+   return( rover ? _mulle_objc_protocolclassenumerator_next( rover) : NULL);
+}
+
+
+#define mulle_objc_classpair_protocolclass_for( name, item)                                  \
+   assert( sizeof( item) == sizeof( void *));                                                \
+   for( struct _mulle_objc_propertylistenumerator                                            \
+           rover__ ## item = mulle_objc_propertylist_enumerate( name),                       \
+           *rover__  ## item ## __i = (void *) 0;                                            \
+        ! rover__  ## item ## __i;                                                           \
+        rover__ ## item ## __i = (mulle_objc_propertylistenumerator_done( &rover__ ## item), \
+                                   (void *) 1))                                              \
+      while( (item = _mulle_objc_propertylistenumerator_next( &rover__ ## item)))
+
 
 
 # pragma mark - protocol class reverse enumerator
@@ -514,10 +556,24 @@ static inline struct _mulle_objc_protocolclassreverseenumerator
    struct _mulle_objc_protocolclassreverseenumerator  rover;
    unsigned int    n;
 
-   n = mulle_concurrent_pointerarray_get_count( &pair->protocolclasses);
+   n                = mulle_concurrent_pointerarray_get_count( &pair->protocolclasses);
    rover.list_rover = mulle_concurrent_pointerarray_reverseenumerate( &pair->protocolclasses, n);
    rover.infra      = _mulle_objc_classpair_get_infraclass( pair);
    return( rover);
+}
+
+
+static inline struct _mulle_objc_protocolclassreverseenumerator
+   mulle_objc_classpair_reverseenumerate_protocolclasses( struct _mulle_objc_classpair *pair)
+{
+   struct _mulle_objc_protocolclassreverseenumerator  rover;
+
+   if( ! pair)
+   {
+      memset( &rover, 0, sizeof( rover));
+      return( rover);
+   }
+   return( _mulle_objc_classpair_reverseenumerate_protocolclasses( pair));
 }
 
 
@@ -536,6 +592,11 @@ static inline struct _mulle_objc_infraclass  *
 
 struct _mulle_objc_infraclass  *
    _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover);
+
+
+
+
+
 
 
 #pragma mark - debug support

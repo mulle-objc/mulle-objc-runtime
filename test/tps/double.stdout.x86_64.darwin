@@ -67,9 +67,9 @@
 16,2=6017ffffffffffff (8.04468e+154) -> NO 
 16,3=601fffffffffffff (1.07262e+155) -> NO 
 0,0=fff0000000000000 (-inf) -> NO 
-0,1=fff0000000000001 (-nan) -> NO 
-0,2=fff7ffffffffffff (-nan) -> NO 
-0,3=ffffffffffffffff (-nan) -> NO 
+0,1=fff0000000000001 (nan) -> NO 
+0,2=fff7ffffffffffff (nan) -> NO 
+0,3=ffffffffffffffff (nan) -> NO 
 1,0=bff0000000000000 (-1) -> TPS -> 0xFE00000000000015 -> bff0000000000000 (-1)
 1,1=bff0000000000001 (-1) -> TPS -> 0xFE00000000000035 -> bff0000000000001 (-1)
 1,2=bff7ffffffffffff (-1.5) -> TPS -> 0xFEFFFFFFFFFFFFF5 -> bff7ffffffffffff (-1.5)

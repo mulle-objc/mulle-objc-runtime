@@ -4,8 +4,8 @@
 
 @interface Bar
 
-@property( nonserializable) id b;
-@property( serializable) id c;
+@property( noautorelease) id b;
+@property( autorelease) id c;
 
 @end
 
@@ -30,9 +30,9 @@ static void   print_property( Class cls,
    if( ! property)
       exit( 1);
 
-   printf( "%s:", _mulle_objc_property_get_name( property));
-   printf( " %x ", _mulle_objc_property_get_bits( property));
-   printf( "\"%s\"\n", _mulle_objc_property_get_signature( property));
+   mulle_printf( "%s:", _mulle_objc_property_get_name( property));
+   mulle_printf( " %x ", _mulle_objc_property_get_bits( property));
+   mulle_printf( "\"%s\"\n", _mulle_objc_property_get_signature( property));
 }
 
 int   main( void)

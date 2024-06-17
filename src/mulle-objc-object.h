@@ -160,6 +160,10 @@ MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
 }
 
 
+#define mulle_objc_object_is_threadsafe   ((mulle_thread_t) 0)
+#define mulle_objc_object_has_no_thread   ((mulle_thread_t) -1)
+
+
 MULLE_C_ALWAYS_INLINE static inline void
    _mulle_objc_object_set_thread( struct _mulle_objc_object *obj, mulle_thread_t thread)
 {

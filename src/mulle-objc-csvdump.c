@@ -330,7 +330,7 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_cache   *cache;
 
-   cache = _mulle_objc_class_get_impcache_cache( cls);
+   cache = _mulle_objc_class_get_impcache_cache_atomic( cls);
 
    if( ! _mulle_objc_cache_get_count( cache) &&
        ! _mulle_objc_cache_get_size( cache))

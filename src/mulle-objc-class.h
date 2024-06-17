@@ -145,31 +145,28 @@ static inline struct _mulle_objc_impcachepivot *
 
 
 static inline struct _mulle_objc_impcache *
-   _mulle_objc_class_get_impcache( struct _mulle_objc_class *cls)
+   _mulle_objc_class_get_impcache_atomic( struct _mulle_objc_class *cls)
 {
-   return( _mulle_objc_impcachepivot_get_impcache( &cls->cachepivot));
+   return( _mulle_objc_impcachepivot_get_impcache_atomic( &cls->cachepivot));
 }
 
 
 static inline struct _mulle_objc_cache *
-   _mulle_objc_class_get_impcache_cache( struct _mulle_objc_class *cls)
+   _mulle_objc_class_get_impcache_cache_atomic( struct _mulle_objc_class *cls)
 {
-   return( _mulle_objc_impcachepivot_get_impcache_cache( &cls->cachepivot));
+   return( _mulle_objc_impcachepivot_get_impcache_cache_atomic( &cls->cachepivot));
 }
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
-                                                     mulle_objc_methodid_t methodid);
+                                                  mulle_objc_methodid_t methodid);
 
-static inline void
-   mulle_objc_class_invalidate_impcache( struct _mulle_objc_class *cls)
-{
-   if( ! cls)
-      return;
-   _mulle_objc_class_invalidate_impcacheentry( cls,
-                                                  MULLE_OBJC_NO_METHODID);
-}
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_class_set_forwardmethod( struct _mulle_objc_class *cls,
+                                            struct _mulle_objc_method *method);
+
 
 
 //static inline struct _mulle_objc_cache   *_mulle_objc_class_get_supercache( struct _mulle_objc_class *cls)
@@ -248,6 +245,22 @@ static inline void
    _mulle_objc_kvccachepivot_invalidate( pivot, empty_cache, allocator);
 }
 
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+void  _mulle_objc_class_invalidate_impcache( struct _mulle_objc_class *cls,
+                                             struct _mulle_objc_methodlist *list);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+void  _mulle_objc_class_invalidate_caches( struct _mulle_objc_class *cls,
+                                           struct _mulle_objc_methodlist *list);
+
+
+static inline void  mulle_objc_class_invalidate_caches( struct _mulle_objc_class *cls)
+{
+   if( cls)
+      _mulle_objc_class_invalidate_caches( cls, NULL);
+}
 
 # pragma mark - methodlists
 

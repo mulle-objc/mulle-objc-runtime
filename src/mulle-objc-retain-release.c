@@ -58,7 +58,6 @@ uintptr_t  _mulle_objc_object_get_retaincount_notps_noslow( void *obj)
 }
 
 
-// for the compiler, does slow release if request
 uintptr_t  __mulle_objc_object_get_retaincount( void *obj)
 {
    struct _mulle_objc_objectheader    *header;
@@ -112,7 +111,7 @@ void  _mulle_objc_object_tryfinalizetrydealloc( void *obj)
       retaincount_1 += INTPTR_MIN + 1;
       _mulle_atomic_pointer_write( &header->_retaincount_1, (void *) retaincount_1);
 
-      _mulle_objc_object_finalize( obj);
+      _mulle_objc_object_call_finalize( obj);
 
       // reread
       retaincount_1 = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
@@ -122,7 +121,7 @@ void  _mulle_objc_object_tryfinalizetrydealloc( void *obj)
    {
       // set it back to be nice
       _mulle_atomic_pointer_write( &header->_retaincount_1, (void *) -1);
-      _mulle_objc_object_dealloc( obj);
+      _mulle_objc_object_call_dealloc( obj);
    }
 }
 
@@ -152,22 +151,20 @@ void  _mulle_objc_object_perform_finalize( void *obj)
                                        (void *) new_retaincount_1,
                                        (void *) retaincount_1));
 
-   _mulle_objc_object_finalize( obj);
+   _mulle_objc_object_call_finalize( obj);
 }
 
 
 void   _mulle_objc_objects_retain( void **objects, size_t n)
 {
    void   **sentinel;
-   void   *p;
 
    // assume compiler can do unrolling
    sentinel = &objects[ n];
+
    while( objects < sentinel)
    {
-      p = *objects++;
-      if( p)
-         _mulle_objc_object_retain_inline( p);
+      mulle_objc_object_call_retain( *objects++);
    }
 }
 
@@ -175,16 +172,13 @@ void   _mulle_objc_objects_retain( void **objects, size_t n)
 void   _mulle_objc_objects_release( void **objects, size_t n)
 {
    void   **sentinel;
-   void   *p;
 
    // assume compiler can do unrolling
    sentinel = &objects[ n];
 
    while( objects < sentinel)
    {
-      p = *objects++;
-      if( p)
-         _mulle_objc_object_release_inline( p);
+      mulle_objc_object_call_release( *objects++);
    }
 }
 
@@ -203,26 +197,33 @@ void   _mulle_objc_objects_releaseandzero( void **objects, size_t n)
       if( p)
       {
          objects[ -1] = 0;
-         _mulle_objc_object_release_inline( p);
+         _mulle_objc_object_call_release( p);
       }
    }
 }
 
 
-void   *mulle_objc_object_retain( void *obj)
-{
-   return( mulle_objc_object_retain_inline( obj));
-}
-
-
-void   mulle_objc_object_release( void *obj)
+void   mulle_objc_object_release2( void *obj, void *unused)
 {
    mulle_objc_object_release_inline( obj);
 }
 
 
-// compatible to mulle-allocator
-void   _mulle_objc_object_release2( void *obj, void *unused)
+// use this for hand written method methodlists of -retain only
+void   *_mulle_objc_object_retain( void *obj, mulle_objc_methodid_t sel, void *param)
 {
-   _mulle_objc_object_release_inline( obj);
+   MULLE_C_UNUSED( sel);
+   MULLE_C_UNUSED( param);
+   _mulle_objc_object_retain_inline( obj);
+   return( obj);
+}
+
+
+// use this for hand written method methodlists of -retain only
+void   *_mulle_objc_object_release( void *obj, mulle_objc_methodid_t sel, void *param)
+{
+   MULLE_C_UNUSED( sel);
+   MULLE_C_UNUSED( param);
+   mulle_objc_object_release_inline( obj);
+   return( param);  // Bogus
 }

@@ -47,9 +47,10 @@
 //
 // cache malloc/frees should not disturb errno, so we preserve it
 //
-struct _mulle_objc_impcache
-   *mulle_objc_impcache_new( mulle_objc_cache_uint_t size,
-                                struct mulle_allocator *allocator)
+struct _mulle_objc_impcache *
+   mulle_objc_impcache_new( mulle_objc_cache_uint_t size,
+                            struct _mulle_objc_impcache_callback *callback,
+                            struct mulle_allocator *allocator)
 {
    struct _mulle_objc_impcache  *icache;
    int                             preserve;
@@ -69,7 +70,7 @@ struct _mulle_objc_impcache
    icache   = _mulle_allocator_calloc( allocator, 1, s_cache);
    errno    = preserve;
 
-   mulle_objc_impcache_init( icache, size);
+   _mulle_objc_impcache_init( icache, callback, size);
 
    return( icache);
 }
@@ -77,7 +78,7 @@ struct _mulle_objc_impcache
 
 #ifdef MULLE_TEST
 struct _mulle_objc_impcache   *mulle_objc_discarded_impcaches[ 0x8000];
-mulle_atomic_pointer_t            n_mulle_objc_discarded_impcaches;
+mulle_atomic_pointer_t        n_mulle_objc_discarded_impcaches;
 
 static void   discard_impcache( struct _mulle_objc_impcache *icache)
 {
@@ -156,34 +157,6 @@ int   _mulle_objc_impcachepivot_swap( struct _mulle_objc_impcachepivot *pivot,
    _mulle_objc_impcache_abafree( old_cache, allocator);
    return( 0);
 }
-
-
-static struct _mulle_objc_impcache   *
-   _mulle_objc_impcache_grow_with_strategy( struct _mulle_objc_impcache  *old_cache,
-                                            enum mulle_objc_cachesizing_t strategy,
-                                            struct mulle_allocator *allocator)
-{
-   struct _mulle_objc_impcache  *icache;
-   mulle_objc_cache_uint_t      new_size;
-
-   // a new beginning.. let it be filled anew
-   // could ask the universe here what to do as new size
-
-   new_size  = _mulle_objc_cache_get_resize( &old_cache->cache, strategy);
-   icache    = mulle_objc_impcache_new( new_size, allocator);
-
-   // copy old possibly non-standard callbacks, if the cache isn't the empty
-   //if( old_cache->cache != &universeempty_cache)
-   {
-      icache->call       = old_cache->call;
-      icache->call2      = old_cache->call2;
-      icache->supercall  = old_cache->supercall;
-      icache->supercall2 = old_cache->supercall2;
-   }
-
-   return( icache);
-}
-
 
 
 // uniqueid can be a methodid or superid!
@@ -411,15 +384,15 @@ struct _mulle_objc_cacheentry *
                                                mulle_objc_uniqueid_t uniqueid,
                                                enum mulle_objc_cachesizing_t strategy)
 {
-   struct _mulle_objc_impcache        *icache;
-   struct _mulle_objc_impcache        *old_cache;
-   struct _mulle_objc_impcachepivot   *cachepivot;
-   struct _mulle_objc_cacheentry         *entry;
-   struct _mulle_objc_universe           *universe;
-   struct mulle_allocator                *allocator;
+   struct _mulle_objc_impcache       *icache;
+   struct _mulle_objc_impcache       *old_cache;
+   struct _mulle_objc_impcachepivot  *cachepivot;
+   struct _mulle_objc_cacheentry     *entry;
+   struct _mulle_objc_universe       *universe;
+   struct mulle_allocator            *allocator;
 
    cachepivot = &cls->cachepivot;
-   old_cache  = _mulle_objc_impcachepivot_get_impcache( cachepivot);
+   old_cache  = _mulle_objc_impcachepivot_get_impcache_atomic( cachepivot);
    universe   = _mulle_objc_class_get_universe( cls);
    allocator  = _mulle_objc_universe_get_allocator( universe);
    // a new beginning.. let it be filled anew
@@ -427,11 +400,11 @@ struct _mulle_objc_cacheentry *
    icache     = _mulle_objc_impcache_grow_with_strategy( old_cache, strategy, allocator);
 
    entry      = _mulle_objc_impcache_preload_inactive_with_class( icache,
-                                                                    old_cache,
-                                                                    strategy,
-                                                                    cls,
-                                                                    imp,
-                                                                    uniqueid);
+                                                                  old_cache,
+                                                                  strategy,
+                                                                  cls,
+                                                                  imp,
+                                                                  uniqueid);
    // if the set fails, then someone else was faster
    if( universe->debug.trace.method_cache)
       mulle_objc_universe_trace( universe,
@@ -450,12 +423,11 @@ struct _mulle_objc_cacheentry *
    assert( _mulle_atomic_pointer_read_nonatomic( &cachepivot->pivot.entries)
             != universe->initial_impcache.cache.entries);
 
-   allocator = _mulle_objc_universe_get_allocator( universe);
    if( _mulle_objc_impcachepivot_swap( cachepivot, icache, old_cache, allocator))
    {
       if( universe->debug.trace.method_cache)
          mulle_objc_universe_trace( universe,
-                                    "punted tmp cache %p as a new one is available",
+                                    "punted tmp method cache %p as a new one is available",
                                     icache);
 
       return( NULL);
@@ -491,8 +463,8 @@ struct _mulle_objc_cacheentry *
 
    assert( cachepivot);
 
-   universe   = _mulle_objc_class_get_universe( cls);
-   fillrate   = _mulle_objc_universe_get_cache_fillrate( universe);
+   universe = _mulle_objc_class_get_universe( cls);
+   fillrate = _mulle_objc_universe_get_cache_fillrate( universe);
 
    //
    // try to get most up to date value
@@ -504,9 +476,9 @@ struct _mulle_objc_cacheentry *
       if( _mulle_objc_cache_should_grow( cache, fillrate))
       {
          entry = _mulle_objc_class_convenient_swap_impcache( cls,
-                                                                imp,
-                                                                uniqueid,
-                                                                MULLE_OBJC_CACHESIZE_GROW);
+                                                             imp,
+                                                             uniqueid,
+                                                             MULLE_OBJC_CACHESIZE_GROW);
       }
       else
       {
@@ -607,7 +579,7 @@ int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
    if( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE))
       return( 0);
 
-   cache = _mulle_objc_class_get_impcache_cache( cls);
+   cache = _mulle_objc_class_get_impcache_cache_atomic( cls);
    if( ! _mulle_atomic_pointer_read( &cache->n))
       return( 0);
 
@@ -628,12 +600,10 @@ int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
    // someone else recreated the cache, fine by us!
    //
    _mulle_objc_class_convenient_swap_impcache( cls,
-                                                  NULL,
-                                                  MULLE_OBJC_NO_METHODID,
-                                                  MULLE_OBJC_CACHESIZE_STAGNATE);
+                                               NULL,
+                                               MULLE_OBJC_NO_METHODID,
+                                               MULLE_OBJC_CACHESIZE_STAGNATE);
 
    return( 0x1);
 }
-
-
 

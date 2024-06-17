@@ -1,0 +1,38 @@
+A -> +[A initialize]
+A -> +[A nop]
+
+B -> +[B initialize]
+B -> +[B nop]
+
+E -> +[E initialize]
+E -> +[C initialize]
+E -> +[D initialize]
+E -> +[E nop]
+
+F -> +[F initialize]
+F -> +[C initialize]
+F -> +[D initialize]
+F -> +[F nop]
+
+G -> +[A initialize]
+G -> +[G nop]
+
+H -> +[A initialize]
+H -> +[H initialize]
+H -> +[H nop]
+
+K -> +[K initialize]
+K -> +[I initialize]
+L -> +[L initialize]
+K -> +[I initialize]
+L -> +[C initialize]
+L -> +[D initialize]
+L -> +[L nop]
+
+M -> +[M initialize]
+K -> +[I initialize]
+L -> +[C initialize]
+L -> +[D initialize]
+M -> +[I initialize]
+M -> +[M nop]
+

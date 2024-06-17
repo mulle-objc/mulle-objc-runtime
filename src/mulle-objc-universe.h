@@ -1157,7 +1157,7 @@ static inline void *
 MULLE_C_NONNULL_FIRST
 static inline void
    _mulle_objc_thread_set_threadobject( struct _mulle_objc_universe *universe,
-                                       void *threadobject)
+                                        void *threadobject)
 {
    struct _mulle_objc_threadinfo   *config;
 

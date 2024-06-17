@@ -42,6 +42,7 @@
 struct _mulle_objc_class;
 struct _mulle_objc_impcache;
 struct _mulle_objc_infraclass;
+struct _mulle_objc_impcache_callback;
 
 //
 // You are likely better off using [self self] to force unlazing a
@@ -55,12 +56,11 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cls);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_impcache_init_initial_callbacks( struct _mulle_objc_impcache *p);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_impcache_init_empty_callbacks( struct _mulle_objc_impcache *p);
-
-MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra);
+
+// returns 0 if cache was already set up by someone else
+MULLE_OBJC_RUNTIME_GLOBAL
+int    _mulle_objc_class_setup_initial_cache_if_needed( struct _mulle_objc_class *cls,
+                                                        struct _mulle_objc_impcache_callback *callback);
 
 #endif

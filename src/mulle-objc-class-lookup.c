@@ -110,7 +110,7 @@ static inline
       if( mode & mulle_objc_class_lookup_lazyforward)
          method = _mulle_objc_class_lazyget_forwardmethod( cls, &error);
       if( ! method && (mode & mulle_objc_class_lookup_nofail))
-         _mulle_objc_class_fail_fowardmethodnotfound( cls, methodid, error);
+         _mulle_objc_class_fail_forwardmethodnotfound( cls, methodid, error);
    }
 
    if( ! method)
@@ -209,8 +209,6 @@ struct _mulle_objc_method *
    _mulle_objc_class_fill_impcache_method( cls, NULL, method, methodid);
    return( method);
 }
-
-
 
 
 mulle_objc_implementation_t

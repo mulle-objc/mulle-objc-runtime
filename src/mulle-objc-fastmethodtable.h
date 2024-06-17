@@ -75,11 +75,10 @@ static inline void   _mulle_objc_fastmethodtable_done(  struct _mulle_objc_fastm
 
 
 //
-// 8 basic functions are predefined, it's not that these need
+// 6 basic functions are predefined, it's not that these need
 // to be very speedy, but being fastmethods, they also reduce the generated
 // code-size a lot for the inlineable code and the compiler generated code.
-// On the flipside, many of these will go away in -O3 optimization, wasting
-// space. (e.g. retain/release)
+// Retain/release will be done inline so don't do it here.
 //
 // TODO: reexamine in real-life usage later on.
 //
@@ -93,16 +92,14 @@ static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t 
    case MULLE_OBJC_FINALIZE_METHODID    : return( 2);
    case MULLE_OBJC_DEALLOC_METHODID     : return( 3);  // in AAO mode noone can call dealloc
    case MULLE_OBJC_OBJECT_METHODID      : return( 4);  // alloc + autorelease
-   case MULLE_OBJC_RETAIN_METHODID      : return( 5);  // for compiler
-   case MULLE_OBJC_RELEASE_METHODID     : return( 6);  // for compiler
-   case MULLE_OBJC_AUTORELEASE_METHODID : return( 7);  // for compiler
+   case MULLE_OBJC_AUTORELEASE_METHODID : return( 5);  // for compiler
 
-//#ifdef MULLE_OBJC_FASTMETHODHASH_6
-//   case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_6 ) : return( 6);
-//#endif
-//#ifdef MULLE_OBJC_FASTMETHODHASH_7
-//   case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_7 ) : return( 7);
-//#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_6
+   case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_6 ) : return( 6);
+#endif
+#ifdef MULLE_OBJC_FASTMETHODHASH_7
+   case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_7 ) : return( 7);
+#endif
 #ifdef MULLE_OBJC_FASTMETHODHASH_8
    case MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_8 ) : return( 8);
 #endif

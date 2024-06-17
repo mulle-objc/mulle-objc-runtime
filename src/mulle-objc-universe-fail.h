@@ -99,6 +99,13 @@ MULLE_C_NO_RETURN void
                                             struct _mulle_objc_class *class,
                                             mulle_objc_methodid_t methodid);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NO_RETURN void
+   mulle_objc_universe_fail_wrongthread( struct _mulle_objc_universe *universe,
+                                         struct _mulle_objc_object *obj,
+                                         mulle_thread_t affinity_thread,
+                                         struct _mulle_objc_descriptor *desc);
+
 static inline
 MULLE_C_NO_RETURN
 void

@@ -48,6 +48,9 @@
 #include <assert.h>
 
 
+// I think SLOW release can die now, since we fixed -retain/-release debugging
+// at least for -O0
+
 #define MULLE_OBJC_SLOW_RELEASE   INTPTR_MAX
 #define MULLE_OBJC_NEVER_RELEASE  (INTPTR_MAX-1)
 // if an inline rc count manages to pass MULLE_OBJC_INLINE_RELEASE and hit
@@ -69,6 +72,7 @@
 // like f.e.
 // { MULLE_OBJC_NEVER_RELEASE, @selector( NSConstantString), "VfL Bochum 1848" };
 //
+
 
 
 
@@ -174,7 +178,8 @@ static inline int   _mulle_objc_object_decrement_retaincount_waszero( void *obj)
    return( 0);
 }
 
-
+// Do not use in user code (also MulleObjC is meant)
+//
 // IDEA: make MULLE_OBJC_NEVER_RELEASE call some class callback, this class
 //       callback could then possibly call -release. This would be nice for
 //       classes that need to interpose -release
@@ -191,6 +196,7 @@ static inline void   _mulle_objc_object_release_inline( void *obj)
 }
 
 
+// Do not use in user code.
 //
 // IDEA: on transition from 0 -> 1 could "seal" an instance, as this
 //       indicates setup is over. So all modifications except retain
@@ -277,41 +283,8 @@ static inline int   _mulle_objc_object_is_constant( void *obj)
 }
 
 
-# pragma mark - API, compiler uses this code too
-
-// must be void *, for compiler
-static inline void   *mulle_objc_object_retain_inline( void *obj)
-{
-   if( obj)
-      _mulle_objc_object_retain_inline( obj);
-   return( obj);
-}
-
-
-static inline void   mulle_objc_object_release_inline( void *obj)
-{
-   if( ! obj)
-      return;
-   _mulle_objc_object_release_inline( obj);
-}
-
-
-// must be void *, for compiler
-MULLE_OBJC_RUNTIME_GLOBAL
-void   *mulle_objc_object_retain( void *obj);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_object_release( void *obj);
-
-//
-// does _mulle_objc_object_release_inline but with two parameteres
-// like mulle-allocator->free
-//
-MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_object_release2( void *obj, void *unused);
 
 # pragma mark - API
-
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_objects_retain( void **objects, size_t n);
@@ -354,5 +327,140 @@ static inline void   mulle_objc_objects_releaseandzero( void **objects, size_t n
    }
    _mulle_objc_objects_releaseandzero( objects, n);
 }
+
+
+
+#pragma mark - call to Objective-C  support
+
+
+MULLE_C_NONNULL_FIRST
+static inline void   _mulle_objc_object_call_finalize( void *obj)
+{
+   mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_FINALIZE_METHODID, obj);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void   _mulle_objc_object_call_dealloc( void *obj)
+{
+   mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_DEALLOC_METHODID, obj);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void   _mulle_objc_object_call_release( void *obj)
+{
+#if __OPTIMIZE__
+   _mulle_objc_object_release_inline( obj);
+#else
+   mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_RELEASE_METHODID, obj);
+#endif
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline void   *_mulle_objc_object_call_retain( void *obj)
+{
+#if __OPTIMIZE__
+   _mulle_objc_object_retain_inline( obj);
+#else
+   obj = mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_RETAIN_METHODID, obj);
+#endif
+   return( obj);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline uintptr_t   _mulle_objc_object_call_retaincount( void *obj)
+{
+   void   *rval;
+
+   rval = mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_RETAINCOUNT_METHODID, obj);
+   return( (uintptr_t) rval);
+}
+
+
+# pragma mark - more API
+
+// [self finalize]
+static inline void   mulle_objc_object_call_finalize( void *obj)
+{
+   if( obj)
+      _mulle_objc_object_call_finalize( obj);
+}
+
+
+// [self dealloc]
+static inline void   mulle_objc_object_call_dealloc( void *obj)
+{
+   if( obj)
+      _mulle_objc_object_call_dealloc( obj);
+}
+
+
+static inline void   mulle_objc_object_call_release( void *obj)
+{
+   if( obj)
+      _mulle_objc_object_call_release( obj);
+}
+
+
+static inline void *   mulle_objc_object_call_retain( void *obj)
+{
+   return( obj ? _mulle_objc_object_call_retain( obj) : 0);
+}
+
+
+static inline uintptr_t   mulle_objc_object_call_retaincount( void *obj)
+{
+   return( obj ? _mulle_objc_object_call_retaincount( obj) : 0);
+}
+
+
+
+//
+// avoid using these functions in your code, this will make debugging
+// just harder and with anything above -O0 this will be used anyway
+//
+# pragma mark - Compiler API uses this code
+
+// must be void *, for compiler
+static inline void   *mulle_objc_object_retain_inline( void *obj)
+{
+   if( obj)
+      _mulle_objc_object_retain_inline( obj);
+   return( obj);
+}
+
+
+static inline void   mulle_objc_object_release_inline( void *obj)
+{
+   if( ! obj)
+      return;
+   _mulle_objc_object_release_inline( obj);
+}
+
+
+# pragma mark - mulle-allocator support (?)
+
+//
+// does _mulle_objc_object_release_inline but with two parameters
+// like mulle-allocator->free
+//
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+void   mulle_objc_object_release2( void *obj, void *unused);
+
+
+// use this for hand written method methodlists of -retain only
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+void   *_mulle_objc_object_retain( void *obj, mulle_objc_methodid_t sel, void *param);
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+// use this for hand written method methodlists of -release only
+void   *_mulle_objc_object_release( void *obj, mulle_objc_methodid_t sel, void *param);
 
 #endif
