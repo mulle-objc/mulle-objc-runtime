@@ -72,10 +72,10 @@ int   main( int argc, const char * argv[])
 
    for( sign = 0; sign <= 1; sign++)
    {
-     for( exponent_i = 0; exponent_i < sizeof( exponents) / sizeof( int); exponent_i++)
+     for( exponent_i = 0; exponent_i < sizeof( exponents) / sizeof( exponents[ 0]); exponent_i++)
      {
         exponent = exponents[ exponent_i];
-        for( mantissa_i = 0; mantissa_i < sizeof( mantissas) / sizeof( int); mantissa_i++)
+        for( mantissa_i = 0; mantissa_i < sizeof( mantissas) / sizeof( mantissas[ 0]); mantissa_i++)
         {
             mantissa = mantissas[ mantissa_i];
 
@@ -86,7 +86,9 @@ int   main( int argc, const char * argv[])
             before = c.f;
 
             is_tp = mulle_objc_taggedpointer_is_valid_float_value( c.f);
-            mulle_printf( "%08lx (%g) -> %s",
+            mulle_printf( "%d,%ld=%08lx (%g) -> %s",
+                          exponent_i, 
+                          (long) mantissa_i,
                           (unsigned long) c.v,
                           c.f,
                           is_tp ? "TPS" : "NO ");

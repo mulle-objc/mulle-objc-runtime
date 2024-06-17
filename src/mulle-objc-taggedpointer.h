@@ -152,82 +152,6 @@ static inline intptr_t   mulle_objc_taggedpointer_get_signed_value( void *pointe
 }
 
 
-// ###
-// # float
-// ###
-
-static inline int   mulle_objc_taggedpointer_is_valid_float_value( float value)
-{
-   union
-   {
-      uint32_t   bits;
-      float      value;
-   } c;
-
-   assert( sizeof( float) == sizeof( uint32_t));
-
-   // in 64 bit we can do all floats ez
-   if( sizeof( uintptr_t) == sizeof( uint64_t))
-      return( 1);
-
-   c.value = value;
-   c.bits  = (c.bits << 3) | (c.bits >> (32 - 3));
-   return( (c.bits & 0x3) == 0x2);
-}
-
-
-static inline void   *mulle_objc_create_float_taggedpointer( float f, unsigned int index)
-{
-   union
-   {
-      uint32_t   bits;
-      float      value;
-   } c;
-
-   assert( index > 0 && index <= mulle_objc_get_taggedpointer_mask());
-
-   c.value = f;
-   if( sizeof( uintptr_t) == sizeof( uint32_t))
-   {
-      c.bits  = (c.bits << 3) | (c.bits >> (32 - 3));
-      assert( (c.bits & 0x3) == 0x2);
-      return( (void *) (uintptr_t) (c.bits & ~0x3 | index));
-   }
-   return( (void *) (uintptr_t) (((uint64_t) c.bits << 3) | index));
-}
-
-
-//MULLE_C_ALWAYS_INLINE // removed for debugging
-MULLE_C_CONST_RETURN
-static inline float   mulle_objc_taggedpointer_get_float_value( void *pointer)
-{
-   union
-   {
-      uint32_t   bits;
-      float      value;
-   } c;
-
-   assert( sizeof( float) == sizeof( uint32_t));
-
-   if( sizeof( uintptr_t) == sizeof( uint32_t))
-   {
-      // |eeeeemmm|mmmmmmmm|mmmmmmmm|mmmmms11|  our representation
-      // |s00eeeee|emmmmmmm|mmmmmmmm|mmmmmmmm|  IEEE754 representation
-      //
-      c.bits  = (uint32_t) (uintptr_t) pointer;
-      assert( c.bits & mulle_objc_get_taggedpointer_mask());
-      c.bits &= ~ (uint32_t) 0x3;  // mask off lower bits
-      c.bits |= (uint32_t) 0x2;  // restore bit pattern
-      c.bits  = (c.bits >> 3) | c.bits << (32 - 3); // rotate back
-      return( c.value);
-   }
-   // s00|eeeee|emmmmmmm|mmmmmmmm|mmmmmmmm011| our representation
-   //    |s00eeeee|emmmmmmm|mmmmmmmm|mmmmmmmm| IEEE754 representation
-   assert( (uintptr_t) pointer & mulle_objc_get_taggedpointer_mask());
-   c.bits = (uint32_t) ((uintptr_t) pointer >> 3);
-   return( c.value);
-}
-
 
 // ###
 // # double
@@ -245,11 +169,12 @@ static inline int   mulle_objc_taggedpointer_is_valid_double_value( double value
    if( sizeof( uintptr_t) != sizeof( uint64_t))
       return( 0);
 
-   c.value = value;
-   c.bits  = (c.bits << 4) | (c.bits >> (64 - 4));
-
-   return( (c.bits & 0x7) == 0x4);
+   c.value  = value;
+   c.bits  >>= 52 + 7;  // get exponent bits down
+   c.bits   &= 0xF;
+   return( c.bits == 0x8 || c.bits == 0x7);
 }
+
 
 
 MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
@@ -266,12 +191,23 @@ static inline void   *mulle_objc_create_double_taggedpointer( double d, unsigned
    assert( sizeof( uint64_t) == sizeof( double));
 
    c.value = d;
-   c.bits  = (c.bits << 4) | (c.bits >> (64 - 4));
-   assert( (c.bits & 0x7) == 0x4);
+   c.bits  = (c.bits << 5) | (c.bits >> (64 - 5));
    return( (void *) (uintptr_t) (c.bits & ~ (uint64_t) 0x7 | index));
 }
 
 
+#if 0
+// on x86_64 the constants make this larger (0x26):
+// mulle_objc_taggedpointer_get_double_value(void*):
+//  mov    rax,rdi
+//  and    rax,0xfffffffffffffff8
+//  mov    rcx,rdi
+//  or     rcx,0xe
+//  test   dil,0x4
+//  cmovne rcx,rax
+//  rol    rcx,0x3b
+//  movq   xmm0,rcx
+//  ret
 MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
 static inline double   mulle_objc_taggedpointer_get_double_value( void *pointer)
 {
@@ -284,11 +220,158 @@ static inline double   mulle_objc_taggedpointer_get_double_value( void *pointer)
    assert( sizeof( double) == sizeof( uintptr_t));
    assert( sizeof( uintptr_t) == sizeof( uint64_t));
 
+
    c.bits  = (uintptr_t) pointer;
    assert( c.bits & mulle_objc_get_taggedpointer_mask());
-   c.bits &= ~ (uintptr_t) 0x7; // mask off lower bits
-   c.bits |= (uintptr_t) 0x4;  // restore bit pattern
-   c.bits  = (c.bits >> 4) | (c.bits << (64 - 4)); // rotate back
+
+   // |eeeeeeem|mmmmmmmm|...|mmmmmmmm|mmmsxttt|
+   c.bits >>= 3;                // shift three two bits into nothing
+                                // upper three become zero (done if x==1)
+   // |000eeeee|eemmmmmm|...|mmmmmmmm|mmmmmmsx|
+   if( ! (c.bits & 0x1))
+   {
+      c.bits |= 0xE000000000000000LL;
+   // |111eeeee|eemmmmmm|...|mmmmmmmm|mmmmmms0|
+   }
+   c.bits  = (c.bits >> 2) | c.bits << (64 - 2); // rotate back
+   // |sxyyyeee|eeeemmmm|...|mmmmmmmm|mmmmmmmm|
+   return( c.value);
+}
+#endif
+
+//
+// on x86_64 this "godbolts" into smaller (0x1F) and better looking code.
+// Also better on ARM it seems...
+//
+// mulle_objc_taggedpointer_get_double_value(void*):
+// mov    rdx,rdi
+// mov    rax,rdi
+// or     rdx,0x7
+// and    rax,0xfffffffffffffff8
+// and    edi,0x8
+// cmove  rax,rdx
+// ror    rax,0x5
+// movq   xmm0,rax
+// ret
+//
+MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
+static inline double   mulle_objc_taggedpointer_get_double_value( void *pointer)
+{
+   union
+   {
+      uint64_t   bits;
+      double     value;
+   } c;
+
+
+   c.bits  = (uintptr_t) pointer;
+
+   // |eeeeeeem|mmmmmmmm|...|mmmmmmmm|mmmsxttt|
+
+   if( ! (c.bits & 0x8))
+   {
+      c.bits |= 0x7LL;
+   // |eeeeeeem|mmmmmmmm|...|mmmmmmmm|mmms0111|
+   }
+   else
+   {
+      c.bits &= ~0x7LL;
+      // |eeeeeeem|mmmmmmmm|...|mmmmmmmm|mmms1000|
+   }
+
+   c.bits  = (c.bits >> 5) | c.bits << (64 - 5); // rotate back
+   // |sxyyyeee|eeeemmmm|...|mmmmmmmm|mmmmmmmm|
+   return( c.value);
+}
+
+
+
+// ###
+// # float
+// # In 32 bit, this scheme should cover a lot of the range
+// # 7.567e-10 - 6.97932e+09, which I would
+// # assume is the majority of all real life float values
+// ###
+
+static inline int   mulle_objc_taggedpointer_is_valid_float_value( float value)
+{
+   union
+   {
+      uint32_t   bits;
+      float      value;
+   } c;
+
+   assert( sizeof( float) == sizeof( uint32_t));
+
+   // in 64 bit we can do all floats ez
+   if( sizeof( uintptr_t) == sizeof( uint64_t))
+      return( 1);
+
+   c.value  = value;
+   c.bits  >>= 23 + 5;  // get exponent bits down
+   c.bits   &= 0x7;
+   return( c.bits == 0x4 || c.bits == 0x3);
+}
+
+
+static inline void   *mulle_objc_create_float_taggedpointer( float f, unsigned int index)
+{
+   union
+   {
+      uint32_t   bits;
+      float      value;
+   } c;
+
+   assert( index > 0 && index <= mulle_objc_get_taggedpointer_mask());
+
+   c.value = f;
+   if( sizeof( uintptr_t) == sizeof( uint32_t))
+   {
+      c.bits  = (c.bits << 4) | (c.bits >> (32 - 4));
+      return( (void *) (uintptr_t) (c.bits & ~0x3 | index));
+   }
+
+   return( (void *) (uintptr_t) (((uint64_t) c.bits << 3) | index));
+}
+
+
+MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
+static inline float   mulle_objc_taggedpointer_get_float_value( void *pointer)
+{
+   union
+   {
+      uint32_t   bits;
+      float      value;
+   } c;
+
+   assert( sizeof( float) == sizeof( uint32_t));
+
+   if( sizeof( uintptr_t) == sizeof( uint32_t))
+   {
+      c.bits  = (uint32_t) (uintptr_t) pointer;
+
+      // |eeeeemmm|mmmmmmmm|mmmmmmmm|mmmmsxtt|
+
+      if( ! (c.bits & 0x4))
+      {
+         c.bits |= 0x3UL;
+         // |eeeeemmm|mmmmmmmm|mmmmmmmm|mmmms011|
+      }
+      else
+      {
+         c.bits &= ~0x3UL;
+         // |eeeeemmm|mmmmmmmm|mmmmmmmm|mmmms100|
+      }
+
+      c.bits  = (c.bits >> 4) | c.bits << (32 - 4); // rotate back
+      // |sxyyeeee|emmmmmmm|mmmmmmmm|mmmmmmmm|
+      return( c.value);
+   }
+
+   // see|eeeee|emmmmmmm|mmmmmmmm|mmmmmmmmiii| our representation
+   //    |seeeeeee|emmmmmmm|mmmmmmmm|mmmmmmmm| IEEE754 representation
+   assert( (uintptr_t) pointer & mulle_objc_get_taggedpointer_mask());
+   c.bits = (uint32_t) ((uintptr_t) pointer >> 3);
    return( c.value);
 }
 

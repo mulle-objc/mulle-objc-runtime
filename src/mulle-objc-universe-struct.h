@@ -136,6 +136,7 @@ struct _mulle_objc_universedebug
       unsigned   instance             : 2;  // 1: all 2: skip boring
       unsigned   hashstrings          : 1;
       unsigned   loadinfo             : 1;
+      unsigned   method_add           : 1;
       unsigned   method_cache         : 1;
       unsigned   descriptor_add       : 1;
       unsigned   protocol_add         : 1;
@@ -183,7 +184,8 @@ struct _mulle_objc_universeexceptionvectors
 
 
 //
-// Failures of the universe itself are vectored though here
+// Failures of the universe itself are vectored though here. Also some
+// mulle-objc-runtime checks (like TAO) will vector through here.
 //
 struct _mulle_objc_universefailures
 {
@@ -194,14 +196,17 @@ struct _mulle_objc_universefailures
    void   (*inconsistency)( char *format, va_list args)  _MULLE_C_NO_RETURN;
    // class not found -> abort
    void   (*classnotfound)( struct _mulle_objc_universe *universe,
-                            mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
+                            mulle_objc_classid_t missing_classid)  _MULLE_C_NO_RETURN;
    // method not found -> abort
    void   (*methodnotfound)( struct _mulle_objc_universe *universe,
                              struct _mulle_objc_class *cls,
-                             mulle_objc_methodid_t missing_method)  _MULLE_C_NO_RETURN;
+                             mulle_objc_methodid_t missing_methodid)  _MULLE_C_NO_RETURN;
    // super not found -> abort
    void   (*supernotfound)( struct _mulle_objc_universe *universe,
-                            mulle_objc_superid_t missing_super)  _MULLE_C_NO_RETURN;
+                            mulle_objc_superid_t missing_superid)  _MULLE_C_NO_RETURN;
+   void   (*wrongthread)( struct _mulle_objc_object *obj,
+                          mulle_thread_t affinity_thread,
+                          struct _mulle_objc_descriptor *desc)  _MULLE_C_NO_RETURN;
 };
 
 
@@ -298,9 +303,11 @@ struct _mulle_objc_universefriend
 typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_universe *,
                                                 struct _mulle_objc_loadinfo *);
 
+
 struct _mulle_objc_foundation
 {
    struct _mulle_objc_universefriend    universefriend;
+   void                                 *(*retain_autorelease)( void *); // does -retain/-autorelease
    struct _mulle_objc_infraclass        *staticstringclass;
    struct mulle_allocator               *allocator;       // allocator for objects, must not be NULL
    size_t                               headerextrasize;  // usually 0, will be copied into each class
@@ -433,10 +440,10 @@ struct _mulle_objc_universe
    struct _mulle_objc_universeconfig        config;
    struct _mulle_objc_universedebug         debug;
 
-   // this struct isn't all zeroes! it has some callbacks which are
+   // these structs aren't all zeroes! they have some callbacks which are
    // initialized
-   struct _mulle_objc_impcache        empty_impcache;
-   struct _mulle_objc_impcache        initial_impcache;
+   struct _mulle_objc_impcache              empty_impcache;
+   struct _mulle_objc_impcache              initial_impcache;
 
    // It's all zeroes, so save some space with a union.
    // it would be "nicer" to have these in a const global
@@ -445,12 +452,12 @@ struct _mulle_objc_universe
    //
    union
    {
-      struct _mulle_objc_cache           empty_cache;
-      struct _mulle_objc_ivarlist        empty_ivarlist;
-      struct _mulle_objc_methodlist      empty_methodlist;
-      struct _mulle_objc_propertylist    empty_propertylist;
-      struct _mulle_objc_superlist       empty_superlist;
-      struct _mulle_objc_uniqueidarray   empty_uniqueidarray;
+      struct _mulle_objc_cache              empty_cache;
+      struct _mulle_objc_ivarlist           empty_ivarlist;
+      struct _mulle_objc_methodlist         empty_methodlist;
+      struct _mulle_objc_propertylist       empty_propertylist;
+      struct _mulle_objc_superlist          empty_superlist;
+      struct _mulle_objc_uniqueidarray      empty_uniqueidarray;
    };
 
    //

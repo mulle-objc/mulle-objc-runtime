@@ -106,7 +106,7 @@ struct _mulle_objc_cache
 
 
 // incoming cache must have been zero filled already
-static inline void   mulle_objc_cache_init( struct _mulle_objc_cache *cache,
+static inline void   _mulle_objc_cache_init( struct _mulle_objc_cache *cache,
                                             mulle_objc_cache_uint_t size)
 {
    assert( ! (sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1)));

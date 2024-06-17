@@ -66,10 +66,18 @@ enum
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES = 0x08,
    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META       = 0x10,
    MULLE_OBJC_CLASS_DONT_INHERIT_CLASS               = 0x20,
-   // this is a special flag set on searches only and not on the class itself
+
+   //
+   // These are special flags set on searches only and not on the class itself
    // it means, keep the inheritance value for superclass searches and don't
-   // take it from the superclass
-   MULLE_OBJC_CLASS_DONT_INHERIT_INHERITANCE         = 0x40
+   // take it from the superclass.
+   //
+   // | function inheritance |  superclass->inheritance | result
+   // |----------------------|--------------------------|----------------
+   // |     n | 0x80         |        m                 | n | 0x80
+   // |     n & ~0x80        |        m                 | m
+   //
+   MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE = 0x40
 };
 
 
@@ -152,10 +160,11 @@ struct _mulle_objc_class
    uint16_t                                extensionoffset;  // 4 later #1#
 
    struct _mulle_objc_method               *forwardmethod;
+   void                                    (*invalidate_caches)( struct _mulle_objc_class *,
+                                                                 struct _mulle_objc_methodlist *);
 
    struct _mulle_objc_kvccachepivot        kvc;
    mulle_atomic_pointer_t                  state;
-
    void                                    *userinfo;       // a void pointer for userinfo
 
 #ifdef __MULLE_OBJC_FCS__

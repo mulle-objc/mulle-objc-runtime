@@ -17,7 +17,7 @@ static void   fprint_cache( FILE *fp, id foo)
    struct _mulle_objc_class        *cls;
 
    cls      = _mulle_objc_object_get_isa( foo);
-   cache    = _mulle_objc_class_get_impcache_cache( cls);
+   cache    = _mulle_objc_class_get_impcache_cache_atomic( cls);
 
    p        = cache->entries;
    sentinel = &p[ cache->size];
@@ -96,7 +96,7 @@ static void  print_cache_stats( Foo *foo)
    unsigned int              size;
 
    cls        = _mulle_objc_object_get_isa( foo);
-   cache      = _mulle_objc_class_get_impcache_cache( cls);
+   cache      = _mulle_objc_class_get_impcache_cache_atomic( cls);
 
    percentage = mulle_objc_cache_calculate_fillpercentage( cache);
 

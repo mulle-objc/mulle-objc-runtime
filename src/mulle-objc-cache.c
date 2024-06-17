@@ -67,7 +67,7 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
    cache    = _mulle_allocator_calloc( allocator, 1, s_cache);
    errno    = preserve;
 
-   mulle_objc_cache_init( cache, size);
+   _mulle_objc_cache_init( cache, size);
 
    return( cache);
 }
@@ -233,7 +233,7 @@ unsigned int   mulle_objc_cache_calculate_fillpercentage( struct _mulle_objc_cac
       return( 0);
 
    n = (intptr_t) _mulle_atomic_pointer_read( &cache->n);
-   return( (unsigned int)  (n * 100 + (cache->size / 2)) / cache->size);
+   return( (unsigned int) (n * 100 + (cache->size / 2)) / cache->size);
 }
 
 

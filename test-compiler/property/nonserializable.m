@@ -4,7 +4,8 @@
 
 @interface Bar
 
-@property( nonserializable) char b;
+@property( nonserializable) id b;
+@property( serializable) id c;
 
 @end
 
@@ -19,17 +20,27 @@
 @end
 
 
-int   main( void)
+static void   print_property( Class cls, 
+                              mulle_objc_propertyid_t propertyid)
 {
-   Class                         cls;
    struct _mulle_objc_property   *property;
 
-   cls      = [Bar class];
-   property = mulle_objc_infraclass_search_property( cls, @selector( b));
+   property = mulle_objc_infraclass_search_property( (struct _mulle_objc_infraclass *) cls, 
+                                                     propertyid);
    if( ! property)
-      return( -1);
+      exit( 1);
 
-   printf( "%x\n", _mulle_objc_property_get_bits( property));
-   printf( "%s\n", _mulle_objc_property_get_signature( property));
+   printf( "%s:", _mulle_objc_property_get_name( property));
+   printf( " %x ", _mulle_objc_property_get_bits( property));
+   printf( "\"%s\"\n", _mulle_objc_property_get_signature( property));
+}
+
+int   main( void)
+{
+   Class   cls;
+
+   cls = [Bar class];
+   print_property( cls, @selector( b));
+   print_property( cls, @selector( c));
    return( 0);
 }

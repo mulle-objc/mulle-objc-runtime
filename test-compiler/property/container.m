@@ -28,6 +28,18 @@
    printf( "%s\n", __FUNCTION__);
 }
 
+- (id) retain
+{
+   _mulle_objc_object_retain_inline( self);
+   return( self);
+}
+
+
+- (void) release
+{
+   _mulle_objc_object_release_inline( self);
+}
+
 @end
 
 

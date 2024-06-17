@@ -637,6 +637,9 @@ struct _mulle_objc_infraclass  *
    struct _mulle_objc_infraclass   *proto_cls;
 
    infra = _mulle_objc_protocolclassenumerator_get_infraclass( rover);
+   if( ! infra)
+      return( NULL);
+
    while( proto_cls = _mulle_concurrent_pointerarrayenumerator_next( &rover->list_rover))
       if( proto_cls != infra)  // don't recurse into self
          break;

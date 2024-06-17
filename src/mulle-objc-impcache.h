@@ -46,6 +46,58 @@
 struct _mulle_objc_class;
 struct _mulle_objc_universe;
 
+struct _mulle_objc_impcache_callback
+{
+   //
+   // standard call vector, its assumed you already did the relatively
+   // expensive isa(), so pass it as fourth parameter
+   //
+   void   *(*call)( void *, mulle_objc_methodid_t, void *, struct _mulle_objc_class *);
+
+   // continuation call, when the cache missed the first entry, we don't pass
+   // cls here to match IMP. Slight hope that placement as second entry is
+   // useful in machine code. Currently we do ? call_cache_collision : call_cache_miss
+   // but, check assembler code and maybe just use call_cache_collision as
+   // this is just a tad slower than call_cache_miss, due to the extra cache
+   // lookup.
+   //
+   void   *(*call_cache_collision)( void *, mulle_objc_methodid_t, void *);
+
+   // continuation call, when its known that the cache missed completely,
+   // we don't pass cls here to match IMP.
+   void   *(*call_cache_miss)( void *, mulle_objc_methodid_t, void *);
+
+   struct _mulle_objc_method   *(*refresh_method_nofail)( struct _mulle_objc_class *cls,
+                                                          mulle_objc_methodid_t methodid);
+
+   //
+   // TODO: for complete inlining code, it would be good to have call3
+   //       where the callback does not search through the cache again
+   //
+
+   // super calls
+   void   *(*supercall)( void *,
+                         mulle_objc_methodid_t,
+                         void *,
+                         mulle_objc_superid_t,
+                         struct _mulle_objc_class *);
+
+   void   *(*supercall_cache_collision)( void *,
+                                         mulle_objc_methodid_t,
+                                         void *,
+                                         mulle_objc_superid_t,
+                                         struct _mulle_objc_class *);
+
+   void   *(*supercall_cache_miss)( void *,
+                                    mulle_objc_methodid_t,
+                                    void *,
+                                    mulle_objc_superid_t,
+                                    struct _mulle_objc_class *);
+   struct _mulle_objc_method   *(*refresh_supermethod_nofail)( struct _mulle_objc_class *cls,
+                                                               mulle_objc_methodid_t methodid);
+   mulle_atomic_pointer_t      userinfo;   // used by MulleObjC
+};
+
 //
 // as we don't want to pollute other caches with this, have a separate
 // cache struct for methods. MEMO: the method cache is not like
@@ -56,30 +108,8 @@ struct _mulle_objc_universe;
 //
 struct _mulle_objc_impcache
 {
-   //
-   // standard call vector, its assumed you already did the relatively
-   // expensive isa(), so pass it as fourth parameter
-   //
-   void   *(*call)( void *, mulle_objc_methodid_t, void *, struct _mulle_objc_class *);
-
-   // continuation call, when the cache missed the first entry, we don't pass
-   // cls here to match IMP. Slight hope that placement as second entry is
-   // useful.
-   void   *(*call2)( void *, mulle_objc_methodid_t, void *);
-
-   //
-   // TODO: for complete inlining code, it would be good to have call3
-   //       where the callback does not search through the cache again
-   //
-
-   // super calls
-   void   *(*supercall)( void *, mulle_objc_methodid_t, void *,
-                         mulle_objc_superid_t, struct _mulle_objc_class *);
-
-   void   *(*supercall2)( void *, mulle_objc_methodid_t, void *,
-                          mulle_objc_superid_t, struct _mulle_objc_class *);
-
-   struct _mulle_objc_cache      cache;
+   struct _mulle_objc_impcache_callback      callback;
+   struct _mulle_objc_cache                  cache;
 };
 
 
@@ -88,15 +118,23 @@ struct _mulle_objc_impcache
 // the icache must have been properly allocated and zeroed before you call
 // this method (i.e. don't use it, use mulle_objc_impcache_new)
 //
-static inline void   mulle_objc_impcache_init( struct _mulle_objc_impcache *icache,
-                                               mulle_objc_cache_uint_t size)
+MULLE_C_NONNULL_FIRST_SECOND
+static inline void   _mulle_objc_impcache_callback_init( struct _mulle_objc_impcache_callback *p,
+                                                         struct _mulle_objc_impcache_callback *callback)
 {
-   MULLE_OBJC_RUNTIME_GLOBAL
-   void  _mulle_objc_impcache_init_normal_callbacks( struct _mulle_objc_impcache *p);
+   memcpy( p, callback, sizeof( *callback));
+}
 
-   mulle_objc_cache_init( &icache->cache, size);
 
-   _mulle_objc_impcache_init_normal_callbacks( icache);
+static inline void   _mulle_objc_impcache_init( struct _mulle_objc_impcache *icache,
+                                                struct _mulle_objc_impcache_callback *callback,
+                                                mulle_objc_cache_uint_t size)
+{
+   extern struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_normal;
+
+   _mulle_objc_cache_init( &icache->cache, size);
+   _mulle_objc_impcache_callback_init( &icache->callback,
+                                       callback ? callback : &_mulle_objc_impcache_callback_normal);
 }
 
 
@@ -104,6 +142,7 @@ static inline void   mulle_objc_impcache_init( struct _mulle_objc_impcache *icac
 // these functions don't return errno, though they allocate
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_impcache   *mulle_objc_impcache_new( mulle_objc_cache_uint_t size,
+                                                        struct _mulle_objc_impcache_callback *callback,
                                                         struct mulle_allocator *allocator);
 
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -123,6 +162,15 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_impcache  *
 }
 
 
+MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_cache *
+    _mulle_objc_impcache_get_cache( struct _mulle_objc_impcache *icache)
+{
+   return( &icache->cache);
+}
+
+
+
 //
 // the order of these structure elements is architecture dependent
 // the trick is, that the mask is "behind" the buckets in malloced
@@ -137,14 +185,31 @@ struct _mulle_objc_impcachepivot
 };
 
 
+
+MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_cacheentry  *
+   _mulle_objc_impcachepivot_get_entries_atomic( struct _mulle_objc_impcachepivot *cachepivot)
+{
+   struct _mulle_objc_cacheentry   *entries;
+
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cachepivot->pivot);
+   return( entries);
+}
+
+
+//
+// MEMO: get/set methods that are accessing an atomic variable and doing
+//       nothing else (except some arithmetic) are also adorned with the
+//       atomic suffix
+//
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_cache  *
-   _mulle_objc_impcachepivot_get_impcache_cache( struct _mulle_objc_impcachepivot *cachepivot)
+   _mulle_objc_impcachepivot_get_impcache_cache_atomic( struct _mulle_objc_impcachepivot *cachepivot)
 {
    struct _mulle_objc_cacheentry     *entries;
    struct _mulle_objc_cache          *cache;
 
-   entries = _mulle_objc_cachepivot_get_entries_atomic( &cachepivot->pivot);
+   entries = _mulle_objc_impcachepivot_get_entries_atomic( cachepivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    return( cache);
 }
@@ -152,14 +217,33 @@ static inline struct _mulle_objc_cache  *
 
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_impcache  *
-   _mulle_objc_impcachepivot_get_impcache( struct _mulle_objc_impcachepivot *cachepivot)
+   _mulle_objc_impcachepivot_get_impcache_atomic( struct _mulle_objc_impcachepivot *cachepivot)
 {
    struct _mulle_objc_cache      *cache;
    struct _mulle_objc_impcache   *impcache;
 
-   cache    = _mulle_objc_impcachepivot_get_impcache_cache( cachepivot);
+   cache    = _mulle_objc_impcachepivot_get_impcache_cache_atomic( cachepivot);
    impcache = _mulle_objc_cache_get_impcache_from_cache( cache);
    return( impcache);
+}
+
+
+MULLE_C_ALWAYS_INLINE
+static inline struct _mulle_objc_cacheentry *
+    _mulle_objc_impcachepivot_fill_functionpointer( struct _mulle_objc_impcachepivot *cachepivot,
+                                                    mulle_functionpointer_t imp,
+                                                    mulle_objc_uniqueid_t uniqueid,
+                                                    unsigned int fillrate,
+                                                    struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_cacheentry   *entries;
+
+   entries = _mulle_objc_cachepivot_fill_functionpointer( &cachepivot->pivot,
+                                                          imp,
+                                                          uniqueid,
+                                                          fillrate,
+                                                          allocator);
+   return( entries);
 }
 
 
@@ -183,8 +267,8 @@ struct _mulle_objc_cacheentry *
 //
 // this method does not use any callbacks and loops, so its fairly hefty
 //
-MULLE_C_ALWAYS_INLINE static inline 
-mulle_objc_implementation_t
+MULLE_C_ALWAYS_INLINE
+static inline mulle_objc_implementation_t
    _mulle_objc_impcachepivot_probe_inline( struct _mulle_objc_impcachepivot *cachepivot,
                                            mulle_objc_uniqueid_t uniqueid)
 {
@@ -220,15 +304,13 @@ mulle_objc_implementation_t
 
 
 MULLE_C_CONST_RETURN
-MULLE_C_NONNULL_RETURN
-MULLE_C_ALWAYS_INLINE static inline 
-mulle_objc_implementation_t
-   _mulle_objc_impcachepivot_lookup_inline( struct _mulle_objc_impcachepivot *cachepivot,
-                                            mulle_objc_uniqueid_t uniqueid)
+MULLE_C_ALWAYS_INLINE
+static inline  mulle_objc_implementation_t
+   _mulle_objc_impcachepivot_lookup_inline_full( struct _mulle_objc_impcachepivot *cachepivot,
+                                                 mulle_objc_uniqueid_t uniqueid)
 {
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_impcache      *icache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    mulle_objc_cache_uint_t          mask;
@@ -236,22 +318,27 @@ mulle_objc_implementation_t
 
    assert( mulle_objc_uniqueid_is_sane( uniqueid));
 
-   // MEMO: When inlining, we are "fine" if the cache is stale
    entries = _mulle_objc_cachepivot_get_entries_atomic( &cachepivot->pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+
    mask    = cache->mask;  // preshifted so we can just AND it to entries
-
-   offset  = (mulle_objc_cache_uint_t) uniqueid & mask;
-   entry   = (void *) &((char *) entries)[ offset];
-
-   if( MULLE_C_LIKELY( entry->key.uniqueid == uniqueid))
-      f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
-   else
+   offset  = (mulle_objc_cache_uint_t) uniqueid;
+   for(;;)
    {
-      icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-      f      = icache->call2;
+      offset  = (mulle_objc_cache_uint_t) offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+
+      if( MULLE_C_LIKELY( entry->key.uniqueid == uniqueid))
+      {
+         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
+         return( f);
+      }
+
+      if( ! entry->key.uniqueid)
+         return( 0);
+
+      offset += sizeof( struct _mulle_objc_cacheentry);
    }
-   return( f);
 }
 
 
@@ -262,6 +349,24 @@ struct _mulle_objc_cacheentry *
                                                 struct _mulle_objc_impcachepivot *cachepivot,
                                                 mulle_objc_implementation_t imp,
                                                 mulle_objc_uniqueid_t uniqueid);
+
+
+static inline struct _mulle_objc_impcache   *
+   _mulle_objc_impcache_grow_with_strategy( struct _mulle_objc_impcache  *old_cache,
+                                            enum mulle_objc_cachesizing_t strategy,
+                                            struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_impcache   *icache;
+   mulle_objc_cache_uint_t       new_size;
+
+   // a new beginning.. let it be filled anew
+   // could ask the universe here what to do as new size
+   // copy old possibly non-standard callbacks
+   new_size = _mulle_objc_cache_get_resize( &old_cache->cache, strategy);
+   icache   = mulle_objc_impcache_new( new_size, &old_cache->callback, allocator);
+
+   return( icache);
+}
 
 
 #endif

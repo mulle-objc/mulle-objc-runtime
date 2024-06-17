@@ -72,6 +72,6 @@ build-*
 coverage*.html
 *.gcda
 *.gcno
+/demo/
 cola/wilted/
-demo/
 *.executable

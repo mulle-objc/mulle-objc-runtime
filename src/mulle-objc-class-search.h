@@ -386,7 +386,7 @@ MULLE_C_NO_RETURN void
 
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NO_RETURN void
-   _mulle_objc_class_fail_fowardmethodnotfound( struct _mulle_objc_class *cls,
+   _mulle_objc_class_fail_forwardmethodnotfound( struct _mulle_objc_class *cls,
                                                 mulle_objc_methodid_t missing_method,
                                                 int error);
 
@@ -455,6 +455,10 @@ static inline mulle_objc_implementation_t
 
 
 # pragma mark - super search
+
+struct _mulle_objc_method *
+   _mulle_objc_class_supersearch_method( struct _mulle_objc_class *cls,
+                                         mulle_objc_superid_t superid);
 
 
 MULLE_C_NONNULL_RETURN

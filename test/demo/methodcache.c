@@ -62,28 +62,28 @@ static void  demo_class_print_cache( struct demo_class *cls, unsigned int index)
 
 static void   *imp0( void *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   printf( "%s\n", __FUNCTION__);
    return( self);
 }
 
 
 static void   *imp1( void *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   printf( "%s\n", __FUNCTION__);
    return( self);
 }
 
 
 static void   *imp2( void *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   printf( "%s\n", __FUNCTION__);
    return( self);
 }
 
 
 static void   *imp3( void *self, mulle_objc_methodid_t _cmd, void *_params)
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   printf( "%s\n", __FUNCTION__);
    return( self);
 }
 
@@ -152,11 +152,11 @@ struct _mulle_objc_universe  *
 
 int  main( int argc, char *argv[])
 {
-   struct demo_class                cls = { 0 };
+   struct demo_class                cls;
    unsigned int                     i;
    unsigned int                     j;
    unsigned int                     k;
-   struct _mulle_objc_impcache   *icache;
+   struct _mulle_objc_impcache      *icache;
    struct _mulle_objc_method        *method;
    struct mulle_allocator           *allocator;
    mulle_objc_implementation_t      imp;
@@ -164,34 +164,42 @@ int  main( int argc, char *argv[])
    // use this because the test allocator doesn't do abafree well , why ?
    allocator = &mulle_stdlib_allocator;
 
+   memset( &cls, 0, sizeof( cls));
    assert( allocator->abafree);
 
    for( i = 0; i < N_CACHES; i++)
    {
-      icache = mulle_objc_impcache_new( 4, allocator);
+      icache = mulle_objc_impcache_new( 4, NULL, allocator);
 
       // we don't have these callbacks
-      icache->call       = 0;
-      icache->call2      = 0;
-      icache->supercall  = 0;
-      icache->supercall2 = 0;
+      icache->callback.call                       = 0;
+      icache->callback.call_cache_collision       = 0;
+      icache->callback.call_cache_miss            = 0;
+      icache->callback.supercall                  = 0;
+      icache->callback.supercall_cache_miss       = 0;
+      icache->callback.supercall_cache_collision  = 0;
+      // hmmm probably not needed either
+
+      icache->callback.refresh_method_nofail      = 0; // _mulle_objc_class_refresh_method_nofail;
+      icache->callback.refresh_supermethod_nofail = 0; // _mulle_objc_class_refresh_supermethod_nofail;
+
 
       // MEMO: as the cache will grow, first two methods will be evicted
       //       again
       if( _mulle_objc_impcachepivot_swap( &cls.cachepivot[ i],
-                                             icache,
-                                             NULL,
-                                             allocator))
+                                          icache,
+                                          NULL,
+                                          allocator))
          abort();
 
       for( j = 0; j < N_METHODS; j++)
       {
          method = &methods[ j];
           _mulle_objc_impcachepivot_fill( &cls.cachepivot[ i],
-                                                           _mulle_objc_method_get_implementation( method),
-                                                           _mulle_objc_method_get_methodid( method),
-                                                           0,
-                                                           allocator);
+                                          _mulle_objc_method_get_implementation( method),
+                                          _mulle_objc_method_get_methodid( method),
+                                          0,
+                                          allocator);
       }
    }
 
@@ -227,11 +235,11 @@ retry:
    // get rid of it
    for( i = 0; i < N_CACHES; i++)
    {
-      icache = _mulle_objc_impcachepivot_get_impcache( &cls.cachepivot[ i]);
+      icache = _mulle_objc_impcachepivot_get_impcache_atomic( &cls.cachepivot[ i]);
       _mulle_objc_impcachepivot_swap( &cls.cachepivot[ i],
-                                         NULL,
-                                         icache,
-                                         allocator);
+                                      NULL,
+                                      icache,
+                                      allocator);
    }
 
    return( 0);

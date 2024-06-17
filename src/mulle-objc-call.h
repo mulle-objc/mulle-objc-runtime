@@ -212,7 +212,7 @@ static inline void  *
    entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
-   return( (*icache->call)( obj, methodid, parameter, cls));
+   return( (*icache->callback.call)( obj, methodid, parameter, cls));
 }
 
 
@@ -277,9 +277,9 @@ static inline void  *
    else
    {
       icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-      f      = icache->call2;
+      f      = icache->callback.call_cache_collision;
    }
-   // don't use invoke, because the checking will be done in icache->call2
+   // don't use invoke, because the checking will be done in icache->call_cache_collision
    return( (*f)( obj, methodid, parameter));
 }
 
@@ -300,9 +300,7 @@ static inline void  *
 //
 // same as above, but we don't stop at the first miss. This adds some looping
 // code to the inlined function, you might or might not deep acceptable. So
-// if we miss the cache, we got to call2, which checks the cache again. If
-// that ever becomes a problem we need to add a call3 (also for super), but
-// I don't see it)
+// if we miss the cache, we got to call_cache_miss.
 //
 MULLE_C_ALWAYS_INLINE
 static inline void  *
@@ -315,7 +313,7 @@ static inline void  *
 #endif
    mulle_objc_implementation_t      f;
    struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_impcache   *icache;
+   struct _mulle_objc_impcache      *icache;
    struct _mulle_objc_cacheentry    *entries;
    struct _mulle_objc_cacheentry    *entry;
    struct _mulle_objc_class         *cls;
@@ -358,12 +356,12 @@ static inline void  *
       if( ! entry->key.uniqueid)
       {
          icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-         f      = icache->call2;
+         f      = icache->callback.call_cache_miss;
          break;
       }
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
-   // don't use invoke, because the checking will be done in icache->call2
+   // don't use invoke, because the checking will be done in icache->call_cache_miss
    return( (*f)( obj, methodid, parameter));
 }
 
@@ -418,9 +416,11 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    else
    {
       icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-      f      = icache->call2;
+      f      = entry->key.uniqueid
+               ? icache->callback.call_cache_collision
+               : icache->callback.call_cache_miss;
    }
-   // don't use invoke, because the checking will be done in icache->call2
+   // don't use invoke, because the checking will be done in icache->call_cache_...
    return( (*f)( obj, methodid, parameter));
 }
 
@@ -470,12 +470,12 @@ MULLE_C_ALWAYS_INLINE static inline void  *
       if( ! entry->key.uniqueid)
       {
          icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-         f      = icache->call2;
+         f      = icache->callback.call_cache_miss;
          break;
       }
       offset += sizeof( struct _mulle_objc_cacheentry);
    }
-   // don't use invoke, because the checking will be done in icache->call2
+   // don't use invoke, because the checking will be done in icache->call_cache_miss
    return( (*f)( obj, methodid, parameter));
 }
 
@@ -525,7 +525,7 @@ static inline void   *
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
 
-   return( (*icache->supercall)( obj, methodid, parameter, superid, cls));
+   return( (*icache->callback.supercall)( obj, methodid, parameter, superid, cls));
 }
 
 
@@ -544,7 +544,11 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    struct _mulle_objc_class         *cls;
    mulle_objc_cache_uint_t          mask;
    mulle_objc_cache_uint_t          offset;
-
+   void                             *(*callback)( void *,
+                                                  mulle_objc_methodid_t,
+                                                  void *,
+                                                  mulle_objc_superid_t,
+                                                  struct _mulle_objc_class *);
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
 
@@ -566,11 +570,15 @@ MULLE_C_ALWAYS_INLINE static inline void  *
    if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
    {
       f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
-         // don't use invoke, because the checking will be done in icache->supercall2
+         // don't use invoke, because its in the cache
       return( (*f)( obj, methodid, parameter));
    }
-   icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-   return( (*icache->supercall2)( obj, methodid, parameter, superid, cls));
+
+   icache   = _mulle_objc_cache_get_impcache_from_cache( cache);
+   callback = entry->key.uniqueid
+              ? icache->callback.supercall_cache_collision
+              : icache->callback.supercall_cache_miss;
+   return( (*callback)( obj, methodid, parameter, superid, cls));
 }
 
 
@@ -602,7 +610,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
    entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
    cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;  // preshifted so we can just AND it to entries
+   mask    = cache->mask;  // pre-shifted so we can just AND it to entries
    offset  = (mulle_objc_cache_uint_t) superid;
    for(;;)
    {
@@ -612,14 +620,14 @@ MULLE_C_ALWAYS_INLINE static inline void  *
       if( MULLE_C_EXPECT( (entry->key.uniqueid == superid), 1))
       {
          f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
-         // don't use invoke, because the checking will be done in icache->supercall2
+         // don't use invoke, because its in the cache
          return( (*f)( obj, methodid, parameter));
       }
 
       if( ! entry->key.uniqueid)
       {
          icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-         return( (*icache->supercall2)( obj, methodid, parameter, superid, cls));
+         return( (*icache->callback.supercall_cache_miss)( obj, methodid, parameter, superid, cls));
       }
 
       offset += sizeof( struct _mulle_objc_cacheentry);
@@ -677,48 +685,6 @@ static inline void
       return;
 
    _mulle_objc_object_call_chained_forth( obj, methodid, parameter);
-}
-
-
-
-
-# pragma mark - special initial setup calls
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void  _mulle_objc_impcache_init_normal_callbacks( struct _mulle_objc_impcache *p);
-
-
-#pragma mark - low level support
-
-
-static inline void   _mulle_objc_object_finalize( void *obj)
-{
-   mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_FINALIZE_METHODID, obj);
-}
-
-
-static inline void   _mulle_objc_object_dealloc( void *obj)
-{
-   mulle_objc_object_call_inline_partial( obj, MULLE_OBJC_DEALLOC_METHODID, obj);
-}
-
-
-
-# pragma mark - API
-
-// [self finalize]
-static inline void   mulle_objc_object_finalize( void *obj)
-{
-   if( obj)
-      _mulle_objc_object_finalize( obj);
-}
-
-
-// [self dealloc]
-static inline void   mulle_objc_object_dealloc( void *obj)
-{
-   if( obj)
-      _mulle_objc_object_dealloc( obj);
 }
 
 #endif

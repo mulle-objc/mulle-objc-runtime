@@ -189,6 +189,28 @@ MULLE_C_NO_RETURN static void
 }
 
 
+MULLE_C_NO_RETURN static void
+   _mulle_objc_abort_wrongthread( struct _mulle_objc_object *obj,
+                                  mulle_thread_t affinity_thread,
+                                  struct _mulle_objc_descriptor *desc)
+{
+   struct _mulle_objc_class   *cls;
+   int                        ismeta;
+
+   cls    = _mulle_objc_object_get_isa( obj);
+   ismeta = _mulle_objc_class_is_metaclass( cls);
+
+   _mulle_objc_printf_abort( "%s <%s %p> with affinity to thread %p "
+                             "gets a -%s call from thread %p",
+                             ismeta ? "Class" : "Object",
+                             _mulle_objc_class_get_name( cls),
+                             obj,
+                             affinity_thread,
+                             _mulle_objc_descriptor_get_name( desc),
+                             mulle_thread_self());
+}
+
+
 #pragma mark - vectoring failures
 
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe)
@@ -198,6 +220,7 @@ void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe)
    universe->failures.classnotfound  = _mulle_objc_abort_classnotfound;
    universe->failures.methodnotfound = _mulle_objc_abort_methodnotfound;
    universe->failures.supernotfound  = _mulle_objc_abort_supernotfound;
+   universe->failures.wrongthread    = _mulle_objc_abort_wrongthread;
 }
 
 
@@ -312,3 +335,15 @@ MULLE_C_NO_RETURN void
 }
 
 
+MULLE_C_NO_RETURN void
+   mulle_objc_universe_fail_wrongthread( struct _mulle_objc_universe *universe,
+                                         struct _mulle_objc_object *obj,
+                                         mulle_thread_t affinity_thread,
+                                         struct _mulle_objc_descriptor *desc)
+{
+   if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
+      _mulle_objc_abort_wrongthread( obj, affinity_thread, desc);
+
+   (*universe->failures.wrongthread)( obj, affinity_thread, desc);
+   abort();  // just make sure if fail returns
+}

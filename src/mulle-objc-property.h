@@ -47,6 +47,7 @@
 
 
 // encode characters in the property signature
+// in the mulle-clang compiler look for getObjCEncodingForPropertyDecl
 enum mulle_objc_property_attribute
 {
    mulle_objc_property_attribute_adder        = '+',
@@ -100,7 +101,9 @@ enum
    _mulle_objc_property_container         = 0x01000,  // --addToValue:/-removeFromValue:
    _mulle_objc_property_relationship      = 0x02000,  // -willReadRelationship:
    _mulle_objc_property_observable        = 0x04000,  // -willChange
+   _mulle_objc_property_noautorelease     = 0x08000,  // no retain/autoreleease
 
+   // MEMO: if we add more to the compiler, shift these up
    _mulle_objc_property_setterclear       = 0x10000,  // setter clear
    _mulle_objc_property_autoreleaseclear  = 0x20000,  // autorelease clear
 //   _mulle_objc_property_atomic          = 0x40000

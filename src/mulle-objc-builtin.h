@@ -145,6 +145,16 @@ static inline void   assert_same_mulle_allocator( struct _mulle_objc_object *sel
 # define assert_same_mulle_allocator( self, value)
 #endif
 
+enum mulle_objc_property_accessor_strategy
+{
+   mulle_objc_property_accessor_autorelease   = 0x0,   // default
+   mulle_objc_property_accessor_noautorelease = 0x1,   // getter
+   mulle_objc_property_accessor_atomic        = 0x2,   // getter + setter
+   mulle_objc_property_accessor_copy          = 0x4,   // setter
+   mulle_objc_property_accessor_mutable_copy  = 0x8    // setter
+};
+
+
 //
 // this is called by the compiler for retain or copy of objects only
 // TODO: conceivably move this out of the runtime. This should optimize
@@ -155,8 +165,7 @@ static inline void
                                          mulle_objc_methodid_t _cmd,
                                          ptrdiff_t offset,
                                          struct _mulle_objc_object *value,
-                                         char is_atomic,
-                                         char is_copy)
+                                         int strategy)
 {
    void   **p_ivar;
    void   *old;
@@ -164,21 +173,22 @@ static inline void
    if( ! self)
       return;
 
-   if( is_copy)
+   if( strategy & mulle_objc_property_accessor_copy)
    {
-      if( is_copy == 2)  // da apple way
+      if( strategy & mulle_objc_property_accessor_mutable_copy)  // da apple way
          value = mulle_objc_object_call_mutablecopy( value);
       else
          value = mulle_objc_object_call_copy( value);
    }
    else
-      mulle_objc_object_retain( value);
+      mulle_objc_object_call_retain( value);
 
    assert_same_mulle_allocator( self, value);
 
    p_ivar = (void **) &((char *) self)[ offset];
-   if( is_atomic)
+   if( strategy & mulle_objc_property_accessor_atomic)
    {
+      // TODO: old and wrong (fix)
       old = _mulle_atomic_pointer_set( (mulle_atomic_pointer_t *) p_ivar, value);
       mulle_objc_object_call_autorelease( old);
    }
@@ -189,22 +199,40 @@ static inline void
    }
 }
 
-
+MULLE_C_ALWAYS_INLINE
 static inline void   *
    mulle_objc_object_get_property_value( void *self,
                                          mulle_objc_methodid_t _cmd,
                                          ptrdiff_t offset,
-                                         char is_atomic)
+                                         int strategy)
 {
-   void  **p_ivar;
+   void                            **p_ivar;
+   void                            *value;
+   struct _mulle_objc_foundation   *foundation;
+   struct _mulle_objc_universe     *universe;
 
    if( ! self)
       return( NULL);
 
    p_ivar = (void **) &((char *) self)[ offset];
-   if( is_atomic)
-      return( _mulle_atomic_pointer_read( (mulle_atomic_pointer_t *) p_ivar));
-   return( *p_ivar);
+   if( strategy & mulle_objc_property_accessor_atomic)
+   {
+      // TODO: wrong (fix!) can race with autorelease
+      value = _mulle_atomic_pointer_read( (mulle_atomic_pointer_t *) p_ivar);
+   }
+   else
+      value = *p_ivar;
+
+   if( strategy & mulle_objc_property_accessor_noautorelease)
+      return( value);
+
+   if( value)
+   {
+      universe   = _mulle_objc_object_get_universe( value);
+      foundation = _mulle_objc_universe_get_foundation( universe);
+      value      = (*foundation->retain_autorelease)( value);
+   }
+   return( value);
 }
 
 

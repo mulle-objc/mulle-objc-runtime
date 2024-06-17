@@ -366,6 +366,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.initialize      = getenv_yes_no( "MULLE_OBJC_TRACE_INITIALIZE");
    universe->debug.trace.hashstrings     = getenv_yes_no( "MULLE_OBJC_TRACE_HASHSTRINGS");
    universe->debug.trace.loadinfo        = getenv_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
+   universe->debug.trace.method_add      = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_ADD");
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
    universe->debug.trace.method_searches = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCH");  // fairly excessive!
    universe->debug.trace.descriptor_add  = getenv_yes_no( "MULLE_OBJC_TRACE_DESCRIPTOR_ADD");
@@ -568,6 +569,8 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
 {
    void   mulle_objc_vprintf_abort( char *format, va_list args);
    char   *kind;
+   extern struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_initial;
+   extern struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_empty;
 
    assert( universe);
 
@@ -610,11 +613,14 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    _mulle_atomic_pointer_write_nonatomic( &universe->cachepivot.entries,
                                           universe->empty_cache.entries);
 
-   // the initial cache is place into classes, thatz haven't run +initialize
+   // the initial cache is place into classes, that haven't run +initialize
    // yes, with the callbacks need to properly call
    // +initialize and other things
-   _mulle_objc_impcache_init_initial_callbacks( &universe->initial_impcache);
-   _mulle_objc_impcache_init_empty_callbacks( &universe->empty_impcache);
+
+   _mulle_objc_impcache_callback_init( &universe->initial_impcache.callback,
+                                       &_mulle_objc_impcache_callback_initial);
+   _mulle_objc_impcache_callback_init( &universe->empty_impcache.callback,
+                                       &_mulle_objc_impcache_callback_empty);
 
    universe->memory.allocator         = *allocator;
    universe->memory.allocator.aba     = &universe->garbage.aba;
@@ -1162,7 +1168,10 @@ int  _mulle_objc_universe_set_taggedpointerclass_at_index( struct _mulle_objc_un
    assert( index <= 0x7);  // anything over 0x7 is a bug though
 
    if( ! index || index > mulle_objc_get_taggedpointer_mask())
+   {
+      errno = EACCES;
       return( -1);
+   }
 
    if( universe->taggedpointers.pointerclass[ index])
       mulle_objc_universe_fail_inconsistency( universe,
@@ -2878,13 +2887,11 @@ static mulle_objc_walkcommand_t
 
    if( mulle_objc_infraclass_is_subclass( infra, kindofcls))
    {
-      mulle_objc_class_invalidate_impcache( _mulle_objc_infraclass_as_class( infra));
-      _mulle_objc_class_invalidate_kvccache( _mulle_objc_infraclass_as_class( infra));
+      mulle_objc_class_invalidate_caches( _mulle_objc_infraclass_as_class( infra));
 
       meta = _mulle_objc_infraclass_get_metaclass( infra);
 
-      mulle_objc_class_invalidate_impcache( _mulle_objc_metaclass_as_class( meta));
-      _mulle_objc_class_invalidate_kvccache( _mulle_objc_metaclass_as_class( meta));
+      mulle_objc_class_invalidate_caches( _mulle_objc_metaclass_as_class( meta));
    }
    return( mulle_objc_walk_ok);
 }
