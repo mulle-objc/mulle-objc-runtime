@@ -1,7 +1,7 @@
 # Debugging
 
 The **mulle-objc** runtime has some facilities to help you understand runtime
-problems.
+problems. For memory problems (besides `MULLE_OBJC_TRACE_INSTANCE`)  have a look at [mulle-testallocator](//github.com/mulle-core/mulle-testallocator/blob/release/dox/API_TESTALLOCATOR.md#environment-variables).
 
 ## Warnings
 
