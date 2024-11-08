@@ -61,6 +61,7 @@ union _mulle_objc_atomicobjectpointer_t
 };
 
 
+
 union _mulle_objc_uniqueidarraypointer_t
 {
    struct _mulle_objc_uniqueidarray  *array;      // dont read, except when debugging

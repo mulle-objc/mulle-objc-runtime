@@ -43,7 +43,7 @@ endif()
 include( PreFramework OPTIONAL)
 
 if( NOT FRAMEWORK_FILES)
-   message( FATAL_ERROR "There are no sources to compile for framework ${FRAMEWORK_NAME}. Did mulle-sde reflect run yet ?")
+   message( SEND_ERROR "There are no sources to compile for framework ${FRAMEWORK_NAME}. Did mulle-sde reflect run yet ?")
 endif()
 
 add_library( "${FRAMEWORK_NAME}" SHARED

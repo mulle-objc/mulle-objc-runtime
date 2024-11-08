@@ -196,7 +196,7 @@ static inline void  *
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_impcache  *icache;
+   struct _mulle_objc_impcache     *icache;
 
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
@@ -236,16 +236,16 @@ static inline void  *
                                    void *parameter)
 {
 #ifdef __MULLE_OBJC_FCS__
-   int                              index;
+   int                             index;
 #endif
-   mulle_objc_implementation_t      f;
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_impcache      *icache;
-   struct _mulle_objc_cacheentry    *entries;
-   struct _mulle_objc_cacheentry    *entry;
-   struct _mulle_objc_class         *cls;
-   mulle_objc_cache_uint_t          mask;
-   mulle_objc_cache_uint_t          offset;
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
 
    //
    // with tagged pointers inlining starts to become useless, because this
@@ -287,8 +287,8 @@ static inline void  *
 MULLE_C_ALWAYS_INLINE
 static inline void  *
    mulle_objc_object_call_inline( void *obj,
-                                   mulle_objc_methodid_t methodid,
-                                   void *parameter)
+                                  mulle_objc_methodid_t methodid,
+                                  void *parameter)
 {
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
@@ -309,16 +309,16 @@ static inline void  *
                                         void *parameter)
 {
 #ifdef __MULLE_OBJC_FCS__
-   int                              index;
+   int                             index;
 #endif
-   mulle_objc_implementation_t      f;
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_impcache      *icache;
-   struct _mulle_objc_cacheentry    *entries;
-   struct _mulle_objc_cacheentry    *entry;
-   struct _mulle_objc_class         *cls;
-   mulle_objc_cache_uint_t          mask;
-   mulle_objc_cache_uint_t          offset;
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
 
    //
    // with tagged pointers inlining starts to become useless, because this
@@ -499,9 +499,9 @@ void   *mulle_objc_object_call_variable( void *obj,
 // same as above just not inlining
 MULLE_OBJC_RUNTIME_GLOBAL
 void   *mulle_objc_object_call_super( void *obj,
-                                     mulle_objc_methodid_t methodid,
-                                     void *parameter,
-                                     mulle_objc_superid_t superid);
+                                      mulle_objc_methodid_t methodid,
+                                      void *parameter,
+                                      mulle_objc_superid_t superid);
 
 
 
@@ -588,14 +588,14 @@ MULLE_C_ALWAYS_INLINE static inline void  *
                                              void *parameter,
                                              mulle_objc_superid_t superid)
 {
-   mulle_objc_implementation_t      f;
-   struct _mulle_objc_cache         *cache;
-   struct _mulle_objc_impcache      *icache;
-   struct _mulle_objc_cacheentry    *entries;
-   struct _mulle_objc_cacheentry    *entry;
-   struct _mulle_objc_class         *cls;
-   mulle_objc_cache_uint_t          mask;
-   mulle_objc_cache_uint_t          offset;
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
 
    if( MULLE_C_UNLIKELY( ! obj))
       return( obj);
@@ -643,48 +643,5 @@ void   mulle_objc_objects_call( void **objects,
                                 unsigned int n,
                                 mulle_objc_methodid_t sel,
                                 void *params);
-
-
-
-// a call chain looks somewhat like this:
-// @implementation A      - init { _mulle_objc_object_call_chained_back( self, @selector( _init), self); return( self); }
-// @implementation A( X)  - _init { printf( "X\n"); }
-// @implementation A( Y)  - _init { printf( "Y\n"); }
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_object_call_chained_back( void *obj,
-                                             mulle_objc_methodid_t methodid,
-                                             void *parameter);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_object_call_chained_forth( void *obj,
-                                              mulle_objc_methodid_t methodid,
-                                              void *parameter);
-
-
-MULLE_C_ALWAYS_INLINE
-static inline void
-   mulle_objc_object_call_chained_back( void *obj,
-                                        mulle_objc_methodid_t methodid,
-                                        void *parameter)
-{
-   if( MULLE_C_UNLIKELY( ! obj))
-      return;
-
-   _mulle_objc_object_call_chained_back( obj, methodid, parameter);
-}
-
-
-MULLE_C_ALWAYS_INLINE
-static inline void
-   mulle_objc_object_call_chained_forth( void *obj,
-                                         mulle_objc_methodid_t methodid,
-                                         void *parameter)
-{
-   if( MULLE_C_UNLIKELY( ! obj))
-      return;
-
-   _mulle_objc_object_call_chained_forth( obj, methodid, parameter);
-}
 
 #endif

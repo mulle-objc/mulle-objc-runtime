@@ -189,7 +189,7 @@ static inline void
 
 static inline struct _mulle_objc_method  *
     mulle_objc_metaclass_defaultsearch_method( struct _mulle_objc_metaclass *meta,
-                                         mulle_objc_methodid_t methodid)
+                                               mulle_objc_methodid_t methodid)
 {
    MULLE_OBJC_RUNTIME_GLOBAL
    struct _mulle_objc_method   *

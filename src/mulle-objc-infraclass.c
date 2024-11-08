@@ -171,6 +171,56 @@ struct _mulle_objc_property  *mulle_objc_infraclass_search_property( struct _mul
 }
 
 
+
+struct _mulle_objc_property   *
+   _mulle_objc_infraclass_find_property_for_methodid( struct _mulle_objc_infraclass *infra,
+                                                        mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_property                             *property;
+   struct _mulle_objc_propertylist                         *list;
+   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
+   unsigned int                                            n;
+   struct _mulle_objc_infraclass                           *superclass;
+
+   n     = mulle_concurrent_pointerarray_get_count( &infra->propertylists);
+   rover = mulle_concurrent_pointerarray_reverseenumerate( &infra->propertylists, n);
+
+   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   {
+      property = _mulle_objc_propertylist_find_for_methodid( list, methodid);
+      if( property)
+      {
+         mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
+         return( property);
+      }
+   }
+   mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
+
+   superclass = (struct _mulle_objc_infraclass *) infra->base.superclass;
+   if( ! superclass)
+      return( NULL);
+   return( _mulle_objc_infraclass_find_property_for_methodid( superclass,
+                                                                methodid));
+}
+
+
+struct _mulle_objc_property  *
+   mulle_objc_infraclass_find_property_for_methodid( struct _mulle_objc_infraclass *infra,
+                                                       mulle_objc_methodid_t methodid)
+{
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   if( ! infra)
+   {
+      errno = EINVAL;
+      return( NULL);
+   }
+
+   return( mulle_objc_infraclass_find_property_for_methodid( infra, methodid));
+}
+
+
+
 enum
 {
    is_getter  = 0x1,
@@ -246,6 +296,7 @@ static inline int   count_bits( unsigned int bits)
 static void
    _mulle_objc_universe_register_descriptors_for_property( struct _mulle_objc_universe *universe,
                                                            struct _mulle_objc_property *property,
+                                                           struct _mulle_objc_class *cls,
                                                            unsigned int bits)
 {
    struct _mulle_objc_descriptor  *space;
@@ -289,7 +340,7 @@ static void
                                    (int) sizeof( void *));
       getter->signature = _mulle_objc_universe_strdup( universe, buf);
 
-      _mulle_objc_universe_register_descriptor_nofail( universe, getter);
+      _mulle_objc_universe_register_descriptor_nofail( universe, getter, cls, NULL);
    }
 
 
@@ -307,7 +358,7 @@ static void
                                                       property->name,
                                                       s_type,
                                                       s_len);
-      _mulle_objc_universe_register_descriptor_nofail( universe, setter);
+      _mulle_objc_universe_register_descriptor_nofail( universe, setter, cls, NULL);
    }
 
    if( bits & is_adder)
@@ -324,16 +375,16 @@ static void
                                                       property->name,
                                                       s_type,
                                                       s_len);
-      _mulle_objc_universe_register_descriptor_nofail( universe, adder);
+      _mulle_objc_universe_register_descriptor_nofail( universe, adder, cls, NULL);
    }
 
    if( bits & is_remover)
    {
       struct _mulle_objc_descriptor  *remover;
 
-      remover            = space++;
-      remover->bits      = (unsigned long) _mulle_objc_methodfamily_remover << _mulle_objc_methodfamily_shift;
-      remover->methodid  = property->remover;
+      remover           = space++;
+      remover->bits     = (unsigned long) _mulle_objc_methodfamily_remover << _mulle_objc_methodfamily_shift;
+      remover->methodid = property->remover;
 
       _mulle_objc_universe_set_setter_name_signature( universe,
                                                       remover,
@@ -341,7 +392,7 @@ static void
                                                       property->name,
                                                       s_type,
                                                       s_len);
-      _mulle_objc_universe_register_descriptor_nofail( universe, remover);
+      _mulle_objc_universe_register_descriptor_nofail( universe, remover, cls, NULL);
    }
 }
 
@@ -350,13 +401,14 @@ static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infracl
                                                       struct _mulle_objc_propertylist *list)
 {
    mulle_objc_propertyid_t                     last;
+   struct _mulle_objc_class                    *cls;
    struct _mulle_objc_property                 *property;
    struct _mulle_objc_propertylistenumerator   rover;
    struct _mulle_objc_universe                 *universe;
    int                                         bit_isset;
 
-   universe = _mulle_objc_infraclass_get_universe( infra);
-
+   universe  = _mulle_objc_infraclass_get_universe( infra);
+   cls       = _mulle_objc_infraclass_as_class( infra);
    /* register instance methods */
    last      = MULLE_OBJC_MIN_UNIQUEID - 1;
    rover     = _mulle_objc_propertylist_enumerate( list);
@@ -409,8 +461,24 @@ static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infracl
             if( ! _mulle_objc_universe_lookup_descriptor( universe, property->remover))
                bits |= is_remover;
          if( bits)
-            _mulle_objc_universe_register_descriptors_for_property( universe, property, bits);
+            _mulle_objc_universe_register_descriptors_for_property( universe, property, cls, bits);
       }
+
+      mulle_objc_universe_register_propertyid_for_methodid_nofail( universe,
+                                                                   property->propertyid,
+                                                                   property->getter);
+      if( property->setter)
+         mulle_objc_universe_register_propertyid_for_methodid_nofail( universe,
+                                                                      property->propertyid,
+                                                                      property->setter);
+      if( property->adder)
+         mulle_objc_universe_register_propertyid_for_methodid_nofail( universe,
+                                                                      property->propertyid,
+                                                                      property->adder);
+      if( property->remover)
+         mulle_objc_universe_register_propertyid_for_methodid_nofail( universe,
+                                                                      property->propertyid,
+                                                                      property->remover);
    }
    _mulle_objc_propertylistenumerator_done( &rover);
 
@@ -500,6 +568,22 @@ void   mulle_objc_infraclass_add_ivarlist_nofail( struct _mulle_objc_infraclass 
 }
 
 # pragma mark - ivars
+
+
+int   _mulle_objc_infraclass_has_ivars( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_ivarlist   *list;
+   unsigned int                  n;
+
+   n = mulle_concurrent_pointerarray_get_count( &infra->ivarlists);
+   mulle_concurrent_pointerarray_for_reverse( &infra->ivarlists, n, list)
+   {
+      if( _mulle_objc_ivarlist_get_count( list))
+         return( 1);
+   }
+   return( 0);
+}
+
 
 //
 // doesn't check for duplicates
@@ -938,7 +1022,7 @@ static struct _mulle_objc_method  *
    if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
       return( NULL);
 
-   _mulle_objc_searcharguments_init_default( &search, methodid);
+   search = mulle_objc_searcharguments_make_default( methodid);
    meta   = _mulle_objc_infraclass_get_metaclass( infra);
    method = mulle_objc_class_search_method( _mulle_objc_metaclass_as_class( meta),
                                             &search,
@@ -993,7 +1077,7 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
 
    // search will find last recently added category first
    // but we need to call all
-   _mulle_objc_searcharguments_init_default( &search, MULLE_OBJC_UNLOAD_METHODID);
+   search = mulle_objc_searcharguments_make_default( MULLE_OBJC_UNLOAD_METHODID);
    for(;;)
    {
       method = mulle_objc_class_search_method( cls, &search, inheritance, &result);
@@ -1004,7 +1088,7 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
                                                 method,
                                                 "unload",
                                                 _mulle_objc_methodlist_get_categoryname( result.list));
-      _mulle_objc_searcharguments_init_previous( &search, method);
+      search = mulle_objc_searcharguments_make_previous( method);
    }
 }
 

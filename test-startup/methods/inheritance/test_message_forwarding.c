@@ -74,7 +74,7 @@ void   test_message_forwarding1()
 
    universe->classdefaults.forwardmethod = &forward_list.methods[ 0];
 
-   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
+   mulle_objc_universe_register_infraclass_nofail( universe, A_infra);
 
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_infra) == NULL);
    assert( _mulle_objc_class_get_forwardmethod( (void *) A_meta) == NULL);
@@ -113,7 +113,7 @@ void   test_message_forwarding2()
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
 
-   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
+   mulle_objc_universe_register_infraclass_nofail( universe, A_infra);
 
    assert( universe->classdefaults.forwardmethod == NULL);
 

@@ -204,54 +204,29 @@ static inline struct _mulle_objc_cacheentry  *
 //
 MULLE_C_ALWAYS_INLINE
 static inline struct _mulle_objc_cache  *
-   _mulle_objc_impcachepivot_get_impcache_cache_atomic( struct _mulle_objc_impcachepivot *cachepivot)
+   _mulle_objc_impcachepivot_get_cache_atomic( struct _mulle_objc_impcachepivot *cachepivot)
 {
    struct _mulle_objc_cacheentry     *entries;
    struct _mulle_objc_cache          *cache;
 
    entries = _mulle_objc_impcachepivot_get_entries_atomic( cachepivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   if( ! entries)
+      return( NULL);
+   cache = _mulle_objc_cacheentry_get_cache_from_entries( entries);
    return( cache);
 }
 
 
 MULLE_C_ALWAYS_INLINE
+MULLE_C_NONNULL_FIRST
 static inline struct _mulle_objc_impcache  *
    _mulle_objc_impcachepivot_get_impcache_atomic( struct _mulle_objc_impcachepivot *cachepivot)
 {
-   struct _mulle_objc_cache      *cache;
-   struct _mulle_objc_impcache   *impcache;
+   struct _mulle_objc_cache *cache;
 
-   cache    = _mulle_objc_impcachepivot_get_impcache_cache_atomic( cachepivot);
-   impcache = _mulle_objc_cache_get_impcache_from_cache( cache);
-   return( impcache);
+   cache = _mulle_objc_impcachepivot_get_cache_atomic( cachepivot);
+   return( cache ? _mulle_objc_cache_get_impcache_from_cache( cache) : NULL);
 }
-
-
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry *
-    _mulle_objc_impcachepivot_fill_functionpointer( struct _mulle_objc_impcachepivot *cachepivot,
-                                                    mulle_functionpointer_t imp,
-                                                    mulle_objc_uniqueid_t uniqueid,
-                                                    unsigned int fillrate,
-                                                    struct mulle_allocator *allocator)
-{
-   struct _mulle_objc_cacheentry   *entries;
-
-   entries = _mulle_objc_cachepivot_fill_functionpointer( &cachepivot->pivot,
-                                                          imp,
-                                                          uniqueid,
-                                                          fillrate,
-                                                          allocator);
-   return( entries);
-}
-
-
-MULLE_OBJC_RUNTIME_GLOBAL
-int   _mulle_objc_impcachepivot_swap( struct _mulle_objc_impcachepivot *pivot,
-                                      struct _mulle_objc_impcache *icache,
-                                      struct _mulle_objc_impcache *old_cache,
-                                      struct mulle_allocator *allocator);
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -259,9 +234,22 @@ struct _mulle_objc_cacheentry *
     _mulle_objc_impcachepivot_fill( struct _mulle_objc_impcachepivot *cachepivot,
                                     mulle_objc_implementation_t imp,
                                     mulle_objc_uniqueid_t uniqueid,
-                                    unsigned int fillrate,
-                                    struct mulle_allocator *allocator);
+                                    unsigned int strategy,
+                                    struct _mulle_objc_universe *universe);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_impcachepivot_convenient_swap( struct _mulle_objc_impcachepivot *cachepivot,
+                                                 struct _mulle_objc_impcache *newcache,
+                                                 struct _mulle_objc_universe *universe);
+
+// DO NOT USE THIS, USE THE CONVENIENT SWAP.
+// MEMO: marking this as deprecated is inconvenient though, as
+//       _mulle_objc_impcachepivot_convenient_swap still uses it
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_impcachepivot_swap( struct _mulle_objc_impcachepivot *pivot,
+                                      struct _mulle_objc_impcache *icache,
+                                      struct _mulle_objc_impcache *old_cache,
+                                      struct mulle_allocator *allocator);
 
 
 //
@@ -342,15 +330,6 @@ static inline  mulle_objc_implementation_t
 }
 
 
-MULLE_OBJC_RUNTIME_GLOBAL
-MULLE_C_NONNULL_FIRST
-struct _mulle_objc_cacheentry *
-    _mulle_objc_class_add_imp_to_impcachepivot( struct _mulle_objc_class *cls,
-                                                struct _mulle_objc_impcachepivot *cachepivot,
-                                                mulle_objc_implementation_t imp,
-                                                mulle_objc_uniqueid_t uniqueid);
-
-
 static inline struct _mulle_objc_impcache   *
    _mulle_objc_impcache_grow_with_strategy( struct _mulle_objc_impcache  *old_cache,
                                             enum mulle_objc_cachesizing_t strategy,
@@ -358,6 +337,7 @@ static inline struct _mulle_objc_impcache   *
 {
    struct _mulle_objc_impcache   *icache;
    mulle_objc_cache_uint_t       new_size;
+
 
    // a new beginning.. let it be filled anew
    // could ask the universe here what to do as new size

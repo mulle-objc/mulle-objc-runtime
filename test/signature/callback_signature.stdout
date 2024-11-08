@@ -1,0 +1,416 @@
+type="{anonymous={?=c*i}{?=c@}[2{?=@*}](?=cq)}":
+	(p) type              = {anonymous={?=c*i}{?=c@}[2{?=@*}](?=cq)}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = {?=c*i}{?=c@}[2{?=@*}](?=cq)}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = {?=c*i}{?=c@}[2{?=@*}](?=cq)}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = c*i}{?=c@}[2{?=@*}](?=cq)}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = c*i}{?=c@}[2{?=@*}](?=cq)}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = *i}{?=c@}[2{?=@*}](?=cq)}
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 1
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+	(p) type              = i}{?=c@}[2{?=@*}](?=cq)}
+	natural_size          = 4
+	natural_alignment     = 4
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 32
+	bits_struct_alignment = 32
+
+	(p) type              = }{?=c@}[2{?=@*}](?=cq)}
+	natural_size          = 24
+	natural_alignment     = 8
+	member_type_start     = c*i}{?=c@}[2{?=@*}](?=cq)}
+	has_object            = 0
+	has_retainable_type   = 1
+	n_members             = 3
+	bits_size             = 192
+	bits_struct_alignment = 64
+
+	(p) type              = {?=c@}[2{?=@*}](?=cq)}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = c@}[2{?=@*}](?=cq)}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = c@}[2{?=@*}](?=cq)}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = @}[2{?=@*}](?=cq)}
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 1
+	has_retainable_type   = 1
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+	(p) type              = }[2{?=@*}](?=cq)}
+	natural_size          = 16
+	natural_alignment     = 8
+	member_type_start     = c@}[2{?=@*}](?=cq)}
+	has_object            = 1
+	has_retainable_type   = 1
+	n_members             = 2
+	bits_size             = 128
+	bits_struct_alignment = 64
+
+	(p) type              = [2{?=@*}](?=cq)}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = {?=@*}](?=cq)}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 2
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = {?=@*}](?=cq)}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = @*}](?=cq)}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = @*}](?=cq)}
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 1
+	has_retainable_type   = 1
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+	(p) type              = *}](?=cq)}
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 1
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+	(p) type              = }](?=cq)}
+	natural_size          = 16
+	natural_alignment     = 8
+	member_type_start     = @*}](?=cq)}
+	has_object            = 1
+	has_retainable_type   = 1
+	n_members             = 2
+	bits_size             = 128
+	bits_struct_alignment = 64
+
+	(p) type              = ](?=cq)}
+	natural_size          = 32
+	natural_alignment     = 8
+	member_type_start     = {?=@*}](?=cq)}
+	has_object            = 1
+	has_retainable_type   = 1
+	n_members             = 2
+	bits_size             = 256
+	bits_struct_alignment = 64
+
+	(p) type              = (?=cq)}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = cq)}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = cq)}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = q)}
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+	(p) type              = )}
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = cq)}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 2
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+	(p) type              = }
+	natural_size          = 80
+	natural_alignment     = 8
+	member_type_start     = {?=c*i}{?=c@}[2{?=@*}](?=cq)}
+	has_object            = 1
+	has_retainable_type   = 1
+	n_members             = 4
+	bits_size             = 640
+	bits_struct_alignment = 64
+
+
+type="{?=ccfc{?=fc}}":
+	(p) type              = {?=ccfc{?=fc}}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = ccfc{?=fc}}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = ccfc{?=fc}}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = cfc{?=fc}}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = fc{?=fc}}
+	natural_size          = 4
+	natural_alignment     = 4
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 32
+	bits_struct_alignment = 32
+
+	(p) type              = c{?=fc}}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = {?=fc}}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = fc}}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = fc}}
+	natural_size          = 4
+	natural_alignment     = 4
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 32
+	bits_struct_alignment = 32
+
+	(p) type              = c}}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = }}
+	natural_size          = 8
+	natural_alignment     = 4
+	member_type_start     = fc}}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 2
+	bits_size             = 64
+	bits_struct_alignment = 32
+
+	(p) type              = }
+	natural_size          = 20
+	natural_alignment     = 4
+	member_type_start     = ccfc{?=fc}}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 5
+	bits_size             = 160
+	bits_struct_alignment = 32
+
+
+type="{?=c^{?=f^*}}":
+	(p) type              = {?=c^{?=f^*}}
+	natural_size          = 0
+	natural_alignment     = 0
+	member_type_start     = c^{?=f^*}}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 0
+	bits_struct_alignment = 0
+
+	(p) type              = c^{?=f^*}}
+	natural_size          = 1
+	natural_alignment     = 1
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 8
+	bits_struct_alignment = 8
+
+	(p) type              = ^{?=f^*}}
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+	(p) type              = }
+	natural_size          = 16
+	natural_alignment     = 8
+	member_type_start     = c^{?=f^*}}
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 2
+	bits_size             = 128
+	bits_struct_alignment = 64
+
+
+type="*":
+	(p) type              = *
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 1
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+
+type="Q":
+	(p) type              = Q
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+
+type="^v":
+	(p) type              = ^v
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+
+type="^s":
+	(p) type              = ^s
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 0
+	has_retainable_type   = 0
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+
+type="@"NSData"":
+	(p) type              = @"NSData"
+	natural_size          = 8
+	natural_alignment     = 8
+	member_type_start     = NULL
+	has_object            = 1
+	has_retainable_type   = 1
+	n_members             = 0
+	bits_size             = 64
+	bits_struct_alignment = 64
+
+

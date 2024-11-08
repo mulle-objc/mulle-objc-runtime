@@ -121,7 +121,7 @@ static inline
    }
 
    if( ! (mode & mulle_objc_class_lookup_nofill))
-      _mulle_objc_class_fill_impcache_method( cls, NULL, method, methodid);
+      _mulle_objc_class_fill_impcache_method( cls, method, methodid);
 
    imp = _mulle_objc_method_get_implementation( method);
    return( imp);
@@ -206,7 +206,7 @@ struct _mulle_objc_method *
    struct _mulle_objc_method     *method;
 
    method = mulle_objc_class_search_method_nofail( cls, methodid);
-   _mulle_objc_class_fill_impcache_method( cls, NULL, method, methodid);
+   _mulle_objc_class_fill_impcache_method( cls, method, methodid);
    return( method);
 }
 
@@ -219,7 +219,7 @@ mulle_objc_implementation_t
    mulle_objc_implementation_t   imp;
 
    method = mulle_objc_class_search_method_nofail( cls, methodid);
-   _mulle_objc_class_fill_impcache_method( cls, NULL, method, methodid);
+   _mulle_objc_class_fill_impcache_method( cls, method, methodid);
 
    imp    = _mulle_objc_method_get_implementation( method);
    return( imp);
@@ -238,7 +238,7 @@ struct _mulle_objc_method *
    struct _mulle_objc_method      *method;
 
    method = _mulle_objc_class_supersearch_method_nofail( cls, superid);
-   _mulle_objc_class_fill_impcache_method( cls, NULL, method, superid);
+   _mulle_objc_class_fill_impcache_method( cls, method, superid);
    return( method);
 }
 
@@ -255,7 +255,7 @@ mulle_objc_implementation_t
    mulle_objc_implementation_t    imp;
 
    method = _mulle_objc_class_supersearch_method_nofail( cls, superid);
-   _mulle_objc_class_fill_impcache_method( cls, NULL, method, superid);
+   _mulle_objc_class_fill_impcache_method( cls, method, superid);
    imp    = _mulle_objc_method_get_implementation( method);
    return( imp);
 }
@@ -281,7 +281,7 @@ struct _mulle_objc_method *
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
+   args   = mulle_objc_searcharguments_make_super( p->methodid, p->classid);
    method = mulle_objc_class_search_method( cls,
                                             &args,
                                             cls->inheritance,
@@ -312,7 +312,7 @@ mulle_objc_implementation_t
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
+   args   = mulle_objc_searcharguments_make_super( p->methodid, p->classid);
    method = mulle_objc_class_search_method( cls,
                                             &args,
                                             cls->inheritance,

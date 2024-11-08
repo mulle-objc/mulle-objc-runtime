@@ -93,7 +93,7 @@ enum mulle_metaabi_param
 #define _C_VOID         'v'
 
 // these future defines are incompatible
-// % is like @ but it should be copyied instead of retained
+// % is like @ but it should be copied instead of retained
 // = is like @ but it should not be retained
 #define _C_ASSIGN_ID    '='
 #define _C_COPY_ID      '~'

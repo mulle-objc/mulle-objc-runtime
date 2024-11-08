@@ -41,6 +41,7 @@
 #include <assert.h>
 
 #include "mulle-objc-class-struct.h"
+#include "mulle-objc-taggedpointer.h"
 struct _mulle_objc_object;
 
 
@@ -54,6 +55,26 @@ struct _mulle_objc_object;
 # endif
 #endif
 
+
+
+#ifndef NDEBUG
+static inline void   mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj, int define)
+{
+   MULLE_OBJC_RUNTIME_GLOBAL
+   void   _mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj, int define);
+
+   if( obj)
+      _mulle_objc_object_assert_tao_object_header_no_tps( obj, define);
+}
+#else
+static inline void   mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj, int define)
+{
+   MULLE_C_UNUSED( obj);
+   MULLE_C_UNUSED( define);
+}
+#endif
+
+
 //
 // this is ahead of the actual instance
 // isa must be underscored
@@ -66,11 +87,11 @@ struct _mulle_objc_object;
 struct _mulle_objc_objectheader
 {
    //
-   // in tests its inconvenient to have variable sizes, since it breaks
+   // in tests its inconvenient to have variable sizes, since it breaks stuff
    //
 #if MULLE_OBJC_TAO_OBJECT_HEADER
    void                        *_align;
-   mulle_thread_t              _thread;
+   mulle_atomic_pointer_t      _thread;
 #endif
    mulle_atomic_pointer_t      _retaincount_1;  // negative means finalized
    struct _mulle_objc_class    *_isa;
@@ -93,13 +114,27 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
 }
 
 
+// same as below but no header checker test for true low level code
+MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
+   __mulle_objc_object_get_objectheader( void *obj)
+{
+   struct _mulle_objc_objectheader   *header;
+
+   assert( obj);
+   assert( ! ((uintptr_t) obj & mulle_objc_get_taggedpointer_mask()) && "tagged pointer");
+   header = (void *) &((char *) obj)[ - (int) sizeof( struct _mulle_objc_objectheader)];
+   return( header);
+}
+
+
 MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
    _mulle_objc_object_get_objectheader( void *obj)
 {
    struct _mulle_objc_objectheader   *header;
 
    assert( obj);
-   assert( ! ((uintptr_t) obj & 0x3) && "tagged pointer");
+   assert( ! ((uintptr_t) obj & mulle_objc_get_taggedpointer_mask()) && "tagged pointer");
+   mulle_objc_object_assert_tao_object_header_no_tps( obj, MULLE_OBJC_TAO_OBJECT_HEADER);
    header = (void *) &((char *) obj)[ - (int) sizeof( struct _mulle_objc_objectheader)];
    return( header);
 }
@@ -142,7 +177,7 @@ MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
    _mulle_objc_objectheader_get_thread( struct _mulle_objc_objectheader *header)
 {
 #if MULLE_OBJC_TAO_OBJECT_HEADER
-   return( header->_thread);
+   return( (mulle_thread_t) _mulle_atomic_pointer_read( &header->_thread));
 #else
    return( 0);
 #endif
@@ -153,12 +188,23 @@ MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
 // this need not be atomic, it would be one object setting the affinity
 // and then handing it over to another thread
 //
+// | executing thread |   old  |   new  | Description
+// |------------------|--------|--------|-------------
+// |   a              |  NULL  |    a   | from multi-threaded to single-threaded (hmm)
+// |   a              |    a   |    b   |
+// |   a              |    b   |    a   |
+// |   a              |    b   |  NULL  |
+// |   b              |  NULL  |    b   | from multi-threaded to single-threaded (hmm)
+// |   b              |    a   |    b   |
+// |   b              |    b   |    a   |
+// |   a              |    b   |  NULL  |
+
 MULLE_C_ALWAYS_INLINE static inline void
    _mulle_objc_objectheader_set_thread( struct _mulle_objc_objectheader *header,
                                         mulle_thread_t thread)
 {
 #if MULLE_OBJC_TAO_OBJECT_HEADER
-   header->_thread = thread;
+   _mulle_atomic_pointer_write( &header->_thread, (void *) thread);
 #endif
 }
 
@@ -199,7 +245,7 @@ static inline void
    _mulle_objc_objectheader_set_isa( header, cls);
 #if MULLE_OBJC_TAO_OBJECT_HEADER
    if( _mulle_objc_class_is_threadaffine( cls))
-      header->_thread = mulle_thread_self();
+      _mulle_objc_objectheader_set_thread( header, mulle_thread_self());
 #endif
 }
 

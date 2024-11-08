@@ -89,7 +89,7 @@ void   test_message_sending()
    mulle_objc_metaclass_add_methodlist_nofail( A_meta, NULL);
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
-   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
+   mulle_objc_universe_register_infraclass_nofail( universe, A_infra);
 
    A_obj = mulle_objc_infraclass_alloc_instance( A_infra);
    A_cls = _mulle_objc_infraclass_as_class( A_infra);

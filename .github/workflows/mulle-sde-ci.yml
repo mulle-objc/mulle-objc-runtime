@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - release
+      - master
   pull_request:
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
     - name: Dump Environment
       run:  env | sort
       
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - uses: mulle-sde/github-ci@v1
 

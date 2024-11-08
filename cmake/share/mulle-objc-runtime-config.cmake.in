@@ -1,0 +1,22 @@
+@PACKAGE_INIT@
+
+include( CMakeFindDependencyMacro)
+
+set( COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES ON)
+set( TMP_DEPENDENCY_LIBRARIES "${DEPENDENCY_LIBRARIES}")
+unset( DEPENDENCY_LIBRARIES)
+
+include( "${CMAKE_CURRENT_LIST_DIR}/reflect/_Dependencies.cmake" OPTIONAL)
+
+
+foreach( TMP_NAME ${DEPENDENCY_LIBRARIES})
+   find_dependency( ${TMP_NAME})
+endforeach()
+
+# restore
+set( COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES OFF)
+set( DEPENDENCY_LIBRARIES "${TMP_DEPENDENCY_LIBRARIES}")
+
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")
+
+check_required_components(@PROJECT_NAME@)

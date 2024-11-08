@@ -65,9 +65,9 @@ static void  add_ABC_PROTO_classes( struct abc_classes *classes)
 
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
-   mulle_objc_universe_add_infraclass_nofail( universe, classes->A_infra);
-   mulle_objc_universe_add_infraclass_nofail( universe, classes->B_infra);
-   mulle_objc_universe_add_infraclass_nofail( universe, classes->C_infra);
+   mulle_objc_universe_register_infraclass_nofail( universe, classes->A_infra);
+   mulle_objc_universe_register_infraclass_nofail( universe, classes->B_infra);
+   mulle_objc_universe_register_infraclass_nofail( universe, classes->C_infra);
 
    pair = _mulle_objc_infraclass_get_classpair( classes->B_infra);
 

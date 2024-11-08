@@ -79,6 +79,11 @@ struct _mulle_objc_property  *
    _mulle_objc_propertylist_find( struct _mulle_objc_propertylist *list,
                                            mulle_objc_propertyid_t propertyid);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_property  *
+   _mulle_objc_propertylist_find_for_methodid( struct _mulle_objc_propertylist *list,
+                                               mulle_objc_methodid_t methodid);
+
 static inline struct _mulle_objc_property  *_mulle_objc_propertylist_search( struct _mulle_objc_propertylist *list,
                                                                                     mulle_objc_propertyid_t propertyid)
 {

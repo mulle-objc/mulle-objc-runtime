@@ -107,7 +107,7 @@ struct _mulle_objc_cache
 
 // incoming cache must have been zero filled already
 static inline void   _mulle_objc_cache_init( struct _mulle_objc_cache *cache,
-                                            mulle_objc_cache_uint_t size)
+                                             mulle_objc_cache_uint_t size)
 {
    assert( ! (sizeof( struct _mulle_objc_cacheentry) & (sizeof( struct _mulle_objc_cacheentry) - 1)));
 
@@ -198,7 +198,7 @@ static inline struct _mulle_objc_cacheentry *
 }
 
 
-
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache,
                                      unsigned int fillrate);
 
@@ -220,8 +220,8 @@ struct _mulle_objc_cacheentry   *
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cacheentry   *
    _mulle_objc_cache_add_functionpointer_inactive( struct _mulle_objc_cache *cache,
-                                                    mulle_functionpointer_t pointer,
-                                                    mulle_objc_uniqueid_t uniqueid);
+                                                   mulle_functionpointer_t pointer,
+                                                   mulle_objc_uniqueid_t uniqueid);
 
 // returns null if cache is full
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -241,7 +241,7 @@ struct _mulle_objc_cacheentry   *
 
 static inline
 void   *_mulle_objc_cache_probe_pointer( struct _mulle_objc_cache *cache,
-                                          mulle_objc_uniqueid_t uniqueid)
+                                         mulle_objc_uniqueid_t uniqueid)
 {
    struct _mulle_objc_cacheentry   *entries;
    struct _mulle_objc_cacheentry   *entry;
@@ -393,8 +393,8 @@ static inline int
 
 static inline struct _mulle_objc_cacheentry  *
    _mulle_objc_cachepivot_cas_weak_entries( struct _mulle_objc_cachepivot *p,
-                                           struct _mulle_objc_cacheentry *new_entries,
-                                           struct _mulle_objc_cacheentry *old_entries)
+                                            struct _mulle_objc_cacheentry *new_entries,
+                                            struct _mulle_objc_cacheentry *old_entries)
 {
    assert( old_entries != new_entries);
    return( __mulle_atomic_pointer_cas_weak( &p->entries, new_entries, old_entries));

@@ -87,11 +87,10 @@
    struct _mulle_objc_searcharguments    args;
    struct _mulle_objc_method             *method;
 
-   infra = (struct _mulle_objc_infraclass *) self;
-   cls   = _mulle_objc_infraclass_as_class( infra);
+   infra  = (struct _mulle_objc_infraclass *) self;
+   cls    = _mulle_objc_infraclass_as_class( infra);
 
-   _mulle_objc_searcharguments_init_default( &args, @selector( c));
-
+   args   = mulle_objc_searcharguments_make_default( @selector( c));
    method = mulle_objc_class_search_method( cls, &args, 0, NULL);
    method->descriptor.bits |= _mulle_objc_method_preload;
 }

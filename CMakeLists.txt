@@ -1,13 +1,13 @@
 cmake_minimum_required( VERSION 3.14)
 
-project( mulle-objc-runtime C)
+project( mulle-objc-runtime VERSION 0.24.0 LANGUAGES C)
 
 ### mulle-sde environment
 
 # add cmake module paths to search path
-list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/share")
-list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake/reflect")
-list( INSERT CMAKE_MODULE_PATH 0 "${PROJECT_SOURCE_DIR}/cmake")
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake/share")
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake/reflect")
+list( INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include( Environment)
 
@@ -51,6 +51,10 @@ endif()
 
 include( InstallLibrary)
 
+if( LINK_PHASE)
+   include( InstallCMakeInclude)
+   include( InstallCMakePackage)
+endif()
 
 
 set( EXECUTABLE_NAME mulle-objc-uniqueid)

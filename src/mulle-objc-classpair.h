@@ -59,6 +59,9 @@ struct _mulle_objc_loadclass;
 // protocolids, categoryids and the like into the classpair
 // structure.
 //
+// Accessing the classpair is cumbersome, because the size of the 
+// struct _mulle_objc_objectheader is variable depending on the compiler flags.
+// 
 struct _mulle_objc_classpair
 {
    // >>> dont' add anything >>>
@@ -233,8 +236,13 @@ static inline mulle_objc_classid_t
 static inline struct _mulle_objc_classpair   *
    _mulle_objc_infraclass_get_classpair( struct _mulle_objc_infraclass *infra)
 {
+   int   offset;
+
    assert( infra->base.infraclass == NULL);
-   return( (struct _mulle_objc_classpair *) _mulle_objc_object_get_objectheader( infra));
+   mulle_objc_object_assert_tao_object_header_no_tps( (void *) infra, MULLE_OBJC_TAO_OBJECT_HEADER);
+
+   offset = - (int) offsetof( struct _mulle_objc_classpair, infraclass);
+   return( (struct _mulle_objc_classpair *) &((char *) infra)[ offset]);
 }
 
 
@@ -248,6 +256,7 @@ static inline struct _mulle_objc_classpair   *
    int   offset;
 
    assert( meta->base.infraclass != NULL);
+   mulle_objc_object_assert_tao_object_header_no_tps( (void *) meta, MULLE_OBJC_TAO_OBJECT_HEADER);
 
    offset = - (int) offsetof( struct _mulle_objc_classpair, metaclass);
    return( (struct _mulle_objc_classpair *) &((char *) meta)[ offset]);

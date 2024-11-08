@@ -43,6 +43,7 @@
 #include <string.h>
 
 #include "mulle-metaabi.h"
+#include "mulle-objc-uniqueid.h"
 
 //   union mulle_objc_scalarvalue
 //   {
@@ -79,7 +80,7 @@
 # define _C_ONEWAY       'V'
 
 //
-// Candidates for ressurrection ? They could be useful for introspecting
+// Candidates for resurrection ? They could be useful for introspecting
 // pointer parameters
 //
 # define _C_IN           'n'
@@ -92,19 +93,21 @@ struct mulle_objc_typeinfo
 {
    char          *type;                // not a copy(!) keep your passed in in "types" around, will be past "const"
    char          *pure_type_end;       // if you have "{?=QQ}16", will point just after '}'
+   char          *member_type_start;   // if you have "{?=QQ}16" or "[8Q]", will point at first Q
    char          *name;                // @"NSString", @"<X>"  will be "NSString" in quotes!
 
-   int32_t       invocation_offset;    // only set if used with the enumerator, useful ONLY for NSInvocation!!
+   unsigned int  n_members;            // 0, for scalar, n: for union (members), array(len), bitfield(len), struct( members)
 
    size_t        natural_size;
    size_t        bits_size;
 
+   int32_t       invocation_offset;    // only set if used with the enumerator, useful ONLY for NSInvocation!!
+
    uint16_t      bits_struct_alignment;
    uint16_t      natural_alignment;
 
-   unsigned int  n_members;        // 0, for scalar, n: for union (members), array(len), bitfield(len), struct( members)
    char          has_object;
-   char          has_retainable_object;
+   char          has_retainable_type;
 };
 
 
@@ -112,16 +115,32 @@ struct mulle_objc_typeinfo
 // architecture.
 typedef int  (*mulle_objc_scalar_typeinfo_supplier_t)( char, struct mulle_objc_typeinfo *);
 
-
-
 struct mulle_objc_signaturesupplier
 {
-   int32_t                                 invocation_offset; // used by the enumerator
+   mulle_objc_scalar_typeinfo_supplier_t   supplier;          // leave NULL for default arch
    unsigned int                            index;             // used by the enumerator
    int                                     level;             // init to -1 to convert outer array to pointer
-   mulle_objc_scalar_typeinfo_supplier_t   supplier;          // leave NULL for default arch
+   int32_t                                 invocation_offset; // used by the enumerator
 };
 
+
+typedef void  (*mulle_objc_type_parse_callback_t)( char *type, struct mulle_objc_typeinfo *info, void *userinfo);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_objc_typeinfo *info);
+
+//
+// low level routine, you are "supposed to" use a wrapper function like
+// _mulle_objc_signature_supply_typeinfo, not _mulle_objc_type_parse. But it
+// has a convenient callback...
+// Use _mulle_objc_signature_supply_scalar_typeinfo for supplier
+MULLE_OBJC_RUNTIME_GLOBAL
+char    *_mulle_objc_type_parse( char *type,
+                                 int level,
+                                 struct mulle_objc_typeinfo *info,
+                                 mulle_objc_scalar_typeinfo_supplier_t supplier,
+                                 mulle_objc_type_parse_callback_t callback,
+                                 void *userinfo);
 
 //
 // You usually don't call this yourself, always check types first
@@ -151,95 +170,6 @@ static inline char   *
    next = _mulle_objc_signature_supply_typeinfo( types, supplier, info);
    return( next);
 }
-
-
-//
-// The signature enumerator enumerates self, _cmd, args...
-// and at the end, you can ask _mulle_objc_signatureenumerator_rval to
-// get the return value info. If you don't ask for it last, the offset
-// will not have been computed properly.
-//
-// i.e.
-// mulle_objc_signature_enumerate(..)
-// while( _mulle_objc_signatureenumerator_next(..);
-// _mulle_objc_signatureenumerator_rval(..)
-// _mulle_objc_signatureenumerator_done(..)
-//
-struct mulle_objc_signatureenumerator
-{
-   char                                   *types;
-   struct mulle_objc_signaturesupplier    supplier;
-   struct mulle_objc_typeinfo             rval;
-};
-
-
-
-static inline struct mulle_objc_signatureenumerator
-   mulle_objc_signature_enumerate( char *types)
-{
-   struct mulle_objc_signatureenumerator  rover = { 0 };
-
-   rover.types = (types && *types) ? types : NULL;
-   if( ! rover.types)
-      return( rover);
-
-   // parse first the incomplete rval
-   rover.types =  _mulle_objc_signature_supply_typeinfo( rover.types,
-                                                         NULL,
-                                                         &rover.rval);
-   rover.types = (rover.types && *rover.types) ? rover.types : NULL;
-
-   return( rover);
-}
-
-
-MULLE_C_NONNULL_FIRST
-static inline int
-   _mulle_objc_signatureenumerator_next( struct mulle_objc_signatureenumerator *rover,
-                                         struct mulle_objc_typeinfo *info)
-{
-   if( ! rover->types)
-      return( 0);
-
-   rover->types = _mulle_objc_signature_supply_typeinfo( rover->types,
-                                                         &rover->supplier,
-                                                         info);
-   rover->types = (rover->types && *rover->types) ? rover->types : NULL;
-   rover->supplier.index++;
-   return( 1);
-}
-
-
-MULLE_C_NONNULL_FIRST
-static inline char *
-   _mulle_objc_signatureenumerator_get_type( struct mulle_objc_signatureenumerator *rover)
-{
-   return( rover->rval.type);
-}
-
-
-
-//
-// the invocation_offset will only be valid, if a valid info has been
-// passed in for all iterations of the enumerator!
-//
-MULLE_C_NONNULL_FIRST_SECOND
-static inline void
-   _mulle_objc_signatureenumerator_rval( struct mulle_objc_signatureenumerator *rover,
-                                         struct mulle_objc_typeinfo *info)
-{
-   assert( rover->supplier.invocation_offset != (int32_t) -1);
-
-   rover->rval.invocation_offset = rover->supplier.invocation_offset;
-   memcpy( info, &rover->rval, sizeof( *info));
-}
-
-
-static inline void
-   mulle_objc_signatureenumerator_done( struct mulle_objc_signatureenumerator *rover)
-{
-}
-
 
 
 
@@ -326,7 +256,7 @@ int   mulle_objc_signature_contains_object( char *type);
 
 // check if type is '@' '~' (or as member in array, union, struct member)
 MULLE_OBJC_RUNTIME_GLOBAL
-int   mulle_objc_signature_contains_retainableobject( char *type);
+int   mulle_objc_signature_contains_retainable_type( char *type);
 
 
 // returns strlen()! not sizeof()
@@ -481,6 +411,160 @@ int   _mulle_objc_typeinfo_is_compatible( struct mulle_objc_typeinfo *a,
                                           struct mulle_objc_typeinfo *b);
 int   _mulle_objc_ivarsignature_is_compatible( char *a, char *b);
 
+
+
+static inline void  *
+   _mulle_objc_typeinfo_demote_value_to_natural( struct mulle_objc_typeinfo *p,
+                                                 void *dst,
+                                                 void *src)
+{
+   switch( *p->type)
+   {
+   case _C_FLT  :
+      *mulle_c_pointer_postincrement( dst, float) = *(double *) src;
+      break;
+   case _C_SEL  :
+      *mulle_c_pointer_postincrement( dst, unsigned int) = *(mulle_objc_methodid_t *) src;
+      break;
+   case _C_CHR  :
+      *mulle_c_pointer_postincrement( dst, int) = *(char *) src;
+      break;
+   case _C_UCHR :
+      *mulle_c_pointer_postincrement( dst, unsigned int) = *(unsigned char *) src;
+      break;
+   case _C_SHT  :
+      *mulle_c_pointer_postincrement( dst, int) = *(short *) src;
+      break;
+   case _C_USHT :
+      *mulle_c_pointer_postincrement( dst, unsigned int) = *(unsigned short *) src;
+      break;
+   default      :
+      memcpy( dst, src, p->natural_size);
+      dst = &((char *) dst)[ p->natural_size];
+      break;
+   }
+   return( dst);
+}
+
+
+static inline void *
+   _mulle_objc_typeinfo_promote_value_from_natural( struct mulle_objc_typeinfo *p,
+                                                    void *dst,
+                                                    void *src)
+{
+   switch( *p->type)
+   {
+   case _C_FLT  :
+      *mulle_c_pointer_postincrement( dst, double) = *(float *) src;
+      break;
+   case _C_SEL  :
+      *mulle_c_pointer_postincrement( dst, mulle_objc_methodid_t) = *(unsigned int *) src;
+      break;
+   case _C_CHR  :
+      *mulle_c_pointer_postincrement( dst, char) = *(int *) src;
+      break;
+   case _C_UCHR :
+      *mulle_c_pointer_postincrement( dst, unsigned char) = *(unsigned int *) src;
+      break;
+   case _C_SHT  :
+      *mulle_c_pointer_postincrement( dst, short) = *(int *) src;
+      break;
+   case _C_USHT :
+      *mulle_c_pointer_postincrement( dst, unsigned short) = *(unsigned int *) src;
+      break;
+   default      :
+      memcpy( dst, src, p->natural_size);
+      dst = &((char *) dst)[ p->natural_size];
+      break;
+   }
+   return( dst);
+}
+
+
+//
+// The signature enumerator enumerates self, _cmd, args...
+// and at the end, you can ask _mulle_objc_signatureenumerator_rval to
+// get the return value info. If you don't ask for it last, the offset
+// will not have been computed properly.
+//
+// i.e.
+// mulle_objc_signature_enumerate(..)
+// while( _mulle_objc_signatureenumerator_next(..);
+// _mulle_objc_signatureenumerator_rval(..)
+// _mulle_objc_signatureenumerator_done(..)
+//
+struct mulle_objc_signatureenumerator
+{
+   char                                  *types;
+   struct mulle_objc_signaturesupplier   supplier;
+   struct mulle_objc_typeinfo            rval;
+};
+
+
+static inline struct mulle_objc_signatureenumerator
+   mulle_objc_signature_enumerate( char *types)
+{
+   struct mulle_objc_signatureenumerator  rover = { 0 };
+
+   rover.types = (types && *types) ? types : NULL;
+   if( ! rover.types)
+      return( rover);
+
+   // parse first the incomplete rval
+   rover.types =  _mulle_objc_signature_supply_typeinfo( rover.types,
+                                                         NULL,
+                                                         &rover.rval);
+   rover.types = (rover.types && *rover.types) ? rover.types : NULL;
+
+   return( rover);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline int
+   _mulle_objc_signatureenumerator_next( struct mulle_objc_signatureenumerator *rover,
+                                         struct mulle_objc_typeinfo *info)
+{
+   if( ! rover->types)
+      return( 0);
+
+   rover->types = _mulle_objc_signature_supply_typeinfo( rover->types,
+                                                         &rover->supplier,
+                                                         info);
+   rover->types = (rover->types && *rover->types) ? rover->types : NULL;
+   rover->supplier.index++;
+   return( 1);
+}
+
+
+MULLE_C_NONNULL_FIRST
+static inline char *
+   _mulle_objc_signatureenumerator_get_type( struct mulle_objc_signatureenumerator *rover)
+{
+   return( rover->rval.type);
+}
+
+
+//
+// the invocation_offset will only be valid, if a valid info has been
+// passed in for all iterations of the enumerator!
+//
+MULLE_C_NONNULL_FIRST_SECOND
+static inline void
+   _mulle_objc_signatureenumerator_rval( struct mulle_objc_signatureenumerator *rover,
+                                         struct mulle_objc_typeinfo *info)
+{
+   assert( rover->supplier.invocation_offset != (int32_t) -1);
+
+   rover->rval.invocation_offset = rover->supplier.invocation_offset;
+   memcpy( info, &rover->rval, sizeof( *info));
+}
+
+
+static inline void
+   mulle_objc_signatureenumerator_done( struct mulle_objc_signatureenumerator *rover)
+{
+}
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */
 

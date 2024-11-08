@@ -38,6 +38,7 @@ src/mulle-objc-call.h
 src/mulle-objc-callqueue.h
 src/mulle-objc-class-convenience.h
 src/mulle-objc-class.h
+src/mulle-objc-class-impcache.h
 src/mulle-objc-class-initialize.h
 src/mulle-objc-class-lookup.h
 src/mulle-objc-classpair.h

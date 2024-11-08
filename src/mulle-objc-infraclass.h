@@ -143,6 +143,14 @@ static inline mulle_objc_classid_t
 }
 
 
+static inline mulle_objc_classid_t
+   mulle_objc_infraclass_get_classid( struct _mulle_objc_infraclass *infra)
+{
+   return( infra ? infra->base.classid : MULLE_OBJC_NO_CLASSID);
+}
+
+
+
 static inline char   *
    _mulle_objc_infraclass_get_name( struct _mulle_objc_infraclass *infra)
 {
@@ -437,6 +445,22 @@ int   mulle_objc_infraclass_is_sane( struct _mulle_objc_infraclass *infra);
 
 
 
+static inline  int   mulle_objc_infraclass_is_subclass( struct _mulle_objc_infraclass *infra,
+                                                        struct _mulle_objc_infraclass *kindofcls)
+{
+   if( ! kindofcls)
+      return( 1);
+
+   while( infra)
+   {
+      if( infra == kindofcls)
+         return( 1);
+      infra = _mulle_objc_infraclass_get_superclass( infra);
+   }
+   return( 0);
+}
+
+
 #if 0
 
 # pragma mark - class variables
@@ -481,7 +505,7 @@ int   mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infraclass *inf
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_infraclass_add_propertylist_nofail( struct _mulle_objc_infraclass *infra,
-                                                        struct _mulle_objc_propertylist *list);
+                                                      struct _mulle_objc_propertylist *list);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_property   *
@@ -495,6 +519,10 @@ struct _mulle_objc_property  *
 
 
 # pragma mark - ivar lists
+
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_infraclass_has_ivars( struct _mulle_objc_infraclass *infra);
+
 
 MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_infraclass_add_ivarlist( struct _mulle_objc_infraclass *infra,
@@ -521,7 +549,7 @@ struct _mulle_objc_ivar  *mulle_objc_infraclass_search_ivar( struct _mulle_objc_
 
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
-	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *cls,
+	_mulle_objc_infraclass_walk_ivars( struct _mulle_objc_infraclass *infra,
                                       unsigned int inheritance,
                                       mulle_objc_walkivarscallback_t f,
                                       void *userinfo);

@@ -338,10 +338,10 @@ static struct _mulle_objc_method  *
          walk_cls = _mulle_objc_metaclass_as_class( _mulle_objc_infraclass_get_metaclass( proto_cls));
 
       method = _mulle_objc_class_search_method_internal( walk_cls,
-                                                          search,
-                                                          inheritance | walk_cls->inheritance,
-                                                          result,
-                                                          mode);
+                                                         search,
+                                                         inheritance | walk_cls->inheritance,
+                                                         result,
+                                                         mode);
       if( method == MULLE_OBJC_METHOD_SEARCH_FAIL)
          continue;
 
@@ -356,6 +356,31 @@ static struct _mulle_objc_method  *
          result->error = EEXIST;
          found = NULL;
          break;
+      }
+
+      if( search->callback)
+      {
+         assert( result);
+         switch( (search->callback)( cls, search, inheritance, result))
+         {
+         case mulle_objc_walk_ok :
+            continue;
+
+         case mulle_objc_walk_done :
+            break;
+
+         case mulle_objc_walk_dont_descend :
+            inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+            continue;
+
+         case mulle_objc_walk_cancel :
+            result->error = ECANCELED;
+            return( NULL);
+
+         case mulle_objc_walk_error :
+            result->error = errno;
+            return( NULL);
+         }
       }
 
       found = method;
@@ -429,13 +454,12 @@ static struct _mulle_objc_method   *
    found    = MULLE_OBJC_METHOD_SEARCH_FAIL;
    universe = _mulle_objc_class_get_universe( cls);
 
-
    switch( *mode)
    {
    case search_super_method      :
       if( search->args.classid == cls->classid)
          *mode += OFFSET_2_MODE;
-      if( universe->debug.trace.method_searches)
+      if( universe->debug.trace.method_search)
          trace_skip( cls, search, inheritance, *mode);
       goto next_class;
 
@@ -443,7 +467,7 @@ static struct _mulle_objc_method   *
    case search_specific_method   :
       if( search->args.classid != cls->classid)
       {
-         if( universe->debug.trace.method_searches)
+         if( universe->debug.trace.method_search)
             trace_skip( cls, search, inheritance, *mode);
          goto next_class;
       }
@@ -452,7 +476,10 @@ static struct _mulle_objc_method   *
       break;
    }
 
-   if( universe->debug.trace.method_searches)
+   if( _mulle_objc_class_get_classid( cls) == search->stop_classid)
+      return( NULL); // NULL means stop
+
+   if( universe->debug.trace.method_search)
       trace_search( cls, search, inheritance, *mode);
 
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
@@ -503,7 +530,6 @@ static struct _mulle_objc_method   *
          if( search->args.classid == cls->classid &&
              search->args.categoryid == _mulle_objc_methodlist_get_categoryid( list))
             continue;
-      default :
          break;
 
       case search_specific_method_3 :
@@ -515,6 +541,9 @@ static struct _mulle_objc_method   *
             *mode = search_previous_method_2;
             continue;
          }
+
+      default :
+         break;
       }
 
       if( found != MULLE_OBJC_METHOD_SEARCH_FAIL)
@@ -530,12 +559,37 @@ static struct _mulle_objc_method   *
          result->method = method;
       }
 
+      if( search->callback)
+      {
+         assert( result);
+         switch( (search->callback)( cls, search, inheritance, result))
+         {
+         case mulle_objc_walk_ok :
+            continue;
+
+         case mulle_objc_walk_done :
+            break;
+
+         case mulle_objc_walk_dont_descend :
+            inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+            continue;
+
+         case mulle_objc_walk_cancel :
+            result->error = ECANCELED;
+            return( NULL);
+
+         case mulle_objc_walk_error :
+            result->error = errno;
+            return( NULL);
+         }
+      }
+
       if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
       {
          // atomicity needed or not ? see header for more discussion
          method->descriptor.bits |= _mulle_objc_method_searched_and_found;
 
-         if( universe->debug.trace.method_searches)
+         if( universe->debug.trace.method_search)
             trace_method_found( cls, search, list, method);
 
          mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
@@ -555,6 +609,7 @@ static struct _mulle_objc_method   *
    case search_specific_method_2   :
       result->error = EINVAL;
       return( NULL);
+
    default :
       break;
    }
@@ -738,12 +793,19 @@ struct _mulle_objc_method   *
    // in -initializing before we can actually search a method, otherwise
    // we get into problems. Unless we are looking for +load/+unload though.
    //
-   if( ! _mulle_objc_class_is_initializing_or_initialized(  cls))
+   if( search->initialize && ! _mulle_objc_class_is_initializing_or_initialized( cls))
    {
-      if( ! ((mode == search_default || mode == search_previous_method) &&
-             (search->args.methodid == MULLE_OBJC_UNLOAD_METHODID ||
-              search->args.methodid == MULLE_OBJC_LOAD_METHODID)))
+      switch( mode)
       {
+      case search_default         :
+      case search_previous_method :
+         if( (search->args.methodid == MULLE_OBJC_UNLOAD_METHODID ||
+              search->args.methodid == MULLE_OBJC_LOAD_METHODID))
+         {
+            break;
+         }
+
+      default :
          _mulle_objc_class_setup( cls);
       }
    }
@@ -759,6 +821,7 @@ struct _mulle_objc_method   *
    case search_specific_method   :
    case search_super_method      :
    case search_overridden_method :
+      result->error = ENOENT;
       break;
 
    default :
@@ -766,11 +829,10 @@ struct _mulle_objc_method   *
       return( NULL);
    }
 
-   trace = cls->universe->debug.trace.method_searches;
+   trace = cls->universe->debug.trace.method_search;
    if( trace)
       trace_method_start( cls, search, inheritance);
 
-   result->error = ENOENT;
    method = _mulle_objc_class_search_method_internal( cls,
                                                       search,
                                                       inheritance,
@@ -816,7 +878,7 @@ struct _mulle_objc_method   *
       return( NULL);
    }
 
-   if( trace)
+   if( trace && method)
       trace_method_done( cls, search, method);
    return( method);
 }
@@ -840,11 +902,11 @@ struct _mulle_objc_method *
    }
 
    inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_searcharguments_init_default( &search, methodid);
-   method = mulle_objc_class_search_method( cls,
-                                            &search,
-                                            inheritance,
-                                            &result);
+   search      = mulle_objc_searcharguments_make_default( methodid);
+   method      = mulle_objc_class_search_method( cls,
+                                                 &search,
+                                                 inheritance,
+                                                 &result);
    if( ! method)
       *error = result.error;
    return( method);
@@ -867,7 +929,7 @@ struct _mulle_objc_method *
    inheritance = _mulle_objc_class_get_inheritance( cls) |
                     MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
 
-   _mulle_objc_searcharguments_init_default( &search, methodid);
+   search = mulle_objc_searcharguments_make_default( methodid);
    method = mulle_objc_class_search_method( cls,
                                             &search,
                                             inheritance,
@@ -952,7 +1014,6 @@ struct _mulle_objc_method *
 }
 
 
-
 struct _mulle_objc_method *
    _mulle_objc_class_get_forwardmethod_lazy_nofail( struct _mulle_objc_class *cls,
                                                     mulle_objc_methodid_t missing_method)
@@ -1001,7 +1062,7 @@ struct _mulle_objc_method *
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
+   args     = mulle_objc_searcharguments_make_super( p->methodid, p->classid);
    method   = mulle_objc_class_search_method( cls,
                                               &args,
                                               cls->inheritance,
@@ -1026,7 +1087,7 @@ struct _mulle_objc_method *
    universe = _mulle_objc_class_get_universe( cls);
    p        = _mulle_objc_universe_lookup_super_nofail( universe, superid);
 
-   _mulle_objc_searcharguments_init_super( &args, p->methodid, p->classid);
+   args     = mulle_objc_searcharguments_make_super( p->methodid, p->classid);
    method   = mulle_objc_class_search_method( cls,
                                               &args,
                                               cls->inheritance,

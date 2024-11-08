@@ -264,7 +264,7 @@ void   test_retain_release( void)
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
 
-   mulle_objc_universe_add_infraclass_nofail( universe, A_infra);
+   mulle_objc_universe_register_infraclass_nofail( universe, A_infra);
 
    test_simple_retain_release( A_infra);
    test_permanent_retain_release( A_infra);

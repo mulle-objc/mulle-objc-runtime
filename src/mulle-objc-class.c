@@ -171,7 +171,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    cls->allocationsize    = sizeof( struct _mulle_objc_objectheader) + instancesize + headerextrasize;
    cls->headerextrasize   = headerextrasize;
    cls->universe          = universe;
-   cls->invalidate_caches = _mulle_objc_class_invalidate_caches;
+   cls->invalidate_caches = _mulle_objc_class_invalidate_caches_default;
 
    _mulle_atomic_pointer_write_nonatomic( &cls->cachepivot.pivot.entries, universe->initial_impcache.cache.entries);
    _mulle_atomic_pointer_write_nonatomic( &cls->kvc.entries, universe->empty_cache.entries);
@@ -302,14 +302,18 @@ void  _mulle_objc_class_invalidate_impcache( struct _mulle_objc_class *cls,
    }
 }
 
-
-void  _mulle_objc_class_invalidate_caches( struct _mulle_objc_class *cls,
-                                          struct _mulle_objc_methodlist *list)
+//
+// do not call this except from your own cls->invalidate_caches handler
+//
+void  _mulle_objc_class_invalidate_caches_default( struct _mulle_objc_class *cls,
+                                                   struct _mulle_objc_methodlist *list)
 {
    _mulle_objc_class_invalidate_kvccache( cls);
    _mulle_objc_class_invalidate_impcache( cls, list);
 }
 
+
+#pragma mark - methods
 
 
 static int  invalidate_caches_callback( struct _mulle_objc_universe *universe,
@@ -327,8 +331,6 @@ static int  invalidate_caches_callback( struct _mulle_objc_universe *universe,
    return( mulle_objc_walk_ok);
 }
 
-
-#pragma mark - methods
 
 //
 // The assumption on the runtime is, that you can only add but don't
@@ -419,7 +421,9 @@ int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
 
       last = method->descriptor.methodid;
       mulle_objc_universe_register_descriptor_nofail( cls->universe,
-                                                      &method->descriptor);
+                                                      &method->descriptor,
+                                                      cls,
+                                                      list);
 
       if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
          cls->preloads++;

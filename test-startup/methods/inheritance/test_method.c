@@ -39,11 +39,11 @@ void   test_method( void)
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
    assert( universe);
 
-   rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor);
+   rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor, NULL, NULL);
    assert( ! rval);
 
    // duplicate add with same name is OK
-   rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor);
+   rval = _mulle_objc_universe_add_descriptor( universe, &A_foo_method->descriptor, NULL, NULL);
    assert( ! rval);
 
 // this is now hard to test, would need longjmp setjmp here
@@ -60,7 +60,7 @@ void   test_method( void)
       fprintf( stderr, "possibly following warning about x's different method id is expected\n");
 #endif
 
-      rval = _mulle_objc_universe_add_descriptor( universe, &clone);
+      rval = _mulle_objc_universe_add_descriptor( universe, &clone, NULL, NULL);
       assert( 0 && "must not reach this");
    }
    universe->failures.fail = oldfail;
@@ -72,7 +72,7 @@ void   test_method( void)
 #if DEBUG
    fprintf( stderr, "possibly following warning about x's different signature is expected\n");
 #endif
-   rval = _mulle_objc_universe_add_descriptor( universe, &clone);
+   rval = _mulle_objc_universe_add_descriptor( universe, &clone, NULL, NULL);
    assert( ! rval);
 
    // different id for same name will be caught in debug only
@@ -82,7 +82,7 @@ void   test_method( void)
 #if DEBUG
    fprintf( stderr, "possibly following warning about foo's different method id is expected\n");
 #endif
-   rval = _mulle_objc_universe_add_descriptor( universe, &clone);
+   rval = _mulle_objc_universe_add_descriptor( universe, &clone, NULL, NULL);
 }
 
 

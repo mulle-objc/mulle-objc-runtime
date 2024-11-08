@@ -78,7 +78,7 @@ int  test( SEL classid, SEL methodid)
    universe = mulle_objc_global_get_universe( MULLE_OBJC_DEFAULTUNIVERSEID);
    infra    = mulle_objc_universe_lookup_infraclass_nofail( universe, classid);
    meta     = _mulle_objc_infraclass_get_metaclass( infra);
-   _mulle_objc_searcharguments_init_default( &search, methodid);
+   search   = mulle_objc_searcharguments_make_default( methodid);
 
    method   = mulle_objc_class_search_method( &meta->base,
                                               &search,

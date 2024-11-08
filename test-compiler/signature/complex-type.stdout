@@ -1,0 +1,20 @@
+	(p) type              = {odd_members=[3{?=cd}]}
+	member_type_start     = [3{?=cd}]}
+	natural_size          = 48
+	bits_size             = 384
+	bits_struct_alignment = 64
+	natural_alignment     = 8
+	n_members             = 1
+	has_object            = 0
+	has_retainable_type   = 0
+
+	(p) type              = {key_value=*@{?=[2*][2@]}}
+	member_type_start     = *@{?=[2*][2@]}}
+	natural_size          = 48
+	bits_size             = 384
+	bits_struct_alignment = 64
+	natural_alignment     = 8
+	n_members             = 3
+	has_object            = 1
+	has_retainable_type   = 1
+

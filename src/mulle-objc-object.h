@@ -138,51 +138,6 @@ static inline struct _mulle_objc_class *
 }
 
 
-
-MULLE_C_CONST_RETURN
-MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
-   _mulle_objc_object_get_thread( struct _mulle_objc_object *obj)
-{
-#ifdef __MULLE_OBJC_TAO__
-   unsigned int                      index;
-   struct _mulle_objc_objectheader   *header;
-
-   // TPS are not thread affine always
-   index = mulle_objc_object_get_taggedpointerindex( obj);
-   if( index)
-      return( 0);
-
-   header = _mulle_objc_object_get_objectheader( obj);
-   return( _mulle_objc_objectheader_get_thread( header));
-#else
-   return( 0);
-#endif
-}
-
-
-#define mulle_objc_object_is_threadsafe   ((mulle_thread_t) 0)
-#define mulle_objc_object_has_no_thread   ((mulle_thread_t) -1)
-
-
-MULLE_C_ALWAYS_INLINE static inline void
-   _mulle_objc_object_set_thread( struct _mulle_objc_object *obj, mulle_thread_t thread)
-{
-#ifdef __MULLE_OBJC_TAO__
-   unsigned int                      index;
-   struct _mulle_objc_objectheader   *header;
-
-   // TPS are not thread affine always
-   index = mulle_objc_object_get_taggedpointerindex( obj);
-   if( index)
-      return;
-
-   header = _mulle_objc_object_get_objectheader( obj);
-   return( _mulle_objc_objectheader_set_thread( header, thread));
-#endif
-}
-
-
-
 //
 // don't use isa in most cases, use get_class (defined elsewhere)
 //
@@ -214,7 +169,8 @@ static inline void  _mulle_objc_object_set_isa( void *obj, struct _mulle_objc_cl
    if( index)
       mulle_objc_universe_fail_inconsistency( NULL, "set isa on tagged pointer %p", obj);
 
-   header = _mulle_objc_object_get_objectheader( obj);
+   // need low level access, as object may not have been initialized
+   header = __mulle_objc_object_get_objectheader( obj);
    _mulle_objc_objectheader_set_isa( header, cls);
 }
 
@@ -308,6 +264,62 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_infraclass   *
       return( cls->infraclass);
    return( (struct _mulle_objc_infraclass *) cls);
 }
+
+
+
+
+MULLE_C_CONST_RETURN
+MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
+   _mulle_objc_object_get_thread( struct _mulle_objc_object *obj)
+{
+#ifdef __MULLE_OBJC_TAO__
+   unsigned int                      index;
+   struct _mulle_objc_objectheader   *header;
+
+   // TPS are not thread affine always
+   index = mulle_objc_object_get_taggedpointerindex( obj);
+   if( index)
+      return( 0);
+
+   header = _mulle_objc_object_get_objectheader( obj);
+   return( _mulle_objc_objectheader_get_thread( header));
+#else
+   return( 0);
+#endif
+}
+
+
+#define mulle_objc_object_is_threadsafe   ((mulle_thread_t) 0)
+#define mulle_objc_object_has_no_thread   ((mulle_thread_t) -1)
+
+
+MULLE_C_ALWAYS_INLINE static inline void
+   _mulle_objc_object_set_thread( struct _mulle_objc_object *obj, mulle_thread_t thread)
+{
+#ifdef __MULLE_OBJC_TAO__
+   unsigned int                      index;
+   struct _mulle_objc_objectheader   *header;
+   struct _mulle_objc_universe       *universe;
+
+   // TPS are not thread affine always
+   index = mulle_objc_object_get_taggedpointerindex( obj);
+   if( index)
+      return;
+
+   header   = _mulle_objc_object_get_objectheader( obj);
+   universe = _mulle_objc_object_get_universe( obj);
+   if( universe->debug.trace.tao)
+   {
+      mulle_objc_universe_trace( universe, "Object <%s %p> changes thread affinity to \"%p\"",
+                                           _mulle_objc_class_get_name( header->_isa),
+                                           obj,
+                                           thread);
+   }
+
+   return( _mulle_objc_objectheader_set_thread( header, thread));
+#endif
+}
+
 
 
 # pragma mark - ivar access
