@@ -143,21 +143,6 @@ static inline struct _mulle_objc_impcachepivot *
    return( &cls->cachepivot);
 }
 
-
-static inline struct _mulle_objc_impcache *
-   _mulle_objc_class_get_impcache_atomic( struct _mulle_objc_class *cls)
-{
-   return( _mulle_objc_impcachepivot_get_impcache_atomic( &cls->cachepivot));
-}
-
-
-static inline struct _mulle_objc_cache *
-   _mulle_objc_class_get_impcache_cache_atomic( struct _mulle_objc_class *cls)
-{
-   return( _mulle_objc_impcachepivot_get_impcache_cache_atomic( &cls->cachepivot));
-}
-
-
 MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
                                                   mulle_objc_methodid_t methodid);
@@ -250,17 +235,28 @@ MULLE_C_NONNULL_FIRST
 void  _mulle_objc_class_invalidate_impcache( struct _mulle_objc_class *cls,
                                              struct _mulle_objc_methodlist *list);
 
+
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
-void  _mulle_objc_class_invalidate_caches( struct _mulle_objc_class *cls,
-                                           struct _mulle_objc_methodlist *list);
+void  _mulle_objc_class_invalidate_caches_default( struct _mulle_objc_class *cls,
+                                                   struct _mulle_objc_methodlist *list);
 
 
-static inline void  mulle_objc_class_invalidate_caches( struct _mulle_objc_class *cls)
+MULLE_C_NONNULL_FIRST
+static inline void  _mulle_objc_class_invalidate_caches( struct _mulle_objc_class *cls,
+                                                         struct _mulle_objc_methodlist *list)
+{
+   (*cls->invalidate_caches)( cls, list); // _mulle_objc_class_invalidate_caches_default
+}
+
+
+static inline void  mulle_objc_class_invalidate_caches( struct _mulle_objc_class *cls,
+                                                        struct _mulle_objc_methodlist *list)
 {
    if( cls)
-      _mulle_objc_class_invalidate_caches( cls, NULL);
+      (*cls->invalidate_caches)( cls, list); // _mulle_objc_class_invalidate_caches_default
 }
+
 
 # pragma mark - methodlists
 

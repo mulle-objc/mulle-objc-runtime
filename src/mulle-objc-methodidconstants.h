@@ -29,4 +29,7 @@
 
 #define MULLE_OBJC_MULLE_ALLOCATOR_METHODID      MULLE_OBJC_METHODID( 0x6b8b61fc) // "mulleAllocator"
 
+// used for boring trace
+#define MULLE_OBJC_MULLE_COUNT_OBJECT_METHODID   MULLE_OBJC_METHODID( 0xf1cb600c) // "mulleCountObject:"
+
 #endif

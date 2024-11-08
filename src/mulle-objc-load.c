@@ -552,7 +552,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    if( info->fastclassindex >= 0)
       _mulle_objc_universe_set_fastclass( universe, infra, info->fastclassindex);
 
-   if( mulle_objc_universe_add_infraclass( universe, infra))
+   if( mulle_objc_universe_register_infraclass( universe, infra))
    {
       if( errno == EFAULT)
          mulle_objc_universe_fail_generic( universe,
@@ -997,7 +997,7 @@ static mulle_objc_classid_t
       fail_duplicate_category( pair, info);
 
    // checks for hash collisions
-   mulle_objc_universe_add_category_nofail( universe, info->categoryid, info->categoryname);
+   mulle_objc_universe_register_category_nofail( universe, info->categoryid, info->categoryname);
 
    // the loader sets the categoryid as owner
    if( info->instancemethods && info->instancemethods->n_methods)
@@ -1245,7 +1245,7 @@ static void   mulle_objc_loadsuperlist_enqueue_nofail( struct _mulle_objc_superl
    sentinel = &p[ list->n_supers];
    while( p < sentinel)
    {
-      mulle_objc_universe_add_super_nofail( universe, p);
+      mulle_objc_universe_register_super_nofail( universe, p);
       ++p;
    }
 }
@@ -1315,9 +1315,10 @@ static void   call_load( struct _mulle_objc_metaclass *meta,
 
    // the "meta" class is not the object passed
    infra = _mulle_objc_metaclass_get_infraclass( meta);
-   mulle_objc_implementation_invoke( imp, (struct _mulle_objc_object *) _mulle_objc_infraclass_as_class( infra),
-                                          sel,
-                                          _mulle_objc_metaclass_as_class( meta));
+   // we don't invoke `_mulle_objc_implementation_debug`, because we don't want
+   // to trigger +initialize
+
+   (*imp)( infra, sel, infra);
 }
 
 
@@ -1528,7 +1529,7 @@ char   *mulle_objc_loadinfo_get_origin( struct _mulle_objc_loadinfo *info)
 
 //
 // this is the function called per .o file
-// it's calle indirectly via mulle_atinit on participating platforms
+// it's called indirectly via mulle_atinit on participating platforms
 // (those that use ELF)
 //
 static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
@@ -1540,7 +1541,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
    struct _mulle_objc_loaduniverse         *loaduniverse;
    int                                     trace;
 
-   trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
+   trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    if( trace)
       fprintf( stderr, "%p: mulle-objc is enqueing loadinfo %p\n",
                            (void *) mulle_thread_self(), info);
@@ -1563,10 +1564,16 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
    }
 
    if( trace)
-      fprintf( stderr, "%p: mulle-objc is acquiring universe %lu \"%s\"\n",
-                           (void *) mulle_thread_self(),
-                           (unsigned long) loaduniverse->universeid,
-                           loaduniverse->universename ? loaduniverse->universename : "");
+   {
+      // only trace non standard universes
+      if( loaduniverse->universeid != 0)
+      {
+         fprintf( stderr, "%p: mulle-objc is acquiring universe %lu \"%s\"\n",
+                              (void *) mulle_thread_self(),
+                              (unsigned long) loaduniverse->universeid,
+                              loaduniverse->universename ? loaduniverse->universename : "");
+      }
+   }
 
    universe = mulle_objc_global_register_universe( loaduniverse->universeid,
                                                    loaduniverse->universename);
@@ -1739,7 +1746,7 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
    int   trace;
    char  *comment;
 
-   trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_UNIVERSE");
+   trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    if( trace)
       fprintf( stderr, "%p: mulle-objc is pushing loadinfo onto atinit %p\n",
                            (void *) mulle_thread_self(), info);

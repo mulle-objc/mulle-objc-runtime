@@ -135,7 +135,10 @@ void  _mulle_objc_object_perform_finalize( void *obj)
    volatile intptr_t                retaincount_1;  // volatile vooodo ?
    intptr_t                         new_retaincount_1;
 
-   // can't finalize constant objects
+   //
+   // can't finalize constant objects, why ? because we can't do the
+   // retaincount to signal finalized state and running only once
+   //
    assert( ! _mulle_objc_object_is_constant( obj));
 
    header = _mulle_objc_object_get_objectheader( obj);

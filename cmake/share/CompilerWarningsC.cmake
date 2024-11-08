@@ -39,7 +39,7 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
       option( WANTED_WARNINGS "Turn off some desirable compiler warnings" ON)
    endif()
 
-   if( UNWANTED_WARNINGS)
+   if( WANTED_WARNINGS)
       #
       # move this to ObjC
       #

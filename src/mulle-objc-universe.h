@@ -140,11 +140,11 @@ struct _mulle_objc_threadinfo
 
    // these will be called when mulle_objc_thread_unset_threadinfo is called
    // (or the thread dies)
-   mulle_objc_threadinfo_destructor_t      *foundation_destructor;
-   intptr_t                                foundationspace[ S_MULLE_OBJC_THREADCONFIG_FOUNDATION_SPACE / sizeof( intptr_t)];
+   mulle_objc_threadinfo_destructor_t       *foundation_destructor;
+   intptr_t                                 foundationspace[ S_MULLE_OBJC_THREADCONFIG_FOUNDATION_SPACE / sizeof( intptr_t)];
 
-   mulle_objc_threadinfo_destructor_t      *userspace_destructor;
-   intptr_t                                userspace[ S_MULLE_OBJC_THREADCONFIG_USER_SPACE / sizeof( intptr_t)];
+   mulle_objc_threadinfo_destructor_t       *userspace_destructor;
+   intptr_t                                 userspace[ S_MULLE_OBJC_THREADCONFIG_USER_SPACE / sizeof( intptr_t)];
 };
 
 static inline struct _mulle_objc_universe *
@@ -187,6 +187,7 @@ static inline struct _mulle_objc_exceptionstackentry *
    return( config->exception_stack);
 }
 
+
 static inline void
    _mulle_objc_threadinfo_set_exception_stack( struct _mulle_objc_threadinfo  *config,
                                                struct _mulle_objc_exceptionstackentry *stack)
@@ -194,8 +195,10 @@ static inline void
    config->exception_stack = stack;
 }
 
+
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe);
+
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_thread_unset_threadinfo( struct _mulle_objc_universe *universe);
@@ -207,6 +210,7 @@ static inline void
 {
    config->foundation_destructor = destructor;
 }
+
 
 static inline mulle_objc_threadinfo_destructor_t *
    _mulle_objc_threadinfo_get_foundation_destructor( struct _mulle_objc_threadinfo  *config)
@@ -642,13 +646,23 @@ struct _mulle_objc_classpair   *
 //    EINVAL= parameter or property NULL
 //    ECHILD= missing methodlist, property etc.
 //
-MULLE_OBJC_RUNTIME_GLOBAL
-int   mulle_objc_universe_add_infraclass( struct _mulle_objc_universe *universe,
-                                          struct _mulle_objc_infraclass *infra);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_universe_add_infraclass_nofail( struct _mulle_objc_universe *universe,
-                                                  struct _mulle_objc_infraclass *infra);
+int   mulle_objc_universe_register_infraclass( struct _mulle_objc_universe *universe,
+                                               struct _mulle_objc_infraclass *infra);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_universe_register_infraclass_nofail( struct _mulle_objc_universe *universe,
+                                                       struct _mulle_objc_infraclass *infra);
+
+// only use for super special poseas moments...
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_universe_register_infraclass_for_classid( struct _mulle_objc_universe *universe,
+                                                            struct _mulle_objc_infraclass *infra,
+                                                            mulle_objc_classid_t classid);
+MULLE_OBJC_RUNTIME_GLOBAL
+int   mulle_objc_universe_patch_infraclass( struct _mulle_objc_universe *universe,
+                                            struct _mulle_objc_infraclass *infra);
 
 // do not use, it's just there for compat
 // doesn't clean caches
@@ -680,17 +694,22 @@ int  _mulle_objc_universe_should_grow_cache( struct _mulle_objc_universe *univer
 // just for tests! use mulle_objc_universe_register_descriptor_nofail instead
 MULLE_OBJC_RUNTIME_GLOBAL
 int    _mulle_objc_universe_add_descriptor( struct _mulle_objc_universe *universe,
-                                            struct _mulle_objc_descriptor *p);
-
+                                            struct _mulle_objc_descriptor *p,
+                                            struct _mulle_objc_class *cls,
+                                            struct _mulle_objc_methodlist *list);
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_descriptor *
     _mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
-                                                     struct _mulle_objc_descriptor *p);
+                                                     struct _mulle_objc_descriptor *p,
+                                                     struct _mulle_objc_class *cls,
+                                                     struct _mulle_objc_methodlist *list);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_descriptor *
    mulle_objc_universe_register_descriptor_nofail( struct _mulle_objc_universe *universe,
-                                                   struct _mulle_objc_descriptor *p);
+                                                   struct _mulle_objc_descriptor *p,
+                                                   struct _mulle_objc_class *cls,
+                                                   struct _mulle_objc_methodlist *list);
 
 // get name from methodid for example
 static inline struct _mulle_objc_descriptor *
@@ -722,6 +741,36 @@ MULLE_OBJC_RUNTIME_GLOBAL
 char   *mulle_objc_global_lookup_methodname( mulle_objc_universeid_t universeid,
                                              mulle_objc_methodid_t methodid);
 
+#pragma mark - generic hasmap walker
+
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walk_hashmap_callback_t)( struct _mulle_objc_universe *,
+                                          void *,
+                                          void *);
+mulle_objc_walkcommand_t
+   _mulle_objc_universe_walk_hashmap( struct _mulle_objc_universe  *universe,
+                                      struct mulle_concurrent_hashmap *hashmap,
+                                      mulle_objc_walk_hashmap_callback_t callback,
+                                      void *userinfo);
+
+#pragma mark - properties (methodid to propertyid mapping)
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void
+    mulle_objc_universe_register_propertyid_for_methodid_nofail( struct _mulle_objc_universe *universe,
+                                                                  mulle_objc_propertyid_t propertyid,
+                                                                  mulle_objc_methodid_t methodid);
+
+// get name from methodid for example
+static inline mulle_objc_propertyid_t
+   _mulle_objc_universe_lookup_propertyid_for_methodid( struct _mulle_objc_universe *universe,
+                                                        mulle_objc_methodid_t methodid)
+{
+   return( (mulle_objc_propertyid_t) (uintptr_t)
+               _mulle_concurrent_hashmap_lookup( &universe->propertyidtable,
+                                                 methodid));
+}
+
 # pragma mark - superstrings
 
 # pragma mark - super map
@@ -738,12 +787,29 @@ struct _mulle_objc_super   *
                                              mulle_objc_superid_t superid);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int   _mulle_objc_universe_add_super( struct _mulle_objc_universe *universe,
+int   _mulle_objc_universe_register_super( struct _mulle_objc_universe *universe,
                                       struct _mulle_objc_super *p);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void    mulle_objc_universe_add_super_nofail( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_register_super_nofail( struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_super *p);
+
+
+typedef mulle_objc_walkcommand_t
+   (*mulle_objc_walk_supers_callback_t)( struct _mulle_objc_universe *,
+                                         struct _mulle_objc_super *,
+                                         void *);
+
+static inline mulle_objc_walkcommand_t
+   _mulle_objc_universe_walk_supers( struct _mulle_objc_universe  *universe,
+                                     mulle_objc_walk_supers_callback_t callback,
+                                     void *userinfo)
+{
+   return( _mulle_objc_universe_walk_hashmap( universe,
+                                              &universe->supertable,
+                                              (mulle_objc_walk_hashmap_callback_t) callback,
+                                              userinfo));
+}
 
 
 # pragma mark - protocols
@@ -754,10 +820,10 @@ struct _mulle_objc_protocol  *
                                          mulle_objc_protocolid_t protocolid);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int   _mulle_objc_universe_add_protocol( struct _mulle_objc_universe *universe,
+int   _mulle_objc_universe_register_protocol( struct _mulle_objc_universe *universe,
                                          struct _mulle_objc_protocol *protocol);
 
-static inline int   mulle_objc_universe_add_protocol( struct _mulle_objc_universe *universe,
+static inline int   mulle_objc_universe_register_protocol( struct _mulle_objc_universe *universe,
                                                       struct _mulle_objc_protocol *protocol)
 {
    if( ! universe)
@@ -765,12 +831,12 @@ static inline int   mulle_objc_universe_add_protocol( struct _mulle_objc_univers
       errno = EINVAL;
       return( -1);
    }
-   return( _mulle_objc_universe_add_protocol( universe, protocol));
+   return( _mulle_objc_universe_register_protocol( universe, protocol));
 }
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void    mulle_objc_universe_add_protocol_nofail( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_register_protocol_nofail( struct _mulle_objc_universe *universe,
                                                  struct _mulle_objc_protocol *protocol);
 
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -778,15 +844,20 @@ struct _mulle_objc_protocol  *mulle_objc_lookup_protocol( mulle_objc_protocolid_
 
 
 typedef mulle_objc_walkcommand_t
-   (*mulle_objc_walk_protocols_callback)( struct _mulle_objc_universe *,
-                                          struct _mulle_objc_protocol *,
-                                          void *);
+   (*mulle_objc_walk_protocols_callback_t)( struct _mulle_objc_universe *,
+                                            struct _mulle_objc_protocol *,
+                                            void *);
 
-MULLE_OBJC_RUNTIME_GLOBAL
-mulle_objc_walkcommand_t
+static inline mulle_objc_walkcommand_t
    _mulle_objc_universe_walk_protocols( struct _mulle_objc_universe  *universe,
-                                        mulle_objc_walk_protocols_callback callback,
-                                        void *userinfo);
+                                         mulle_objc_walk_protocols_callback_t callback,
+                                         void *userinfo)
+{
+   return( _mulle_objc_universe_walk_hashmap( universe,
+                                              &universe->protocoltable,
+                                              (mulle_objc_walk_hashmap_callback_t) callback,
+                                              userinfo));
+}
 
 MULLE_OBJC_RUNTIME_GLOBAL
 size_t   _mulle_objc_universe_count_protocols( struct _mulle_objc_universe  *universe);
@@ -814,12 +885,12 @@ char   *_mulle_objc_universe_lookup_category( struct _mulle_objc_universe *unive
                                               mulle_objc_categoryid_t categoryid);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int   _mulle_objc_universe_add_category( struct _mulle_objc_universe *universe,
+int   _mulle_objc_universe_register_category( struct _mulle_objc_universe *universe,
                                          mulle_objc_categoryid_t categoryid,
                                          char *name);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void    mulle_objc_universe_add_category_nofail( struct _mulle_objc_universe *universe,
+void    mulle_objc_universe_register_category_nofail( struct _mulle_objc_universe *universe,
                                                  mulle_objc_categoryid_t categoryid,
                                                  char *name);
 
@@ -1081,6 +1152,12 @@ static inline void   mulle_objc_invalidate_classcaches( mulle_objc_universeid_t 
    universe = mulle_objc_global_get_universe( universeid);
    _mulle_objc_universe_invalidate_classcaches( universe, NULL);
 }
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST_SECOND
+int   _mulle_objc_universe_cache_should_grow( struct _mulle_objc_universe *universe,
+                                              struct _mulle_objc_cache *cache);
 
 
 # pragma mark - garbage collection

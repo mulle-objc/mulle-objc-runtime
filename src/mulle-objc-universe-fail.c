@@ -43,6 +43,7 @@
 
 #include "mulle-objc-builtin.h"
 
+//#define HAVE_STACKTRACE_INJECTOR
 
 // MEMO: mulle-stacktrace is complicated to compile and not that good
 //       so its been removed from 0.20
@@ -50,11 +51,19 @@
 # pragma mark - errors when no universe is present
 
 
-MULLE_C_NO_RETURN void
-   _mulle_objc_vprintf_abort( char *format, va_list args)
+char  *mulle_objc_parting_words = "Either that wallpaper goes, or I go!";
+
+//
+// so what is this now ? if we are in debug mode and get a stacktrace
+// we get to see the error message as a parameter in gdb, this will
+// be most of the time sufficient
+//
+MULLE_C_NEVER_INLINE
+MULLE_C_NO_RETURN
+static void   __mulle_objc_puts_abort( char *s)
 {
-   mulle_vfprintf( stderr, format ? format : "???", args);
-   fprintf( stderr, "\n");
+   mulle_objc_parting_words = s;
+   fputs( s, stderr);
 
    // could improve this with symbolification but, it's a) debug
    // only and b) you get better a one in the debugger
@@ -65,15 +74,15 @@ MULLE_C_NO_RETURN void
 }
 
 
-MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE void
-   _mulle_objc_printf_abort( char *format, ...)
+MULLE_C_NEVER_INLINE
+MULLE_C_NO_RETURN
+static void   __mulle_objc_perror_abort( char *s)
 {
-   va_list   args;
+   mulle_objc_parting_words = s;
+   perror( s);
 
-   va_start( args, format);
-   _mulle_objc_vprintf_abort( format, args);
-   va_end( args);
-
+   // could improve this with symbolification but, it's a) debug
+   // only and b) you get better a one in the debugger
 #if defined( DEBUG) && defined( MULLE_STACKTRACE_VERSION)
    mulle_stacktrace_once( stderr);
 #endif
@@ -81,31 +90,160 @@ MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE void
 }
 
 
+MULLE_C_NO_RETURN
+void   _mulle_objc_vprintf_abort( char *format, va_list args)
+{
+   // in the debugger, its sometimes nicer to be able to inspect
+   // the string here, instead of searching for it in some log file
+   // via mulle_vfprintf( stderr, format ? format : "???", args);
+   mulle_buffer_do( buffer)
+   {
+      mulle_buffer_vsprintf( buffer, format ? format : "???", args);
+      __mulle_objc_puts_abort( mulle_buffer_get_string( buffer));
+   }
+   abort(); // compiler stupidity
+}
+
+
+MULLE_C_NO_RETURN
+void   _mulle_objc_vperror_abort( char *format, va_list args)
+{
+   mulle_buffer_do( buffer)
+   {
+      mulle_buffer_vsprintf( buffer, format ? format : "???", args);
+      mulle_buffer_add_string( buffer, ": ");
+      __mulle_objc_perror_abort( mulle_buffer_get_string( buffer));
+   }
+   abort(); // compiler stupidity
+}
+
+
+MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE
+void   _mulle_objc_printf_abort( char *format, ...)
+{
+   va_list   args;
+
+   va_start( args, format);
+   _mulle_objc_vprintf_abort( format, args);
+   va_end( args);
+}
+
+
+
+//
+// this is for multi-platform where we need args as a pointer, but its
+// unclear what va_list actually is (struct, pointer ?)
+//
+MULLE_C_NO_RETURN
+static void   _mulle_objc_vvprintf_abort( char *format, va_list *args)
+{
+   _mulle_objc_vprintf_abort( format, *args);
+}
+
+#ifdef HAVE_STACKTRACE_INJECTOR
+
+//
+// this is just a last resort mechanism, so no error checks
+// should just _not_ crash. The problem here is that in "production" we
+// probably do not have a compiler available and in debug mode, we can
+// just look at the regular stack trace.
+//
+static void   *mulle_objc_create_debug_symbol( const char* symbol_name, void *target_fn)
+{
+   char   *source_path;
+   char   *lib_path;
+   FILE   *fp;
+   void   *handle;
+   void   *symbol;
+   extern int   unlink( char *);
+
+   mulle_buffer_do( source)
+   {
+      mulle_buffer_sprintf( source, "/tmp/mulle_objc_debug_%p.c", &source_path);
+      source_path = mulle_buffer_get_string( source);
+
+      fp = fopen( source_path, "w");
+      fprintf( fp, "struct va_list;\n");
+      fprintf( fp, "typedef void (*fn_ptr)( char *, struct va_list *);\n");
+      fprintf( fp, "static void   debug_trampoline( char *a, struct va_list *b)\n"
+                   "{\n   (*(fn_ptr) %p)( a, b);\n}\n", target_fn);
+      fprintf( fp, "asm(\".globl \\\"%s\\\"\");\n", symbol_name);
+      fprintf( fp, "asm(\".set \\\"%s\\\", debug_trampoline\");\n", symbol_name);
+      fclose( fp);
+
+      mulle_buffer_do( library)
+      {
+         mulle_buffer_sprintf( library, "/tmp/mulle_objc_debug_%p.so", &source_path);
+         lib_path = mulle_buffer_get_string( library);
+
+         mulle_buffer_do( cmd)
+         {
+            mulle_buffer_sprintf( cmd, "cc -shared -fPIC %s -o %s", source_path,
+                                                                    lib_path);
+            system( mulle_buffer_get_string( cmd));
+
+            handle = dlopen( lib_path, RTLD_NOW);
+            symbol = dlsym( handle, symbol_name);
+
+            // unlink( lib_path); umm that uglifes the stacktrace though
+         }
+      }
+      unlink( source_path);
+   }
+
+   return symbol;
+}
+
+#else
+
+static inline void   *mulle_objc_create_debug_symbol( const char* symbol_name, void *target_fn)
+{
+   return( NULL);
+}
+
+#endif
+
+
+MULLE_C_NO_RETURN
+static void  mulle_objc_call_debug_symbol( void (*f)( char *, va_list *) MULLE_C_NO_RETURN,
+                                           char * format, ...)
+{
+   va_list   args;
+
+   va_start( args, format);
+   if( f)
+      (*f)( format, &args);
+   else
+      _mulle_objc_vprintf_abort( format, args);
+   va_end( args);
+}
+
+
 char   *mulle_objc_known_name_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
 {
    switch( uniqueid)
    {
-   case MULLE_OBJC_ALLOC_METHODID          : return( "alloc");
-   case MULLE_OBJC_AUTORELEASE_METHODID    : return( "autorelease");
-   case MULLE_OBJC_CLASS_METHODID          : return( "class");
-   case MULLE_OBJC_COPY_METHODID           : return( "copy");
-   case MULLE_OBJC_DEALLOC_METHODID        : return( "dealloc");
-   case MULLE_OBJC_DEINITIALIZE_METHODID   : return( "deinitialize");
-   case MULLE_OBJC_DEPENDENCIES_METHODID   : return( "dependencies");
-   case MULLE_OBJC_FINALIZE_METHODID       : return( "finalize");
-   case MULLE_OBJC_FORWARD_METHODID        : return( "forward:");
-   case MULLE_OBJC_INITIALIZE_METHODID     : return( "initialize");
-   case MULLE_OBJC_INIT_METHODID           : return( "init");
-   case MULLE_OBJC_INSTANTIATE_METHODID    : return( "instantiate");
-   case MULLE_OBJC_LOAD_METHODID           : return( "load");
-   case MULLE_OBJC_MUTABLECOPY_METHODID    : return( "mutableCopy");
-   case MULLE_OBJC_OBJECT_METHODID         : return( "object");
-   case MULLE_OBJC_RELEASE_METHODID        : return( "release");
-   case MULLE_OBJC_RETAIN_METHODID         : return( "retain");
-   case MULLE_OBJC_RETAINCOUNT_METHODID    : return( "retainCount");
-   case MULLE_OBJC_UNLOAD_METHODID         : return( "unload");
-   case MULLE_OBJC_GENERIC_GETTER_METHODID : return( ":");
-   case MULLE_OBJC_WILLFINALIZE_METHODID   : return( "willFinalize");
+   case MULLE_OBJC_ALLOC_METHODID           : return( "alloc");
+   case MULLE_OBJC_AUTORELEASE_METHODID     : return( "autorelease");
+   case MULLE_OBJC_CLASS_METHODID           : return( "class");
+   case MULLE_OBJC_COPY_METHODID            : return( "copy");
+   case MULLE_OBJC_DEALLOC_METHODID         : return( "dealloc");
+   case MULLE_OBJC_DEINITIALIZE_METHODID    : return( "deinitialize");
+   case MULLE_OBJC_DEPENDENCIES_METHODID    : return( "dependencies");
+   case MULLE_OBJC_FINALIZE_METHODID        : return( "finalize");
+   case MULLE_OBJC_FORWARD_METHODID         : return( "forward:");
+   case MULLE_OBJC_INITIALIZE_METHODID      : return( "initialize");
+   case MULLE_OBJC_INIT_METHODID            : return( "init");
+   case MULLE_OBJC_INSTANTIATE_METHODID     : return( "instantiate");
+   case MULLE_OBJC_LOAD_METHODID            : return( "load");
+   case MULLE_OBJC_MUTABLECOPY_METHODID     : return( "mutableCopy");
+   case MULLE_OBJC_OBJECT_METHODID          : return( "object");
+   case MULLE_OBJC_RELEASE_METHODID         : return( "release");
+   case MULLE_OBJC_RETAIN_METHODID          : return( "retain");
+   case MULLE_OBJC_RETAINCOUNT_METHODID     : return( "retainCount");
+   case MULLE_OBJC_UNLOAD_METHODID          : return( "unload");
+   case MULLE_OBJC_GENERIC_GETTER_METHODID  : return( ":");
+   case MULLE_OBJC_WILLFINALIZE_METHODID    : return( "willFinalize");
 
    case MULLE_OBJC_ADDOBJECT_METHODID       : return( "addObject:");
    case MULLE_OBJC_REMOVEOBJECT_METHODID    : return( "removeObject:");
@@ -122,9 +260,9 @@ char   *mulle_objc_known_name_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
 }
 
 
-MULLE_C_NO_RETURN static void
-   _mulle_objc_abort_classnotfound( struct _mulle_objc_universe *universe,
-                                      mulle_objc_classid_t missing_classid)
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_abort_classnotfound( struct _mulle_objc_universe *universe,
+                                             mulle_objc_classid_t missing_classid)
 {
    _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: unknown class %08x \"%s\"",
                               universe,
@@ -133,14 +271,15 @@ MULLE_C_NO_RETURN static void
 }
 
 
-MULLE_C_NO_RETURN static void
-   _mulle_objc_abort_methodnotfound( struct _mulle_objc_universe *universe,
-                                     struct _mulle_objc_class *cls,
-                                     mulle_objc_methodid_t missing_method)
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_abort_methodnotfound( struct _mulle_objc_universe *universe,
+                                              struct _mulle_objc_class *cls,
+                                              mulle_objc_methodid_t missing_method)
 {
    struct _mulle_objc_descriptor  *desc;
    char   *methodname;
    char   *name;
+   void   (*f)( char *, va_list *) MULLE_C_NO_RETURN;
 
    name       = cls ? _mulle_objc_class_get_name( cls) : "???";
    methodname = NULL;
@@ -167,20 +306,32 @@ MULLE_C_NO_RETURN static void
                                 mulle_objc_class_get_classid( cls),
                                 name);
 
-   _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: unknown method "
-                             "%08x \"%c%s\" in class %08x \"%s\"",
-                             universe,
-                             missing_method,
-                             mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-                             methodname,
-                             mulle_objc_class_get_classid( cls),
-                             name);
+   mulle_buffer_do( symbol_name)
+   {
+      mulle_buffer_sprintf( symbol_name, "missing %c[%s %s]",
+                                          mulle_objc_class_is_metaclass( cls) ? '+' : '-',
+                                          name,
+                                          methodname);
+
+      f = mulle_objc_create_debug_symbol( mulle_buffer_get_string( symbol_name),
+                                          _mulle_objc_vvprintf_abort);
+   }
+
+   mulle_objc_call_debug_symbol( f,
+                                 "mulle_objc_universe %p fatal: unknown method "
+                                 "%08x \"%c%s\" in class %08x \"%s\"",
+                                 universe,
+                                 missing_method,
+                                 mulle_objc_class_is_metaclass( cls) ? '+' : '-',
+                                 methodname,
+                                 mulle_objc_class_get_classid( cls),
+                                 name);
 }
 
 
-MULLE_C_NO_RETURN static void
-   _mulle_objc_abort_supernotfound( struct _mulle_objc_universe *universe,
-                                    mulle_objc_superid_t missing_superid)
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_abort_supernotfound( struct _mulle_objc_universe *universe,
+                                             mulle_objc_superid_t missing_superid)
 {
    _mulle_objc_printf_abort( "mulle_objc_universe %p fatal: "
                              "missing super %08x (needs to be registered first)",
@@ -189,8 +340,8 @@ MULLE_C_NO_RETURN static void
 }
 
 
-MULLE_C_NO_RETURN static void
-   _mulle_objc_abort_wrongthread( struct _mulle_objc_object *obj,
+MULLE_C_NO_RETURN void
+   _mulle_objc_object_abort_wrongthread( struct _mulle_objc_object *obj,
                                   mulle_thread_t affinity_thread,
                                   struct _mulle_objc_descriptor *desc)
 {
@@ -199,6 +350,17 @@ MULLE_C_NO_RETURN static void
 
    cls    = _mulle_objc_object_get_isa( obj);
    ismeta = _mulle_objc_class_is_metaclass( cls);
+
+   if( affinity_thread == (mulle_thread_t) -1)
+   {
+      _mulle_objc_printf_abort( "%s <%s %p> with no affinity to any thread "
+                                "gets a -%s call from thread %p",
+                                ismeta ? "Class" : "Object",
+                                _mulle_objc_class_get_name( cls),
+                                obj,
+                                _mulle_objc_descriptor_get_name( desc),
+                                mulle_thread_self());
+   }
 
    _mulle_objc_printf_abort( "%s <%s %p> with affinity to thread %p "
                              "gets a -%s call from thread %p",
@@ -217,10 +379,10 @@ void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe)
 {
    universe->failures.fail           = _mulle_objc_vprintf_abort;
    universe->failures.inconsistency  = _mulle_objc_vprintf_abort;
-   universe->failures.classnotfound  = _mulle_objc_abort_classnotfound;
-   universe->failures.methodnotfound = _mulle_objc_abort_methodnotfound;
-   universe->failures.supernotfound  = _mulle_objc_abort_supernotfound;
-   universe->failures.wrongthread    = _mulle_objc_abort_wrongthread;
+   universe->failures.classnotfound  = _mulle_objc_universe_abort_classnotfound;
+   universe->failures.methodnotfound = _mulle_objc_universe_abort_methodnotfound;
+   universe->failures.supernotfound  = _mulle_objc_universe_abort_supernotfound;
+   universe->failures.wrongthread    = _mulle_objc_object_abort_wrongthread;
 }
 
 
@@ -303,7 +465,7 @@ MULLE_C_NO_RETURN void
                                             mulle_objc_superid_t superid)
 {
    if ( ! universe || _mulle_objc_universe_is_uninitialized(universe))
-      _mulle_objc_abort_supernotfound( universe, superid);
+      _mulle_objc_universe_abort_supernotfound( universe, superid);
 
    (*universe->failures.supernotfound)(universe, superid);
    abort();  // just make sure if fail returns
@@ -315,7 +477,7 @@ MULLE_C_NO_RETURN void
                                            mulle_objc_classid_t classid)
 {
    if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
-      _mulle_objc_abort_classnotfound( universe, classid);
+      _mulle_objc_universe_abort_classnotfound( universe, classid);
 
    (*universe->failures.classnotfound)( universe, classid);
    abort();  // just make sure if fail returns
@@ -328,7 +490,7 @@ MULLE_C_NO_RETURN void
                                             mulle_objc_methodid_t methodid)
 {
    if (! universe || _mulle_objc_universe_is_uninitialized(universe))
-      _mulle_objc_abort_methodnotfound( universe, cls, methodid);
+      _mulle_objc_universe_abort_methodnotfound( universe, cls, methodid);
 
    (*universe->failures.methodnotfound)( universe, cls, methodid);
    abort();  // just make sure if fail returns
@@ -342,7 +504,7 @@ MULLE_C_NO_RETURN void
                                          struct _mulle_objc_descriptor *desc)
 {
    if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
-      _mulle_objc_abort_wrongthread( obj, affinity_thread, desc);
+      _mulle_objc_object_abort_wrongthread( obj, affinity_thread, desc);
 
    (*universe->failures.wrongthread)( obj, affinity_thread, desc);
    abort();  // just make sure if fail returns

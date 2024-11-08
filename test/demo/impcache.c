@@ -13,6 +13,70 @@
 #include <stdio.h>
 
 
+
+// uniqueid can be a methodid or superid!
+// MEMO: this is a an old function, that it just used in tests its a little
+//       strange, because it has no universe. Do not use otherwise.
+//
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_cacheentry *
+    demo_impcachepivot_fill( struct _mulle_objc_impcachepivot *cachepivot,
+                             mulle_objc_implementation_t imp,
+                             mulle_objc_uniqueid_t uniqueid,
+                             unsigned int fillrate,
+                             struct mulle_allocator *allocator);
+
+struct _mulle_objc_cacheentry *
+    demo_impcachepivot_fill( struct _mulle_objc_impcachepivot *cachepivot,
+                             mulle_objc_implementation_t imp,
+                             mulle_objc_uniqueid_t uniqueid,
+                             unsigned int fillrate,
+                             struct mulle_allocator *allocator)
+{
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_impcache     *old_cache;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_cacheentry   *entry;
+
+   assert( cachepivot);
+   assert( imp);
+
+   //
+   // try to get most up to date value
+   //
+   for(;;)
+   {
+      cache = _mulle_objc_cachepivot_get_cache_atomic( &cachepivot->pivot);
+
+      if( _mulle_objc_cache_should_grow( cache, fillrate))
+      {
+         old_cache = _mulle_objc_cache_get_impcache_from_cache( cache);
+         icache    = _mulle_objc_impcache_grow_with_strategy( old_cache,
+                                                              MULLE_OBJC_CACHESIZE_GROW,
+                                                              allocator);
+
+         // doesn't really matter, if this fails or succeeds we just try
+         // again
+         _mulle_objc_impcachepivot_swap( cachepivot,
+                                         icache,
+                                         old_cache,
+                                         allocator);
+         continue;
+      }
+
+      entry = _mulle_objc_cache_add_functionpointer_entry( cache,
+                                                           (mulle_functionpointer_t) imp,
+                                                           uniqueid);
+      if( entry)
+         break;
+   }
+
+   return( entry);
+}
+
+
+
 /* TODO:
 
    NSProxy              Object
@@ -41,10 +105,10 @@ struct demo_class
 };
 
 
-static void  demo_class_print_cache( struct demo_class *cls, unsigned int index)
+static void   demo_class_print_cache( struct demo_class *cls, unsigned int index)
 {
-   struct _mulle_objc_cache        *cache;
-   mulle_objc_cache_uint_t         i, n;
+   struct _mulle_objc_cache   *cache;
+   mulle_objc_cache_uint_t    i, n;
 
    cache = _mulle_objc_cachepivot_get_cache_atomic( &cls->cachepivot[ index].pivot);
    n     = _mulle_objc_cache_get_size( cache);
@@ -135,41 +199,57 @@ static struct _mulle_objc_method   methods[ N_METHODS] =
 };
 
 
+// MEMO: needed for linking will not be used in test
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
                                   char *universename)
 {
-   struct _mulle_objc_universe    *universe;
-
-   universe = __mulle_objc_global_get_universe( universeid, universename);
-   if( ! _mulle_objc_universe_is_initialized( universe))
-   {
-      _mulle_objc_universe_bang( universe, 0, NULL, NULL);
-   }
-   return( universe);
+   mulle_fprintf( stderr, "%s\n", __FUNCTION__);
+   return( NULL);
+//   struct _mulle_objc_universe    *universe;
+//
+//
+//   universe = __mulle_objc_global_get_universe( universeid, universename);
+//   if( ! _mulle_objc_universe_is_initialized( universe))
+//   {
+//      _mulle_objc_universe_bang( universe, 0, NULL, NULL);
+//   }
+//   return( universe);
 }
+
+
+static int   aba_free( void *aba,
+                       void (*free)( void *, void *),
+                       void *block,
+                       void *owner)
+{
+   (*free)( block, owner);
+}
+
 
 
 int  main( int argc, char *argv[])
 {
-   struct demo_class                cls;
-   unsigned int                     i;
-   unsigned int                     j;
-   unsigned int                     k;
-   struct _mulle_objc_impcache      *icache;
-   struct _mulle_objc_method        *method;
-   struct mulle_allocator           *allocator;
-   mulle_objc_implementation_t      imp;
+   struct demo_class             cls;
+   unsigned int                  i;
+   unsigned int                  j;
+   unsigned int                  k;
+   struct _mulle_objc_impcache   *icache;
+   struct _mulle_objc_method     *method;
+   struct mulle_allocator        allocator;
+   mulle_objc_implementation_t   imp;
 
-   // use this because the test allocator doesn't do abafree well , why ?
-   allocator = &mulle_stdlib_allocator;
+   mulle_fprintf( stderr, "%s\n", __FUNCTION__);
+
+   // use this because the test allocator alone doesn't do abafree
+   allocator         = mulle_stdlib_allocator;
+   allocator.abafree = aba_free;
 
    memset( &cls, 0, sizeof( cls));
-   assert( allocator->abafree);
 
    for( i = 0; i < N_CACHES; i++)
    {
-      icache = mulle_objc_impcache_new( 4, NULL, allocator);
+      icache = mulle_objc_impcache_new( 4, NULL, &allocator);
 
       // we don't have these callbacks
       icache->callback.call                       = 0;
@@ -189,17 +269,17 @@ int  main( int argc, char *argv[])
       if( _mulle_objc_impcachepivot_swap( &cls.cachepivot[ i],
                                           icache,
                                           NULL,
-                                          allocator))
+                                          &allocator))
          abort();
 
       for( j = 0; j < N_METHODS; j++)
       {
          method = &methods[ j];
-          _mulle_objc_impcachepivot_fill( &cls.cachepivot[ i],
-                                          _mulle_objc_method_get_implementation( method),
-                                          _mulle_objc_method_get_methodid( method),
-                                          0,
-                                          allocator);
+          demo_impcachepivot_fill( &cls.cachepivot[ i],
+                                   _mulle_objc_method_get_implementation( method),
+                                   _mulle_objc_method_get_methodid( method),
+                                   0,
+                                   &allocator);
       }
    }
 
@@ -211,7 +291,7 @@ retry:
         // demo_class_print_cache( &cls, i);
 
          imp = _mulle_objc_impcachepivot_probe_inline( &cls.cachepivot[ i],
-                                                               methods[ j].descriptor.methodid);
+                                                       methods[ j].descriptor.methodid);
          if( imp)
             (*imp)( NULL, methods[ j].descriptor.methodid, NULL);
          else
@@ -220,11 +300,11 @@ retry:
                if( methods[ k].descriptor.methodid == methods[ j].descriptor.methodid)
                {
                   method = &methods[ k];
-                  _mulle_objc_impcachepivot_fill( &cls.cachepivot[ i],
-                                                                   _mulle_objc_method_get_implementation( method),
-                                                                   _mulle_objc_method_get_methodid( method),
-                                                                   0,
-                                                                   allocator);
+                  demo_impcachepivot_fill( &cls.cachepivot[ i],
+                                           _mulle_objc_method_get_implementation( method),
+                                           _mulle_objc_method_get_methodid( method),
+                                           0,
+                                           &allocator);
                   goto retry;     
                }
             // lookup method somehow and add to impcache
@@ -239,7 +319,7 @@ retry:
       _mulle_objc_impcachepivot_swap( &cls.cachepivot[ i],
                                       NULL,
                                       icache,
-                                      allocator);
+                                      &allocator);
    }
 
    return( 0);

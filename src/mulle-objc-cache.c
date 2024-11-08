@@ -207,8 +207,8 @@ mulle_objc_cache_uint_t
 }
 
 
-int   _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache, 
-                                     unsigned int fillrate)
+int   _mulle_objc_cache_should_grow( struct _mulle_objc_cache *cache,
+                                    unsigned int fillrate)
 {
    size_t   used;
    size_t   size;
@@ -503,8 +503,6 @@ struct _mulle_objc_cacheentry   *
    return( entry);
 }
 
-
-// MEMO: used by MulleThreadSafeObject
 
 int   _mulle_objc_cachepivot_swap( struct _mulle_objc_cachepivot *pivot,
                                    struct _mulle_objc_cache *cache,

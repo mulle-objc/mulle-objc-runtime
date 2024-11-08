@@ -130,7 +130,7 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
       endif()
    else()
       if( STAGE2_HEADERS)
-         message( FATAL_ERROR "No STAGE2_SOURCES found but STAGE2_HEADERS exist")
+         message( SEND_ERROR "No STAGE2_SOURCES found but STAGE2_HEADERS exist")
       endif()
    endif()
 

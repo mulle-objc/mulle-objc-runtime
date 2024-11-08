@@ -83,7 +83,7 @@ MULLE_C_NO_RETURN void
                                             char *format,
                                             va_list args);
 
-#pragma mark - fails
+#pragma mark - fails (vectored)
 
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NO_RETURN void
@@ -118,4 +118,24 @@ void
 MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe);
 
+
+# pragma aborts - non vectored
+
+// these all call _mulle_objc_printf_abort directly, and you can't intercept
+// them, so don't use them unless you are writing a vector handler yourself
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_abort_classnotfound( struct _mulle_objc_universe *universe,
+                                             mulle_objc_classid_t missing_classid);
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_abort_methodnotfound( struct _mulle_objc_universe *universe,
+                                              struct _mulle_objc_class *cls,
+                                              mulle_objc_methodid_t missing_method);
+MULLE_C_NO_RETURN void
+   _mulle_objc_universe_abort_supernotfound( struct _mulle_objc_universe *universe,
+                                             mulle_objc_superid_t missing_superid);
+
+MULLE_C_NO_RETURN void
+   _mulle_objc_object_abort_wrongthread( struct _mulle_objc_object *obj,
+                                  mulle_thread_t affinity_thread,
+                                  struct _mulle_objc_descriptor *desc);
 #endif

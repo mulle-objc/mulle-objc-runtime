@@ -73,8 +73,7 @@
    infra = (struct _mulle_objc_infraclass *) self;
    cls   = _mulle_objc_infraclass_as_class( infra);
 
-   _mulle_objc_searcharguments_init_default( &args, @selector( c));
-
+   args   = mulle_objc_searcharguments_make_default( @selector( c));
    method = mulle_objc_class_search_method( cls, &args, 0, NULL);
    method->descriptor.bits |= _mulle_objc_method_preload;
 }
@@ -126,7 +125,7 @@ static void   test_no_class( struct _mulle_objc_class *cls, char *name)
    mulle_objc_methodid_t                 sel;
 
    sel    = mulle_objc_methodid_from_string( name);
-   _mulle_objc_searcharguments_init_default( &args, sel);
+   args   = mulle_objc_searcharguments_make_default( sel);
    method = mulle_objc_class_search_method( cls, &args, MULLE_OBJC_CLASS_DONT_INHERIT_CLASS, NULL);
    printf( "%s %sfound in class %s\n", name, method ? "" : "not ", mulle_objc_class_get_name( cls));
 }

@@ -47,6 +47,7 @@
 #include "mulle-objc-methodlist.h"
 #include "mulle-objc-universe.h"
 #include "mulle-objc-loadinfo.h"
+#include "mulle-objc-class-impcache.h"
 
 
 static const char   *tmpdir_names[] =
@@ -152,7 +153,7 @@ void
       if( methodid == MULLE_OBJC_NO_METHODID)
          continue;
 
-      _mulle_objc_searcharguments_init_default( &search, methodid);
+      search = mulle_objc_searcharguments_make_default( methodid);
       method = mulle_objc_class_search_method( cls,
                                                &search,
                                                _mulle_objc_class_get_inheritance( cls),

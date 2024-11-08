@@ -145,12 +145,11 @@ static struct _mulle_objc_cacheentry *
 MULLE_C_NONNULL_RETURN
 struct _mulle_objc_cacheentry *
    _mulle_objc_universe_fill_classcache( struct _mulle_objc_universe *universe,
-                                                       struct _mulle_objc_infraclass *infra)
+                                         struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_cache        *cache;
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_cacheentry   *entry;
-   unsigned int                    fillrate;
 
    assert( infra);
    assert( universe);
@@ -158,12 +157,11 @@ struct _mulle_objc_cacheentry *
    //
    // here try to get most up to date value
    //
-   cls      = _mulle_objc_infraclass_as_class( infra);
-   fillrate = _mulle_objc_universe_get_cache_fillrate( universe);
+   cls = _mulle_objc_infraclass_as_class( infra);
    for(;;)
    {
       cache = _mulle_objc_cachepivot_get_cache_atomic( &universe->cachepivot);
-      if( _mulle_objc_cache_should_grow( cache, fillrate))
+      if( _mulle_objc_universe_cache_should_grow( universe, cache))
       {
          entry = _mulle_objc_universe_add_classcacheentry_swapcaches( universe,
                                                                       cache,
@@ -268,8 +266,8 @@ void   _mulle_objc_universe_invalidate_classcache( struct _mulle_objc_universe *
    {
       expect_entries = old_entries;
       old_entries    = _mulle_objc_cachepivot_cas_weak_entries( &universe->cachepivot,
-                                                                      universe->empty_cache.entries,
-                                                                      old_entries);
+                                                                universe->empty_cache.entries,
+                                                                old_entries);
       if( old_entries == universe->empty_cache.entries)
          return;
    }

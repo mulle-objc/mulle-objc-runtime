@@ -75,3 +75,4 @@ coverage*.html
 /demo/
 cola/wilted/
 *.executable
+perf.dat

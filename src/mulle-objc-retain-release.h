@@ -222,7 +222,9 @@ static inline void   _mulle_objc_object_constantify_noatomic( void *obj)
    if( mulle_objc_taggedpointer_get_index( obj))
       return;
 
-   header = _mulle_objc_object_get_objectheader( obj);
+   // don't TAO check here as classpair_new uses it and we may not have
+   // any classes loaded yet for the TAO check
+   header = __mulle_objc_object_get_objectheader( obj);
    _mulle_atomic_pointer_write_nonatomic( &header->_retaincount_1, (void *) MULLE_OBJC_NEVER_RELEASE);
 }
 

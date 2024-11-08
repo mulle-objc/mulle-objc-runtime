@@ -52,7 +52,7 @@
 
 
 static mulle_objc_cache_uint_t
-   _class_search_minimpcachesize( struct _mulle_objc_class *cls)
+   _mulle_objc_class_search_min_impcache_size( struct _mulle_objc_class *cls)
 {
    mulle_objc_cache_uint_t   preloads;
 
@@ -109,10 +109,9 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
 
    // your chance to change the cache algorithm and initial size
    universe  = _mulle_objc_class_get_universe( cls);
-   n_entries = _class_search_minimpcachesize( cls);
+   n_entries = _mulle_objc_class_search_min_impcache_size( cls) * 3 / 2;  // leave some holes
    if( universe->callbacks.will_init_cache)
       n_entries = (*universe->callbacks.will_init_cache)( universe, cls, n_entries);
-
 
    allocator = _mulle_objc_universe_get_allocator( universe);
    icache    = mulle_objc_impcache_new( n_entries, callback, allocator);
@@ -198,7 +197,7 @@ static void
 
    preserve = errno;
 
-   _mulle_objc_searcharguments_init_default( &search, methodid);
+   search = mulle_objc_searcharguments_make_default( methodid);
    method = mulle_objc_class_search_method( &meta->base,
                                             &search,
                                             inheritance,
@@ -250,7 +249,8 @@ static void
 
 
 static void
-   _mulle_objc_infraclass_call_protocolclasses_initialize( struct _mulle_objc_infraclass *infra)
+   _mulle_objc_infraclass_call_protocolclasses_initialize( struct _mulle_objc_infraclass *owner,
+                                                           struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair                 *pair;
    struct _mulle_objc_protocolclassenumerator   rover;
@@ -258,14 +258,14 @@ static void
    struct _mulle_objc_infraclass                *protocolclass;
    struct _mulle_objc_metaclass                 *metaprotocolclass;
 
-   assert( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
+   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
 
    // call all +initialize protocolclass methods for superclass first
-   superclass = _mulle_objc_infraclass_get_superclass( infra);
+   superclass = _mulle_objc_infraclass_get_superclass( owner);
    if( superclass)
-      _mulle_objc_infraclass_call_protocolclasses_initialize( superclass);
+      _mulle_objc_infraclass_call_protocolclasses_initialize( superclass, infra);
 
-   pair  = _mulle_objc_infraclass_get_classpair( infra);
+   pair  = _mulle_objc_infraclass_get_classpair( owner);
    rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
    while( protocolclass = _mulle_objc_protocolclassenumerator_next( &rover))
    {
@@ -304,12 +304,13 @@ static void
                                                        MULLE_OBJC_INITIALIZE_METHODID,
                                                        infra);
    //
-   _mulle_objc_infraclass_call_protocolclasses_initialize( infra);
+   _mulle_objc_infraclass_call_protocolclasses_initialize( infra, infra);
 }
 
 
 static void
-   _mulle_objc_infraclass_call_protocolclasses_deinitialize( struct _mulle_objc_infraclass *infra)
+   _mulle_objc_infraclass_call_protocolclasses_deinitialize( struct _mulle_objc_infraclass *owner,
+                                                             struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair                        *pair;
    struct _mulle_objc_protocolclassreverseenumerator   rover;
@@ -317,9 +318,9 @@ static void
    struct _mulle_objc_infraclass                       *protocolclass;
    struct _mulle_objc_metaclass                        *metaprotocolclass;
 
-   assert( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
+   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
 
-   pair  = _mulle_objc_infraclass_get_classpair( infra);
+   pair  = _mulle_objc_infraclass_get_classpair( owner);
    rover = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
    while( protocolclass = _mulle_objc_protocolclassreverseenumerator_next( &rover))
    {
@@ -333,9 +334,9 @@ static void
    _mulle_objc_protocolclassreverseenumerator_done( &rover);
 
    // call all +initialize protocolclass methods for superclass first
-   superclass = _mulle_objc_infraclass_get_superclass( infra);
+   superclass = _mulle_objc_infraclass_get_superclass( owner);
    if( superclass)
-      _mulle_objc_infraclass_call_protocolclasses_deinitialize( superclass);
+      _mulle_objc_infraclass_call_protocolclasses_deinitialize( superclass, infra);
 
 }
 
@@ -354,7 +355,7 @@ void
    if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
       return;
 
-   _mulle_objc_infraclass_call_protocolclasses_deinitialize( infra);
+   _mulle_objc_infraclass_call_protocolclasses_deinitialize( infra, infra);
 
    meta         = _mulle_objc_infraclass_get_metaclass( infra);
    cls          = _mulle_objc_metaclass_as_class( meta);

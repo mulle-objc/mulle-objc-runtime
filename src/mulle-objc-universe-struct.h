@@ -108,8 +108,9 @@ enum
 
 enum
 {
-   MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT  = 1,
-   MULLE_OBJC_UNIVERSE_CALL_TAO_BIT    = 2
+   MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT              = 1,
+   MULLE_OBJC_UNIVERSE_CALL_TAO_BIT                = 2,
+   MULLE_OBJC_UNIVERSE_CALL_SKIP_BORING_TRACE_BIT  = 4
 };
 
 struct _mulle_objc_universedebug
@@ -119,12 +120,12 @@ struct _mulle_objc_universedebug
    int                               (*count_stackdepth)( void);
 
    // moved into its own int for slightly better access
-   // but now also has a bit for tao chec
+   // but now also has a bit for tao check
    int                               method_call;
 
    struct
    {
-      unsigned   method_searches;      // keep this in an int
+      unsigned   method_search;      // keep this in an int
 
       unsigned   category_add         : 1;
       unsigned   class_add            : 1;
@@ -140,10 +141,12 @@ struct _mulle_objc_universedebug
       unsigned   method_cache         : 1;
       unsigned   descriptor_add       : 1;
       unsigned   protocol_add         : 1;
+      unsigned   propertyid_add       : 1;
       unsigned   state_bit            : 1;
       unsigned   string_add           : 1;
       unsigned   super_add            : 1;
       unsigned   tagged_pointer       : 1;
+      unsigned   tao                  : 1;
       unsigned   thread               : 1;
       unsigned   timestamp            : 1; // linux only for now
       unsigned   universe             : 1;
@@ -390,6 +393,10 @@ struct _mulle_objc_universe
 
    struct _mulle_objc_universecallbacks     callbacks;
 
+   // propertyid, indexed by methodid. If the there is clash (methodid
+   // is used by two properties, its a problem -> we abort)
+   struct mulle_concurrent_hashmap          propertyidtable;
+
    // unstable region, edit at will
 
    struct _mulle_objc_waitqueues            waitqueues;
@@ -404,6 +411,7 @@ struct _mulle_objc_universe
    // these are 0 and NULL respectively for global and thread local
    mulle_objc_universeid_t                  universeid;
    char                                     *universename;
+   uintptr_t                                compilebits;
 
    //
    // Idea: a universe can have a parent, so you modify the universe and fall

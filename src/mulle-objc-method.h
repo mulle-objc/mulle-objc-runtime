@@ -123,30 +123,35 @@ enum
 
    _mulle_objc_method_searched_and_found        = 0x80,
 
-   _mulle_objc_methodfamily_mask                = 0x3F0000,
-
    // user mask (MSB is currently used by MulleThreadSafeObject to mark
    // methods which should not lock)
-   _mulle_objc_method_user_mask                 = 0x00F800,
+   _mulle_objc_method_user_mask                 = 0x000F800,
    // these can be set like this:
    // #pragma clang attribute push(__attribute__((annotate("objc_user_0"))), apply_to = objc_method)
-   _mulle_objc_method_user_attribute_0          = 0x000800,
-   _mulle_objc_method_user_attribute_1          = 0x001000,
-   _mulle_objc_method_user_attribute_2          = 0x002000,
-   _mulle_objc_method_user_attribute_3          = 0x004000,
-   _mulle_objc_method_user_attribute_4          = 0x008000  // used by #threadsafe
+   _mulle_objc_method_user_attribute_0          = 0x0000800,  // type equal check
+   _mulle_objc_method_user_attribute_1          = 0x0001000,  // type equal check
+   _mulle_objc_method_user_attribute_2          = 0x0002000,  // NOT type equal check
+   _mulle_objc_method_user_attribute_3          = 0x0004000,  // NOT type equal check
+   _mulle_objc_method_user_attribute_4          = 0x0008000,  // // NOT type equal check, used by #threadsafe
+
+   _mulle_objc_methodfamily_mask                = 0x03F0000,
 };
 
 
 #define  _mulle_objc_methodfamily_shift   16
 #define  _mulle_objc_method_user_shift    11
 
+#define  _mulle_objc_method_bits_equality_mask     \
+        (_mulle_objc_method_user_attribute_0       \
+         |_mulle_objc_method_user_attribute_1      \
+         |_mulle_objc_method_type_equality_mask)
 
-static inline int   _mulle_objc_method_bits_type_equal( int a, int b)
+// generally pass in
+static inline int   _mulle_objc_method_bits_type_equal( uint32_t a, uint32_t b)
 {
    // check user mask and important type bits, if differs fail early
    // method family is not important
-   if( (a ^ b) & (_mulle_objc_method_user_mask|_mulle_objc_method_type_equality_mask))
+   if( (a ^ b) & _mulle_objc_method_bits_equality_mask)
       return( 0);
    return( 1);
 }
@@ -467,5 +472,54 @@ static inline int   _mulle_objc_method_is_threadaffine( struct _mulle_objc_metho
 MULLE_OBJC_RUNTIME_GLOBAL
 unsigned int   mulle_objc_count_selector_arguments( char *s);
 
+
+static inline char  *mulle_objc_method_bit_utf8( unsigned long x)
+{
+   switch( x)
+   {
+   case _mulle_objc_method_check_unexpected_override : return( "check_unexpected_override");
+   case _mulle_objc_method_preload                   : return( "preload");
+   case _mulle_objc_method_aam                       : return( "aam");
+   case _mulle_objc_method_variadic                  : return( "variadic");
+   case _mulle_objc_method_guessed_signature         : return( "guessed_signature");
+   case _mulle_objc_method_designated_initializer    : return( "designated_initializer");
+   case _mulle_objc_method_searched_and_found        : return( "searched_and_found");
+
+   case _mulle_objc_method_user_attribute_0          : return( "user_attribute_0");
+   case _mulle_objc_method_user_attribute_1          : return( "user_attribute_1");
+   case _mulle_objc_method_user_attribute_2          : return( "user_attribute_2");
+   case _mulle_objc_method_user_attribute_3          : return( "user_attribute_3");
+   case _mulle_objc_method_user_attribute_4          : return( "user_attribute_4(TAO)"); // used by #threadsafe
+   }
+   return( NULL);
+}
+
+
+static inline char  *mulle_objc_methodfamily_utf8( unsigned long x)
+{
+   switch( (x & _mulle_objc_methodfamily_mask) >> _mulle_objc_methodfamily_shift)
+   {
+   case _mulle_objc_methodfamily_none         : return( "none");
+   case _mulle_objc_methodfamily_alloc        : return( "alloc");
+   case _mulle_objc_methodfamily_copy         : return( "copy");
+   case _mulle_objc_methodfamily_init         : return( "init");
+   case _mulle_objc_methodfamily_mutablecopy  : return( "mutablecopy");
+   case _mulle_objc_methodfamily_new          : return( "new");
+   case _mulle_objc_methodfamily_autorelease  : return( "autorelease");
+   case _mulle_objc_methodfamily_dealloc      : return( "dealloc");
+   case _mulle_objc_methodfamily_finalize     : return( "finalize");
+   case _mulle_objc_methodfamily_release      : return( "release");
+   case _mulle_objc_methodfamily_retain       : return( "retain");
+   case _mulle_objc_methodfamily_retaincount  : return( "retaincount");
+   case _mulle_objc_methodfamily_self         : return( "self");
+   case _mulle_objc_methodfamily_initialize   : return( "initialize");
+   case _mulle_objc_methodfamily_perform      : return( "perform");
+   case _mulle_objc_methodfamily_getter       : return( "getter");
+   case _mulle_objc_methodfamily_setter       : return( "setter");
+   case _mulle_objc_methodfamily_adder        : return( "adder");
+   case _mulle_objc_methodfamily_remover      : return( "remover");
+   default                                    : return( "???");
+   }
+}
 
 #endif

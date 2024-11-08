@@ -66,6 +66,7 @@ tail;required
 tee;required
 test;required
 touch;required
+tree
 tr;required
 true;required
 tty

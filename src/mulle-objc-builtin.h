@@ -56,6 +56,31 @@
 #define MULLE_OBJC_NSMUTABLECOPYING_PROTOCOLID   0x4aa86031
 
 
+//
+// THESE ARE DEFINED IN ..retain-release.h
+//
+// static inline void   *mulle_objc_object_call_release( void *self)
+// {
+//    return( mulle_objc_object_call_inline_partial( self,
+//                                                   MULLE_OBJC_RELEASE_METHODID,
+//                                                   self));
+// }
+//
+//
+// static inline void   *mulle_objc_object_call_retain( void *self)
+// {
+//    return( mulle_objc_object_call_inline_partial( self,
+//                                                   MULLE_OBJC_RETAIN_METHODID,
+//                                                   self));
+// }
+
+
+// MEMO: If you use mulle_objc_object_call_copy or 
+//       mulle_objc_object_call_mutablecopy without the Objective-C compier
+//       then it is critical that your C compiler defines TAO the same as
+//       the runtime is compiled with, otherwise the conformsto goes awry.
+//       See: cmake/CCompiler.cmake
+//
 static inline void   *mulle_objc_object_call_copy( void *self)
 {
    assert( ! self || mulle_objc_object_conformsto_protocolid( self, MULLE_OBJC_NSCOPYING_PROTOCOLID));

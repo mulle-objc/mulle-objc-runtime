@@ -89,6 +89,7 @@
 #include "mulle-objc-classpair.h"
 #include "mulle-objc-class-convenience.h"
 #include "mulle-objc-class-initialize.h"
+#include "mulle-objc-class-impcache.h"
 #include "mulle-objc-class-lookup.h"
 #include "mulle-objc-class-search.h"
 #include "mulle-objc-class-struct.h"
@@ -139,7 +140,11 @@
    mulle_vararg_next_pointer( args, id)
 #define mulle_vararg_next_object( args, type) \
    mulle_vararg_next_pointer( args, type)
+#define mulle_vararg_next_selector( args) \
+   ((SEL) mulle_vararg_next_int32( args))
 
+#define mulle_vararg_push_selector( args, value) \
+   mulle_vararg_push_int32( args, (int32_t) value)
 #define mulle_vararg_push_id( args, value) \
    _mulle_vararg_push( args, id, value)
 #define mulle_vararg_push_object( args, value) \

@@ -22,6 +22,7 @@ src/mulle-objc-cache.c
 src/mulle-objc-call.c
 src/mulle-objc-callqueue.c
 src/mulle-objc-class.c
+src/mulle-objc-class-impcache.c
 src/mulle-objc-class-initialize.c
 src/mulle-objc-class-lookup.c
 src/mulle-objc-classpair.c

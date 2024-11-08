@@ -95,12 +95,14 @@ static int   test_info( char *s)
    {
       next = mulle_objc_signature_supply_typeinfo( s, NULL, &info);
 
-      printf( "#%d type= %s\n", i, info.type ? info.type : "NULL");
-      printf( "#%d pure_type_end= %s\n", i, info.pure_type_end ? info.pure_type_end : "NULL");
-      printf( "#%d name= %s\n", i, info.name ? info.name : "NULL");
-      printf( "#%d n_members= %ld\n", i, (long) info.n_members);
-      printf( "#%d has_object= %d\n", i, info.has_object);
-      printf( "#%d has_object= %d\n", i, info.has_object);
+      printf( "#%d type                = %s\n", i, info.type ? info.type : "NULL");
+      printf( "#%d pure_type_end       = %s\n", i, info.pure_type_end ? info.pure_type_end : "NULL");
+      printf( "#%d name                = %s\n", i, info.name ? info.name : "NULL");
+      printf( "#%d n_members           = %ld\n", i, (long) info.n_members);
+//      printf( "#%d natural_size        = %zd\n", i, info.natural_size);
+//      printf( "#%d bits_size           = %zd\n", i, info.bits_size);
+      printf( "#%d has_object          = %d\n", i, info.has_object);
+      printf( "#%d has_retainable_type = %d\n", i, info.has_retainable_type);
 
       s = next;
    }
@@ -117,7 +119,6 @@ static int   test_info( char *s)
    }
    return( 0);
 }
-
 
 
 static int   test_while( char *s)
@@ -155,7 +156,7 @@ static int   test_while_info( char *s)
 
    while( (next = mulle_objc_signature_supply_typeinfo( s, NULL, &info)))
    {
-      printf( "#%d: type=%s\n", i, info.type ? info.type : "NULL");
+      printf( "#%d: type               = %s\n", i, info.type ? info.type : "NULL");
       s = next;
       ++i;
    }

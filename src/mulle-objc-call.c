@@ -96,6 +96,27 @@ void   *mulle_objc_object_call_super( void *obj,
 
 # pragma mark - trace method
 
+static int  _mulle_objc_universe_is_boring_method( struct _mulle_objc_universe *universe,
+                                                   mulle_objc_methodid_t methodid)
+{
+   if( ! (universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_SKIP_BORING_TRACE_BIT))
+      return( 0);
+
+   // result can be NULL, if the search failed
+   switch( methodid)
+   {
+   case MULLE_OBJC_AUTORELEASE_METHODID        :
+   case MULLE_OBJC_CLASS_METHODID              :
+   case MULLE_OBJC_RETAIN_METHODID             :
+   case MULLE_OBJC_RELEASE_METHODID            :
+   case MULLE_OBJC_RETAINCOUNT_METHODID        :
+   case MULLE_OBJC_MULLE_COUNT_OBJECT_METHODID :
+      return( 1);
+   }
+   return( 0);
+}
+
+
 void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
                                         void *obj,
                                         mulle_objc_methodid_t methodid,
@@ -113,19 +134,22 @@ void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
    int                                  frames;
 
    universe = _mulle_objc_class_get_universe( cls);
-   //
-   // What is basically wrong here is, that we should be searching for the
-   // class that implements the method, not the called class
-   // This is fairly expensive though...
-   //
+   if( _mulle_objc_universe_is_boring_method( universe, methodid))
+      return;
 
-   // we need the result for display, so need to re-search method
+   // why do i need this ? How is this different from "cls" ?
+   isa         = _mulle_objc_object_get_isa_universe( obj, universe);
+   assert( isa == cls); // see when this fails...
+
+   // we need the search result for display, so need to re-search method
    inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_searcharguments_init_imp( &search, imp);
-   method = mulle_objc_class_search_method( cls,
-                                            &search,
-                                            inheritance,
-                                            &result);
+   // this will not trigger +initialize
+   search      = mulle_objc_searcharguments_make_imp_no_initialize( imp);
+   method      = mulle_objc_class_search_method( cls,
+                                                 &search,
+                                                 inheritance,
+                                                 &result);
+
 
    mulle_thread_mutex_lock( &universe->debug.lock);
    {
@@ -149,14 +173,13 @@ void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
       {
          // fallback in case...
          fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
-         desc     = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+         desc = _mulle_objc_universe_lookup_descriptor( universe, methodid);
          if( desc)
             fprintf( stderr, " %s]", desc->name);
          else
             fprintf( stderr, " #%08lx]", (unsigned long) methodid);
       }
 
-      isa = _mulle_objc_object_get_isa_universe( obj, universe);
       fprintf( stderr, " @%p %s (%p, #%08lx, %p)\n",
                imp,
                _mulle_objc_class_get_name( isa),
@@ -166,6 +189,7 @@ void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
    }
    mulle_thread_mutex_unlock( &universe->debug.lock);
 }
+
 
 
 
@@ -186,8 +210,11 @@ void   mulle_objc_object_taocheck_call( void *obj,
    mulle_thread_t                  curr_thread;
    struct _mulle_objc_universe     *universe;
    struct _mulle_objc_class        *cls;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_property     *property;
    struct _mulle_objc_method       *method;
    struct _mulle_objc_descriptor   *desc;
+   mulle_objc_propertyid_t         propertyid;
 
    //
    // these are no problem, as they are known to be threadsafe and
@@ -240,6 +267,10 @@ void   mulle_objc_object_taocheck_call( void *obj,
    // are always thread safe (unless seriously misused)
    //
    cls    = _mulle_objc_object_get_isa( obj);
+
+   // here we find the method as declared by the class, so we can
+   // get the proper threadaffine bits off it (which can be different
+   // depending on class that sets or not sets it)
    method = mulle_objc_class_defaultsearch_method( cls, methodid);
    if( ! method)  // must be forward, so check later
       return;
@@ -249,12 +280,30 @@ void   mulle_objc_object_taocheck_call( void *obj,
    if( ! _mulle_objc_method_is_threadaffine( method))
       return;
 
-   desc = _mulle_objc_method_get_descriptor( method);
+   universe = _mulle_objc_class_get_universe( cls);
+   desc     = _mulle_objc_method_get_descriptor( method);
    switch( _mulle_objc_descriptor_get_methodfamily( desc))
    {
    case _mulle_objc_methodfamily_init    :
    case _mulle_objc_methodfamily_dealloc :
       return;
+
+   // for getter we check, if we are a readonly property
+   // these are considered threadsafe as well
+   case _mulle_objc_methodfamily_getter :
+      if( _mulle_objc_class_is_infraclass( cls))
+      {
+         propertyid = _mulle_objc_universe_lookup_propertyid_for_methodid( universe, methodid);
+         if( propertyid)
+         {
+            infra    = _mulle_objc_class_as_infraclass( cls);
+            property = mulle_objc_infraclass_search_property( infra, propertyid);
+            if( property && (_mulle_objc_property_is_readonly( property)))
+               return;
+         }
+      }
+      break;
+
    default :
       break;
    }
@@ -266,7 +315,6 @@ void   mulle_objc_object_taocheck_call( void *obj,
    // OK so its wrong, but are we still multi-threaded ? could be that
    // the universe is winding down and releasing stuff
    // could ask [NSThread isMultithreaded], but it seems wrong
-   universe = _mulle_objc_object_get_universe( obj);
    if( _mulle_objc_universe_is_deinitializing( universe))
       return;
 
@@ -392,6 +440,8 @@ static void   *_mulle_objc_object_callback_cache_collision( void *obj,
 
 //
 // this function is called, when there is no entry in the cache
+// MEMO: if you see in the method trace this function not filling the cache
+//       it's because of the method trace (duh)
 //
 static void   *_mulle_objc_object_callback_cache_miss( void *obj,
                                                        mulle_objc_methodid_t methodid,
@@ -602,89 +652,4 @@ void   mulle_objc_objects_call( void **objects,
       mulle_objc_implementation_invoke( lastSelIMP[ i], p, methodid, params);
    }
 }
-
-# pragma mark -  call back and forth
-
-
-// In a "regular" callchain, we want to have basically two scenarios:
-// _init and _dealloc. With _init we want to initialize basics first and
-// then progress to the more sophisticated categories in the back.
-// With _dealloc, we want to go from back to front.
-// As the saying is you go back and forth.. so init dealloc , back and forth
-// The usual search direction is "back" to "front" so thats the usual movement.
-//
-// used by _init. overridden method come last
-void   _mulle_objc_object_call_chained_back( void *obj,
-                                             mulle_objc_methodid_t methodid,
-                                             void *parameter)
-{
-   struct _mulle_objc_class        *cls;
-   struct _mulle_objc_method       *method;
-   struct _mulle_objc_methodlist   *list;
-   unsigned int                    inheritance;
-   unsigned int                    once;
-   mulle_objc_implementation_t     imp;
-
-   assert( mulle_objc_uniqueid_is_sane( methodid));
-
-   cls         = _mulle_objc_object_get_isa( obj);
-   inheritance = _mulle_objc_class_get_inheritance( cls);
-
-   // i mean should we honor this if we explicitly want to to do
-   // a call chain ? probably...
-   once        = (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES);
-
-   // enumerator forward
-   mulle_concurrent_pointerarray_for( &cls->methodlists, list)
-   {
-      method = _mulle_objc_methodlist_search( list, methodid);
-      if( method)
-      {
-         imp   = _mulle_objc_method_get_implementation( method);
-         // this should use mulle_objc_implementation_invoke
-         mulle_objc_implementation_invoke( imp, obj, methodid, parameter);
-      }
-      if( once)
-         break;
-   }
-}
-
-
-//
-// used by _dealloc:  overridden method come first
-//
-// and probably also by other calls, since this is the natural direction
-//
-void   _mulle_objc_object_call_chained_forth( void *obj,
-                                              mulle_objc_methodid_t methodid,
-                                              void *parameter)
-{
-   struct _mulle_objc_class        *cls;
-   struct _mulle_objc_method       *method;
-   struct _mulle_objc_methodlist   *list;
-   unsigned int                    inheritance;
-   unsigned int                    n;
-   mulle_objc_implementation_t     imp;
-
-   assert( mulle_objc_uniqueid_is_sane( methodid));
-
-   cls         = _mulle_objc_object_get_isa( obj);
-   inheritance = _mulle_objc_class_get_inheritance( cls);
-
-   n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
-   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
-      n = 1;
-
-   mulle_concurrent_pointerarray_for_reverse( &cls->methodlists, n, list)
-   {
-      method = _mulle_objc_methodlist_search( list, methodid);
-      if( method)
-      {
-         imp = _mulle_objc_method_get_implementation( method);
-         // this should use mulle_objc_implementation_invoke
-         mulle_objc_implementation_invoke( imp, obj, methodid, parameter);
-      }
-   }
-}
-
 

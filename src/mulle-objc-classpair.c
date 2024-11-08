@@ -204,12 +204,9 @@ struct _mulle_objc_classpair *
    // _mulle_objc_objectheader_init will set _thread, because we haven't
    // set the proper bits yet...
 #if MULLE_OBJC_TAO_OBJECT_HEADER
-   pair->infraclassheader._thread = 0;
-   pair->metaclassheader._thread  = 0;
+   pair->infraclassheader._thread = NULL;
+   pair->metaclassheader._thread  = NULL;
 #endif
-
-   _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);
-   _mulle_objc_object_constantify_noatomic( &pair->metaclass.base);
 
    _mulle_objc_class_init( &pair->infraclass.base,
                            name,
@@ -218,6 +215,8 @@ struct _mulle_objc_classpair *
                            classid,
                            superclass ? &superclass->base : NULL,
                            universe);
+   _mulle_objc_object_constantify_noatomic( &pair->infraclass.base);
+
    _mulle_objc_class_init( &pair->metaclass.base,
                            name,
                            sizeof( struct _mulle_objc_class),
@@ -225,6 +224,7 @@ struct _mulle_objc_classpair *
                            classid,
                            super_meta ? &super_meta->base : &pair->infraclass.base,
                            universe);
+   _mulle_objc_object_constantify_noatomic( &pair->metaclass.base);
 
    _mulle_objc_class_set_infraclass( &pair->metaclass.base, &pair->infraclass);
 
@@ -772,7 +772,7 @@ void
          if( _mulle_objc_classpair_has_protocolid( pair, p->protocolid))
             continue;
 
-         mulle_objc_universe_add_protocol_nofail( universe, p);
+         mulle_objc_universe_register_protocol_nofail( universe, p);
 
          // protocolids must be sorted
 #ifndef NDEBUG

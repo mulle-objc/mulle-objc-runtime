@@ -39,11 +39,11 @@ void   test_class_simple( void)
    B_infra = _mulle_objc_classpair_get_infraclass( pair);
 
    // check that we can't add basic useless stuff
-   rval = mulle_objc_universe_add_infraclass( universe, NULL);
+   rval = mulle_objc_universe_register_infraclass( universe, NULL);
    assert( rval == -1 && errno == EINVAL);
 
    // B_infra has no method lists
-   rval = mulle_objc_universe_add_infraclass( universe, B_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, B_infra);
    assert( rval == -1 && errno == ECHILD);
 
    // now fix up classes with empty lists, so they are OK to be added
@@ -53,32 +53,32 @@ void   test_class_simple( void)
    mulle_objc_infraclass_add_propertylist_nofail( B_infra, NULL);
 
    // check that we can't add, if superclass is not present
-   rval = mulle_objc_universe_add_infraclass( universe, B_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, B_infra);
    assert( rval == -1 && errno == EFAULT);
 
    mulle_objc_infraclass_add_methodlist_nofail( A_infra, NULL);
-   rval = mulle_objc_universe_add_infraclass( universe, A_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, A_infra);
    assert( rval == -1 && errno == ECHILD);
 
    mulle_objc_metaclass_add_methodlist_nofail( A_meta, NULL);
-   rval = mulle_objc_universe_add_infraclass( universe, A_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, A_infra);
    assert( rval == -1 && errno == ECHILD);
 
    mulle_objc_infraclass_add_ivarlist_nofail( A_infra, NULL);
-   rval = mulle_objc_universe_add_infraclass( universe, A_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, A_infra);
    assert( rval == -1 && errno == ECHILD);
 
    mulle_objc_infraclass_add_propertylist_nofail( A_infra, NULL);
 
 
    // check that we can add a class
-   rval = mulle_objc_universe_add_infraclass( universe, A_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, A_infra);
    assert( rval == 0);
 
    // check double add not possible
-   rval = mulle_objc_universe_add_infraclass( universe, A_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, A_infra);
    assert( rval == -1 && errno == EEXIST);
 
-   rval = mulle_objc_universe_add_infraclass( universe, B_infra);
+   rval = mulle_objc_universe_register_infraclass( universe, B_infra);
    assert( rval == 0);
 }

@@ -91,3 +91,33 @@ struct _mulle_objc_property  *
 
    return( 0);
 }
+
+
+struct _mulle_objc_property  *
+   _mulle_objc_propertylist_find_for_methodid( struct _mulle_objc_propertylist *list,
+                                               mulle_objc_methodid_t methodid)
+{
+   struct _mulle_objc_property   *sentinel;
+   struct _mulle_objc_property   *p;
+
+   assert( list);
+   assert( mulle_objc_uniqueid_is_sane( methodid));
+
+   p        = &list->properties[ 0];
+   sentinel = &p[ list->n_properties];
+
+   while( p < sentinel)
+   {
+      if( p->getter == methodid
+          || p->setter == methodid
+          || p->adder == methodid
+          || p->remover == methodid)
+      {
+         return( p);
+      }
+      ++p;
+   }
+
+   return( 0);
+}
+

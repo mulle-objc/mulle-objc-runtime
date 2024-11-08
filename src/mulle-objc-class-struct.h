@@ -148,7 +148,7 @@ struct _mulle_objc_class
    //       or move to classpair
    //
    mulle_objc_classid_t                    classid;
-   mulle_objc_classid_t                    superclassid;
+   mulle_objc_classid_t                    superclassid;  // somewhat unused
 
    // TODO: general storage mechanism for KVC, needed in meta ? move to classpair ?
    uint16_t                                inheritance;
@@ -313,6 +313,7 @@ static inline struct _mulle_objc_infraclass   *
    return( cls->infraclass);
 }
 
+
 // only used during new_classpair
 static inline void
    _mulle_objc_class_set_infraclass( struct _mulle_objc_class *cls,
@@ -349,14 +350,23 @@ static inline size_t
 
 # pragma mark - dangerous methods for the compatibility layer
 
-// to be used for class setup only
-
-
+//
+// to be used for class setup only or maybe poseas
+//
 static inline void
    _mulle_objc_class_set_superclass( struct _mulle_objc_class *cls,
                                      struct _mulle_objc_class *superclass)
 {
    cls->superclass = superclass;
+
+}
+
+static inline void
+   _mulle_objc_class_set_superclassid( struct _mulle_objc_class *cls,
+                                       mulle_objc_classid_t superclassid)
+{
+   cls->superclassid = superclassid;
+
 }
 
 
@@ -364,7 +374,6 @@ static inline size_t   _mulle_objc_class_get_methodlistscount( struct _mulle_obj
 {
    return( mulle_concurrent_pointerarray_get_count( &cls->methodlists));
 }
-
 
 
 #endif /* mulle_objc_class_struct_h */
