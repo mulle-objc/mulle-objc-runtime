@@ -76,6 +76,7 @@ struct _mulle_objc_universeconfig
    unsigned   no_classcuster_coverage  : 1;  // don't assume coverage of all direct classcluster subclasses
    unsigned   pedantic_exit            : 1;  // useful for leak checks
    unsigned   wait_threads_on_exit     : 1;  // useful for tests
+   unsigned   skip_consistency_checks  : 1;  // used by mulle-objc-list (and mulle-objc-list only)
    int        cache_fillrate;                // default is (0) can be 0-90
 };
 

@@ -1350,6 +1350,16 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
             MULLE_OBJC_RUNTIME_LOAD_VERSION);
    }
 
+   //
+   // this is used by mulle-objc-list which just want the info "stream" by
+   // and doesn't care about tps/fcs/tao consistency, as it never makes actual
+   // objective-C calls. but LOAD_VERSION must match. This is like the only
+   // imaginable valid reason to use this flag... Otherwise you're just digging
+   // yourself into a deeper hole
+   //
+   if( universe->config.skip_consistency_checks)
+      return;
+
    if( info->version.foundation)
    {
       if( ! universe->foundation.universefriend.versionassert)
