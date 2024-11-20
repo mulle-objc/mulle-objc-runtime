@@ -1,3 +1,82 @@
+## 0.24.0
+
+
+
+
+
+feat: improve method search and TAO support
+
+* Add TAO (Thread Affine Objects) support to improve thread safety
+  - Add atomic thread pointer in object header
+  - Add checks to ensure objects are accessed from owning thread
+  - Update method calls to support TAO validation
+
+* Refactor method lookup and caching
+  - Rename methodcache to impcache for clarity
+  - Add callbacks to impcache for better extensibility
+  - Improve method search tracing
+  - Clean up lookup and refresh functions
+
+* Enhance protocol class handling
+  - Run +initialize on adopting classes and subclasses
+  - Support +deinitialize for protocol classes
+  - Fix meta rootclass protocol class wrapping
+
+* Other improvements
+  - Add support for double/float tagged pointers
+  - Add noautorelease property attribute
+  - Add dynamic property storage for categories
+  - Remove -release/-retain from fast methods
+  - Fix 32-bit system compatibility
+
+* the chained calls are history now as `mulle_objc_class_search` has been updated with a callback. This avoids code duplicated in the chained calls and future problems with having to maintain the same logic twice
+* fix +initialize calls for some border cases
+* search arguments are no longer set up with `init` functions but with `make` functions
+* the TAO thread pointer in the object header is now atomic
+
+* change in ``mulle_objc_object_get_property_value`` where now a `strategy` value is passed as an int, containing multiple bits (like atomicity)
+* the impcache gained a lot of callbacks, and the Objective-C methods were changed to use them. The callbacks were also renamed to make them a bit more telling
+* protocolclasses `+inititalize` is now run on each adopting class and subclass (this is freaky and useful)
+* slightly improved method search traces
+* -release and -retain are no long fast methods, since they are usually inlined anyway this frees up two slots that are put to other use
+* new `for` functions for methodlists, propertylists etc. (still experimental)
+* functions that use method calls (like ``mulle_objc_object_call_dealloc`` now)
+* add support for the `noautorelease` @property attribute
+
+
+* add support for double and float TPS
+* fix problems with 32 bit systems
+
+* improved method calls
+* renamed ``mulle_objc_object_call_variablemethodid_inline`` to ``mulle_objc_object_call_variable_inline``
+* renamed ``mulle_objc_object_supercall`` to ``mulle_objc_object_call_super``
+* `+deinitialize` now also calls protocol classes `+deinitialize` for tidier cleanup
+* fix that meta rootclasses wrap around to root infraclass again, even if there are protocolclasses
+* +method calls also wrap arounf to -methods on protocolclasses attached to the root class
+* NSObject now inherits the most "hardcore" runtime functionality from MulleObjCRuntimeObject
+* new base class MulleObject enables @dynamic @property storage for categories (and all others)
+* nicer output of compilation flags in loadinfo
+* `struct `mulle_objc_typeinfo`` no longer restricts instance variable arrays to 16 bit
+* added pre-alpha ``_mulle_objc_ivarsignature_is_compatible`` for the benefit of MulleObject
+
+
+* **BREAKING** total cleanup of the various lookup and refresh functions, too many to mention
+* TAO (thread affine objects) added. Your multi-threaded code will now bail, if a method accesses an instance that is living in a different thread
+* the methodcache of a class has been renamed to an impcache, because that's what its really caching
+* you can now specify that a class should NOT search through its own (non-category) methods with ``MULLE_OBJC_CLASS_DONT_INHERIT_CLASS`` you can also specify to keep the search scope instead of using the superclass inheritance with ``MULLE_OBJC_CLASS_DONT_INHERIT_INHERITANCE``
+* redid the method calls to support TAO and improved tracing. ``mulle_objc_implementation_invoke`` should now always be used instead of just `(*imp)( self, `_cmd,` `_param`` so that tracing works everywhere (memo: could typedef IMP to `void *` maybe)
+* changed informational cache statistics code
+
+* **BREAKING** protocolclasses +initialize will be called by the adopting class now, it will NOT be called for the protocolclass itself (this is needed to support MulleObjCThreadSafe +initialize to set a bit on the class)
+
+* renamed almost all lookup methods, changed some of the calls (there maybe temporary performance degradation) until this gets benchmarked again
+* renamed methodcache to impcache, because that's what it is (it maps uniqueids to imps, not methods)
+
+* TAO mode (thread affine objects) added
+* reorganized mulle-objc-methodcache code, so that it can be used outside of classes
+* the compiler now emits an origin in the loadinfo, which makes tracking loadinfo problems easier
+
+
 ## 0.23.0
 
 * fix endless recursion in to hither unused function `mulle_objc_universeid_is_sane`
