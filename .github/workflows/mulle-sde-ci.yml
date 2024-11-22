@@ -35,7 +35,7 @@ jobs:
       
     - uses: actions/checkout@v4
 
-    - uses: mulle-sde/github-ci@v1
+    - uses: mulle-sde/github-ci@v2
 
     - uses: mulle-cc/github-ci@v5
 

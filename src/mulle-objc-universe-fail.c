@@ -99,6 +99,7 @@ void   _mulle_objc_vprintf_abort( char *format, va_list args)
    mulle_buffer_do( buffer)
    {
       mulle_buffer_vsprintf( buffer, format ? format : "???", args);
+      mulle_buffer_add_string( buffer, "\n");
       __mulle_objc_puts_abort( mulle_buffer_get_string( buffer));
    }
    abort(); // compiler stupidity
