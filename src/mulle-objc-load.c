@@ -1434,8 +1434,8 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    {
       mulle_objc_loadinfo_dump( info, "loadinfo:   ", universe);
       mulle_objc_universe_fail_inconsistency( universe,
-         "mulle_objc_universe %p: the universe is configured for "
-         "thread affine objects, but classes are compiled differently",
+         "mulle_objc_universe %p: the runtime is compiled for "
+         "thread affine objects -fobjc-tao, but classes are compiled -fno-objc-tao",
              universe);
    }
 #else
@@ -1443,8 +1443,8 @@ void    mulle_objc_universe_assert_loadinfo( struct _mulle_objc_universe *univer
    {
       mulle_objc_loadinfo_dump( info, "loadinfo:   ", universe);
       mulle_objc_universe_fail_inconsistency( universe,
-         "mulle_objc_universe %p: the universe is not configured for "
-         "thread affine objects, but classes are compiled differently",
+         "mulle_objc_universe %p: the runtime is compiled for "
+         "no thread affine objects -fno-objc-tao, but classes are compiled -fobjc-tao",
              universe);
    }
 #endif
