@@ -57,17 +57,45 @@
 
 #pragma mark - non-inline API calls
 
-
-// we can't do the FCS code here, because its just super slow if
+//
+// mulle_objc_object_call is what objc_msgSend is on other runtimes
+// (at least in -O0)
+//
+// MEMO: this has been rewritten for 0.24. The main advantage is, that this
+//       function will not explode a stack trace as much with non-inlined
+//       functions in DEBUG configuration. The second major advantage is
+//       that in a C debugger, once you go into mulle_objc_object_call you
+//       can just step over _mulle_objc_object_get_imp_inline_full_no_fcs and
+//       then step into (*f)( obj, methodid, parameter) in most cases.
+//
+// We don't do the FCS code here, because its just super slow if
 // the constant isn't known.
-// This is like call_cache_collision, except that we still need do check the
-// first cache entry.
+//
 MULLE_C_NEVER_INLINE
 void   *mulle_objc_object_call( void *obj,
                                 mulle_objc_methodid_t methodid,
                                 void *parameter)
 {
-   return( mulle_objc_object_call_inline_full( obj, methodid, parameter));
+   mulle_objc_implementation_t   f;
+
+   if( MULLE_C_UNLIKELY( ! obj))
+      return( obj);
+
+   // INFO: in a C debugger, 'next' over this function call
+   f = _mulle_objc_object_get_imp_inline_full_no_fcs( obj, methodid);
+
+   // INFO: in a C debugger, 'step' into this to reach the Objective-C method
+   //       when the `f` has been cached. Otherwise:
+   //
+   //       if `f` is _mulle_objc_object_call2_needcache you will need to
+   //       step to _mulle_objc_object_call_class_slow. This will happen once
+   //       per class on the very first method.
+   //
+   //       if `f` is _mulle_objc_object_callback_cache_miss, the call to the
+   //       Objective-C method will be at the end of the function
+   //
+
+   return( (*f)( obj, methodid, parameter));
 }
 
 
@@ -77,7 +105,11 @@ void   *_mulle_objc_object_call( void *obj,
                                  mulle_objc_methodid_t methodid,
                                  void *parameter)
 {
-   return( _mulle_objc_object_call_inline_full( obj, methodid, parameter));
+   mulle_objc_implementation_t   f;
+
+   f = _mulle_objc_object_get_imp_inline_full_no_fcs( obj, methodid);
+   // don't use invoke, because the checking will have been done in icache->call_cache_miss
+   return( (*f)( obj, methodid, parameter));
 }
 
 

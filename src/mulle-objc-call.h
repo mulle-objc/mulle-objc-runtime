@@ -103,6 +103,17 @@ void   mulle_objc_implementation_debug( mulle_objc_implementation_t imp,
 }
 
 
+MULLE_C_ALWAYS_INLINE
+static inline void  *
+   _mulle_objc_implementation_invoke( mulle_objc_implementation_t imp,
+                                      void *self,
+                                      mulle_objc_methodid_t sel,
+                                      void *parameter)
+{
+   return( (*imp)( self, sel, parameter));
+}
+
+
 
 MULLE_C_ALWAYS_INLINE
 static inline void  *
@@ -117,6 +128,7 @@ static inline void  *
 #endif
    return( (*imp)( self, sel, parameter));
 }
+
 
 
 //
@@ -162,6 +174,18 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
 
 #ifdef __MULLE_OBJC_FCS__
+
+MULLE_C_ALWAYS_INLINE
+static inline void   *
+   _mulle_objc_fastmethodtable_get_imp( struct _mulle_objc_fastmethodtable *table,
+                                        unsigned int index)
+{
+   mulle_objc_implementation_t   imp;
+
+   imp = (mulle_objc_implementation_t) _mulle_atomic_pointer_read( &table->methods[ index].pointer);
+   return( imp);
+}
+
 
 MULLE_C_ALWAYS_INLINE
 static inline void   *
@@ -295,6 +319,59 @@ static inline void  *
 
    return( _mulle_objc_object_call_inline( obj, methodid, parameter));
 }
+
+
+MULLE_C_ALWAYS_INLINE
+static inline void  *
+   _mulle_objc_object_get_imp_inline_full_no_fcs( void *obj,
+                                                  mulle_objc_methodid_t methodid)
+{
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_class        *cls;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
+
+   //
+   // with tagged pointers inlining starts to become useless, because this
+   // _mulle_objc_object_get_isa function produces too much code IMO
+   //
+   cls = _mulle_objc_object_get_isa( obj);
+
+   assert( methodid);
+
+   // MEMO: When inlining, we are "fine" if the cache is stale
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;  // preshifted so we can just AND it to entries
+   offset  = (mulle_objc_cache_uint_t) methodid;
+   for(;;)
+   {
+      offset  = (mulle_objc_cache_uint_t) offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+
+      if( MULLE_C_LIKELY( entry->key.uniqueid == methodid))
+      {
+         f = (mulle_objc_implementation_t) _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
+         break;
+      }
+
+      if( ! entry->key.uniqueid)
+      {
+         icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+         f      = icache->callback.call_cache_miss;
+         break;
+      }
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+
+   // don't use invoke, because the checking will be done in icache->call_cache_miss
+   return( f);
+}
+
 
 
 //
