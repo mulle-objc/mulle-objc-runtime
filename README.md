@@ -11,7 +11,7 @@ It is designed to be suitable for massive multi-threading.
 
 | Release Version                                       | Release Notes
 |-------------------------------------------------------|--------------
-| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg?branch=release) [![Build Status](https://github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg?branch=release)](//github.com/mulle-objc/mulle-objc-runtime/actions) | [RELEASENOTES](RELEASENOTES.md) |
+| ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-objc/mulle-objc-runtime.svg) [![Build Status](https://github.com/mulle-objc/mulle-objc-runtime/workflows/CI/badge.svg)](//github.com/mulle-objc/mulle-objc-runtime/actions) | [RELEASENOTES](RELEASENOTES.md) |
 
 
 ## API

@@ -109,9 +109,9 @@ enum
 
 enum
 {
-   MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT              = 1,
-   MULLE_OBJC_UNIVERSE_CALL_TAO_BIT                = 2,
-   MULLE_OBJC_UNIVERSE_CALL_SKIP_BORING_TRACE_BIT  = 4
+   MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT         = 1,
+   MULLE_OBJC_UNIVERSE_CALL_TAO_BIT           = 2,
+   MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT  = 4
 };
 
 struct _mulle_objc_universedebug

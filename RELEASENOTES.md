@@ -1,3 +1,10 @@
+## 0.25.0
+
+* `MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT` used to be called `MULLE_OBJC_UNIVERSE_CALL_SKIP_BORING_TRACE_BIT` and had inverted semantics
+* most `call` functions have internally been rewritten to make it easier with a C debugger to step over the boring parts to get into the Objective-C method quicker. You just step over the **imp** resolution part
+* two new environment variables ``MULLE_OBJC_TRACE_LEAK`` and ``MULLE_OBJC_TRACE_ZOMBIE`` greatly simplify two common debugging tasks and make the mulle-sde test output less daunting
+
+
 ## 0.24.0
 
 

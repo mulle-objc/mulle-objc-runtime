@@ -67,6 +67,7 @@ struct _mulle_objc_method;
 
 # pragma mark - isa handling
 
+MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
 static inline int  mulle_objc_object_get_taggedpointerindex( void *obj)
 {
 #ifdef __MULLE_OBJC_TPS__
@@ -316,7 +317,7 @@ MULLE_C_ALWAYS_INLINE static inline void
                                            thread);
    }
 
-   return( _mulle_objc_objectheader_set_thread( header, thread));
+   _mulle_objc_objectheader_set_thread( header, thread);
 #endif
 }
 
