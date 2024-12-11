@@ -163,7 +163,9 @@ static inline int   _mulle_objc_object_decrement_retaincount_waszero( void *obj)
    header = _mulle_objc_object_get_objectheader( obj);
    rc     = (intptr_t) _mulle_atomic_pointer_read( &header->_retaincount_1);
 
-   assert( rc != -1 && rc != INTPTR_MIN);
+   assert( rc != -1 && "retainCount was already zero");
+   assert( rc != INTPTR_MIN  && "retainCount wraparound");
+
    if( MULLE_C_LIKELY( rc <= MULLE_OBJC_INLINE_RELEASE))
       return( (intptr_t) _mulle_atomic_pointer_decrement( &header->_retaincount_1) <= 0);
 

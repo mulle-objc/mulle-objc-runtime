@@ -58,16 +58,21 @@ struct _mulle_objc_object;
 
 
 #ifndef NDEBUG
-static inline void   mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj, int define)
+static inline void
+   mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj,
+                                                      int define)
 {
    MULLE_OBJC_RUNTIME_GLOBAL
-   void   _mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj, int define);
+   void   _mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj,
+                                                              int define);
 
    if( obj)
       _mulle_objc_object_assert_tao_object_header_no_tps( obj, define);
 }
 #else
-static inline void   mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj, int define)
+static inline void
+   mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj,
+                                                      int define)
 {
    MULLE_C_UNUSED( obj);
    MULLE_C_UNUSED( define);

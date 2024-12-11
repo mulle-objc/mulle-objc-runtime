@@ -239,6 +239,21 @@
 }
 
 
+
+- (instancetype) initWithWhatever:(id) foo
+                            other:(id) other
+{
+   return( 0);
+}
+
+
+- (instancetype) mulleInitWithWhatever:(id) foo
+                                 other:(id) other
+{
+   return( 0);
+}
+
+
 - (void) finalize
 {
 }

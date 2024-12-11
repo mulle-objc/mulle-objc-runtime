@@ -131,7 +131,7 @@ void   *mulle_objc_object_call_super( void *obj,
 static int  _mulle_objc_universe_is_boring_method( struct _mulle_objc_universe *universe,
                                                    mulle_objc_methodid_t methodid)
 {
-   if( ! (universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_SKIP_BORING_TRACE_BIT))
+   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT)
       return( 0);
 
    // result can be NULL, if the search failed
@@ -357,14 +357,11 @@ void   mulle_objc_object_taocheck_call( void *obj,
 # pragma mark - normal callbacks for memorycache
 
 
-//
-// MEMO: these callbacks obviously don't go through the memory cache vectors
-//       again. Also here is tracing and toachecking implemented
-//
-static void   *_mulle_objc_object_callback_class( void *obj,
-                                                  mulle_objc_methodid_t methodid,
-                                                  void *parameter,
-                                                  struct _mulle_objc_class *cls)
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_callback_class_get_implementation( void *obj,
+                                                         mulle_objc_methodid_t methodid,
+                                                         void *parameter,
+                                                         struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t      imp;
    mulle_functionpointer_t          p;
@@ -410,18 +407,33 @@ static void   *_mulle_objc_object_callback_class( void *obj,
 
    /*->*/
    // do not use invoke in method calls
-   return( (*imp)( obj, methodid, parameter));
+   return( imp);
 }
 
 
 //
-// this function is called, when the first inline cache check gave a
-// collision, it skips the first found entry. This method is put into
-// the method cache, you don't call it directly.
+// MEMO: these callbacks obviously don't go through the memory cache vectors
+//       again. Also here is tracing and toachecking implemented
 //
-static void   *_mulle_objc_object_callback_cache_collision( void *obj,
-                                                            mulle_objc_methodid_t methodid,
-                                                            void *parameter)
+static void   *_mulle_objc_object_callback_class( void *obj,
+                                                  mulle_objc_methodid_t methodid,
+                                                  void *parameter,
+                                                  struct _mulle_objc_class *cls)
+{
+   mulle_objc_implementation_t      imp;
+
+   imp = _mulle_objc_object_callback_class_get_implementation( obj, methodid, parameter, cls);
+   /*->*/
+   // do not use invoke in method calls
+   return( (*imp)( obj, methodid, parameter));
+}
+
+
+
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_callback_cache_collision_get_implementation( void *obj,
+                                                                   mulle_objc_methodid_t methodid,
+                                                                   void *parameter)
 {
    mulle_objc_implementation_t     imp;
    mulle_functionpointer_t         p;
@@ -464,7 +476,22 @@ static void   *_mulle_objc_object_callback_cache_collision( void *obj,
          break;
       }
    }
+   return( imp);
+}
 
+
+//
+// this function is called, when the first inline cache check gave a
+// collision, it skips the first found entry. This method is put into
+// the method cache, you don't call it directly.
+//
+static void   *_mulle_objc_object_callback_cache_collision( void *obj,
+                                                            mulle_objc_methodid_t methodid,
+                                                            void *parameter)
+{
+   mulle_objc_implementation_t     imp;
+
+   imp = _mulle_objc_object_callback_cache_collision_get_implementation( obj, methodid, parameter);
    /*->*/
    return( (*imp)( obj, methodid, parameter));
 }
@@ -475,9 +502,11 @@ static void   *_mulle_objc_object_callback_cache_collision( void *obj,
 // MEMO: if you see in the method trace this function not filling the cache
 //       it's because of the method trace (duh)
 //
-static void   *_mulle_objc_object_callback_cache_miss( void *obj,
-                                                       mulle_objc_methodid_t methodid,
-                                                       void *parameter)
+
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_callback_cache_miss_get_implementation( void *obj,
+                                                              mulle_objc_methodid_t methodid,
+                                                              void *parameter)
 {
    mulle_objc_implementation_t     imp;
    struct _mulle_objc_method       *method;
@@ -495,9 +524,66 @@ static void   *_mulle_objc_object_callback_cache_miss( void *obj,
    method  = (*icache->callback.refresh_method_nofail)( cls, methodid);
    imp     = _mulle_objc_method_get_implementation( method);
    imp     = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
+   return( imp);
+}
+
+
+static void   *_mulle_objc_object_callback_cache_miss( void *obj,
+                                                       mulle_objc_methodid_t methodid,
+                                                       void *parameter)
+{
+   mulle_objc_implementation_t     imp;
+
+   imp  = _mulle_objc_object_callback_cache_miss_get_implementation( obj, methodid, parameter);
    return( (*imp)( obj, methodid, parameter));
 }
 
+
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_callback_super_get_implementation( void *obj,
+                                                         mulle_objc_methodid_t methodid,
+                                                         void *parameter,
+                                                         mulle_objc_superid_t superid,
+                                                         struct _mulle_objc_class *cls)
+{
+   mulle_objc_implementation_t     imp;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cacheentry   *entries;
+   struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_method       *method;
+   mulle_objc_cache_uint_t         mask;
+   mulle_objc_cache_uint_t         offset;
+   mulle_functionpointer_t         p;
+
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   mask    = cache->mask;
+
+   offset  = (mulle_objc_cache_uint_t) superid;
+   for(;;)
+   {
+      offset  = offset & mask;
+      entry   = (void *) &((char *) entries)[ offset];
+      if( entry->key.uniqueid == superid)
+      {
+         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
+         imp = (mulle_objc_implementation_t) p;
+         break;
+      }
+      if( ! entry->key.uniqueid)
+      {
+         icache = _mulle_objc_cache_get_impcache_from_cache( cache);
+         method = (*icache->callback.refresh_supermethod_nofail)( cls, superid);
+         imp    = _mulle_objc_method_get_implementation( method);
+         imp    = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
+         break;
+      }
+      offset += sizeof( struct _mulle_objc_cacheentry);
+   }
+   return( imp);
+/*->*/
+}
 
 //
 // This function is called, when the first inline cache check gave a
@@ -511,52 +597,23 @@ static void *
                                      mulle_objc_superid_t superid,
                                      struct _mulle_objc_class *cls)
 {
-   mulle_objc_implementation_t     imp;
-   struct _mulle_objc_cache        *cache;
-   struct _mulle_objc_impcache     *icache;
-   struct _mulle_objc_cacheentry   *entries;
-   struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_method       *method;
-   mulle_objc_cache_uint_t         mask;
-   mulle_objc_cache_uint_t         offset;
-   mulle_functionpointer_t         p;
+   mulle_objc_implementation_t   imp;
 
-   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
-   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
-   mask    = cache->mask;
-
-   offset  = (mulle_objc_cache_uint_t) superid;
-   for(;;)
-   {
-      offset  = offset & mask;
-      entry   = (void *) &((char *) entries)[ offset];
-      if( entry->key.uniqueid == superid)
-      {
-         p   = _mulle_atomic_functionpointer_nonatomic_read( &entry->value.functionpointer);
-         imp = (mulle_objc_implementation_t) p;
-         break;
-      }
-      if( ! entry->key.uniqueid)
-      {
-         icache = _mulle_objc_cache_get_impcache_from_cache( cache);
-         method = (*icache->callback.refresh_supermethod_nofail)( cls, superid);
-         imp    = _mulle_objc_method_get_implementation( method);
-         imp    = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
-         break;
-      }
-      offset += sizeof( struct _mulle_objc_cacheentry);
-   }
-/*->*/
+   imp = _mulle_objc_object_callback_super_get_implementation( obj,
+                                                               methodid,
+                                                               parameter,
+                                                               superid,
+                                                               cls);
    return( (*imp)( obj, methodid, parameter));
 }
 
 
-static void *
-   _mulle_objc_object_callback_super_cache_collision( void *obj,
-                                                      mulle_objc_methodid_t methodid,
-                                                      void *parameter,
-                                                      mulle_objc_superid_t superid,
-                                                      struct _mulle_objc_class *cls)
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_callback_super_cache_collision_get_implementation( void *obj,
+                                                                         mulle_objc_methodid_t methodid,
+                                                                         void *parameter,
+                                                                         mulle_objc_superid_t superid,
+                                                                         struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t     imp;
    struct _mulle_objc_cache        *cache;
@@ -594,16 +651,34 @@ static void *
          break;
       }
    }
-   return( (*imp)( obj, methodid, parameter));
+   return( imp);
 }
 
 
 static void *
-   _mulle_objc_object_callback_super_cache_miss( void *obj,
-                                                 mulle_objc_methodid_t methodid,
-                                                 void *parameter,
-                                                 mulle_objc_superid_t superid,
-                                                 struct _mulle_objc_class *cls)
+   _mulle_objc_object_callback_super_cache_collision( void *obj,
+                                                      mulle_objc_methodid_t methodid,
+                                                      void *parameter,
+                                                      mulle_objc_superid_t superid,
+                                                      struct _mulle_objc_class *cls)
+{
+   mulle_objc_implementation_t     imp;
+
+   imp = _mulle_objc_object_callback_super_cache_collision_get_implementation( obj,
+                                                                               methodid,
+                                                                               parameter,
+                                                                               superid,
+                                                                               cls);
+   return( (*imp)( obj, methodid, parameter));
+}
+
+
+static inline mulle_objc_implementation_t
+   _mulle_objc_object_callback_super_cache_miss_get_implementation( void *obj,
+                                                                    mulle_objc_methodid_t methodid,
+                                                                    void *parameter,
+                                                                    mulle_objc_superid_t superid,
+                                                                    struct _mulle_objc_class *cls)
 {
    mulle_objc_implementation_t     imp;
    struct _mulle_objc_method       *method;
@@ -617,6 +692,24 @@ static void *
    method  = (*icache->callback.refresh_supermethod_nofail)( cls, superid);
    imp     = _mulle_objc_method_get_implementation( method);
    imp     = _mulle_objc_implementation_debug( imp, obj, methodid, parameter, cls);
+   return( imp);
+}
+
+
+static void *
+   _mulle_objc_object_callback_super_cache_miss( void *obj,
+                                                 mulle_objc_methodid_t methodid,
+                                                 void *parameter,
+                                                 mulle_objc_superid_t superid,
+                                                 struct _mulle_objc_class *cls)
+{
+   mulle_objc_implementation_t     imp;
+
+   imp = _mulle_objc_object_callback_super_cache_miss_get_implementation( obj,
+                                                                          methodid,
+                                                                          parameter,
+                                                                          superid,
+                                                                          cls);
    return( (*imp)( obj, methodid, parameter));
 }
 

@@ -382,12 +382,21 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.tao             = getenv_yes_no( "MULLE_OBJC_TRACE_TAO");
 
    universe->debug.method_call           = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CALL") ? MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT : 0;  // totally excessive!
-   universe->debug.method_call          |= getenv_yes_no_default( "MULLE_OBJC_CHECK_TAO", MULLE_OBJC_TAO_OBJECT_HEADER)
-                                           ? MULLE_OBJC_UNIVERSE_CALL_TAO_BIT
-                                           : 0;
-   universe->debug.method_call          |= getenv_yes_no( "MULLE_OBJC_TRACE_SKIP_BORING_METHOD_CALL")
-                                           ? MULLE_OBJC_UNIVERSE_CALL_SKIP_BORING_TRACE_BIT
-                                           : 0;  // totally excessive!
+
+   // this environment variable is also queried during universe setup
+   if( getenv_yes_no( "MULLE_OBJC_TRACE_LEAK"))
+   {
+      universe->debug.method_call         |= MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT | MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT;
+      universe->debug.trace.thread         = 1;
+      universe->debug.trace.instance       = 1;
+   }
+
+   if( getenv_yes_no( "MULLE_OBJC_TRACE_ZOMBIE"))
+   {
+      universe->debug.method_call         |= MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT  | MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT;
+      universe->debug.trace.thread         = 1;
+      universe->debug.trace.instance       = 1;
+   }
 
    if( getenv_yes_no( "MULLE_OBJC_TRACE_CACHE"))
    {
@@ -415,6 +424,14 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
       universe->debug.trace.state_bit      = 1;
       universe->debug.trace.tagged_pointer = 1;
    }
+
+
+   universe->debug.method_call          |= getenv_yes_no_default( "MULLE_OBJC_CHECK_TAO", MULLE_OBJC_TAO_OBJECT_HEADER)
+                                           ? MULLE_OBJC_UNIVERSE_CALL_TAO_BIT
+                                           : 0;
+   universe->debug.method_call          |= getenv_yes_no( "MULLE_OBJC_TRACE_SKIP_BORING_METHOD_CALL")
+                                           ? MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT
+                                           : 0;
 
    universe->debug.print.print_origin    = getenv_yes_no_default( "MULLE_OBJC_PRINT_ORIGIN", 1);
    universe->debug.print.universe_config = getenv_yes_no( "MULLE_OBJC_PRINT_UNIVERSE_CONFIG");
@@ -1035,7 +1052,9 @@ void
    if( ! universe->config.wait_threads_on_exit)
    {
       // might have been set earlier by coverage
-      universe->config.pedantic_exit |= mulle_objc_environment_get_yes_no( "MULLE_OBJC_PEDANTIC_EXIT");
+      universe->config.pedantic_exit |= mulle_objc_environment_get_yes_no( "MULLE_OBJC_PEDANTIC_EXIT")
+                                        | mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_LEAK")
+                                        | mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_ZOMBIE");
       if( ! universe->config.pedantic_exit)
          return;
    }

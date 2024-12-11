@@ -343,8 +343,8 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    _mulle_objc_object_abort_wrongthread( struct _mulle_objc_object *obj,
-                                  mulle_thread_t affinity_thread,
-                                  struct _mulle_objc_descriptor *desc)
+                                         mulle_thread_t affinity_thread,
+                                         struct _mulle_objc_descriptor *desc)
 {
    struct _mulle_objc_class   *cls;
    int                        ismeta;
