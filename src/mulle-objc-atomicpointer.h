@@ -69,41 +69,23 @@ union _mulle_objc_uniqueidarraypointer_t
 };
 
 
-// inline coz I am lazy
-// https://stackoverflow.com/questions/2741683/how-to-format-a-function-pointer
-// buf must be s_mulle_objc_sprintf_functionpointer_buffer
-
-
-
-#define s_mulle_objc_sprintf_functionpointer_buffer (2 + sizeof( mulle_functionpointer_t) * 2 + 1)
-
-//
-// TODO: would be nice to skip empty leading zeroes
-// Why is this inline ?
-//
-static inline void   mulle_objc_sprintf_functionpointer( char *buf,
-                                                         mulle_functionpointer_t fp)
+static inline void   mulle_buffer_sprintf_functionpointer( struct mulle_buffer *buf,
+                                                           mulle_functionpointer_t fp)
 {
    uint8_t   *p;
    uint8_t   *sentinel;
 
-   sprintf( buf, "0x");
+   mulle_buffer_sprintf( buf, "0x");
 #if __BIG_ENDIAN__
    p        = (uint8_t *) &fp;
    sentinel = &p[ sizeof( fp)];
    while( p < sentinel)
-   {
-      buf = &buf[ 2];
-      sprintf( buf, "%02x", *p++);
-   }
+      mulle_buffer_sprintf( buf, "%02x", *p++);
 #else
    sentinel = (uint8_t *) &fp;
    p        = &sentinel[ sizeof( fp)];
    while( p > sentinel)
-   {
-      buf = &buf[ 2];
-      sprintf( buf, "%02x", *--p);
-   }
+      mulle_buffer_sprintf( buf, "%02x", *--p);
 #endif
 }
 

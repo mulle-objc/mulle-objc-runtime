@@ -184,7 +184,7 @@ static void   _update_array_typeinfo_with_length( struct mulle_objc_typeinfo *in
    info->has_retainable_type   = tmp->has_retainable_type;
 }
 
-
+// '[22d]'
 static char  *
    _mulle_objc_signature_supply_array_typeinfo( char *type,
                                                 int level,

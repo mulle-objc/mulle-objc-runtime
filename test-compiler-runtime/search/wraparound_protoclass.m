@@ -42,4 +42,5 @@ int   main()
    [B x];
    [B y];
    [B z];
+   return( 0);
 }

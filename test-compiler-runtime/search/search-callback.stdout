@@ -1,0 +1,66 @@
+A infra:
+	1: -[A a]
+
+A meta:
+	2: +[A a]
+	1: -[A a]
+
+
+B infra:
+	1: -[A a]
+
+	2: -[B b]
+
+B meta:
+	3: +[A a]
+	1: -[A a]
+
+	4: +[B b]
+
+
+C infra:
+	1: -[C c]
+
+	2: -[X x]
+
+	3: -[Y y]
+
+C meta:
+	4: +[C c]
+	1: -[C c]
+
+	5: +[X x]
+	2: -[X x]
+
+	6: +[Y y]
+	3: -[Y y]
+
+
+D infra:
+	1: -[C c]
+
+	2: -[D( D) d]
+	3: -[D d]
+
+	4: -[X x]
+
+	5: -[Y y]
+
+	6: -[D( Z) z]
+
+D meta:
+	7: +[C c]
+	1: -[C c]
+
+	8: +[D( D) d]
+	9: +[D d]
+
+	10: +[X x]
+	4: -[X x]
+
+	11: +[Y y]
+	5: -[Y y]
+
+	12: +[D( Z) z]
+
+

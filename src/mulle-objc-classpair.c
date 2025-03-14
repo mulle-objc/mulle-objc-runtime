@@ -469,7 +469,7 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
 
 
    infra = _mulle_objc_classpair_get_infraclass( pair);
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS))
    {
       if( universe->debug.warn.protocolclass)
          if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
@@ -537,16 +537,16 @@ mulle_objc_walkcommand_t
                                                void *userinfo)
 {
    mulle_objc_walkcommand_t                         rval;
-   struct _mulle_objc_infraclass                    *proto_cls;
+   struct _mulle_objc_infraclass                    *proto_infra;
    struct mulle_concurrent_pointerarrayenumerator   rover;
    struct _mulle_objc_infraclass                    *infra;
    struct _mulle_objc_infraclass                    *superclass;
    struct _mulle_objc_classpair                     *superpair;
 
    rover = mulle_concurrent_pointerarray_enumerate( &pair->protocolclasses);
-   while( proto_cls = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   while( proto_infra = _mulle_concurrent_pointerarrayenumerator_next( &rover))
    {
-      if( rval = (*f)( proto_cls, pair, userinfo))
+      if( rval = (*f)( proto_infra, pair, userinfo))
       {
          if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
@@ -572,7 +572,8 @@ mulle_objc_walkcommand_t
 void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_classpair *pair,
                                                          mulle_objc_protocolid_t *protocolclassids)
 {
-   struct _mulle_objc_infraclass   *proto_cls;
+   struct _mulle_objc_infraclass   *proto_infra;
+   struct _mulle_objc_metaclass    *proto_meta;
    struct _mulle_objc_universe     *universe;
    mulle_objc_protocolid_t         protocolclassid;
    mulle_objc_classid_t            classid;
@@ -598,8 +599,8 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
       if( ! _mulle_objc_classpair_has_protocolid( pair, protocolclassid))
          _mulle_objc_classpair_fail_einval( pair);
 
-      proto_cls = _mulle_objc_universe_lookup_infraclass( universe, protocolclassid);
-      if( ! proto_cls)
+      proto_infra = _mulle_objc_universe_lookup_infraclass( universe, protocolclassid);
+      if( ! proto_infra)
          _mulle_objc_classpair_fail_einval( pair);
 
       //
@@ -608,24 +609,44 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
       // variables or some-such, we warn and ignore, since the compiler can
       // not discern this for sure.
       //
-      if( ! mulle_objc_infraclass_check_protocolclass( proto_cls))
+      if( ! mulle_objc_infraclass_check_protocolclass( proto_infra))
          continue;
 
-      if( _mulle_objc_classpair_has_protocolclass( pair, proto_cls))
+      if( _mulle_objc_classpair_has_protocolclass( pair, proto_infra))
          continue;
 
-      if( _mulle_objc_infraclass_set_state_bit( proto_cls, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+      if( _mulle_objc_infraclass_set_state_bit( proto_infra, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS))
       {
+         proto_meta = _mulle_objc_infraclass_get_metaclass( proto_infra);
+         _mulle_objc_metaclass_set_state_bit( proto_meta, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS);
+
+/*
+ * MEMO: the problem with this code is that its not atomic, so this could have
+ *       funny side effects. We instead do the check inside the search and
+ *       preempt for protocol classes. In a brighter future a mulle-cc
+ *       compiler will set the property inheritance in the @implementation
+ *       of a protocolclass.
+ *
+ *       proto_infra->base.inheritance &= ~(MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS
+ *                                            |MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES
+ *                                            |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
+ *                                            |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES);
+ *         proto_meta = _mulle_objc_infraclass_get_metaclass( proto_infra);
+ *         proto_meta->base.inheritance &= ~(MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS
+ *                                           |MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES
+ *                                           |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
+ *                                           |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES);
+ */
          if( universe->debug.trace.protocol_add)
             mulle_objc_universe_trace( universe,
                                        "class %08lx \"%s\" "
                                        "has become a protocolclass",
-                                       (unsigned long) _mulle_objc_infraclass_get_classid( proto_cls),
-                                       _mulle_objc_infraclass_get_name( proto_cls));
+                                       (unsigned long) _mulle_objc_infraclass_get_classid( proto_infra),
+                                       _mulle_objc_infraclass_get_name( proto_infra));
       }
 
-      _mulle_objc_classpair_add_protocolclass( pair, proto_cls);
-//      _mulle_concurrent_pointerarray_add( &pair->protocolclasses, proto_cls);
+      _mulle_objc_classpair_add_protocolclass( pair, proto_infra);
+//      _mulle_concurrent_pointerarray_add( &pair->protocolclasses, proto_infra);
    }
 }
 
@@ -634,16 +655,16 @@ struct _mulle_objc_infraclass  *
    _mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
 {
    struct _mulle_objc_infraclass   *infra;
-   struct _mulle_objc_infraclass   *proto_cls;
+   struct _mulle_objc_infraclass   *proto_infra;
 
    infra = _mulle_objc_protocolclassenumerator_get_infraclass( rover);
    if( ! infra)
       return( NULL);
 
-   while( proto_cls = _mulle_concurrent_pointerarrayenumerator_next( &rover->list_rover))
-      if( proto_cls != infra)  // don't recurse into self
+   while( proto_infra = _mulle_concurrent_pointerarrayenumerator_next( &rover->list_rover))
+      if( proto_infra != infra)  // don't recurse into self
          break;
-   return( proto_cls);
+   return( proto_infra);
 }
 
 
@@ -651,13 +672,13 @@ struct _mulle_objc_infraclass  *
    _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover)
 {
    struct _mulle_objc_infraclass   *infra;
-   struct _mulle_objc_infraclass   *proto_cls;
+   struct _mulle_objc_infraclass   *proto_infra;
 
    infra = _mulle_objc_protocolclassreverseenumerator_get_infraclass( rover);
-   while( proto_cls = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover->list_rover))
-      if( proto_cls != infra)  // don't recurse into self
+   while( proto_infra = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover->list_rover))
+      if( proto_infra != infra)  // don't recurse into self
          break;
-   return( proto_cls);
+   return( proto_infra);
 }
 
 

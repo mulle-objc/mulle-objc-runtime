@@ -61,7 +61,7 @@ enum mulle_metaabi_param
 
 #define _C_ARY_B        '['
 #define _C_ARY_E        ']'
-#define _C_ATOM         '%'
+#define _C_ATOM         '%'  // *1*
 #define _C_BFLD         'b'
 #define _C_BOOL         'B'
 #define _C_CHARPTR      '*'
@@ -443,3 +443,15 @@ static inline enum mulle_metaabi_param   _mulle_metaabi_get_metaabiparamtype( ch
 }
 
 #endif
+
+
+// *1* AI sez:
+//
+// In the Objective-C runtime, % is the type encoding for an atom type, which
+// is a legacy type from early Objective-C implementations.
+// In early Objective-C implementations, particularly those from Stepstone (the
+// original creators of Objective-C), the "atom" type was a unique data type
+// used for efficient string handling and symbol representation.
+// Atoms were essentially interned strings - unique string objects that were
+// stored only once in memory, regardless of how many times they appeared in
+// the program.

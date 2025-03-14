@@ -60,4 +60,5 @@ int   main()
    [C x];
    [C y];
    [C z];
+   return( 0);
 }

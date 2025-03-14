@@ -341,9 +341,12 @@ unsigned int   mulle_objc_cache_calculate_percentage( struct _mulle_objc_cache *
 
 # pragma mark - add
 
+//
 // this only works for a cache, that isn't active in the universe yet and that
 // has enough space (!)
-
+// If an entry is already occupied, this does nothing (properly observing
+// inheritance therefore)
+//
 struct _mulle_objc_cacheentry   *
    _mulle_objc_cache_add_pointer_inactive( struct _mulle_objc_cache *cache,
                                             void *pointer,
@@ -355,8 +358,9 @@ struct _mulle_objc_cacheentry   *
    offset = _mulle_objc_cache_probe_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
-   assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
-   assert( ! _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
+   // if we have a
+   if( _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer))
+      return( entry);
 
    entry->key.uniqueid = uniqueid;
    _mulle_atomic_pointer_write_nonatomic( &entry->value.pointer, pointer);
@@ -380,7 +384,13 @@ struct _mulle_objc_cacheentry   *
    offset = _mulle_objc_cache_probe_entryoffset( cache, uniqueid);
    entry  = (void *) &((char *) cache->entries)[ offset];
 
-   assert( ! entry->key.uniqueid);  // if it's not, it's not inactive!
+   // can happen if we added the method already (due to overloading, we might
+   // want to try the same uniqueid twice, but the first will be the best)
+   if( entry->key.uniqueid)
+   {
+      assert( entry->key.uniqueid == uniqueid);
+      return( entry);
+   }
    assert( ! _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer));
 
    entry->key.uniqueid = uniqueid;

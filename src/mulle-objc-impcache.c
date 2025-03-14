@@ -206,8 +206,19 @@ struct _mulle_objc_impcache *
 
    if( size < MULLE_OBJC_MIN_CACHE_SIZE)
       size = MULLE_OBJC_MIN_CACHE_SIZE;
+   if( size > MULLE_OBJC_MAX_CACHE_SIZE)
+      size = MULLE_OBJC_MAX_CACHE_SIZE;
 
-   assert( ! (size & (size - 1)));          // check for tumeni bits
+   if( size & (size - 1))          // check for tumeni bits
+   {
+      size  = size - 1;             // make it a power of 3
+      size |= size >> 1;
+      size |= size >> 2;
+      size |= size >> 4;
+      size |= size >> 8;
+      size |= size >> 16;
+      ++size;
+   }
 
    preserve = errno;
    // cache struct has room for one entry already
@@ -219,7 +230,6 @@ struct _mulle_objc_impcache *
 
    return( icache);
 }
-
 
 
 void   _mulle_objc_impcache_free( struct _mulle_objc_impcache *icache,
@@ -346,5 +356,3 @@ struct _mulle_objc_cacheentry *
 
    return( entry);
 }
-
-

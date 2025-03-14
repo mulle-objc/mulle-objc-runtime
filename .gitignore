@@ -76,3 +76,4 @@ coverage*.html
 cola/wilted/
 *.executable
 perf.dat
+*-build-*/

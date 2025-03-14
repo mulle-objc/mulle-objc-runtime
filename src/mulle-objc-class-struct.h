@@ -58,6 +58,10 @@ struct _mulle_objc_universe;
 
 
 // memo: also used in mulle-gdb
+//
+//    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META is the special case where
+//    C < X> on a call to +foo should not inherit -!!![X foo]
+//
 enum
 {
    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS          = 0x01,
@@ -77,7 +81,7 @@ enum
    // |     n | 0x80         |        m                 | n | 0x80
    // |     n & ~0x80        |        m                 | m
    //
-   MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE = 0x40
+   MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE = 0x40,
 };
 
 
@@ -102,9 +106,10 @@ enum _mulle_objc_class_state
    // or _MulleObjCAutoreleaseAllocation)
    MULLE_OBJC_CLASS_IS_BORING_ALLOCATION    = 0x0080,
 
+   MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        = 0x0100,
+
    // infra/meta flags
-   _MULLE_OBJC_CLASS_WARN_PROTOCOL          = 0x0100,
-   _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS       = 0x0200,
+   _MULLE_OBJC_CLASS_WARN_PROTOCOL          = 0x0200,
    _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY = 0x0400,
    _MULLE_OBJC_CLASS_LOAD_SCHEDULED         = 0x0800,
    MULLE_OBJC_CLASS_FINALIZE_DONE           = 0x2000,  // no _, can be used on its own
@@ -283,6 +288,12 @@ static inline int   _mulle_objc_class_is_threadaffine( struct _mulle_objc_class 
 }
 
 
+static inline int   _mulle_objc_class_is_protocolclass( struct _mulle_objc_class *cls)
+{
+   return( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS));
+}
+
+
 char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit);
 
 
@@ -337,6 +348,8 @@ static inline int   _mulle_objc_class_is_metaclass( struct _mulle_objc_class *cl
 
 static inline char   *_mulle_objc_class_get_classtypename( struct _mulle_objc_class *cls)
 {
+   if( _mulle_objc_class_is_protocolclass( cls))
+      return( _mulle_objc_class_is_metaclass( cls) ? "metaprotocolclass" : "infraprotocolclass");
    return( _mulle_objc_class_is_metaclass( cls) ? "metaclass" : "infraclass");
 }
 

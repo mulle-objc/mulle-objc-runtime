@@ -68,7 +68,7 @@ char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit)
    case MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE       : return( "ALWAYS_EMPTY_CACHE");
    case MULLE_OBJC_CLASS_FIXED_SIZE_CACHE         : return( "FIXED_SIZE_CACHE");
    case _MULLE_OBJC_CLASS_WARN_PROTOCOL           : return( "WARN_PROTOCOL");
-   case _MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        : return( "IS_PROTOCOLCLASS");
+   case MULLE_OBJC_CLASS_IS_PROTOCOLCLASS         : return( "IS_PROTOCOLCLASS");
    case _MULLE_OBJC_CLASS_LOAD_SCHEDULED          : return( "LOAD_SCHEDULED");
    case _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  : return( "HAS_CLEARABLE_PROPERTY");
    case MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE     : return( "NOT_THREAD_AFFINE");
@@ -394,13 +394,13 @@ int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
    struct _mulle_objc_universe               *universe;
    mulle_objc_uniqueid_t                     last;
 
+   universe = _mulle_objc_class_get_universe( cls);
    if( ! list)
    {
       if( _mulle_concurrent_pointerarray_get_count( &cls->methodlists) != 0)
          return( 0);
 
-      universe = _mulle_objc_class_get_universe( cls);
-      list     = &universe->empty_methodlist;
+      list = &universe->empty_methodlist;
    }
 
    /* register instance methods */
@@ -420,12 +420,12 @@ int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
       }
 
       last = method->descriptor.methodid;
-      mulle_objc_universe_register_descriptor_nofail( cls->universe,
+      mulle_objc_universe_register_descriptor_nofail( universe,
                                                       &method->descriptor,
                                                       cls,
                                                       list);
 
-      if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
+      if( _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
          cls->preloads++;
    }
    _mulle_objc_methodlistenumerator_done( &rover);
@@ -572,6 +572,7 @@ unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class 
 
 
 // 0: continue
+
 mulle_objc_walkcommand_t
    _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls,
                                    unsigned int inheritance,

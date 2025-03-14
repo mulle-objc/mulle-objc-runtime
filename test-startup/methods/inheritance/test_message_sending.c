@@ -45,6 +45,9 @@ void   test_message_sending()
 
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
+   // test wont work with
+   universe->config.preload_all_methods = 0;
+
    pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    A_infra = _mulle_objc_classpair_get_infraclass( pair);

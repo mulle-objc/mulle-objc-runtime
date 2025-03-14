@@ -217,23 +217,20 @@ void
   mulle_objc_universe_csvdump_cachedmethodcoverage_to_fp( struct _mulle_objc_universe *universe,
                                                           FILE *fp)
 {
-   intptr_t                                    classid;
-   struct _mulle_objc_infraclass               *infra;
-   struct _mulle_objc_metaclass                *meta;
-   struct mulle_concurrent_hashmapenumerator   rover;
+   intptr_t                        classid;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_metaclass    *meta;
 
    if( ! universe || ! fp)
       mulle_objc_universe_fail_code( NULL, EINVAL);
 
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra)
    {
       meta = _mulle_objc_infraclass_get_metaclass( infra);
 
       mulle_objc_class_csvdump_cachedmethodcoverage_to_fp( _mulle_objc_metaclass_as_class( meta), fp);
       mulle_objc_class_csvdump_cachedmethodcoverage_to_fp( _mulle_objc_infraclass_as_class( infra), fp);
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 
@@ -242,23 +239,20 @@ void
   mulle_objc_universe_csvdump_methodcoverage_to_fp( struct _mulle_objc_universe *universe,
                                                     FILE *fp)
 {
-   intptr_t                                    classid;
-   struct _mulle_objc_infraclass               *infra;
-   struct _mulle_objc_metaclass                *meta;
-   struct mulle_concurrent_hashmapenumerator   rover;
+   intptr_t                        classid;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_metaclass    *meta;
 
    if( ! universe || ! fp)
       mulle_objc_universe_fail_code( NULL, EINVAL);
 
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra)
    {
       meta = _mulle_objc_infraclass_get_metaclass( infra);
 
       mulle_objc_class_csvdump_methodcoverage_to_fp( _mulle_objc_metaclass_as_class( meta), fp);
       mulle_objc_class_csvdump_methodcoverage_to_fp( _mulle_objc_infraclass_as_class( infra), fp);
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 
@@ -280,10 +274,9 @@ void
   mulle_objc_universe_csvdump_classcoverage_to_fp( struct _mulle_objc_universe *universe,
                                                    FILE *fp)
 {
-   intptr_t                                    classid;
-   struct _mulle_objc_infraclass               *infra;
-   struct mulle_concurrent_hashmapenumerator   rover;
-   int                                         nada;
+   int                             nada;
+   intptr_t                        classid;
+   struct _mulle_objc_infraclass   *infra;
 
    if( ! universe || ! fp)
       mulle_objc_universe_fail_code( NULL, EINVAL);
@@ -298,8 +291,7 @@ void
    // say _MulleJapaneseStringLength721.
    //
    nada  = 1;
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra)
    {
       if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
       {
@@ -314,7 +306,6 @@ void
               (unsigned long) _mulle_objc_infraclass_get_classid( infra),
               _mulle_objc_infraclass_get_name( infra));
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 
    if( nada)
       fprintf( stderr, "mulle_objc_universe %p warning: no coverage generated "
@@ -353,10 +344,9 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
 void   mulle_objc_universe_csvdump_cachesizes_to_fp( struct _mulle_objc_universe *universe,
                                                      FILE *fp)
 {
-   intptr_t                                    classid;
-   struct _mulle_objc_infraclass               *infra;
-   struct _mulle_objc_metaclass                *meta;
-   struct mulle_concurrent_hashmapenumerator   rover;
+   intptr_t                        classid;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_metaclass    *meta;
 
    if( ! universe || ! fp)
       mulle_objc_universe_fail_code( NULL, EINVAL);
@@ -366,14 +356,12 @@ void   mulle_objc_universe_csvdump_cachesizes_to_fp( struct _mulle_objc_universe
    // bit (this also captures fastclasses)
    //
 
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra)
    {
       meta = _mulle_objc_infraclass_get_metaclass( infra);
       dump_cachesize( _mulle_objc_metaclass_as_class( meta), '+', fp);
       dump_cachesize( _mulle_objc_infraclass_as_class( infra), '-', fp);
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 #pragma mark - dump starters

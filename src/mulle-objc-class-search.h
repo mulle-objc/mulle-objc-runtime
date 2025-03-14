@@ -628,8 +628,8 @@ static inline int
    inheritance = _mulle_objc_class_get_inheritance( rover->cls)
                  | MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS
                  | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
-                 | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES
-                 | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
+//                 | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META
+                 | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
 
    method = mulle_objc_class_search_method( rover->cls,
                                             &rover->args,

@@ -243,38 +243,40 @@ static void
                                                    size_t s_len)
 {
    size_t         n_len;
-   size_t         len;
-   size_t         p_len;
+   char           *s;
    unsigned int   size;
 
    assert( accessor->bits);
    assert( accessor->methodid);
 
-   p_len = strlen( prefix);
-   n_len = strlen( name);
-   len   = n_len > s_len ? n_len : s_len;
+   mulle_buffer_do( buf)
    {
-      // windows compiler can't do this
-      // char   buf[ len + 60 + p_len + 1];
-      char  buf[ 512];
+      mulle_buffer_add_string( buf, prefix);
+      n_len = strlen( name);
+      if( n_len)
+      {
+         mulle_buffer_add_char( buf, (name[ 0] >= 'a' && name[ 0] <= 'z')
+                                     ? 'A' - 'a' + name[ 0]
+                                     : name[ 0]);
+         mulle_buffer_add_string( buf, &name[ 1]);
+      }
+      mulle_buffer_add_char( buf, ':');
+      s = mulle_buffer_get_string(  buf);
 
-      if( (len + 60 + p_len + 1) > sizeof( buf))
-         abort();
-
-      sprintf( buf, "%s%s:", prefix, name);
-      if( buf[ p_len] >= 'a' && buf[ p_len] <= 'z')
-         buf[ p_len] += 'A' - 'a';
-      accessor->name = _mulle_objc_universe_strdup( universe, buf);
+      accessor->name = _mulle_objc_universe_strdup( universe, s);
 
       assert( mulle_objc_methodid_from_string( accessor->name) == accessor->methodid);
 
       mulle_objc_signature_supply_size_and_alignment( signature, &size, NULL);
-      sprintf( buf, "v%d@0:%d%.*s%d",
+
+      mulle_buffer_reset( buf);
+      mulle_buffer_sprintf( buf, "v%d@0:%d%.*s%d",
                                   (int) (size + sizeof( void *) + sizeof( void *)),
                                   (int) sizeof( void *),
                                   (int) s_len, signature,
                                   (int) (sizeof( void *) + sizeof( void *)));
-      accessor->signature = _mulle_objc_universe_strdup( universe, buf);
+      s = mulle_buffer_get_string( buf);
+      accessor->signature = _mulle_objc_universe_strdup( universe, s);
    }
 }
 
@@ -828,7 +830,7 @@ mulle_objc_walkcommand_t
 // ivars must not conform to other protocols (it's tempting to conform to NSObject)
 // If you conform to NSObject, NSObject methods will override your superclass(!)
 //
-static int   _mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra,
+static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_objc_infraclass *infra,
                                                       int warn)
 {
    struct _mulle_objc_universe         *universe;
@@ -921,11 +923,11 @@ static int   _mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infracl
          {
             if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
             {
-               fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" conforms "
-                       "to a protocol but has gained some categories, which "
-                       "will be ignored.\n",
-                       universe,
-                       _mulle_objc_infraclass_get_name( infra));
+               mulle_fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" conforms "
+                                      "to a protocol but has gained some categories, which "
+                                      "will be ignored.\n",
+                                      universe,
+                                      _mulle_objc_infraclass_get_name( infra));
 
                fprintf( stderr, "Categories:\n");
                _mulle_objc_classpair_walk_categoryids( pair,
@@ -940,12 +942,12 @@ static int   _mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infracl
    return( 1);
 }
 
-// see _mulle_objc_infraclass_is_protocolclass, this
+// see _mulle_objc_infraclass_conforms_to_protocolclass, this
 int   mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
 {
    if( ! infra)
       return( 0);
-   return( _mulle_objc_infraclass_is_protocolclass( infra, 0));
+   return( _mulle_objc_infraclass_conforms_to_protocolclass( infra, 0));
 }
 
 
@@ -957,7 +959,7 @@ int   mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *
       return( 0);
 
    universe = _mulle_objc_infraclass_get_universe( infra);
-   return( _mulle_objc_infraclass_is_protocolclass( infra, universe->debug.warn.protocolclass));
+   return( _mulle_objc_infraclass_conforms_to_protocolclass( infra, universe->debug.warn.protocolclass));
 }
 
 
