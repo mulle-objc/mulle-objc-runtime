@@ -50,19 +50,15 @@ static void   print_uniqueid( char *s, size_t len,
                               unsigned long value,
                               char *prefix, char *suffix)
 {
-#ifdef _WIN32
-   char   *buf = alloca( sizeof( char) * (len + 1));
-#else
-   char   buf[ len + 1];
-#endif
+   char   buf[ 64];
    char   *s1, *s2;
    char   c;
 
    s1 = s;
    s2 = buf;
-   while( c = *s1++)
+   while( c = *s1++ && s2 < &buf[ sizeof( buf) - 1])
       *s2++ = (char) toupper( c);
-   *s2 = c;
+   *s2 = 0;
 
    printf( "#define %s%s%s   MULLE_OBJC_METHODID( 0x%08lx)  // \"%s\"\n",
             prefix,
@@ -72,16 +68,17 @@ static void   print_uniqueid( char *s, size_t len,
             s);
 }
 
-//
-// grep through all words and get a CSV list of the hashes:
-//
-// grep -h -o -R --include "*.m" --include "*.h" -E '\w+' src \
-//    | sort \
-//    | sort -u \
-//    | CSV="" xargs dependency/bin/mulle-objc-uniqueid
-//
-// Not that useful, because grep doesn't grep selectors well
-//
+
+/*
+ * grep through all words and get a CSV list of the hashes:
+ *
+ * grep -h -o -R --include "*.m" --include "*.h" -E '\w+' src \
+ *    | sort \
+ *    | sort -u \
+ *    | CSV="" xargs dependency/bin/mulle-objc-uniqueid
+ *
+ * Not that useful, because grep doesn't grep selectors well
+ */
 int   main( int argc, char *argv[])
 {
    unsigned long   value;

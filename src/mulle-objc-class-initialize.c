@@ -50,7 +50,12 @@
 
 # pragma mark - cache
 
-
+//
+// MEMO: we could traverse the universe super list of the universe and then
+//       retrieve the classid and fill the cache for the desired methodid.
+//       Then stepping through super calls with the debugger should be less
+//       painful.
+//
 static mulle_objc_cache_uint_t
    _mulle_objc_class_search_min_impcache_size( struct _mulle_objc_class *cls)
 {
@@ -63,9 +68,10 @@ static mulle_objc_cache_uint_t
 }
 
 
+// This is the **initialize** cache not the **initial** cache.
 //
-// this runs before +initialize, so the method cache won't be used during
-// +initialize
+// This runs before +initialize run. Its there so the method cache won't be
+// used during execution of +initialize
 //
 static void   _mulle_objc_class_setup_initialize_cache( struct _mulle_objc_class *cls)
 {
@@ -93,7 +99,11 @@ static void   _mulle_objc_class_setup_initialize_cache( struct _mulle_objc_class
 }
 
 
-// this runs when the class is locked,
+//
+// this runs when the class is locked
+//
+// the **initial** cache is not the **initialize** cache!
+//
 static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *cls,
                                                      struct _mulle_objc_impcache_callback *callback)
 {
@@ -258,7 +268,7 @@ static void
    struct _mulle_objc_infraclass                *protocolclass;
    struct _mulle_objc_metaclass                 *metaprotocolclass;
 
-   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
+   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS));
 
    // call all +initialize protocolclass methods for superclass first
    superclass = _mulle_objc_infraclass_get_superclass( owner);
@@ -288,7 +298,7 @@ static void
    struct _mulle_objc_class       *cls;
    unsigned int                   inheritance;
 
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS))
       return;
 
    meta         = _mulle_objc_infraclass_get_metaclass( infra);
@@ -318,7 +328,7 @@ static void
    struct _mulle_objc_infraclass                       *protocolclass;
    struct _mulle_objc_metaclass                        *metaprotocolclass;
 
-   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
+   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS));
 
    pair  = _mulle_objc_infraclass_get_classpair( owner);
    rover = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
@@ -352,7 +362,7 @@ void
    if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
       return;
 
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS))
       return;
 
    _mulle_objc_infraclass_call_protocolclasses_deinitialize( infra, infra);
@@ -362,7 +372,7 @@ void
    inheritance  = _mulle_objc_class_get_inheritance( cls);
    inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
    inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
-   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
+//   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
 
    _mulle_objc_metaclass_call_initialize_deinitialize( meta, inheritance, MULLE_OBJC_DEINITIALIZE_METHODID, infra);
 }

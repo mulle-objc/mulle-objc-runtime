@@ -370,6 +370,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.method_add      = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_ADD");
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
    universe->debug.trace.method_search   = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCH");  // fairly excessive!
+   universe->debug.trace.preload         = getenv_yes_no( "MULLE_OBJC_TRACE_PRELOAD");
    universe->debug.trace.descriptor_add  = getenv_yes_no( "MULLE_OBJC_TRACE_DESCRIPTOR_ADD");
    universe->debug.trace.propertyid_add  = getenv_yes_no( "MULLE_OBJC_TRACE_PROPERTYID_ADD");
    universe->debug.trace.protocol_add    = getenv_yes_no( "MULLE_OBJC_TRACE_PROTOCOL_ADD");
@@ -429,7 +430,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.method_call          |= getenv_yes_no_default( "MULLE_OBJC_CHECK_TAO", MULLE_OBJC_TAO_OBJECT_HEADER)
                                            ? MULLE_OBJC_UNIVERSE_CALL_TAO_BIT
                                            : 0;
-   universe->debug.method_call          |= getenv_yes_no( "MULLE_OBJC_TRACE_SKIP_BORING_METHOD_CALL")
+   universe->debug.method_call          |= getenv_yes_no( "MULLE_OBJC_TRACE_BORING_METHOD_CALL")
                                            ? MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT
                                            : 0;
 
@@ -693,7 +694,9 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
 
    universe->path                = NULL;
    universe->config.max_optlevel = 0x7;
-
+#ifdef DEBUG
+   universe->config.preload_all_methods = 1;
+#endif
    _mulle_objc_universe_get_environment( universe);
 
    // for named universes this is done in alloc already
@@ -1295,15 +1298,13 @@ static void   pointerarray_in_hashmap_map( struct _mulle_objc_universe *universe
                                            struct mulle_concurrent_hashmap *map,
                                            void (*f)( void *, void *))
 {
-   struct mulle_concurrent_hashmapenumerator  rover;
-   struct mulle_concurrent_pointerarray       *list;
+   struct mulle_concurrent_pointerarray   *list;
+   intptr_t                               key;
 
-   rover = mulle_concurrent_hashmap_enumerate( map);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &list))
+   mulle_concurrent_hashmap_for( map, key, list)
    {
       mulle_concurrent_pointerarray_map( list, f, universe);
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 
@@ -1361,6 +1362,9 @@ static struct _mulle_objc_infraclass **
 
    sentinel = &array[ n];
    p_cls    = array;
+
+   // this code is a bit weird, because of the funny reuse of p_cls, that's
+   // why its not as for loop (and haven't had time to pretty it up)
    rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) p_cls))
    {
@@ -1428,15 +1432,14 @@ static void
    _mulle_objc_universe_dealloc_placeholders( struct _mulle_objc_universe *universe,
                                               enum _mulle_objc_infraclass_placeholder_index index)
 {
-   struct _mulle_objc_infraclass               *infra;
-   struct mulle_concurrent_hashmapenumerator   rover;
-   struct _mulle_objc_object                   *obj;
-   static void                                 (*f)( struct _mulle_objc_object *);
-   intptr_t                                    classid;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_object       *obj;
+   static void                     (*f)( struct _mulle_objc_object *);
+   intptr_t                        classid;
 
    f     = dealloc_functions[ index];
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) &infra))
+
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra)
    {
       // poser check: classes posing as another class, will appear later
       //              again, ignore them
@@ -1456,7 +1459,6 @@ static void
          (*f)( obj);
       }
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 
@@ -2384,17 +2386,16 @@ static void   mulle_objc_universe_list_methods( struct _mulle_objc_universe *uni
                                                 mulle_objc_methodid_t methodid,
                                                 FILE *fp)
 {
-   struct mulle_concurrent_hashmapenumerator  rover;
-   struct _mulle_objc_infraclass              *infra;
-   struct _mulle_objc_metaclass               *meta;
-   struct _mulle_objc_class                   *infra_cls;
-   struct _mulle_objc_class                   *meta_cls;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_metaclass    *meta;
+   struct _mulle_objc_class        *infra_cls;
+   struct _mulle_objc_class        *meta_cls;
+   intptr_t                        classid;
 
    if( ! universe || ! fp)
       return;
 
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);  // slow!
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &infra_cls))
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra_cls)
    {
       infra    = _mulle_objc_class_as_infraclass( infra_cls);
       meta     = _mulle_objc_infraclass_get_metaclass( infra);
@@ -2402,7 +2403,6 @@ static void   mulle_objc_universe_list_methods( struct _mulle_objc_universe *uni
       class_list_methods( meta_cls, '+', methodid, fp);
       class_list_methods( infra_cls, '-', methodid, fp);
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 
@@ -2690,7 +2690,7 @@ mulle_objc_walkcommand_t
    cmd  = mulle_objc_walk_done;
    skip = NULL;
 again:
-   mulle_concurrent_hashmap_for( hashmap, hash, item, rval)
+   mulle_concurrent_hashmap_for_rval( hashmap, hash, item, rval)
    {
       if( skip)
       {
@@ -2765,20 +2765,18 @@ static void   mulle_objc_universe_list_properties( struct _mulle_objc_universe *
                                                    mulle_objc_propertyid_t propertyid,
                                                    FILE *fp)
 {
-   struct mulle_concurrent_hashmapenumerator  rover;
-   struct _mulle_objc_infraclass              *infra;
-   struct _mulle_objc_class                   *infra_cls;
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_class        *infra_cls;
+   intptr_t                        classid;
 
    if( ! universe || ! fp)
       return;
 
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);  // slow!
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &infra_cls))
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra_cls)
    {
       infra = _mulle_objc_class_as_infraclass( infra_cls);
       infraclass_list_properties( infra, propertyid, fp);
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 }
 
 
@@ -3248,9 +3246,9 @@ mulle_objc_walkcommand_t
                               mulle_objc_walkcallback_t   callback,
                               void *userinfo)
 {
-   mulle_objc_walkcommand_t                   cmd;
-   struct _mulle_objc_class                   *cls;
-   struct mulle_concurrent_hashmapenumerator  rover;
+   mulle_objc_walkcommand_t   cmd;
+   struct _mulle_objc_class   *cls;
+   intptr_t                   classid;
 
    if( ! universe || ! callback)
       return( mulle_objc_walk_error);
@@ -3259,8 +3257,7 @@ mulle_objc_walkcommand_t
    if( mulle_objc_walkcommand_is_stopper( cmd))
       return( cmd);
 
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);  // slow!
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &cls))
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, cls)  // slow
    {
       cmd = mulle_objc_classpair_walk( _mulle_objc_class_get_classpair( cls),
                                        callback,
@@ -3268,7 +3265,6 @@ mulle_objc_walkcommand_t
       if( mulle_objc_walkcommand_is_stopper( cmd))
          return( cmd);
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 
    return( cmd);
 }
@@ -3280,14 +3276,14 @@ mulle_objc_walkcommand_t
                                       mulle_objc_walkcallback_t callback,
                                       void *userinfo)
 {
-   mulle_objc_walkcommand_t                    cmd;
-   struct _mulle_objc_infraclass               *cls;
-   struct _mulle_objc_metaclass                *meta;
-   struct mulle_concurrent_hashmapenumerator   rover;
+   mulle_objc_walkcommand_t        cmd;
+   struct _mulle_objc_infraclass   *cls;
+   struct _mulle_objc_metaclass    *meta;
+   intptr_t                        classid;
 
-   cmd   = mulle_objc_walk_done;
-   rover = mulle_concurrent_hashmap_enumerate( &universe->classtable);  // slow!
-   while( _mulle_concurrent_hashmapenumerator_next( &rover, NULL, (void **) &cls))
+   cmd = mulle_objc_walk_done;
+
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, cls)  // slow
    {
       cmd = (*callback)( universe, cls, mulle_objc_walkpointer_is_infraclass, NULL, NULL, userinfo);
       if( mulle_objc_walkcommand_is_stopper( cmd))
@@ -3304,7 +3300,6 @@ mulle_objc_walkcommand_t
          }
       }
    }
-   mulle_concurrent_hashmapenumerator_done( &rover);
 
    return( cmd);
 }

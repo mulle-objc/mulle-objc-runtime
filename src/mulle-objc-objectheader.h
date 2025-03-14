@@ -95,11 +95,11 @@ struct _mulle_objc_objectheader
    // in tests its inconvenient to have variable sizes, since it breaks stuff
    //
 #if MULLE_OBJC_TAO_OBJECT_HEADER
-   void                        *_align;
-   mulle_atomic_pointer_t      _thread;
+   void                       *_align;         // future: mulle-allocator ?
+   mulle_atomic_pointer_t     _thread;
 #endif
-   mulle_atomic_pointer_t      _retaincount_1;  // negative means finalized
-   struct _mulle_objc_class    *_isa;
+   mulle_atomic_pointer_t     _retaincount_1;  // negative means finalized
+   struct _mulle_objc_class   *_isa;
 };
 
 

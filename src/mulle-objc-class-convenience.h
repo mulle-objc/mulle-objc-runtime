@@ -246,7 +246,7 @@ static inline void
 #if DEBUG
    _mulle_atomic_pointer_decrement( &infra->allocatedInstances);
    // malloc scribble will kill it though
-   memset( obj, 0xad, _mulle_objc_class_get_instancesize( header->_isa));
+   mulle_memset_uint32( obj, 0xdeaddead, _mulle_objc_class_get_instancesize( header->_isa));
 
    header->_isa = (void *) (intptr_t) 0xDEADDEADDEADDEAD;
    _mulle_atomic_pointer_write_nonatomic( &header->_retaincount_1, 0x0); // sic

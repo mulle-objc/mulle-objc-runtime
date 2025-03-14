@@ -48,93 +48,36 @@ static mulle_objc_walkcommand_t  preload( struct _mulle_objc_method *method,
                                           struct _mulle_objc_cache *cache)
 {
    struct _mulle_objc_cacheentry   *entry;
+   struct _mulle_objc_universe     *universe;
 
    assert( cache);
+   assert( cls);
 
-
-   if( _mulle_objc_descriptor_is_preload_method( &method->descriptor))
+   universe = _mulle_objc_class_get_universe( cls);
+   if( _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
    {
-      // only preload to 50% capacity
-      if( _mulle_objc_cache_get_count( cache) >= _mulle_objc_cache_get_size( cache) / 2.0)
+      // make sure we don't preload and leave no zero
+      if( _mulle_objc_cache_get_count( cache) + 1 >= _mulle_objc_cache_get_size( cache))
          return( mulle_objc_walk_cancel);
 
       entry = _mulle_objc_cache_add_pointer_inactive( cache,
                                                       _mulle_objc_method_get_implementation( method),
                                                       method->descriptor.methodid);
+      if( universe->debug.trace.preload)
+      {
+         mulle_objc_universe_trace( universe,
+                                    "preloaded method %c%s",
+                                    _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
+                                    _mulle_objc_method_get_name( method));
+      }
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-      entry->cls = cls;
+      if( ! entry->cls)
+         entry->cls = cls;
 #endif
       MULLE_C_UNUSED( entry);  // use
    }
 
    return( mulle_objc_walk_ok);
-}
-
-
-static void
-   _mulle_objc_class_fill_inactive_cache_with_preload_methods( struct _mulle_objc_class *cls,
-                                                               struct _mulle_objc_cache *cache)
-{
-   unsigned int   inheritance;
-
-   inheritance = _mulle_objc_class_get_inheritance( cls);
-   _mulle_objc_class_walk_methods( cls,
-                                   inheritance,
-                                   (mulle_objc_method_walkcallback_t) preload,
-                                   cache);
-}
-
-
-static void
-   _mulle_objc_class_fill_inactive_cache_with_preload_methodids( struct _mulle_objc_class *cls,
-                                                                 struct _mulle_objc_cache *cache,
-                                                                 mulle_objc_methodid_t *methodids,
-                                                                 unsigned int n)
-{
-   mulle_objc_methodid_t        *p;
-   mulle_objc_methodid_t        *sentinel;
-   struct _mulle_objc_method    *method;
-   mulle_objc_implementation_t  imp;
-   unsigned int                 size;
-   unsigned int                 available;
-
-   // figure out how many we can preload into cache (not more than 50%)
-   // a bit clumsy but we don't need to dick around with signed here
-   size      = _mulle_objc_cache_get_size( cache);
-   available = size - _mulle_objc_cache_get_count( cache);
-   if( available <= size / 2)
-      return;
-
-   available = size / 2 - _mulle_objc_cache_get_count( cache);
-   if( n > available)
-      n = available;
-
-   p        = methodids;
-   sentinel = &p[ n];
-   while( p < sentinel)
-   {
-      method = mulle_objc_class_defaultsearch_method( cls, *p);
-      if( method)
-      {
-         imp = _mulle_objc_method_get_implementation( method);
-         _mulle_objc_cache_add_pointer_inactive( cache, imp, *p);
-      }
-      p++;
-   }
-}
-
-
-static inline void
-   _mulle_objc_class_preload_inactive_cache_with_universe_methodids( struct _mulle_objc_class *cls,
-                                                                     struct _mulle_objc_cache *cache)
-{
-   struct _mulle_objc_universe   *universe;
-
-   universe = cls->universe;
-   _mulle_objc_class_fill_inactive_cache_with_preload_methodids( cls,
-                                                                 cache,
-                                                                 universe->methodidstopreload.methodids,
-                                                                 universe->methodidstopreload.n);
 }
 
 
@@ -156,6 +99,7 @@ static struct _mulle_objc_cacheentry   *
    mulle_objc_methodid_t                  copyid;
    struct _mulle_objc_cacheentry          *p;
    struct _mulle_objc_cacheentry          *sentinel;
+   unsigned int                           inheritance;
 
    universe  = _mulle_objc_class_get_universe( cls);
 
@@ -163,10 +107,23 @@ static struct _mulle_objc_cacheentry   *
    // now for good measure. It is known that the cache is large enough
    // to hold the preload methods and one additional functionpointer.
    // Why ?
-   if( _mulle_objc_class_count_preloadmethods( cls))
-      _mulle_objc_class_fill_inactive_cache_with_preload_methods( cls, &icache->cache);
-   if( _mulle_objc_universe_get_numberofpreloadmethods( universe))
-      _mulle_objc_class_preload_inactive_cache_with_universe_methodids( cls, &icache->cache);
+   if( _mulle_objc_class_count_preloadmethods( cls) || _mulle_objc_universe_get_numberofpreloadmethods( universe))
+   {
+      if( universe->debug.trace.preload)
+      {
+         mulle_objc_universe_trace( universe,
+                                    "preloading %sclass %s cache %p with preload flagged methods:",
+                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
+                                    _mulle_objc_class_get_name( cls),
+                                    &icache->cache);
+      }
+
+      inheritance = _mulle_objc_class_get_inheritance( cls);
+      _mulle_objc_class_walk_methods( cls,
+                                      inheritance,
+                                      (mulle_objc_method_walkcallback_t) preload,
+                                      &icache->cache);
+   }
 
    //
    // if someone passes in a NULL for method, empty_entry is a marker
@@ -182,7 +139,8 @@ static struct _mulle_objc_cacheentry   *
                                                               (mulle_functionpointer_t) imp,
                                                               uniqueid);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-      entry->cls = cls;
+      if( ! entry->cls)
+         entry->cls = cls;
 #endif
    }
 
@@ -397,7 +355,7 @@ void
    imp   = _mulle_objc_method_get_implementation( method);
    entry = _mulle_objc_class_fill_impcachepivot_imp( cls, imp, uniqueid);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   if( entry)
+   if( entry && ! entry->cls)
       entry->cls = cls;
 #else
    MULLE_C_UNUSED( entry);

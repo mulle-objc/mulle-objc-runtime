@@ -306,6 +306,7 @@ static inline struct _mulle_objc_method  *
 
 
 // use it like this, for finding something by name (though this will be slow)
+// in generaly you will be better off with mulle-objc-class-search.c
 //
 // static int  find( struct _mulle_objc_method *method,
 //                   struct _mulle_objc_class *cls,

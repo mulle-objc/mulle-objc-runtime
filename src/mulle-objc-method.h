@@ -47,6 +47,12 @@
 
 
 // tough decision, but I type self as void
+// So in C a function pointer can be > sizeof( void *), therefore one shold
+// avoid putting this into a mulle_pointerarray for example but use a
+// mulle_structarray. Of course this is only for the purest of thoughts. As
+// soon as you are using `dlsym` you are resigned to the fact, that a function
+// pointer must fit into void pointer.
+//
 typedef void   *(*mulle_objc_implementation_t)( void *,
                                                 mulle_objc_methodid_t,
                                                 void *);

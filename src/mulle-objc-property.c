@@ -73,9 +73,9 @@ struct _mulle_objc_property   *_mulle_objc_property_bsearch( struct _mulle_objc_
                                                              unsigned int n,
                                                              mulle_objc_propertyid_t search)
 {
-   int        first;
-   int        last;
-   int        middle;
+   int                           first;
+   int                           last;
+   int                           middle;
    struct _mulle_objc_property   *p;
 
    assert( mulle_objc_uniqueid_is_sane( search));

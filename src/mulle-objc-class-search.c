@@ -94,7 +94,6 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
                                   unsigned int inheritance)
 {
    struct _mulle_objc_universe   *universe;
-   char                          buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
    char                          *name;
    mulle_objc_implementation_t   imp;
    char                          *sep;
@@ -126,11 +125,11 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
       switch( search->args.mode)
       {
       case search_previous_method   :
-         imp =  _mulle_objc_method_get_implementation( search->previous_method);
-         mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) imp);
-         mulle_buffer_sprintf( buffer, " (previous method=%p (IMP=%p))",
-                 search->previous_method,
-                 buf);
+         imp = _mulle_objc_method_get_implementation( search->previous_method);
+         mulle_buffer_sprintf( buffer, " (previous method=%p (IMP=",
+                                       search->previous_method);
+         mulle_buffer_sprintf_functionpointer( buffer, (mulle_functionpointer_t) imp);
+         mulle_buffer_add_string( buffer, "))");
          break;
 
       case search_specific_method :
@@ -151,7 +150,7 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
          break;
       }
 
-      mulle_buffer_sprintf( buffer, " in (");
+      mulle_buffer_sprintf( buffer, " in inherit(");
 
       sep = "";
       if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES))
@@ -196,18 +195,21 @@ static void   trace_method_done( struct _mulle_objc_class *cls,
                                  struct _mulle_objc_method *method)
 {
    struct _mulle_objc_universe   *universe;
-   char                          buf[ s_mulle_objc_sprintf_functionpointer_buffer + 32];
+   char                          *s;
 
    universe = _mulle_objc_class_get_universe( cls);
-   if( search->args.mode == search_imp)
+   if( search->args.mode != search_imp)
    {
-      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) method);
-      mulle_objc_universe_trace( universe, "found method %p", buf);
+      mulle_objc_universe_trace( universe, "found method %p", method);
+      return;
    }
-   else
+
+   mulle_buffer_do( buffer)
    {
-      mulle_objc_sprintf_functionpointer( buf, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
-      mulle_objc_universe_trace( universe, "found method IMP %s", buf);
+      mulle_buffer_add_string( buffer, "found method IMP ");
+      mulle_buffer_sprintf_functionpointer( buffer, (mulle_functionpointer_t) _mulle_objc_method_get_implementation( method));
+      s = mulle_buffer_get_string( buffer);
+      mulle_objc_universe_trace( universe, "%s", s);
    }
 }
 
@@ -318,12 +320,24 @@ static struct _mulle_objc_method  *
    struct _mulle_objc_method                           *found;
    struct _mulle_objc_method                           *method;
    int                                                 is_meta;
+   int                                                 is_proto;
 
    found        = MULLE_OBJC_METHOD_SEARCH_FAIL;
    pair         = _mulle_objc_class_get_classpair( cls);
    infra        = _mulle_objc_classpair_get_infraclass( pair);
-   is_meta      = _mulle_objc_class_is_metaclass( cls);
-   inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+
+   // TODO: if we is a protocolclass ourselves, and we inherited protocols
+   //       we don't search them. Gotta figure out if the compiler should
+   //       set proper inheritance though ?
+   is_proto = _mulle_objc_class_is_protocolclass( _mulle_objc_infraclass_as_class( infra));
+   if( is_proto)
+      return( found);
+
+   inheritance   |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS
+                    | MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE
+//                    | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META
+                    | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
+   is_meta        = _mulle_objc_class_is_metaclass( cls);
 
    rover          = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
    next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
@@ -370,7 +384,7 @@ static struct _mulle_objc_method  *
             break;
 
          case mulle_objc_walk_dont_descend :
-            inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
+            // inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS;
             continue;
 
          case mulle_objc_walk_cancel :
@@ -659,7 +673,7 @@ next_class:
    //  @protocolclass Y     -y {}; +y{};
    //
    // Invariably at this point we have searched the protocols < X, Y>.
-   // now the is a divergence depending on:
+   // now there is a divergence depending on:
    //
    //
    // |    cls       | supercls    | action
@@ -669,7 +683,7 @@ next_class:
    // | B infra      | A infra     | search A infra
    // | B meta       | A meta      | search A meta
    // | C infra      | null        | stop
-   // | C meta       | C infra     | search Y,X,C infra
+   // | C meta       | C infra     | search (metas) Y,X,C infra
    // | D infra      | C infra     | search C infra
    // | D meta       | C meta      | search D meta
    //
@@ -677,46 +691,19 @@ next_class:
    if( ! supercls)
       return( found);
 
-   if( _mulle_objc_class_is_metaclass( cls) && _mulle_objc_class_is_infraclass( supercls))
-   {
-      if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META))
-      {
-         tmp = 0;
-         if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
-            tmp |= MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES;
-
-         //
-         // A protocol could well have a category of the same name and it would
-         // match, which would be unexpected or would it ? Probably not.
-         // Generally: MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES is not
-         // enabled, so it is a non-issue.
-         //
-         method = _mulle_objc_class_protocol_search_method( cls,
-                                                            search,
-                                                            tmp,
-                                                            result,
-                                                            mode);
-         if( method != MULLE_OBJC_METHOD_SEARCH_FAIL)
-         {
-            if( ! method)
-               return( NULL);
-
-            if( found != MULLE_OBJC_METHOD_SEARCH_FAIL)
-            {
-               result->error = EEXIST;
-               return( NULL);
-            }
-
-            if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
-               return( method);
-
-            found = method;
-         }
-      }
-   }
-
    if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
    {
+      if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META
+          && _mulle_objc_class_is_metaclass( cls)
+          && _mulle_objc_class_is_infraclass( supercls))
+      {
+         if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE))
+            inheritance = supercls->inheritance
+                          | MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE;
+         inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
+                        | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
+      }
+
       method = _mulle_objc_class_search_method_super( supercls,
                                                       search,
                                                       inheritance,

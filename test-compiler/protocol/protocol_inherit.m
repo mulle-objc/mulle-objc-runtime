@@ -33,4 +33,5 @@ int   main( void)
    printf( "B: %s\n",
        _mulle_objc_infraclass_conformsto_protocolid( cls,
                                               @protocol( B)) ? "YES" : "NO");
+   return( 0);
 }

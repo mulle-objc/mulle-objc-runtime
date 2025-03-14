@@ -36,4 +36,5 @@ int   main( void)
 
    foo = [Foo new];
    printf( "%s\n", [foo respondsToSelector:@selector( baz)] ? "FAIL" : "PASS");
+   return( 0);
 }

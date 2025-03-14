@@ -140,6 +140,7 @@ static inline void   _mulle_objc_impcache_init( struct _mulle_objc_impcache *ica
 
 
 // these functions don't return errno, though they allocate
+// size gotta be a power of 2
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_impcache   *mulle_objc_impcache_new( mulle_objc_cache_uint_t size,
                                                         struct _mulle_objc_impcache_callback *callback,
