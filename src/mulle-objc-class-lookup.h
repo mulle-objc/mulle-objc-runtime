@@ -140,6 +140,13 @@ mulle_objc_implementation_t
    _mulle_objc_class_lookup_implementation_noforward( struct _mulle_objc_class *cls,
                                                       mulle_objc_methodid_t methodid);
 
+static inline mulle_objc_implementation_t
+   mulle_objc_class_lookup_implementation_noforward( struct _mulle_objc_class *cls,
+                                                     mulle_objc_methodid_t methodid)
+{
+   return( cls ? _mulle_objc_class_lookup_implementation_noforward( cls, methodid) : 0);
+}
+
 // this will not update the cache
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_implementation_t
