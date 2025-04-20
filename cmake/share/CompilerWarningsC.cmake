@@ -10,7 +10,7 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
    endif()
 
    if( NOT DEFINED UNWANTED_WARNINGS)
-      option( UNWANTED_WARNINGS "Turn off some unwanted compiler warnings" ON)
+      option( UNWANTED_WARNINGS "Squelch some unwanted compiler warnings" ON)
    endif()
 
    if( UNWANTED_WARNINGS)
@@ -36,7 +36,7 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
    endif()
 
    if( NOT DEFINED WANTED_WARNINGS)
-      option( WANTED_WARNINGS "Turn off some desirable compiler warnings" ON)
+      option( WANTED_WARNINGS "Enable some desirable compiler warnings" ON)
    endif()
 
    if( WANTED_WARNINGS)

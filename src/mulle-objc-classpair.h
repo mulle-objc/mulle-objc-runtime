@@ -116,8 +116,7 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_classpair_call_class_finalize( struct _mulle_objc_classpair *pair);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
-                                  struct mulle_allocator *allocator);
+void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair);
 
 
 static inline size_t   mulle_objc_classpair_size( size_t extrasize)

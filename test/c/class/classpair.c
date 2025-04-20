@@ -68,6 +68,9 @@ int   main( int argc, const char * argv[])
    if( infra != _mulle_objc_metaclass_get_infraclass( meta))
       return( 1);
 
+   // MEMO: we never registred the classpair, so we gotta remove it ourselves
+   mulle_objc_classpair_free( pair);
+   _mulle_objc_universe_release( universe);
    return 0;
 }
 
