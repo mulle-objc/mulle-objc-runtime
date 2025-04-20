@@ -66,20 +66,16 @@ case "${MULLE_SHELL_MODE}" in
       #
       # source in any bash completion files
       #
-      DEFAULT_IFS="${IFS}"
-      IFS=$'\n'
       # memo: nullglob not easily done on both bash and zsh
-      for FILENAME in "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/libexec"/*-bash-completion.sh
+      for filename in "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/libexec"/*-bash-completion.sh
       do
-         if [ -f "${FILENAME}" ]
+         if [ -f "${filename}" ]
          then
-            . "${FILENAME}"
+            . "${filename}"
          fi
       done
-      IFS="${DEFAULT_IFS}"
 
-      unset DEFAULT_IFS
-      unset FILENAME
+      unset filename
 
       vardir="${MULLE_VIRTUAL_ROOT}/.mulle/var/${MULLE_HOSTNAME:-unknown-host}"
       [ -d "${vardir}" ] || PATH=/bin:/usr/bin mkdir -p "${vardir}"

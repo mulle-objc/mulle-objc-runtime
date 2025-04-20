@@ -184,6 +184,14 @@ if( NOT __ENVIRONMENT__CMAKE__)
       # the order seems reversed
       #
 
+      # Get the target triplet
+      # On Unix, we add this to the search path on linux, for addictions that
+      # install debian style. For dependencies that misbehave, use dispensing,
+      # to copy the file to the right place: mulle-sde dep mark <x> no-inplace
+      #
+      set( MULLE_TARGET_TRIPLE "${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}")
+      string( TOLOWER "${MULLE_TARGET_TRIPLE}" TARGET_TRIPLET_LOWER)
+
       #
       # add build type unconditionally if not Release, these directories
       # might every well "pop up" during the cmake build, so don't go
@@ -198,6 +206,9 @@ if( NOT __ENVIRONMENT__CMAKE__)
          mulle_append_unique_existing_path( TMP_CMAKE_INCLUDE_PATH "${TMP_MULLE_SDK_PATH}/include")
          mulle_append_unique_existing_path( TMP_INCLUDE_DIRS "${TMP_MULLE_SDK_PATH}/include")
          mulle_append_unique_existing_path( TMP_CMAKE_LIBRARY_PATH "${TMP_MULLE_SDK_PATH}/lib")
+         if( UNIX)
+            mulle_append_unique_existing_path( TMP_CMAKE_LIBRARY_PATH "${TMP_MULLE_SDK_PATH}/lib/${MULLE_TARGET_TRIPLE}")
+         endif()
          mulle_append_unique_existing_path( TMP_CMAKE_FRAMEWORK_PATH "${TMP_MULLE_SDK_PATH}/Frameworks")
       endif()
 
@@ -244,6 +255,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # given from outside
    message( STATUS "CMAKE_PREFIX_PATH=\"${CMAKE_PREFIX_PATH}\"" )
    message( STATUS "CMAKE_INSTALL_PREFIX=\"${CMAKE_INSTALL_PREFIX}\"" )
+   message( STATUS "MULLE_TARGET_TRIPLE=\"${MULLE_TARGET_TRIPLE}\"" )
    # message( STATUS "TMP_INCLUDE_DIRS=\"${TMP_INCLUDE_DIRS}\"" )
 
    # not sure why cmake doesn't do this itself, we only add the custom

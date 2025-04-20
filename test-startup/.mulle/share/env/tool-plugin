@@ -38,6 +38,7 @@ ln;required
 login
 ls;required
 make
+meson
 mkdir;required
 mknod
 more

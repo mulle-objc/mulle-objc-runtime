@@ -298,14 +298,11 @@ MULLE_C_ALWAYS_INLINE static inline void
    _mulle_objc_object_set_thread( struct _mulle_objc_object *obj, mulle_thread_t thread)
 {
 #ifdef __MULLE_OBJC_TAO__
-   unsigned int                      index;
    struct _mulle_objc_objectheader   *header;
    struct _mulle_objc_universe       *universe;
 
-   // TPS are not thread affine always
-   index = mulle_objc_object_get_taggedpointerindex( obj);
-   if( index)
-      return;
+   // TPS are not thread affine always, so assert this out
+   assert( ! mulle_objc_object_get_taggedpointerindex( obj));
 
    header   = _mulle_objc_object_get_objectheader( obj);
    universe = _mulle_objc_object_get_universe( obj);

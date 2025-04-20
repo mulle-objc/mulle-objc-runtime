@@ -103,9 +103,6 @@ static void   test_super( id obj,
    struct _mulle_objc_method             *method;
    mulle_objc_implementation_t           imp;
 
-//   memset( &args, 0xFF, sizeof( args));
-//   memset( &before, 0xFF, sizeof( before));
-
    args   = mulle_objc_searcharguments_make_super( methodsel, classsel);
    before = args;
 
@@ -113,7 +110,9 @@ static void   test_super( id obj,
    imp    = _mulle_objc_method_get_implementation( method);
    mulle_objc_implementation_invoke( imp, obj, methodsel, obj);
 
+#ifndef MULLE_TEST_VALGRIND
    assert( ! memcmp( &args, &before, sizeof( args)));
+#endif
 
    method = mulle_objc_class_search_method( &metaclass->base, &args, metaclass->base.inheritance, NULL);
    imp    = _mulle_objc_method_get_implementation( method);

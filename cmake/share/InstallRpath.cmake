@@ -27,10 +27,8 @@ if( MULLE_NO_CMAKE_INSTALL_RPATH)
    set( CMAKE_SKIP_BUILD_RPATH ON)
 else()
    if( APPLE)
-      if( CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
-         # Modern CMake handles lib path automatically
-         set(CMAKE_INSTALL_RPATH "@loader_path/../Frameworks/")
-      else()
+      # Modern CMake handles lib path automatically
+      if( CMAKE_VERSION VERSION_LESS 3.20)
          set(CMAKE_INSTALL_RPATH
             "@loader_path/../lib/"
             "@loader_path/../Frameworks/"

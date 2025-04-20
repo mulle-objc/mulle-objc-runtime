@@ -255,20 +255,16 @@ void   _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
 }
 
 
-void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,
-                                  struct mulle_allocator *allocator)
+void   mulle_objc_classpair_free( struct _mulle_objc_classpair *pair)
 {
    struct _mulle_objc_universe   *universe;
+   struct mulle_allocator        *allocator;
 
    if( ! pair)
       return;
 
-   if( ! allocator)
-   {
-      universe = _mulle_objc_classpair_get_universe( pair);
-      errno    = EINVAL;
-      mulle_objc_universe_fail_errno( universe);
-   }
+   universe  = _mulle_objc_classpair_get_universe( pair);
+   allocator = _mulle_objc_universe_get_allocator( universe);
 
    _mulle_objc_classpair_free( pair, allocator);
 }

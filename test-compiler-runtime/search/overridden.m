@@ -103,11 +103,6 @@ static void   test_overridden( id obj,
    struct _mulle_objc_method             *method;
    mulle_objc_implementation_t           imp;
 
-   // not sure why valgrind complains otherwise ?
-   // _mulle_objc_searcharguments_init_overridden inits all values...
-   memset( &args, 0xFF, sizeof( args));
-   memset( &before, 0xFF, sizeof( before));
-
    args   = mulle_objc_searcharguments_make_overridden( methodsel, classsel, categorysel);
    before = args;
    method = mulle_objc_class_search_method( &infraclass->base, &args, infraclass->base.inheritance, NULL);
@@ -117,7 +112,9 @@ static void   test_overridden( id obj,
    imp = _mulle_objc_method_get_implementation( method);
    mulle_objc_implementation_invoke( imp, obj, methodsel, obj);
 
+#ifndef MULLE_TEST_VALGRIND
    assert( ! memcmp( &args, &before, sizeof( args)));
+#endif
 
    method = mulle_objc_class_search_method( &metaclass->base, &args, metaclass->base.inheritance, NULL);
    if( ! method)
