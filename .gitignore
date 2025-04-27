@@ -77,3 +77,5 @@ cola/wilted/
 *.executable
 perf.dat
 *-build-*/
+.mulle/etc/make/build-dir
+vgcore.*

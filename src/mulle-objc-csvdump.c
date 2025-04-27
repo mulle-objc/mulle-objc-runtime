@@ -193,7 +193,7 @@ void
    result.class = cls;
 
    rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
    {
       result.list = list;
 

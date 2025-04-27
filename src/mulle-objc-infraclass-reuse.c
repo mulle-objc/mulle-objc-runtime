@@ -77,7 +77,7 @@ void   _mulle_objc_infraclass_free_reuseallocs( struct _mulle_objc_infraclass *i
    struct _mulle_concurrent_linkedlistentry  *next, *entry;
 
    next = _mulle_concurrent_linkedlist_remove_all( &infra->reuseallocs);
-   while( entry = next)
+   while( (entry = next))
    {
       next = entry->_next;
       mulle_allocator_free( infra->allocator, entry);

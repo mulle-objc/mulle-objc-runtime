@@ -1272,10 +1272,13 @@ static inline void
 #pragma mark - getenv
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int  mulle_objc_environment_get_yes_no_default( char *name, int default_value);
+int   mulle_objc_environment_get_yes_no_default( char *name, int default_value);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int  mulle_objc_environment_get_yes_no( char *name);
+int   mulle_objc_environment_get_yes_no( char *name);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+int   mulle_objc_environment_get_int( char *name, int min, int max, int default_value);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_universe_maybe_hang_or_abort( struct _mulle_objc_universe *universe);

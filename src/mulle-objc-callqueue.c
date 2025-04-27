@@ -120,7 +120,7 @@ void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *queue)
    struct _queue_entry                              *entry;
 
    rover = mulle_concurrent_pointerarray_enumerate( &queue->list);
-   while( entry = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   while( (entry = _mulle_concurrent_pointerarrayenumerator_next( &rover)))
       queue_entry_execute( entry);
    mulle_concurrent_pointerarrayenumerator_done( &rover);
 }
@@ -138,7 +138,7 @@ void
    struct _queue_entry                              *entry;
 
    rover = mulle_concurrent_pointerarray_enumerate( &queue->list);
-   while( entry = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   while( (entry = _mulle_concurrent_pointerarrayenumerator_next( &rover)))
    {
       (*callback)( entry->obj,
                    entry->uniqueid,
@@ -155,7 +155,7 @@ void   mulle_objc_callqueue_done( struct _mulle_objc_callqueue *queue)
    struct _queue_entry                              *entry;
 
    rover = mulle_concurrent_pointerarray_enumerate( &queue->list);
-   while( entry = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+   while( (entry = _mulle_concurrent_pointerarrayenumerator_next( &rover)))
       _mulle_allocator_abafree( queue->list.allocator, entry);
    mulle_concurrent_pointerarrayenumerator_done( &rover);
 

@@ -57,6 +57,18 @@ if( LINK_PHASE)
 endif()
 
 
+if( APPLE)
+   # Modern CMake handles lib path automatically
+   set( CMAKE_SKIP_RPATH FALSE)
+   if( CMAKE_VERSION VERSION_LESS 3.20)
+      set(CMAKE_BUILD_RPATH
+         "@loader_path/../lib/"
+         "@loader_path/../Frameworks/"
+      )
+   endif()
+endif()
+
+
 set( EXECUTABLE_NAME mulle-objc-uniqueid)
 
 # only need the hash function (done like this if runtime is built as shared)

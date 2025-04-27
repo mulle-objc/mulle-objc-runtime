@@ -60,7 +60,8 @@ mulle_objc_walkcommand_t
 
    while( p < sentinel)
    {
-      if( rval = (*f)( p, infra, userinfo))
+      rval = (*f)( p, infra, userinfo);
+      if( rval)
          return( rval);
       ++p;
    }

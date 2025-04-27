@@ -904,7 +904,7 @@ unsigned int   mulle_objc_signature_count_typeinfos( char *types)
    unsigned int   n;
 
    n = 0;
-   while( types = mulle_objc_signature_next_type( types))
+   while( (types = mulle_objc_signature_next_type( types)))
       ++n;
 
    return( n);

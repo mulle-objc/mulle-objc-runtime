@@ -27,7 +27,9 @@ if( MULLE_NO_CMAKE_INSTALL_RPATH)
    set( CMAKE_SKIP_BUILD_RPATH ON)
 else()
    if( APPLE)
-      # Modern CMake handles lib path automatically
+      # Modern CMake handles lib path automatically (at least for libraries
+      # it seems, for executable apparently not and there it is handled
+      # with a separate target property install)
       if( CMAKE_VERSION VERSION_LESS 3.20)
          set(CMAKE_INSTALL_RPATH
             "@loader_path/../lib/"

@@ -465,7 +465,7 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
 
 
    infra = _mulle_objc_classpair_get_infraclass( pair);
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
    {
       if( universe->debug.warn.protocolclass)
          if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
@@ -611,10 +611,10 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
       if( _mulle_objc_classpair_has_protocolclass( pair, proto_infra))
          continue;
 
-      if( _mulle_objc_infraclass_set_state_bit( proto_infra, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS))
+      if( _mulle_objc_infraclass_set_state_bit( proto_infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
       {
          proto_meta = _mulle_objc_infraclass_get_metaclass( proto_infra);
-         _mulle_objc_metaclass_set_state_bit( proto_meta, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS);
+         _mulle_objc_metaclass_set_state_bit( proto_meta, MULLE_OBJC_METACLASS_IS_PROTOCOLCLASS);
 
 /*
  * MEMO: the problem with this code is that its not atomic, so this could have
