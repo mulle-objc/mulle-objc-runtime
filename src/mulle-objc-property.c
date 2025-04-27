@@ -48,7 +48,7 @@ char   *_mulle_objc_property_signature_find_type( struct _mulle_objc_property *p
    int    c;
 
    s = _mulle_objc_property_get_signature( property);
-   while( c = *s++)
+   while( (c = *s++))
    {
       if( c == ',' && *s == type)
          return( s);
@@ -62,7 +62,7 @@ char   *_mulle_objc_propertysignature_next_types( char *s, char *types)
 {
    int    c;
 
-   while( c = *s++)
+   while( (c = *s++))
       if( c == ',' && strchr( types, *s))
          return( s);
    return( NULL);

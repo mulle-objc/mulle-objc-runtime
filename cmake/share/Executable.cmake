@@ -85,6 +85,17 @@ if( LINK_PHASE)
 #         DEFINE_SYMBOL "${EXECUTABLE_UPCASE_IDENTIFIER}_SHARED_BUILD"
    )
 
+   #
+   # not __really__ sure why this seems to be need now (cmake >= 4)
+   # used to work fine without
+   #
+   if( APPLE)
+      set_target_properties("${EXECUTABLE_NAME}" PROPERTIES
+          INSTALL_RPATH "@loader_path/../lib/;@loader_path/../Frameworks/"
+          BUILD_RPATH "@loader_path/../lib/;@loader_path/../Frameworks/"
+      )
+   endif()
+
    target_compile_definitions( "${EXECUTABLE_NAME}" PRIVATE "${EXECUTABLE_UPCASE_IDENTIFIER}_BUILD")
 
    #

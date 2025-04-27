@@ -503,7 +503,7 @@ static struct _mulle_objc_method   *
 
    i     = 0;
    rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
    {
       if( (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CLASS) && ++i == n)
          break;

@@ -142,7 +142,7 @@ struct _mulle_objc_property   *_mulle_objc_infraclass_search_property( struct _m
    n     = mulle_concurrent_pointerarray_get_count( &infra->propertylists);
    rover = mulle_concurrent_pointerarray_reverseenumerate( &infra->propertylists, n);
 
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
    {
       property = _mulle_objc_propertylist_search_smart( list, propertyid);
       if( property)
@@ -185,7 +185,7 @@ struct _mulle_objc_property   *
    n     = mulle_concurrent_pointerarray_get_count( &infra->propertylists);
    rover = mulle_concurrent_pointerarray_reverseenumerate( &infra->propertylists, n);
 
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
    {
       property = _mulle_objc_propertylist_find_for_methodid( list, methodid);
       if( property)
@@ -415,7 +415,7 @@ static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infracl
    last      = MULLE_OBJC_MIN_UNIQUEID - 1;
    rover     = _mulle_objc_propertylist_enumerate( list);
    bit_isset = 0;
-   while( property = _mulle_objc_propertylistenumerator_next( &rover))
+   while( (property = _mulle_objc_propertylistenumerator_next( &rover)))
    {
       assert( mulle_objc_uniqueid_is_sane( property->propertyid));
 
@@ -601,7 +601,7 @@ struct _mulle_objc_ivar   *_mulle_objc_infraclass_search_ivar( struct _mulle_obj
    n     = mulle_concurrent_pointerarray_get_count( &infra->ivarlists);
    rover = mulle_concurrent_pointerarray_reverseenumerate( &infra->ivarlists, n);
 
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
    {
       ivar = _mulle_objc_ivarlist_search_smart( list, ivarid);
       if( ivar)
@@ -656,9 +656,10 @@ mulle_objc_walkcommand_t
 
    rover = mulle_concurrent_pointerarray_reverseenumerate( &infra->ivarlists, n);
 
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
    {
-      if( rval = _mulle_objc_ivarlist_walk( list, f, infra, userinfo))
+      rval = _mulle_objc_ivarlist_walk( list, f, infra, userinfo);
+      if( rval)
       {
          if( rval < mulle_objc_walk_ok)
             errno = ENOENT;
@@ -703,7 +704,7 @@ loop:
       n = 1;
 
    rover = mulle_concurrent_pointerarray_reverseenumerate( &infra->propertylists, n);
-   while( list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover))
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
    {
       if( (rval = _mulle_objc_propertylist_walk( list, f, infra, userinfo)))
          return( rval);

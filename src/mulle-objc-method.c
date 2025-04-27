@@ -156,7 +156,7 @@ unsigned int   mulle_objc_count_selector_arguments( char *s)
       return( (unsigned int) -1);
 
    n = 0;
-   while( c = *s++)
+   while( (c = *s++))
       if( c == ':')
          ++n;
    return( n);
