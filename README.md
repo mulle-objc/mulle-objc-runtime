@@ -7,6 +7,20 @@ It follows the Apple "Objective-C 1 Runtime" and [adds many features](//www.mull
 from "Objective-C 2.0", but the runtime function calls are completely different.
 It is designed to be suitable for massive multi-threading.
 
+The runtime builds at least on the following platform/compiler combinations:
+
+| OS       | Compiler   | Flags
+|----------|------------|--------
+| Ubuntu   | GCC        | &nbsp;
+| Ubuntu   | GCC        | -O3
+| Ubuntu   | Clang      | &nbsp;
+| Ubuntu   | Clang      | Debug
+| Windows  | MSVC Win32 | &nbsp;
+| Windows  | MSVC Win64 | &nbsp;
+| Windows  | GCC        | &nbsp;
+| macOS    | Clang      | &nbsp;
+| macOS    | GCC        | &nbsp;
+
 
 
 | Release Version                                       | Release Notes  | AI Documentation
@@ -131,8 +145,8 @@ As long as your sources are using `#include "include-private.h"` and your header
 mulle-sde add github:mulle-objc/mulle-objc-runtime
 ```
 
-To only add the sources of mulle-objc-runtime with dependency
-sources use [clib](https://github.com/clibs/clib):
+To only add the sources of mulle-objc-runtime with all the sources of its
+dependencies replace "github:" with [clib:](https://github.com/clibs/clib):
 
 ## Legacy adds
 
@@ -218,15 +232,15 @@ Download the latest [tar](https://github.com/mulle-objc/mulle-objc-runtime/archi
 Install **mulle-objc-runtime** into `/usr/local` with [cmake](https://cmake.org):
 
 ``` sh
-export MULLE_SDK_PATH="/usr/local" # important!
-cmake -B build \
-      -DCMAKE_INSTALL_PREFIX="${MULLE_SDK_PATH}" \
-      -DCMAKE_PREFIX_PATH="${MULLE_SDK_PATH}" \
+PREFIX_DIR="/usr/local"
+cmake -B build                               \
+      -DMULLE_SDK_PATH="${PREFIX_DIR}"       \
+      -DCMAKE_INSTALL_PREFIX="${PREFIX_DIR}" \
+      -DCMAKE_PREFIX_PATH="${PREFIX_DIR}"    \
       -DCMAKE_BUILD_TYPE=Release &&
 cmake --build build --config Release &&
 cmake --install build --config Release
 ```
-
 
 
 ## Author
