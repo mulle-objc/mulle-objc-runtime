@@ -62,8 +62,12 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # and depedency_dir, but nothing else. The configuration/sdk/platform
    # is passed in MULLE_SDK_SUBDIR
    #
+   # On WIN32 we get D:/whatevs, so we don't do the replace
+   #
    if( NOT MULLE_SDK_PATH)
-      string( REPLACE ":" ";" MULLE_SDK_PATH "$ENV{MULLE_SDK_PATH}")
+      if( NOT WIN32)
+         string( REPLACE ":" ";" MULLE_SDK_PATH "$ENV{MULLE_SDK_PATH}")
+      endif()
    endif()
 
    # if no MULLE_SDK_PATH is given, assume its not a mulle-sde build
