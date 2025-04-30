@@ -6,15 +6,11 @@
             "type": "shell",
             "command": "mulle-sde",
             "args": [
-                "craft", "--debug"
+                "-DOTHER_CFLAGS=-Wall -Werror -Wextra -Wno-unknown-pragmas"
+                "craft",
+                "--debug"
             ],
-            "problemMatcher": {
-                "base": "$gcc",
-                "fileLocation": [
-                  "relative",
-                  "${workspaceFolder}/build/Debug"
-                ]
-            },
+            "problemMatcher": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -27,34 +23,34 @@
             "problemMatcher": {
                 "base": "$gcc",
                 "fileLocation": [
-                  "relative",
-                  "${workspaceFolder}/build/Release"
+                    "relative",
+                    "${workspaceFolder}/build/Release"
                 ]
             },
             "args": [
-                "craft",
+                "craft"
             ],
             "group": {
                 "kind": "build"
             }
         },
         {
-           "label": "Update",
-           "type": "shell",
-           "command": "mulle-sde",
-           "args": [
-              "update"
-           ],
-           "problemMatcher": []
+            "label": "Update",
+            "type": "shell",
+            "command": "mulle-sde",
+            "args": [
+                "update"
+            ],
+            "problemMatcher": []
         },
         {
-           "label": "Clean",
-           "type": "shell",
-           "command": "mulle-sde",
-           "args": [
-              "clean"
-           ],
-           "problemMatcher": []
+            "label": "Clean",
+            "type": "shell",
+            "command": "mulle-sde",
+            "args": [
+                "clean"
+            ],
+            "problemMatcher": []
         }
     ]
 }

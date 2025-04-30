@@ -482,6 +482,7 @@ static size_t    call_classExtraSize( struct _mulle_objc_methodlist  *list)
    size_t                        extrasize;
    mulle_objc_implementation_t   imp;
    struct _mulle_objc_method     *method;
+
    extrasize = 0;
    if( list)
    {
@@ -489,7 +490,7 @@ static size_t    call_classExtraSize( struct _mulle_objc_methodlist  *list)
       if( method)
       {
          imp       = _mulle_objc_method_get_implementation( method);
-         extrasize = ((size_t (*)( void *, mulle_objc_uniqueid_t)) imp)( NULL, 0x185d8c27);
+         extrasize = (size_t) (*imp)( NULL, 0x185d8c27, NULL);
       }
    }
    return( extrasize);
@@ -1192,6 +1193,8 @@ int  _mulle_objc_loadhashedstring_compare_r( void *_a, void *_b, void *thunk)
    struct _mulle_objc_loadhashedstring    *b = _b;
    mulle_objc_uniqueid_t                  a_id;
    mulle_objc_uniqueid_t                  b_id;
+
+   MULLE_C_UNUSED( thunk);
 
    a_id = a->uniqueid;
    b_id = b->uniqueid;

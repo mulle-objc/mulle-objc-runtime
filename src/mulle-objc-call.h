@@ -103,8 +103,8 @@ void   mulle_objc_implementation_debug( mulle_objc_implementation_t imp,
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    _mulle_objc_implementation_invoke( mulle_objc_implementation_t imp,
                                       void *self,
                                       mulle_objc_methodid_t sel,
@@ -115,8 +115,8 @@ static inline void  *
 
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_implementation_invoke( mulle_objc_implementation_t imp,
                                      void *self,
                                      mulle_objc_methodid_t sel,
@@ -161,7 +161,7 @@ void   *_mulle_objc_object_call( void *obj,
 //
 // use this for -O -O2
 //
-MULLE_C_ALWAYS_INLINE static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE void  *
    mulle_objc_object_call_inline_minimal( void *obj,
                                           mulle_objc_methodid_t methodid,
                                           void *parameter)
@@ -175,8 +175,8 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 
 #ifdef __MULLE_OBJC_FCS__
 
-MULLE_C_ALWAYS_INLINE
-static inline void   *
+MULLE_C_STATIC_ALWAYS_INLINE
+void   *
    _mulle_objc_fastmethodtable_get_imp( struct _mulle_objc_fastmethodtable *table,
                                         unsigned int index)
 {
@@ -187,8 +187,8 @@ static inline void   *
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void   *
+MULLE_C_STATIC_ALWAYS_INLINE
+void   *
    _mulle_objc_fastmethodtable_invoke( void *obj,
                                        mulle_objc_methodid_t methodid,
                                        void *param,
@@ -208,8 +208,8 @@ static inline void   *
 // use this for -O3. -O3 is the cmake default. But the "full" inline
 // is a bit much for default release IMO
 //
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_inline_partial( void *obj,
                                           mulle_objc_methodid_t methodid,
                                           void *parameter)
@@ -253,8 +253,8 @@ static inline void  *
 // use this for -fobjc-inline-method-calls=0 == none
 //
 //
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    _mulle_objc_object_call_inline( void *obj,
                                    mulle_objc_methodid_t methodid,
                                    void *parameter)
@@ -308,8 +308,8 @@ static inline void  *
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_inline( void *obj,
                                   mulle_objc_methodid_t methodid,
                                   void *parameter)
@@ -321,8 +321,8 @@ static inline void  *
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    _mulle_objc_object_get_imp_inline_full_no_fcs( void *obj,
                                                   mulle_objc_methodid_t methodid)
 {
@@ -379,8 +379,8 @@ static inline void  *
 // code to the inlined function, you might or might not deep acceptable. So
 // if we miss the cache, we got to call_cache_miss.
 //
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    _mulle_objc_object_call_inline_full( void *obj,
                                         mulle_objc_methodid_t methodid,
                                         void *parameter)
@@ -443,8 +443,8 @@ static inline void  *
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_inline_full( void *obj,
                                        mulle_objc_methodid_t methodid,
                                        void *parameter)
@@ -461,7 +461,7 @@ static inline void  *
 // do or attempt FCS, which would be too slow if the selector is not a
 // constant.
 //
-MULLE_C_ALWAYS_INLINE static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE void  *
    mulle_objc_object_call_variable_inline( void *obj,
                                            mulle_objc_methodid_t methodid,
                                            void *parameter)
@@ -508,7 +508,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // do or attempt FCS, which would be too slow if the selector is not a
 // constant.
 //
-MULLE_C_ALWAYS_INLINE static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE void  *
    mulle_objc_object_call_inline_full_variable( void *obj,
                                                 mulle_objc_methodid_t methodid,
                                                 void *parameter)
@@ -561,7 +561,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 // this is just an alias for mulle_objc_object_call, there is no difference
 // in code/semantics
 //
-MULLE_C_ALWAYS_INLINE static inline
+MULLE_C_STATIC_ALWAYS_INLINE
 void   *mulle_objc_object_call_variable( void *obj,
                                          mulle_objc_methodid_t methodid,
                                          void *parameter)
@@ -582,8 +582,8 @@ void   *mulle_objc_object_call_super( void *obj,
 
 
 
-MULLE_C_ALWAYS_INLINE
-static inline void   *
+MULLE_C_STATIC_ALWAYS_INLINE
+void   *
    mulle_objc_object_call_super_inline_partial( void *obj,
                                                 mulle_objc_methodid_t methodid,
                                                 void *parameter,
@@ -607,7 +607,7 @@ static inline void   *
 
 
 
-MULLE_C_ALWAYS_INLINE static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE void  *
    mulle_objc_object_call_super_inline( void *obj,
                                         mulle_objc_methodid_t methodid,
                                         void *parameter,
@@ -659,7 +659,7 @@ MULLE_C_ALWAYS_INLINE static inline void  *
 }
 
 
-MULLE_C_ALWAYS_INLINE static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE void  *
    mulle_objc_object_call_super_inline_full( void *obj,
                                              mulle_objc_methodid_t methodid,
                                              void *parameter,

@@ -159,6 +159,8 @@ static inline void
 
    assert( p->mode != MULLE_OBJC_SEARCH_SPECIFIC_METHOD ||
           (p->classid != 0 && p->categoryid != MULLE_OBJC_INVALID_CATEGORYID));
+
+   MULLE_C_UNUSED( p);
 }
 
 
@@ -297,7 +299,7 @@ static inline void
 {
    _mulle_objc_searchargumentscacheable_assert( &p->args);
 
-   assert( p->args.mode >= MULLE_OBJC_SEARCH_DEFAULT && p->args.mode <= MULLE_OBJC_SEARCH_PREVIOUS_METHOD);
+   assert( /* p->args.mode >= MULLE_OBJC_SEARCH_DEFAULT && */ p->args.mode <= MULLE_OBJC_SEARCH_PREVIOUS_METHOD);
    assert( (p->args.mode == MULLE_OBJC_SEARCH_PREVIOUS_METHOD && p->previous_method != 0) ||
            (p->args.mode != MULLE_OBJC_SEARCH_PREVIOUS_METHOD && p->previous_method == 0));
 }
@@ -649,6 +651,7 @@ static inline int
 static inline void
    mulle_objc_clobberchainenumerator_done( struct mulle_objc_clobberchainenumerator *rover)
 {
+   MULLE_C_UNUSED( rover);
 }
 
 

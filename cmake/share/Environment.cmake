@@ -71,7 +71,11 @@ if( NOT __ENVIRONMENT__CMAKE__)
    # not pick up dependencies installed into the system, by default
    if( MULLE_SDK_PATH)
       list( GET MULLE_SDK_PATH 0 DEPENDENCY_DIR)
-      list( GET MULLE_SDK_PATH 1 ADDICTION_DIR)
+      list( LENGTH MULLE_SDK_PATH TMP_LENGTH)
+      unset( ADDICTION_DIR)
+      if( TMP_LENGTH GREATER_EQUAL 2)
+         list( GET MULLE_SDK_PATH 1 ADDICTION_DIR)
+      endif()
 
       option( DEPENDENCY_IGNORE_SYSTEM_LIBARIES "Ignore system library paths in search for dependencies" ON)
       if( NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
@@ -84,43 +88,42 @@ if( NOT __ENVIRONMENT__CMAKE__)
       if( NOT MULLE_SDK_SUBDIR)
          set( MULLE_SDK_SUBDIR "Debug")
       endif()
+      if( MULLE_SDK_SUBDIR MATCHES "None")
+         set( MULLE_SDK_SUBDIR "")
+      endif()
       option( DEPENDENCY_IGNORE_SYSTEM_LIBARIES "Ignore system library paths in search for dependencies" OFF)
-   endif()
 
-   if( NOT DEPENDENCY_DIR)
-      set( DEPENDENCY_DIR "$ENV{DEPENDENCY_DIR}")
       if( NOT DEPENDENCY_DIR)
-         find_program( MULLE_SDE mulle-sde)
-         if( MULLE_SDE)
-            execute_process(
-               OUTPUT_VARIABLE DEPENDENCY_DIR
-               COMMAND ${MULLE_SDE} dependency-dir
-               OUTPUT_STRIP_TRAILING_WHITESPACE
-            )
-         endif()
+         set( DEPENDENCY_DIR "$ENV{DEPENDENCY_DIR}")
          if( NOT DEPENDENCY_DIR)
-            set( DEPENDENCY_DIR "${MULLE_VIRTUAL_ROOT}/dependency")
+            find_program( MULLE_SDE mulle-sde)
+            if( MULLE_SDE)
+               execute_process(
+                  OUTPUT_VARIABLE DEPENDENCY_DIR
+                  COMMAND ${MULLE_SDE} dependency-dir
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+               )
+            endif()
+            if( NOT DEPENDENCY_DIR)
+               set( DEPENDENCY_DIR "${MULLE_VIRTUAL_ROOT}/dependency")
+            endif()
          endif()
       endif()
-   endif()
 
-   # needed for windows
-   file( TO_CMAKE_PATH ${DEPENDENCY_DIR} DEPENDENCY_DIR)
-   list( APPEND ADDITIONAL_BIN_PATH "${DEPENDENCY_DIR}/bin")
-
-   if( NOT ADDICTION_DIR)
-      set( ADDICTION_DIR "$ENV{ADDICTION_DIR}")
       if( NOT ADDICTION_DIR)
-         find_program( MULLE_SDE mulle-sde)
-         if( MULLE_SDE)
-            execute_process(
-               OUTPUT_VARIABLE ADDICTION_DIR
-               COMMAND ${MULLE_SDE} addiction-dir
-               OUTPUT_STRIP_TRAILING_WHITESPACE
-            )
-         endif()
+         set( ADDICTION_DIR "$ENV{ADDICTION_DIR}")
          if( NOT ADDICTION_DIR)
-            set( ADDICTION_DIR "${MULLE_VIRTUAL_ROOT}/addiction")
+            find_program( MULLE_SDE mulle-sde)
+            if( MULLE_SDE)
+               execute_process(
+                  OUTPUT_VARIABLE ADDICTION_DIR
+                  COMMAND ${MULLE_SDE} addiction-dir
+                  OUTPUT_STRIP_TRAILING_WHITESPACE
+               )
+            endif()
+            if( NOT ADDICTION_DIR)
+               set( ADDICTION_DIR "${MULLE_VIRTUAL_ROOT}/addiction")
+            endif()
          endif()
       endif()
    endif()
@@ -142,6 +145,9 @@ if( NOT __ENVIRONMENT__CMAKE__)
       set( MULLE_SDK_PATH "${DEPENDENCY_DIR}")
    endif()
 
+   # needed for windows
+   file( TO_CMAKE_PATH ${DEPENDENCY_DIR} DEPENDENCY_DIR)
+   list( APPEND ADDITIONAL_BIN_PATH "${DEPENDENCY_DIR}/bin")
 
    # where the output is installed by other dependencies
    set( MULLE_SDK_DEPENDENCY_DIR "${DEPENDENCY_DIR}/${MULLE_SDK_SUBDIR}")
@@ -151,10 +157,10 @@ if( NOT __ENVIRONMENT__CMAKE__)
    set( TMP_CMAKE_LIBRARY_PATH)
    set( TMP_CMAKE_FRAMEWORK_PATH)
 
-   message( STATUS "MULLE_SDK_PATH=\"${MULLE_SDK_PATH}\"")
-   message( STATUS "MULLE_SDK_FALLBACK_SUBDIR=\"${MULLE_SDK_FALLBACK_SUBDIR}\"")
-   message( STATUS "MULLE_SDK_SUBDIR=\"${MULLE_SDK_SUBDIR}\"")
    message( STATUS "MULLE_SDK_DEPENDENCY_DIR=\"${MULLE_SDK_DEPENDENCY_DIR}\"")
+   message( STATUS "MULLE_SDK_FALLBACK_SUBDIR=\"${MULLE_SDK_FALLBACK_SUBDIR}\"")
+   message( STATUS "MULLE_SDK_PATH=\"${MULLE_SDK_PATH}\"")
+   message( STATUS "MULLE_SDK_SUBDIR=\"${MULLE_SDK_SUBDIR}\"")
 
    foreach( TMP_MULLE_SDK_PATH ${MULLE_SDK_PATH})
       set( TMP_MULLE_SDK_FALLBACK_PATH "${TMP_MULLE_SDK_PATH}")

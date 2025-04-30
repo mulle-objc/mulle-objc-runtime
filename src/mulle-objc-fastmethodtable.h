@@ -71,6 +71,7 @@ void _mulle_objc_fastmethodtable_init( struct _mulle_objc_fastmethodtable *table
 
 static inline void   _mulle_objc_fastmethodtable_done(  struct _mulle_objc_fastmethodtable *table)
 {
+   MULLE_C_UNUSED( table);
 }
 
 
@@ -82,8 +83,9 @@ static inline void   _mulle_objc_fastmethodtable_done(  struct _mulle_objc_fastm
 //
 // TODO: reexamine in real-life usage later on.
 //
-MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
-static inline int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t methodid)
+MULLE_C_CONST_RETURN
+MULLE_C_STATIC_ALWAYS_INLINE
+int   mulle_objc_get_fastmethodtable_index( mulle_objc_methodid_t methodid)
 {
    switch( methodid)
    {

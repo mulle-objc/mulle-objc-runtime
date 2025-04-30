@@ -154,6 +154,8 @@ void   *_mulle_objc_universe_extract_exception( struct _mulle_objc_universe *uni
 {
    struct _mulle_objc_exceptionstackentry *entry = data;
 
+   MULLE_C_UNUSED( universe);
+
    return( entry->exception);
 }
 

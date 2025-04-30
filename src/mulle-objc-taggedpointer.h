@@ -60,8 +60,9 @@ static inline unsigned int   mulle_objc_get_taggedpointer_shift( void)
 }
 
 
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline unsigned int   mulle_objc_taggedpointer_get_index( void *pointer)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+unsigned int   mulle_objc_taggedpointer_get_index( void *pointer)
 {
    uintptr_t   value;
 
@@ -97,8 +98,9 @@ static inline void   *mulle_objc_create_unsigned_taggedpointer( uintptr_t value,
 }
 
 
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline uintptr_t   mulle_objc_taggedpointer_get_unsigned_value( void *pointer)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+uintptr_t   mulle_objc_taggedpointer_get_unsigned_value( void *pointer)
 {
    uintptr_t   value;
 
@@ -140,8 +142,9 @@ static inline void   *mulle_objc_create_signed_taggedpointer( intptr_t value, un
 }
 
 
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline intptr_t   mulle_objc_taggedpointer_get_signed_value( void *pointer)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+intptr_t   mulle_objc_taggedpointer_get_signed_value( void *pointer)
 {
    intptr_t   value;
 
@@ -177,8 +180,9 @@ static inline int   mulle_objc_taggedpointer_is_valid_double_value( double value
 
 
 
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline void   *mulle_objc_create_double_taggedpointer( double d, unsigned int index)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+void   *mulle_objc_create_double_taggedpointer( double d, unsigned int index)
 {
    union
    {
@@ -192,7 +196,7 @@ static inline void   *mulle_objc_create_double_taggedpointer( double d, unsigned
 
    c.value = d;
    c.bits  = (c.bits << 5) | (c.bits >> (64 - 5));
-   return( (void *) (uintptr_t) (c.bits & ~ (uint64_t) 0x7 | index));
+   return( (void *) (uintptr_t) ((c.bits & ~ (uint64_t) 0x7) | index));
 }
 
 
@@ -208,8 +212,9 @@ static inline void   *mulle_objc_create_double_taggedpointer( double d, unsigned
 //  rol    rcx,0x3b
 //  movq   xmm0,rcx
 //  ret
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline double   mulle_objc_taggedpointer_get_double_value( void *pointer)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+double   mulle_objc_taggedpointer_get_double_value( void *pointer)
 {
    union
    {
@@ -254,8 +259,9 @@ static inline double   mulle_objc_taggedpointer_get_double_value( void *pointer)
 // movq   xmm0,rax
 // ret
 //
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline double   mulle_objc_taggedpointer_get_double_value( void *pointer)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+double   mulle_objc_taggedpointer_get_double_value( void *pointer)
 {
    union
    {
@@ -328,15 +334,16 @@ static inline void   *mulle_objc_create_float_taggedpointer( float f, unsigned i
    if( sizeof( uintptr_t) == sizeof( uint32_t))
    {
       c.bits  = (c.bits << 4) | (c.bits >> (32 - 4));
-      return( (void *) (uintptr_t) (c.bits & ~0x3 | index));
+      return( (void *) (uintptr_t) ((c.bits & ~0x3) | index));
    }
 
    return( (void *) (uintptr_t) (((uint64_t) c.bits << 3) | index));
 }
 
 
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline float   mulle_objc_taggedpointer_get_float_value( void *pointer)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+float   mulle_objc_taggedpointer_get_float_value( void *pointer)
 {
    union
    {

@@ -69,6 +69,8 @@
 static void   nop( struct _mulle_objc_universe  *universe,
                    mulle_objc_classid_t classid)
 {
+   MULLE_C_UNUSED( universe);
+   MULLE_C_UNUSED( classid);
 }
 
 
@@ -318,7 +320,7 @@ void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
       {
          mulle_objc_universe_trace_preamble( universe);
 
-         vfprintf( stderr, format, args);
+         vfprintf( fp, format, args);
       }
       mulle_thread_mutex_unlock( &universe->debug.lock);
       va_end( args);
@@ -460,6 +462,10 @@ static MULLE_C_NO_RETURN void
                                void *block,
                                size_t size)
 {
+   MULLE_C_UNUSED( allocator);
+   MULLE_C_UNUSED( block);
+   MULLE_C_UNUSED( size);
+
    mulle_objc_universe_fail_code( NULL, ENOMEM);
 }
 
@@ -1089,6 +1095,8 @@ void   _mulle_objc_universe_defaultbang( struct _mulle_objc_universe  *universe,
                                          struct mulle_allocator *allocator,
                                          void *userinfo)
 {
+   MULLE_C_UNUSED( userinfo);
+
    _mulle_objc_universe_init( universe, allocator);
    __mulle_objc_universe_atexit_ifneeded( universe);
 }
@@ -1699,6 +1707,8 @@ static int   fake_aba_free( void *aba,
                             void *block,
                             void *owner)
 {
+   MULLE_C_UNUSED( aba);
+
    (*free)( block, owner);
    return( 0);
 }
@@ -3317,6 +3327,11 @@ static mulle_objc_walkcommand_t
    struct _mulle_objc_infraclass   *kindofcls = userinfo;
    struct _mulle_objc_metaclass    *meta;
 
+   MULLE_C_UNUSED( universe);
+   MULLE_C_UNUSED( type);
+   MULLE_C_UNUSED( key);
+   MULLE_C_UNUSED( parent);
+
    if( mulle_objc_infraclass_is_subclass( infra, kindofcls))
    {
       mulle_objc_class_invalidate_caches( _mulle_objc_infraclass_as_class( infra), NULL);
@@ -3375,6 +3390,8 @@ static void   _mulle_objc_universe_assert_tao_object_header( struct _mulle_objc_
    else
       assert( (universe->compilebits & 128) &&
                "ensure that your C compiler uses the same __MULLE_OBJC_TPS__ flags as mulle-objc");
+
+   MULLE_C_UNUSED( universe);
 }
 
 

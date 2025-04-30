@@ -733,6 +733,8 @@ static mulle_objc_walkcommand_t
 {
    struct _mulle_objc_universe  *universe;
 
+   MULLE_C_UNUSED( userinfo);
+
    universe = _mulle_objc_classpair_get_universe( pair);
    fprintf( stderr, "\t%08lx \"%s\"\n",
             (unsigned long) categoryid,

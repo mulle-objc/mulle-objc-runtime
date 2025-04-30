@@ -75,12 +75,11 @@ enum
 //
 // updates the cache, no forward
 //
-MULLE_C_ALWAYS_INLINE
-static inline
-   mulle_objc_implementation_t
-      _mulle_objc_class_lookup_implementation_mode( struct _mulle_objc_class *cls,
-                                                    mulle_objc_methodid_t methodid,
-                                                    unsigned int mode)
+MULLE_C_STATIC_ALWAYS_INLINE
+mulle_objc_implementation_t
+   _mulle_objc_class_lookup_implementation_mode( struct _mulle_objc_class *cls,
+                                                 mulle_objc_methodid_t methodid,
+                                                 unsigned int mode)
 {
    struct _mulle_objc_method        *method;
    mulle_objc_implementation_t      imp;

@@ -85,6 +85,8 @@ int   _mulle_objc_ivar_compare_r( void *_a, void *_b, void *thunk)
    mulle_objc_ivarid_t       a_id;
    mulle_objc_ivarid_t       b_id;
 
+   MULLE_C_UNUSED( thunk);
+
    a_id = a->descriptor.ivarid;
    b_id = b->descriptor.ivarid;
    if( a_id < b_id)

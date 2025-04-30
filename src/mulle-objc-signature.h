@@ -281,6 +281,8 @@ static inline void   _mulle_objc_sprint_untypedsignature( char *buf, size_t size
      --args;
    }
    *buf = 0;
+
+   MULLE_C_UNUSED( size); // terrible
 }
 
 
@@ -421,7 +423,7 @@ static inline void  *
    switch( *p->type)
    {
    case _C_FLT  :
-      *mulle_c_pointer_postincrement( dst, float) = *(double *) src;
+      *mulle_c_pointer_postincrement( dst, float) = (float) *(double *) src;
       break;
    case _C_SEL  :
       *mulle_c_pointer_postincrement( dst, unsigned int) = *(mulle_objc_methodid_t *) src;
@@ -564,6 +566,7 @@ static inline void
 static inline void
    mulle_objc_signatureenumerator_done( struct mulle_objc_signatureenumerator *rover)
 {
+   MULLE_C_UNUSED( rover);
 }
 
 #endif /* defined(__MULLE_OBJC__mulle_objc_signature__) */

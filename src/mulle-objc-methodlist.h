@@ -190,6 +190,7 @@ static inline struct _mulle_objc_method   *
 
 static inline void  _mulle_objc_methodlistenumerator_done( struct _mulle_objc_methodlistenumerator *rover)
 {
+   MULLE_C_UNUSED( rover);
 }
 
 

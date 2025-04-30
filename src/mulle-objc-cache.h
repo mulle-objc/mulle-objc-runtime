@@ -162,7 +162,8 @@ static inline mulle_objc_cache_uint_t
 }
 
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_cache  *
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cache  *
     _mulle_objc_cacheentry_get_cache_from_entries( struct _mulle_objc_cacheentry *entries)
 {
    return( (void *) &((char *) entries)[ -(int)  offsetof( struct _mulle_objc_cache, entries)]);
@@ -347,16 +348,16 @@ struct _mulle_objc_cachepivot
 };
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry  *
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cacheentry  *
    _mulle_objc_cachepivot_get_entries_nonatomic( struct _mulle_objc_cachepivot *p)
 {
    return( _mulle_atomic_pointer_read_nonatomic( &p->entries));
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cache *
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cache *
    _mulle_objc_cachepivot_get_cache_nonatomic( struct _mulle_objc_cachepivot *p)
 {
    struct _mulle_objc_cacheentry  *entries;
@@ -366,8 +367,8 @@ static inline struct _mulle_objc_cache *
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry *
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cacheentry *
    _mulle_objc_cachepivot_get_entries_atomic( struct _mulle_objc_cachepivot *p)
 {
    return( (void *) _mulle_atomic_pointer_read( &p->entries));

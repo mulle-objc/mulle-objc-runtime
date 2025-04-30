@@ -395,7 +395,7 @@ static inline size_t
 static inline unsigned int
    mulle_objc_class_get_inheritance( struct _mulle_objc_class *cls)
 {
-   return( cls ? _mulle_objc_class_get_inheritance( cls) : ~0);
+   return( cls ? _mulle_objc_class_get_inheritance( cls) : ~0U);
 }
 
 

@@ -169,7 +169,7 @@ void   _mulle_objc_class_init( struct _mulle_objc_class *cls,
    //   cls->nextclass       = superclass;
    cls->classid           = classid;
    cls->allocationsize    = sizeof( struct _mulle_objc_objectheader) + instancesize + headerextrasize;
-   cls->headerextrasize   = headerextrasize;
+   cls->headerextrasize   = (uint16_t) headerextrasize;
    cls->universe          = universe;
    cls->invalidate_caches = _mulle_objc_class_invalidate_caches_default;
 
@@ -323,6 +323,11 @@ static int  invalidate_caches_callback( struct _mulle_objc_universe *universe,
                                         void *parent,
                                         struct _mulle_objc_methodlist *list)
 {
+   MULLE_C_UNUSED( universe);
+   MULLE_C_UNUSED( type);
+   MULLE_C_UNUSED( key);
+   MULLE_C_UNUSED( parent);
+
    if( ! _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY))
       return( mulle_objc_walk_ok);
 
@@ -651,6 +656,9 @@ static mulle_objc_walkcommand_t   find_method( struct _mulle_objc_method *method
                                                void *userinfo)
 {
    struct lookup_method_ctxt   *ctxt = userinfo;
+
+   MULLE_C_UNUSED( list);
+   MULLE_C_UNUSED( cls);
 
    if( _mulle_objc_method_get_methodid( method) == ctxt->methodid)
    {

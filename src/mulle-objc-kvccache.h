@@ -137,8 +137,8 @@ static inline struct _mulle_objc_kvccache  *_mulle_objc_kvccachepivot_get_cache_
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry  *_mulle_objc_kvccachepivot_get_entries_atomic( struct _mulle_objc_kvccachepivot *p)
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cacheentry  *_mulle_objc_kvccachepivot_get_entries_atomic( struct _mulle_objc_kvccachepivot *p)
 {
    return( _mulle_objc_cachepivot_get_entries_atomic( (struct _mulle_objc_cachepivot *) p));
 }
