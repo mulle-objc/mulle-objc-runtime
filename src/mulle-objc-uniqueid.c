@@ -117,6 +117,8 @@ int   mulle_objc_uniqueid_is_sane_string( mulle_objc_uniqueid_t uniqueid, char *
          return( 0);
       }
    }
+#else
+   MULLE_C_UNUSED( s);
 #endif
 
    return( 1);

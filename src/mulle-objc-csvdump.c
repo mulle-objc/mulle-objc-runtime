@@ -60,8 +60,8 @@ static const char   *tmpdir_names[] =
 
 char   *_mulle_objc_get_tmpdir( void)
 {
-   char  *s;
-   int   i;
+   char     *s;
+   size_t   i;
 
    for( i = 0; i < sizeof( tmpdir_names) / sizeof( tmpdir_names[ 0]); i++)
    {

@@ -40,6 +40,10 @@
 #include <string.h>
 
 
+// no good for the various leak checkers
+#ifdef MULLE_TEST
+//# define MULLE_TEST_STATIC_CACHE_DISCARDS
+#endif
 #pragma mark - cache
 
 
@@ -73,7 +77,8 @@ struct _mulle_objc_cache   *mulle_objc_cache_new( mulle_objc_cache_uint_t size,
 }
 
 
-#ifdef MULLE_TEST
+#ifdef MULLE_TEST_STATIC_CACHE_DISCARDS
+
 struct _mulle_objc_cache   *mulle_objc_discarded_caches[ 0x8000];
 mulle_atomic_pointer_t     n_mulle_objc_discarded_caches;
 
@@ -82,7 +87,7 @@ static void   discard_cache( struct _mulle_objc_cache *cache)
    intptr_t   n;
 
    n = (intptr_t) _mulle_atomic_pointer_increment( &n_mulle_objc_discarded_caches);
-   if( n >= sizeof( mulle_objc_discarded_caches) / sizeof( void *))
+   if( ! n || n >= sizeof( mulle_objc_discarded_caches) / sizeof( void *))
       abort();
    mulle_objc_discarded_caches[ n - 1] = cache;
 }
@@ -97,7 +102,7 @@ void   _mulle_objc_cache_free( struct _mulle_objc_cache *cache,
    assert( allocator);
 
    preserve = errno;
-#ifdef MULLE_TEST
+#ifdef MULLE_TEST_STATIC_CACHE_DISCARDS
    discard_cache( cache);
 #else
    _mulle_allocator_free( allocator, cache);
@@ -114,7 +119,7 @@ void   _mulle_objc_cache_abafree( struct _mulle_objc_cache *cache,
    assert( allocator);
 
    preserve = errno;
-#ifdef MULLE_TEST
+#ifdef MULLE_TEST_STATIC_CACHE_DISCARDS
    discard_cache( cache);
 #else
    _mulle_allocator_abafree( allocator, cache);

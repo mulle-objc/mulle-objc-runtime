@@ -1,3 +1,24 @@
+## 0.26.0
+
+
+* **BREAKING** removed allocate from `mulle_objc_classpair_free` arguments
+
+* added convenience function `mulle_objc_class_lookup_implementation_noforward`
+
+* `mulle_objc_sprintf_functionpointer` is now `mulle_buffer_sprintf_functionpointer` and quite different
+* scribble pattern is now 0xdeaddead and not 0xad as before
+* `MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS` is now `MULLE_OBJC_CLASS_IS_PROTOCOLCLASS` and set on both classes
+* this enables the new helper function `_mulle_objc_class_is_protocolclass`
+* `MULLE_OBJC_CLASS_DONE_INHERIT_PROTOCOL_META` is no longer the default, functionally this should make little difference due to the fix of a bug in method searching
+* in method searches the wraparound now definitely also applies to the protocolclass
+* if a method is preloadable or not is now always routed through the universe, this when enabled the following new option
+* in debug modus we now optionally but by default preload the whole cache to ease debugging with C debuggers
+* the impcache will no longer assert for a size of power of 2, but round up on its own
+* `_mulle_objc_infraclass_is_protocolclass` renamed to `_mulle_objc_infraclass_conforms_to_protocolclass`
+* new trace options `MULLE_OBJC_TRACE_PRELOAD`
+* `MULLE_OBJC_TRACE_SKIP_BORING_METHOD_CALL` renamed and inverted to `MULLE_OBJC_TRACE_BORING_METHOD_CALL`
+
+
 ## 0.25.0
 
 * `MULLE_OBJC_UNIVERSE_CALL_BORING_TRACE_BIT` used to be called `MULLE_OBJC_UNIVERSE_CALL_SKIP_BORING_TRACE_BIT` and had inverted semantics

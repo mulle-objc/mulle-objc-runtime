@@ -220,6 +220,8 @@ static void   trace_method_search_fail( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_universe   *universe;
 
+   MULLE_C_UNUSED( search);
+
    universe = _mulle_objc_class_get_universe( cls);
    if( error == ENOENT)
    {
@@ -244,6 +246,8 @@ static void   trace_method_found( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_universe   *universe;
    char                          *categoryname;
+
+   MULLE_C_UNUSED( search);
 
    universe = _mulle_objc_class_get_universe( cls);
    mulle_objc_universe_trace_nolf( universe,
@@ -270,6 +274,9 @@ static void   trace_search( struct _mulle_objc_class *cls,
 {
    struct _mulle_objc_universe   *universe;
 
+   MULLE_C_UNUSED( search);
+   MULLE_C_UNUSED( mode);
+
    universe = _mulle_objc_class_get_universe( cls);
    mulle_objc_universe_trace( universe,
                               "search %s %08x \"%s\" (0x%x) %p",
@@ -287,6 +294,9 @@ static void   trace_skip( struct _mulle_objc_class *cls,
                           enum internal_search_mode mode)
 {
    struct _mulle_objc_universe   *universe;
+
+   MULLE_C_UNUSED( search);
+   MULLE_C_UNUSED( mode);
 
    universe = _mulle_objc_class_get_universe( cls);
    mulle_objc_universe_trace( universe,
@@ -791,6 +801,7 @@ struct _mulle_objc_method   *
          {
             break;
          }
+         MULLE_C_FALLTHROUGH;
 
       default :
          _mulle_objc_class_setup( cls);

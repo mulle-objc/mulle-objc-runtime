@@ -69,20 +69,21 @@ struct init_wrapper_for_windows
 //
 static const struct _mulle_concurrent_hashmapstorage	empty_hashmapstorage =
 {
-   (void *) -1,
-   0,
-   { { MULLE_CONCURRENT_NO_HASH, NULL } }
+   (void *) -1,   // n_hashs
+   0,             // mask
+   { { MULLE_CONCURRENT_NO_HASH, NULL } } // entries
 };
 
 
 struct init_wrapper_for_windows
 	mulle_objc_universetable =
 {
-	{
-	  { (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage },
-	  { (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage }
+	.map =
+   {
+	  .storage      = { (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage },
+	  .next_storage = { (struct _mulle_concurrent_hashmapstorage *) &empty_hashmapstorage }
 	},
-	1848
+	.initvalue = 1848
 };
 
 

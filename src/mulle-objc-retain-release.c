@@ -208,6 +208,8 @@ void   _mulle_objc_objects_releaseandzero( void **objects, size_t n)
 
 void   mulle_objc_object_release2( void *obj, void *unused)
 {
+   MULLE_C_UNUSED( unused);
+
    mulle_objc_object_release_inline( obj);
 }
 

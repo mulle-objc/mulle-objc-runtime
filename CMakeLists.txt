@@ -1,6 +1,21 @@
-cmake_minimum_required( VERSION 3.14)
+cmake_minimum_required( VERSION 3.13...99.99)
 
 project( mulle-objc-runtime VERSION 0.26.0 LANGUAGES C)
+
+# Add suppression flags based on compiler
+if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+  # GCC and Clang suppression flags
+  add_compile_options(
+    -Wno-unknown-pragmas
+  )
+elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+  # MSVC suppression flags
+  add_compile_options(
+    /wd4068  # Unknown pragma warning
+  )
+  # MSVC secure function warnings suppression
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif()
 
 ### mulle-sde environment
 

@@ -12,7 +12,7 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 #
-# Generated from sourcetree: 8066A0F0-88B4-4E1F-AC6D-3EF08A277B4E;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import,no-singlephase;
+# Generated from sourcetree: 8066A0F0-88B4-4E1F-AC6D-3EF08A277B4E;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-descend,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-core no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-core no-cmake-platform-${MULLE_UNAME}`
 # Disable for a sdk: `mulle-sourcetree mark mulle-core no-cmake-sdk-<name>`

@@ -43,10 +43,10 @@
 
 
 
-MULLE_C_ALWAYS_INLINE
+MULLE_C_STATIC_ALWAYS_INLINE
 MULLE_C_NONNULL_FIRST
 MULLE_C_NONNULL_RETURN
-static inline struct _mulle_objc_cache  *
+struct _mulle_objc_cache  *
    _mulle_objc_class_get_impcache_cache_atomic( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_cacheentry      *entries;
@@ -61,10 +61,10 @@ static inline struct _mulle_objc_cache  *
 }
 
 
-MULLE_C_ALWAYS_INLINE
+MULLE_C_STATIC_ALWAYS_INLINE
 MULLE_C_NONNULL_FIRST
 MULLE_C_NONNULL_RETURN
-static inline struct _mulle_objc_impcache  *
+struct _mulle_objc_impcache  *
    _mulle_objc_class_get_impcache_atomic( struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_cache      *cache;

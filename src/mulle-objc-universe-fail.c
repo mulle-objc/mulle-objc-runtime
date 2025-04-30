@@ -199,14 +199,24 @@ static void   *mulle_objc_create_debug_symbol( const char* symbol_name, void *ta
 
 static inline void   *mulle_objc_create_debug_symbol( const char* symbol_name, void *target_fn)
 {
+   MULLE_C_UNUSED( symbol_name);
+   MULLE_C_UNUSED( target_fn);
+
    return( NULL);
 }
 
 #endif
 
 
+#if defined( _WIN32) && ! defined( __GNUC__)
+#  define FUNCTION_POINTER_MULLE_C_NO_RETURN
+# else
+#  define FUNCTION_POINTER_MULLE_C_NO_RETURN   MULLE_C_NO_RETURN
+#endif
+
+
 MULLE_C_NO_RETURN
-static void  mulle_objc_call_debug_symbol( void (*f)( char *, va_list *) MULLE_C_NO_RETURN,
+static void  mulle_objc_call_debug_symbol( void (*f)( char *, va_list *) FUNCTION_POINTER_MULLE_C_NO_RETURN,
                                            char * format, ...)
 {
    va_list   args;
@@ -280,7 +290,7 @@ MULLE_C_NO_RETURN void
    struct _mulle_objc_descriptor  *desc;
    char   *methodname;
    char   *name;
-   void   (*f)( char *, va_list *) MULLE_C_NO_RETURN;
+   void   (*f)( char *, va_list *) FUNCTION_POINTER_MULLE_C_NO_RETURN;
 
    name       = cls ? _mulle_objc_class_get_name( cls) : "???";
    methodname = NULL;

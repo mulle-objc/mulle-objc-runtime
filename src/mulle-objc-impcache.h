@@ -156,15 +156,15 @@ void   _mulle_objc_impcache_abafree( struct _mulle_objc_impcache *cache,
 
 
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_impcache  *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_impcache  *
     _mulle_objc_cache_get_impcache_from_cache( struct _mulle_objc_cache *cache)
 {
    return( (void *) &((char *) cache)[ -(int) offsetof( struct _mulle_objc_impcache, cache)]);
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cache *
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cache *
     _mulle_objc_impcache_get_cache( struct _mulle_objc_impcache *icache)
 {
    return( &icache->cache);
@@ -187,8 +187,8 @@ struct _mulle_objc_impcachepivot
 
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry  *
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cacheentry  *
    _mulle_objc_impcachepivot_get_entries_atomic( struct _mulle_objc_impcachepivot *cachepivot)
 {
    struct _mulle_objc_cacheentry   *entries;
@@ -203,8 +203,7 @@ static inline struct _mulle_objc_cacheentry  *
 //       nothing else (except some arithmetic) are also adorned with the
 //       atomic suffix
 //
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cache  *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_cache  *
    _mulle_objc_impcachepivot_get_cache_atomic( struct _mulle_objc_impcachepivot *cachepivot)
 {
    struct _mulle_objc_cacheentry     *entries;
@@ -218,9 +217,9 @@ static inline struct _mulle_objc_cache  *
 }
 
 
-MULLE_C_ALWAYS_INLINE
+MULLE_C_STATIC_ALWAYS_INLINE
 MULLE_C_NONNULL_FIRST
-static inline struct _mulle_objc_impcache  *
+struct _mulle_objc_impcache  *
    _mulle_objc_impcachepivot_get_impcache_atomic( struct _mulle_objc_impcachepivot *cachepivot)
 {
    struct _mulle_objc_cache *cache;
@@ -256,8 +255,8 @@ int   _mulle_objc_impcachepivot_swap( struct _mulle_objc_impcachepivot *pivot,
 //
 // this method does not use any callbacks and loops, so its fairly hefty
 //
-MULLE_C_ALWAYS_INLINE
-static inline mulle_objc_implementation_t
+MULLE_C_STATIC_ALWAYS_INLINE
+mulle_objc_implementation_t
    _mulle_objc_impcachepivot_probe_inline( struct _mulle_objc_impcachepivot *cachepivot,
                                            mulle_objc_uniqueid_t uniqueid)
 {
@@ -293,8 +292,7 @@ static inline mulle_objc_implementation_t
 
 
 MULLE_C_CONST_RETURN
-MULLE_C_ALWAYS_INLINE
-static inline  mulle_objc_implementation_t
+MULLE_C_STATIC_ALWAYS_INLINE mulle_objc_implementation_t
    _mulle_objc_impcachepivot_lookup_inline_full( struct _mulle_objc_impcachepivot *cachepivot,
                                                  mulle_objc_uniqueid_t uniqueid)
 {

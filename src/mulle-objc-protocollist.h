@@ -116,6 +116,7 @@ static inline struct _mulle_objc_protocol   *
 
 static inline void  _mulle_objc_protocollistenumerator_done( struct _mulle_objc_protocollistenumerator *rover)
 {
+   MULLE_C_UNUSED( rover);
 }
 
 

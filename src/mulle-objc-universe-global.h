@@ -68,7 +68,7 @@ MULLE_C_CONST_NONNULL_RETURN static inline struct _mulle_objc_universe *
 }
 
 // only __mulle_objc_global_get_universe should use this
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_universe  *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_universe  *
    __mulle_objc_global_get_defaultuniverse( void)
 {
    MULLE_OBJC_RUNTIME_GLOBAL
@@ -116,7 +116,7 @@ void
    __mulle_objc_global_unregister_universe( mulle_objc_universeid_t universeid,
                                             struct _mulle_objc_universe *universe);
 
-MULLE_C_ALWAYS_INLINE static inline int
+MULLE_C_STATIC_ALWAYS_INLINE int
    _mulle_objc_universe_is_default( struct _mulle_objc_universe *universe)
 {
    return( universe->universeid == MULLE_OBJC_DEFAULTUNIVERSEID);

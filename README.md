@@ -190,8 +190,6 @@ target_link_libraries( ${PROJECT_NAME} PUBLIC mulle-core)
 
 ## Install
 
-### Install with mulle-sde
-
 Use [mulle-sde](//github.com/mulle-sde) to build and install mulle-objc-runtime and all dependencies:
 
 ``` sh
@@ -199,19 +197,36 @@ mulle-sde install --prefix /usr/local \
    https://github.com/mulle-objc/mulle-objc-runtime/archive/latest.tar.gz
 ```
 
-### Manual Installation
+### Legacy Installation
 
-Install the [Requirements](#Requirements) and then
-install **mulle-objc-runtime** with [cmake](https://cmake.org):
+
+#### Requirements
+
+Install all requirements
+
+| Requirements                                 | Description
+|----------------------------------------------|-----------------------
+| [mulle-core](https://github.com/mulle-core/mulle-core)             | 🌋 Almagamated library of mulle-core and mulle-c
+| [mulle-atinit](https://github.com/mulle-core/mulle-atinit)             | 🤱🏼 Compatibility library for deterministic initializers
+| [mulle-atexit](https://github.com/mulle-core/mulle-atexit)             | 👼 Compatibility library to fix atexit
+
+#### Download & Install
+
+
+Download the latest [tar](https://github.com/mulle-objc/mulle-objc-runtime/archive/refs/tags/latest.tar.gz) or [zip](https://github.com/mulle-objc/mulle-objc-runtime/archive/refs/tags/latest.zip) archive and unpack it.
+
+Install **mulle-objc-runtime** into `/usr/local` with [cmake](https://cmake.org):
 
 ``` sh
+export MULLE_SDK_PATH="/usr/local" # important!
 cmake -B build \
-      -DCMAKE_INSTALL_PREFIX=/usr/local \
-      -DCMAKE_PREFIX_PATH=/usr/local \
+      -DCMAKE_INSTALL_PREFIX="${MULLE_SDK_PATH}" \
+      -DCMAKE_PREFIX_PATH="${MULLE_SDK_PATH}" \
       -DCMAKE_BUILD_TYPE=Release &&
 cmake --build build --config Release &&
 cmake --install build --config Release
 ```
+
 
 
 ## Author

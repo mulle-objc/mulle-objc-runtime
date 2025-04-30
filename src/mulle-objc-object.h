@@ -67,8 +67,9 @@ struct _mulle_objc_method;
 
 # pragma mark - isa handling
 
-MULLE_C_ALWAYS_INLINE MULLE_C_CONST_RETURN
-static inline int  mulle_objc_object_get_taggedpointerindex( void *obj)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_CONST_RETURN
+int  mulle_objc_object_get_taggedpointerindex( void *obj)
 {
 #ifdef __MULLE_OBJC_TPS__
    return( mulle_objc_taggedpointer_get_index( obj));
@@ -82,8 +83,10 @@ static inline int  mulle_objc_object_get_taggedpointerindex( void *obj)
 // this defeats faults, but benchmarks much better, if put into the inline
 // call routine
 //
-MULLE_C_ALWAYS_INLINE_NONNULL_CONST_RETURN
-static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void *obj)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_NONNULL_RETURN
+MULLE_C_CONST_RETURN
+struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void *obj)
 {
    unsigned int                     index;
    struct _mulle_objc_universe     *universe;
@@ -103,9 +106,9 @@ static inline struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void
 //
 // don't use isa in most cases, use get_class (defined elsewhere)
 //
-MULLE_C_ALWAYS_INLINE_NONNULL_RETURN
-static inline struct _mulle_objc_class *
-   _mulle_objc_object_get_isa( void *obj)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_NONNULL_RETURN
+struct _mulle_objc_class *_mulle_objc_object_get_isa( void *obj)
 {
    unsigned int                    index;
    struct _mulle_objc_universe     *universe;
@@ -127,9 +130,9 @@ static inline struct _mulle_objc_class *
 //
 // don't use isa in most cases, use get_class (defined elsewhere)
 //
-MULLE_C_ALWAYS_INLINE_NONNULL_RETURN
-static inline struct _mulle_objc_class *
-   _mulle_objc_object_get_non_tps_isa( void *obj)
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_NONNULL_RETURN
+struct _mulle_objc_class   *_mulle_objc_object_get_non_tps_isa( void *obj)
 {
    struct _mulle_objc_objectheader  *header;
 
@@ -142,8 +145,9 @@ static inline struct _mulle_objc_class *
 //
 // don't use isa in most cases, use get_class (defined elsewhere)
 //
-MULLE_C_ALWAYS_INLINE_NONNULL_RETURN
-static inline struct _mulle_objc_class *
+MULLE_C_STATIC_ALWAYS_INLINE
+MULLE_C_NONNULL_RETURN
+struct _mulle_objc_class *
    _mulle_objc_object_get_isa_universe( void *obj, struct _mulle_objc_universe *universe)
 {
    unsigned int                    index;
@@ -192,17 +196,19 @@ static inline void  *_mulle_objc_object_get_extra( void *obj)
 
 
 // legacy support and no zone support anyway
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_object   *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_object   *
    _mulle_objc_object_get_zone( void *obj)
 {
+   MULLE_C_UNUSED( obj);
+
    return( (void *) 0);
 }
 
 
 # pragma mark - convenience
 
-MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_class *
+MULLE_C_CONST_RETURN MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_class *
 	__mulle_objc_object_get_isa_notps( void *obj)
 {
 	struct _mulle_objc_class  *cls;
@@ -214,8 +220,8 @@ static inline struct _mulle_objc_class *
 }
 
 
-MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_universe *
+MULLE_C_CONST_RETURN MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_universe *
 	__mulle_objc_object_get_universe_notps( void *obj)
 {
 	struct _mulle_objc_class     *cls;
@@ -226,8 +232,8 @@ static inline struct _mulle_objc_universe *
 
 
 /* obj can not be nil here */
-MULLE_C_CONST_RETURN MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_universe *
+MULLE_C_CONST_RETURN MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_universe *
 	_mulle_objc_object_get_universe( void *obj)
 {
    assert( obj);
@@ -242,8 +248,8 @@ static inline struct _mulle_objc_universe *
  * this function also deals with obj being NULL
  * therefore we need the universeid
  */
-MULLE_C_CONST_NONNULL_RETURN MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_universe *
+MULLE_C_CONST_NONNULL_RETURN MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_universe *
 	__mulle_objc_object_get_universe_nofail( void *obj,
 	       							        		  mulle_objc_universeid_t universeid)
 {
@@ -255,7 +261,7 @@ static inline struct _mulle_objc_universe *
 
 # pragma mark - get_class
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_infraclass   *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_infraclass   *
    _mulle_objc_object_get_infraclass( void *obj)
 {
    struct _mulle_objc_class   *cls;
@@ -270,7 +276,7 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_infraclass   *
 
 
 MULLE_C_CONST_RETURN
-MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
+MULLE_C_STATIC_ALWAYS_INLINE mulle_thread_t
    _mulle_objc_object_get_thread( struct _mulle_objc_object *obj)
 {
 #ifdef __MULLE_OBJC_TAO__
@@ -285,6 +291,7 @@ MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
    header = _mulle_objc_object_get_objectheader( obj);
    return( _mulle_objc_objectheader_get_thread( header));
 #else
+   MULLE_C_UNUSED( obj);
    return( 0);
 #endif
 }
@@ -294,7 +301,7 @@ MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
 #define mulle_objc_object_has_no_thread   ((mulle_thread_t) -1)
 
 
-MULLE_C_ALWAYS_INLINE static inline void
+MULLE_C_STATIC_ALWAYS_INLINE void
    _mulle_objc_object_set_thread( struct _mulle_objc_object *obj, mulle_thread_t thread)
 {
 #ifdef __MULLE_OBJC_TAO__
@@ -315,6 +322,9 @@ MULLE_C_ALWAYS_INLINE static inline void
    }
 
    _mulle_objc_objectheader_set_thread( header, thread);
+#else
+   MULLE_C_UNUSED( obj);
+   MULLE_C_UNUSED( thread);
 #endif
 }
 
@@ -365,27 +375,27 @@ static inline void
 
 # pragma mark - API
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class   *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_class   *
    mulle_objc_object_get_isa( void *obj)
 {
    return( obj ? _mulle_objc_object_get_isa( obj)  : NULL);
 }
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_infraclass   *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_infraclass   *
    mulle_objc_object_get_infraclass( void *obj)
 {
    return( obj ? _mulle_objc_object_get_infraclass( obj) : NULL);
 }
 
 // convenience for object, will return null if its a tagged pointer though
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_universe   *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_universe   *
    mulle_objc_object_get_universe( void *obj)
 {
    return( obj ? _mulle_objc_object_get_universe( obj) : NULL);
 }
 
 
-MULLE_C_ALWAYS_INLINE static inline void
+MULLE_C_STATIC_ALWAYS_INLINE void
    mulle_objc_object_set_isa( void *obj, struct _mulle_objc_class *cls)
 {
    if( obj)
@@ -393,7 +403,7 @@ MULLE_C_ALWAYS_INLINE static inline void
 }
 
 
-MULLE_C_ALWAYS_INLINE static inline void  *
+MULLE_C_STATIC_ALWAYS_INLINE void  *
    mulle_objc_object_get_extra( void *obj)
 {
    return( obj ? _mulle_objc_object_get_extra( obj) : NULL);

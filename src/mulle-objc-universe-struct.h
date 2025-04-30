@@ -614,7 +614,7 @@ static inline char   *mulle_objc_global_preprocessor_string( struct mulle_alloca
 {
    char  *s;
 
-   mulle_buffer_do_string( buffer, NULL, s)
+   mulle_buffer_do_string( buffer, allocator, s)
    {
 #ifdef __MULLE_OBJC_TPS__
       mulle_buffer_add_define( buffer, "__MULLE_OBJC_TPS__");

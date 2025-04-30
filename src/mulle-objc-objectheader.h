@@ -103,7 +103,7 @@ struct _mulle_objc_objectheader
 };
 
 
-MULLE_C_ALWAYS_INLINE static inline void *
+MULLE_C_STATIC_ALWAYS_INLINE void *
    _mulle_objc_objectheader_get_alloc( struct _mulle_objc_objectheader *header,
                                        uintptr_t headerextrasize)
 {
@@ -111,7 +111,7 @@ MULLE_C_ALWAYS_INLINE static inline void *
 }
 
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_objectheader *
    _mulle_objc_alloc_get_objectheader( void *alloc,
                                        uintptr_t headerextrasize)
 {
@@ -120,7 +120,7 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
 
 
 // same as below but no header checker test for true low level code
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_objectheader *
    __mulle_objc_object_get_objectheader( void *obj)
 {
    struct _mulle_objc_objectheader   *header;
@@ -132,7 +132,7 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
 }
 
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_objectheader *
    _mulle_objc_object_get_objectheader( void *obj)
 {
    struct _mulle_objc_objectheader   *header;
@@ -145,7 +145,7 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_objectheader *
 }
 
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_object *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_object *
    _mulle_objc_objectheader_get_object( struct _mulle_objc_objectheader *header)
 {
    struct _mulle_objc_object *obj;
@@ -170,7 +170,7 @@ static inline intptr_t
 
 # pragma mark - object / header
 
-MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class *
+MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_class *
    _mulle_objc_objectheader_get_isa( struct _mulle_objc_objectheader *header)
 {
    return( header->_isa);
@@ -178,12 +178,13 @@ MULLE_C_ALWAYS_INLINE static inline struct _mulle_objc_class *
 
 
 MULLE_C_CONST_RETURN
-MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
+MULLE_C_STATIC_ALWAYS_INLINE mulle_thread_t
    _mulle_objc_objectheader_get_thread( struct _mulle_objc_objectheader *header)
 {
 #if MULLE_OBJC_TAO_OBJECT_HEADER
    return( (mulle_thread_t) _mulle_atomic_pointer_read( &header->_thread));
 #else
+   MULLE_C_UNUSED( header);
    return( 0);
 #endif
 }
@@ -204,12 +205,15 @@ MULLE_C_ALWAYS_INLINE static inline mulle_thread_t
 // |   b              |    b   |    a   |
 // |   a              |    b   |  NULL  |
 
-MULLE_C_ALWAYS_INLINE static inline void
+MULLE_C_STATIC_ALWAYS_INLINE void
    _mulle_objc_objectheader_set_thread( struct _mulle_objc_objectheader *header,
                                         mulle_thread_t thread)
 {
 #if MULLE_OBJC_TAO_OBJECT_HEADER
    _mulle_atomic_pointer_write( &header->_thread, (void *) thread);
+#else
+   MULLE_C_UNUSED( header);
+   MULLE_C_UNUSED( thread);
 #endif
 }
 

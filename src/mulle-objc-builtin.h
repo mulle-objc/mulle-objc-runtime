@@ -195,6 +195,8 @@ static inline void
    void   **p_ivar;
    void   *old;
 
+   MULLE_C_UNUSED( _cmd);
+
    if( ! self)
       return;
 
@@ -224,8 +226,8 @@ static inline void
    }
 }
 
-MULLE_C_ALWAYS_INLINE
-static inline void   *
+MULLE_C_STATIC_ALWAYS_INLINE
+void   *
    mulle_objc_object_get_property_value( void *self,
                                          mulle_objc_methodid_t _cmd,
                                          ptrdiff_t offset,
@@ -235,6 +237,8 @@ static inline void   *
    void                            *value;
    struct _mulle_objc_foundation   *foundation;
    struct _mulle_objc_universe     *universe;
+
+   MULLE_C_UNUSED( _cmd);
 
    if( ! self)
       return( NULL);

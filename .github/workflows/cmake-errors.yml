@@ -1,0 +1,152 @@
+name: CMake Errors
+on: [push, pull_request]
+
+jobs:
+  ci-cmake:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            compiler: gcc
+            cflags: -Werror -Wall -Wextra
+
+          - name: Ubuntu GCC -O3
+            os: ubuntu-latest
+            compiler: gcc
+            cflags: -O3 -Werror -Wall -Wextra
+
+          - name: Ubuntu Clang
+            os: ubuntu-latest
+            compiler: clang
+            cflags: -Werror -Wall -Wextra
+
+          - name: Ubuntu Clang Debug
+            os: ubuntu-latest
+            compiler: clang
+            cflags: -Werror -Wall -Wextra
+            build-config: Debug
+
+          - name: Windows MSVC Win32
+            os: windows-latest
+            compiler: cl
+            cflags: /WX /W3
+            cmake-args: -A Win32
+
+          - name: Windows MSVC Win64
+            os: windows-latest
+            compiler: cl
+            cflags: /WX /W3 /wd4244  # fixes some warnings in http_parser.c which is not my code
+            cmake-args: -A x64
+
+          - name: Windows GCC
+            os: windows-latest
+            compiler: gcc
+            cflags: -Werror -Wall -Wextra
+            cmake-args: -G Ninja
+
+          - name: macOS Clang
+            os: macos-latest
+            compiler: clang
+            cflags: -Werror -Wall -Wextra
+
+          - name: macOS GCC
+            os: macos-latest
+            compiler: gcc-12
+            cflags: -Werror -Wall -Wextra
+            
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      # Set installation directory based on OS
+      - name: Set install directory
+        id: set-install-dir
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]
+          then
+            INSTALL_DIR="$GITHUB_WORKSPACE\\usr"
+            CMAKE_INSTALL_DIR="$(sed 's/\\/\//g' <<< "$INSTALL_DIR")"  # sic, cygpath no good for cmake
+            SRC_DIR="$GITHUB_WORKSPACE\\tmp"
+            MULLE_CORE_SRC_DIR="$SRC_DIR\\mulle-core"
+            MULLE_ATINIT_SRC_DIR="$SRC_DIR\\mulle-atinit"
+            MULLE_ATEXIT_SRC_DIR="$SRC_DIR\\mulle-atexit"
+          else
+            INSTALL_DIR="$GITHUB_WORKSPACE/usr"
+            CMAKE_INSTALL_DIR="${INSTALL_DIR}"
+            SRC_DIR="$GITHUB_WORKSPACE/tmp"
+            MULLE_CORE_SRC_DIR="$SRC_DIR/mulle-core"
+            MULLE_ATINIT_SRC_DIR="$SRC_DIR/mulle-atinit"
+            MULLE_ATEXIT_SRC_DIR="$SRC_DIR/mulle-atexit"
+          fi
+          echo "INSTALL_DIR=$INSTALL_DIR"                   >> $GITHUB_OUTPUT
+          echo "CMAKE_INSTALL_DIR=$CMAKE_INSTALL_DIR"       >> $GITHUB_OUTPUT
+          echo "MULLE_CORE_SRC_DIR=$MULLE_CORE_SRC_DIR"     >> $GITHUB_OUTPUT
+          echo "MULLE_ATINIT_SRC_DIR=$MULLE_ATINIT_SRC_DIR" >> $GITHUB_OUTPUT
+          echo "MULLE_ATEXIT_SRC_DIR=$MULLE_ATEXIT_SRC_DIR" >> $GITHUB_OUTPUT
+          mkdir -p "$SRC_DIR"
+          mkdir -p "$INSTALL_DIR"
+          
+      - name: Clone mulle-core repository
+        run: |
+          git clone https://github.com/mulle-core/mulle-core.git "${{steps.set-install-dir.outputs.MULLE_CORE_SRC_DIR}}"
+          
+      - name: Configure, build and install mulle-core with CMake
+        working-directory: "${{steps.set-install-dir.outputs.MULLE_CORE_SRC_DIR}}"
+        env:
+          CC: ${{ matrix.compiler }}
+          CFLAGS: ${{ matrix.cflags }}        
+        run: |
+          cmake ${{ matrix.cmake-args }} -B build -DMULLE_SDK_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_INSTALL_PREFIX="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_PREFIX_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-config || 'Release' }}" 
+          cmake --build build --config "${{ matrix.build-config || 'Release' }}"
+          cmake --install build --config "${{ matrix.build-config || 'Release' }}"
+        
+      - name: Clone mulle-atinit repository
+        run: |
+          git clone https://github.com/mulle-core/mulle-atinit.git "${{steps.set-install-dir.outputs.MULLE_ATINIT_SRC_DIR}}"
+          
+      - name: Configure, build and install mulle-atinit with CMake
+        working-directory: "${{steps.set-install-dir.outputs.MULLE_ATINIT_SRC_DIR}}"
+        env:
+          CC: ${{ matrix.compiler }}
+          CFLAGS: ${{ matrix.cflags }}        
+        run: |
+          cmake ${{ matrix.cmake-args }} -B build -DMULLE_SDK_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_INSTALL_PREFIX="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_PREFIX_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-config || 'Release' }}" 
+          cmake --build build --config "${{ matrix.build-config || 'Release' }}"
+          cmake --install build --config "${{ matrix.build-config || 'Release' }}"
+          
+      - name: Clone mulle-atexit repository
+        run: |
+          git clone https://github.com/mulle-core/mulle-atexit.git "${{steps.set-install-dir.outputs.MULLE_ATEXIT_SRC_DIR}}"
+          
+      - name: Configure, build and install mulle-atexit with CMake
+        working-directory: "${{steps.set-install-dir.outputs.MULLE_ATEXIT_SRC_DIR}}"
+        env:
+          CC: ${{ matrix.compiler }}
+          CFLAGS: ${{ matrix.cflags }}        
+        run: |
+          cmake ${{ matrix.cmake-args }} -B build -DMULLE_SDK_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_INSTALL_PREFIX="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_PREFIX_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-config || 'Release' }}" 
+          cmake --build build --config "${{ matrix.build-config || 'Release' }}"
+          cmake --install build --config "${{ matrix.build-config || 'Release' }}"
+
+      - name: Install packages (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install --no-progress ninja ${{ matrix.packages }}
+          
+      - name: Generate project files
+        env:
+          CC: ${{ matrix.compiler }}
+          CFLAGS: ${{ matrix.cflags }}
+        run: |
+          cmake ${{ matrix.cmake-args }} -B build -DMULLE_SDK_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_INSTALL_PREFIX="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_PREFIX_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-config || 'Release' }}" 
+      
+      - name: Compile source code
+        shell: bash
+        run: |
+          cmake --build "${{ matrix.build-dir || 'build' }}" --config "${{ matrix.build-config || 'Release' }}"
+

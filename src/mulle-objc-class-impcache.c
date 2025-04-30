@@ -50,6 +50,8 @@ static mulle_objc_walkcommand_t  preload( struct _mulle_objc_method *method,
    struct _mulle_objc_cacheentry   *entry;
    struct _mulle_objc_universe     *universe;
 
+   MULLE_C_UNUSED( list);
+
    assert( cache);
    assert( cls);
 

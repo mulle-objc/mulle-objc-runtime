@@ -149,6 +149,8 @@ static char  *_mulle_objc_signature_supply_bitfield_typeinfo( char *type,
    int   len;
    char  *s;
 
+   MULLE_C_UNUSED( level);
+
    s   = type;
    len = atoi( s);
    if( len < 0)
@@ -214,7 +216,7 @@ static char  *
    {
       info->n_members         = len;
       info->member_type_start = type;
-      if( info->n_members != (long) len)
+      if( info->n_members != (unsigned int) len)
          abort();
       (*callback)( &memoType[ -1], info, userinfo);
    }
@@ -462,6 +464,8 @@ static char  *
                                                 mulle_objc_type_parse_callback_t callback,
                                                 void *userinfo)
 {
+   MULLE_C_UNUSED( level);
+
    if( info)
    {
       _SUPPLY_RUNTIME_C_TYPE_INFO( info, void_function_pointer);
@@ -623,6 +627,9 @@ char   *
 
 static void   dummy_callback( char *type, struct mulle_objc_typeinfo *info, void *userinfo)
 {
+   MULLE_C_UNUSED( type);
+   MULLE_C_UNUSED( info);
+   MULLE_C_UNUSED( userinfo);
 }
 
 
@@ -723,14 +730,14 @@ char   *_mulle_objc_signature_supply_typeinfo( char *types,
       // If it was invalidated once, it means you called an iterator with a
       // NULL info sometime in your loop, now offsets are wrong
       //
-      assert( supplier->invocation_offset != (unsigned int) -1);
+      assert( supplier->invocation_offset != -1);
 
       // for the MetaABI block we want this aligned as safely as possible
       info->invocation_offset     = (int32_t) mulle_address_align( supplier->invocation_offset,
                                                                    supplier->index == 2
                                                                    ? alignof( long double)
                                                                    : info->bits_struct_alignment / 8);
-      supplier->invocation_offset = info->invocation_offset + info->natural_size;
+      supplier->invocation_offset = (int32_t) (info->invocation_offset + info->natural_size);
    }
    else
       supplier->invocation_offset = -1;  // invalidate
@@ -890,7 +897,7 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *types,
 
    next = _mulle_objc_signature_supply_typeinfo( types, NULL, &info);
    if( size)
-      *size = info.bits_size >> 3;
+      *size = (unsigned int) (info.bits_size >> 3);
    if( alignment)
       *alignment = info.natural_alignment;
 
@@ -1105,8 +1112,8 @@ int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
 
 
 // this is pre-alpha
-static int   types_are_compatible( char *a, int a_len,
-                                   char *b, int b_len)
+static int   types_are_compatible( char *a, size_t a_len,
+                                   char *b, size_t b_len)
 {
    char   *s;
 
@@ -1202,8 +1209,8 @@ int   _mulle_objc_typeinfo_is_compatible( struct mulle_objc_typeinfo *a,
    size_t   a_len;
    size_t   b_len;
 
-   a_len = a->pure_type_end - a->type;
-   b_len = b->pure_type_end - b->type;
+   a_len = (size_t) (a->pure_type_end - a->type);
+   b_len = (size_t) (b->pure_type_end - b->type);
 
    return( types_are_compatible( a->type, a_len, b->type, b_len));
 }

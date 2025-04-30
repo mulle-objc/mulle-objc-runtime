@@ -39,10 +39,10 @@ if( NOT __CMAKE_TWEAKS_C_CMAKE__)
    else()
       if( WIN32)
          # may not be enough though...
-         # cmake_minimum_required( VERSION 3.15)
+         # cmake_minimum_required( VERSION 3.13...99.99)
       else()
          # UNIXy gcc based
-         # cmake_minimum_required( VERSION 3.15)
+         # cmake_minimum_required( VERSION 3.13...99.99)
       endif()
       #
       # so we build static libs, but they might be linked into code

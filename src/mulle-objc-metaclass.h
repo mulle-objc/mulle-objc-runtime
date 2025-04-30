@@ -79,6 +79,8 @@ static inline void   _mulle_objc_metaclass_plusinit( struct _mulle_objc_metaclas
 {
    struct _mulle_objc_class   *cls;
 
+   MULLE_C_UNUSED( allocator);
+
    cls = _mulle_objc_metaclass_as_class( meta);
    _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE);
 }
@@ -86,6 +88,7 @@ static inline void   _mulle_objc_metaclass_plusinit( struct _mulle_objc_metaclas
 
 static inline void   _mulle_objc_metaclass_plusdone( struct _mulle_objc_metaclass *meta)
 {
+   MULLE_C_UNUSED( meta);
 }
 
 

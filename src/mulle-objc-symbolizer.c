@@ -66,6 +66,8 @@ static int   mmc_snprint( struct mmc  *p,
                           char *buf,
                           size_t len)
 {
+   MULLE_C_UNUSED( universe);
+
    // it's not a category ?
    if( ! mulle_objc_methodlist_get_categoryid( p->list))
       return( snprintf( buf, len, "%c[%s %s]",
@@ -221,7 +223,7 @@ struct mmc *
    mulle_objc_implementation_t   imp;
    mulle_objc_implementation_t   nextimp;
 
-   n      = array->_count;
+   n      = (int) array->_count;
    first  = 0;
    last   = (int) (n - 1);
    middle = (first + last) / 2;
@@ -340,6 +342,9 @@ static mulle_objc_walkcommand_t
                 void *userinfo)
 {
    struct mmc   mmc;
+
+   MULLE_C_UNUSED( universe);
+   MULLE_C_UNUSED( key);
 
    if( type != mulle_objc_walkpointer_is_method)
       return( mulle_objc_walk_ok);

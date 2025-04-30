@@ -51,8 +51,8 @@
 #pragma mark - cache support
 
 
-MULLE_C_ALWAYS_INLINE
-static inline struct _mulle_objc_cacheentry *
+MULLE_C_STATIC_ALWAYS_INLINE
+struct _mulle_objc_cacheentry *
    _mulle_objc_class_probe_cacheentry_inline( struct _mulle_objc_class *cls,
                                               mulle_objc_superid_t methodid)
 {
@@ -81,8 +81,8 @@ static inline struct _mulle_objc_cacheentry *
 }
 
 
-MULLE_C_ALWAYS_INLINE
-static inline mulle_objc_implementation_t
+MULLE_C_STATIC_ALWAYS_INLINE
+mulle_objc_implementation_t
    _mulle_objc_class_probe_implementation_inline( struct _mulle_objc_class *cls,
                                                   mulle_objc_superid_t methodid)
 {

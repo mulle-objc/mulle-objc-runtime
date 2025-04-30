@@ -140,6 +140,7 @@ static inline struct _mulle_objc_property   *_mulle_objc_propertylistenumerator_
 
 static inline void  _mulle_objc_propertylistenumerator_done( struct _mulle_objc_propertylistenumerator *rover)
 {
+   MULLE_C_UNUSED( rover);
 }
 
 

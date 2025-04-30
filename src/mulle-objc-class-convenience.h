@@ -226,6 +226,8 @@ static inline void  __mulle_objc_instance_will_free( void *obj)
          _mulle_objc_instance_trace_free( obj);
       }
    }
+#else
+   MULLE_C_UNUSED( obj);
 #endif
 }
 
@@ -292,6 +294,8 @@ static inline void *
     _mulle_objc_infraclass_alloc_instance_zone( struct _mulle_objc_infraclass *infra,
                                                 void *zone) // zone is unused
 {
+   MULLE_C_UNUSED( zone);
+
    return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));
 }
 
@@ -309,6 +313,8 @@ static inline void *
    mulle_objc_infraclass_allocwithzone_instance( struct _mulle_objc_infraclass *infra,
                                                  void *zone)
 {
+   MULLE_C_UNUSED( zone);
+
    if( ! infra)
       return( NULL);
    return( _mulle_objc_infraclass_alloc_instance_extra( infra, 0));

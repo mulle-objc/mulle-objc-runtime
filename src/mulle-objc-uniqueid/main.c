@@ -54,6 +54,8 @@ static void   print_uniqueid( char *s, size_t len,
    char   *s1, *s2;
    char   c;
 
+   MULLE_C_UNUSED( len);
+
    s1 = s;
    s2 = buf;
    while( c = *s1++ && s2 < &buf[ sizeof( buf) - 1])
