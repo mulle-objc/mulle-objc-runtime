@@ -1,0 +1,6 @@
+Test: Class initialization (+initialize)
+Before first use - initialize count: 0
+Before first use - value: 0
+SUCCESS: +initialize triggered on first use
+After use - initialize count: 1
+After use - value: 42

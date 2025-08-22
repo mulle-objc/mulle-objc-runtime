@@ -1338,10 +1338,12 @@ static void
    _mulle_objc_universe_reversesort_infraclasses_by_classindex( struct _mulle_objc_infraclass **array,
                                                                 unsigned int n_classes)
 {
-   qsort( array,
-          n_classes,
-          sizeof( struct _mulle_objc_infraclass *),
-          (int (*)()) reverse_compare_classindex);
+   MULLE_C_ASSERT( sizeof( struct _mulle_objc_infraclass **) == sizeof( void *));
+
+   mulle_qsort( array,
+                n_classes,
+                sizeof( struct _mulle_objc_infraclass *),
+                (mulle_qsort_cmp_t *) reverse_compare_classindex);
 }
 
 

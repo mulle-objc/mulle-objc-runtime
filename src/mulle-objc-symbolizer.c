@@ -184,11 +184,13 @@ static inline void
    mmcarray_sort( struct mmcarray *array,
                   int (*f)( struct mmc *, struct mmc *))
 {
+   MULLE_C_ASSERT( sizeof( struct mmc *) == sizeof( void *));
+
    // also sorts zeroes
-   qsort( array->_values,
-          array->_count,     // n
-          sizeof( struct mmc),  // sizeof
-          (int (*)( const void *, const void *)) f);
+   mulle_qsort( array->_values,
+                array->_count,     // n
+                sizeof( struct mmc),  // sizeof
+                (mulle_qsort_cmp_t *) f);
 }
 
 

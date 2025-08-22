@@ -125,7 +125,11 @@ void   mulle_objc_method_sort( struct _mulle_objc_method *methods,
    if( ! methods)
       return;
 
-   mulle_qsort_r( methods, n, sizeof( struct _mulle_objc_method), _mulle_objc_method_compare_r, NULL);
+   mulle_qsort_r( methods,
+                  n,
+                  sizeof( struct _mulle_objc_method),
+                  _mulle_objc_method_compare_r,
+                  NULL);
 }
 
 

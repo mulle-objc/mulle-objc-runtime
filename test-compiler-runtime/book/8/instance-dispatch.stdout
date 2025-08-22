@@ -1,0 +1,3 @@
+Test: Instance method dispatch
+SUCCESS: Method dispatch worked
+Result: 5 + 7 = 12

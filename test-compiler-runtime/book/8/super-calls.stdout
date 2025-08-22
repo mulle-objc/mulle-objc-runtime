@@ -1,0 +1,4 @@
+Test: Super method calls
+SUCCESS: Super method dispatch worked
+Direct value: 200
+Super value: 100

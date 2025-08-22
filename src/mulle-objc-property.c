@@ -122,6 +122,11 @@ void   mulle_objc_property_sort( struct _mulle_objc_property *properties,
    if( ! properties)
       return;
 
-   qsort( properties, n, sizeof( struct _mulle_objc_property), (void *) _mulle_objc_property_compare);
+   MULLE_C_ASSERT( sizeof( struct _mulle_objc_property *) == sizeof( void *));
+
+   mulle_qsort( properties,
+                n,
+                sizeof( struct _mulle_objc_property),
+                (mulle_qsort_cmp_t *) _mulle_objc_property_compare);
 }
 
