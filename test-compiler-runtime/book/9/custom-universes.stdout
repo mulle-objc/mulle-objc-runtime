@@ -1,0 +1,6 @@
+Test: Custom universe creation
+Default universe: 0x12345678
+SUCCESS: Custom universe created
+Custom universe: 0x87654321
+Different from default: YES
+Custom universe destroyed

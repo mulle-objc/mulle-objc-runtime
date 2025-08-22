@@ -1,0 +1,7 @@
+Test: Protocol system and interface inheritance
+SUCCESS: Protocols found
+Printable protocol: found
+Comparable protocol: found
+SUCCESS: Class conforms to protocols
+Description: ConformingClass instance
+Length: 25

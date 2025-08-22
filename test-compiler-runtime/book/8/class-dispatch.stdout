@@ -1,0 +1,4 @@
+Test: Class method dispatch through metaclass
+SUCCESS: Class method dispatch worked
+Class name: TestClass
+Class value: 99

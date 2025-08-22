@@ -1,0 +1,5 @@
+Test: IMP extraction from methods
+SUCCESS: Found getValue method
+IMP address: 0x12345678
+SUCCESS: Found getName class method
+IMP address: 0x12345678

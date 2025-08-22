@@ -149,7 +149,8 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
       #
       add_library( "${LIBRARY_NAME}"
          ${ALL_OBJECT_FILES}
-         ${PROJECT_INSTALLABLE_HEADERS} # else won't get installed by framework
+         ${INSTALL_PUBLIC_HEADERS}  # else won't get installed by framework
+         ${INSTALL_PRIVATE_HEADERS} # else won't get installed by framework
          ${LIBRARY_RESOURCES}
       )
 

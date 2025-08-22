@@ -85,10 +85,10 @@ static int   __mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
                                                unsigned int bit,
                                                int clear)
 {
-   void   *state;
-   void   *old;
+   void                          *state;
+   void                          *old;
    struct _mulle_objc_universe   *universe;
-   char   *bitname;
+   char                          *bitname;
 
    assert( bit);
 

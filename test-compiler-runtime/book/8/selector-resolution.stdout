@@ -1,0 +1,7 @@
+Test: Selector resolution from string to ID and back
+Selector ID for 'testMethod': 3685921551
+Method name for ID: testMethod
+Selector ID for 'classMethod': 3272033638
+Method name for ID: classMethod
+Selector ID for 'nonexistentMethod': 285084627
+Method name for ID: NULL

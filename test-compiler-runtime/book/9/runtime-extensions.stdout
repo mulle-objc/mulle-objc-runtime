@@ -1,0 +1,5 @@
+Test: Runtime extension framework
+SUCCESS: Runtime extension example
+Class name: ExtensionTestClass
+Extension registered for class: ExtensionTestClass
+Extension framework ready for use

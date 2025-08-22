@@ -119,22 +119,26 @@ struct _mulle_objc_impcache
 // this method (i.e. don't use it, use mulle_objc_impcache_new)
 //
 MULLE_C_NONNULL_FIRST_SECOND
-static inline void   _mulle_objc_impcache_callback_init( struct _mulle_objc_impcache_callback *p,
-                                                         struct _mulle_objc_impcache_callback *callback)
+static inline void
+   _mulle_objc_impcache_callback_init( struct _mulle_objc_impcache_callback *p,
+                                       struct _mulle_objc_impcache_callback *callback)
 {
    memcpy( p, callback, sizeof( *callback));
 }
 
 
-static inline void   _mulle_objc_impcache_init( struct _mulle_objc_impcache *icache,
-                                                struct _mulle_objc_impcache_callback *callback,
-                                                mulle_objc_cache_uint_t size)
+static inline void
+   _mulle_objc_impcache_init( struct _mulle_objc_impcache *icache,
+                              struct _mulle_objc_impcache_callback *callback,
+                              mulle_objc_cache_uint_t size)
 {
    extern struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_normal;
 
    _mulle_objc_cache_init( &icache->cache, size);
    _mulle_objc_impcache_callback_init( &icache->callback,
-                                       callback ? callback : &_mulle_objc_impcache_callback_normal);
+                                       callback ?
+                                       callback :
+                                       &_mulle_objc_impcache_callback_normal);
 }
 
 

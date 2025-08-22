@@ -335,13 +335,13 @@ void  *
    mulle_objc_cache_uint_t         mask;
    mulle_objc_cache_uint_t         offset;
 
+   assert( methodid);
+
    //
    // with tagged pointers inlining starts to become useless, because this
    // _mulle_objc_object_get_isa function produces too much code IMO
    //
-   cls = _mulle_objc_object_get_isa( obj);
-
-   assert( methodid);
+   cls     = _mulle_objc_object_get_isa( obj);
 
    // MEMO: When inlining, we are "fine" if the cache is stale
    entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
@@ -462,7 +462,7 @@ void  *
 // constant.
 //
 MULLE_C_STATIC_ALWAYS_INLINE void  *
-   mulle_objc_object_call_variable_inline( void *obj,
+   mulle_objc_object_call_inline_variable( void *obj,
                                            mulle_objc_methodid_t methodid,
                                            void *parameter)
 {
@@ -500,6 +500,16 @@ MULLE_C_STATIC_ALWAYS_INLINE void  *
    // don't use invoke, because the checking will be done in icache->call_cache_...
    return( (*f)( obj, methodid, parameter));
 }
+
+// old mistyped name
+MULLE_C_STATIC_ALWAYS_INLINE void  *
+   mulle_objc_object_call_variable_inline( void *obj,
+                                           mulle_objc_methodid_t methodid,
+                                           void *parameter)
+{
+   return( mulle_objc_object_call_inline_variable( obj, methodid, parameter));
+}
+
 
 
 
@@ -555,6 +565,7 @@ MULLE_C_STATIC_ALWAYS_INLINE void  *
    // don't use invoke, because the checking will be done in icache->call_cache_miss
    return( (*f)( obj, methodid, parameter));
 }
+
 
 
 //

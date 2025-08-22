@@ -1,0 +1,5 @@
+Test: Method lookup in hash table
+SUCCESS: Found description method
+Method name: description
+Method signature: *16@0:8
+SUCCESS: computeValue not found on infraclass (expected)

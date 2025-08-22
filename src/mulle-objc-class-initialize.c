@@ -584,10 +584,11 @@ struct _mulle_objc_impcache_callback  _mulle_objc_impcache_callback_empty =
    .call                       = _mulle_objc_object_call_class_slow,
    .call_cache_collision       = _mulle_objc_object_call2_slow,
    .call_cache_miss            = _mulle_objc_object_call2_slow,
-   .refresh_method_nofail      = _mulle_objc_class_refresh_method_nofail,
    .supercall                  = _mulle_objc_object_call_super_slow,
    .supercall_cache_collision  = _mulle_objc_object_call_super_slow,
    .supercall_cache_miss       = _mulle_objc_object_call_super_slow,
+
+   .refresh_method_nofail      = _mulle_objc_class_refresh_method_nofail,
    .refresh_supermethod_nofail = _mulle_objc_class_refresh_supermethod_nofail
 };
 

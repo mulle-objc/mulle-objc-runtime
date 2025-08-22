@@ -1,0 +1,5 @@
+Test: Category method injection
+SUCCESS: Category methods available
+Base method result: 10
+Category method result: 20
+Category name: Extension

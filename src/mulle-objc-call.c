@@ -662,7 +662,7 @@ static void *
                                                       mulle_objc_superid_t superid,
                                                       struct _mulle_objc_class *cls)
 {
-   mulle_objc_implementation_t     imp;
+   mulle_objc_implementation_t   imp;
 
    imp = _mulle_objc_object_callback_super_cache_collision_get_implementation( obj,
                                                                                methodid,

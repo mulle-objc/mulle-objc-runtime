@@ -100,7 +100,10 @@ void   mulle_objc_protocol_sort( struct _mulle_objc_protocol *protocols,
    if( ! protocols)
       return;
 
-   qsort( protocols, n, sizeof( struct _mulle_objc_protocol), (int (*)()) _mulle_objc_protocol_compare);
+   mulle_qsort( protocols,
+                n,
+                sizeof( struct _mulle_objc_protocol),
+                (mulle_qsort_cmp_t *) _mulle_objc_protocol_compare);
 }
 
 
