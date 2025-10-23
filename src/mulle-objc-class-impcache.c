@@ -407,3 +407,34 @@ int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
    return( 0x1);
 }
 
+
+//
+// Public function to preload methods into a cache
+//
+void   _mulle_objc_class_preload_cache_methods( struct _mulle_objc_class *cls,
+                                                struct _mulle_objc_cache *cache)
+{
+   struct _mulle_objc_universe   *universe;
+   unsigned int                  inheritance;
+   
+   universe = _mulle_objc_class_get_universe( cls);
+   
+   if( _mulle_objc_class_count_preloadmethods( cls) || _mulle_objc_universe_get_numberofpreloadmethods( universe))
+   {
+      if( universe->debug.trace.preload)
+      {
+         mulle_objc_universe_trace( universe,
+                                    "preloading %sclass %s cache %p with preload flagged methods:",
+                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
+                                    _mulle_objc_class_get_name( cls),
+                                    cache);
+      }
+
+      inheritance = _mulle_objc_class_get_inheritance( cls);
+      _mulle_objc_class_walk_methods( cls,
+                                      inheritance,
+                                      (mulle_objc_method_walkcallback_t) preload,
+                                      cache);
+   }
+}
+

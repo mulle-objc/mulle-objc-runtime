@@ -41,6 +41,7 @@
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-class-lookup.h"
 #include "mulle-objc-class-search.h"
+#include "mulle-objc-class-impcache.h"
 #include "mulle-objc-call.h"
 #include "mulle-objc-impcache.h"
 #include "mulle-objc-object.h"
@@ -127,6 +128,9 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
    icache    = mulle_objc_impcache_new( n_entries, callback, allocator);
 
    assert( icache);
+
+   // Preload methods into the initial cache if preload_all_methods is enabled
+   _mulle_objc_class_preload_cache_methods( cls, &icache->cache);
 
    // trace this before the switch
    if( universe->debug.trace.method_cache)
