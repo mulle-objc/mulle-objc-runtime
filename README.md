@@ -97,6 +97,15 @@ only locks during `+initialize` on a per class basis.
 
 * Multiple runtimes can coexist in differently named "universes".
 
+### Books
+
+There are now several books that explain the mulle-objc runtime and its usage:
+
+* [The mulle-objc Runtime - in plain C](//github.com/mulle-objc/mulle-objc-runtime/blob/master/book/chapter0-introduction.md) for humans and AIs
+* [The Objective-C runtime in pictures](//www.mulle-kybernetik.com/objc-runtime-in-pictures/) an indepth guide
+* [De Re mulle-objc](//www.mulle-kybernetik.com/de-re-mulle-objc/) developer guide
+
+
 ### Articles
 
 These articles give you some background about the **mulle-objc** runtime:
