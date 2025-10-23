@@ -254,6 +254,7 @@ static inline int  _mulle_objc_signature_compare_strict( char *a, char *b)
 MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_signature_contains_object( char *type);
 
+
 // check if type is '@' '~' (or as member in array, union, struct member)
 MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_signature_contains_retainable_type( char *type);
@@ -400,18 +401,17 @@ static inline enum mulle_metaabi_param
 
 
 /*
- * PRE-ALPHA
  *
- * _mulle_objc_typeinfo_is_compatible
- * _mulle_objc_ivarsignature_is_compatible
+ * _mulle_objc_typeinfo_is_binary_compatible
+ * _mulle_objc_ivarsignature_is_binary_compatible
  *
- * These are some crude functions that I need in CoreAnimation and MulleObject
- * but they are too simplistic for general use. Still they are here so I
- * don't have to maintain multiple copies...
+ * These are some functions that I need in CoreAnimation and MulleObject.
+ * they check if two structs/unions/array are fundamentally the same
+ * e.g. CGPoint == float[ 2]
  */
-int   _mulle_objc_typeinfo_is_compatible( struct mulle_objc_typeinfo *a,
-                                          struct mulle_objc_typeinfo *b);
-int   _mulle_objc_ivarsignature_is_compatible( char *a, char *b);
+int   _mulle_objc_typeinfo_is_binary_compatible( struct mulle_objc_typeinfo *a,
+                                                 struct mulle_objc_typeinfo *b);
+int   _mulle_objc_ivarsignature_is_binary_compatible( char *a, char *b);
 
 
 
@@ -584,3 +584,33 @@ static inline void
 //    show_encode( void (*)( void));
 //    return( 0);
 // }
+
+// check if type is '@' '~' '=' '#'
+static inline int   _mulle_objc_signature_is_object( char *type)
+{
+   char  *s;
+
+   s = _mulle_objc_signature_skip_type_qualifier( type);
+   switch( *s)
+   {
+   case _C_COPY_ID   :
+   case _C_RETAIN_ID :
+   case _C_ASSIGN_ID :
+   case _C_CLASS     : return( 1);
+   }
+   return( 0);
+}
+
+static inline int   _mulle_objc_signature_is_retainable_type( char *type)
+{
+   char  *s;
+
+   s = _mulle_objc_signature_skip_type_qualifier( type);
+   switch( *s)
+   {
+   case _C_COPY_ID   :
+   case _C_RETAIN_ID : return( 1);
+   }
+   return( 0);
+}
+
