@@ -430,7 +430,10 @@ int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
                                                       cls,
                                                       list);
 
-      if( _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
+      // Count methods with explicit preload bit, OR if preload_all_methods is enabled
+      if( method->descriptor.bits & _mulle_objc_method_preload)
+         cls->preloads++;
+      else if( universe->config.preload_all_methods)
          cls->preloads++;
    }
    _mulle_objc_methodlistenumerator_done( &rover);
