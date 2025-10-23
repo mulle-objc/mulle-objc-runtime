@@ -245,10 +245,10 @@ char   *mulle_objc_known_name_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
    case MULLE_OBJC_FORWARD_METHODID         : return( "forward:");
    case MULLE_OBJC_INITIALIZE_METHODID      : return( "initialize");
    case MULLE_OBJC_INIT_METHODID            : return( "init");
+   case MULLE_OBJC_INSTANCE_METHODID        : return( "instance");
    case MULLE_OBJC_INSTANTIATE_METHODID     : return( "instantiate");
    case MULLE_OBJC_LOAD_METHODID            : return( "load");
    case MULLE_OBJC_MUTABLECOPY_METHODID     : return( "mutableCopy");
-   case MULLE_OBJC_OBJECT_METHODID          : return( "object");
    case MULLE_OBJC_RELEASE_METHODID         : return( "release");
    case MULLE_OBJC_RETAIN_METHODID          : return( "retain");
    case MULLE_OBJC_RETAINCOUNT_METHODID     : return( "retainCount");
