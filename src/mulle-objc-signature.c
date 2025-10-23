@@ -1108,115 +1108,315 @@ int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
 }
 
 
-
-
-
-// this is pre-alpha
-static int   types_are_compatible( char *a, size_t a_len,
-                                   char *b, size_t b_len)
+/*
+ * This code checks if two ivars are binary compatible.
+ * f.e. uint32_t and int32_t are deemed compatible
+ * struct { float x, y } and float f[ 2] are also compatible and so on
+ * char and int are not compatible, and float and int are neither.
+ * pointers are considered compatible, but char *s and void * are not,
+ * different encodings!
+ */ 
+struct mulle_signature_array_state
 {
-   char   *s;
+   char     *field;
+   size_t   repeat;
+};
 
-   if( a_len && b_len)
+static inline struct mulle_signature_array_state   
+   mulle_signature_array_state_make( char *field, size_t repeat)
+{
+   return( (struct mulle_signature_array_state) 
+           { 
+              .field  = field, 
+              .repeat = repeat
+           });
+}
+
+
+//
+//  the field enumerator has 256 bytes of storage, the max number of nested
+//  256 - (16 + (8 * 16) + 8) // 256 - 160 = 96 
+// 
+#define MAX_ARRAY_DEPTH      8
+#define MAX_AGGREGATE_DEPTH  (256 - sizeof( char *) * 2  \
+                                  - sizeof( struct mulle_signature_array_state) * MAX_ARRAY_DEPTH \
+                                  - sizeof( int32_t) * 2)
+
+struct mulle_signature_field_enumerator
+{
+   char      *curr;
+   char      *sentinel;
+
+   int32_t   array_depth;
+   struct mulle_signature_array_state    array_state[ MAX_ARRAY_DEPTH];
+
+   int32_t   depth;
+   char      stack[ MAX_AGGREGATE_DEPTH];
+};
+
+
+static inline struct mulle_signature_field_enumerator   
+   mulle_signature_field_enumerator_make( char *s,
+                                          size_t len)
+{
+   MULLE_C_ASSERT( MAX_AGGREGATE_DEPTH >= 32);
+
+   return( (struct mulle_signature_field_enumerator) 
+           { 
+              .curr     = s, 
+              .sentinel = &s[ len]
+           });
+}
+
+static int  
+   _mulle_signature_field_enumerator_skip_past( struct mulle_signature_field_enumerator *p, 
+                                                         int c)
+{
+   for(;;)
    {
-      // all kinds ob objects are compatible
-      if( (*a == _C_ASSIGN_ID || *a == _C_COPY_ID || *a == _C_RETAIN_ID)
-          && (*b == _C_ASSIGN_ID || *b == _C_COPY_ID || *b== _C_RETAIN_ID))
-      {
+      if( p->curr >= p->sentinel)
+         return( 0);
+      if( *p->curr++ == c)
          return( 1);
-      }
+   }
+}
 
-      switch( *a)
+
+// must have a number
+static int  
+   _mulle_signature_field_enumerator_skip_past_number( struct mulle_signature_field_enumerator *p)
+{
+   int   c;
+   int   nr;
+
+   nr = 0;
+   for(;;)
+   {
+      if( p->curr >= p->sentinel)
+         return( 0);
+      c = *p->curr;
+      if( c < '0' || c > '9')
+         return( nr);
+      nr = (nr * 10) + (c - '0');
+      ++p->curr;
+   }
+}
+
+
+
+static int  _mulle_signature_field_enumerator_next( struct mulle_signature_field_enumerator *p)
+{
+   int      c;
+   int      aggregate;
+   struct mulle_signature_array_state  *array_state;
+   size_t   repeat;
+
+   if( p->curr == p->sentinel)
+      return( 0);
+
+   // inside struct or union
+   aggregate = 0;
+   if( p->depth)
+   {
+next:
+      aggregate = p->stack[ p->depth - 1];
+      if( aggregate == _C_ARY_B)
+      {
+         array_state = &p->array_state[ p->array_depth - 1];
+         if( array_state->repeat)
+         {
+            --array_state->repeat;
+            p->curr = array_state->field;
+         }
+      }
+   }
+
+   for(;;)
+   {
+      c = *p->curr++;
+      switch( c)
+      {
+      case _C_ARY_B : // [5i] : grab number and into repeater
+         p->stack[ p->depth] = c;
+         if( ++p->depth >= MAX_AGGREGATE_DEPTH)
+         {
+            assert( p->depth < MAX_AGGREGATE_DEPTH);
+            return( 0);
+         }
+         if( p->array_depth >= MAX_ARRAY_DEPTH)
+         {
+            assert( p->array_depth < MAX_ARRAY_DEPTH);
+            return( 0);
+         }
+
+         repeat = _mulle_signature_field_enumerator_skip_past_number( p);
+         p->array_state[ p->array_depth++] = mulle_signature_array_state_make( p->curr, repeat);
+         goto next;
+
+      case _C_ARY_E  :
+         assert( aggregate == _C_ARY_B);
+         --p->depth;
+         if( p->depth <= 0)
+         {
+            p->sentinel = p->curr;
+            return( 0);
+         }
+
+         --p->array_depth;
+         assert( p->array_depth >= 0);
+
+         goto next;
+
+      case _C_STRUCT_B :
+         p->stack[ p->depth] = c;
+         if( ++p->depth >= MAX_AGGREGATE_DEPTH)
+         {
+            assert( p->depth < MAX_AGGREGATE_DEPTH);
+            return( 0);
+         }
+         // skip past '=' a get first field
+         if( ! _mulle_signature_field_enumerator_skip_past( p, '='))
+            return( 0);
+         goto next;
+
+      case _C_STRUCT_E :
+         assert( aggregate == _C_STRUCT_B);
+         --p->depth;
+         if( p->depth <= 0)
+         {
+            p->sentinel = p->curr;
+            return( 0);
+         }
+         goto next;      
+
+      case _C_UNION_B  :
+         p->stack[ p->depth] = c;
+         if( ++p->depth >= MAX_AGGREGATE_DEPTH)
+         {
+            assert( p->depth < MAX_AGGREGATE_DEPTH);
+            return( 0);
+         }
+         // skip past '=' a get to first field then need to ensure
+         if( ! _mulle_signature_field_enumerator_skip_past( p, '='))
+            return( 0);
+         // we put _C_UNION_B first into the stack and once we read
+         // first field it will become _C_UNION_E 
+         goto next;      
+
+      case _C_UNION_E  :
+         assert( aggregate == _C_UNION_B || aggregate == _C_UNION_E);
+         --p->depth;
+         if( p->depth <= 0)
+         {
+            p->sentinel = p->curr;
+            return( 0);
+         }
+         goto next;
+
+      default : 
+         // close it down if we have no depth
+         // if we are in a union with first field read we skip
+         if( aggregate == _C_UNION_E)
+            continue;
+         // mark this union has having read once
+         if( aggregate == _C_UNION_B)
+            p->stack[ p->depth - 1] = _C_UNION_E;
+         if( p->depth <= 0)
+            p->sentinel = p->curr;
+         return( c);
+      }
+   }
+}
+
+
+// Function to compare two types for binary compatibility
+static int   _mulle_objc_types_are_binary_compatible( char* a, size_t a_len, 
+                                                      char* b, size_t b_len) 
+{
+   struct mulle_signature_field_enumerator  a_rover;
+   struct mulle_signature_field_enumerator  b_rover;
+   int    a_encode, b_encode;
+
+   a_rover = mulle_signature_field_enumerator_make( a, a_len);
+   b_rover = mulle_signature_field_enumerator_make( b, b_len);
+
+   for(;;)
+   {
+      a_encode = _mulle_signature_field_enumerator_next( &a_rover);
+      b_encode = _mulle_signature_field_enumerator_next( &b_rover);
+
+      if( a_encode == 0)
+         return( b_encode == 0);
+      if( b_encode == 0)
+         return( 0);
+
+      switch( a_encode) 
       {
       case _C_ASSIGN_ID :
       case _C_COPY_ID   :
       case _C_RETAIN_ID :
-         switch( *b)
-         {
-         case _C_ASSIGN_ID :
-         case _C_COPY_ID   :
-         case _C_RETAIN_ID :
-            return( 1);
-         }
-         return( 0);
-
-      case _C_STRUCT_B :
-         if( *b != _C_STRUCT_B)
-            return( 1);
-
-         // its more complicated than this though
-         s = memchr( a, '=', a_len);
-         if( s)
-         {
-            s      = s + 1;
-            a_len -= s - a;
-            a      = s;
-         }
-
-         s = memchr( b, '=', b_len);
-         if( s)
-         {
-            s      = s + 1;
-            b_len -= s - b;
-            b      = s;
-         }
-         break;
+      case _C_CLASS     :
+          if( b_encode == _C_ASSIGN_ID 
+              || b_encode == _C_COPY_ID 
+              || b_encode == _C_RETAIN_ID 
+              || b_encode == _C_CLASS) 
+          {
+            continue;
+          }
+          return( 0);
 
       case _C_LNG_LNG  :
       case _C_ULNG_LNG :
-         switch( *b)
-         {
-         case _C_LNG_LNG  :
-         case _C_ULNG_LNG :
-            return( 1);
-         }
-         return( 0);
+          if( b_encode == _C_LNG_LNG || b_encode == _C_ULNG_LNG)
+              continue;
+          return( 0);
 
       case _C_LNG  :
       case _C_ULNG :
-         switch( *b)
-         {
-         case _C_LNG  :
-         case _C_ULNG :
-            return( 1);
-         }
-         return( 0);
+          if( b_encode == _C_LNG || b_encode == _C_ULNG)
+              continue;
+          return( 0);
 
       case _C_INT  :
       case _C_UINT :
-         switch( *b)
-         {
-         case _C_INT  :
-         case _C_UINT :
-            return( 1);
-         }
-         return( 0);
+          if( b_encode == _C_INT || b_encode == _C_UINT)
+              continue;
+          return( 0);
 
+      case _C_SHT  :
+      case _C_USHT :
+          if( b_encode == _C_SHT || b_encode == _C_USHT)
+              continue;
+          return( 0);
+
+      case _C_CHR  :
+      case _C_UCHR :
+          if( b_encode == _C_CHR || b_encode == _C_UCHR)
+              continue;
+          return( 0);
       }
 
-      //
-      // we want to have {CGFloat2=ff} and {CGPoint=ff} to be compatible
-      //
+      if( a_encode != b_encode)
+         return( 0);
    }
-
-   return( ! strncmp( a, b, a_len < b_len ? a_len : b_len));
 }
 
 
-int   _mulle_objc_typeinfo_is_compatible( struct mulle_objc_typeinfo *a,
-                                          struct mulle_objc_typeinfo *b)
+int   _mulle_objc_typeinfo_is_binary_compatible( struct mulle_objc_typeinfo *a, 
+                                                 struct mulle_objc_typeinfo *b)
 {
-   size_t   a_len;
-   size_t   b_len;
+    size_t   a_len;    
+    size_t   b_len;
 
-   a_len = (size_t) (a->pure_type_end - a->type);
-   b_len = (size_t) (b->pure_type_end - b->type);
+    a_len = (size_t) (a->pure_type_end - a->type);
+    b_len = (size_t) (b->pure_type_end - b->type);
 
-   return( types_are_compatible( a->type, a_len, b->type, b_len));
+    return( _mulle_objc_types_are_binary_compatible( a->type, a_len, 
+                                                    b->type, b_len));
 }
 
 
-int   _mulle_objc_ivarsignature_is_compatible( char *a, char *b)
+int   _mulle_objc_ivarsignature_is_binary_compatible( char *a, char *b)
 {
    struct mulle_objc_typeinfo   a_info;
    struct mulle_objc_typeinfo   b_info;
@@ -1230,6 +1430,6 @@ int   _mulle_objc_ivarsignature_is_compatible( char *a, char *b)
    if( ! b)
       return( 0);
 
-   return( _mulle_objc_typeinfo_is_compatible( &a_info, &b_info));
+   return( _mulle_objc_typeinfo_is_binary_compatible( &a_info, &b_info));
 }
 
