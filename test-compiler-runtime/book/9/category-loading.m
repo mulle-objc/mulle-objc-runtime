@@ -36,7 +36,7 @@ int main(void)
     
     mulle_printf("Test: Category method injection\n");
     
-    obj = mulle_objc_class_new(&infra->base);
+    obj = mulle_objc_infraclass_alloc_instance(infra);
     if (obj)
     {
         base_result = [obj baseValue];

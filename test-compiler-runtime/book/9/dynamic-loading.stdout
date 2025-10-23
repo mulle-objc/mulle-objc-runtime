@@ -1,4 +1,6 @@
+LoadTestClass +load called
 Test: Dynamic loading with +load/+unload
 SUCCESS: LoadTestClass found in runtime
 Load count: 1
 Unload count: 0
+LoadTestClass +unload called

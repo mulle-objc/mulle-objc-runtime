@@ -10,7 +10,7 @@
 @end
 
 @protocol Comparable
-- (BOOL)isEqualTo:(id)other;
+- (int)isEqualTo:(id)other;
 @end
 
 @interface ConformingClass <Printable, Comparable>
@@ -19,7 +19,7 @@
 @implementation ConformingClass
 - (const char *)description { return "ConformingClass instance"; }
 - (int)getLength { return 25; }
-- (BOOL)isEqualTo:(id)other { return self == other; }
+- (int)isEqualTo:(id)other { return (int)(self == other); }
 @end
 
 int main(void)
@@ -35,8 +35,8 @@ int main(void)
     mulle_printf("Test: Protocol system and interface inheritance\n");
     
     // Look up protocols by name
-    printable = mulle_objc_universe_lookup_protocolstring(universe, "Printable");
-    comparable = mulle_objc_universe_lookup_protocolstring(universe, "Comparable");
+    printable = _mulle_objc_universe_lookup_protocol(universe, mulle_objc_protocolid_from_string("Printable"));
+    comparable = _mulle_objc_universe_lookup_protocol(universe, mulle_objc_protocolid_from_string("Comparable"));
     
     mulle_printf("SUCCESS: Protocols found\n");
     mulle_printf("Printable protocol: %s\n", printable ? "found" : "not found");
@@ -47,7 +47,7 @@ int main(void)
         universe, 
         mulle_objc_classid_from_string("ConformingClass"));
     
-    obj = mulle_objc_class_new(&infra->base);
+    obj = mulle_objc_infraclass_alloc_instance(infra);
     if (obj)
     {
         mulle_printf("SUCCESS: Class conforms to protocols\n");

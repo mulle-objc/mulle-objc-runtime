@@ -182,6 +182,134 @@ int main(void)
 ```
 
 
+## Multiple Universes and TPS Limitations
+
+The runtime supports multiple isolated universes that can coexist but cannot message each other. However, there's an important limitation:
+
+### Tagged Pointer Support (TPS) Limitation
+
+Only the **global universe** can be compiled with TPS (tagged pointer support). Named universes cannot use tagged pointers.
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+int main(void)
+{
+    struct _mulle_objc_universe *global_universe;
+    struct _mulle_objc_universe *named_universe;
+    
+    // Global universe supports TPS
+    global_universe = mulle_objc_global_get_defaultuniverse();
+    
+    // Named universe - no TPS support
+    named_universe = mulle_objc_alloc_universe(
+        mulle_objc_universeid_from_string("PluginContext"), 
+        "PluginContext"
+    );
+    
+    printf("Global universe supports TPS: %d\n", 
+           mulle_objc_universe_supports_tagged_pointers(global_universe));
+    printf("Named universe supports TPS: %d\n", 
+           mulle_objc_universe_supports_tagged_pointers(named_universe));
+    
+    return 0;
+}
+```
+
+## Thread Registration and Lifecycle
+
+Each thread must properly register with the runtime before accessing objects and deregister when done.
+
+### Complete Thread Lifecycle Example
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <pthread.h>
+
+void *worker_thread(void *arg)
+{
+    struct _mulle_objc_universe *universe;
+    
+    // Register this thread with the runtime
+    mulle_objc_thread_register(MULLE_OBJC_DEFAULTUNIVERSEID);
+    
+    // Setup thread context
+    mulle_objc_thread_setup_threadinfo(
+        mulle_objc_global_get_defaultuniverse()
+    );
+    
+    // Now safe to use runtime objects
+    universe = mulle_objc_global_get_defaultuniverse();
+    printf("Thread registered, universe: %p\n", universe);
+    
+    // Periodic check-in for garbage collection
+    mulle_objc_thread_checkin(MULLE_OBJC_DEFAULTUNIVERSEID);
+    
+    // Do runtime work here...
+    
+    // Deregister before thread exit
+    mulle_objc_thread_deregister(MULLE_OBJC_DEFAULTUNIVERSEID);
+    
+    return NULL;
+}
+
+int main(void)
+{
+    pthread_t thread;
+    
+    // Main thread is automatically registered
+    pthread_create(&thread, NULL, worker_thread, NULL);
+    pthread_join(thread, NULL);
+    
+    return 0;
+}
+```
+
+## ID Calculation with mulle-objc-uniqueid Tool
+
+The runtime provides a standalone tool for calculating IDs:
+
+```bash
+$ mulle-objc-uniqueid NSString
+40413ff3
+
+$ mulle-objc-uniqueid init
+c2d87842
+
+$ mulle-objc-uniqueid "setFoo:"
+7a3e5f1b
+```
+
+### Programmatic ID Calculation
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+int main(void)
+{
+    mulle_objc_classid_t class_id;
+    mulle_objc_methodid_t method_id;
+    mulle_objc_protocolid_t protocol_id;
+    mulle_objc_ivarid_t ivar_id;
+    mulle_objc_propertyid_t property_id;
+    
+    // Calculate all types of IDs
+    class_id = mulle_objc_classid_from_string("MyClass");
+    method_id = mulle_objc_methodid_from_string("doSomething");
+    protocol_id = mulle_objc_protocolid_from_string("MyProtocol");
+    ivar_id = mulle_objc_ivarid_from_string("_instanceVar");
+    property_id = mulle_objc_propertyid_from_string("name");
+    
+    printf("MyClass: 0x%08x\n", class_id);
+    printf("doSomething: 0x%08x\n", method_id);
+    printf("MyProtocol: 0x%08x\n", protocol_id);
+    printf("_instanceVar: 0x%08x\n", ivar_id);
+    printf("name: 0x%08x\n", property_id);
+    
+    return 0;
+}
+```
+
 ## Key APIs Summary
 
 | Function | Purpose |
@@ -194,5 +322,9 @@ int main(void)
 | `mulle_objc_infraclass_alloc_instance()` | Create object instance |
 | `mulle_objc_class_get_instancesize()` | Get object size |
 | `mulle_objc_class_get_name()` | Get class name |
+| `mulle_objc_thread_register()` | Register thread with runtime |
+| `mulle_objc_thread_deregister()` | Unregister thread |
+| `mulle_objc_thread_checkin()` | Periodic GC check-in |
+| `mulle_objc_universe_supports_tagged_pointers()` | Check TPS support |
 
 **Next**: Chapter 2 dives deeper into class system operations with more advanced examples and real-world usage patterns.

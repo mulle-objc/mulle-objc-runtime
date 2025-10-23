@@ -186,7 +186,141 @@ if (original_method) {
 ```
 
 
-## 4.5 Practical Example: Find All Methods
+## 4.5 Method List Enumeration with Callback
+
+The runtime provides `mulle_objc_methodlist_walk()` for walking through method lists with custom callbacks:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+// Callback for method enumeration
+static int print_method(struct _mulle_objc_method *method,
+                        struct _mulle_objc_class *cls,
+                        void *userinfo)
+{
+    const char *prefix = (const char *)userinfo;
+    
+    printf("%s%s[%s %s] @encode:%s\n",
+            prefix,
+            mulle_objc_class_get_name(cls),
+            mulle_objc_method_get_name(method),
+            mulle_objc_method_get_signature(method));
+    
+    return 0; // Continue walking
+}
+
+void enumerate_class_methods(const char *class_name)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    struct _mulle_objc_methodlist *methodlist;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string(class_name)
+    );
+    
+    // Get method list
+    methodlist = mulle_objc_class_get_instance_methods(&cls->base);
+    if (methodlist)
+    {
+        printf("Instance methods for %s:\n", class_name);
+        mulle_objc_methodlist_walk(methodlist, print_method, 
+                                   &cls->base, "- ");
+    }
+    
+    // Get class methods (from metaclass)
+    methodlist = mulle_objc_class_get_class_methods(&cls->base);
+    if (methodlist)
+    {
+        printf("Class methods for %s:\n", class_name);
+        mulle_objc_methodlist_walk(methodlist, print_method, 
+                                   mulle_objc_class_get_metaclass(&cls->base), "+ ");
+    }
+}
+```
+
+### Method List Enumerator Usage
+
+For more control over method enumeration, use the method list enumerator:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+void enumerate_methods_with_enumerator(const char *class_name)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    struct _mulle_objc_methodlist *methodlist;
+    struct _mulle_objc_methodlistenumerator enumerator;
+    struct _mulle_objc_method *method;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string(class_name)
+    );
+    
+    methodlist = mulle_objc_class_get_instance_methods(&cls->base);
+    if (methodlist)
+    {
+        enumerator = mulle_objc_methodlist_enumerate(methodlist);
+        
+        printf("Methods in %s:\n", class_name);
+        while ((method = mulle_objc_methodlistenumerator_next(&enumerator)))
+        {
+            printf("  %s: %s (%s)\n",
+                   mulle_objc_method_get_name(method),
+                   mulle_objc_method_get_signature(method),
+                   mulle_objc_method_get_implementation(method));
+        }
+        
+        mulle_objc_methodlistenumerator_done(&enumerator);
+    }
+}
+```
+
+## 4.6 Method Introspection Functions
+
+The runtime provides complete introspection capabilities for methods:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+void demonstrate_method_introspection(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    struct _mulle_objc_method *method;
+    mulle_objc_methodid_t method_id;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSObject")
+    );
+    
+    // Find specific method
+    method_id = mulle_objc_methodid_from_string("description");
+    method = mulle_objc_class_search_method(&cls->base, method_id);
+    
+    if (method)
+    {
+        const char *name = mulle_objc_method_get_name(method);
+        const char *signature = mulle_objc_method_get_signature(method);
+        mulle_objc_methodid_t methodid = mulle_objc_method_get_methodid(method);
+        mulle_objc_implementation_t imp = mulle_objc_method_get_implementation(method);
+        
+        printf("Method: %s\n", name);
+        printf("  ID: 0x%08x\n", methodid);
+        printf("  Signature: %s\n", signature);
+        printf("  Implementation: %p\n", imp);
+    }
+}
+```
+
+## 4.7 Practical Example: Find All Methods
 
 Here's a complete example for listing all methods of any class:
 
@@ -216,4 +350,18 @@ void list_class_methods(const char *class_name)
     _mulle_objc_class_walk_methods(&infra->base, -1, print_method, NULL);
 }
 ```
+
+## Key APIs Summary
+
+| Function | Purpose |
+|----------|---------|
+| `mulle_objc_class_search_method()` | Search for method by ID |
+| `mulle_objc_method_get_name()` | Get method name |
+| `mulle_objc_method_get_signature()` | Get method signature |
+| `mulle_objc_method_get_methodid()` | Get unique method ID |
+| `mulle_objc_method_get_implementation()` | Get method implementation |
+| `mulle_objc_methodlist_walk()` | Walk method list with callback |
+| `mulle_objc_methodlist_enumerate()` | Get method list enumerator |
+| `mulle_objc_methodlistenumerator_next()` | Get next method from enumerator |
+| `mulle_objc_methodlistenumerator_done()` | Clean up enumerator |
 ```
