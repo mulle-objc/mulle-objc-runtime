@@ -275,6 +275,132 @@ void demonstrate_class_cache(void)
 }
 ```
 
+## Object Copy and Advanced Operations
+
+### Object Copy
+
+The runtime provides a simple way to copy objects using the standard Objective-C copy mechanism:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+void demonstrate_object_copy(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    void *original_object;
+    void *copied_object;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSString")
+    );
+    
+    // Create original object
+    original_object = mulle_objc_infraclass_alloc_instance(cls);
+    
+    // Copy object (calls -copy method)
+    copied_object = mulle_objc_object_copy(original_object);
+    
+    printf("Original: %p\n", original_object);
+    printf("Copy: %p\n", copied_object);
+    printf("Same pointer: %s\n", original_object == copied_object ? "yes" : "no");
+}
+```
+
+### Multiple Object Batch Calls
+
+Efficiently call the same method on multiple objects using `mulle_objc_objects_call()`:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+void demonstrate_batch_object_calls(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    void *objects[3];
+    mulle_objc_methodid_t selector;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSObject")
+    );
+    
+    // Create multiple objects
+    objects[0] = mulle_objc_infraclass_alloc_instance(cls);
+    objects[1] = mulle_objc_infraclass_alloc_instance(cls);
+    objects[2] = mulle_objc_infraclass_alloc_instance(cls);
+    
+    // Batch call - call description on all objects
+    selector = mulle_objc_methodid_from_string("description");
+    
+    printf("Calling description on %d objects:\n", 3);
+    mulle_objc_objects_call(objects, 3, selector, NULL);
+    
+    // Note: This is a simplified example - in practice you'd handle return values
+    // through the Meta-ABI parameter structure
+}
+```
+
+### Thread Safety Requirements
+
+When working with objects across multiple threads, proper thread registration is essential:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <pthread.h>
+
+// Thread-safe object access
+void *thread_safe_object_access(void *arg)
+{
+    struct _mulle_objc_universe *universe;
+    void *object;
+    
+    // Register thread with runtime
+    mulle_objc_thread_register(MULLE_OBJC_DEFAULTUNIVERSEID);
+    
+    // Setup thread context
+    mulle_objc_thread_setup_threadinfo(
+        mulle_objc_global_get_defaultuniverse()
+    );
+    
+    // Now safe to use runtime objects
+    universe = mulle_objc_global_get_defaultuniverse();
+    object = mulle_objc_infraclass_alloc_instance(
+        mulle_objc_universe_lookup_infraclass_nofail(
+            universe,
+            mulle_objc_classid_from_string("NSObject")
+        )
+    );
+    
+    // Perform thread-safe operations
+    printf("Thread %p created object: %p\n", 
+           (void *)pthread_self(), object);
+    
+    // Deregister before thread exit
+    mulle_objc_thread_deregister(MULLE_OBJC_DEFAULTUNIVERSEID);
+    
+    return object;
+}
+
+int main(void)
+{
+    pthread_t thread1, thread2;
+    
+    // Main thread is automatically registered
+    pthread_create(&thread1, NULL, thread_safe_object_access, NULL);
+    pthread_create(&thread2, NULL, thread_safe_object_access, NULL);
+    
+    pthread_join(thread1, NULL);
+    pthread_join(thread2, NULL);
+    
+    return 0;
+}
+```
+
 ## Key APIs Summary
 
 | Function | Purpose |
@@ -286,3 +412,7 @@ void demonstrate_class_cache(void)
 | `_mulle_objc_object_get_retaincount()` | Get current retain count |
 | `mulle_objc_object_get_taggedpointerindex()` | Check if pointer is tagged |
 | `_mulle_objc_class_get_instancesize()` | Get instance size from class |
+| `mulle_objc_object_copy()` | Create copy of object |
+| `mulle_objc_objects_call()` | Batch call method on multiple objects |
+| `mulle_objc_thread_register()` | Register thread for runtime access |
+| `mulle_objc_thread_deregister()` | Unregister thread from runtime |

@@ -1,4 +1,4 @@
-# Chapter 10: Universe Configuration
+# Chapter 11: Universe Configuration
 
 The universe is the runtime's global state container. While you can use the default universe without configuration, advanced applications often need to customize the runtime behavior. This chapter explains how to configure universes using `_mulle_objc_universe_bang()` and related APIs.
 
@@ -233,5 +233,3 @@ int main(void)
 | `_mulle_objc_universe_defaultbang()` | Default universe initialization |
 | `mulle_objc_global_register_universe()` | Create/register named universe |
 | `__register_mulle_objc_universe()` | Runtime startup registration (from startup project) |
-
-**Next**: Advanced topics like custom method caching, garbage collection tuning, and runtime introspection.

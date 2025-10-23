@@ -178,6 +178,169 @@ void inspect_inheritance(const char *class_name)
 
 The superclass relationship exists separately for both the infraclass and metaclass, creating parallel inheritance hierarchies. When you subclass, both your instance methods (infraclass) and class methods (metaclass) inherit appropriately.
 
+## Protocol Classes
+
+A **protocol class** is a special type of class that represents a protocol directly. It's defined as a root class that:
+
+1. Has no superclass
+2. Has exactly one protocol, with the same name as the class
+3. Has no instance variables
+
+### Creating a Protocol Class
+
+```c
+// Protocol class example
+@protocol MyProtocol
+// Protocol methods declared here
+@end
+
+@implementation MyProtocol <MyProtocol>
+// Empty implementation - protocol class has no ivars
+@end
+```
+
+### Checking for Protocol Class
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+int main(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSObject")
+    );
+    
+    // Check if this is a protocol class
+    if (mulle_objc_infraclass_is_protocol_class(cls))
+    {
+        printf("%s is a protocol class\n", 
+               mulle_objc_class_get_name(&cls->base));
+    }
+    else
+    {
+        printf("%s is a regular class\n", 
+               mulle_objc_class_get_name(&cls->base));
+    }
+    
+    return 0;
+}
+```
+
+## Inheritance Control
+
+Classes can control how they inherit methods, properties, and protocols from superclasses and categories using inheritance flags:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+int main(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    unsigned int inheritance;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSObject")
+    );
+    
+    // Get inheritance flags
+    inheritance = mulle_objc_class_get_inheritance(&cls->base);
+    
+    printf("Inheritance flags for %s: 0x%08x\n", 
+           mulle_objc_class_get_name(&cls->base), inheritance);
+    
+    // Check specific inheritance flags
+    if (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS)
+        printf("  - Does not inherit superclass methods\n");
+    if (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
+        printf("  - Does not inherit category methods\n");
+    if (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS)
+        printf("  - Does not inherit protocols\n");
+    if (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES)
+        printf("  - Does not inherit protocol category methods\n");
+    
+    return 0;
+}
+```
+
+## Forward Method Introspection
+
+When a method is not found, the runtime calls a forward method. You can inspect which method is used for forwarding:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+int main(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    struct _mulle_objc_method *forward_method;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSObject")
+    );
+    
+    // Get the forward method
+    forward_method = mulle_objc_class_get_forwardmethod(&cls->base);
+    
+    if (forward_method)
+    {
+        printf("Forward method: %s\n", 
+               mulle_objc_method_get_name(forward_method));
+    }
+    else
+    {
+        printf("No forward method defined\n");
+    }
+    
+    return 0;
+}
+```
+
+## Protocol Conformance Checking
+
+Check if a class conforms to a specific protocol:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+int main(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    mulle_objc_protocolid_t protocol_id;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSString")
+    );
+    
+    // Check protocol conformance
+    protocol_id = mulle_objc_protocolid_from_string("NSCopying");
+    
+    if (mulle_objc_class_conformsto_protocol(&cls->base, protocol_id))
+    {
+        printf("NSString conforms to NSCopying\n");
+    }
+    else
+    {
+        printf("NSString does not conform to NSCopying\n");
+    }
+    
+    return 0;
+}
+```
+
 ## Key APIs Summary
 
 The runtime provides both safe and exception-raising variants for lookups. Functions ending with `_nofail` will raise an exception if the item is not found, eliminating NULL checks.
@@ -191,3 +354,7 @@ The runtime provides both safe and exception-raising variants for lookups. Funct
 | `_mulle_objc_infraclass_get_metaclass()` | Get metaclass |
 | `mulle_objc_universe_new_classpair()` | Create new classpair |
 | `mulle_objc_universe_walk_classes()` | Enumerate all classes |
+| `mulle_objc_infraclass_is_protocol_class()` | Check if class is a protocol class |
+| `mulle_objc_class_get_inheritance()` | Get inheritance flags |
+| `mulle_objc_class_get_forwardmethod()` | Get forward method |
+| `mulle_objc_class_conformsto_protocol()` | Check protocol conformance |

@@ -79,6 +79,52 @@ The mulle-objc runtime uses a **[Meta-ABI](https://www.mulle-kybernetik.com/webl
 - **Return values** follow the same rules - simple types return directly, complex structs use struct return
 - **Uniform dispatch** handles both direct and struct parameter cases transparently
 
+### Meta-ABI Struct Macros
+
+The runtime provides convenience macros for creating parameter structs with proper alignment and packing:
+
+```c
+// Meta-ABI struct macro usage examples (25 lines)
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+// Define parameter struct using mulle_metaabi_struct
+mulle_metaabi_struct(complex_params) {
+    char *name;
+    double value;
+    int count;
+    struct _mulle_objc_object *other;
+};
+
+// Define void return struct
+mulle_metaabi_struct_void_return(void_params) {
+    int status_code;
+    char *message;
+};
+
+void demonstrate_metaabi_macros(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    void *object;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe, mulle_objc_classid_from_string("TestClass"));
+    object = mulle_objc_class_new(&cls->base);
+    
+    // Use structured parameter
+    mulle_metaabi_struct(complex_params) params = {
+        .name = "test",
+        .value = 3.14,
+        .count = 42,
+        .other = object
+    };
+    
+    mulle_objc_object_call(object, 
+        mulle_objc_methodid_from_string("processComplex:"), &params);
+}
+```
+
 ### Basic Parameter Struct Example
 
 ```c
@@ -131,7 +177,43 @@ void demonstrate_meta_abi(void)
 
 ## 8.2 Call Variants
 
-Different types of method calls use different dispatch mechanisms. Instance methods go through the instance's class, class methods go through the metaclass, and super calls skip the current class.
+Different types of method calls use different dispatch mechanisms. Instance methods go through the instance's class, class methods go through the metaclass, and super calls skip the current class. The runtime provides several optimization levels for method calls.
+
+### Call Optimization Levels
+
+The runtime provides three levels of call optimization, each trading flexibility for performance:
+
+```c
+// Call variants with optimization levels (20 lines)
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+void demonstrate_call_variants(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    void *object;
+    mulle_objc_methodid_t selector;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe, mulle_objc_classid_from_string("NSObject"));
+    object = mulle_objc_infraclass_alloc_instance(cls);
+    selector = mulle_objc_methodid_from_string("description");
+    
+    // 1. Standard call - full flexibility
+    char *result1 = mulle_objc_object_call(object, selector, NULL);
+    
+    // 2. Inline partial - method cached, but full dispatch
+    char *result2 = mulle_objc_object_call_inline_partial(object, selector, NULL);
+    
+    // 3. Inline - fastest, method must be known
+    char *result3 = mulle_objc_object_call_inline(object, selector, NULL);
+    
+    printf("Standard: %s\n", result1);
+    printf("Inline partial: %s\n", result2);
+    printf("Inline: %s\n", result3);
+}
+```
 
 ### Instance Method Dispatch
 
@@ -186,10 +268,31 @@ id dispatch_class_method(const char *class_name, const char *method_name)
 
 ### Super Calls
 
-Super calls bypass the current class and start method lookup from the superclass using `mulle_objc_searcharguments_make_super`. This is how Objective-C implements inheritance.
+Super calls bypass the current class and start method lookup from the superclass. The runtime provides two mechanisms for super calls: search arguments and direct classid-based calls.
 
 ```c
-// Super method dispatch (18 lines)
+// Super method dispatch with classid parameter (18 lines)
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+id dispatch_super_method_with_classid(id obj, const char *method_name)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    mulle_objc_methodid_t selector;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_object_get_infraclass(obj);
+    selector = mulle_objc_methodid_from_string(method_name);
+    
+    // Direct super call using classid - simpler and faster
+    return mulle_objc_object_call_classid(obj, 
+        mulle_objc_class_get_superclassid(&cls->base),
+        selector, NULL);
+}
+```
+
+```c
+// Super method dispatch with search arguments (18 lines)
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 id dispatch_super_method(id obj, const char *method_name)
@@ -316,8 +419,13 @@ Forwarding is different from inheritance - inheritance searches superclasses, wh
 | `mulle_objc_class_get_metaclass()` | Get metaclass for class methods |
 | `mulle_objc_class_get_superclass()` | Get superclass for super calls |
 | `mulle_objc_object_call()` | Call method with parameter struct |
+| `mulle_objc_object_call_inline()` | Fast inline method call |
+| `mulle_objc_object_call_inline_partial()` | Cached inline method call |
+| `mulle_objc_object_call_classid()` | Super call with classid parameter |
 | `mulle_objc_object_call_super()` | Call superclass method |
 | `mulle_objc_signature_enumerate()` | Parse method signatures |
 | `_mulle_objc_signature_supply_typeinfo()` | Get type information |
 | `_mulle_objc_infraclass_add_method()` | Add method dynamically |
 | `_mulle_objc_method_create()` | Create new method for forwarding |
+| `mulle_metaabi_struct()` | Define Meta-ABI parameter struct |
+| `mulle_metaabi_struct_void_return()` | Define Meta-ABI return struct |

@@ -182,4 +182,172 @@ switch (encoding[0])
 }
 ```
 
+## Complete Ivar Walk Example with Enumeration
+
+Here's a comprehensive example that demonstrates walking through all ivars in a class hierarchy:
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <stdio.h>
+
+// Callback function for ivar enumeration
+static mulle_objc_walkcommand_t inspect_ivar(struct _mulle_objc_infraclass *infra, 
+                                           struct _mulle_objc_ivar *ivar, 
+                                           void *info)
+{
+    const char *class_name = _mulle_objc_infraclass_get_name(infra);
+    const char *ivar_name = mulle_objc_ivar_get_name(ivar);
+    const char *signature = mulle_objc_ivar_get_signature(ivar);
+    int offset = mulle_objc_ivar_get_offset(ivar);
+    
+    printf("Class: %-15s Ivar: %-15s Type: %-10s Offset: %d\n", 
+           class_name, ivar_name, signature, offset);
+    
+    return MULLE_OBJC_WALK_CONTINUE;
+}
+
+void inspect_class_ivars(const char *class_name)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string(class_name)
+    );
+    
+    printf("=== Ivars for %s ===\n", class_name);
+    
+    // Walk ivars with inheritance
+    _mulle_objc_infraclass_walk_ivars(cls, 
+                                    MULLE_OBJC_INHERIT_SUPERCLASS | 
+                                    MULLE_OBJC_INHERIT_CATEGORIES,
+                                    inspect_ivar, NULL);
+}
+
+int main(void)
+{
+    inspect_class_ivars("NSObject");
+    inspect_class_ivars("NSString");
+    
+    return 0;
+}
+```
+
+## Ivar Introspection Functions
+
+The runtime provides complete introspection capabilities for ivars:
+
+### Ivar Offset and Signature Access
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+int main(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    struct _mulle_objc_ivar *ivar;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("NSObject")
+    );
+    
+    // Find specific ivar
+    ivar = mulle_objc_class_search_ivar(&cls->base,
+        mulle_objc_ivarid_from_string("_isa")
+    );
+    
+    if (ivar)
+    {
+        const char *name = mulle_objc_ivar_get_name(ivar);
+        const char *signature = mulle_objc_ivar_get_signature(ivar);
+        mulle_objc_ivarid_t ivar_id = mulle_objc_ivar_get_ivarid(ivar);
+        int offset = mulle_objc_ivar_get_offset(ivar);
+        
+        printf("Ivar: %s\n", name);
+        printf("  ID: 0x%08x\n", ivar_id);
+        printf("  Type: %s\n", signature);
+        printf("  Offset: %d bytes\n", offset);
+    }
+    
+    return 0;
+}
+```
+
+### Advanced Ivar Usage with Direct Memory Access
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+// Example struct for demonstration
+typedef struct {
+    int age;
+    float height;
+    char *name;
+} Person;
+
+void demonstrate_ivar_access(void)
+{
+    struct _mulle_objc_universe *universe;
+    struct _mulle_objc_infraclass *cls;
+    struct _mulle_objc_ivar *age_ivar, *height_ivar, *name_ivar;
+    
+    universe = mulle_objc_global_get_defaultuniverse();
+    cls = mulle_objc_universe_lookup_infraclass_nofail(
+        universe,
+        mulle_objc_classid_from_string("Person")
+    );
+    
+    // Get ivars by name
+    age_ivar = mulle_objc_class_search_ivar(&cls->base,
+        mulle_objc_ivarid_from_string("age"));
+    height_ivar = mulle_objc_class_search_ivar(&cls->base,
+        mulle_objc_ivarid_from_string("height"));
+    name_ivar = mulle_objc_class_search_ivar(&cls->base,
+        mulle_objc_ivarid_from_string("name"));
+    
+    // Create a person instance
+    Person *person = mulle_objc_infraclass_alloc_instance(cls);
+    
+    // Direct memory access using offsets
+    if (age_ivar)
+    {
+        int offset = mulle_objc_ivar_get_offset(age_ivar);
+        *(int *)((char *)person + offset) = 25;
+    }
+    
+    if (height_ivar)
+    {
+        int offset = mulle_objc_ivar_get_offset(height_ivar);
+        *(float *)((char *)person + offset) = 5.9f;
+    }
+    
+    if (name_ivar)
+    {
+        int offset = mulle_objc_ivar_get_offset(name_ivar);
+        *(char **)((char *)person + offset) = "Alice";
+    }
+    
+    printf("Person: age=%d, height=%.1f, name=%s\n",
+           person->age, person->height, person->name);
+}
+```
+
+## Key APIs Summary
+
+| Function | Purpose |
+|----------|---------|
+| `mulle_objc_class_search_ivar()` | Search for ivar by ID |
+| `mulle_objc_ivar_get_name()` | Get ivar name |
+| `mulle_objc_ivar_get_signature()` | Get ivar type encoding |
+| `mulle_objc_ivar_get_ivarid()` | Get unique ivar ID |
+| `mulle_objc_ivar_get_offset()` | Get byte offset from object start |
+| `_mulle_objc_infraclass_walk_ivars()` | Enumerate all ivars in class |
+| `MULLE_OBJC_INHERIT_SUPERCLASS` | Include superclass ivars |
+| `MULLE_OBJC_INHERIT_CATEGORIES` | Include category ivars |
+
 The ivar system provides the foundation for property access and object introspection, enabling both runtime reflection and direct memory manipulation for performance-critical code paths.
