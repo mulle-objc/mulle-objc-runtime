@@ -140,76 +140,29 @@ If something is unclear, feel free to contact the author.
 
 |   Requirement         | Release Version  | Description
 |-----------------------|------------------|---------------
-| [mulle-core](https://github.com/mulle-core/mulle-core) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core.svg) [![Build Status](https://github.com/mulle-core/mulle-core/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core/actions/workflows/mulle-sde-ci.yml) | 🌋 Almagamated library of mulle-core and mulle-c
+| [mulle-core](https://github.com/mulle-core/mulle-core) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core.svg) [![Build Status](https://github.com/mulle-core/mulle-core/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core/actions/workflows/mulle-sde-ci.yml) | 🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c
 | [mulle-atinit](https://github.com/mulle-core/mulle-atinit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atinit.svg) [![Build Status](https://github.com/mulle-core/mulle-atinit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atinit/actions/workflows/mulle-sde-ci.yml) | 🤱🏼 Compatibility library for deterministic initializers
 | [mulle-atexit](https://github.com/mulle-core/mulle-atexit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atexit.svg) [![Build Status](https://github.com/mulle-core/mulle-atexit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atexit/actions/workflows/mulle-sde-ci.yml) | 👼 Compatibility library to fix atexit
 
 
-## Add
+## A runtime only project
 
-Use [mulle-sde](//github.com/mulle-sde) to add mulle-objc-runtime to your project.
-As long as your sources are using `#include "include-private.h"` and your headers use `#include "include.h"`, there will nothing more to do:
-
-``` sh
-mulle-sde add github:mulle-objc/mulle-objc-runtime
-```
-
-To only add the sources of mulle-objc-runtime with all the sources of its
-dependencies replace "github:" with [clib:](https://github.com/clibs/clib):
-
-## Legacy adds
-
-One common denominator is that you will likely have to add
-`#include <mulle-objc-runtime/mulle-objc-runtime.h>` to your source files.
-
-
-### Add sources to your project with clib
-
-``` sh
-clib install --out src/mulle-objc mulle-objc/mulle-objc-runtime
-```
-
-Add `-isystem src/mulle-objc` to your `CFLAGS` and compile all the
-sources that were downloaded with your project. (In **cmake** add
-`include_directories( BEFORE SYSTEM src/mulle-objc)` to your `CMakeLists.txt`
-file).
-
-
-
-
-
-
-
-### Add as subproject with cmake and git
+It's extrememly rare to you use the runtime without
+[MulleObjC](https://github.com/mulle-objc/MulleObjC),
+but if you want to, you do:
 
 ``` bash
-git submodule add -f --name "mulle-core" \
-                            "https://github.com/mulle-core/mulle-core.git" \
-                            "stash/mulle-core"
-git submodule add -f --name "mulle-atinit" \
-                            "https://github.com/mulle-core/mulle-atinit.git" \
-                            "stash/mulle-atinit"
-git submodule add -f --name "mulle-atexit" \
-                            "https://github.com/mulle-core/mulle-atexit.git" \
-                            "stash/mulle-atexit"
-git submodule add -f --name "mulle-objc-runtime" \
-                            "https://github.com/mulle-objc/mulle-objc-runtime" \
-                            "stash/mulle-objc-runtime"
-git submodule update --init --recursive
+mulle-sde init -d my-project -m mulle-c/c-developer executable
+cd my-project
+mulle-sde dep add github:mulle-objc/mulle-objc-runtime
+mulle-sde dep add github:mulle-objc/mulle-objc-debug
+mulle-sde dep add --startup github:mulle-objc/mulle-objc-runtime-startup
+mulle-sde dep add github:mulle-cc/mulle-objc-cc
+mulle-sde mark mulle-objc-cc no-bequeath
+mulle-sde mark mulle-objc-cc no-link
+mulle-sde mark mulle-objc-cc no-import
+mulle-sde mark mulle-objc-cc no-header
 ```
-
-``` cmake
-add_subdirectory( stash/mulle-objc-runtime)
-add_subdirectory( stash/mulle-atexit)
-add_subdirectory( stash/mulle-atinit)
-add_subdirectory( stash/mulle-core)
-
-target_link_libraries( ${PROJECT_NAME} PUBLIC mulle-objc-runtime)
-target_link_libraries( ${PROJECT_NAME} PUBLIC mulle-atexit)
-target_link_libraries( ${PROJECT_NAME} PUBLIC mulle-atinit)
-target_link_libraries( ${PROJECT_NAME} PUBLIC mulle-core)
-```
-
 
 ## Install
 
@@ -229,7 +182,7 @@ Install all requirements
 
 | Requirements                                 | Description
 |----------------------------------------------|-----------------------
-| [mulle-core](https://github.com/mulle-core/mulle-core)             | 🌋 Almagamated library of mulle-core and mulle-c
+| [mulle-core](https://github.com/mulle-core/mulle-core)             | 🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c
 | [mulle-atinit](https://github.com/mulle-core/mulle-atinit)             | 🤱🏼 Compatibility library for deterministic initializers
 | [mulle-atexit](https://github.com/mulle-core/mulle-atexit)             | 👼 Compatibility library to fix atexit
 

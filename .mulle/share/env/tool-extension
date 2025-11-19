@@ -1,5 +1,6 @@
 mulle-cmake-graphviz-include
 mulle-create-build-motd
+mulle-timeout
 clib
 clib-configure
 clib-install

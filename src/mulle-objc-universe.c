@@ -700,7 +700,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
 
    universe->path                = NULL;
    universe->config.max_optlevel = 0x7;
-#ifdef DEBUG
+#if 0
    universe->config.preload_all_methods = 1;
 #endif
    _mulle_objc_universe_get_environment( universe);

@@ -39,24 +39,14 @@
 
 #define mulle_objc_runtime_minimal__h__
 
-#include "mulle-metaabi.h"
-
 //
 // These are minimal runtime definitions for MulleObjC.
 // So that MulleObjC doesn't have to expose the complete API
 // and pollute the completion space. Not quite there yet...
+// They are therefore safe to be included by .c files without the need to
+// define __MULLE_TPS__ and friends.
 //
-#include <stdint.h>
-
-typedef uint32_t   mulle_objc_classid_t;
-typedef uint32_t   mulle_objc_methodid_t;
-typedef uint32_t   mulle_objc_protocolid_t;
-typedef uint32_t   mulle_objc_universeid_t;
-
-struct _mulle_objc_infraclass;
-struct _mulle_objc_ivar;
-struct _mulle_objc_method;
-struct _mulle_objc_universe;
-
+#include "mulle-objc-c-types.h"
+#include "mulle-metaabi.h"
 
 #endif

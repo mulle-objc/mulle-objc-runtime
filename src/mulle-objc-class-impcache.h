@@ -100,7 +100,7 @@ int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
 //
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
-void   _mulle_objc_class_preload_cache_methods( struct _mulle_objc_class *cls,
-                                                struct _mulle_objc_cache *cache);
+void   _mulle_objc_impcache_preload_methods( struct _mulle_objc_impcache *icache,
+                                             struct _mulle_objc_class *cls);
 
 #endif

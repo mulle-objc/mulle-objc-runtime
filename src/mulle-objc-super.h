@@ -41,6 +41,7 @@
 #include <string.h>
 
 
+// MEMO: reordering this messes with gdb!
 struct _mulle_objc_super
 {
    mulle_objc_superid_t    superid;

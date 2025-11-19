@@ -52,6 +52,9 @@
 
    infra             = (struct _mulle_objc_infraclass *) self;
    cls               = _mulle_objc_infraclass_as_class( infra);
+
+   // methods in 'A' won't be found (but category methods will)
+   // just for testing...
    cls->inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_CLASS;
 }
 
