@@ -153,7 +153,7 @@ case "${MULLE_SHELL_MODE}" in
          alias C="mulle-sde clean; mulle-sde craft"
          alias c="mulle-sde craft"
          alias CC="mulle-sde clean all; mulle-sde craft"
-         alias l="mulle-sde list --files"
+         alias l="mulle-sde files"
          alias r="mulle-sde reflect"
          alias T="mulle-sde test craft ; mulle-sde test"
          alias t="mulle-sde test rerun --serial"

@@ -305,8 +305,8 @@ static inline struct _mulle_objc_method  *
 }
 
 
-// use it like this, for finding something by name (though this will be slow)
-// in generaly you will be better off with mulle-objc-class-search.c
+// Use it like this, for finding something by name (though this will be slow)
+// in general you will be better off with mulle-objc-class-search.c
 //
 // static int  find( struct _mulle_objc_method *method,
 //                   struct _mulle_objc_class *cls,
@@ -329,7 +329,11 @@ static inline struct _mulle_objc_method  *
 // if( _mulle_objc_class_walk_methods( cls, -1, (void *) find, &info))
 //    return( info.found);
 //
-
+// BIG CAVEAT: A walk is not a substitute for a method search! The walk will
+// use 'inheritance' on all searched classes, whereas the search changes
+// inheritance on a per class basis, down the chain. Also a walk will not do
+// the metaclass -> infraclass wraparound.
+//
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
    _mulle_objc_class_walk_methods( struct _mulle_objc_class *cls,
@@ -440,7 +444,7 @@ MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
    mulle_objc_class_walk( struct _mulle_objc_class   *cls,
                           enum mulle_objc_walkpointertype_t  type,
-                          mulle_objc_walkcallback_t   callback,
+                          mulle_objc_walkcallback_t callback,
                           void *parent,
                           void *userinfo);
 

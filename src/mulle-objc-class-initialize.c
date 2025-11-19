@@ -57,14 +57,69 @@
 //       Then stepping through super calls with the debugger should be less
 //       painful.
 //
+//
+// Helper to count super methods that will be preloaded for this class
+//
+static mulle_objc_walkcommand_t
+   count_super_for_class( struct _mulle_objc_universe *universe,
+                          struct _mulle_objc_super *super,
+                          void *userinfo)
+{
+   struct
+   {
+      struct _mulle_objc_class   *cls;
+      mulle_objc_cache_uint_t    count;
+   } *info = userinfo;
+
+   struct _mulle_objc_class   *walk_cls;
+   mulle_objc_classid_t       super_classid;
+
+   super_classid = _mulle_objc_super_get_classid( super);
+
+   // Check if this super belongs to our class hierarchy
+   walk_cls = info->cls;
+   while( walk_cls)
+   {
+      if( _mulle_objc_class_get_classid( walk_cls) == super_classid)
+      {
+         info->count++;
+         break;
+      }
+      walk_cls = _mulle_objc_class_get_superclass( walk_cls);
+   }
+
+   return( mulle_objc_walk_ok);
+}
+
+
 static mulle_objc_cache_uint_t
    _mulle_objc_class_search_min_impcache_size( struct _mulle_objc_class *cls)
 {
-   mulle_objc_cache_uint_t   preloads;
+   struct _mulle_objc_universe   *universe;
+   mulle_objc_cache_uint_t       preloads;
+   struct {
+      struct _mulle_objc_class   *cls;
+      mulle_objc_cache_uint_t    count;
+   } info;
+
+   universe = cls->universe;
 
    // these are definitely in the cache
    preloads = _mulle_objc_class_count_preloadmethods( cls) +
-              _mulle_objc_universe_get_numberofpreloadmethods( cls->universe);
+              _mulle_objc_universe_get_numberofpreloadmethods( universe);
+
+   // Count super methods if preload_all_methods is enabled
+   // Only do this work if the feature is actually enabled
+   if( universe->config.preload_all_methods)
+   {
+      info.cls   = cls;
+      info.count = 0;
+      _mulle_objc_universe_walk_supers( universe,
+                                        (mulle_objc_walk_supers_callback_t) count_super_for_class,
+                                        &info);
+      preloads += info.count;
+   }
+
    return( preloads);
 }
 
@@ -130,7 +185,7 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
    assert( icache);
 
    // Preload methods into the initial cache if preload_all_methods is enabled
-   _mulle_objc_class_preload_cache_methods( cls, &icache->cache);
+   _mulle_objc_impcache_preload_methods( icache, cls);
 
    // trace this before the switch
    if( universe->debug.trace.method_cache)

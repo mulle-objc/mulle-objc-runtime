@@ -3,6 +3,8 @@
    {
       description="⏩ A fast, portable Objective-C runtime written 100% in C11";
       domain="github";
+      language="c";
+      dialect="c";
       name="mulle-objc-runtime";
       user="mulle-objc";
       repo="mulle-objc-runtime";
@@ -12,7 +14,7 @@
    dependencies =
    (
       {
-         description="🌋 Almagamated library of mulle-core and mulle-c";
+         description="🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c";
          domain="github";
          name="mulle-core";
          repo="mulle-core";

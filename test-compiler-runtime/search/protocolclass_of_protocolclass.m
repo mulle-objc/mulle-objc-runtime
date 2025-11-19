@@ -130,8 +130,9 @@ static void  print_self_and_call_super_if_available( id self,
 @end
 
 
-// MEMO: there is a bug in the compiler, in that propertyids are sorted, which
+// MEMO: there is a bug in the compiler, in that protocolids are sorted, which
 //       is bad in this case.
+// MEMO: THIS SEEMS TO WORK NOW!
 @interface F < B, A>
 @end
 

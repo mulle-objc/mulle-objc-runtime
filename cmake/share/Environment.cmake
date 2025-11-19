@@ -199,7 +199,11 @@ if( NOT __ENVIRONMENT__CMAKE__)
       # install debian style. For dependencies that misbehave, use dispensing,
       # to copy the file to the right place: mulle-sde dep mark <x> no-inplace
       #
-      set( MULLE_TARGET_TRIPLE "${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}")
+      if( DEFINED CMAKE_C_COMPILER_ID)
+         set( MULLE_TARGET_TRIPLE "${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_SYSTEM_NAME}-${CMAKE_C_COMPILER_ID}")
+      else()
+         set( MULLE_TARGET_TRIPLE "${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_SYSTEM_NAME}-${CMAKE_CXX_COMPILER_ID}")
+      endif() 
       string( TOLOWER "${MULLE_TARGET_TRIPLE}" TARGET_TRIPLET_LOWER)
 
       #

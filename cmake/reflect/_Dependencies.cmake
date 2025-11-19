@@ -12,7 +12,7 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 #
-# Generated from sourcetree: 8066A0F0-88B4-4E1F-AC6D-3EF08A277B4E;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-descend,no-import,no-singlephase;
+# Generated from sourcetree: 8066A0F0-88B4-4E1F-AC6D-3EF08A277B4E;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-core no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-core no-cmake-platform-${MULLE_UNAME}`
 # Disable for a sdk: `mulle-sourcetree mark mulle-core no-cmake-sdk-<name>`
@@ -25,7 +25,7 @@ else()
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core${CMAKE_STATIC_LIBRARY_SUFFIX}
          mulle-core
-         NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH
+         NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
       )
       if( NOT MULLE__CORE_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
          find_library( MULLE__CORE_LIBRARY NAMES
@@ -78,7 +78,9 @@ else()
          endforeach()
       else()
          # Disable with: `mulle-sourcetree mark mulle-core no-require-link`
-         message( SEND_ERROR "MULLE__CORE_LIBRARY was not found")
+         message( SEND_ERROR "MULLE__CORE_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core${CMAKE_STATIC_LIBRARY_SUFFIX}
+mulle-core")
       endif()
    endif()
 endif()
@@ -97,7 +99,7 @@ else()
       find_library( MULLE__ATINIT_LIBRARY NAMES
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_STATIC_LIBRARY_SUFFIX}
-         NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH
+         NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
       )
       if( NOT MULLE__ATINIT_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
          find_library( MULLE__ATINIT_LIBRARY NAMES
@@ -162,7 +164,8 @@ else()
          endif()
       else()
          # Disable with: `mulle-sourcetree mark mulle-atinit no-require-link`
-         message( SEND_ERROR "MULLE__ATINIT_LIBRARY was not found")
+         message( SEND_ERROR "MULLE__ATINIT_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_STATIC_LIBRARY_SUFFIX}")
       endif()
    endif()
 endif()
@@ -181,7 +184,7 @@ else()
       find_library( MULLE__ATEXIT_LIBRARY NAMES
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_STATIC_LIBRARY_SUFFIX}
-         NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH
+         NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
       )
       if( NOT MULLE__ATEXIT_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
          find_library( MULLE__ATEXIT_LIBRARY NAMES
@@ -246,7 +249,8 @@ else()
          endif()
       else()
          # Disable with: `mulle-sourcetree mark mulle-atexit no-require-link`
-         message( SEND_ERROR "MULLE__ATEXIT_LIBRARY was not found")
+         message( SEND_ERROR "MULLE__ATEXIT_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_STATIC_LIBRARY_SUFFIX}")
       endif()
    endif()
 endif()

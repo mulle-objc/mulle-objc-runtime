@@ -57,8 +57,20 @@
 
 int   main()
 {
+   // we call +x defined on A and B (+x is a class method)
+   // 'C' don't have +x go to 'B'
+   // 'B' has +x -> FINE
    [C x];
+
+   // we call +y defined nowhere (-y is an instance method)
+   // 'C' don't have +y go to 'B'
+   // 'B' don't have +y go to 'A'
+   // 'A' has no superclass, so wrap at last from metaclass 'A' to infraclass 'A'
+   // 'A' has -y  -> FINE
    [C y];
+
+   // +z is a class method
+   // 'C' has +x -> FINE
    [C z];
    return( 0);
 }

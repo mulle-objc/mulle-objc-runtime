@@ -77,6 +77,8 @@
 # error "TPS can only be used in the default universe not in " #__MULLE_OBJC_UNIVERSENAME__
 #endif
 
+// do this as early as possible (before windows.h hits)
+#include "mulle-objc-c-types.h"
 
 #include "include.h"
 

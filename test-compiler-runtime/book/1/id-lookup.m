@@ -1,7 +1,7 @@
 // Test for Chapter 1: ID to Name Lookup
 // Demonstrates converting runtime IDs back to names
 
-#import "include.h"
+#import "import.h"
 
 @interface MyClass
 @end

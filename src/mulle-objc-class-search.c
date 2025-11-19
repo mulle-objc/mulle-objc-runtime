@@ -139,7 +139,7 @@ static void   trace_method_start( struct _mulle_objc_class *cls,
          break;
 
       case search_super_method :
-         mulle_buffer_sprintf( buffer, " (super=%08lx)",
+         mulle_buffer_sprintf( buffer, " (super classid=%08lx)",
                  (unsigned long) search->args.classid);
          break;
 

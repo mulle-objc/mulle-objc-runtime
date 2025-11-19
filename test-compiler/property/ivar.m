@@ -26,8 +26,8 @@
 int   main( void)
 {
    Class   cls;
-   struct _mulle_objc_ivar   *ivar;
-   struct _mulle_objc_ivar   *property;
+   struct _mulle_objc_ivar       *ivar;
+   struct _mulle_objc_property   *property;
 
    cls = [Foo class];
 

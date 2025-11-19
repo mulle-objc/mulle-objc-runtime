@@ -38,9 +38,7 @@
 
 // #include "include.h" // need mulle-c11 for stdalign
 
-#include <stdint.h>
-#include <stddef.h>
-#include <mulle-c11/mulle-c11.h>
+#include "mulle-objc-c-types.h"
 #include <mulle-c11/mulle-c11-eval.h>
 #include <mulle-vararg/mulle-vararg.h>
 

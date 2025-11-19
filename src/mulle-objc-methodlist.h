@@ -53,6 +53,8 @@ struct _mulle_objc_loadcategory;
 // methods have to be sorted by methodid
 // its better if the compiler can do this
 //
+// MEMO: reordering this messes with gdb!
+//
 struct _mulle_objc_methodlist
 {
    unsigned int                     n_methods;  // must be #0 and same as struct _mulle_objc_ivarlist

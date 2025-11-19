@@ -200,6 +200,8 @@ static struct _mulle_objc_method   methods[ N_METHODS] =
 
 
 // MEMO: needed for linking will not be used in test
+MULLE_C_EXTERN_GLOBAL
+MULLE_C_CONST_RETURN 
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
                                   char *universename)

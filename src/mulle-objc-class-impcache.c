@@ -42,44 +42,173 @@
 #include "mulle-objc-class-search.h"
 
 
-static mulle_objc_walkcommand_t  preload( struct _mulle_objc_method *method,
-                                          struct _mulle_objc_methodlist *list,
-                                          struct _mulle_objc_class *cls,
-                                          struct _mulle_objc_cache *cache)
+static mulle_objc_walkcommand_t
+   preload_method( struct _mulle_objc_method *method,
+                   struct _mulle_objc_methodlist *list,
+                   struct _mulle_objc_class *cls,
+                   struct _mulle_objc_impcache *icache)
 {
    struct _mulle_objc_cacheentry   *entry;
    struct _mulle_objc_universe     *universe;
 
    MULLE_C_UNUSED( list);
 
-   assert( cache);
+   assert( icache);
    assert( cls);
 
-   universe = _mulle_objc_class_get_universe( cls);
-   if( _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
-   {
-      // make sure we don't preload and leave no zero
-      if( _mulle_objc_cache_get_count( cache) + 1 >= _mulle_objc_cache_get_size( cache))
-         return( mulle_objc_walk_cancel);
+   // make sure we don't preload and leave no zero
+   if( _mulle_objc_cache_get_count( &icache->cache) + 1 >= _mulle_objc_cache_get_size( &icache->cache))
+      return( mulle_objc_walk_cancel);
 
-      entry = _mulle_objc_cache_add_pointer_inactive( cache,
-                                                      _mulle_objc_method_get_implementation( method),
-                                                      method->descriptor.methodid);
+   universe = _mulle_objc_class_get_universe( cls);
+   if( ! _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
+      return( mulle_objc_walk_ok);
+
+   //
+   // still the search is somewhat different than a walk, for example a class
+   // might decide to turn off its methods (via ->inheritance) so we need to
+   // now a "search" for the method again.
+   //
+   method   = mulle_objc_class_defaultsearch_method( cls, method->descriptor.methodid);
+   // can happen if inheritance setting turned it off
+   if( ! method)
+      return( mulle_objc_walk_ok);
+
+   entry = _mulle_objc_cache_add_pointer_inactive( &icache->cache,
+                                                   _mulle_objc_method_get_implementation( method),
+                                                   method->descriptor.methodid);
+   if( universe->debug.trace.preload)
+   {
+      mulle_objc_universe_trace( universe,
+                                 "preloaded method %c%s",
+                                 _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
+                                 _mulle_objc_method_get_name( method));
+   }
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
+   if( ! entry->cls)
+      entry->cls = cls;
+#endif
+   MULLE_C_UNUSED( entry);  // use
+
+   return( mulle_objc_walk_ok);
+}
+
+
+struct preload_info
+{
+   struct _mulle_objc_class      *cls;
+   struct _mulle_objc_impcache   *icache;
+};
+
+
+//
+// Walker callback for preloading super methods
+//
+static mulle_objc_walkcommand_t
+   preload_super( struct _mulle_objc_universe *universe,
+                  struct _mulle_objc_super *super,
+                  void *userinfo)
+{
+   struct preload_info *info = userinfo;
+
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_cacheentry        *entry;
+   struct _mulle_objc_searcharguments   args;
+   struct _mulle_objc_cache             *cache;
+   mulle_objc_classid_t                 super_classid;
+   mulle_objc_superid_t                 superid;
+   mulle_objc_implementation_t          imp;
+
+   // Make sure we don't overflow the cache
+   cache =  &info->icache->cache;
+   if( _mulle_objc_cache_get_count( cache) + 1 >= _mulle_objc_cache_get_size( cache))
+      return( mulle_objc_walk_cancel);
+
+   // Check if this super is relevant to our class hierarchy
+   super_classid = _mulle_objc_super_get_classid( super);
+
+   args     = mulle_objc_searcharguments_make_super( super->methodid, super_classid);
+   method   = mulle_objc_class_search_method( info->cls,  // use for searching through
+                                              &args,
+                                              info->cls->inheritance,
+                                              NULL);
+   // if there is none fine
+   if( ! method)
+      return( mulle_objc_walk_ok);
+
+   superid  = _mulle_objc_super_get_superid( super);
+   imp      = _mulle_objc_method_get_implementation( method);
+   entry    = _mulle_objc_cache_add_pointer_inactive( cache,
+                                                      (mulle_functionpointer_t) imp,
+                                                      superid);
+   if( universe->debug.trace.preload)
+   {
+      mulle_objc_universe_trace( universe,
+                                 "preloaded super method %s for superid %08x",
+                                 _mulle_objc_method_get_name( method),
+                                 superid);
+   }
+
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
+   if( entry && ! entry->cls)
+      entry->cls = info->cls;
+#else
+   MULLE_C_UNUSED( entry);
+#endif
+
+   return( mulle_objc_walk_ok);
+}
+
+
+
+//
+// Public function to preload methods into a cache
+//
+void   _mulle_objc_impcache_preload_methods( struct _mulle_objc_impcache *icache,
+                                             struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_universe   *universe;
+   unsigned int                  inheritance;
+   struct preload_info           info;
+
+   universe = _mulle_objc_class_get_universe( cls);
+
+   if( _mulle_objc_class_count_preloadmethods( cls) || _mulle_objc_universe_get_numberofpreloadmethods( universe))
+   {
       if( universe->debug.trace.preload)
       {
          mulle_objc_universe_trace( universe,
-                                    "preloaded method %c%s",
-                                    _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-                                    _mulle_objc_method_get_name( method));
+                                    "preloading %sclass %s cache %p with preload flagged methods:",
+                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
+                                    _mulle_objc_class_get_name( cls),
+                                    icache);
       }
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-      if( ! entry->cls)
-         entry->cls = cls;
-#endif
-      MULLE_C_UNUSED( entry);  // use
+
+      inheritance = _mulle_objc_class_get_inheritance( cls);
+      _mulle_objc_class_walk_methods( cls,
+                                      inheritance,
+                                      (mulle_objc_method_walkcallback_t) preload_method,
+                                      icache);
    }
 
-   return( mulle_objc_walk_ok);
+   // Preload super methods if preload_all_methods is enabled
+   if( universe->config.preload_all_methods)
+   {
+      if( universe->debug.trace.preload)
+      {
+         mulle_objc_universe_trace( universe,
+                                    "preloading %sclass %s cache %p with super methods:",
+                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
+                                    _mulle_objc_class_get_name( cls),
+                                    icache);
+      }
+
+      info.cls    = cls;
+      info.icache = icache;
+      _mulle_objc_universe_walk_supers( universe,
+                                        (mulle_objc_walk_supers_callback_t) preload_super,
+                                        &info);
+   }
 }
 
 
@@ -101,7 +230,6 @@ static struct _mulle_objc_cacheentry   *
    mulle_objc_methodid_t                  copyid;
    struct _mulle_objc_cacheentry          *p;
    struct _mulle_objc_cacheentry          *sentinel;
-   unsigned int                           inheritance;
 
    universe  = _mulle_objc_class_get_universe( cls);
 
@@ -109,23 +237,7 @@ static struct _mulle_objc_cacheentry   *
    // now for good measure. It is known that the cache is large enough
    // to hold the preload methods and one additional functionpointer.
    // Why ?
-   if( _mulle_objc_class_count_preloadmethods( cls) || _mulle_objc_universe_get_numberofpreloadmethods( universe))
-   {
-      if( universe->debug.trace.preload)
-      {
-         mulle_objc_universe_trace( universe,
-                                    "preloading %sclass %s cache %p with preload flagged methods:",
-                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
-                                    _mulle_objc_class_get_name( cls),
-                                    &icache->cache);
-      }
-
-      inheritance = _mulle_objc_class_get_inheritance( cls);
-      _mulle_objc_class_walk_methods( cls,
-                                      inheritance,
-                                      (mulle_objc_method_walkcallback_t) preload,
-                                      &icache->cache);
-   }
+   _mulle_objc_impcache_preload_methods( icache, cls);
 
    //
    // if someone passes in a NULL for method, empty_entry is a marker
@@ -405,36 +517,5 @@ int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
                                                MULLE_OBJC_CACHESIZE_STAGNATE);
 
    return( 0x1);
-}
-
-
-//
-// Public function to preload methods into a cache
-//
-void   _mulle_objc_class_preload_cache_methods( struct _mulle_objc_class *cls,
-                                                struct _mulle_objc_cache *cache)
-{
-   struct _mulle_objc_universe   *universe;
-   unsigned int                  inheritance;
-   
-   universe = _mulle_objc_class_get_universe( cls);
-   
-   if( _mulle_objc_class_count_preloadmethods( cls) || _mulle_objc_universe_get_numberofpreloadmethods( universe))
-   {
-      if( universe->debug.trace.preload)
-      {
-         mulle_objc_universe_trace( universe,
-                                    "preloading %sclass %s cache %p with preload flagged methods:",
-                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
-                                    _mulle_objc_class_get_name( cls),
-                                    cache);
-      }
-
-      inheritance = _mulle_objc_class_get_inheritance( cls);
-      _mulle_objc_class_walk_methods( cls,
-                                      inheritance,
-                                      (mulle_objc_method_walkcallback_t) preload,
-                                      cache);
-   }
 }
 

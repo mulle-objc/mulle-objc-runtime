@@ -52,6 +52,19 @@
 
 #include <assert.h>
 
+// so the general idea here is, that the compiler even in debug mode will
+// produce a JMP to the method and not a JSR, which is beneficial when
+// stepping with the debugger through the code
+// Unfortunately clang can not do this, so useless. RATS!
+//
+// #ifndef MULLE_OBJC_OPTIMIZE_CALL
+// # if defined( __GNUC__) && ! defined( MULLE_OBJC_DEBUG_METHOD_CALLS)
+// #  define MULLE_OBJC_OPTIMIZE_CALL   __attribute__((optimize("O3")))
+// # else
+// #  define MULLE_OBJC_OPTIMIZE_CALL
+// # endif
+// #endif
+
 
 #ifndef MULLE_OBJC_CALL_PREFER_FCS
 # define MULLE_OBJC_CALL_PREFER_FCS   0
@@ -161,7 +174,8 @@ void   *_mulle_objc_object_call( void *obj,
 //
 // use this for -O -O2
 //
-MULLE_C_STATIC_ALWAYS_INLINE void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void *
    mulle_objc_object_call_inline_minimal( void *obj,
                                           mulle_objc_methodid_t methodid,
                                           void *parameter)
@@ -176,7 +190,7 @@ MULLE_C_STATIC_ALWAYS_INLINE void  *
 #ifdef __MULLE_OBJC_FCS__
 
 MULLE_C_STATIC_ALWAYS_INLINE
-void   *
+void *
    _mulle_objc_fastmethodtable_get_imp( struct _mulle_objc_fastmethodtable *table,
                                         unsigned int index)
 {
@@ -188,7 +202,7 @@ void   *
 
 
 MULLE_C_STATIC_ALWAYS_INLINE
-void   *
+void *
    _mulle_objc_fastmethodtable_invoke( void *obj,
                                        mulle_objc_methodid_t methodid,
                                        void *param,
@@ -380,6 +394,7 @@ void  *
 // if we miss the cache, we got to call_cache_miss.
 //
 MULLE_C_STATIC_ALWAYS_INLINE
+
 void  *
    _mulle_objc_object_call_inline_full( void *obj,
                                         mulle_objc_methodid_t methodid,
@@ -461,7 +476,8 @@ void  *
 // do or attempt FCS, which would be too slow if the selector is not a
 // constant.
 //
-MULLE_C_STATIC_ALWAYS_INLINE void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_inline_variable( void *obj,
                                            mulle_objc_methodid_t methodid,
                                            void *parameter)
@@ -502,7 +518,8 @@ MULLE_C_STATIC_ALWAYS_INLINE void  *
 }
 
 // old mistyped name
-MULLE_C_STATIC_ALWAYS_INLINE void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_variable_inline( void *obj,
                                            mulle_objc_methodid_t methodid,
                                            void *parameter)
@@ -518,7 +535,8 @@ MULLE_C_STATIC_ALWAYS_INLINE void  *
 // do or attempt FCS, which would be too slow if the selector is not a
 // constant.
 //
-MULLE_C_STATIC_ALWAYS_INLINE void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_inline_full_variable( void *obj,
                                                 mulle_objc_methodid_t methodid,
                                                 void *parameter)
@@ -618,7 +636,8 @@ void   *
 
 
 
-MULLE_C_STATIC_ALWAYS_INLINE void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_super_inline( void *obj,
                                         mulle_objc_methodid_t methodid,
                                         void *parameter,
@@ -670,7 +689,8 @@ MULLE_C_STATIC_ALWAYS_INLINE void  *
 }
 
 
-MULLE_C_STATIC_ALWAYS_INLINE void  *
+MULLE_C_STATIC_ALWAYS_INLINE
+void  *
    mulle_objc_object_call_super_inline_full( void *obj,
                                              mulle_objc_methodid_t methodid,
                                              void *parameter,
