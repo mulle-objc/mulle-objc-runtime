@@ -13,8 +13,6 @@
 @interface Foo
 @end
 
-typedef uintptr_t   BOOL;
-
 
 @implementation Foo
 
