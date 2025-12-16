@@ -1,2 +1,7 @@
 mulle-clang;remove
 sccache
+emcc
+em++
+emcc.py
+emcmake
+emcmake.py

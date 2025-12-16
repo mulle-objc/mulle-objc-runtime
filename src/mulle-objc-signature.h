@@ -78,6 +78,8 @@
 # define _C_CONST        'r'  /*  mulle-c compiler doesn't emit it anymore */
 # define _C_GCINVISIBLE  '|'  /* lol */
 # define _C_ONEWAY       'V'
+# define _C_VECTOR       '!'  /* we never really supported this so undefine */
+# define _C_LNG_DBL      'D'  /* 80 bit FP is no longer of interest */
 
 //
 // Candidates for resurrection ? They could be useful for introspecting
@@ -377,8 +379,12 @@ static inline int   _mulle_objc_type_is_fp( char *type)
    {
    case _C_FLT     :
    case _C_DBL     :
+#ifdef _C_LNG_DBL
    case _C_LNG_DBL :
+#endif
+#ifdef _C_VECTOR
    case _C_VECTOR  :  // guess
+#endif
       return( 1);
    }
    return( 0);

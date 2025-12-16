@@ -41,8 +41,8 @@
 #include "mulle-objc-universe-struct.h"
 
 
-
-#ifdef MULLE_OBJC_RUNTIME_BUILD
+// why is this here ??
+#ifdef MULLE__OBJC__RUNTIME_BUILD
 # define MULLE_OBJC_RUNTIME_GLOBAL    MULLE_C_GLOBAL
 #else
 # if defined( MULLE_OBJC_RUNTIME_INCLUDE_DYNAMIC) || (defined( MULLE_INCLUDE_DYNAMIC) && ! defined( MULLE_OBJC_RUNTIME_INCLUDE_STATIC))

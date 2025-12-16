@@ -2,15 +2,6 @@
 
 #include <stdio.h>
 
-typedef int   BOOL;
-
-enum
-{
-   YES = 1,
-   NO  = 0
-};
-
-// @YES @NO is not supported
 
 @interface NSNumber
 

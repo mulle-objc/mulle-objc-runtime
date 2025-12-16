@@ -53,3 +53,34 @@ mulle-sde craft -g # -- --no-hook
 
 *(`-g` is shorthand for `mulle-sde clean gravetidy`)*
 
+## Troubleshooting Build Errors
+
+**Rule of thumb**:
+- Missing header → `mulle-sde dependency add`
+- Missing link symbol → `mulle-sde library add`
+
+### Linker Error: "undefined reference to `functionName`"
+
+Try to figure out with `apropos` or a websearch which library
+supplies this symbol:
+ 
+```bash
+mulle-sde library add <name>     # Try this first (system lib)
+mulle-sde dependency add <name>  # If above fails (third-party)
+mulle-sde reflect && mulle-sde craft
+```
+
+**Common examples**:
+- `pthread_*` → `mulle-sde library add pthread`
+- `sin`, `cos` → `mulle-sde library add m`
+
+### Compiler Error: "No such file or directory" (missing header)
+
+Figure out by web search which project likely defines the header:
+
+```bash
+mulle-sde dependency add github:<user>/<repo> 
+mulle-sde reflect && mulle-sde craft
+```
+
+If that fails try `mulle-sde library add <name>`.
