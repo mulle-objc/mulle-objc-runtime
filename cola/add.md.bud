@@ -1,0 +1,18 @@
+## A runtime only project
+
+It's extrememly rare to you use the runtime without
+[MulleObjC](https://github.com/mulle-objc/MulleObjC),
+but if you want to, you do:
+
+``` bash
+mulle-sde init -d my-project -m mulle-c/c-developer executable
+cd my-project
+mulle-sde dep add github:mulle-objc/mulle-objc-runtime
+mulle-sde dep add github:mulle-objc/mulle-objc-debug
+mulle-sde dep add --startup github:mulle-objc/mulle-objc-runtime-startup
+mulle-sde dep add github:mulle-cc/mulle-objc-cc
+mulle-sde mark mulle-objc-cc no-bequeath
+mulle-sde mark mulle-objc-cc no-link
+mulle-sde mark mulle-objc-cc no-import
+mulle-sde mark mulle-objc-cc no-header
+```

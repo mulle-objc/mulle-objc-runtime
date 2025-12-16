@@ -60,8 +60,19 @@
  */
 
 // this is defined by the user in main or somewhere else
-MULLE_C_EXTERN_GLOBAL
+//
+// Windows needs are special here, because this is a rendezvous function
+//
+// build mulle-objc-runtime: _declspec( dllimport) -> MULLE_C_EXTERN_GLOBAL
+// build MulleObjC-startup:  _declspec( dllexport) -> MULLE_C_GLOBAL
+// build others:             _declspec( dllimport) -> MULLE_C_EXTERN_GLOBAL
+#ifdef MULLE_OBJC_DEFINE__register_mulle_objc_universe
+MULLE_OBJC_RUNTIME_GLOBAL
+#else
+MULLE_OBJC_RUNTIME_WEAK_EXTERN_GLOBAL
+#endif
 MULLE_C_CONST_RETURN 
+
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universe,
                                    char *universename);

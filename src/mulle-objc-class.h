@@ -148,12 +148,6 @@ int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
                                                   mulle_objc_methodid_t methodid);
 
 
-MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_class_set_forwardmethod( struct _mulle_objc_class *cls,
-                                            struct _mulle_objc_method *method);
-
-
-
 //static inline struct _mulle_objc_cache   *_mulle_objc_class_get_supercache( struct _mulle_objc_class *cls)
 //{
 //   return( _mulle_objc_cachepivot_get_cache_atomic( &cls->supercachepivot));

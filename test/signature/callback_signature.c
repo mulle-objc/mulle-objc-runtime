@@ -74,7 +74,7 @@ static void   callback( char *type, struct mulle_objc_typeinfo *info, void *user
    {
       info->invocation_offset = (int32_t) mulle_address_align( p->invocation_offset,
                                                                p->index == 0
-                                                               ? alignof( long double)
+                                                               ? alignof( double)
                                                                : info->bits_struct_alignment / 8);
       p->invocation_offset = info->invocation_offset + info->natural_size;
       p->index++;

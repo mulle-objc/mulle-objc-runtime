@@ -98,14 +98,14 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
                                         struct mulle_allocator *allocator);
 
-// defined in mulle-objc-classpair.c so its in this header
-struct _mulle_objc_classpair *
-   mulle_objc_universe_new_classpair( struct _mulle_objc_universe *universe,
-                                      mulle_objc_classid_t  classid,
-                                      char *name,
-                                      size_t instancesize,
-                                      size_t classextra,
-                                      struct _mulle_objc_infraclass *superclass);
+// defined in mulle-objc-classpair.c but belongs by name to universe
+//struct _mulle_objc_classpair *
+//   mulle_objc_universe_new_classpair( struct _mulle_objc_universe *universe,
+//                                      mulle_objc_classid_t  classid,
+//                                      char *name,
+//                                      size_t instancesize,
+//                                      size_t classextra,
+//                                      struct _mulle_objc_infraclass *superclass);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void    _mulle_objc_classpair_free( struct _mulle_objc_classpair *pair,

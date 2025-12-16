@@ -122,7 +122,9 @@ int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_objc_ty
    case _C_ULNG_LNG  : _SUPPLY_RUNTIME_C_TYPE_INFO( info, unsigned long long); return( 0);
    case _C_FLT       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, float); return( 0);
    case _C_DBL       : _SUPPLY_RUNTIME_C_TYPE_INFO( info, double); return( 0);
+#ifdef _C_LNG_DBL
    case _C_LNG_DBL   : _SUPPLY_RUNTIME_C_TYPE_INFO( info, long double); return( 0);
+#endif
    case _C_CHARPTR   : _SUPPLY_RUNTIME_CHARPTR_TYPE_INFO( info); return( 0);
    case _C_UNDEF     : _SUPPLY_RUNTIME_C_TYPE_INFO( info, void *); return( 0);
 

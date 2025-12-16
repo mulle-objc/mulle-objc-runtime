@@ -72,7 +72,7 @@ enum mulle_metaabi_param
 #define _C_ID           '@'
 #define _C_INT          'i'
 #define _C_LNG          'l'
-#define _C_LNG_DBL      'D'
+//#define _C_LNG_DBL      'D'    //  80bit FP no longer supported, future is 128bit
 #define _C_LNG_LNG      'q'
 #define _C_PTR          '^'
 #define _C_SEL          ':'
@@ -87,7 +87,7 @@ enum mulle_metaabi_param
 #define _C_UNION_B      '('
 #define _C_UNION_E      ')'
 #define _C_USHT         'S'
-#define _C_VECTOR       '!'
+//#define _C_VECTOR       '!' // we never really supported this so undefine
 #define _C_VOID         'v'
 
 // these future defines are incompatible
@@ -270,9 +270,10 @@ while( 0)
 #define mulle_metaabi_push_double( ap, value) \
    _mulle_metaabi_push( ap, double, value)
 
-#define mulle_metaabi_push_longdouble( ap, value) \
+#ifdef _C_LNG_DBL
+# define mulle_metaabi_push_longdouble( ap, value) \
    _mulle_metaabi_push( ap, long double, value)
-
+#endif
 
 // mulle-vararg look alikes
 #define mulle_metaabi_push_integer( ap, type, value) \
@@ -358,9 +359,10 @@ static inline void  *
 #define mulle_metaabi_next_double( ap) \
    _mulle_metaabi_next( ap, double)
 
-#define mulle_metaabi_next_longdouble( ap) \
+#ifdef _C_LNG_DBL
+# define mulle_metaabi_next_longdouble( ap) \
    _mulle_metaabi_next( ap, long double)
-
+#endif
 
 #define mulle_metaabi_next_pointer( ap, type) \
    _mulle_metaabi_next( ap, type)
