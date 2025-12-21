@@ -19,6 +19,7 @@
 #include <mulle-core/mulle-core.h>
 #include <mulle-data/mulle-data.h>
 #include <mulle-dlfcn/mulle-dlfcn.h>
+#include <mulle-dtostr/mulle-dtostr.h>
 #include <mulle-fifo/mulle-fifo.h>
 #include <mulle-fprintf/mulle-fprintf.h>
 #include <mulle-http/mulle-http.h>
