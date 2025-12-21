@@ -93,6 +93,8 @@ MULLE_OBJC_RUNTIME_GLOBAL
 int   mulle_objc_super_is_sane( struct _mulle_objc_super *p);
 
 #define MULLE_OBJC_SUPERSELECTOR_STRING( s_cls, s_method)       (s_cls ";" s_method)
+
+// ??? not used or ???
 #define MULLE_OBJC_OVERRIDDENSELECTOR_STRING( s_cls, s_method)  (s_cls " " s_method)
 
 

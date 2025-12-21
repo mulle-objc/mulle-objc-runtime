@@ -61,6 +61,11 @@ if( ${CMAKE_VERSION} VERSION_GREATER "3.14.0")
    # use LIBRARY_LINK_TARGET for linker options
    if( LINK_PHASE)
       target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
+
+      # Allow unresolved symbols on Windows (for mulle_atexit, __register_mulle_objc_universe)
+      if( WIN32 OR MINGW)
+         target_link_options( "${LIBRARY_LINK_TARGET}" PRIVATE "-Wl,/FORCE:UNRESOLVED")
+      endif()
    endif()
 endif()
 
@@ -84,19 +89,34 @@ if( APPLE)
 endif()
 
 
+# ugly hack
+if( BUILD_SHARED_LIBS)
+   remove_definitions("-DMULLE_INCLUDE_DYNAMIC=1")
+endif()
+
+#
+# mulle-objc-uniqueid
+#
 set( EXECUTABLE_NAME mulle-objc-uniqueid)
 
 # only need the hash function (done like this if runtime is built as shared)
 set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES}
 src/mulle-objc-uniqueid.c
 )
-set( EXECUTABLE_DEPENDENCY_NAMES
-mulle-objc-runtime)
+
+set( EXECUTABLE_DEPENDENCY_NAMES "")
 # only need the hash function
 set( EXECUTABLE_LIBRARY_LIST "${MULLE__CORE_LIBRARY}")
+if( LIBBACKTRACE_LIBRARY)
+   # needef when testing with .so
+   list(APPEND EXECUTABLE_LIBRARY_LIST "${LIBBACKTRACE_LIBRARY}")
+endif()
 
 include( Executable)
 
+#
+# mulle-objc-signature
+#
 set( EXECUTABLE_NAME mulle-objc-signature)
 # only need the signature function
 set( EXECUTABLE_SOURCES  ${SIGNATURE_SOURCES}

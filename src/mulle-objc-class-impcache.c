@@ -42,123 +42,245 @@
 #include "mulle-objc-class-search.h"
 
 
-static mulle_objc_walkcommand_t
-   preload_method( struct _mulle_objc_method *method,
-                   struct _mulle_objc_methodlist *list,
-                   struct _mulle_objc_class *cls,
-                   struct _mulle_objc_impcache *icache)
+
+
+
+
+//
+// Check if we should build a preload map for this class
+//
+static int   _mulle_objc_class_should_build_preload_map( struct _mulle_objc_class *cls)
 {
-   struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_universe     *universe;
-
-   MULLE_C_UNUSED( list);
-
-   assert( icache);
-   assert( cls);
-
-   // make sure we don't preload and leave no zero
-   if( _mulle_objc_cache_get_count( &icache->cache) + 1 >= _mulle_objc_cache_get_size( &icache->cache))
-      return( mulle_objc_walk_cancel);
-
+   struct _mulle_objc_universe   *universe;
+   
    universe = _mulle_objc_class_get_universe( cls);
-   if( ! _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
-      return( mulle_objc_walk_ok);
-
-   //
-   // still the search is somewhat different than a walk, for example a class
-   // might decide to turn off its methods (via ->inheritance) so we need to
-   // now a "search" for the method again.
-   //
-   method   = mulle_objc_class_defaultsearch_method( cls, method->descriptor.methodid);
-   // can happen if inheritance setting turned it off
-   if( ! method)
-      return( mulle_objc_walk_ok);
-
-   entry = _mulle_objc_cache_add_pointer_inactive( &icache->cache,
-                                                   _mulle_objc_method_get_implementation( method),
-                                                   method->descriptor.methodid);
-   if( universe->debug.trace.preload)
-   {
-      mulle_objc_universe_trace( universe,
-                                 "preloaded method %c%s",
-                                 _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
-                                 _mulle_objc_method_get_name( method));
-   }
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   if( ! entry->cls)
-      entry->cls = cls;
-#endif
-   MULLE_C_UNUSED( entry);  // use
-
-   return( mulle_objc_walk_ok);
+   
+   // Always build if preload_all_methods is enabled
+   if( universe->config.preload_all_methods)
+      return( 1);
+      
+   // Build if this class has preload methods
+   if( _mulle_objc_class_count_preloadmethods( cls) > 0)
+      return( 1);
+      
+   // Build if universe has preload methods
+   if( _mulle_objc_universe_get_numberofpreloadmethods( universe) > 0)
+      return( 1);
+      
+   return( 0);
 }
 
 
-struct preload_info
+//
+// Context for collecting preload methods
+//
+struct preload_collect_context
 {
-   struct _mulle_objc_class      *cls;
-   struct _mulle_objc_impcache   *icache;
+   struct mulle__pointermap  *map;
+   struct _mulle_objc_class  *original_cls;
 };
 
 
 //
-// Walker callback for preloading super methods
+// Callback to collect preload methods during methodlist walk
 //
-static mulle_objc_walkcommand_t
-   preload_super( struct _mulle_objc_universe *universe,
-                  struct _mulle_objc_super *super,
-                  void *userinfo)
+static mulle_objc_walkcommand_t   collect_preload_methods( struct _mulle_objc_class *cls,
+                                                           struct _mulle_objc_methodlist *list,
+                                                           void *userinfo)
 {
-   struct preload_info *info = userinfo;
-
-   struct _mulle_objc_method            *method;
-   struct _mulle_objc_cacheentry        *entry;
-   struct _mulle_objc_searcharguments   args;
-   struct _mulle_objc_cache             *cache;
-   mulle_objc_classid_t                 super_classid;
-   mulle_objc_superid_t                 superid;
-   mulle_objc_implementation_t          imp;
-
-   // Make sure we don't overflow the cache
-   cache =  &info->icache->cache;
-   if( _mulle_objc_cache_get_count( cache) + 1 >= _mulle_objc_cache_get_size( cache))
-      return( mulle_objc_walk_cancel);
-
-   // Check if this super is relevant to our class hierarchy
-   super_classid = _mulle_objc_super_get_classid( super);
-
-   args     = mulle_objc_searcharguments_make_super( super->methodid, super_classid);
-   method   = mulle_objc_class_search_method( info->cls,  // use for searching through
-                                              &args,
-                                              info->cls->inheritance,
-                                              NULL);
-   // if there is none fine
-   if( ! method)
-      return( mulle_objc_walk_ok);
-
-   superid  = _mulle_objc_super_get_superid( super);
-   imp      = _mulle_objc_method_get_implementation( method);
-   entry    = _mulle_objc_cache_add_pointer_inactive( cache,
-                                                      (mulle_functionpointer_t) imp,
-                                                      superid);
-   if( universe->debug.trace.preload)
+   struct preload_collect_context           *context;
+   struct _mulle_objc_methodlistenumerator  rover;
+   struct _mulle_objc_method                *method;
+   struct _mulle_objc_method                *resolved_method;
+   struct _mulle_objc_universe              *universe;
+   mulle_objc_methodid_t                    methodid;
+   int                                      should_preload;
+   
+   context  = (struct preload_collect_context *) userinfo;
+   universe = _mulle_objc_class_get_universe( context->original_cls);
+   
+   rover = _mulle_objc_methodlist_enumerate( list);
+   while( (method = _mulle_objc_methodlistenumerator_next( &rover)))
    {
-      mulle_objc_universe_trace( universe,
-                                 "preloaded super method %s for superid %08x",
-                                 _mulle_objc_method_get_name( method),
-                                 superid);
+      // Check if method should be preloaded
+      should_preload = 0;
+      if( method->descriptor.bits & _mulle_objc_method_preload)
+         should_preload = 1;
+      else if( universe->config.preload_all_methods)
+         should_preload = 1;
+      else if( _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
+         should_preload = 1;
+         
+      if( ! should_preload)
+         continue;
+         
+      methodid = _mulle_objc_method_get_methodid( method);
+      
+      // Resolve method through proper search
+      resolved_method = mulle_objc_class_defaultsearch_method( context->original_cls, methodid);
+      if( ! resolved_method)
+         continue;
+         
+      // Add to map: methodid -> method
+      mulle__pointermap_set( context->map, (void *) (uintptr_t) methodid, resolved_method, 
+                            _mulle_objc_universe_get_allocator( universe));
+      
+      if( universe->debug.trace.preload)
+      {
+         mulle_objc_universe_trace( universe,
+                                    "collected preload method %c%s",
+                                    _mulle_objc_class_is_metaclass( context->original_cls) ? '+' : '-',
+                                    _mulle_objc_method_get_name( resolved_method));
+      }
    }
-
-#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   if( entry && ! entry->cls)
-      entry->cls = info->cls;
-#else
-   MULLE_C_UNUSED( entry);
-#endif
-
+   _mulle_objc_methodlistenumerator_done( &rover);
+   
    return( mulle_objc_walk_ok);
 }
 
+
+//
+// Context for collecting super calls
+//
+struct super_collect_context
+{
+   struct mulle__pointermap  *map;
+   struct _mulle_objc_class  *original_cls;
+};
+
+
+//
+// Callback to collect super calls
+//
+static mulle_objc_walkcommand_t   collect_super_calls( struct _mulle_objc_universe *universe,
+                                                       struct _mulle_objc_super *super,
+                                                       void *userinfo)
+{
+   struct super_collect_context    *context;
+   struct _mulle_objc_method       *method;
+   mulle_objc_superid_t            superid;
+   
+   context = (struct super_collect_context *) userinfo;
+   
+   superid = _mulle_objc_super_get_superid( super);
+   
+   // Resolve super call
+   method = _mulle_objc_class_supersearch_method( context->original_cls, superid);
+   if( ! method)
+      return( mulle_objc_walk_ok);
+   
+   // Add to map: superid -> method
+   mulle__pointermap_set( context->map, (void *) (uintptr_t) superid, method,
+                         _mulle_objc_universe_get_allocator( universe));
+   
+   if( universe->debug.trace.preload)
+   {
+      mulle_objc_universe_trace( universe,
+                                 "collected preload super method %s for superid %08x",
+                                 _mulle_objc_method_get_name( method),
+                                 superid);
+   }
+   
+   return( mulle_objc_walk_ok);
+}
+
+
+//
+// Build preload map using methodlist walk for accurate traversal
+//
+static void   _mulle_objc_class_build_preload_map( struct _mulle_objc_class *cls,
+                                                   struct mulle__pointermap *map)
+{
+   struct _mulle_objc_universe        *universe;
+   struct preload_collect_context     method_context;
+   struct super_collect_context       super_context;
+   
+   if( ! _mulle_objc_class_should_build_preload_map( cls))
+      return;
+   
+   universe = _mulle_objc_class_get_universe( cls);
+   
+   if( universe->debug.trace.preload)
+   {
+      mulle_objc_universe_trace( universe,
+                                 "building preload map for %sclass %s",
+                                 _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
+                                 _mulle_objc_class_get_name( cls));
+   }
+   
+   // Collect preload methods using methodlist walk
+   method_context.map         = map;
+   method_context.original_cls = cls;
+   
+   mulle_objc_class_methodlist_walk( cls, collect_preload_methods, &method_context);
+   
+   // Collect super calls if preload_all_methods is enabled
+   if( universe->config.preload_all_methods)
+   {
+      super_context.map         = map;
+      super_context.original_cls = cls;
+      
+      _mulle_objc_universe_walk_supers( universe, collect_super_calls, &super_context);
+   }
+}
+
+
+//
+// Fill cache from preload map with TAO checks
+//
+static void   fill_cache_from_preload_map( struct _mulle_objc_impcache *icache,
+                                          struct mulle__pointermap *map,
+                                          struct _mulle_objc_class *cls)
+{
+   struct _mulle_objc_universe     *universe;
+   struct _mulle_objc_method       *method;
+   struct _mulle_objc_cacheentry   *entry;
+   mulle_objc_uniqueid_t           uniqueid;
+   void                            *key;
+   void                            *value;
+   
+   universe = _mulle_objc_class_get_universe( cls);
+   
+   mulle__pointermap_for( map, key, value)
+   {
+      uniqueid = (mulle_objc_uniqueid_t) (uintptr_t) key;
+      method   = (struct _mulle_objc_method *) value;
+      
+      // Apply TAO check before filling cache
+      if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TAO_BIT)
+      {
+         if( _mulle_objc_class_is_threadaffine( cls) &&
+             _mulle_objc_method_is_threadaffine( method))
+         {
+            if( universe->debug.trace.preload)
+            {
+               mulle_objc_universe_trace( universe,
+                                          "skipped preload method %s (TAO thread unsafe)",
+                                          _mulle_objc_method_get_name( method));
+            }
+            continue;  // Skip - not threadsafe under TAO
+         }
+      }
+      
+      // Add to cache
+      entry = _mulle_objc_cache_add_pointer_inactive( &icache->cache,
+                                                      _mulle_objc_method_get_implementation( method),
+                                                      uniqueid);
+      if( universe->debug.trace.preload)
+      {
+         mulle_objc_universe_trace( universe,
+                                    "preloaded method %s",
+                                    _mulle_objc_method_get_name( method));
+      }
+      
+#ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
+      if( entry && ! entry->cls)
+         entry->cls = cls;
+#else
+      MULLE_C_UNUSED( entry);
+#endif
+   }
+}
 
 
 //
@@ -168,46 +290,22 @@ void   _mulle_objc_impcache_preload_methods( struct _mulle_objc_impcache *icache
                                              struct _mulle_objc_class *cls)
 {
    struct _mulle_objc_universe   *universe;
-   unsigned int                  inheritance;
-   struct preload_info           info;
+   struct mulle__pointermap      map;
+   struct mulle_allocator        *allocator;
 
    universe = _mulle_objc_class_get_universe( cls);
 
-   if( _mulle_objc_class_count_preloadmethods( cls) || _mulle_objc_universe_get_numberofpreloadmethods( universe))
+   // Use new preload map approach for comprehensive preloading
+   if( _mulle_objc_class_should_build_preload_map( cls) || 
+       _mulle_objc_universe_get_numberofpreloadmethods( universe))
    {
-      if( universe->debug.trace.preload)
-      {
-         mulle_objc_universe_trace( universe,
-                                    "preloading %sclass %s cache %p with preload flagged methods:",
-                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
-                                    _mulle_objc_class_get_name( cls),
-                                    icache);
-      }
-
-      inheritance = _mulle_objc_class_get_inheritance( cls);
-      _mulle_objc_class_walk_methods( cls,
-                                      inheritance,
-                                      (mulle_objc_method_walkcallback_t) preload_method,
-                                      icache);
-   }
-
-   // Preload super methods if preload_all_methods is enabled
-   if( universe->config.preload_all_methods)
-   {
-      if( universe->debug.trace.preload)
-      {
-         mulle_objc_universe_trace( universe,
-                                    "preloading %sclass %s cache %p with super methods:",
-                                    _mulle_objc_class_is_metaclass( cls) ? "meta" : "infra",
-                                    _mulle_objc_class_get_name( cls),
-                                    icache);
-      }
-
-      info.cls    = cls;
-      info.icache = icache;
-      _mulle_objc_universe_walk_supers( universe,
-                                        (mulle_objc_walk_supers_callback_t) preload_super,
-                                        &info);
+      allocator = _mulle_objc_universe_get_allocator( universe);
+      _mulle__pointermap_init( &map, 0, allocator);
+      
+      _mulle_objc_class_build_preload_map( cls, &map);
+      fill_cache_from_preload_map( icache, &map, cls);
+      
+      _mulle__pointermap_done( &map, allocator);
    }
 }
 

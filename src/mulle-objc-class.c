@@ -644,6 +644,143 @@ mulle_objc_walkcommand_t
 }
 
 
+//
+// Walk protocol methodlists for methodlist_walk
+//
+static mulle_objc_walkcommand_t
+   _mulle_objc_class_protocol_walk_methodlists( struct _mulle_objc_class *cls,
+                                                mulle_objc_walkcommand_t (*callback)(struct _mulle_objc_class *, struct _mulle_objc_methodlist *, void *),
+                                                void *userinfo)
+{
+   mulle_objc_walkcommand_t                                rval;
+   struct _mulle_objc_class                                *walk_cls;
+   struct _mulle_objc_infraclass                           *infra;
+   struct _mulle_objc_metaclass                            *meta_proto_cls;
+   struct _mulle_objc_infraclass                           *proto_cls;
+   struct _mulle_objc_classpair                            *pair;
+   struct _mulle_objc_protocolclassreverseenumerator       rover;
+   struct _mulle_objc_methodlist                           *list;
+   struct mulle_concurrent_pointerarrayreverseenumerator   list_rover;
+   unsigned int                                            n;
+   int                                                     is_meta;
+
+   rval    = mulle_objc_walk_ok;
+   pair    = _mulle_objc_class_get_classpair( cls);
+   infra   = _mulle_objc_classpair_get_infraclass( pair);
+   is_meta = _mulle_objc_class_is_metaclass( cls);
+
+   rover = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
+   while( proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover))
+   {
+      if( proto_cls == infra)
+         continue;
+
+      walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
+      if( is_meta)
+      {
+         meta_proto_cls = _mulle_objc_infraclass_get_metaclass( proto_cls);
+         walk_cls       = _mulle_objc_metaclass_as_class( meta_proto_cls);
+      }
+
+      // Walk this protocol class's methodlists directly
+      n = mulle_concurrent_pointerarray_get_count( &walk_cls->methodlists);
+      list_rover = mulle_concurrent_pointerarray_reverseenumerate( &walk_cls->methodlists, n);
+      while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &list_rover)))
+      {
+         if( rval = (*callback)( walk_cls, list, userinfo))
+            break;
+      }
+      if( rval)
+         break;
+   }
+   _mulle_objc_protocolclassreverseenumerator_done( &rover);
+
+   return( rval);
+}
+
+
+//
+// Internal function that accepts inheritance parameter
+//
+static mulle_objc_walkcommand_t
+   mulle_objc_class_methodlist_walk_with_inheritance( struct _mulle_objc_class *cls,
+                                                     mulle_objc_walkcommand_t (*callback)(struct _mulle_objc_class *, struct _mulle_objc_methodlist *, void *),
+                                                     void *userinfo,
+                                                     unsigned int inheritance)
+{
+   mulle_objc_walkcommand_t                                rval;
+   struct _mulle_objc_methodlist                           *list;
+   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
+   unsigned int                                            i;
+   unsigned int                                            n;
+
+   if( ! cls)
+      return( mulle_objc_walk_ok);
+
+   // Walk this class's methodlists (categories -> class)
+   n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
+   if( inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
+      n = 1;
+
+   i = 0;
+   rover = mulle_concurrent_pointerarray_reverseenumerate( &cls->methodlists, n);
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
+   {
+      if( (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_CLASS) && ++i == n)
+            break;
+
+      if( rval = (*callback)( cls, list, userinfo))
+         return( rval);
+   }
+
+   // Walk protocolclasses  
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
+   {
+      if( rval = _mulle_objc_class_protocol_walk_methodlists( cls, callback, userinfo))
+         return( rval);
+   }
+
+   // Walk superclass with metaclass wraparound logic
+   if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
+   {
+      if( cls->superclass && cls->superclass != cls)
+      {
+         struct _mulle_objc_class *supercls = cls->superclass;
+         
+         // Handle metaclass -> infraclass wraparound (same logic as method search)
+         // This happens when a metaclass's superclass is the root infraclass (NSObject)
+         if( _mulle_objc_class_is_metaclass( cls)
+             && _mulle_objc_class_is_infraclass( supercls))
+         {
+            // This is the wraparound point - continue with modified inheritance
+            if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE))
+               inheritance = supercls->inheritance
+                           | MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS_INHERITANCE;
+            inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
+                         | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META;
+         }
+         
+         return( mulle_objc_class_methodlist_walk_with_inheritance( supercls, callback, userinfo, inheritance));
+      }
+   }
+
+   return( mulle_objc_walk_ok);
+}
+
+
+//
+// Walk methodlists in search order (replicates mulle_objc_class_search traversal)
+//
+mulle_objc_walkcommand_t
+   mulle_objc_class_methodlist_walk( struct _mulle_objc_class *cls,
+                                     mulle_objc_walkcommand_t (*callback)(struct _mulle_objc_class *, struct _mulle_objc_methodlist *, void *),
+                                     void *userinfo)
+{
+   if( ! cls)
+      return( mulle_objc_walk_ok);
+
+   return( mulle_objc_class_methodlist_walk_with_inheritance( cls, callback, userinfo, cls->inheritance));
+}
 
 
 struct lookup_method_ctxt
