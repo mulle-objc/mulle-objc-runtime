@@ -693,9 +693,9 @@ next_class:
    // | B infra      | A infra     | search A infra
    // | B meta       | A meta      | search A meta
    // | C infra      | null        | stop
-   // | C meta       | C infra     | search (metas) Y,X,C infra
+   // | C meta       | C infra     | search C infra, search Y,X infra
    // | D infra      | C infra     | search C infra
-   // | D meta       | C meta      | search D meta
+   // | D meta       | C meta      | search C meta
    //
    supercls =_mulle_objc_class_get_superclass( cls);
    if( ! supercls)

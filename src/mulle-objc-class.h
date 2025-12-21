@@ -335,6 +335,13 @@ mulle_objc_walkcommand_t
                                    mulle_objc_method_walkcallback_t callback,
                                    void *userinfo);
 
+// Walk methodlists in search order (replicates mulle_objc_class_search traversal)
+MULLE_OBJC_RUNTIME_GLOBAL
+mulle_objc_walkcommand_t
+   mulle_objc_class_methodlist_walk( struct _mulle_objc_class *cls,
+                                     mulle_objc_walkcommand_t (*callback)(struct _mulle_objc_class *, struct _mulle_objc_methodlist *, void *),
+                                     void *userinfo);
+
 
 static inline int
    _mulle_objc_class_is_forwardimplementation( struct _mulle_objc_class *cls,

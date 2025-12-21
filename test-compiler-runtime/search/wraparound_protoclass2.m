@@ -5,6 +5,7 @@
 #endif
 
 
+// class A with protocol of the same name -> protocolclass
 @class A;
 @protocol A
 @end
@@ -12,13 +13,14 @@
 @end
 
 
+// class B with protocol of the same name -> protocolclass
 @class B;
 @protocol B
 @end
 @interface B <B>
 @end
 
-
+// class C inherits two protocolclasses
 @interface C < A, B>
 @end
 
@@ -65,8 +67,8 @@ int   main()
    // we call +y defined nowhere (-y is an instance method)
    // 'C' don't have +y go to 'B'
    // 'B' don't have +y go to 'A'
-   // 'A' has no superclass, so wrap at last from metaclass 'A' to infraclass 'A'
-   // 'A' has -y  -> FINE
+   // 'A' has no superclass, so stop and wrap at last from metaclass 'C' to infraclass 'C'
+   // 'B' has -y  -> FINE
    [C y];
 
    // +z is a class method

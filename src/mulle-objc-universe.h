@@ -53,26 +53,23 @@
 #include "mulle-objc-universe-global.h"
 #include "mulle-objc-universe-fail.h"
 
-/*
- * forward declaration:
- * this will be declared by the Foundation (or the test program)
- *
- */
-
-// this is defined by the user in main or somewhere else
+// __register_mulle_objc_universe is defined by the user in main or 
+// or statically linked from somewhere else
 //
 // Windows needs are special here, because this is a rendezvous function
+// The rendezvous function is guaranteed to be statically linked to main.exe.
+// Therefore it must not be dllimport.
 //
 // build mulle-objc-runtime: _declspec( dllimport) -> MULLE_C_EXTERN_GLOBAL
 // build MulleObjC-startup:  _declspec( dllexport) -> MULLE_C_GLOBAL
 // build others:             _declspec( dllimport) -> MULLE_C_EXTERN_GLOBAL
-#ifdef MULLE_OBJC_DEFINE__register_mulle_objc_universe
-MULLE_OBJC_RUNTIME_GLOBAL
+//
+#ifdef MULLE__OBJC__RUNTIME_BUILD
+MULLE_C_EXTERN_RENDEZVOUS_SYMBOL
 #else
-MULLE_OBJC_RUNTIME_WEAK_EXTERN_GLOBAL
+MULLE_C_RENDEZVOUS_SYMBOL
 #endif
 MULLE_C_CONST_RETURN 
-
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universe,
                                    char *universename);

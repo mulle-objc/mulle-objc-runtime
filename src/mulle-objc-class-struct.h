@@ -60,8 +60,8 @@ struct _mulle_objc_universe;
 // memo: also used in mulle-gdb
 //
 //    MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_META is the special case where
-//    C < X> on a call to +foo should not inherit -!!![X foo]
-//
+//    C < X> on a call to +foo should not inherit -!!![X foo]. It's tricky
+//    though because a -!!![C foo] will be inherited first.
 enum
 {
    MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS          = 0x01,
@@ -157,6 +157,10 @@ struct _mulle_objc_class
 
    // TODO: general storage mechanism for KVC, needed in meta ? move to classpair ?
    uint16_t                                inheritance;
+
+   // Count of methods directly added to this specific class that qualified for
+   // preloading at the time they were loaded. Includes: class methods, category
+   // methods, runtime-added methods. Excludes: superclass methods, protocol methods.
    uint16_t                                preloads;
 
    // vvv - from here on the debugger doesn't care
