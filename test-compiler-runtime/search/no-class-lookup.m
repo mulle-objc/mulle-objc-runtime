@@ -54,7 +54,7 @@
    cls               = _mulle_objc_infraclass_as_class( infra);
 
    // methods in 'A' won't be found (but category methods will)
-   // just for testing...
+   // just for testing... will get executed by 'B' and 'C' as well
    cls->inheritance |= MULLE_OBJC_CLASS_DONT_INHERIT_CLASS;
 }
 
@@ -82,22 +82,6 @@
 
 
 @implementation C
-
-+ (void) initialize
-{
-   struct _mulle_objc_infraclass         *infra;
-   struct _mulle_objc_class              *cls;
-   struct _mulle_objc_searcharguments    args;
-   struct _mulle_objc_method             *method;
-
-   infra  = (struct _mulle_objc_infraclass *) self;
-   cls    = _mulle_objc_infraclass_as_class( infra);
-
-   args   = mulle_objc_searcharguments_make_default( @selector( c));
-   method = mulle_objc_class_search_method( cls, &args, 0, NULL);
-   method->descriptor.bits |= _mulle_objc_method_preload;
-}
-
 
 - (void) c
 {

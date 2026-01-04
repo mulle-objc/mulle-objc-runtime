@@ -51,77 +51,6 @@
 
 # pragma mark - cache
 
-//
-// MEMO: we could traverse the universe super list of the universe and then
-//       retrieve the classid and fill the cache for the desired methodid.
-//       Then stepping through super calls with the debugger should be less
-//       painful.
-//
-//
-// Helper to count super methods that will be preloaded for this class
-//
-static mulle_objc_walkcommand_t
-   count_super_for_class( struct _mulle_objc_universe *universe,
-                          struct _mulle_objc_super *super,
-                          void *userinfo)
-{
-   struct
-   {
-      struct _mulle_objc_class   *cls;
-      mulle_objc_cache_uint_t    count;
-   } *info = userinfo;
-
-   struct _mulle_objc_class   *walk_cls;
-   mulle_objc_classid_t       super_classid;
-
-   super_classid = _mulle_objc_super_get_classid( super);
-
-   // Check if this super belongs to our class hierarchy
-   walk_cls = info->cls;
-   while( walk_cls)
-   {
-      if( _mulle_objc_class_get_classid( walk_cls) == super_classid)
-      {
-         info->count++;
-         break;
-      }
-      walk_cls = _mulle_objc_class_get_superclass( walk_cls);
-   }
-
-   return( mulle_objc_walk_ok);
-}
-
-
-static mulle_objc_cache_uint_t
-   _mulle_objc_class_search_min_impcache_size( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_universe   *universe;
-   mulle_objc_cache_uint_t       preloads;
-   struct {
-      struct _mulle_objc_class   *cls;
-      mulle_objc_cache_uint_t    count;
-   } info;
-
-   universe = cls->universe;
-
-   // these are definitely in the cache
-   preloads = _mulle_objc_class_count_preloadmethods( cls) +
-              _mulle_objc_universe_get_numberofpreloadmethods( universe);
-
-   // Count super methods if preload_all_methods is enabled
-   // Only do this work if the feature is actually enabled
-   if( universe->config.preload_all_methods)
-   {
-      info.cls   = cls;
-      info.count = 0;
-      _mulle_objc_universe_walk_supers( universe,
-                                        (mulle_objc_walk_supers_callback_t) count_super_for_class,
-                                        &info);
-      preloads += info.count;
-   }
-
-   return( preloads);
-}
 
 
 // This is the **initialize** cache not the **initial** cache.
@@ -175,7 +104,7 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
 
    // your chance to change the cache algorithm and initial size
    universe  = _mulle_objc_class_get_universe( cls);
-   n_entries = _mulle_objc_class_search_min_impcache_size( cls) * 3 / 2;  // leave some holes
+   n_entries = MULLE_OBJC_DEFAULT_CACHE_SIZE;     // could pull this from universe
    if( universe->callbacks.will_init_cache)
       n_entries = (*universe->callbacks.will_init_cache)( universe, cls, n_entries);
 
@@ -183,9 +112,6 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
    icache    = mulle_objc_impcache_new( n_entries, callback, allocator);
 
    assert( icache);
-
-   // Preload methods into the initial cache if preload_all_methods is enabled
-   _mulle_objc_impcache_preload_methods( icache, cls);
 
    // trace this before the switch
    if( universe->debug.trace.method_cache)
@@ -537,23 +463,27 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
          // As soon as we setup a method cache, the class is free to be
          // messaged by other threads. This means we have to run +initialize
          // without a cache. Other threads must be blocked in the
-         // initialize_lock.
+         // initialize_lock above. Therefore we can not put up the +initialize
+         // caches yet for "pair", which would avoid the initialize pain when
+         // a superclass calls subclass methods in +initialize.
          //
          meta = _mulle_objc_classpair_get_metaclass( pair);
+
+         // MEMO: we are in state MULLE_OBJC_INFRACLASS_INITIALIZING, but
+         //       not yet MULLE_OBJC_INFRACLASS_INITIALIZE_DONE.
+
          _mulle_objc_metaclass_setup_superclass( meta);
          _mulle_objc_infraclass_setup_superclasses( infra);
 
-
-         // MEMO: we are in state MULLE_OBJC_INFRACLASS_INITIALIZING, but
-         //       not yet MULLE_OBJC_INFRACLASS_INITIALIZE_DONE. The
-         //       superclasses are setup already though. And they ran
-         //       (or are running (!)) +initialize.
-         //       It is only guaranteed that +initialize on the superclass is
-         //       messaged before the subclass, it isn't guaranteed that it has
-         //       completed.
+         // The superclasses are setup already though. And they ran
+         // (or are running (!)) +initialize.
+         // It is only guaranteed that +initialize on the superclass is
+         // messaged before the subclass, it isn't guaranteed that it has
+         // completed.
 
          _mulle_objc_class_setup_initialize_cache( _mulle_objc_metaclass_as_class( meta));
          _mulle_objc_class_setup_initialize_cache( _mulle_objc_infraclass_as_class( infra));
+
 
          _mulle_objc_infraclass_call_initialize( infra);
 
@@ -583,8 +513,6 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
 #pragma mark - empty_cache callbacks
 
 // the empty cache is never filled with anything
-
-
 static void   *_mulle_objc_object_call_class_slow( void *obj,
                                                    mulle_objc_methodid_t methodid,
                                                    void *parameter,
@@ -659,13 +587,25 @@ static void   *_mulle_objc_object_call_class_needcache( void *obj,
                                                         void *parameter,
                                                         struct _mulle_objc_class *cls)
 {
-   void   *result;
+   mulle_objc_implementation_t     f;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cacheentry   *entries;
 
-   _mulle_objc_class_setup( cls);
-   result = _mulle_objc_object_call_class_slow( obj, methodid, parameter, cls);
-   return( result);
+   // +initialize will run "in here"
+   // if we get a 1, we should run slow, if we get a 0 we can run fast
+   // cache has been setup
+   if( _mulle_objc_class_setup( cls))
+      return( _mulle_objc_object_call_class_slow( obj, methodid, parameter, cls));
+
+   // let the new cache now handle it properly
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
+   f       = icache->callback.call_cache_miss;
+
+   return( (*f)( obj, methodid, parameter));
 }
-
 
 
 static void   *_mulle_objc_object_call2_needcache( void *obj,
@@ -688,20 +628,27 @@ static void *
                                             mulle_objc_superid_t superid,
                                             struct _mulle_objc_class *cls)
 {
-   mulle_objc_implementation_t   imp;
-   struct _mulle_objc_method     *method;
-   void                          *result;
+   struct _mulle_objc_cache        *cache;
+   struct _mulle_objc_impcache     *icache;
+   struct _mulle_objc_cacheentry   *entries;
+   void                            *(*f)( void *,
+                                          mulle_objc_methodid_t,
+                                          void *,
+                                          mulle_objc_superid_t,
+                                          struct _mulle_objc_class *);
 
    // happens when we do +[super initialize] in +initialize
-   _mulle_objc_class_setup( cls);
+   if( _mulle_objc_class_setup( cls))
+      return( _mulle_objc_object_call_super_slow( obj, methodid, parameter, superid, cls));
 
-   // this is slow and uncached as we need it
-   method = _mulle_objc_class_search_supermethod_nofail( cls, superid);
-   imp    = _mulle_objc_method_get_implementation( method);
-   result = mulle_objc_implementation_invoke( imp, obj, methodid, parameter);
-   return( result);
+   // let the new cache now handle it properly
+   entries = _mulle_objc_cachepivot_get_entries_atomic( &cls->cachepivot.pivot);
+   cache   = _mulle_objc_cacheentry_get_cache_from_entries( entries);
+   icache  = _mulle_objc_cache_get_impcache_from_cache( cache);
+   f       = icache->callback.supercall_cache_miss;
+
+   return( (*f)( obj, methodid, parameter, superid, cls));
 }
-
 
 
 struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_initial =

@@ -95,12 +95,5 @@ MULLE_C_NONNULL_FIRST
 int   _mulle_objc_class_invalidate_impcacheentry( struct _mulle_objc_class *cls,
                                                   mulle_objc_methodid_t uniqueid);
 
-//
-// Preload methods into a cache. This is used during initial cache setup.
-//
-MULLE_OBJC_RUNTIME_GLOBAL
-MULLE_C_NONNULL_FIRST
-void   _mulle_objc_impcache_preload_methods( struct _mulle_objc_impcache *icache,
-                                             struct _mulle_objc_class *cls);
 
 #endif

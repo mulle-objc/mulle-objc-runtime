@@ -429,10 +429,6 @@ int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
                                                       &method->descriptor,
                                                       cls,
                                                       list);
-
-      // Count methods with explicit preload bit, OR if preload_all_methods is enabled
-      if( universe->config.preload_all_methods || (method->descriptor.bits & _mulle_objc_method_preload))
-         cls->preloads++;
    }
    _mulle_objc_methodlistenumerator_done( &rover);
 
@@ -516,66 +512,8 @@ static mulle_objc_walkcommand_t
 }
 
 
-static unsigned int
-   _mulle_objc_class_count_protocolspreloadinstancemethods( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_class                     *walk_cls;
-   struct _mulle_objc_classpair                 *pair;
-   struct _mulle_objc_infraclass                *proto_cls;
-   struct _mulle_objc_infraclass                *infra;
-   struct _mulle_objc_metaclass                 *meta_proto_cls;
-   struct _mulle_objc_protocolclassenumerator   rover;
-   unsigned int                                 preloads;
-   int                                          is_meta;
-
-   preloads = 0;
-
-   pair    = _mulle_objc_class_get_classpair( cls);
-   infra   = _mulle_objc_classpair_get_infraclass( pair);
-   rover   = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-   is_meta = _mulle_objc_class_is_metaclass( cls);
-
-   while( proto_cls = _mulle_objc_protocolclassenumerator_next( &rover))
-   {
-      if( proto_cls == infra)
-         continue;
-
-      walk_cls = _mulle_objc_infraclass_as_class( proto_cls);
-      if( is_meta)
-      {
-         meta_proto_cls = _mulle_objc_infraclass_get_metaclass( proto_cls);
-         walk_cls       = _mulle_objc_metaclass_as_class( meta_proto_cls);
-      }
-
-      preloads += _mulle_objc_class_count_preloadmethods( walk_cls);
-   }
-   _mulle_objc_protocolclassenumerator_done( &rover);
-
-   return( preloads);
-}
-
 
 # pragma mark - methods
-
-unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class *cls)
-{
-   struct _mulle_objc_class   *dad;
-   unsigned int               preloads;
-
-   preloads = cls->preloads;
-   if( ! (cls->inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS))
-   {
-      dad = cls;
-      while( (dad = dad->superclass))
-         preloads += _mulle_objc_class_count_preloadmethods( dad);
-   }
-
-   if( ! (cls->inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
-      preloads += _mulle_objc_class_count_protocolspreloadinstancemethods( cls);
-
-   return( preloads);
-}
-
 
 // 0: continue
 

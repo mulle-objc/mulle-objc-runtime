@@ -52,8 +52,9 @@
 # pragma mark - method cache
 
 
-#define MULLE_OBJC_MIN_CACHE_SIZE  4
-#define MULLE_OBJC_MAX_CACHE_SIZE  (4*1024*1024)  // completely arbitrary
+#define MULLE_OBJC_MIN_CACHE_SIZE      4
+#define MULLE_OBJC_DEFAULT_CACHE_SIZE  8  // meta doesn't need much usually
+#define MULLE_OBJC_MAX_CACHE_SIZE      (4*1024*1024)  // completely arbitrary
 
 
 typedef mulle_objc_uniqueid_t   mulle_objc_cache_uint_t;

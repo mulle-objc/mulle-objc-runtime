@@ -45,9 +45,6 @@ void   test_message_sending()
 
    universe = mulle_objc_global_register_universe( MULLE_OBJC_DEFAULTUNIVERSEID, NULL);
 
-   // test wont work with
-   universe->config.preload_all_methods = 0;
-
    pair = mulle_objc_universe_new_classpair( universe, A_classid, "A", 0, 0, NULL);
    assert( pair);
    A_infra = _mulle_objc_classpair_get_infraclass( pair);
@@ -81,9 +78,6 @@ void   test_message_sending()
 
    mulle_objc_methodlist_sort( methodlist);
 
-   // mark this one as preload
-   methodlist->methods[ 500].descriptor.bits |= _mulle_objc_method_preload;
-
    // for( i = 0; i < 1000; i++)
    //   printf( "#%04d: %s -> %llx\n", i, methodlist->methods[ i]->descriptor.name, (int64_t) methodlist->methods[ i]->descriptor.methodid);
 
@@ -99,14 +93,14 @@ void   test_message_sending()
    for( i = 0; i < 1000; i++)
    {
       methodid = methodlist->methods[ i].descriptor.methodid;
-      assert( i == 500 || ! _mulle_objc_class_probe_implementation( (void *) A_cls, methodid));
-      desc = _mulle_objc_universe_lookup_descriptor( universe, methodid);
+      desc     = _mulle_objc_universe_lookup_descriptor( universe, methodid);
       assert( desc == &methodlist->methods[ i].descriptor);
-      rval = mulle_objc_object_call( A_obj, methodid, NULL);
+
+      rval     = mulle_objc_object_call( A_obj, methodid, NULL);
       assert( rval == (void *) (uintptr_t) methodid);
       // when the very first call hits "A", it's slow mode due to
       // +initialize having to run. The first call runs uncached, but
-      // subsequent calls must have been cached
+      // subsequent calls must be cached
       assert( ! i || _mulle_objc_class_probe_implementation( (void *) A_infra, methodid));
    }
 

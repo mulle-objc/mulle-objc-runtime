@@ -14,7 +14,7 @@ c_x not found in class B
 
 a not found in class C
 b not found in class C
-c found in class C
+c not found in class C
 a_x found in class C
 b_x not found in class C
 c_x found in class C

@@ -188,7 +188,7 @@ void
    n = mulle_concurrent_pointerarray_get_count( &cls->methodlists);
    assert( n);
    if( _mulle_objc_class_get_inheritance( cls) & MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES)
-      n = 1; // this works though it its a reverse enumetator, will get 0
+      n = 1; // this works though it its a reverse enumerator, will get 0
 
    result.class = cls;
 

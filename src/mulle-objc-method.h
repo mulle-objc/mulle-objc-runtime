@@ -69,15 +69,6 @@ typedef void   *(*mulle_objc_implementation_t)( void *,
 // For this to work, the compiler must always set
 //       _mulle_objc_method_check_unexpected_override
 //
-// Another bit gives preferential treatment to that selector in the cache.
-// F.e. objectAtIndex: should always be (relative to the mask) in the first
-// cache slot
-//
-// ----
-// preloaded methods are placed into empty caches
-// immediately, receiving the coveted #1 spot (usually)
-//
-
 
 // this enum is inside ->bits, shifted << 16
 enum _mulle_objc_methodfamily
@@ -114,7 +105,7 @@ enum
    _mulle_objc_method_type_equality_mask        = 0x0C,  // other bits can vary from class to class
 
    _mulle_objc_method_check_unexpected_override = 0x01,
-   _mulle_objc_method_preload                   = 0x02,
+//   _mulle_objc_method_preload                   = 0x02,  // no longer supported
    _mulle_objc_method_aam                       = 0x04,
    _mulle_objc_method_variadic                  = 0x08,
    _mulle_objc_method_guessed_signature         = 0x10,
@@ -206,13 +197,6 @@ static inline int
    _mulle_objc_descriptor_get_bits( struct _mulle_objc_descriptor *desc)
 {
    return( desc->bits);
-}
-
-
-static inline int
-   _mulle_objc_descriptor_is_preload_method( struct _mulle_objc_descriptor *desc)
-{
-   return( desc->bits & _mulle_objc_method_preload);
 }
 
 
@@ -484,7 +468,6 @@ static inline char  *mulle_objc_method_bit_utf8( unsigned long x)
    switch( x)
    {
    case _mulle_objc_method_check_unexpected_override : return( "check_unexpected_override");
-   case _mulle_objc_method_preload                   : return( "preload");
    case _mulle_objc_method_aam                       : return( "aam");
    case _mulle_objc_method_variadic                  : return( "variadic");
    case _mulle_objc_method_guessed_signature         : return( "guessed_signature");

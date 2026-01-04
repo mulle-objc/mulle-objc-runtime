@@ -364,28 +364,6 @@ void  mulle_objc_global_release_defaultuniverse( void);
 
 
 
-static inline int
-   _mulle_objc_universe_is_preload_method( struct _mulle_objc_universe *universe,
-                                           struct _mulle_objc_descriptor *desc)
-{
-   mulle_objc_methodid_t   *p;
-   mulle_objc_methodid_t   *sentinel;
-
-   if( (desc->bits & _mulle_objc_method_preload) || universe->config.preload_all_methods)
-      return( 1);
-
-   p        = universe->methodidstopreload.methodids;
-   sentinel = &p[ universe->methodidstopreload.n];
-   while( p < sentinel)
-   {
-      if( *p == _mulle_objc_descriptor_get_methodid( desc))
-         return( 1);
-   }
-   return( 0);
-}
-
-
-
 #pragma mark - string tables
 
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -708,12 +686,6 @@ void  _mulle_objc_universe_set_fastclass( struct _mulle_objc_universe *universe,
                                           unsigned int index);
 
 #pragma mark - method cache
-
-static inline unsigned int
-   _mulle_objc_universe_get_numberofpreloadmethods( struct _mulle_objc_universe *universe)
-{
-   return( universe->methodidstopreload.n);
-}
 
 
 MULLE_OBJC_RUNTIME_GLOBAL

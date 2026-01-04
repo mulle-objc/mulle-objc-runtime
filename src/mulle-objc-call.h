@@ -517,6 +517,7 @@ void  *
    return( (*f)( obj, methodid, parameter));
 }
 
+
 // old mistyped name
 MULLE_C_STATIC_ALWAYS_INLINE
 void  *
@@ -526,8 +527,6 @@ void  *
 {
    return( mulle_objc_object_call_inline_variable( obj, methodid, parameter));
 }
-
-
 
 
 //
