@@ -1,8 +1,0 @@
-number of universe preload methodids: 0
-metaclass->preloads: 3
-_mulle_objc_class_count_preloadmethods(meta): 3
-Cache entries: 3
-Cache size: 4
-method1 found in cache
-method2 found in cache
-method3 found in cache
