@@ -1605,7 +1605,7 @@ enum mulle_objc_universe_status
 
       pointerarray_in_hashmap_map( universe,
                                    &universe->waitqueues.classestoload,
-                                   (void (*)()) mulle_objc_loadclass_print_unfulfilled_dependency);
+                                   (void (*)( void *, void *)) mulle_objc_loadclass_print_unfulfilled_dependency);
       _mulle_objc_universe_unlock_waitqueues( universe);
    }
 
@@ -1626,7 +1626,7 @@ enum mulle_objc_universe_status
 
       pointerarray_in_hashmap_map( universe,
                                    &universe->waitqueues.categoriestoload,
-                                   (void (*)()) mulle_objc_loadcategory_print_unfulfilled_dependency);
+                                   (void (*)( void *, void *)) mulle_objc_loadcategory_print_unfulfilled_dependency);
       _mulle_objc_universe_unlock_waitqueues( universe);
    }
 
@@ -1700,7 +1700,7 @@ static void
 
    /* free gifts */
    mulle_concurrent_pointerarray_map( &universe->gifts,
-                                      (void (*)()) free_gift,
+                                      (void (*)(void *, void *)) free_gift,
                                       &universe->memory.allocator);
    _mulle_concurrent_pointerarray_done( &universe->gifts);
 }

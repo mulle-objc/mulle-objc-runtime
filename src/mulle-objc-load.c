@@ -77,13 +77,14 @@ static void
                                         struct _mulle_objc_callqueue *loads,
                                         struct _mulle_objc_universe *universe);
 
+typedef void   map_f_callback_t( void *,
+                                 struct _mulle_objc_callqueue *,
+                                 struct _mulle_objc_universe *);
 
 // this is destructive
 static void    map_f( struct mulle_concurrent_hashmap *table,
                       mulle_objc_uniqueid_t uniqueid,
-                      void (*f)( void *,
-                                 struct _mulle_objc_callqueue *,
-                                 struct _mulle_objc_universe *),
+                      map_f_callback_t *f,
                       struct _mulle_objc_callqueue *loads,
                       struct _mulle_objc_universe *universe)
 {
@@ -581,12 +582,12 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    //
    map_f( &universe->waitqueues.categoriestoload,
          info->classid,
-         (void (*)()) mulle_objc_loadcategory_enqueue_nofail,
+         (map_f_callback_t *) mulle_objc_loadcategory_enqueue_nofail,
          loads,
          universe);
    map_f( &universe->waitqueues.classestoload,
          info->classid,
-         (void (*)()) mulle_objc_loadclass_enqueue_nofail,
+         (map_f_callback_t *) mulle_objc_loadclass_enqueue_nofail,
          loads,
          universe);
 
@@ -1036,12 +1037,12 @@ static mulle_objc_classid_t
    //
    map_f( &universe->waitqueues.categoriestoload,
           info->classid,
-          (void (*)()) mulle_objc_loadcategory_enqueue_nofail,
+          (map_f_callback_t *) mulle_objc_loadcategory_enqueue_nofail,
           loads,
           universe);
    map_f( &universe->waitqueues.classestoload,
           info->classid,
-          (void (*)()) mulle_objc_loadclass_enqueue_nofail,
+          (map_f_callback_t *) mulle_objc_loadclass_enqueue_nofail,
           loads,
           universe);
 
@@ -1725,7 +1726,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
       if( universe->debug.trace.loadinfo)
          mulle_objc_universe_trace( universe,  "performing +load calls...");
 
-      mulle_objc_callqueue_walk( &loads, (void (*)()) call_load, universe);
+      mulle_objc_callqueue_walk( &loads, (mulle_objc_callqueue_t *) call_load, universe);
       mulle_objc_callqueue_done( &loads);
    }
 
