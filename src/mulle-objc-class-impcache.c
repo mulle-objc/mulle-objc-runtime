@@ -55,6 +55,9 @@ static int   _mulle_objc_class_should_build_preload_map( struct _mulle_objc_clas
    
    universe = _mulle_objc_class_get_universe( cls);
    
+   // disable if trace is enabled
+   if( universe->debug.method_call & MULLE_OBJC_UNIVERSE_CALL_TRACE_BIT)
+      return( 0);
    // Always build if preload_all_methods is enabled
    if( universe->config.preload_all_methods)
       return( 1);
@@ -94,7 +97,6 @@ static mulle_objc_walkcommand_t   collect_preload_methods( struct _mulle_objc_cl
    struct _mulle_objc_method                *resolved_method;
    struct _mulle_objc_universe              *universe;
    mulle_objc_methodid_t                    methodid;
-   int                                      should_preload;
    
    context  = (struct preload_collect_context *) userinfo;
    universe = _mulle_objc_class_get_universe( context->original_cls);
@@ -103,15 +105,7 @@ static mulle_objc_walkcommand_t   collect_preload_methods( struct _mulle_objc_cl
    while( (method = _mulle_objc_methodlistenumerator_next( &rover)))
    {
       // Check if method should be preloaded
-      should_preload = 0;
-      if( method->descriptor.bits & _mulle_objc_method_preload)
-         should_preload = 1;
-      else if( universe->config.preload_all_methods)
-         should_preload = 1;
-      else if( _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
-         should_preload = 1;
-         
-      if( ! should_preload)
+      if( ! _mulle_objc_universe_is_preload_method( universe, &method->descriptor))
          continue;
          
       methodid = _mulle_objc_method_get_methodid( method);

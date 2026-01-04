@@ -1,0 +1,15 @@
+SubClass subMethod
+Cache entries: 3
+Cache size: 8
+baseMethod found in cache
+subMethod found in cache
+
+Checking registered supers in universe:
+  Super 1: superid=3ce9dbc2 classid=f1024af6 methodid=1f459493
+    -> Found in cache!
+Total supers registered in universe: 1
+Cache size: 8 (grew from expected 4 to accommodate supers)
+
+Testing super call:
+SubClass baseMethod calling super
+BaseClass baseMethod

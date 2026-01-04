@@ -83,12 +83,15 @@ int   mulle_objc_callqueue_add( struct _mulle_objc_callqueue *p,
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_callqueue_execute( struct _mulle_objc_callqueue *p);
 
+
+typedef void   mulle_objc_callqueue_t( struct _mulle_objc_object *obj,
+                                       mulle_objc_methodid_t methodid,
+                                       mulle_objc_implementation_t imp,
+                                       void *userinfo);
+
 MULLE_OBJC_RUNTIME_GLOBAL
 void   mulle_objc_callqueue_walk( struct _mulle_objc_callqueue *queue,
-                                  void (*callback)( struct _mulle_objc_object *obj,
-                                                    mulle_objc_methodid_t methodid,
-                                                    mulle_objc_implementation_t imp,
-                                                    void *userinfo),
+                                  mulle_objc_callqueue_t *callback,
                                   void *userinfo);
 
 
