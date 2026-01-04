@@ -372,7 +372,6 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    universe->debug.trace.method_add      = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_ADD");
    universe->debug.trace.method_cache    = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_CACHE");
    universe->debug.trace.method_search   = getenv_yes_no( "MULLE_OBJC_TRACE_METHOD_SEARCH");  // fairly excessive!
-   universe->debug.trace.preload         = getenv_yes_no( "MULLE_OBJC_TRACE_PRELOAD");
    universe->debug.trace.descriptor_add  = getenv_yes_no( "MULLE_OBJC_TRACE_DESCRIPTOR_ADD");
    universe->debug.trace.propertyid_add  = getenv_yes_no( "MULLE_OBJC_TRACE_PROPERTYID_ADD");
    universe->debug.trace.protocol_add    = getenv_yes_no( "MULLE_OBJC_TRACE_PROTOCOL_ADD");
@@ -700,11 +699,6 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
 
    universe->path                = NULL;
    universe->config.max_optlevel = 0x7;
-#ifdef DEBUG
-   universe->config.preload_all_methods = getenv_yes_no_default( "MULLE_OBJC_PRELOAD_ALL_METHODS", 1);
-#else
-   universe->config.preload_all_methods = getenv_yes_no_default( "MULLE_OBJC_PRELOAD_ALL_METHODS", 0);
-#endif
    _mulle_objc_universe_get_environment( universe);
 
    // for named universes this is done in alloc already
@@ -783,10 +777,6 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
       mulle_objc_universe_trace( universe, "universe tps       : %lx", universe->config.no_tagged_pointer ? 0 : 1);
       mulle_objc_universe_trace( universe, "init done");
    }
-
-   // TODO: currently I am too lazy to set this up
-   // preload a list of know selectors of the universe for easier debugging
-   //   _mulle_objc_universe_add_loadhashedstringlist( universe, &map);
 }
 
 

@@ -106,29 +106,6 @@ static struct _mulle_objc_cacheentry *
 
    if( &old_cache->entries[ 0] != &universe->empty_cache.entries[ 0])
    {
-      //
-      // if we repopulate the new cache with the old cache, we can then
-      // determine, which classes have actually been used over the course
-      // of the program by just dumping the cache contents.
-      //
-      if( universe->config.repopulate_caches)
-      {
-         p        = &old_cache->entries[ 0];
-         sentinel = &p[ old_cache->size];
-         while( p < sentinel)
-         {
-            classid = (mulle_objc_classid_t)(intptr_t) _mulle_atomic_pointer_read( &p->key.pointer);
-            ++p;
-
-            // place it into cache
-            if( classid != MULLE_OBJC_NO_CLASSID)
-               (void) mulle_objc_universe_lookup_infraclass_nofail( universe, classid);
-         }
-
-         // entry is still valid, even if the cache has been blown away in the
-         // meantime (aba)
-      }
-
       if( universe->debug.trace.class_cache)
          mulle_objc_universe_trace( universe,
                                     "frees class cache %p with %u entries\n",

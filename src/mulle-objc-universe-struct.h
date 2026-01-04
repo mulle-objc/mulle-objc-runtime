@@ -71,12 +71,10 @@ struct _mulle_objc_universeconfig
    unsigned   min_optlevel             : 3;  // min compiler optimization level: (0)
    unsigned   no_tagged_pointer        : 1;  // don't use tagged pointers
    unsigned   no_fast_call             : 1;  // don't use fast method calls
-   unsigned   repopulate_caches        : 1;  // useful for coverage analysis
    unsigned   coverage                 : 1;  // memorize coverage env flag here
    unsigned   no_classcuster_coverage  : 1;  // don't assume coverage of all direct classcluster subclasses
    unsigned   pedantic_exit            : 1;  // useful for leak checks
    unsigned   wait_threads_on_exit     : 1;  // useful for tests
-   unsigned   preload_all_methods      : 1;  // useful for debugging (easier to step through with gdb)
    unsigned   skip_consistency_checks  : 1;  // used by mulle-objc-list (and mulle-objc-list only)
    int        cache_fillrate;                // default is (0) can be 0-90
 };
@@ -142,7 +140,6 @@ struct _mulle_objc_universedebug
       unsigned   method_add           : 1;
       unsigned   method_cache         : 1;
       unsigned   descriptor_add       : 1;
-      unsigned   preload              : 1;
       unsigned   protocol_add         : 1;
       unsigned   propertyid_add       : 1;
       unsigned   state_bit            : 1;
@@ -213,18 +210,6 @@ struct _mulle_objc_universefailures
    void   (*wrongthread)( struct _mulle_objc_object *obj,
                           mulle_thread_t affinity_thread,
                           struct _mulle_objc_descriptor *desc)  _MULLE_C_NO_RETURN;
-};
-
-
-//
-// Specify methodids (global) that get preloaded into the method caches.
-// This guarantees an optimal spot and no delay during the first call.
-// It makes no sense to put "fast" methods here...
-//
-struct _mulle_objc_preloadmethodids
-{
-   unsigned int            n;
-   mulle_objc_methodid_t   methodids[ 32];
 };
 
 
@@ -444,8 +429,6 @@ struct _mulle_objc_universe
 
    struct _mulle_objc_classdefaults         classdefaults;
    struct _mulle_objc_garbagecollection     garbage;
-   // methodids_to_preload not methodid_stop_reload
-   struct _mulle_objc_preloadmethodids      methodidstopreload;
    struct _mulle_objc_universefailures      failures;
    struct _mulle_objc_universeexceptionvectors   exceptionvectors;
    struct _mulle_objc_universeconfig        config;

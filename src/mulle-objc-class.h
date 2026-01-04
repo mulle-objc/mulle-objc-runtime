@@ -279,9 +279,6 @@ struct _mulle_objc_methodlist *
    mulle_objc_class_find_methodlist( struct _mulle_objc_class *cls,
                                      mulle_objc_categoryid_t categoryid);
 
-MULLE_OBJC_RUNTIME_GLOBAL
-unsigned int   _mulle_objc_class_count_preloadmethods( struct _mulle_objc_class *cls);
-
 
 #pragma mark - walking
 

@@ -158,10 +158,7 @@ struct _mulle_objc_class
    // TODO: general storage mechanism for KVC, needed in meta ? move to classpair ?
    uint16_t                                inheritance;
 
-   // Count of methods directly added to this specific class that qualified for
-   // preloading at the time they were loaded. Includes: class methods, category
-   // methods, runtime-added methods. Excludes: superclass methods, protocol methods.
-   uint16_t                                preloads;
+   uint16_t                                unused;  // used to be preloads
 
    // vvv - from here on the debugger doesn't care
 
