@@ -143,6 +143,7 @@ static void   _mulle_objc_vvprintf_abort( char *format, va_list *args)
 
 #ifdef HAVE_STACKTRACE_INJECTOR
 
+// TODO: is this still needed with libbacktrace ??
 //
 // this is just a last resort mechanism, so no error checks
 // should just _not_ crash. The problem here is that in "production" we

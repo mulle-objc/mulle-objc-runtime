@@ -16,7 +16,7 @@
 
 // To remove the following dependency (headers and library) completely:
 //   `mulle-sde dependency remove mulle-core`
-// (Use 8066A0F0-88B4-4E1F-AC6D-3EF08A277B4E instead of mulle-core, if there are duplicate entries)
+// (Use 3707ECF4-4989-4611-928D-91044A5267EE instead of mulle-core, if there are duplicate entries)
 //
 // You can tweak the following #include with these commands:
 //    remove #include: `mulle-sde dependency mark mulle-core no-header`
@@ -28,5 +28,20 @@
 //    remove for platform : `mulle-sde dependency mark mulle-core no-platform-<uname>`
 //        (use `mulle-sourcetree-to-c --unames` to list known values)
 #include <mulle-core/mulle-core.h>   // mulle-core
+
+// To remove the following dependency (headers and library) completely:
+//   `mulle-sde dependency remove mulle-core-all-load`
+// (Use 2F3678EC-81A5-444A-AFC2-8DF14DB96A81 instead of mulle-core-all-load, if there are duplicate entries)
+//
+// You can tweak the following #include with these commands:
+//    remove #include: `mulle-sde dependency mark mulle-core-all-load no-header`
+//    rename              : `mulle-sde dependency|library set mulle-core-all-load include whatever.h`
+//    reorder             : `mulle-sde dependency move mulle-core-all-load <up|down>`
+//    toggle #include: `mulle-sde dependency mark mulle-core-all-load [no-]import`
+//    toggle public       : `mulle-sde dependency mark mulle-core-all-load [no-]public`
+//    toggle optional     : `mulle-sde dependency mark mulle-core-all-load [no-]require`
+//    remove for platform : `mulle-sde dependency mark mulle-core-all-load no-platform-<uname>`
+//        (use `mulle-sourcetree-to-c --unames` to list known values)
+#include <mulle-core-all-load/mulle-core-all-load.h>   // mulle-core-all-load
 
 #endif

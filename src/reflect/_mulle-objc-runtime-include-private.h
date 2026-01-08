@@ -14,34 +14,6 @@
 #ifndef _mulle_objc_runtime_include_private_h__
 #define _mulle_objc_runtime_include_private_h__
 
-// To remove the following dependency (headers and library) completely:
-//   `mulle-sde dependency remove mulle-atinit`
-// (Use E0364339-E5A0-45C1-AFC7-87896F3FAA2A instead of mulle-atinit, if there are duplicate entries)
-//
-// You can tweak the following #include with these commands:
-//    remove #include: `mulle-sde dependency mark mulle-atinit no-header`
-//    rename              : `mulle-sde dependency|library set mulle-atinit include whatever.h`
-//    reorder             : `mulle-sde dependency move mulle-atinit <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-atinit [no-]import`
-//    toggle public       : `mulle-sde dependency mark mulle-atinit [no-]public`
-//    toggle optional     : `mulle-sde dependency mark mulle-atinit [no-]require`
-//    remove for platform : `mulle-sde dependency mark mulle-atinit no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-atinit/mulle-atinit.h>   // mulle-atinit
-
-// To remove the following dependency (headers and library) completely:
-//   `mulle-sde dependency remove mulle-atexit`
-// (Use 9956BD7E-D6ED-44BC-B864-B2BAC12846D3 instead of mulle-atexit, if there are duplicate entries)
-//
-// You can tweak the following #include with these commands:
-//    remove #include: `mulle-sde dependency mark mulle-atexit no-header`
-//    rename              : `mulle-sde dependency|library set mulle-atexit include whatever.h`
-//    reorder             : `mulle-sde dependency move mulle-atexit <up|down>`
-//    toggle #include: `mulle-sde dependency mark mulle-atexit [no-]import`
-//    toggle public       : `mulle-sde dependency mark mulle-atexit [no-]public`
-//    toggle optional     : `mulle-sde dependency mark mulle-atexit [no-]require`
-//    remove for platform : `mulle-sde dependency mark mulle-atexit no-platform-<uname>`
-//        (use `mulle-sourcetree-to-c --unames` to list known values)
-#include <mulle-atexit/mulle-atexit.h>   // mulle-atexit
+/* no headers */
 
 #endif

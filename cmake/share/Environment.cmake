@@ -104,7 +104,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
             if( MULLE_SDE)
                execute_process(
                   OUTPUT_VARIABLE DEPENDENCY_DIR
-                  COMMAND ${MULLE_SDE} dependency-dir
+                  COMMAND ${MULLE_SDE} -s dependency-dir
                   OUTPUT_STRIP_TRAILING_WHITESPACE
                )
             endif()
@@ -121,7 +121,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
             if( MULLE_SDE)
                execute_process(
                   OUTPUT_VARIABLE ADDICTION_DIR
-                  COMMAND ${MULLE_SDE} addiction-dir
+                  COMMAND ${MULLE_SDE} -s addiction-dir
                   OUTPUT_STRIP_TRAILING_WHITESPACE
                )
             endif()

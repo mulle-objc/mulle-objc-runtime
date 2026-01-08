@@ -1,10 +1,10 @@
-# mulle-sde Debug Guidelines
-<!-- Keywords: debug, crash, gdb, stacktrace, segfault -->
+# mulle-sde Debug Crashes Guidelines
+<!-- Keywords: debug, crash, stacktrace  -->
 
 
 ## Workflow
 
-**When code crashes: STACKTRACE FIRST, fixes SECOND.**
+**When code crashes: STACKTRACE FIRST, fix SECOND.**
 
 ### 1. Get stacktrace
 
@@ -24,7 +24,8 @@ Frame #0 = crash location. Look at that line in that file.
 
 ### 3. Fix the actual problem
 
-Don't guess. Don't add random checks. Fix what the stacktrace shows.
+Don't guess. Don't add random checks. Try to fix what the stacktrace shows
+first.
 
 ## Interactive debugging
 

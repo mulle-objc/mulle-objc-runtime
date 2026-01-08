@@ -12,7 +12,7 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 #
-# Generated from sourcetree: 8066A0F0-88B4-4E1F-AC6D-3EF08A277B4E;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import,no-singlephase;
+# Generated from sourcetree: 3707ECF4-4989-4611-928D-91044A5267EE;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import;
 # Disable with : `mulle-sourcetree mark mulle-core no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-core no-cmake-platform-${MULLE_UNAME}`
 # Disable for a sdk: `mulle-sourcetree mark mulle-core no-cmake-sdk-<name>`
@@ -87,170 +87,75 @@ endif()
 
 
 #
-# Generated from sourcetree: E0364339-E5A0-45C1-AFC7-87896F3FAA2A;mulle-atinit;no-bequeath,no-cmake-searchpath,no-descend,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;
-# Disable with : `mulle-sourcetree mark mulle-atinit no-link`
-# Disable for this platform: `mulle-sourcetree mark mulle-atinit no-cmake-platform-${MULLE_UNAME}`
-# Disable for a sdk: `mulle-sourcetree mark mulle-atinit no-cmake-sdk-<name>`
+# Generated from sourcetree: 2F3678EC-81A5-444A-AFC2-8DF14DB96A81;mulle-core-all-load;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import;
+# Disable with : `mulle-sourcetree mark mulle-core-all-load no-link`
+# Disable for this platform: `mulle-sourcetree mark mulle-core-all-load no-cmake-platform-${MULLE_UNAME}`
+# Disable for a sdk: `mulle-sourcetree mark mulle-core-all-load no-cmake-sdk-<name>`
 #
-if( COLLECT_STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES_AS_NAMES)
-   list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES "mulle-atinit")
+if( COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES)
+   list( APPEND DEPENDENCY_LIBRARIES "mulle-core-all-load")
 else()
-   if( NOT MULLE__ATINIT_LIBRARY)
-      find_library( MULLE__ATINIT_LIBRARY NAMES
-         ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
-         ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_STATIC_LIBRARY_SUFFIX}
+   if( NOT MULLE__CORE__ALL__LOAD_LIBRARY)
+      find_library( MULLE__CORE__ALL__LOAD_LIBRARY NAMES
+         ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+         ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}
+         mulle-core-all-load
          NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
       )
-      if( NOT MULLE__ATINIT_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
-         find_library( MULLE__ATINIT_LIBRARY NAMES
-            ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_STATIC_LIBRARY_SUFFIX}
+      if( NOT MULLE__CORE__ALL__LOAD_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
+         find_library( MULLE__CORE__ALL__LOAD_LIBRARY NAMES
+            ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+            ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}
+            mulle-core-all-load
          )
       endif()
-      message( STATUS "MULLE__ATINIT_LIBRARY is ${MULLE__ATINIT_LIBRARY}")
+      message( STATUS "MULLE__CORE__ALL__LOAD_LIBRARY is ${MULLE__CORE__ALL__LOAD_LIBRARY}")
       #
       # The order looks ascending, but due to the way this file is read
       # it ends up being descending, which is what we need.
       #
-      if( MULLE__ATINIT_LIBRARY)
+      if( MULLE__CORE__ALL__LOAD_LIBRARY)
          #
-         # Add MULLE__ATINIT_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
-         # Disable with: `mulle-sourcetree mark mulle-atinit no-cmake-add`
+         # Add MULLE__CORE__ALL__LOAD_LIBRARY to DEPENDENCY_LIBRARIES list.
+         # Disable with: `mulle-sourcetree mark mulle-core-all-load no-cmake-add`
          #
-         list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES ${MULLE__ATINIT_LIBRARY})
-         #
-         # Inherit information from dependency.
-         # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
-         # Disable with: `mulle-sourcetree mark mulle-atinit no-cmake-inherit`
-         #
-         # temporarily expand CMAKE_MODULE_PATH
-         get_filename_component( _TMP_MULLE__ATINIT_ROOT "${MULLE__ATINIT_LIBRARY}" DIRECTORY)
-         get_filename_component( _TMP_MULLE__ATINIT_ROOT "${_TMP_MULLE__ATINIT_ROOT}" DIRECTORY)
-         #
-         #
-         # Search for "Definitions.cmake" and "DependenciesAndLibraries.cmake" to include.
-         # Disable with: `mulle-sourcetree mark mulle-atinit no-cmake-dependency`
-         #
-         foreach( _TMP_MULLE__ATINIT_NAME "mulle-atinit")
-            set( _TMP_MULLE__ATINIT_DIR "${_TMP_MULLE__ATINIT_ROOT}/include/${_TMP_MULLE__ATINIT_NAME}/cmake")
-            # use explicit path to avoid "surprises"
-            if( IS_DIRECTORY "${_TMP_MULLE__ATINIT_DIR}")
-               list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_MULLE__ATINIT_DIR}")
-               #
-               include( "${_TMP_MULLE__ATINIT_DIR}/DependenciesAndLibraries.cmake" OPTIONAL)
-               #
-               list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE__ATINIT_DIR}")
-               #
-               unset( MULLE__ATINIT_DEFINITIONS)
-               include( "${_TMP_MULLE__ATINIT_DIR}/Definitions.cmake" OPTIONAL)
-               list( APPEND INHERITED_DEFINITIONS ${MULLE__ATINIT_DEFINITIONS})
-               break()
-            else()
-               message( STATUS "${_TMP_MULLE__ATINIT_DIR} not found")
-            endif()
-         endforeach()
-         #
-         # Search for "MulleObjCLoader+<name>.h" in include directory.
-         # Disable with: `mulle-sourcetree mark mulle-atinit no-cmake-loader`
-         #
-         if( NOT NO_INHERIT_OBJC_LOADERS)
-            foreach( _TMP_MULLE__ATINIT_NAME "mulle-atinit")
-               set( _TMP_MULLE__ATINIT_FILE "${_TMP_MULLE__ATINIT_ROOT}/include/${_TMP_MULLE__ATINIT_NAME}/MulleObjCLoader+${_TMP_MULLE__ATINIT_NAME}.h")
-               if( EXISTS "${_TMP_MULLE__ATINIT_FILE}")
-                  list( APPEND INHERITED_OBJC_LOADERS ${_TMP_MULLE__ATINIT_FILE})
-                  break()
-               endif()
-            endforeach()
-         endif()
-      else()
-         # Disable with: `mulle-sourcetree mark mulle-atinit no-require-link`
-         message( SEND_ERROR "MULLE__ATINIT_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
-${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atinit${CMAKE_STATIC_LIBRARY_SUFFIX}")
-      endif()
-   endif()
-endif()
-
-
-#
-# Generated from sourcetree: 9956BD7E-D6ED-44BC-B864-B2BAC12846D3;mulle-atexit;no-bequeath,no-cmake-searchpath,no-descend,no-dynamic-link,no-import,no-intermediate-link,no-public,no-singlephase;
-# Disable with : `mulle-sourcetree mark mulle-atexit no-link`
-# Disable for this platform: `mulle-sourcetree mark mulle-atexit no-cmake-platform-${MULLE_UNAME}`
-# Disable for a sdk: `mulle-sourcetree mark mulle-atexit no-cmake-sdk-<name>`
-#
-if( COLLECT_STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES_AS_NAMES)
-   list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES "mulle-atexit")
-else()
-   if( NOT MULLE__ATEXIT_LIBRARY)
-      find_library( MULLE__ATEXIT_LIBRARY NAMES
-         ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
-         ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_STATIC_LIBRARY_SUFFIX}
-         NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
-      )
-      if( NOT MULLE__ATEXIT_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
-         find_library( MULLE__ATEXIT_LIBRARY NAMES
-            ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
-            ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_STATIC_LIBRARY_SUFFIX}
-         )
-      endif()
-      message( STATUS "MULLE__ATEXIT_LIBRARY is ${MULLE__ATEXIT_LIBRARY}")
-      #
-      # The order looks ascending, but due to the way this file is read
-      # it ends up being descending, which is what we need.
-      #
-      if( MULLE__ATEXIT_LIBRARY)
-         #
-         # Add MULLE__ATEXIT_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
-         # Disable with: `mulle-sourcetree mark mulle-atexit no-cmake-add`
-         #
-         list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES ${MULLE__ATEXIT_LIBRARY})
+         list( APPEND DEPENDENCY_LIBRARIES ${MULLE__CORE__ALL__LOAD_LIBRARY})
          #
          # Inherit information from dependency.
          # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
-         # Disable with: `mulle-sourcetree mark mulle-atexit no-cmake-inherit`
+         # Disable with: `mulle-sourcetree mark mulle-core-all-load no-cmake-inherit`
          #
          # temporarily expand CMAKE_MODULE_PATH
-         get_filename_component( _TMP_MULLE__ATEXIT_ROOT "${MULLE__ATEXIT_LIBRARY}" DIRECTORY)
-         get_filename_component( _TMP_MULLE__ATEXIT_ROOT "${_TMP_MULLE__ATEXIT_ROOT}" DIRECTORY)
+         get_filename_component( _TMP_MULLE__CORE__ALL__LOAD_ROOT "${MULLE__CORE__ALL__LOAD_LIBRARY}" DIRECTORY)
+         get_filename_component( _TMP_MULLE__CORE__ALL__LOAD_ROOT "${_TMP_MULLE__CORE__ALL__LOAD_ROOT}" DIRECTORY)
          #
          #
          # Search for "Definitions.cmake" and "DependenciesAndLibraries.cmake" to include.
-         # Disable with: `mulle-sourcetree mark mulle-atexit no-cmake-dependency`
+         # Disable with: `mulle-sourcetree mark mulle-core-all-load no-cmake-dependency`
          #
-         foreach( _TMP_MULLE__ATEXIT_NAME "mulle-atexit")
-            set( _TMP_MULLE__ATEXIT_DIR "${_TMP_MULLE__ATEXIT_ROOT}/include/${_TMP_MULLE__ATEXIT_NAME}/cmake")
+         foreach( _TMP_MULLE__CORE__ALL__LOAD_NAME "mulle-core-all-load")
+            set( _TMP_MULLE__CORE__ALL__LOAD_DIR "${_TMP_MULLE__CORE__ALL__LOAD_ROOT}/include/${_TMP_MULLE__CORE__ALL__LOAD_NAME}/cmake")
             # use explicit path to avoid "surprises"
-            if( IS_DIRECTORY "${_TMP_MULLE__ATEXIT_DIR}")
-               list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_MULLE__ATEXIT_DIR}")
+            if( IS_DIRECTORY "${_TMP_MULLE__CORE__ALL__LOAD_DIR}")
+               list( INSERT CMAKE_MODULE_PATH 0 "${_TMP_MULLE__CORE__ALL__LOAD_DIR}")
                #
-               include( "${_TMP_MULLE__ATEXIT_DIR}/DependenciesAndLibraries.cmake" OPTIONAL)
+               include( "${_TMP_MULLE__CORE__ALL__LOAD_DIR}/DependenciesAndLibraries.cmake" OPTIONAL)
                #
-               list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE__ATEXIT_DIR}")
+               list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE__CORE__ALL__LOAD_DIR}")
                #
-               unset( MULLE__ATEXIT_DEFINITIONS)
-               include( "${_TMP_MULLE__ATEXIT_DIR}/Definitions.cmake" OPTIONAL)
-               list( APPEND INHERITED_DEFINITIONS ${MULLE__ATEXIT_DEFINITIONS})
+               unset( MULLE__CORE__ALL__LOAD_DEFINITIONS)
+               include( "${_TMP_MULLE__CORE__ALL__LOAD_DIR}/Definitions.cmake" OPTIONAL)
+               list( APPEND INHERITED_DEFINITIONS ${MULLE__CORE__ALL__LOAD_DEFINITIONS})
                break()
             else()
-               message( STATUS "${_TMP_MULLE__ATEXIT_DIR} not found")
+               message( STATUS "${_TMP_MULLE__CORE__ALL__LOAD_DIR} not found")
             endif()
          endforeach()
-         #
-         # Search for "MulleObjCLoader+<name>.h" in include directory.
-         # Disable with: `mulle-sourcetree mark mulle-atexit no-cmake-loader`
-         #
-         if( NOT NO_INHERIT_OBJC_LOADERS)
-            foreach( _TMP_MULLE__ATEXIT_NAME "mulle-atexit")
-               set( _TMP_MULLE__ATEXIT_FILE "${_TMP_MULLE__ATEXIT_ROOT}/include/${_TMP_MULLE__ATEXIT_NAME}/MulleObjCLoader+${_TMP_MULLE__ATEXIT_NAME}.h")
-               if( EXISTS "${_TMP_MULLE__ATEXIT_FILE}")
-                  list( APPEND INHERITED_OBJC_LOADERS ${_TMP_MULLE__ATEXIT_FILE})
-                  break()
-               endif()
-            endforeach()
-         endif()
       else()
-         # Disable with: `mulle-sourcetree mark mulle-atexit no-require-link`
-         message( SEND_ERROR "MULLE__ATEXIT_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
-${CMAKE_STATIC_LIBRARY_PREFIX}mulle-atexit${CMAKE_STATIC_LIBRARY_SUFFIX}")
+         # Disable with: `mulle-sourcetree mark mulle-core-all-load no-require-link`
+         message( SEND_ERROR "MULLE__CORE__ALL__LOAD_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}
+mulle-core-all-load")
       endif()
    endif()
 endif()
