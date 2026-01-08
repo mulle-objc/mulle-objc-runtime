@@ -23,13 +23,24 @@ if( NOT __INSTALL_CMAKE_INCLUDE__CMAKE__)
       # we did in the code below)
       #
       if( INSTALL_TMP_HEADERS)
-         add_custom_target( ${LIBRARY_NAME}-headers ALL
-             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/${LIBRARY_NAME}"
-             COMMAND ${CMAKE_COMMAND} -E copy_if_different ${INSTALL_TMP_HEADERS} "${CMAKE_BINARY_DIR}/include/${LIBRARY_NAME}"
-             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-             SOURCES ${INSTALL_TMP_HEADERS}
-         )
+         unset( HEADER_OUTPUTS)
+         
+         foreach( HEADER ${INSTALL_TMP_HEADERS})
+             get_filename_component( HEADER_FILENAME ${HEADER} NAME)
+             set( OUTPUT_FILE "${CMAKE_BINARY_DIR}/include/${LIBRARY_NAME}/${HEADER_FILENAME}")
+             list( APPEND HEADER_OUTPUTS ${OUTPUT_FILE})
 
+             add_custom_command(
+                 OUTPUT ${OUTPUT_FILE}
+                 COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/${LIBRARY_NAME}"
+                 COMMAND ${CMAKE_COMMAND} -E copy_if_different ${HEADER} "${OUTPUT_FILE}"
+                 DEPENDS ${HEADER}
+                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                 COMMENT "Copying ${HEADER} to ${OUTPUT_FILE}"
+             )
+         endforeach()
+
+         add_custom_target( ${LIBRARY_NAME}-headers ALL DEPENDS ${HEADER_OUTPUTS})
          add_dependencies( ${LIBRARY_NAME} ${LIBRARY_NAME}-headers)
 
          target_include_directories(${LIBRARY_NAME} INTERFACE

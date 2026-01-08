@@ -21,7 +21,7 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
    endif()
 
    if( MULLE_TEST)
-      add_definitions( "-DMULLE_TEST=1" )
+      add_definitions( "-DMULLE_TEST=1")
    endif()
 
    # set this as the default, as we expect shared libs to be included too
@@ -29,7 +29,7 @@ if( NOT __COMPILER_FLAGS_C_CMAKE__)
    # basis
    #
    if( BUILD_SHARED_LIBS)
-      add_definitions( "-DMULLE_INCLUDE_DYNAMIC=1" )
+      add_definitions( "-DMULLE_INCLUDE_DYNAMIC=1")
    endif()
 
    #

@@ -65,11 +65,8 @@ static struct _mulle_objc_cacheentry *
                                                         struct _mulle_objc_class *cls)
 {
    mulle_objc_cache_uint_t         new_size;
-   mulle_objc_classid_t            classid;
    struct _mulle_objc_cache        *old_cache;
    struct _mulle_objc_cacheentry   *entry;
-   struct _mulle_objc_cacheentry   *p;
-   struct _mulle_objc_cacheentry   *sentinel;
    struct mulle_allocator          *allocator;
 
    old_cache = cache;
