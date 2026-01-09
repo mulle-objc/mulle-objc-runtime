@@ -1,6 +1,6 @@
 {
    "name" : "mulle-objc-runtime",
-   "version" : "0.23.0",
+   "version" : "0.26.0",
    "description" : "⏩ A fast, portable Objective-C runtime written 100% in C11",
    "keywords" : [],
    "license" : "BSD-3-Clause",
@@ -12,6 +12,7 @@
       "src/mulle-metaabi.h",
       "src/mulle-objc-atomicpointer.h",
       "src/mulle-objc-builtin.h",
+      "src/mulle-objc-c-types.h",
       "src/mulle-objc-cache.c",
       "src/mulle-objc-cache.h",
       "src/mulle-objc-call.c",
@@ -19,6 +20,8 @@
       "src/mulle-objc-callqueue.c",
       "src/mulle-objc-callqueue.h",
       "src/mulle-objc-class-convenience.h",
+      "src/mulle-objc-class-impcache.c",
+      "src/mulle-objc-class-impcache.h",
       "src/mulle-objc-class-initialize.c",
       "src/mulle-objc-class-initialize.h",
       "src/mulle-objc-class-lookup.c",
@@ -37,6 +40,8 @@
       "src/mulle-objc-fastenumeration.h",
       "src/mulle-objc-fastmethodtable.c",
       "src/mulle-objc-fastmethodtable.h",
+      "src/mulle-objc-impcache.c",
+      "src/mulle-objc-impcache.h",
       "src/mulle-objc-infraclass-reuse.c",
       "src/mulle-objc-infraclass-reuse.h",
       "src/mulle-objc-infraclass.c",
@@ -56,8 +61,6 @@
       "src/mulle-objc-metaclass.h",
       "src/mulle-objc-method.c",
       "src/mulle-objc-method.h",
-      "src/mulle-objc-methodcache.c",
-      "src/mulle-objc-methodcache.h",
       "src/mulle-objc-methodidconstants.h",
       "src/mulle-objc-methodlist.c",
       "src/mulle-objc-methodlist.h",
@@ -110,7 +113,6 @@
    ],
    "dependencies" : {
       "mulle-core/mulle-core": "*",
-      "mulle-core/mulle-atinit": "*",
-      "mulle-core/mulle-atexit": "*"
+      "mulle-core/mulle-core-all-load": "*"
    }
 }

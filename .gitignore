@@ -83,3 +83,7 @@ test*/**/*.test.*
 /*.md
 !/AGENTS.md
 !/README.md
+dox.unreleased/
+perf.data
+*.orig
+*.notyet

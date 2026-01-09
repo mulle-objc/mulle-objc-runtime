@@ -1,0 +1,1 @@
+-O1 -fno-objc-tao -fobjc-inline-method-calls=5

@@ -1,0 +1,180 @@
+#! /usr/bin/env mulle-bash
+#! MULLE_BASHFUNCTIONS_VERSION=6.6.3
+# shellcheck shell=bash
+#
+#
+#  run.sh
+#
+#  Copyright (c) 2025 nat
+#  All rights reserved.
+#
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#
+#  Redistributions of source code must retain the above copyright notice, this
+#  list of conditions and the following disclaimer.
+#
+#  Redistributions in binary form must reproduce the above copyright notice,
+#  this list of conditions and the following disclaimer in the documentation
+#  and/or other materials provided with the distribution.
+#
+#  Neither the name of <ORGANIZATION> nor the names of its contributors
+#  may be used to endorse or promote products derived from this software
+#  without specific prior written permission.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+#  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+#  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+#  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+#  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+
+[ "${TRACE}" = 'YES' -o "${RUN_TRACE}" = 'YES' ] && set -x  && : "$0" "$@"
+
+### >> START OF mulle-boot.sh >>
+### << END OF mulle-boot.sh <<
+
+#
+# Versioning of this script
+#
+MULLE_EXECUTABLE_VERSION="0.0.0"
+
+
+### >> START OF mulle-bashfunctions-embed.sh >>
+### << END OF mulle-bashfunctions-embed.sh <<
+
+print_flags()
+{
+   echo "   -f    : force operation"
+
+   ##
+   ## ADD YOUR FLAGS DESCRIPTIONS HERE
+   ##
+
+   options_technical_flags_usage                 "         : "
+}
+
+
+usage()
+{
+   [ $# -ne 0 ] && log_error "$*"
+
+
+   cat <<EOF >&2
+Usage:
+   run [flags]
+
+Flags:
+EOF
+   print_flags | LC_ALL=C sort >&2
+
+   exit 1
+}
+
+
+main()
+{
+   while [ $# -ne 0 ]
+   do
+      if options_technical_flags "$1"
+      then
+         shift
+         continue
+      fi
+
+      case "$1" in
+         -f|--force)
+            MULLE_FLAG_MAGNUM_FORCE='YES'
+         ;;
+
+         -h*|--help|help)
+            usage
+         ;;
+
+         --version)
+            printf "%s\n" "${MULLE_EXECUTABLE_VERSION}"
+            exit 0
+         ;;
+
+         -*)
+            usage "Unknown flag \"$1\""
+         ;;
+
+         *)
+            break
+         ;;
+      esac
+
+      shift
+   done
+
+   options_setup_trace "${MULLE_TRACE}" && set -x
+
+
+
+#   [ -z "${MULLE_VIRTUAL_ROOT}" ] && fail "run must run in a mulle-sde environemnt"
+#
+#   r_relative_path_between "${PWD}" "${MULLE_VIRTUAL_ROOT}"
+#   reladir="${RVAL}"
+
+   export PROJECT_DIALECT="$(mulle-sde env get 'PROJECT_DIALECT')"
+   export PROJECT_EXTENSIONS="$(mulle-sde env get 'PROJECT_EXTENSIONS')"
+   export PROJECT_IDENTIFIER="$(mulle-sde env get 'PROJECT_IDENTIFIER')"
+   export PROJECT_LANGUAGE="$(mulle-sde env get 'PROJECT_LANGUAGE')"
+   export PROJECT_NAME="$(mulle-sde env get 'PROJECT_NAME')"
+
+   for call in "" 1 2 3 4 5
+   do
+      for optimization in "" 0 1 2 3 4 fast s z
+      do
+         if [ -z "${call}" ]
+         then
+            if [ -z "${optimization}" ]
+            then
+               name="calli.none"
+               redirect_exekutor "${name}.CFLAGS" echo "-g"
+            else
+               name="calli.O${optimization}"
+               redirect_exekutor "${name}.CFLAGS" echo "-O${optimization} -g"
+            fi
+         else
+            if [ -z "${optimization}" ]
+            then
+               name="calli.f${call}"
+               redirect_exekutor "${name}.CFLAGS" echo "-fobjc-inline-method-calls=${call} -g"
+            else
+               name="calli.O${optimization}-f${call}"
+               redirect_exekutor "${name}.CFLAGS" echo "-O${optimization} -fobjc-inline-method-calls=${call} -g"
+            fi
+         fi
+
+         srcfile="${name}.m"
+         if [ ! -f "${srcfile}" ]
+         then
+            exekutor cp "calli.m.orig" "${srcfile}"
+         fi
+
+         stdoutfile="${name}.stdout"
+         # one failure is enough, because this gets tedious real fast
+         if [ ! -f "${stdoutfile}" ]
+         then
+            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script --golden-stdout "${srcfile}"
+         else
+            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script "${srcfile}"
+         fi
+      done
+   done
+   log_verbose "Calli runner finished"
+}
+
+
+cd "`dirname -- "${MULLE_EXECUTABLE}"`" || exit 1
+
+main "$@"

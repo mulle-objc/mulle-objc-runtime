@@ -141,8 +141,7 @@ If something is unclear, feel free to contact the author.
 |   Requirement         | Release Version  | Description
 |-----------------------|------------------|---------------
 | [mulle-core](https://github.com/mulle-core/mulle-core) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core.svg) [![Build Status](https://github.com/mulle-core/mulle-core/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core/actions/workflows/mulle-sde-ci.yml) | 🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c
-| [mulle-atinit](https://github.com/mulle-core/mulle-atinit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atinit.svg) [![Build Status](https://github.com/mulle-core/mulle-atinit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atinit/actions/workflows/mulle-sde-ci.yml) | 🤱🏼 Compatibility library for deterministic initializers
-| [mulle-atexit](https://github.com/mulle-core/mulle-atexit) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-atexit.svg) [![Build Status](https://github.com/mulle-core/mulle-atexit/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-atexit/actions/workflows/mulle-sde-ci.yml) | 👼 Compatibility library to fix atexit
+| [mulle-core-all-load](https://github.com/mulle-core/mulle-core-all-load) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core-all-load.svg) [![Build Status](https://github.com/mulle-core/mulle-core-all-load/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core-all-load/actions/workflows/mulle-sde-ci.yml) | 🛸 mulle-core-all-load does something
 
 
 ## A runtime only project
@@ -183,8 +182,7 @@ Install all requirements
 | Requirements                                 | Description
 |----------------------------------------------|-----------------------
 | [mulle-core](https://github.com/mulle-core/mulle-core)             | 🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c
-| [mulle-atinit](https://github.com/mulle-core/mulle-atinit)             | 🤱🏼 Compatibility library for deterministic initializers
-| [mulle-atexit](https://github.com/mulle-core/mulle-atexit)             | 👼 Compatibility library to fix atexit
+| [mulle-core-all-load](https://github.com/mulle-core/mulle-core-all-load)             | 🛸 mulle-core-all-load does something
 
 #### Download & Install
 

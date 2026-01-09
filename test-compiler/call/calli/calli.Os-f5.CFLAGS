@@ -1,0 +1,1 @@
+-Os -fobjc-inline-method-calls=5 -g
