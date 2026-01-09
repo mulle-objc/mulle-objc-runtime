@@ -1,0 +1,1 @@
+-O2 -fobjc-inline-method-calls=2 -g

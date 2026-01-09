@@ -1,0 +1,1 @@
+-O1 -fobjc-tao -fobjc-inline-method-calls=5
