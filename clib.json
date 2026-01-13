@@ -1,6 +1,6 @@
 {
    "name" : "mulle-objc-runtime",
-   "version" : "0.26.0",
+   "version" : "0.27.0",
    "description" : "⏩ A fast, portable Objective-C runtime written 100% in C11",
    "keywords" : [],
    "license" : "BSD-3-Clause",
