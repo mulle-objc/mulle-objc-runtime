@@ -35,93 +35,39 @@ export MULLE__CORE_BRANCH="prerelease"
 
 
 #
-# mulle-atinit nodetype: ${MULLE__ATINIT_NODETYPE:-tar}
+# mulle-core-all-load nodetype: ${MULLE__CORE__ALL__LOAD_NODETYPE:-tar}
 #
-export MULLE__ATINIT_NODETYPE="git"
+export MULLE__CORE__ALL__LOAD_NODETYPE="git"
 
 
 #
-# mulle-atinit url: ${MULLE__ATINIT_URL:-https://github.com/mulle-core/mulle-atinit/archive/${MULLE_TAG}.tar.gz}
+# mulle-core-all-load url: ${MULLE__CORE__ALL__LOAD_URL:-https://github.com/mulle-core/mulle-core-all-load/archive/${MULLE_TAG}.tar.gz}
 #
-export MULLE__ATINIT_URL="https://github.com/mulle-core/mulle-atinit.git"
+export MULLE__CORE__ALL__LOAD_URL="https://github.com/mulle-core/mulle-core-all-load.git"
 
 
 #
-# mulle-atinit branch: ${MULLE__ATINIT_BRANCH}
+# mulle-core-all-load branch: ${MULLE__CORE__ALL__LOAD_BRANCH}
 #
-export MULLE__ATINIT_BRANCH="prerelease"
+export MULLE__CORE__ALL__LOAD_BRANCH="prerelease"
 
 
 #
-# mulle-atexit nodetype: ${MULLE__ATEXIT_NODETYPE:-tar}
+# libbacktrace nodetype: ${LIBBACKTRACE_NODETYPE:-tar}
 #
-export MULLE__ATEXIT_NODETYPE="git"
+export LIBBACKTRACE_NODETYPE="git"
 
 
 #
-# mulle-atexit url: ${MULLE__ATEXIT_URL:-https://github.com/mulle-core/mulle-atexit/archive/${MULLE_TAG}.tar.gz}
+# libbacktrace url: ${LIBBACKTRACE_URL:-https://github.com/mulle-core/libbacktrace/archive/${MULLE_TAG}.tar.gz}
 #
-export MULLE__ATEXIT_URL="https://github.com/mulle-core/mulle-atexit.git"
+export LIBBACKTRACE_URL="https://github.com/mulle-core/libbacktrace.git"
 
 
 #
-# mulle-atexit branch: ${MULLE__ATEXIT_BRANCH}
+# libbacktrace branch: ${LIBBACKTRACE_BRANCH}
 #
-export MULLE__ATEXIT_BRANCH="prerelease"
-
-
-#
-# mulle-objc-runtime-startup nodetype: ${MULLE__OBJC__RUNTIME__STARTUP_NODETYPE:-tar}
-#
-export MULLE__OBJC__RUNTIME__STARTUP_NODETYPE="git"
-
-
-#
-# mulle-objc-runtime-startup url: ${MULLE__OBJC__RUNTIME__STARTUP_URL:-https://github.com/mulle-objc/mulle-objc-runtime-startup/archive/${MULLE_TAG}.tar.gz}
-#
-export MULLE__OBJC__RUNTIME__STARTUP_URL="https://github.com/mulle-objc/mulle-objc-runtime-startup.git"
-
-
-#
-# mulle-objc-runtime-startup branch: ${MULLE__OBJC__RUNTIME__STARTUP_BRANCH}
-#
-export MULLE__OBJC__RUNTIME__STARTUP_BRANCH="prerelease"
-
-
-#
-# mulle-testallocator nodetype: ${MULLE__TESTALLOCATOR_NODETYPE:-tar}
-#
-export MULLE__TESTALLOCATOR_NODETYPE="git"
-
-
-#
-# mulle-testallocator url: ${MULLE__TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TAG}.tar.gz}
-#
-export MULLE__TESTALLOCATOR_URL="https://github.com/mulle-core/mulle-testallocator.git"
-
-
-#
-# mulle-testallocator branch: ${MULLE__TESTALLOCATOR_BRANCH}
-#
-export MULLE__TESTALLOCATOR_BRANCH="prerelease"
-
-
-#
-# mulle-thread nodetype: ${MULLE__THREAD_NODETYPE:-tar}
-#
-export MULLE__THREAD_NODETYPE="git"
-
-
-#
-# mulle-thread url: ${MULLE__THREAD_URL:-https://github.com/mulle-concurrent/mulle-thread/archive/${MULLE_TAG}.tar.gz}
-#
-export MULLE__THREAD_URL="https://github.com/mulle-concurrent/mulle-thread.git"
-
-
-#
-# mulle-thread branch: ${MULLE__THREAD_BRANCH}
-#
-export MULLE__THREAD_BRANCH="prerelease"
+export LIBBACKTRACE_BRANCH="prerelease"
 
 
 #
@@ -161,21 +107,75 @@ export MULLE__ALLOCATOR_BRANCH="prerelease"
 
 
 #
-# mulle-stacktrace nodetype: ${MULLE__STACKTRACE_NODETYPE:-tar}
+# mulle-thread nodetype: ${MULLE__THREAD_NODETYPE:-tar}
 #
-export MULLE__STACKTRACE_NODETYPE="git"
+export MULLE__THREAD_NODETYPE="git"
 
 
 #
-# mulle-stacktrace url: ${MULLE__STACKTRACE_URL:-https://github.com/mulle-core/mulle-stacktrace/archive/${MULLE_TAG}.tar.gz}
+# mulle-thread url: ${MULLE__THREAD_URL:-https://github.com/mulle-concurrent/mulle-thread/archive/${MULLE_TAG}.tar.gz}
 #
-export MULLE__STACKTRACE_URL="https://github.com/mulle-core/mulle-stacktrace.git"
+export MULLE__THREAD_URL="https://github.com/mulle-concurrent/mulle-thread.git"
 
 
 #
-# mulle-stacktrace branch: ${MULLE__STACKTRACE_BRANCH}
+# mulle-thread branch: ${MULLE__THREAD_BRANCH}
 #
-export MULLE__STACKTRACE_BRANCH="prerelease"
+export MULLE__THREAD_BRANCH="prerelease"
+
+
+#
+# mulle-objc-runtime-startup nodetype: ${MULLE__OBJC__RUNTIME__STARTUP_NODETYPE:-tar}
+#
+export MULLE__OBJC__RUNTIME__STARTUP_NODETYPE="git"
+
+
+#
+# mulle-objc-runtime-startup url: ${MULLE__OBJC__RUNTIME__STARTUP_URL:-https://github.com/mulle-objc/mulle-objc-runtime-startup/archive/${MULLE_TAG}.tar.gz}
+#
+export MULLE__OBJC__RUNTIME__STARTUP_URL="https://github.com/mulle-objc/mulle-objc-runtime-startup.git"
+
+
+#
+# mulle-objc-runtime-startup branch: ${MULLE__OBJC__RUNTIME__STARTUP_BRANCH}
+#
+export MULLE__OBJC__RUNTIME__STARTUP_BRANCH="prerelease"
+
+
+#
+# mulle-testallocator nodetype: ${MULLE__TESTALLOCATOR_NODETYPE:-tar}
+#
+export MULLE__TESTALLOCATOR_NODETYPE="git"
+
+
+#
+# mulle-testallocator url: ${MULLE__TESTALLOCATOR_URL:-https://github.com/mulle-core/mulle-testallocator/archive/${MULLE_TAG}.tar.gz}
+#
+export MULLE__TESTALLOCATOR_URL="https://github.com/mulle-core/mulle-testallocator.git"
+
+
+#
+# mulle-testallocator branch: ${MULLE__TESTALLOCATOR_BRANCH}
+#
+export MULLE__TESTALLOCATOR_BRANCH="prerelease"
+
+
+#
+# mulle-atinit nodetype: ${MULLE__ATINIT_NODETYPE:-tar}
+#
+export MULLE__ATINIT_NODETYPE="git"
+
+
+#
+# mulle-atinit url: ${MULLE__ATINIT_URL:-https://github.com/mulle-core/mulle-atinit/archive/${MULLE_TAG}.tar.gz}
+#
+export MULLE__ATINIT_URL="https://github.com/mulle-core/mulle-atinit.git"
+
+
+#
+# mulle-atinit branch: ${MULLE__ATINIT_BRANCH}
+#
+export MULLE__ATINIT_BRANCH="prerelease"
 
 
 #
@@ -212,5 +212,23 @@ export DLFCN__WIN32_URL="https://github.com/mulle-core/dlfcn-win32.git"
 # dlfcn-win32 branch: ${DLFCN__WIN32_BRANCH}
 #
 export DLFCN__WIN32_BRANCH="prerelease"
+
+
+#
+# mulle-stacktrace nodetype: ${MULLE__STACKTRACE_NODETYPE:-tar}
+#
+export MULLE__STACKTRACE_NODETYPE="git"
+
+
+#
+# mulle-stacktrace url: ${MULLE__STACKTRACE_URL:-https://github.com/mulle-core/mulle-stacktrace/archive/${MULLE_TAG}.tar.gz}
+#
+export MULLE__STACKTRACE_URL="https://github.com/mulle-core/mulle-stacktrace.git"
+
+
+#
+# mulle-stacktrace branch: ${MULLE__STACKTRACE_BRANCH}
+#
+export MULLE__STACKTRACE_BRANCH="prerelease"
 
 

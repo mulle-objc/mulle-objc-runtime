@@ -1,3 +1,18 @@
+## 0.27.0
+
+* runtime now validates mulle-core-all-load dependency version at compile-time
+* prevents incompatible library versions from causing runtime issues
+* use new mulle-core-all-load library
+* removed preload code and cache repopulation code
+* clarified protocolclass wraparound (once more...)
+* long double is no more (for now) - by default
+* you need to define `MULLE_OBJC_DEFINE__register_mulle_objc_universe` when you are defining this function locally
+* `+object` no longer favrit `+instance` takes its place
+* new function `_mulle_objc_typeinfo_is_binary_compatible` can compare two structures and declare them binary compatible (like float[2] and struct { float x, y })
+* AI written book (I already forgot about) added
+* use `mulle_qsort` throughout for cross-platform friendlyness
+
+
 ## 0.26.0
 
 

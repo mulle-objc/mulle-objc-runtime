@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.13...99.99)
 
-project( mulle-objc-runtime VERSION 0.26.0 LANGUAGES C)
+project( mulle-objc-runtime VERSION 0.27.0 LANGUAGES C)
 
 # Add suppression flags based on compiler
 if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
