@@ -61,6 +61,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
         
       # Set installation directory based on OS
       - name: Set install directory
@@ -71,29 +73,19 @@ jobs:
           then
             INSTALL_DIR="$GITHUB_WORKSPACE\\usr"
             CMAKE_INSTALL_DIR="$(sed 's/\\/\//g' <<< "$INSTALL_DIR")"  # sic, cygpath no good for cmake
-            SRC_DIR="$GITHUB_WORKSPACE\\tmp"
-            MULLE_CORE_SRC_DIR="$SRC_DIR\\mulle-core"
-            MULLE_ATINIT_SRC_DIR="$SRC_DIR\\mulle-atinit"
-            MULLE_ATEXIT_SRC_DIR="$SRC_DIR\\mulle-atexit"
+            MULLE_CORE_SRC_DIR="$GITHUB_WORKSPACE\\stash\\mulle-core"
+            MULLE_CORE_ALL_LOAD_SRC_DIR="$GITHUB_WORKSPACE\\stash\\mulle-core-all-load"
           else
             INSTALL_DIR="$GITHUB_WORKSPACE/usr"
             CMAKE_INSTALL_DIR="${INSTALL_DIR}"
-            SRC_DIR="$GITHUB_WORKSPACE/tmp"
-            MULLE_CORE_SRC_DIR="$SRC_DIR/mulle-core"
-            MULLE_ATINIT_SRC_DIR="$SRC_DIR/mulle-atinit"
-            MULLE_ATEXIT_SRC_DIR="$SRC_DIR/mulle-atexit"
+            MULLE_CORE_SRC_DIR="$GITHUB_WORKSPACE/stash/mulle-core"
+            MULLE_CORE_ALL_LOAD_SRC_DIR="$GITHUB_WORKSPACE/stash/mulle-core-all-load"
           fi
-          echo "INSTALL_DIR=$INSTALL_DIR"                   >> $GITHUB_OUTPUT
-          echo "CMAKE_INSTALL_DIR=$CMAKE_INSTALL_DIR"       >> $GITHUB_OUTPUT
-          echo "MULLE_CORE_SRC_DIR=$MULLE_CORE_SRC_DIR"     >> $GITHUB_OUTPUT
-          echo "MULLE_ATINIT_SRC_DIR=$MULLE_ATINIT_SRC_DIR" >> $GITHUB_OUTPUT
-          echo "MULLE_ATEXIT_SRC_DIR=$MULLE_ATEXIT_SRC_DIR" >> $GITHUB_OUTPUT
-          mkdir -p "$SRC_DIR"
+          echo "INSTALL_DIR=$INSTALL_DIR"                               >> $GITHUB_OUTPUT
+          echo "CMAKE_INSTALL_DIR=$CMAKE_INSTALL_DIR"                   >> $GITHUB_OUTPUT
+          echo "MULLE_CORE_SRC_DIR=$MULLE_CORE_SRC_DIR"                 >> $GITHUB_OUTPUT
+          echo "MULLE_CORE_ALL_LOAD_SRC_DIR=$MULLE_CORE_ALL_LOAD_SRC_DIR" >> $GITHUB_OUTPUT
           mkdir -p "$INSTALL_DIR"
-          
-      - name: Clone mulle-core repository
-        run: |
-          git clone https://github.com/mulle-core/mulle-core.git "${{steps.set-install-dir.outputs.MULLE_CORE_SRC_DIR}}"
           
       - name: Configure, build and install mulle-core with CMake
         working-directory: "${{steps.set-install-dir.outputs.MULLE_CORE_SRC_DIR}}"
@@ -105,26 +97,8 @@ jobs:
           cmake --build build --config "${{ matrix.build-config || 'Release' }}"
           cmake --install build --config "${{ matrix.build-config || 'Release' }}"
         
-      - name: Clone mulle-atinit repository
-        run: |
-          git clone https://github.com/mulle-core/mulle-atinit.git "${{steps.set-install-dir.outputs.MULLE_ATINIT_SRC_DIR}}"
-          
-      - name: Configure, build and install mulle-atinit with CMake
-        working-directory: "${{steps.set-install-dir.outputs.MULLE_ATINIT_SRC_DIR}}"
-        env:
-          CC: ${{ matrix.compiler }}
-          CFLAGS: ${{ matrix.cflags }}        
-        run: |
-          cmake ${{ matrix.cmake-args }} -B build -DMULLE_SDK_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_INSTALL_PREFIX="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_PREFIX_PATH="${{ steps.set-install-dir.outputs.CMAKE_INSTALL_DIR }}" -DCMAKE_BUILD_TYPE="${{ matrix.build-config || 'Release' }}" 
-          cmake --build build --config "${{ matrix.build-config || 'Release' }}"
-          cmake --install build --config "${{ matrix.build-config || 'Release' }}"
-          
-      - name: Clone mulle-atexit repository
-        run: |
-          git clone https://github.com/mulle-core/mulle-atexit.git "${{steps.set-install-dir.outputs.MULLE_ATEXIT_SRC_DIR}}"
-          
-      - name: Configure, build and install mulle-atexit with CMake
-        working-directory: "${{steps.set-install-dir.outputs.MULLE_ATEXIT_SRC_DIR}}"
+      - name: Configure, build and install mulle-core-all-load with CMake
+        working-directory: "${{steps.set-install-dir.outputs.MULLE_CORE_ALL_LOAD_SRC_DIR}}"
         env:
           CC: ${{ matrix.compiler }}
           CFLAGS: ${{ matrix.cflags }}        
@@ -149,4 +123,3 @@ jobs:
         shell: bash
         run: |
           cmake --build "${{ matrix.build-dir || 'build' }}" --config "${{ matrix.build-config || 'Release' }}"
-
