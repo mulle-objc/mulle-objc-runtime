@@ -87,26 +87,24 @@ endif()
 
 
 #
-# Generated from sourcetree: 2F3678EC-81A5-444A-AFC2-8DF14DB96A81;mulle-core-all-load;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import;
+# Generated from sourcetree: 2F3678EC-81A5-444A-AFC2-8DF14DB96A81;mulle-core-all-load;no-cmake-loader,no-cmake-searchpath,no-dynamic-link,no-import,no-intermediate-link;
 # Disable with : `mulle-sourcetree mark mulle-core-all-load no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-core-all-load no-cmake-platform-${MULLE_UNAME}`
 # Disable for a sdk: `mulle-sourcetree mark mulle-core-all-load no-cmake-sdk-<name>`
 #
-if( COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES)
-   list( APPEND DEPENDENCY_LIBRARIES "mulle-core-all-load")
+if( COLLECT_STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES_AS_NAMES)
+   list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES "mulle-core-all-load")
 else()
    if( NOT MULLE__CORE__ALL__LOAD_LIBRARY)
       find_library( MULLE__CORE__ALL__LOAD_LIBRARY NAMES
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
          ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}
-         mulle-core-all-load
          NO_CMAKE_SYSTEM_PATH NO_SYSTEM_ENVIRONMENT_PATH NO_CMAKE_FIND_ROOT_PATH
       )
       if( NOT MULLE__CORE__ALL__LOAD_LIBRARY AND NOT DEPENDENCY_IGNORE_SYSTEM_LIBARIES)
          find_library( MULLE__CORE__ALL__LOAD_LIBRARY NAMES
             ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
             ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}
-            mulle-core-all-load
          )
       endif()
       message( STATUS "MULLE__CORE__ALL__LOAD_LIBRARY is ${MULLE__CORE__ALL__LOAD_LIBRARY}")
@@ -116,10 +114,10 @@ else()
       #
       if( MULLE__CORE__ALL__LOAD_LIBRARY)
          #
-         # Add MULLE__CORE__ALL__LOAD_LIBRARY to DEPENDENCY_LIBRARIES list.
+         # Add MULLE__CORE__ALL__LOAD_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
          # Disable with: `mulle-sourcetree mark mulle-core-all-load no-cmake-add`
          #
-         list( APPEND DEPENDENCY_LIBRARIES ${MULLE__CORE__ALL__LOAD_LIBRARY})
+         list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES ${MULLE__CORE__ALL__LOAD_LIBRARY})
          #
          # Inherit information from dependency.
          # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
@@ -154,8 +152,7 @@ else()
       else()
          # Disable with: `mulle-sourcetree mark mulle-core-all-load no-require-link`
          message( SEND_ERROR "MULLE__CORE__ALL__LOAD_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
-${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}
-mulle-core-all-load")
+${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}")
       endif()
    endif()
 endif()
