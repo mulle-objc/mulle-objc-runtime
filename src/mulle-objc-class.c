@@ -96,7 +96,7 @@ static int   __mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
    {
       old = _mulle_atomic_pointer_read( &cls->state);
       if( clear)
-         state = (void *) ((uintptr_t) old & ~bit);
+         state = (void *) ((uintptr_t) old & ~(uintptr_t) bit);
       else
          state = (void *) ((uintptr_t) old | bit);
       if( state == old)
