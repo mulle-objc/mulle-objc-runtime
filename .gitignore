@@ -45,6 +45,7 @@ environment-user-*.sh
 
 # stashes are generally boring
 stash/
+!stash/.gitmodules
 
 # build stuff is boring too
 build/

@@ -1,0 +1,6 @@
+[submodule "stash/mulle-core"]
+	path = stash/mulle-core
+	url = https://github.com/mulle-core/mulle-core.git
+[submodule "stash/mulle-core-all-load"]
+	path = stash/mulle-core-all-load
+	url = https://github.com/mulle-core/mulle-core-all-load.git
