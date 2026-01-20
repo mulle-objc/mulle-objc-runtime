@@ -1140,9 +1140,10 @@ static inline struct mulle_signature_array_state
 //  256 - (16 + (8 * 16) + 8) // 256 - 160 = 96 
 // 
 #define MAX_ARRAY_DEPTH      8
-#define MAX_AGGREGATE_DEPTH  (256 - sizeof( char *) * 2  \
+#define MAX_AGGREGATE_DEPTH  ((int32_t) \
+                             (256 - sizeof( char *) * 2  \
                                   - sizeof( struct mulle_signature_array_state) * MAX_ARRAY_DEPTH \
-                                  - sizeof( int32_t) * 2)
+                                  - sizeof( int32_t) * 2))
 
 struct mulle_signature_field_enumerator
 {
