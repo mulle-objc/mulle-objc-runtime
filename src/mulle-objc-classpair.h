@@ -79,8 +79,8 @@ struct _mulle_objc_classpair
 
    // from here on the debugger doesn't care anymore
 
-   mulle_thread_mutex_t                      lock;   // used for initialize
-   mulle_atomic_pointer_t                    thread; // used for initialize
+   mulle_thread_mutex_t                      lock;       // used for initialize
+   mulle_atomic_pointer_t                    thread_id;  // used for initialize
    struct _mulle_objc_loadclass              *loadclass;
 
    uint32_t                                  classindex;       // set when added
@@ -526,6 +526,7 @@ static inline struct _mulle_objc_infraclass  *
 }
 
 
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_infraclass  *
    _mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover);
 
@@ -598,6 +599,7 @@ static inline struct _mulle_objc_infraclass  *
 }
 
 
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_infraclass  *
    _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover);
 

@@ -22,7 +22,7 @@ int main(void)
         mulle_objc_classid_from_string("PropertyClass")
     );
     
-    printf("Property class defined: %s\n", _mulle_objc_class_get_name(&cls->base));
+    mulle_printf("Property class defined: %s\n", _mulle_objc_class_get_name(&cls->base));
     
     return 0;
 }

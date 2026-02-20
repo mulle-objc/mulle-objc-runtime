@@ -30,7 +30,7 @@ int   index_of_loaded( char *s)
       ++p;
    }
 
-   printf( "%s is missing\n",  s);
+   mulle_printf( "%s is missing\n",  s);
    return( -1);
 }
 
@@ -55,7 +55,7 @@ static int   was_loaded_before( char *a, char *b)
       return( 0);
    if( i_a >= i_b)
    {
-      printf( "%s ordered incorrectly against %s\n", a, b);
+      mulle_printf( "%s ordered incorrectly against %s\n", a, b);
       return( 0);
    }
    return( 1);

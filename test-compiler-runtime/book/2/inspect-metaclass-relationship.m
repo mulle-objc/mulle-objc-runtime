@@ -28,25 +28,25 @@ int main(void)
     // Get metaclass from infraclass
     meta = mulle_objc_class_get_metaclass(&infra->base);
     
-    printf("Classpair analysis for TestClass:\n");
-    printf("Infraclass address: %p\n", (void *)infra);
-    printf("Metaclass address: %p\n", (void *)meta);
-    printf("Both share name: %s\n", mulle_objc_class_get_name(&meta->base));
+    mulle_printf("Classpair analysis for TestClass:\n");
+    mulle_printf("Infraclass address: %p\n", (void *)infra);
+    mulle_printf("Metaclass address: %p\n", (void *)meta);
+    mulle_printf("Both share name: %s\n", mulle_objc_class_get_name(&meta->base));
     
     // Show inheritance chains
     struct _mulle_objc_class *super_infra = mulle_objc_class_get_superclass(&infra->base);
     struct _mulle_objc_class *super_meta = mulle_objc_class_get_superclass(&meta->base);
     
-    printf("Infraclass superclass: %s\n", 
+    mulle_printf("Infraclass superclass: %s\n",
            super_infra ? mulle_objc_class_get_name(super_infra) : "none");
-    printf("Metaclass superclass: %s\n", 
+    mulle_printf("Metaclass superclass: %s\n",
            super_meta ? mulle_objc_class_get_name(super_meta) : "none");
     
     // Demonstrate the classpair concept
     struct _mulle_objc_classpair *pair = _mulle_objc_infraclass_get_classpair(infra);
-    printf("Classpair structure: %p\n", (void *)pair);
-    printf("Infraclass from pair: %p\n", (void *)_mulle_objc_classpair_get_infraclass(pair));
-    printf("Metaclass from pair: %p\n", (void *)_mulle_objc_classpair_get_metaclass(pair));
+    mulle_printf("Classpair structure: %p\n", (void *)pair);
+    mulle_printf("Infraclass from pair: %p\n", (void *)_mulle_objc_classpair_get_infraclass(pair));
+    mulle_printf("Metaclass from pair: %p\n", (void *)_mulle_objc_classpair_get_metaclass(pair));
     
     return 0;
 }

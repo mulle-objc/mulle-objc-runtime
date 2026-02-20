@@ -17,7 +17,7 @@ void custom_bang(struct _mulle_objc_universe *universe,
 {
     struct universe_config *config = userinfo;
     
-    printf("Configuring universe '%s' with custom settings\n", 
+    mulle_printf("Configuring universe '%s' with custom settings\n",
            config ? config->name : "unknown");
     
     // Apply default configuration first
@@ -36,7 +36,7 @@ int main(void)
     
     if (universe) {
         _mulle_objc_universe_bang(universe, custom_bang, NULL, &config);
-        printf("Custom universe registered: %p\n", universe);
+        mulle_printf("Custom universe registered: %p\n", universe);
     }
     
     return 0;

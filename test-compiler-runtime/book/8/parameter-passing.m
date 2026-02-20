@@ -13,7 +13,7 @@
 - (const char *)formatString:(const char *)format with:(int)value 
 { 
     static char buffer[256];
-    snprintf(buffer, sizeof(buffer), format, value);
+    mulle_snprintf(buffer, sizeof(buffer), format, value);
     return buffer;
 }
 @end

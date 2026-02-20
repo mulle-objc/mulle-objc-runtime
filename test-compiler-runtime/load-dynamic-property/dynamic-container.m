@@ -33,40 +33,40 @@ int   main( void)
    universe = _mulle_objc_infraclass_get_universe( cls);
 
    property = mulle_objc_infraclass_search_property( cls, @selector( value));
-   printf( "property was %sfound\n", property ? "" : "not ");
+   mulle_printf( "property was %sfound\n", property ? "" : "not ");
 
    if( property)
    {
-      printf( "\"%s\" (%s) is %sdynamic\n",
+      mulle_printf( "\"%s\" (%s) is %sdynamic\n",
                      _mulle_objc_property_get_name( property),
                      _mulle_objc_property_get_signature( property),
                      _mulle_objc_property_is_dynamic( property) ? "" : "not ");
 
       sel  = _mulle_objc_property_get_getter( property);
-      printf( "getter %08x\n", sel);
+      mulle_printf( "getter %08x\n", sel);
       desc = _mulle_objc_universe_lookup_descriptor( universe, sel);
-      printf( "method \"-%s\" (%s)\n",
+      mulle_printf( "method \"-%s\" (%s)\n",
                   desc ? _mulle_objc_descriptor_get_name( desc) : "NULL",
                   desc ? _mulle_objc_descriptor_get_signature( desc) : "NULL");
 
       sel = _mulle_objc_property_get_setter( property);
-      printf( "setter %08x\n", sel);
+      mulle_printf( "setter %08x\n", sel);
       desc = _mulle_objc_universe_lookup_descriptor( universe, sel);
-      printf( "method \"-%s\" (%s)\n",
+      mulle_printf( "method \"-%s\" (%s)\n",
                   desc ? _mulle_objc_descriptor_get_name( desc) : "NULL",
                   desc ? _mulle_objc_descriptor_get_signature( desc) : "NULL");
 
       sel  = _mulle_objc_property_get_adder( property);
-      printf( "adder %08x\n", sel);
+      mulle_printf( "adder %08x\n", sel);
       desc = _mulle_objc_universe_lookup_descriptor( universe, sel);
-      printf( "method \"-%s\" (%s)\n",
+      mulle_printf( "method \"-%s\" (%s)\n",
                   desc ? _mulle_objc_descriptor_get_name( desc) : "NULL",
                   desc ? _mulle_objc_descriptor_get_signature( desc) : "NULL");
 
       sel  = _mulle_objc_property_get_remover( property);
-      printf( "remover %08x\n", sel);
+      mulle_printf( "remover %08x\n", sel);
       desc = _mulle_objc_universe_lookup_descriptor( universe, sel);
-      printf( "method \"-%s\" (%s)\n",
+      mulle_printf( "method \"-%s\" (%s)\n",
                   desc ? _mulle_objc_descriptor_get_name( desc) : "NULL",
                   desc ? _mulle_objc_descriptor_get_signature( desc) : "NULL");
    }

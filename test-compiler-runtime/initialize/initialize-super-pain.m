@@ -35,7 +35,7 @@ static char  *get_class_name( Class self)
 
 + (void) initialize
 {
-   printf( "%s :: %s\n", get_class_name( self), __PRETTY_FUNCTION__);
+   mulle_printf( "%s :: %s\n", get_class_name( self), __PRETTY_FUNCTION__);
 }
 
 @end
@@ -46,7 +46,7 @@ static char  *get_class_name( Class self)
 + (void) initialize
 {
    [super initialize];
-   printf( "%s :: %s\n", get_class_name( self), __PRETTY_FUNCTION__);
+   mulle_printf( "%s :: %s\n", get_class_name( self), __PRETTY_FUNCTION__);
 }
 
 @end
@@ -57,7 +57,7 @@ static char  *get_class_name( Class self)
 + (void) initialize
 {
    [super initialize];
-   printf( "%s :: %s\n", get_class_name( self), __PRETTY_FUNCTION__);
+   mulle_printf( "%s :: %s\n", get_class_name( self), __PRETTY_FUNCTION__);
 }
 
 @end

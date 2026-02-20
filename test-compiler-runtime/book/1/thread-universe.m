@@ -21,13 +21,13 @@ static void *thread_function(void *arg)
     
     if (threadinfo)
     {
-        printf("Thread %p: threadinfo=%p, thread_nr=%lu\n", 
+        mulle_printf("Thread %p: threadinfo=%p, thread_nr=%lu\n",
                (void*)pthread_self(), threadinfo, 
                _mulle_objc_threadinfo_get_nr(threadinfo));
     }
     else
     {
-        printf("Thread %p: no threadinfo\n", (void*)pthread_self());
+        mulle_printf("Thread %p: no threadinfo\n", (void*)pthread_self());
     }
     
     return NULL;
@@ -43,7 +43,7 @@ int main(void)
     universe = mulle_objc_global_get_defaultuniverse();
     threadinfo = _mulle_objc_thread_get_threadinfo(universe);
     
-    printf("Main thread: threadinfo=%p, thread_nr=%lu\n", 
+    mulle_printf("Main thread: threadinfo=%p, thread_nr=%lu\n",
            threadinfo, threadinfo ? _mulle_objc_threadinfo_get_nr(threadinfo) : 0);
     
     // Test with multiple threads

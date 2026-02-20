@@ -133,7 +133,7 @@ static void  test( SEL a, SEL b)
    rval[ 1]    = _mulle_objc_methodsignature_compare( a_signature, b_signature);
    rval[ 2]    = _mulle_objc_signature_compare_strict( a_signature, b_signature);
 
-   printf( "%s,%s | compare( %s, %s) | %s,%s,%s\n",
+   mulle_printf( "%s,%s | compare( %s, %s) | %s,%s,%s\n",
                a_name, b_name,
                a_signature, b_signature,
                s_comparison( rval[ 0]),

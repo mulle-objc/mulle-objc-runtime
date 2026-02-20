@@ -33,12 +33,12 @@ int main(void)
     // Create a tagged pointer (simulated)
     tagged_pointer = (void *)0x7;
     
-    printf("Normal object: %p\n", normal_object);
-    printf("Normal object tagged index: %d\n", 
+    mulle_printf("Normal object: %p\n", normal_object);
+    mulle_printf("Normal object tagged index: %d\n",
            mulle_objc_object_get_taggedpointerindex(normal_object));
     
-    printf("Tagged pointer: %p\n", tagged_pointer);
-    printf("Tagged pointer tagged index: %d\n", 
+    mulle_printf("Tagged pointer: %p\n", tagged_pointer);
+    mulle_printf("Tagged pointer tagged index: %d\n",
            mulle_objc_object_get_taggedpointerindex(tagged_pointer));
     
     return 0;

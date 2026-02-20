@@ -208,7 +208,7 @@ struct _mulle_objc_universefailures
    void   (*supernotfound)( struct _mulle_objc_universe *universe,
                             mulle_objc_superid_t missing_superid)  _MULLE_C_NO_RETURN;
    void   (*wrongthread)( struct _mulle_objc_object *obj,
-                          mulle_thread_t affinity_thread,
+                          mulle_thread_id_t affinity_thread,
                           struct _mulle_objc_descriptor *desc)  _MULLE_C_NO_RETURN;
 };
 
@@ -219,14 +219,20 @@ struct _mulle_objc_universefailures
 struct _mulle_objc_classdefaults
 {
    struct _mulle_objc_method   *forwardmethod;
-   void                        (*class_is_missing)( struct _mulle_objc_universe *,
-                                                    mulle_objc_classid_t);
    unsigned short              inheritance;
 };
 
 
-struct _mulle_objc_universecallbacks
+struct _mulle_objc_universecallback
 {
+   // these return 0, if you should retry
+   // else (-1) if nothing changed
+   int    (*class_is_missing)( struct _mulle_objc_universe *,
+                               mulle_objc_classid_t);
+   int    (*method_is_missing)( struct _mulle_objc_universe *,
+                                struct _mulle_objc_class *,
+                                mulle_objc_methodid_t);
+
    int    (*should_load_loadinfo)(  struct _mulle_objc_universe *,
                                     struct _mulle_objc_loadinfo *);
 
@@ -379,7 +385,7 @@ struct _mulle_objc_universe
    struct _mulle_objc_taggedpointers        taggedpointers;
    struct _mulle_objc_fastclasstable        fastclasstable;
 
-   struct _mulle_objc_universecallbacks     callbacks;
+   struct _mulle_objc_universecallback      callback;
 
    // propertyid, indexed by methodid. If the there is clash (methodid
    // is used by two properties, its a problem -> we abort)
@@ -423,7 +429,8 @@ struct _mulle_objc_universe
    //
    char                                     compilation[ 128];   // debugging
 
-   mulle_thread_t                           thread;  // init-done thread
+   mulle_thread_t                           thread;     // init-done thread
+   mulle_thread_id_t                        thread_id;  // id of above thread (use for compare and output)
 
    struct _mulle_objc_memorymanagement      memory;
 
@@ -498,10 +505,10 @@ static inline mulle_objc_universeid_t
 }
 
 
-static inline mulle_thread_t
-   _mulle_objc_universe_get_thread( struct _mulle_objc_universe *universe)
+static inline mulle_thread_id_t
+   _mulle_objc_universe_get_thread_id( struct _mulle_objc_universe *universe)
 {
-   return( universe->thread);
+   return( universe->thread_id);
 }
 
 

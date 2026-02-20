@@ -165,9 +165,9 @@ main()
          # one failure is enough, because this gets tedious real fast
          if [ ! -f "${stdoutfile}" ]
          then
-            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script --golden-stdout "${srcfile}"
+            exekutor mulle-sde ${MULLE_TECHNICAL_FLAGS} test run --no-run-script --golden-stdout "${srcfile}"
          else
-            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script "${srcfile}"
+            exekutor mulle-sde ${MULLE_TECHNICAL_FLAGS} test run --no-run-script "${srcfile}"
          fi
       done
    done

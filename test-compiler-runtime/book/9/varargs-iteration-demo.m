@@ -8,15 +8,15 @@ void process_object_list(va_list args)
     
     while ((obj = mulle_vararg_next_object(&args)))
     {
-        printf("Processing object: %p\n", obj);
+        mulle_printf("Processing object: %p\n", obj);
         // Process each object
     }
 }
 
 int main(void)
 {
-    printf("Object iteration ready\n");
-    printf("Use mulle_vararg_next_object() to iterate objects\n");
+    mulle_printf("Object iteration ready\n");
+    mulle_printf("Use mulle_vararg_next_object() to iterate objects\n");
     
     return 0;
 }

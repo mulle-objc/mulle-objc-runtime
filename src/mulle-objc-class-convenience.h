@@ -50,7 +50,7 @@
 #pragma mark - instance creation
 
 
-
+MULLE_C_NONNULL_FIRST_THIRD
 static inline void   *_mulle_objc_infraclass_alloc_calloc( struct _mulle_objc_infraclass *infra,
                                                            size_t size,
                                                            struct mulle_allocator *allocator)
@@ -72,6 +72,7 @@ static inline void   *_mulle_objc_infraclass_alloc_calloc( struct _mulle_objc_in
 }
 
 
+MULLE_C_NONNULL_FIRST_THIRD
 static inline void   *_mulle_objc_infraclass_alloc_malloc( struct _mulle_objc_infraclass *infra,
                                                            size_t size,
                                                            struct mulle_allocator *allocator)
@@ -93,6 +94,7 @@ static inline void   *_mulle_objc_infraclass_alloc_malloc( struct _mulle_objc_in
 }
 
 
+MULLE_C_NONNULL_FIRST_THIRD
 static inline void   _mulle_objc_infraclass_alloc_free( struct _mulle_objc_infraclass *infra,
                                                         void *alloc,
                                                         struct mulle_allocator *allocator)
@@ -110,6 +112,7 @@ static inline void   _mulle_objc_infraclass_alloc_free( struct _mulle_objc_infra
 // void as a return value is just easier to handle than
 // struct _mulle_objc_object *
 
+MULLE_C_NONNULL_FIRST_THIRD
 static inline void *
     _mulle_objc_infraclass_allocator_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
                                                            size_t extra,
@@ -145,9 +148,6 @@ static inline void *
 // only add this trace query for debugging because it slows things down!
 #if DEBUG
    {
-      void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infraclass *infra,
-                                                           void *obj,
-                                                           size_t extra);
       _mulle_objc_infraclass_check_and_trace_alloc( infra, obj, extra);
    }
 #endif
@@ -156,6 +156,7 @@ static inline void *
 }
 
 
+MULLE_C_NONNULL_FIRST_THIRD
 static inline void *
     _mulle_objc_infraclass_allocator_alloc_instance_extra_nonzeroed( struct _mulle_objc_infraclass *infra,
                                                                      size_t extra,
@@ -189,9 +190,6 @@ static inline void *
 // only add this trace query for debugging because it slows things down!
 #if DEBUG
    {
-      void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infraclass *infra,
-                                                           void *obj,
-                                                           size_t extra);
       _mulle_objc_infraclass_check_and_trace_alloc( infra, obj, extra);
    }
 #endif
@@ -200,6 +198,7 @@ static inline void *
 }
 
 
+MULLE_C_NONNULL_FIRST
 static inline void *
    _mulle_objc_infraclass_alloc_instance_extra_nonzeroed( struct _mulle_objc_infraclass *infra,
                                                           size_t extra)
@@ -211,6 +210,7 @@ static inline void *
 }
 
 
+MULLE_C_NONNULL_FIRST
 static inline void  __mulle_objc_instance_will_free( void *obj)
 {
 // too slow for non debug
@@ -221,8 +221,6 @@ static inline void  __mulle_objc_instance_will_free( void *obj)
       universe = _mulle_objc_object_get_universe( obj);
       if( universe->debug.trace.instance)
       {
-         void   _mulle_objc_instance_trace_free( void *obj);
-
          _mulle_objc_instance_trace_free( obj);
       }
    }
@@ -232,6 +230,7 @@ static inline void  __mulle_objc_instance_will_free( void *obj)
 }
 
 
+MULLE_C_NONNULL_FIRST_SECOND_THIRD
 static inline void
    _mulle_objc_infraclass_allocator_free_instance( struct _mulle_objc_infraclass *infra,
                                                    void *obj,
@@ -260,6 +259,7 @@ static inline void
 }
 
 
+MULLE_C_NONNULL_FIRST_SECOND
 static inline void
    _mulle_objc_infraclass_free_instance( struct _mulle_objc_infraclass *infra,
                                          void *obj)
@@ -271,6 +271,7 @@ static inline void
 }
 
 
+MULLE_C_NONNULL_FIRST
 static inline void *
     _mulle_objc_infraclass_alloc_instance_extra( struct _mulle_objc_infraclass *infra,
                                                  size_t extra)
@@ -283,6 +284,7 @@ static inline void *
 
 
 // free with mulle_allocator_free
+MULLE_C_NONNULL_FIRST
 static inline void *
     _mulle_objc_infraclass_alloc_instance( struct _mulle_objc_infraclass *infra)
 {
@@ -290,6 +292,7 @@ static inline void *
 }
 
 
+MULLE_C_NONNULL_FIRST
 static inline void *
     _mulle_objc_infraclass_alloc_instance_zone( struct _mulle_objc_infraclass *infra,
                                                 void *zone) // zone is unused

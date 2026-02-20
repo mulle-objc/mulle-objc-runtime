@@ -23,7 +23,7 @@ int main(void)
     
     if (my_class) {
         name = _mulle_objc_infraclass_get_name(my_class);
-        printf("0x%08x -> %s\n", class_id, name);
+        mulle_printf("0x%08x -> %s\n", class_id, name);
     }
     
     return 0;

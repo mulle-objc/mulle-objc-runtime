@@ -3,19 +3,19 @@
 
 typedef struct
 {
-   uintptr_t   state;
-   id              *itemsPtr;
-   uintptr_t   *mutationsPtr;
-   uintptr_t   extra[5];
+   NSUInteger   state;
+   id          *itemsPtr;
+   NSUInteger   *mutationsPtr;
+   NSUInteger   extra[5];
 } NSFastEnumerationState;
 
 
 @protocol NSFastEnumeration
 
-- (uintptr_t) countByEnumeratingWithState:(NSFastEnumerationState *) rover
+- (NSUInteger) countByEnumeratingWithState:(NSFastEnumerationState *) rover
                                   objects:(id *) buffer
-                                    count:(uintptr_t) len;
-- (uintptr_t) count;
+                                    count:(NSUInteger) len;
+- (NSUInteger) count;
 
 @end
 
@@ -32,12 +32,12 @@ typedef struct
 }
 
 
-- (uintptr_t) countByEnumeratingWithState:(NSFastEnumerationState *) rover
-                                  objects:(id *) buffer
-                                    count:(uintptr_t) len
+- (NSUInteger) countByEnumeratingWithState:(NSFastEnumerationState *) rover
+                                   objects:(id *) buffer
+                                     count:(NSUInteger) len
 {
    id          *sentinel;
-   uintptr_t   remain;
+   NSUInteger   remain;
 
    remain = 20 - rover->state;
    if( ! remain)
@@ -58,7 +58,7 @@ typedef struct
    return( len);
 }
 
-- (uintptr_t) count
+- (NSUInteger) count
 {
    return( 20);
 }

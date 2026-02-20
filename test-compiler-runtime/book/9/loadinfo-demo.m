@@ -13,8 +13,8 @@ int main(void)
     
     // The loadinfo system is working correctly as shown by the runtime
     // which loads classes automatically via the constructor pattern
-    printf("SUCCESS: Loadinfo system is functional\n");
-    printf("Runtime version: %d.%d.%d\n", 
+    mulle_printf("SUCCESS: Loadinfo system is functional\n");
+    mulle_printf("Runtime version: %d.%d.%d\n",
            MULLE_OBJC_RUNTIME_VERSION >> 16, 
            (MULLE_OBJC_RUNTIME_VERSION >> 8) & 0xff, 
            MULLE_OBJC_RUNTIME_VERSION & 0xff);

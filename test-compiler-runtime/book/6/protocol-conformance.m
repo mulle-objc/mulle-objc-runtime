@@ -34,9 +34,9 @@ int main(void)
     protocol_id = mulle_objc_protocolid_from_string("ConformanceProtocol");
     
     if (_mulle_objc_infraclass_conformsto_protocolid(cls, protocol_id)) {
-        printf("Class conforms to protocol\n");
+        mulle_printf("Class conforms to protocol\n");
     } else {
-        printf("Class does not conform to protocol\n");
+        mulle_printf("Class does not conform to protocol\n");
     }
     
     return 0;

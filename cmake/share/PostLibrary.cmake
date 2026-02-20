@@ -8,4 +8,12 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
+
+if( BUILD_SHARED_LIBS)
+   target_compile_definitions( ${LIBRARY_COMPILE_TARGET} PRIVATE "MULLE_INCLUDE_DYNAMIC")
+   if( LIBRARY_STAGE2_TARGET)
+      target_compile_definitions( ${LIBRARY_STAGE2_TARGET} PRIVATE "MULLE_INCLUDE_DYNAMIC")
+   endif()
+endif()
+
 include( PostLibraryAuxC OPTIONAL)

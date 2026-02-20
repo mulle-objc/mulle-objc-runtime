@@ -30,8 +30,8 @@ int main(void)
     );
     
     object = mulle_objc_infraclass_alloc_instance(cls);
-    printf("Object created: %p\n", object);
-    printf("Object class: %s\n", 
+    mulle_printf("Object created: %p\n", object);
+    mulle_printf("Object class: %s\n",
            mulle_objc_class_get_name(_mulle_objc_object_get_isa(object)));
     
     return 0;

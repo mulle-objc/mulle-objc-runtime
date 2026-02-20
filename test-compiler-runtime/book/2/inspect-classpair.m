@@ -27,14 +27,14 @@ int main(void)
     
     meta = mulle_objc_class_get_metaclass(&infra->base);
     
-    printf("Classpair inspection for TestClass:\n");
-    printf("Infraclass: %p\n", (void *)infra);
-    printf("Metaclass: %p\n", (void *)meta);
-    printf("Same class name: %s\n", 
+    mulle_printf("Classpair inspection for TestClass:\n");
+    mulle_printf("Infraclass: %p\n", (void *)infra);
+    mulle_printf("Metaclass: %p\n", (void *)meta);
+    mulle_printf("Same class name: %s\n",
            mulle_objc_class_get_name(&meta->base));
-    printf("Infraclass has superclass: %s\n", 
+    mulle_printf("Infraclass has superclass: %s\n",
            mulle_objc_class_get_superclass(&infra->base) ? "yes" : "no");
-    printf("Metaclass has superclass: %s\n", 
+    mulle_printf("Metaclass has superclass: %s\n",
            mulle_objc_class_get_superclass(&meta->base) ? "yes" : "no");
     
     return 0;

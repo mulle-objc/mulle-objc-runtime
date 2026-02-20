@@ -51,7 +51,7 @@ int   main( int argc, char *argv[])
 
    if( argc < 2 || ! strlen( argv[ 1]))
    {
-      fprintf( stderr, "Usage:\n   mulle-objc-signature <string>*\n"
+      mulle_fprintf( stderr, "Usage:\n   mulle-objc-signature <string>*\n"
                        "   Parses runtime signature strings and emits\n"
                        "   them as CSV\n"
                        "\n");

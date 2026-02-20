@@ -43,7 +43,7 @@ static void  print_self_and_call_super_if_available( id self,
    static unsigned int           recursion;
    mulle_objc_implementation_t   imp;
 
-   printf( "\t%s\n", name);
+   mulle_printf( "\t%s\n", name);
 
    imp = search_super_implementation( self, _cmd, classid);
    if( imp)
@@ -147,13 +147,13 @@ static void  print_self_and_call_super_if_available( id self,
 
 int   main()
 {
-   printf( "C:\n");
+   mulle_printf( "C:\n");
    [C print];
-   printf( "D:\n");
+   mulle_printf( "D:\n");
    [D print];
-   printf( "E:\n");
+   mulle_printf( "E:\n");
    [E print];
-   printf( "F:\n");
+   mulle_printf( "F:\n");
    [F print];
    return( 0);
 }

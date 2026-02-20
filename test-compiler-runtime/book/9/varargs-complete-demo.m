@@ -10,7 +10,7 @@ void process_objects(const char *format, ...)
     
     // Count objects
     int count = mulle_vararg_count_objects(args);
-    printf("Found %d objects\n", count);
+    mulle_printf("Found %d objects\n", count);
     
     // Reset and iterate
     va_end(args);
@@ -19,7 +19,7 @@ void process_objects(const char *format, ...)
     struct _mulle_objc_object *obj;
     while ((obj = mulle_vararg_next_object(&args)))
     {
-        printf("Object: %p\n", obj);
+        mulle_printf("Object: %p\n", obj);
     }
     
     va_end(args);
@@ -27,6 +27,6 @@ void process_objects(const char *format, ...)
 
 int main(void)
 {
-    printf("Varargs object processing ready\n");
+    mulle_printf("Varargs object processing ready\n");
     return 0;
 }

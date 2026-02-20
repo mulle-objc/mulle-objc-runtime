@@ -17,7 +17,7 @@ static mulle_objc_walkcommand_t print_ivar_name(struct _mulle_objc_ivar *ivar,
                                                 struct _mulle_objc_infraclass *infra,
                                                 void *userinfo)
 {
-    printf("  %s (offset: %d)\n", _mulle_objc_ivar_get_name(ivar), ivar->offset);
+    mulle_printf("  %s (offset: %d)\n", _mulle_objc_ivar_get_name(ivar), ivar->offset);
     return mulle_objc_walk_ok;
 }
 
@@ -32,7 +32,7 @@ int main(void)
         mulle_objc_classid_from_string("TestClass")
     );
     
-    printf("Instance variables in TestClass:\n");
+    mulle_printf("Instance variables in TestClass:\n");
     _mulle_objc_infraclass_walk_ivars(cls, 0, print_ivar_name, NULL);
     
     return 0;

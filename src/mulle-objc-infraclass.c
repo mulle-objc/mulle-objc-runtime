@@ -333,7 +333,7 @@ static void
          abort();
 
       getter            = space++;
-      getter->bits      = (unsigned long) _mulle_objc_methodfamily_getter << _mulle_objc_methodfamily_shift;
+      getter->bits      = (uint32_t) _mulle_objc_methodfamily_getter << _mulle_objc_methodfamily_shift;
       getter->methodid  = property->propertyid;
       getter->name      = property->name;
 
@@ -351,7 +351,7 @@ static void
       struct _mulle_objc_descriptor  *setter;
 
       setter            = space++;
-      setter->bits      = (unsigned long) _mulle_objc_methodfamily_setter << _mulle_objc_methodfamily_shift;
+      setter->bits      = (uint32_t) _mulle_objc_methodfamily_setter << _mulle_objc_methodfamily_shift;
       setter->methodid  = property->setter;
 
       _mulle_objc_universe_set_setter_name_signature( universe,
@@ -368,7 +368,7 @@ static void
       struct _mulle_objc_descriptor  *adder;
 
       adder            = space++;
-      adder->bits      = (unsigned long) _mulle_objc_methodfamily_adder << _mulle_objc_methodfamily_shift;
+      adder->bits      = (uint32_t) _mulle_objc_methodfamily_adder << _mulle_objc_methodfamily_shift;
       adder->methodid  = property->adder;
 
       _mulle_objc_universe_set_setter_name_signature( universe,
@@ -385,7 +385,7 @@ static void
       struct _mulle_objc_descriptor  *remover;
 
       remover           = space++;
-      remover->bits     = (unsigned long) _mulle_objc_methodfamily_remover << _mulle_objc_methodfamily_shift;
+      remover->bits     = (uint32_t) _mulle_objc_methodfamily_remover << _mulle_objc_methodfamily_shift;
       remover->methodid = property->remover;
 
       _mulle_objc_universe_set_setter_name_signature( universe,
@@ -736,7 +736,7 @@ static mulle_objc_walkcommand_t
    MULLE_C_UNUSED( userinfo);
 
    universe = _mulle_objc_classpair_get_universe( pair);
-   fprintf( stderr, "\t%08lx \"%s\"\n",
+   mulle_fprintf( stderr, "\t%08lx \"%s\"\n",
             (unsigned long) categoryid,
            _mulle_objc_universe_describe_categoryid( universe, categoryid));
    return( 0);
@@ -850,7 +850,7 @@ static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_obj
       if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
+            mulle_fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol of same name, but it is "
                              "not a root class %s",
                         universe,
@@ -865,7 +865,7 @@ static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_obj
       if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
+            mulle_fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol of the same name, but "
                              "implements instance variables %s",
                         universe,
@@ -881,7 +881,7 @@ static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_obj
       if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
+            mulle_fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol but does not conform to it %s",
                         universe,
                         _mulle_objc_infraclass_get_name( infra),
@@ -895,7 +895,7 @@ static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_obj
       if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
-            fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
+            mulle_fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol but also inherits from other "
                              "protocolclasses %s",
                         universe,
@@ -932,7 +932,7 @@ static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_obj
                                       universe,
                                       _mulle_objc_infraclass_get_name( infra));
 
-               fprintf( stderr, "Categories:\n");
+               mulle_fprintf( stderr, "Categories:\n");
                _mulle_objc_classpair_walk_categoryids( pair,
                                                        MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS,
                                                        print_categoryid,

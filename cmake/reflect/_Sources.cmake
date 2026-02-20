@@ -54,6 +54,7 @@ src/mulle-objc-uniqueidarray.c
 src/mulle-objc-uniqueid.c
 src/mulle-objc-universe.c
 src/mulle-objc-universe-class.c
+src/mulle-objc-universe-dll-loader.c
 src/mulle-objc-universe-exception.c
 src/mulle-objc-universe-fail.c
 src/mulle-objc-universe-global.c

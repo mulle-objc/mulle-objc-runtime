@@ -42,6 +42,7 @@
 #include "mulle-objc-class-initialize.h"
 #include "mulle-objc-class-lookup.h"
 #include "mulle-objc-universe-class.h"
+#include "mulle-objc-universe-dll-loader.h"
 #include "mulle-objc-universe-exception.h"
 #include "mulle-objc-universe-fail.h"
 #include "mulle-objc-classpair.h"
@@ -66,17 +67,30 @@
 
 # pragma mark - setup
 
-static void   nop( struct _mulle_objc_universe  *universe,
-                   mulle_objc_classid_t classid)
+static int   mulle_objc_missing_method_nop( struct _mulle_objc_universe  *universe,
+                                            struct _mulle_objc_class *cls,
+                                            mulle_objc_methodid_t methodid)
+{
+   MULLE_C_UNUSED( universe);
+   MULLE_C_UNUSED( cls);
+   MULLE_C_UNUSED( methodid);
+
+   return( -1);      // no can do
+}
+
+static int   mulle_objc_missing_class_nop( struct _mulle_objc_universe  *universe,
+                                           mulle_objc_classid_t classid)
 {
    MULLE_C_UNUSED( universe);
    MULLE_C_UNUSED( classid);
+
+   return( -1);      // no can do
 }
 
 
 void   mulle_objc_hang( void)
 {
-   fprintf( stderr, "Hanging for debugger to attach\n");
+   mulle_fprintf( stderr, "Hanging for debugger to attach\n");
    for(;;)
       mulle_thread_yield();  // better for windows than sleep
 }
@@ -94,16 +108,16 @@ void   mulle_objc_universe_maybe_hang_or_abort( struct _mulle_objc_universe *uni
 static void
    _mulle_objc_universeconfig_dump( struct _mulle_objc_universeconfig *config)
 {
-   fprintf( stderr, "%stagged pointers", config->no_tagged_pointer ? "no " : "");
+   mulle_fprintf( stderr, "%stagged pointers", config->no_tagged_pointer ? "no " : "");
 
-   fprintf( stderr, ", %sfast calls", config->no_fast_call ? "no " : "");
+   mulle_fprintf( stderr, ", %sfast calls", config->no_fast_call ? "no " : "");
    if( config->forget_strings)
-      fprintf( stderr, ", forget strings");
+      mulle_fprintf( stderr, ", forget strings");
 
    if( config->ignore_ivarhash_mismatch)
-      fprintf( stderr, ", ignore ivarhash mismatch");
-   fprintf( stderr, ", min:-O%u max:-O%u", config->min_optlevel, config->max_optlevel);
-   fprintf( stderr, ", cache fillrate: %d%%", config->cache_fillrate ? config->cache_fillrate : 25);
+      mulle_fprintf( stderr, ", ignore ivarhash mismatch");
+   mulle_fprintf( stderr, ", min:-O%u max:-O%u", config->min_optlevel, config->max_optlevel);
+   mulle_fprintf( stderr, ", cache fillrate: %d%%", config->cache_fillrate ? config->cache_fillrate : 25);
 }
 
 # pragma mark - environment
@@ -186,13 +200,13 @@ void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe
 
    preserve = errno;
    {
-      if( universe->thread != mulle_thread_self())
+      if( universe->thread_id != mulle_thread_id())
       {
          config = __mulle_objc_thread_get_threadinfo( universe);
          if( config)
-            fprintf( stderr, "t:#%2lu ", (unsigned long) config->nr);
+            mulle_fprintf( stderr, "t:#%2lu ", (unsigned long) config->nr);
          else
-            fprintf( stderr, "t:%p ", (void *) mulle_thread_self());
+            mulle_fprintf( stderr, "t:%p ", (void *) mulle_thread_id());
       }
 
 #ifdef HAVE_TRACE_TIMESTAMP
@@ -201,7 +215,7 @@ void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe
          struct timespec   now;
 
          clock_gettime( CLOCK_MONOTONIC_RAW, &now);
-         fprintf( stderr, "%ld.%09ld ", now.tv_sec, now.tv_nsec);
+         mulle_fprintf( stderr, "%ld.%09ld ", now.tv_sec, now.tv_nsec);
       }
 #endif
    }
@@ -251,7 +265,7 @@ static void   trace_preamble( struct _mulle_objc_universe *universe)
       sep  = ":";
    }
 
-   fprintf( stderr, format, name, sep);
+   mulle_fprintf( stderr, format, name, sep);
 }
 
 
@@ -294,7 +308,7 @@ void   mulle_objc_universe_trace( struct _mulle_objc_universe *universe,
       {
          trace_preamble( universe);
          vfprintf( stderr, format, args);
-         fprintf( stderr, "\n");
+         mulle_fprintf( stderr, "\n");
       }
       mulle_thread_mutex_unlock( &universe->debug.lock);
 
@@ -440,17 +454,17 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
    if( universe->debug.print.universe_config)
    {
-      fprintf( stderr, "mulle-objc-universe %p: v%d.%d.%d (load-version: %d) (",
+      mulle_fprintf( stderr, "mulle-objc-universe %p: v%d.%d.%d (load-version: %d) (",
          universe,
          MULLE_OBJC_RUNTIME_VERSION_MAJOR,
          MULLE_OBJC_RUNTIME_VERSION_MINOR,
          MULLE_OBJC_RUNTIME_VERSION_PATCH,
          MULLE_OBJC_RUNTIME_LOAD_VERSION);
       _mulle_objc_universeconfig_dump( &universe->config);
-      fprintf( stderr, ")\n");
+      mulle_fprintf( stderr, ")\n");
 
       s = mulle_objc_global_preprocessor_string( &mulle_stdlib_allocator);
-      fprintf( stderr, "%s\n", s);
+      mulle_fprintf( stderr, "%s\n", s);
       mulle_allocator_free( &mulle_stdlib_allocator, s);
    }
 }
@@ -506,7 +520,7 @@ void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe
    assert( mulle_thread_tss_get( threadkey) == config);
 
    if( universe->debug.trace.thread)
-      mulle_objc_universe_trace( universe, "setup threadinfo %p of thread %p", config, mulle_thread_self());
+      mulle_objc_universe_trace( universe, "setup threadinfo %p of thread %p", config, (void *) mulle_thread_id());
 }
 
 
@@ -535,20 +549,27 @@ static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
    if( config->userspace_destructor)
    {
       if( universe->debug.trace.thread)
-         mulle_objc_universe_trace( universe, "call threadinfo %p of thread %p user destructor", config, mulle_thread_self());
+         mulle_objc_universe_trace( universe, "call threadinfo %p of thread %p user destructor",
+                                              config,
+                                              (void *) mulle_thread_id());
 
       (*config->userspace_destructor)( config, config->userspace);
    }
    if( config->foundation_destructor)
    {
       if( universe->debug.trace.thread)
-         mulle_objc_universe_trace( universe, "call threadinfo %p of thread %p foundation destructor", config, mulle_thread_self());
+         mulle_objc_universe_trace( universe, "call threadinfo %p of thread %p foundation destructor",
+                                              config,
+                                              (void *) mulle_thread_id());
 
       (*config->foundation_destructor)( config, config->foundationspace);
    }
 
    if( universe->debug.trace.thread)
-      mulle_objc_universe_trace( universe, "free threadinfo %p of thread %p (#%ld)", config, mulle_thread_self(), config->nr);
+      mulle_objc_universe_trace( universe, "free threadinfo %p of thread %p (#%ld)",
+                                           config,
+                                           (void *) mulle_thread_id(),
+                                           config->nr);
 
    _mulle_allocator_free( config->allocator, config);
 }
@@ -570,7 +591,9 @@ void   mulle_objc_thread_unset_threadinfo( struct _mulle_objc_universe *universe
    mulle_thread_tss_set( threadkey, NULL);
 
    if( universe->debug.trace.thread)
-      mulle_objc_universe_trace( universe, "unset threadinfo %p of thread %p", config, mulle_thread_self());
+      mulle_objc_universe_trace( universe, "unset threadinfo %p of thread %p",
+                                            config,
+                                            (void *) mulle_thread_id());
 }
 
 
@@ -671,7 +694,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
                                           universe->empty_cache.entries);
 
    // the initial cache is place into classes, that haven't run +initialize
-   // yes, with the callbacks need to properly call
+   // yes, with the callback need to properly call
    // +initialize and other things
 
    _mulle_objc_impcache_callback_init( &universe->initial_impcache.callback,
@@ -690,8 +713,9 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    _mulle_objc_universe_init_fail( universe);
    _mulle_objc_universe_init_exception( universe);
 
-   universe->classdefaults.inheritance      = MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
-   universe->classdefaults.class_is_missing = nop;
+   universe->classdefaults.inheritance  = MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES;
+   universe->callback.class_is_missing  = mulle_objc_missing_class_nop;
+   universe->callback.method_is_missing = mulle_objc_missing_method_nop;
 
    _mulle_concurrent_pointerarray_init( &universe->staticstrings, 0, &universe->memory.allocator);
    _mulle_concurrent_pointerarray_init( &universe->hashnames, 0, &universe->memory.allocator);
@@ -731,6 +755,14 @@ static int   return_zero( void)
 void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
                                   struct mulle_allocator *allocator)
 {
+   if( mulle_thread_mutex_init( &universe->debug.lock))
+      abort();
+   if( mulle_thread_mutex_init( &universe->waitqueues.lock))
+      abort();
+   if( mulle_thread_mutex_init( &universe->lock))
+      abort();
+
+   // now we can trace
    if( universe->debug.trace.universe)
       mulle_objc_universe_trace( universe, "init begin");
 
@@ -745,16 +777,10 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_objc_universe_init_gc( universe);
    _mulle_objc_thread_register_universe_gc_if_needed( universe);
 
-   if( mulle_thread_mutex_init( &universe->debug.lock))
-      abort();
-   if( mulle_thread_mutex_init( &universe->waitqueues.lock))
-      abort();
-   if( mulle_thread_mutex_init( &universe->lock))
-      abort();
-
    universe->debug.count_stackdepth = return_zero;
 
-   universe->thread = mulle_thread_self();
+   universe->thread    = mulle_thread_self();
+   universe->thread_id = mulle_thread_get_id( universe->thread);
    mulle_objc_thread_setup_threadinfo( universe);
 
    _mulle_concurrent_hashmap_init( &universe->categorytable, 128, allocator);
@@ -852,17 +878,32 @@ struct _mulle_objc_universe  *
    return( universe);
 }
 
-// this should only be used in "mulle_objc_load.c"
+
+typedef
+struct _mulle_objc_universe  *
+   mulle_objc_register_universe_function_t( mulle_objc_universeid_t universeid,
+                                            char *universename);
+
+// this function should only be used in "mulle_objc_load.c"
 struct _mulle_objc_universe  *
    mulle_objc_global_register_universe( mulle_objc_universeid_t universeid,
                                         char *universename)
 {
    struct _mulle_objc_universe  *universe;
 
+#if defined( _WIN32) && defined( MULLE_INCLUDE_DYNAMIC)
+   // as this is run like once per translation unit, it's no use
+   // caching it (and also where ?)
+   MULLE_C_CONST_RETURN mulle_objc_register_universe_function_t   *f;
+
+   f        = (mulle_objc_register_universe_function_t *) mulle_dlsym_exe( "__register_mulle_objc_universe");
+   universe = (*f)( universeid, universename);
+#else
    universe = __register_mulle_objc_universe( universeid, universename);  // the external function
+#endif
    if( ! universe)
    {
-      fprintf( stderr, "__register_mulle_objc_universe returned NULL\n");
+      mulle_fprintf( stderr, "__register_mulle_objc_universe returned NULL\n");
       abort();
    }
    return( universe);
@@ -918,7 +959,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    if( trace)
       mulle_objc_universe_trace( universe,
                                  "[%p] try to lock the universe for crunch",
-                                 (void *) mulle_thread_self());
+                                 (void *) mulle_thread_id());
 
    // ensure only one thread is going at it
    for(;;)
@@ -932,7 +973,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
             mulle_objc_universe_trace( universe,
                                       "[%p] someone else crunched the "
                                       "universe already",
-                                      (void *) mulle_thread_self());
+                                      (void *) mulle_thread_id());
          return;  // someone else did it
       }
       if( actual == (void *) (MULLE_OBJC_RUNTIME_VERSION + 1))
@@ -964,19 +1005,19 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
    if( trace)
       mulle_objc_universe_trace( universe,
                                  "[%p] crunch of the universe is in progress",
-                                 (void *) mulle_thread_self());
+                                 (void *) mulle_thread_id());
 
-   callback = universe->callbacks.will_crunch;
+   callback = universe->callback.will_crunch;
    if( callback)
       (*callback)( universe);
 
-   callback = universe->callbacks.did_crunch;
+   callback = universe->callback.did_crunch;
    (*crunch)( universe);
 
    if( trace)
       mulle_objc_universe_trace( universe,
                                  "[%p] crunch of the universe is done",
-                                 (void *) mulle_thread_self());
+                                 (void *) mulle_thread_id());
 
    mulle_atomic_memory_barrier(); // shared/global memory
 
@@ -996,7 +1037,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
          if( trace)
             mulle_objc_universe_trace( universe,
                                        "[%p] unlocked the universe",
-                                       (void *) mulle_thread_self());
+                                       (void *) mulle_thread_id());
          if( callback)
             (*callback)( universe);
 
@@ -1014,7 +1055,7 @@ void   _mulle_objc_universe_crunch( struct _mulle_objc_universe  *universe,
       if( trace)
          mulle_objc_universe_trace( universe,
                                     "[%p] retrying to unlock the universe",
-                                    (void *) mulle_thread_self());
+                                    (void *) mulle_thread_id());
    }
 }
 
@@ -1026,7 +1067,7 @@ static void   mulle_objc_global_atexit( void)
    universe = __mulle_objc_global_get_defaultuniverse();
    if( ! universe)
    {
-      fprintf( stderr, "atexit does nothing as there is no default universe\n");
+      mulle_fprintf( stderr, "atexit does nothing as there is no default universe\n");
       return;
    }
 
@@ -1083,26 +1124,29 @@ not the default universe. Use mulle_objc_global_main_finish.");
    }
 }
 
+
+static void   universe_trace( struct _mulle_objc_universe *universe, char *s)
+{
+   mulle_fprintf( stderr, "mulle_objc_universe %p \"%s\" %x, trace: [%p] %s\n",
+                     universe,
+                     mulle_objc_universe_get_name( universe),
+                     _mulle_objc_universe_get_universeid( universe),
+                     (void *) mulle_thread_id(),
+                     s);
+}
+
 void   _mulle_objc_universe_defaultbang( struct _mulle_objc_universe  *universe,
                                          struct mulle_allocator *allocator,
                                          void *userinfo)
 {
    MULLE_C_UNUSED( userinfo);
 
+   if( universe->debug.trace.universe)
+      universe_trace( universe, "universe is experiencing the default bang");
    _mulle_objc_universe_init( universe, allocator);
    __mulle_objc_universe_atexit_ifneeded( universe);
 }
 
-
-static void   universe_trace( struct _mulle_objc_universe *universe, char *s)
-{
-   fprintf( stderr, "mulle_objc_universe %p \"%s\" %x, trace: [%p] %s\n",
-           				universe,
-                  	mulle_objc_universe_get_name( universe),
-                  	_mulle_objc_universe_get_universeid( universe),
-                  	(void *) mulle_thread_self(),
-   						s);
-}
 
 //
 // this is done for "global" universe configurations
@@ -1169,9 +1213,38 @@ static void
       }
 
       if( trace)
-            universe_trace( universe, "retrying to the universe");
+         universe_trace( universe, "retrying to the universe");
    }
 }
+
+
+#ifdef _WIN32
+int   _mulle_objc_universe_win32_class_is_missing( struct _mulle_objc_universe *universe,
+                                                   mulle_objc_classid_t classid)
+{
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "class with id %08x is missing, invoking DLL loader",
+                                 classid);
+
+   return( _mulle_objc_universe_dll_loader( universe, "__exe__;__self__"));
+}
+
+static int   _mulle_objc_universe_win32_method_is_missing( struct _mulle_objc_universe *universe,
+                                                           struct _mulle_objc_class *cls,
+                                                           mulle_objc_methodid_t methodid)
+{
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe,
+                                 "method with id %08x is missing from class %08x \"%s\", invoking DLL loader",
+                                 methodid,
+                                 _mulle_objc_class_get_classid( cls),
+                                 _mulle_objc_class_get_name( cls));
+
+   return( _mulle_objc_universe_dll_loader( universe, "__exe__;__self__"));
+}
+
+#endif
 
 
 void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
@@ -1187,6 +1260,21 @@ void   _mulle_objc_universe_bang( struct _mulle_objc_universe  *universe,
       bang = _mulle_objc_universe_defaultbang;
 
    __mulle_objc_universe_bang( universe, bang, allocator, userinfo);
+
+   // On WIN32 DLLs, that are not referenced, aren't linked. So many of our
+   // .dll Objective-C code is lying around in dependency/lib but we don't
+   // have it. OK basically what this means, we don't support dynamic
+   // linking (on windows).
+   //
+   // But... for 1000 little tests, we dont' want to produce GBs of binaries.
+   // Oh well... so the the solution is load all DLLs that are besides the
+   // objc-runtime.dll and the executable.exe. We do this as late as possible
+   // (inside main() so we dont get into DllMain issues)
+   //
+#ifdef _WIN32
+   universe->callback.class_is_missing  = _mulle_objc_universe_win32_class_is_missing;
+   universe->callback.method_is_missing = _mulle_objc_universe_win32_method_is_missing;
+#endif
 }
 
 
@@ -1576,18 +1664,18 @@ enum mulle_objc_universe_status
     */
    universe->debug.trace.waiters_svg = getenv_yes_no( "MULLE_OBJC_TRACE_WAITERS_SVG");
    if( universe->debug.trace.waiters_svg)
-      fprintf( stderr, "digraph waiters\n{\trankdir=\"LR\"\n\tnode [ shape=\"box\"]\n");
+      mulle_fprintf( stderr, "digraph waiters\n{\trankdir=\"LR\"\n\tnode [ shape=\"box\"]\n");
 
    if( n_classes)
    {
       rval = mulle_objc_universe_is_incomplete;
       if( ! universe->debug.trace.waiters_svg)
-         fprintf( stderr, "mulle_objc_universe %p warning: the following "
+         mulle_fprintf( stderr, "mulle_objc_universe %p warning: the following "
                           "classes failed to load:\n",
                           universe);
       if( _mulle_objc_universe_trylock_waitqueues( universe))
       {
-         fprintf( stderr, "mulle_objc_universe %p error: the waitqueues "
+         mulle_fprintf( stderr, "mulle_objc_universe %p error: the waitqueues "
                           "are still locked!\n",
                           universe);
          return( mulle_objc_universe_is_locked);
@@ -1603,12 +1691,12 @@ enum mulle_objc_universe_status
    {
       rval = mulle_objc_universe_is_incomplete;
       if( ! universe->debug.trace.waiters_svg)
-         fprintf( stderr, "mulle_objc_universe %p warning: the following "
+         mulle_fprintf( stderr, "mulle_objc_universe %p warning: the following "
                           "categories failed to load:\n",
                           universe);
       if( _mulle_objc_universe_trylock_waitqueues( universe))
       {
-         fprintf( stderr, "mulle_objc_universe %p error: the waitqueues "
+         mulle_fprintf( stderr, "mulle_objc_universe %p error: the waitqueues "
                           "are still locked!\n",
                           universe);
          return( mulle_objc_universe_is_locked);
@@ -1621,9 +1709,9 @@ enum mulle_objc_universe_status
    }
 
    if( universe->debug.trace.waiters_svg)
-      fprintf( stderr, "}\n");
+      mulle_fprintf( stderr, "}\n");
    else
-      fprintf( stderr, "You can get graphviz output by setting MULLE_OBJC_TRACE_WAITERS_SVG=YES\n");
+      mulle_fprintf( stderr, "You can get graphviz output by setting MULLE_OBJC_TRACE_WAITERS_SVG=YES\n");
 
    mulle_objc_universe_maybe_hang_or_abort( universe);
    return( rval);
@@ -1822,8 +1910,8 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
    // this should put down the last autoreleasepool of the main thread
    _mulle_objc_universe_free_friend( universe, &universe->foundation.universefriend);
 
-   if( universe->callbacks.will_dealloc)
-      (*universe->callbacks.will_dealloc)( universe);
+   if( universe->callback.will_dealloc)
+      (*universe->callback.will_dealloc)( universe);
 
    // ******* END OF USABLE CLASSES IN UNIVERSE *****
 
@@ -1873,8 +1961,13 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
    mulle_objc_thread_unset_threadinfo( universe);
    mulle_thread_tss_free( universe->threadkey);
 
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "closing waitqueues mutexes");
+
    mulle_thread_mutex_done( &universe->waitqueues.lock);
-   mulle_thread_mutex_done( &universe->debug.lock);
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "closing universe lock");
    mulle_thread_mutex_done( &universe->lock);
 
    if( _mulle_objc_universe_is_default( universe))
@@ -1884,6 +1977,10 @@ void   _mulle_objc_universe_done( struct _mulle_objc_universe *universe)
       memset( &universe->cachepivot, 0, sizeof( universe->cachepivot));
       memset( &universe->path, 0, sizeof( *universe) - offsetof( struct _mulle_objc_universe, path));
    }
+
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe finished (closing debug mutex)");
+   mulle_thread_mutex_done( &universe->debug.lock);
 }
 
 
@@ -1905,7 +2002,7 @@ intptr_t   _mulle_objc_universe_release( struct _mulle_objc_universe *universe)
 
    if( universe->config.wait_threads_on_exit || universe->config.pedantic_exit)
    {
-      if( mulle_thread_self() == _mulle_objc_universe_get_thread( universe))
+      if( mulle_thread_id() == _mulle_objc_universe_get_thread_id( universe))
       {
          if( universe->debug.trace.universe)
          {
@@ -2092,13 +2189,13 @@ int   _mulle_objc_universe_register_infraclass_for_classid( struct _mulle_objc_u
 
       superclass = _mulle_objc_infraclass_get_superclass( infra);
       if( superclass)
-         fprintf( stderr,
+         mulle_fprintf( stderr,
                   " with superclass %08x \"%s\"",
                  _mulle_objc_infraclass_get_classid( superclass),
                  _mulle_objc_infraclass_get_name( superclass));
 
       meta = _mulle_objc_infraclass_get_metaclass( infra);
-      fprintf( stderr, " (-:%p +:%p)\n", infra, meta);
+      mulle_fprintf( stderr, " (-:%p +:%p)\n", infra, meta);
    }
    return( 0);
 }
@@ -2225,11 +2322,11 @@ int   mulle_objc_universe_patch_infraclass( struct _mulle_objc_universe *univers
                                       _mulle_objc_infraclass_get_classid( infra),
                                       _mulle_objc_infraclass_get_name( infra));
       if( superclass)
-         fprintf( stderr,
+         mulle_fprintf( stderr,
                   " poses now as superclass %08x \"%s\"",
                  _mulle_objc_infraclass_get_classid( superclass),
                  _mulle_objc_infraclass_get_name( superclass));
-      fprintf( stderr, " (-:%p +:%p)\n", infra, meta);
+      mulle_fprintf( stderr, " (-:%p +:%p)\n", infra, meta);
    }
    return( 0);
 }
@@ -2433,7 +2530,7 @@ static struct _mulle_objc_descriptor *
          if( cls)
          {
             if( list && _mulle_objc_methodlist_get_categoryname( list))
-               fprintf( stderr, "added descriptor %08x \"%s\" by %c%s( %s) (%p)\n",
+               mulle_fprintf( stderr, "added descriptor %08x \"%s\" by %c%s( %s) (%p)\n",
                                 p->methodid,
                                 p->name,
                                 _mulle_objc_class_is_metaclass( cls) ? '+' : '-',
@@ -2441,7 +2538,7 @@ static struct _mulle_objc_descriptor *
                                 _mulle_objc_methodlist_get_categoryname( list),
                                 p);
             else
-               fprintf( stderr, "added descriptor %08x \"%s\" by %c%s (%p)\n",
+               mulle_fprintf( stderr, "added descriptor %08x \"%s\" by %c%s (%p)\n",
                                 p->methodid,
                                 p->name,
                                 _mulle_objc_class_is_metaclass( cls) ? '+' : '-',

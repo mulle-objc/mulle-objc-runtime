@@ -126,12 +126,20 @@ struct _mulle_objc_cacheentry *
 
 
 // lookup in hashtable, callback if missing, add to classcache if found
-// otherwise returns NULL
+// otherwise returns NULL, may execute callback.class_is_missing
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cacheentry   *
    _mulle_objc_universe_refresh_classcache( struct _mulle_objc_universe *universe,
                                             mulle_objc_classid_t classid);
 
+// as above, but will not execute callback
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_universe_refresh_classcache_nodelegate( struct _mulle_objc_universe *universe,
+                                                       mulle_objc_classid_t classid);
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_cacheentry   *
    _mulle_objc_universe_refresh_classcache_nofail( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid);
@@ -169,6 +177,34 @@ struct _mulle_objc_infraclass  *
    }
    return( infra);
 }
+
+// only used in one place..
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_infraclass  *
+    _mulle_objc_universe_lookup_infraclass_nodelegate( struct _mulle_objc_universe *universe,
+                                                        mulle_objc_classid_t classid);
+
+
+static inline
+struct _mulle_objc_infraclass  *
+    _mulle_objc_universe_lookup_infraclass_inline_nofast_nodelegate( struct _mulle_objc_universe *universe,
+                                                                     mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_cacheentry   *entry;
+
+   infra = _mulle_objc_universe_probe_infraclass_inline_nofast( universe, classid);
+   if( ! infra)
+   {
+      entry = _mulle_objc_universe_refresh_classcache_nodelegate( universe, classid);
+      if( ! entry)
+         return( NULL);
+
+      infra = _mulle_atomic_pointer_read_nonatomic( &entry->value.pointer);
+   }
+   return( infra);
+}
+
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -251,6 +287,34 @@ struct _mulle_objc_infraclass  *
 #endif
    return( _mulle_objc_universe_lookup_infraclass_inline_nofast( universe, classid));
 }
+
+
+static inline
+struct _mulle_objc_infraclass  *
+    _mulle_objc_universe_lookup_infraclass_inline_nodelegate( struct _mulle_objc_universe *universe,
+                                                              mulle_objc_classid_t classid)
+{
+   assert( universe);
+   assert( _mulle_objc_universe_is_messaging( universe)); // not is_initalized!!
+   assert( classid);
+
+#ifdef __MULLE_OBJC_FCS__
+   {
+      int                             index;
+      struct _mulle_objc_infraclass   *infra;
+
+      index = mulle_objc_get_fastclasstable_index( classid);
+      if( index >= 0)
+      {
+         infra = mulle_objc_fastclasstable_get_infraclass( &universe->fastclasstable, index);
+         return( infra);
+      }
+   }
+#endif
+   return( _mulle_objc_universe_lookup_infraclass_inline_nofast_nodelegate( universe, classid));
+}
+
+
 
 
 

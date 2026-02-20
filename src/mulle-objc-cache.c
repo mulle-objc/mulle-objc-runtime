@@ -372,7 +372,7 @@ struct _mulle_objc_cacheentry   *
 
    _mulle_atomic_pointer_increment( &cache->n);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   entry->thread = 0;
+   entry->thread_id = 0;
 #endif
    return( entry);
 }
@@ -403,7 +403,7 @@ struct _mulle_objc_cacheentry   *
 
    _mulle_atomic_pointer_increment( &cache->n);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   entry->thread = 0;
+   entry->thread_id = 0;
 #endif
    return( entry);
 }
@@ -455,7 +455,7 @@ struct _mulle_objc_cacheentry   *
    assert( ! entry->key.uniqueid);
    _mulle_atomic_pointer_write( &entry->key.pointer, (void *) (uintptr_t) uniqueid);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   entry->thread = mulle_thread_self();
+   entry->thread_id = mulle_thread_id();
 #endif
    return( entry);
 }
@@ -513,7 +513,7 @@ struct _mulle_objc_cacheentry   *
    assert( ! entry->key.uniqueid);
    _mulle_atomic_pointer_write( &entry->key.pointer, (void *) (uintptr_t) uniqueid);
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   entry->thread = mulle_thread_self();
+   entry->thread_id = mulle_thread_id();
 #endif
    return( entry);
 }

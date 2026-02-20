@@ -14,7 +14,7 @@
 - (const char *)formatString:(const char *)format with:(int)value and:(double)scale
 { 
     static char buffer[256];
-    snprintf(buffer, sizeof(buffer), format, value, scale);
+    mulle_snprintf(buffer, sizeof(buffer), format, value, scale);
     return buffer;
 }
 - (int)getStatus { return 200; }

@@ -94,18 +94,18 @@ int main(void)
 {
     struct _mulle_objc_infraclass *cls;
 
-    printf("Chapter 9A: Step 1 - Simple class definition\n");
+    mulle_printf("Chapter 9A: Step 1 - Simple class definition\n");
 
     cls = mulle_objc_global_lookup_infraclass_nofail(MULLE_OBJC_DEFAULTUNIVERSEID, ___SimpleClass_classid);
     if (!cls)
     {
-        printf("ERROR: SimpleClass not found\n");
+        mulle_printf("ERROR: SimpleClass not found\n");
         return 1;
     }
 
-    printf("SUCCESS: SimpleClass found\n");
-    printf("Class name: %s\n", _mulle_objc_infraclass_get_name(cls));
-    printf("Instance size: %zu bytes\n", _mulle_objc_infraclass_get_instancesize(cls));
+    mulle_printf("SUCCESS: SimpleClass found\n");
+    mulle_printf("Class name: %s\n", _mulle_objc_infraclass_get_name(cls));
+    mulle_printf("Instance size: %zu bytes\n", _mulle_objc_infraclass_get_instancesize(cls));
 
     return 0;
 }

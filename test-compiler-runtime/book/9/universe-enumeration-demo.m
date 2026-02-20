@@ -3,7 +3,7 @@
 
 static void print_class_name(struct _mulle_objc_infraclass *cls, void *userinfo)
 {
-    printf("Class: %s\n", mulle_objc_class_get_name(cls));
+    mulle_printf("Class: %s\n", mulle_objc_class_get_name(cls));
 }
 
 int main(void)

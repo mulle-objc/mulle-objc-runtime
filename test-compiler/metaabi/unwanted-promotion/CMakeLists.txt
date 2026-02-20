@@ -48,4 +48,12 @@ target_link_libraries( unwanted-promotion.exe
    ${TEST_LIBRARIES}
 )
 
+# Export symbols needed for Windows DLL dynamic linking
+if( WIN32)
+   target_link_options( unwanted-promotion.exe
+      PUBLIC
+         "-Wl,--export-all-symbols"
+   )
+endif()
+
 

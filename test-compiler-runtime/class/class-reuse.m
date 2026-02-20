@@ -132,16 +132,16 @@ int   main( void)
 //   fprintf( stderr, "nada: elapsed: %.5gs\n", end - start);
 
 #if MULLE_OBJC_CLASS_REUSE_ALLOC
-   fprintf( stderr, "Infraclass reuses allocs\n");
+   mulle_fprintf( stderr, "Infraclass reuses allocs\n");
 #else      
-   fprintf( stderr, "Infraclass always allocates and frees\n");
+   mulle_fprintf( stderr, "Infraclass always allocates and frees\n");
 #endif   
 
    start = mulle_absolutetime_now();
    run_loops( loops);
    end   = mulle_absolutetime_now();
 
-   fprintf( stderr, "elapsed: %.5gs\n", end - start);
+   mulle_fprintf( stderr, "elapsed: %.5gs\n", end - start);
 
    return( 0);
 }

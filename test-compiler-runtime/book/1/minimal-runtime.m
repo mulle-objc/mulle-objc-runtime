@@ -11,7 +11,7 @@ int main(void)
     // Get the runtime context
     universe = mulle_objc_global_get_defaultuniverse();
     
-    printf("Runtime ready: %p\n", (void *)universe);
+    mulle_printf("Runtime ready: %p\n", (void *)universe);
     
     return 0;
 }

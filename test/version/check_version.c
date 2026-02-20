@@ -42,7 +42,7 @@ int   main( int argc, const char * argv[])
               MULLE_OBJC_RUNTIME_VERSION_PATCH);   
    if( MULLE_OBJC_RUNTIME_VERSION != version)
    {
-      fprintf( stderr, "Runtime header runtime version/compiler version mismatch (%u %lu)",
+      mulle_fprintf( stderr, "Runtime header runtime version/compiler version mismatch (%u %lu)",
          version, (unsigned long) MULLE_OBJC_RUNTIME_VERSION);
       return( 1);
    }
@@ -50,14 +50,14 @@ int   main( int argc, const char * argv[])
    version = ((JIT_MAJOR << 20) | (JIT_MINOR << 8) |JIT_PATCH);
    if( MULLE_OBJC_RUNTIME_VERSION != version)
    {
-      fprintf( stderr, "JIT/Runtime header runtime version mismatch (%u %lu)\n",
+      mulle_fprintf( stderr, "JIT/Runtime header runtime version mismatch (%u %lu)\n",
          version, (unsigned long) MULLE_OBJC_RUNTIME_VERSION);
       return( 1);
    }
 
    if( MULLE_OBJC_RUNTIME_LOAD_VERSION != JIT_LOAD_VERSION)
    {
-      fprintf( stderr, "JIT/Runtime header load version mismatch (%u %lu)\n",
+      mulle_fprintf( stderr, "JIT/Runtime header load version mismatch (%u %lu)\n",
          JIT_LOAD_VERSION, (unsigned long) MULLE_OBJC_RUNTIME_LOAD_VERSION);
       return( 1);
    }

@@ -20,7 +20,7 @@ static mulle_objc_walkcommand_t print_protocol(struct _mulle_objc_universe *univ
                                                struct _mulle_objc_protocol *protocol,
                                                void *userinfo)
 {
-    printf("Protocol: %s\n", _mulle_objc_protocol_get_name(protocol));
+    mulle_printf("Protocol: %s\n", _mulle_objc_protocol_get_name(protocol));
     return mulle_objc_walk_ok;
 }
 
@@ -30,7 +30,7 @@ int main(void)
     
     universe = mulle_objc_global_get_defaultuniverse();
     
-    printf("All protocols:\n");
+    mulle_printf("All protocols:\n");
     _mulle_objc_universe_walk_protocols(universe, print_protocol, NULL);
     
     return 0;

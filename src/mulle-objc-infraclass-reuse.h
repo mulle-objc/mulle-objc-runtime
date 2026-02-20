@@ -63,19 +63,21 @@ struct _mulle_objc_reusealloc
 };
 
 
-
 MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST_SECOND_THIRD
 void   *_mulle_objc_infraclass_keep_alloc( struct _mulle_objc_infraclass *infra,
                                            void *alloc,
                                            struct mulle_allocator *allocator);
 
 MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
 void   _mulle_objc_infraclass_free_reuseallocs( struct _mulle_objc_infraclass *infra);
 
 
 //
 // reuse instances, previously freed
 //
+MULLE_C_NONNULL_FIRST_THIRD
 static inline void   *_mulle_objc_infraclass_reuse_alloc( struct _mulle_objc_infraclass *infra,
                                                           size_t size,
                                                           struct mulle_allocator *allocator)
@@ -92,6 +94,7 @@ static inline void   *_mulle_objc_infraclass_reuse_alloc( struct _mulle_objc_inf
 }
 
 
+MULLE_C_NONNULL_FIRST_THIRD
 static inline void  *_mulle_objc_infraclass_reuse_alloc_thread( struct _mulle_objc_infraclass *infra,
                                                                 size_t size,
                                                                 struct mulle_allocator *allocator)
@@ -124,11 +127,13 @@ static inline void  *_mulle_objc_infraclass_reuse_alloc_thread( struct _mulle_ob
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST_SECOND_THIRD
 void   *_mulle_objc_infraclass_keep_alloc_thread( struct _mulle_objc_infraclass *infra,
                                                   void *alloc,
                                                   struct mulle_allocator *allocator);
 
 MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
 void   _mulle_objc_infraclass_free_reuseallocs_thread( struct _mulle_objc_infraclass *infra);
 
 

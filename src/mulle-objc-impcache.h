@@ -132,7 +132,8 @@ static inline void
                               struct _mulle_objc_impcache_callback *callback,
                               mulle_objc_cache_uint_t size)
 {
-   extern struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_normal;
+   MULLE_OBJC_RUNTIME_GLOBAL
+   struct _mulle_objc_impcache_callback   _mulle_objc_impcache_callback_normal;
 
    _mulle_objc_cache_init( &icache->cache, size);
    _mulle_objc_impcache_callback_init( &icache->callback,

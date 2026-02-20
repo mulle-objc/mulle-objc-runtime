@@ -85,7 +85,7 @@ int  _mulle_objc_descriptor_pointer_compare_r( void **_a, void **_b, void *thunk
    struct _mulle_objc_descriptor   *a = * (struct _mulle_objc_descriptor **) _a;
    struct _mulle_objc_descriptor   *b = * (struct _mulle_objc_descriptor **) _b;
    int                             cmp;
-   long                            diff;
+   int32_t                         diff;
 
    MULLE_C_UNUSED( thunk);
 
@@ -97,7 +97,7 @@ int  _mulle_objc_descriptor_pointer_compare_r( void **_a, void **_b, void *thunk
    if( cmp)
       return( cmp);
 
-   diff = (long) a->bits - (long) b->bits;
+   diff = (int32_t) a->bits - (int32_t) b->bits;
    return( diff < 0 ? -1 : ! ! diff);
 }
 

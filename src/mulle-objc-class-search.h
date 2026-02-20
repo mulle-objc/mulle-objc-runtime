@@ -476,6 +476,7 @@ static inline mulle_objc_classid_t
 // inheritance: the inheritance scheme to use (use cls->inheritance)
 // result: returned if a method was found (otherwise unchanged!), can be NULL
 //
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_method   *
    mulle_objc_class_search_method( struct _mulle_objc_class *cls,
                                    struct _mulle_objc_searcharguments *search,
@@ -562,6 +563,7 @@ static inline mulle_objc_implementation_t
 
 # pragma mark - super search
 
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_method *
    _mulle_objc_class_supersearch_method( struct _mulle_objc_class *cls,
                                          mulle_objc_superid_t superid);

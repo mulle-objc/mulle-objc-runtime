@@ -28,14 +28,14 @@ int main(void)
     
     if (my_class)
     {
-        printf("Class: %s\n", mulle_objc_class_get_name(&my_class->base));
-        printf("Instance size: %zu bytes\n", mulle_objc_class_get_instancesize(&my_class->base));
-        printf("Ivar size: %zu bytes\n", _mulle_objc_class_get_instancesize(&my_class->base));
+        mulle_printf("Class: %s\n", mulle_objc_class_get_name(&my_class->base));
+        mulle_printf("Instance size: %zu bytes\n", mulle_objc_class_get_instancesize(&my_class->base));
+        mulle_printf("Ivar size: %zu bytes\n", _mulle_objc_class_get_instancesize(&my_class->base));
         return 0;
     }
     else
     {
-        printf("ERROR: MyClass not found\n");
+        mulle_printf("ERROR: MyClass not found\n");
         return 1;
     }
 }

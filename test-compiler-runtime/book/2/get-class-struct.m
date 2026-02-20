@@ -22,8 +22,8 @@ int main(void)
         mulle_objc_classid_from_string("TestClass")
     );
     
-    printf("Class struct pointer: %p\n", (void *)cls);
-    printf("Class name: %s\n", _mulle_objc_class_get_name(&cls->base));
+    mulle_printf("Class struct pointer: %p\n", (void *)cls);
+    mulle_printf("Class name: %s\n", _mulle_objc_class_get_name(&cls->base));
     
     return 0;
 }

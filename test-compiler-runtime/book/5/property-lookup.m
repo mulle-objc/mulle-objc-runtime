@@ -27,8 +27,8 @@ int main(void)
     prop = _mulle_objc_infraclass_search_property(cls, 
         mulle_objc_propertyid_from_string("count"));
     if (prop) {
-        printf("Found property: %s\n", _mulle_objc_property_get_name(prop));
-        printf("Type: %s\n", _mulle_objc_property_get_signature(prop));
+        mulle_printf("Found property: %s\n", _mulle_objc_property_get_name(prop));
+        mulle_printf("Type: %s\n", _mulle_objc_property_get_signature(prop));
     }
     
     return 0;

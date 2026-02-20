@@ -36,22 +36,22 @@ filesystem_task_run()
 
    log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME:-.}${C_INFO} filesystem"
 
-   local rval 
+   local rc
 
-   rval=0
+   rc=0
    case "${MULLE_MATCH_TO_CMAKE_RUN}" in
       NO|DISABLE*|OFF)
       ;;
 
       *)
          exekutor mulle-match-to-cmake ${MULLE_TECHNICAL_FLAGS} "$@"  
-         rval=$?
+         rc=$?
       ;;
    esac
 
-   if [ $rval -ne 0 ]
+   if [ $rc -ne 0 ]
    then
-      log_error "mulle-match-to-cmake ${MULLE_TECHNICAL_FLAGS} $* failed ($rval)"
+      log_error "mulle-match-to-cmake ${MULLE_TECHNICAL_FLAGS} $* failed ($rc)"
    fi
 
    local rval2
@@ -80,7 +80,7 @@ filesystem_task_run()
          case "${PROJECT_DIALECT}" in
             objc)
                exekutor mulle-project-clib-json ${MULLE_TECHNICAL_FLAGS} \
-                                                -a src/reflect/objc-loader.inc \
+                                                -a src/reflect/objc-deps.inc \
                                                 -o "clib.json"
                rval3=$?
             ;;
@@ -100,5 +100,5 @@ filesystem_task_run()
    fi
 
 
-   [ $rval -eq 0 -a $rval2 -eq 0 -o $rval3 -eq 0 ]
+   [ $rc -eq 0 -a $rval2 -eq 0 -o $rval3 -eq 0 ]
 }

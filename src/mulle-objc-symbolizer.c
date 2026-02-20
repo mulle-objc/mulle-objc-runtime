@@ -271,20 +271,20 @@ void   mmcarray_csvdump( struct mmcarray *array,
    sentinel = &p[ array->_count];
    while( p < sentinel)
    {
-      fprintf( fp, "%08lx", (unsigned long) _mulle_objc_class_get_classid( p->class));
-      fprintf( fp, ";%s", _mulle_objc_class_get_name( p->class));
+      mulle_fprintf( fp, "%08lx", (unsigned long) _mulle_objc_class_get_classid( p->class));
+      mulle_fprintf( fp, ";%s", _mulle_objc_class_get_name( p->class));
 
       categoryid = mulle_objc_methodlist_get_categoryid( p->list);
-      fprintf( fp, ";%08lx", (unsigned long) categoryid);
+      mulle_fprintf( fp, ";%08lx", (unsigned long) categoryid);
       s = mulle_objc_methodlist_get_categoryname( p->list);
-      fprintf( fp, ";%s", s ? s : "");
+      mulle_fprintf( fp, ";%s", s ? s : "");
 
       if( mmc_snprint( p, universe, buf, sizeof( buf)) < 0)
-         fprintf( fp, "%08lx;%p\n",
+         mulle_fprintf( fp, "%08lx;%p\n",
                       (unsigned long) _mulle_objc_method_get_methodid( p->method),
                       (void *) _mulle_objc_method_get_implementation( p->method));
       else
-         fprintf( fp, "%s;%p\n", buf, (void *) _mulle_objc_method_get_implementation( p->method));
+         mulle_fprintf( fp, "%s;%p\n", buf, (void *) _mulle_objc_method_get_implementation( p->method));
       ++p;
    }
 }
@@ -302,7 +302,7 @@ static void   mmc_print( struct mmc  *p,
    // it's not a category ?
    if( ! p->list->loadcategory)
    {
-      fprintf( fp, "%c[%s %s]", _mulle_objc_class_is_metaclass( p->class) ? '+' : '-',
+      mulle_fprintf( fp, "%c[%s %s]", _mulle_objc_class_is_metaclass( p->class) ? '+' : '-',
                                   _mulle_objc_class_get_name( p->class),
                                   _mulle_objc_method_get_name( p->method));
       return;
@@ -316,7 +316,7 @@ static void   mmc_print( struct mmc  *p,
       s = buf;
    }
 
-   fprintf( fp, "%c[%s( %s) %s]", _mulle_objc_class_is_metaclass( p->class) ? '+' : '-',
+   mulle_fprintf( fp, "%c[%s( %s) %s]", _mulle_objc_class_is_metaclass( p->class) ? '+' : '-',
                                   _mulle_objc_class_get_name( p->class),
                                   s,
                                   _mulle_objc_method_get_name( p->method));

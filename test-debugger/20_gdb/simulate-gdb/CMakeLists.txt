@@ -29,6 +29,14 @@ target_link_libraries( simulate-gdb.exe
 ${TEST_LIBRARIES}
 )
 
+# Export symbols needed for Windows DLL dynamic linking
+if( WIN32)
+   target_link_options( simulate-gdb.exe
+      PUBLIC
+         "-Wl,--export-all-symbols"
+   )
+endif()
+
 message( "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 message( "CMAKE_C_FLAGS_DEBUG = ${CMAKE_C_FLAGS_DEBUG}")
 message( "CMAKE_C_FLAGS_RELEASE = ${CMAKE_C_FLAGS_RELEASE}")

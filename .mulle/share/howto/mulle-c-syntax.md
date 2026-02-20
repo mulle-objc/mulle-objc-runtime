@@ -1,5 +1,5 @@
 ## Syntax
-<!-- Keywords: syntax, styleguide, c -->
+<!-- Keywords: syntax, styleguide, c, objc -->
 
 mulle-c libaries (should) use a consistent naming scheme for their data
 structures and functions. After a bit of use, you should easily figure out

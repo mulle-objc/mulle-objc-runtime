@@ -65,10 +65,10 @@ int main(void)
         mulle_objc_classid_from_string("TestClass")
     );
     
-    printf("Testing ivar attributes:\n");
-    printf("%-15s %-15s %-15s %-15s\n", 
+    mulle_printf("Testing ivar attributes:\n");
+    mulle_printf("%-15s %-15s %-15s %-15s\n",
            "Name", "Signature", "Type", "Offset");
-    printf("%-15s %-15s %-15s %-15s\n", 
+    mulle_printf("%-15s %-15s %-15s %-15s\n",
            "---------------", "---------------", "---------------", "---------------");
     
     for (test = test_ivars; test->name; test++)
@@ -76,14 +76,14 @@ int main(void)
         ivar = _mulle_objc_infraclass_search_ivar(test_class, mulle_objc_uniqueid_from_string((char *)test->name));
         if (!ivar)
         {
-            printf("ERROR: %s ivar not found\n", test->name);
+            mulle_printf("ERROR: %s ivar not found\n", test->name);
             return 1;
         }
         
         const char *signature = _mulle_objc_ivar_get_signature(ivar);
         int offset = _mulle_objc_ivar_get_offset(ivar);
         
-        printf("%-15s %-15s %-15s %-15d\n", 
+        mulle_printf("%-15s %-15s %-15s %-15d\n",
                test->name, 
                signature ? signature : "NULL", 
                get_type_name(signature),
@@ -92,19 +92,19 @@ int main(void)
         // Validate encoding starts with expected character
         if (signature && signature[0] != test->expected_encoding[0])
         {
-            printf("ERROR: Expected encoding starting with '%c', got '%s'\n", 
+            mulle_printf("ERROR: Expected encoding starting with '%c', got '%s'\n",
                    test->expected_encoding[0], signature);
             return 1;
         }
     }
     
     // Test signature parsing for complex types
-    printf("\nComplex signature analysis:\n");
+    mulle_printf("\nComplex signature analysis:\n");
     ivar = _mulle_objc_infraclass_search_ivar(test_class, mulle_objc_uniqueid_from_string("point"));
     if (ivar)
     {
         const char *signature = _mulle_objc_ivar_get_signature(ivar);
-        printf("Point signature: %s\n", signature ? signature : "NULL");
+        mulle_printf("Point signature: %s\n", signature ? signature : "NULL");
         
         // Find struct opening
         if (signature)
@@ -115,7 +115,7 @@ int main(void)
                 const char *struct_end = strchr(struct_start, '}');
                 if (struct_end)
                 {
-                    printf("Struct definition: %.*s\n", 
+                    mulle_printf("Struct definition: %.*s\n",
                            (int)(struct_end - struct_start + 1), struct_start);
                 }
             }
@@ -123,17 +123,17 @@ int main(void)
     }
     
     // Test offset calculation for direct access
-    printf("\nTesting offset calculation:\n");
+    mulle_printf("\nTesting offset calculation:\n");
     for (test = test_ivars; test->name; test++)
     {
         ivar = _mulle_objc_infraclass_search_ivar(test_class, mulle_objc_uniqueid_from_string((char *)test->name));
         if (ivar)
         {
-            printf("ivar '%s' is at offset %d bytes from object start\n", 
+            mulle_printf("ivar '%s' is at offset %d bytes from object start\n",
                    _mulle_objc_ivar_get_name(ivar), ivar->offset);
         }
     }
     
-    printf("\nIvar attributes test completed successfully\n");
+    mulle_printf("\nIvar attributes test completed successfully\n");
     return 0;
 }

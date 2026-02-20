@@ -13,7 +13,7 @@
 + (const char *)staticCompute:(int)x 
 { 
     static char buffer[32];
-    snprintf(buffer, sizeof(buffer), "result: %d", x * 3);
+    mulle_snprintf(buffer, sizeof(buffer), "result: %d", x * 3);
     return buffer;
 }
 @end

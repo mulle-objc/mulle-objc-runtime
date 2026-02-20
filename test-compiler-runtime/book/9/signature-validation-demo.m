@@ -8,11 +8,11 @@ int main(void)
     
     if (_mulle_objc_methodsignature_compare((char *)signature, (char *)expected) == 0)
     {
-        printf("Signature '%s' matches expected format\n", signature);
+        mulle_printf("Signature '%s' matches expected format\n", signature);
     }
     else
     {
-        printf("Signature '%s' does not match expected format\n", signature);
+        mulle_printf("Signature '%s' does not match expected format\n", signature);
     }
     
     return 0;

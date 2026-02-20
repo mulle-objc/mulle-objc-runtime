@@ -68,7 +68,8 @@ enum
    mulle_objc_class_lookup_noforward   = 0x2,
    mulle_objc_class_lookup_lazyforward = 0x4,
    mulle_objc_class_lookup_nofail      = 0x8,
-   mulle_objc_class_lookup_nofill      = 0x10   // don't write cache
+   mulle_objc_class_lookup_nofill      = 0x10,  // don't write cache
+   mulle_objc_class_lookup_nodelegate  = 0x20   // don't ask universe->callback.method_is_missing
 };
 
 

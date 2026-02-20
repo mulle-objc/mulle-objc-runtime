@@ -30,12 +30,12 @@ int main(void)
     ivar = _mulle_objc_infraclass_search_ivar(person_class, mulle_objc_uniqueid_from_string("age"));
     if (ivar)
     {
-        printf("Found age ivar: %s\n", _mulle_objc_ivar_get_name(ivar));
-        printf("Offset: %d\n", ivar->offset);
+        mulle_printf("Found age ivar: %s\n", _mulle_objc_ivar_get_name(ivar));
+        mulle_printf("Offset: %d\n", ivar->offset);
     }
     else
     {
-        printf("age ivar not found\n");
+        mulle_printf("age ivar not found\n");
         return 1;
     }
     
@@ -43,12 +43,12 @@ int main(void)
     ivar = _mulle_objc_infraclass_search_ivar(person_class, mulle_objc_uniqueid_from_string("name"));
     if (ivar)
     {
-        printf("Found name ivar: %s\n", _mulle_objc_ivar_get_name(ivar));
-        printf("Offset: %d\n", ivar->offset);
+        mulle_printf("Found name ivar: %s\n", _mulle_objc_ivar_get_name(ivar));
+        mulle_printf("Offset: %d\n", ivar->offset);
     }
     else
     {
-        printf("name ivar not found\n");
+        mulle_printf("name ivar not found\n");
         return 1;
     }
     
@@ -56,12 +56,12 @@ int main(void)
     ivar = _mulle_objc_infraclass_search_ivar(person_class, mulle_objc_uniqueid_from_string("height"));
     if (ivar)
     {
-        printf("Found height ivar: %s\n", _mulle_objc_ivar_get_name(ivar));
-        printf("Offset: %d\n", ivar->offset);
+        mulle_printf("Found height ivar: %s\n", _mulle_objc_ivar_get_name(ivar));
+        mulle_printf("Offset: %d\n", ivar->offset);
     }
     else
     {
-        printf("height ivar not found\n");
+        mulle_printf("height ivar not found\n");
         return 1;
     }
     
@@ -69,11 +69,11 @@ int main(void)
     ivar = _mulle_objc_infraclass_search_ivar(person_class, mulle_objc_uniqueid_from_string("nonexistent"));
     if (!ivar)
     {
-        printf("Non-existent ivar correctly not found\n");
+        mulle_printf("Non-existent ivar correctly not found\n");
     }
     else
     {
-        printf("Non-existent ivar unexpectedly found\n");
+        mulle_printf("Non-existent ivar unexpectedly found\n");
         return 1;
     }
     

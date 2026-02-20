@@ -25,7 +25,7 @@ int main(void)
         mulle_objc_classid_from_string("SynthProps")
     );
     
-    printf("Synthesized properties class defined: %s\n", 
+    mulle_printf("Synthesized properties class defined: %s\n",
            _mulle_objc_class_get_name(&cls->base));
     
     return 0;

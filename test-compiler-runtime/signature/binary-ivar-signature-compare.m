@@ -53,14 +53,14 @@ static void  test( char *a, char *b)
 {
    char   *s;
 
-   printf( "%s and %s are", a, b);
+   mulle_printf( "%s and %s are", a, b);
    fflush( stdout);
 
    s = _mulle_objc_ivarsignature_is_binary_compatible( a, b)
        ? "compatible"
        : "incompatible";
 
-   printf( " %s\n", s);
+   mulle_printf( " %s\n", s);
 }
 
 
@@ -69,6 +69,7 @@ int   main( void)
    test( @encode( int), @encode( int));
    test( @encode( int), @encode( unsigned int));
    test( @encode( int), @encode( long));
+   test( @encode( int), @encode( long long));
    test( @encode( struct CGPoint), @encode( struct CGPoint));
    test( @encode( struct CGPoint), @encode( struct CGSize));
    test( @encode( struct CGPoint), @encode( struct CGRect));

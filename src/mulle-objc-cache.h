@@ -93,7 +93,7 @@ struct _mulle_objc_cacheentry
       mulle_atomic_pointer_t           pointer;
    } value;
 #ifdef MULLE_OBJC_CACHEENTRY_REMEMBERS_THREAD_CLASS
-   mulle_thread_t                      thread;
+   mulle_thread_id_t                   thread_id;
    struct _mulle_objc_class            *cls;
 #endif
 };

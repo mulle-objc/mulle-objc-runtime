@@ -21,7 +21,7 @@ int main(void)
     );
     
     if (protocol) {
-        printf("Found protocol: %s\n", _mulle_objc_protocol_get_name(protocol));
+        mulle_printf("Found protocol: %s\n", _mulle_objc_protocol_get_name(protocol));
         
     }
     

@@ -452,6 +452,14 @@ MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_class_has_direct_relation_to_class( struct _mulle_objc_class *a,
                                                       struct _mulle_objc_class *b);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_infraclass_check_and_trace_alloc( struct _mulle_objc_infraclass *infra,
+                                                     void *obj,
+                                                     size_t extra);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_instance_trace_free( void *obj);
+
 #endif
 
 

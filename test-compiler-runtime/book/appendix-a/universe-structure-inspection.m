@@ -15,13 +15,13 @@ int main()
     assert( universe);
     
     // Test basic universe field access
-    printf( "universe->version: %u\n", _mulle_objc_universe_get_version( universe));
-    printf( "universe->path: %s\n", _mulle_objc_universe_get_path( universe));
-    printf( "universe->universeid: %llu\n", (unsigned long long) _mulle_objc_universe_get_universeid( universe));
-    printf( "universe->universename: %s\n", mulle_objc_universe_get_name( universe));
+    mulle_printf( "universe->version: %u\n", _mulle_objc_universe_get_version( universe));
+    mulle_printf( "universe->path: %s\n", _mulle_objc_universe_get_path( universe));
+    mulle_printf( "universe->universeid: %llu\n", (unsigned long long) _mulle_objc_universe_get_universeid( universe));
+    mulle_printf( "universe->universename: %s\n", mulle_objc_universe_get_name( universe));
     
     // Test cache fill rate
-    printf( "cache_fillrate: %u\n", _mulle_objc_universe_get_cache_fillrate( universe));
+    mulle_printf( "cache_fillrate: %u\n", _mulle_objc_universe_get_cache_fillrate( universe));
     
     // Verify universe is initialized
     assert( _mulle_objc_universe_is_initialized( universe));

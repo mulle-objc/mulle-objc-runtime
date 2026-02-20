@@ -57,15 +57,16 @@ struct _mulle_objc_object;
 
 
 
+
 #ifndef NDEBUG
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj,
+                                                           int define);
+
 static inline void
    mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj,
                                                       int define)
 {
-   MULLE_OBJC_RUNTIME_GLOBAL
-   void   _mulle_objc_object_assert_tao_object_header_no_tps( struct _mulle_objc_object *obj,
-                                                              int define);
-
    if( obj)
       _mulle_objc_object_assert_tao_object_header_no_tps( obj, define);
 }
@@ -178,11 +179,11 @@ MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_class *
 
 
 MULLE_C_CONST_RETURN
-MULLE_C_STATIC_ALWAYS_INLINE mulle_thread_t
-   _mulle_objc_objectheader_get_thread( struct _mulle_objc_objectheader *header)
+MULLE_C_STATIC_ALWAYS_INLINE mulle_thread_id_t
+   _mulle_objc_objectheader_get_thread_id( struct _mulle_objc_objectheader *header)
 {
 #if MULLE_OBJC_TAO_OBJECT_HEADER
-   return( (mulle_thread_t) _mulle_atomic_pointer_read( &header->_thread));
+   return( (mulle_thread_id_t) _mulle_atomic_pointer_read( &header->_thread));
 #else
    MULLE_C_UNUSED( header);
    return( 0);
@@ -206,14 +207,15 @@ MULLE_C_STATIC_ALWAYS_INLINE mulle_thread_t
 // |   a              |    b   |  NULL  |
 
 MULLE_C_STATIC_ALWAYS_INLINE void
-   _mulle_objc_objectheader_set_thread( struct _mulle_objc_objectheader *header,
-                                        mulle_thread_t thread)
+   _mulle_objc_objectheader_set_thread_id( struct _mulle_objc_objectheader *header,
+                                           mulle_thread_id_t thread_id)
 {
 #if MULLE_OBJC_TAO_OBJECT_HEADER
-   _mulle_atomic_pointer_write( &header->_thread, (void *) thread);
+   _mulle_atomic_pointer_write( &header->_thread, (void *) thread_id);
 #else
    MULLE_C_UNUSED( header);
-   MULLE_C_UNUSED( thread);
+   MULLE_C_UNUSED( thread_id);
+   abort(); // it's probably best to abort here
 #endif
 }
 
@@ -254,7 +256,7 @@ static inline void
    _mulle_objc_objectheader_set_isa( header, cls);
 #if MULLE_OBJC_TAO_OBJECT_HEADER
    if( _mulle_objc_class_is_threadaffine( cls))
-      _mulle_objc_objectheader_set_thread( header, mulle_thread_self());
+      _mulle_objc_objectheader_set_thread_id( header, mulle_thread_id());
 #endif
 }
 

@@ -48,13 +48,13 @@ int main(void)
     );
     large_obj = mulle_objc_infraclass_alloc_instance(large_cls);
     
-    printf("SmallClass instance size: %zu bytes\n", 
+    mulle_printf("SmallClass instance size: %zu bytes\n",
            mulle_objc_class_get_instancesize(&small_cls->base));
-    printf("LargeClass instance size: %zu bytes\n", 
+    mulle_printf("LargeClass instance size: %zu bytes\n",
            mulle_objc_class_get_instancesize(&large_cls->base));
     
-    printf("Small object: %p\n", small_obj);
-    printf("Large object: %p\n", large_obj);
+    mulle_printf("Small object: %p\n", small_obj);
+    mulle_printf("Large object: %p\n", large_obj);
     
     return 0;
 }

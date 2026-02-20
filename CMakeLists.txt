@@ -14,7 +14,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
     /wd4068  # Unknown pragma warning
   )
   # MSVC secure function warnings suppression
-  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+  add_compile_definitions( _CRT_SECURE_NO_WARNINGS)
 endif()
 
 ### mulle-sde environment
@@ -53,7 +53,7 @@ include( Library)
 message( STATUS "CMAKE_VERSION=${CMAKE_VERSION}")
 # use LIBRARY_COMPILE_TARGET for compiler options
 if( ${CMAKE_VERSION} VERSION_GREATER "3.14.0") 
-   target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
+   # target_compile_definitions( "${LIBRARY_COMPILE_TARGET}" PUBLIC)
    if( NOT MSVC)
       target_compile_options( "${LIBRARY_COMPILE_TARGET}" PUBLIC -Wunused)
    endif()
@@ -63,9 +63,9 @@ if( ${CMAKE_VERSION} VERSION_GREATER "3.14.0")
       target_link_options( "${LIBRARY_LINK_TARGET}" PUBLIC)
 
       # Allow unresolved symbols on Windows (for mulle_atexit, __register_mulle_objc_universe)
-      if( WIN32 OR MINGW)
-         target_link_options( "${LIBRARY_LINK_TARGET}" PRIVATE "-Wl,/FORCE:UNRESOLVED")
-      endif()
+      # if( WIN32 OR MINGW)
+      #    target_link_options( "${LIBRARY_LINK_TARGET}" PRIVATE "-Wl,/FORCE:UNRESOLVED")
+      # endif()
    endif()
 endif()
 
@@ -75,7 +75,6 @@ if( LINK_PHASE)
    include( InstallCMakeInclude)
    include( InstallCMakePackage)
 endif()
-
 
 if( APPLE)
    # Modern CMake handles lib path automatically
@@ -89,10 +88,11 @@ if( APPLE)
 endif()
 
 
-# ugly hack
-if( BUILD_SHARED_LIBS)
-   remove_definitions("-DMULLE_INCLUDE_DYNAMIC=1")
-endif()
+# ugly hack - DISABLED: This prevents inline weak stubs from being created
+# which causes undefined symbol errors on Windows
+# if( BUILD_SHARED_LIBS)
+#    remove_definitions("-DMULLE_INCLUDE_DYNAMIC=1")
+# endif()
 
 #
 # mulle-objc-uniqueid
@@ -121,7 +121,7 @@ set( EXECUTABLE_NAME mulle-objc-signature)
 # only need the signature function
 set( EXECUTABLE_SOURCES  ${SIGNATURE_SOURCES}
 src/mulle-objc-signature.c)
-set( EXECUTABLE_LIBRARY_LIST "")
+set( EXECUTABLE_LIBRARY_LIST "${MULLE__CORE_LIBRARY}")
 set( EXECUTABLE_DEPENDENCY_NAMES "")
 
 include( Executable)

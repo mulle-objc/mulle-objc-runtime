@@ -43,7 +43,7 @@ int main(void)
                 mulle_objc_ivarid_from_string("_age"));
     if (age_ivar) {
         *(int *)((char *)object + age_ivar->offset) = 25;
-        printf("Age initialized: %d\n", 
+        mulle_printf("Age initialized: %d\n",
                *(int *)((char *)object + age_ivar->offset));
     }
     
@@ -52,11 +52,11 @@ int main(void)
                 mulle_objc_ivarid_from_string("_name"));
     if (name_ivar) {
         *(char **)((char *)object + name_ivar->offset) = "Alice";
-        printf("Name initialized: %s\n", 
+        mulle_printf("Name initialized: %s\n",
                *(char **)((char *)object + name_ivar->offset));
     }
     
-    printf("Person object created: %p\n", object);
+    mulle_printf("Person object created: %p\n", object);
     
     return 0;
 }
