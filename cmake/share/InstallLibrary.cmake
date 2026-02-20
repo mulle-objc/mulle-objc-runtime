@@ -9,18 +9,18 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 
-option( INSTALL_PROJECT_ASSETS_DIR "Copy contents of project root \"assets\" directory to \"share\" on install" ON)
+option( INSTALL_PROJECT_ASSET_DIR "Copy contents of project root \"asset\" directory to \"share\" on install" ON)
 
-if( INSTALL_PROJECT_ASSETS_DIR)
-   if( NOT ASSETS_DIR)
-      set( ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets")
+if( INSTALL_PROJECT_ASSET_DIR)
+   if( NOT ASSET_DIR)
+      set( ASSET_DIR "${CMAKE_CURRENT_SOURCE_DIR}/asset")
    endif()
-   if( NOT EXISTS "${ASSETS_DIR}")
-      message( STATUS "No \"assets\" directory found at \"${CMAKE_CURRENT_SOURCE_DIR}/assets\"")
-      unset( ASSETS_DIR)
+   if( NOT EXISTS "${ASSET_DIR}")
+      message( STATUS "No \"asset\" directory found at \"${CMAKE_CURRENT_SOURCE_DIR}/asset\"")
+      unset( ASSET_DIR)
    endif()
 else()
-   unset( ASSETS_DIR)
+   unset( ASSET_DIR)
 endif()
 
 
@@ -35,11 +35,11 @@ if( LINK_PHASE)
       snakeCaseString( "${TMP_NAME}" TMP_IDENTIFIER)
       string( TOUPPER "${TMP_IDENTIFIER}" TMP_IDENTIFIER)
 
-      # copy contents of root assets folder there
+      # copy contents of root asset folder there
       # is is hack or covenient we will see, is this good if we have
       # multiple libraries, i neve have
-      if( NOT "${ASSETS_DIR}" STREQUAL "")
-         install( DIRECTORY "${ASSETS_DIR}/" DESTINATION "share/${TMP_NAME}" USE_SOURCE_PERMISSIONS)
+      if( NOT "${ASSET_DIR}" STREQUAL "")
+         install( DIRECTORY "${ASSET_DIR}/" DESTINATION "share/${TMP_NAME}" USE_SOURCE_PERMISSIONS)
       endif()
 
       # avoid empty share subdir

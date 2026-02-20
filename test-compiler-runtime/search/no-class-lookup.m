@@ -66,7 +66,7 @@
 
 - (void) a
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 @end
 
@@ -75,7 +75,7 @@
 
 - (void) b
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 @end
@@ -85,7 +85,7 @@
 
 - (void) c
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 @end
@@ -95,7 +95,7 @@
 
 - (void) a_x
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 @end
 
@@ -104,7 +104,7 @@
 
 - (void) b_x
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 @end
@@ -114,7 +114,7 @@
 
 - (void) c_x
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 @end
@@ -131,7 +131,7 @@ static void   test_no_class( struct _mulle_objc_infraclass *infra, char *name)
    cls = _mulle_objc_infraclass_as_class( infra);
    sel = mulle_objc_methodid_from_string( name);
    imp = _mulle_objc_class_lookup_implementation_noforward( cls, sel);
-   printf( "%s %sfound in class %s\n", name, imp ? "" : "not ", mulle_objc_class_get_name( cls));
+   mulle_printf( "%s %sfound in class %s\n", name, imp ? "" : "not ", mulle_objc_class_get_name( cls));
 }
 
 
@@ -144,7 +144,7 @@ int   main()
    test_no_class( [A class], "b_x");
    test_no_class( [A class], "c_x");
 
-   printf( "\n");
+   mulle_printf( "\n");
 
    test_no_class( [B class], "a");
    test_no_class( [B class], "b");
@@ -153,7 +153,7 @@ int   main()
    test_no_class( [B class], "b_x");
    test_no_class( [B class], "c_x");
 
-   printf( "\n");
+   mulle_printf( "\n");
 
    test_no_class( [C class], "a");
    test_no_class( [C class], "b");

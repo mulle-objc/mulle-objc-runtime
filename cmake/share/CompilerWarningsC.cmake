@@ -17,16 +17,16 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
       #
       # move this to ObjC
       #
-      if( "${MULLE_C_COMPILER_ID}" MATCHES "^(Clang|AppleClang|MulleClang|GNU)$")
+      if( "${MULLE_C_COMPILER_ID}" MATCHES "^(CLANG|APPLECLANG|MULLECLANG|GNU)$")
          set( UNWANTED_C_WARNINGS "-Wno-parentheses")
       else()
-         if( "${MULLE_C_COMPILER_ID}" MATCHES "^(Intel|MSVC|MSVC-Clang|MSVC-MulleClang)$")
+         if( "${MULLE_C_COMPILER_ID}" MATCHES "^(INTEL|MSVC|MSVC-CLANG|MSVC-MULLECLANG)$")
             # C4068: unwanted pragma
             set( UNWANTED_C_WARNINGS "/D_CRT_SECURE_NO_WARNINGS /wd4068 /wd4113")
          endif()
       endif()
 
-      if( "${MULLE_C_COMPILER_ID}" MATCHES "^(MSVC-Clang|MSVC-MulleClang)$")
+      if( "${MULLE_C_COMPILER_ID}" MATCHES "^(MSVC-CLANG|MSVC-MULLECLANG)$")
          # set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
          # 4211 is for classes..
          set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /ignore:4221")
@@ -43,7 +43,7 @@ if( NOT __UNWANTED_WARNINGS_C_CMAKE__)
       #
       # move this to ObjC
       #
-      if( "${MULLE_C_COMPILER_ID}" MATCHES "^(Clang|AppleClang|MulleClang|GNU)$")
+      if( "${MULLE_C_COMPILER_ID}" MATCHES "^(CLANG|APPLECLANG|MULLECLANG|GNU)$")
          set( WANTED_C_WARNINGS "-Wuninitialized -Wunused")
       endif()
    endif()

@@ -257,11 +257,11 @@ static void   trace_method_found( struct _mulle_objc_class *cls,
    // it's a category ?
    categoryname = _mulle_objc_methodlist_get_categoryname( list);
    if( categoryname)
-      fprintf( stderr, "\"%s( %s)\"", _mulle_objc_class_get_name( cls), categoryname);
+      mulle_fprintf( stderr, "\"%s( %s)\"", _mulle_objc_class_get_name( cls), categoryname);
    else
-      fprintf( stderr, "\"%s\"", _mulle_objc_class_get_name( cls));
+      mulle_fprintf( stderr, "\"%s\"", _mulle_objc_class_get_name( cls));
 
-   fprintf( stderr, " methodid %08lx ( \"%s\")\"\n",
+   mulle_fprintf( stderr, " methodid %08lx ( \"%s\")\"\n",
             (unsigned long) method->descriptor.methodid,
             method->descriptor.name);
 }
@@ -286,6 +286,35 @@ static void   trace_search( struct _mulle_objc_class *cls,
                               inheritance,
                               cls);
 }
+
+
+static void   trace_search_category( struct _mulle_objc_methodlist  *list,
+                                     struct _mulle_objc_class *cls,
+                                     struct _mulle_objc_searcharguments *search,
+                                     enum internal_search_mode mode)
+{
+   struct _mulle_objc_universe   *universe;
+   char                          *categoryname;
+
+   MULLE_C_UNUSED( search);
+   MULLE_C_UNUSED( mode);
+
+   universe     = _mulle_objc_class_get_universe( cls);
+   categoryname = _mulle_objc_methodlist_get_categoryname( list);
+   if( categoryname)
+      mulle_objc_universe_trace( universe,
+                                 "   search category %08x %s( %s)",
+                                 _mulle_objc_methodlist_get_categoryid( list),
+                                 _mulle_objc_class_get_name( cls),
+                                 categoryname);
+   else
+      mulle_objc_universe_trace( universe,
+                                 "   search class %08x %s",
+                                 _mulle_objc_class_get_classid( cls),
+                                 _mulle_objc_class_get_name( cls));
+}
+
+
 
 
 static void   trace_skip( struct _mulle_objc_class *cls,
@@ -533,6 +562,9 @@ static struct _mulle_objc_method   *
          break;
       }
 
+      if( universe->debug.trace.method_search)
+         trace_search_category( list, cls, search, *mode);
+
       // this returns NULL when not found!
       if( *mode == search_imp)
          method = _mulle_objc_methodlist_impsearch( list, search->imp);
@@ -759,6 +791,8 @@ static inline int   _mulle_objc_class_is_initializing_or_initialized( struct _mu
 
 //
 // wrapper function, to not expose internal use of MULLE_OBJC_METHOD_SEARCH_FAIL
+// This will call universe->callback.method_is_misssing in an attempt to load
+// missing DLLs
 //
 struct _mulle_objc_method   *
    mulle_objc_class_search_method( struct _mulle_objc_class *cls,
@@ -831,6 +865,7 @@ struct _mulle_objc_method   *
    if( trace)
       trace_method_start( cls, search, inheritance);
 
+retry:
    method = _mulle_objc_class_search_method_internal( cls,
                                                       search,
                                                       inheritance,
@@ -857,7 +892,6 @@ struct _mulle_objc_method   *
    }
 
    // this can happen if hidden override detection is on
-
    if( method == MULLE_OBJC_METHOD_SEARCH_FAIL)
    {
       if( result->error == EEXIST)
@@ -870,6 +904,12 @@ struct _mulle_objc_method   *
                                                                       search->args.methodid));
 
       assert( result->error == ENOENT);
+
+      // returns 0 if we should retry, must not return 0 if nothing changed
+      if( ! _mulle_objc_universe_is_deinitializing( cls->universe))
+         if( ! cls->universe->callback.method_is_missing( cls->universe, cls, search->args.methodid))
+            goto retry;
+
       if( trace)
          trace_method_search_fail( cls, search, ENOENT);
 
@@ -880,7 +920,6 @@ struct _mulle_objc_method   *
       trace_method_done( cls, search, method);
    return( method);
 }
-
 
 
 struct _mulle_objc_method *

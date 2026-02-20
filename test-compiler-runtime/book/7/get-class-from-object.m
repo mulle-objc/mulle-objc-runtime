@@ -33,9 +33,9 @@ int main(void)
     object = mulle_objc_infraclass_alloc_instance(cls);
     object_class = _mulle_objc_object_get_isa(object);
     
-    printf("Object: %p\n", object);
-    printf("Class name: %s\n", mulle_objc_class_get_name(object_class));
-    printf("Instance size: %zu bytes\n", 
+    mulle_printf("Object: %p\n", object);
+    mulle_printf("Class name: %s\n", mulle_objc_class_get_name(object_class));
+    mulle_printf("Instance size: %zu bytes\n",
            mulle_objc_class_get_instancesize(object_class));
     
     return 0;

@@ -36,10 +36,10 @@ int main(void)
     mulle_objc_infraclass_add_ivarlist( infra, NULL);
     mulle_objc_infraclass_add_propertylist( infra, NULL);
 
-   //printf("Classpair creation demo:\n");
-   //printf("Classpair: %p\n", (void *)pair);
-   //printf("Infraclass: %p\n", (void *)infra);
-   //printf("Metaclass: %p\n", (void *)meta);
+   //mulle_printf("Classpair creation demo:\n");
+   //mulle_printf("Classpair: %p\n", (void *)pair);
+   //mulle_printf("Infraclass: %p\n", (void *)infra);
+   //mulle_printf("Metaclass: %p\n", (void *)meta);
 
     // Verify the bidirectional relationships
     if (pair != _mulle_objc_infraclass_get_classpair(infra))
@@ -51,14 +51,14 @@ int main(void)
     if (infra != _mulle_objc_metaclass_get_infraclass(meta))
         return 1;
 
-    printf("All relationships verified!\n");
+    mulle_printf("All relationships verified!\n");
 
     // Verify not present yet
     struct _mulle_objc_infraclass *missing = mulle_objc_universe_lookup_infraclass(
         universe, mulle_objc_classid_from_string("DemoClass"));
     if( missing != NULL)
     {
-        fprintf( stderr, "DemoClass already exists!\n");
+        mulle_fprintf( stderr, "DemoClass already exists!\n");
         return 1;
     }
     // Register with universe (metaclass auto-registered)
@@ -69,11 +69,11 @@ int main(void)
         universe, mulle_objc_classid_from_string("DemoClass"));
     if (found != infra)
     {
-        fprintf( stderr, "DemoClass is missing!\n");
+        mulle_fprintf( stderr, "DemoClass is missing!\n");
         return 1;
     }
 
-    printf("Registration successful!\n");
+    mulle_printf("Registration successful!\n");
 
     // Since we registered, we must NOT free manually
     // mulle_objc_classpair_free(pair);

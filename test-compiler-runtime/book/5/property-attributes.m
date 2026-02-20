@@ -24,7 +24,7 @@ int main(void)
         mulle_objc_classid_from_string("PropertyAttrs")
     );
     
-    printf("Property attributes class defined: %s\n", 
+    mulle_printf("Property attributes class defined: %s\n",
            _mulle_objc_class_get_name(&cls->base));
     
     return 0;

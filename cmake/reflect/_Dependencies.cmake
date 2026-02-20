@@ -12,7 +12,7 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 #
-# Generated from sourcetree: 3707ECF4-4989-4611-928D-91044A5267EE;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import;
+# Generated from sourcetree: 3707ECF4-4989-4611-928D-91044A5267EE;mulle-core;no-all-load,no-cmake-loader,no-cmake-searchpath,no-import,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-core no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-core no-cmake-platform-${MULLE_UNAME}`
 # Disable for a sdk: `mulle-sourcetree mark mulle-core no-cmake-sdk-<name>`
@@ -69,8 +69,11 @@ else()
                list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE__CORE_DIR}")
                #
                unset( MULLE__CORE_DEFINITIONS)
+               unset( MULLE__CORE_RENDEZVOUS_GLOBALS)
                include( "${_TMP_MULLE__CORE_DIR}/Definitions.cmake" OPTIONAL)
                list( APPEND INHERITED_DEFINITIONS ${MULLE__CORE_DEFINITIONS})
+               include( "${_TMP_MULLE__CORE_DIR}/Definitions.cmake" OPTIONAL)
+               list( APPEND RENDEZVOUS_GLOBALS ${MULLE__CORE_RENDEZVOUS_GLOBALS})
                break()
             else()
                message( STATUS "${_TMP_MULLE__CORE_DIR} not found")
@@ -87,7 +90,7 @@ endif()
 
 
 #
-# Generated from sourcetree: 2F3678EC-81A5-444A-AFC2-8DF14DB96A81;mulle-core-all-load;no-cmake-loader,no-cmake-searchpath,no-dynamic-link,no-import,no-intermediate-link;
+# Generated from sourcetree: 2F3678EC-81A5-444A-AFC2-8DF14DB96A81;mulle-core-all-load;no-cmake-loader,no-cmake-searchpath,no-dynamic-link,no-import,no-intermediate-link,no-singlephase;
 # Disable with : `mulle-sourcetree mark mulle-core-all-load no-link`
 # Disable for this platform: `mulle-sourcetree mark mulle-core-all-load no-cmake-platform-${MULLE_UNAME}`
 # Disable for a sdk: `mulle-sourcetree mark mulle-core-all-load no-cmake-sdk-<name>`
@@ -142,8 +145,11 @@ else()
                list( REMOVE_ITEM CMAKE_MODULE_PATH "${_TMP_MULLE__CORE__ALL__LOAD_DIR}")
                #
                unset( MULLE__CORE__ALL__LOAD_DEFINITIONS)
+               unset( MULLE__CORE__ALL__LOAD_RENDEZVOUS_GLOBALS)
                include( "${_TMP_MULLE__CORE__ALL__LOAD_DIR}/Definitions.cmake" OPTIONAL)
                list( APPEND INHERITED_DEFINITIONS ${MULLE__CORE__ALL__LOAD_DEFINITIONS})
+               include( "${_TMP_MULLE__CORE__ALL__LOAD_DIR}/Definitions.cmake" OPTIONAL)
+               list( APPEND RENDEZVOUS_GLOBALS ${MULLE__CORE__ALL__LOAD_RENDEZVOUS_GLOBALS})
                break()
             else()
                message( STATUS "${_TMP_MULLE__CORE__ALL__LOAD_DIR} not found")

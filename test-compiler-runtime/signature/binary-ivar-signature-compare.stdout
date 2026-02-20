@@ -1,6 +1,7 @@
 i and i are compatible
 i and I are compatible
 i and q are incompatible
+i and q are incompatible
 {CGPoint=ff} and {CGPoint=ff} are compatible
 {CGPoint=ff} and {CGSize=ff} are compatible
 {CGPoint=ff} and {CGRect={CGPoint=ff}{CGSize=ff}} are incompatible

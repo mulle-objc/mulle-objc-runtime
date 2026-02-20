@@ -16,7 +16,7 @@ static mulle_objc_walkcommand_t print_property_name(struct _mulle_objc_property 
                                                     struct _mulle_objc_infraclass *infra,
                                                     void *userinfo)
 {
-    printf("  %s\n", _mulle_objc_property_get_name(property));
+    mulle_printf("  %s\n", _mulle_objc_property_get_name(property));
     return mulle_objc_walk_ok;
 }
 
@@ -31,7 +31,7 @@ int main(void)
         mulle_objc_classid_from_string("TestClass")
     );
     
-    printf("Properties in TestClass:\n");
+    mulle_printf("Properties in TestClass:\n");
     _mulle_objc_infraclass_walk_properties(cls, 0, print_property_name, NULL);
     
     return 0;

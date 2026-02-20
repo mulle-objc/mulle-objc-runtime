@@ -17,7 +17,7 @@ static mulle_objc_walkcommand_t print_property(struct _mulle_objc_property *prop
                                                struct _mulle_objc_infraclass *infra,
                                                void *userinfo)
 {
-    printf("Property: %s (%s)\n", 
+    mulle_printf("Property: %s (%s)\n",
            _mulle_objc_property_get_name(property),
            _mulle_objc_property_get_signature(property));
     return mulle_objc_walk_ok;
@@ -34,7 +34,7 @@ int main(void)
         mulle_objc_classid_from_string("PropertyEnum")
     );
     
-    printf("All properties:\n");
+    mulle_printf("All properties:\n");
     _mulle_objc_infraclass_walk_properties(cls, 0, print_property, NULL);
     
     return 0;

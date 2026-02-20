@@ -5,3 +5,6 @@ em++
 emcc.py
 emcmake
 emcmake.py
+llama-cpp
+llama-cpp;remove
+llama-cli

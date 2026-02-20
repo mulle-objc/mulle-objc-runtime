@@ -39,16 +39,16 @@ int main(void)
                 mulle_objc_ivarid_from_string("_count"));
     if (ivar) {
         *(int *)((char *)object + ivar->offset) = 42;
-        printf("_count ivar offset: %d\n", ivar->offset);
-        printf("_count value: %d\n", *(int *)((char *)object + ivar->offset));
+        mulle_printf("_count ivar offset: %d\n", ivar->offset);
+        mulle_printf("_count value: %d\n", *(int *)((char *)object + ivar->offset));
     }
     
     // Access _name ivar
     ivar = mulle_objc_infraclass_search_ivar(cls, 
                 mulle_objc_ivarid_from_string("_name"));
     if (ivar) {
-        printf("_name ivar offset: %d\n", ivar->offset);
-        printf("_name signature: %s\n", _mulle_objc_ivar_get_signature(ivar));
+        mulle_printf("_name ivar offset: %d\n", ivar->offset);
+        mulle_printf("_name signature: %s\n", _mulle_objc_ivar_get_signature(ivar));
     }
     
     return 0;

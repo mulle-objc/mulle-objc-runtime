@@ -120,14 +120,14 @@ static mulle_objc_walkcommand_t test_callback(struct _mulle_objc_class *cls,
    is_protocolclass = _mulle_objc_class_is_protocolclass(cls);
    
    if (is_protocolclass)
-      printf("%d. %s (protocol %s):\n", result->count + 1, _mulle_objc_class_get_name(cls), list_name);
+      mulle_printf("%d. %s (protocol %s):\n", result->count + 1, _mulle_objc_class_get_name(cls), list_name);
    else
-      printf("%d. %s (%s):\n", result->count + 1, _mulle_objc_class_get_name(cls), list_name);
+      mulle_printf("%d. %s (%s):\n", result->count + 1, _mulle_objc_class_get_name(cls), list_name);
    
    rover = _mulle_objc_methodlist_enumerate(list);
    while ((method = _mulle_objc_methodlistenumerator_next(&rover)))
    {
-      printf("   %c %s\n", is_metaclass ? '+' : '-', _mulle_objc_method_get_name(method));
+      mulle_printf("   %c %s\n", is_metaclass ? '+' : '-', _mulle_objc_method_get_name(method));
    }
    _mulle_objc_methodlistenumerator_done(&rover);
    
@@ -141,7 +141,7 @@ int main(void)
    struct _mulle_objc_metaclass *meta;
    walk_result result = {0};
    
-   printf("=== Comprehensive mulle_objc_class_methodlist_walk Test ===\n\n");
+   mulle_printf("=== Comprehensive mulle_objc_class_methodlist_walk Test ===\n\n");
    
    // Get DerivedClass
    infra = mulle_objc_global_lookup_infraclass_nofail(
@@ -150,30 +150,30 @@ int main(void)
    
    meta = _mulle_objc_infraclass_get_metaclass(infra);
    
-   printf("1. Testing DerivedClass METACLASS (class methods):\n");
-   printf("Expected order: DerivedCategory -> Derived -> BaseCategory -> Base -> Protocols -> NSObject -> NSObject infraclass (wraparound)\n");
+   mulle_printf("1. Testing DerivedClass METACLASS (class methods):\n");
+   mulle_printf("Expected order: DerivedCategory -> Derived -> BaseCategory -> Base -> Protocols -> NSObject -> NSObject infraclass (wraparound)\n");
    mulle_objc_class_methodlist_walk(_mulle_objc_metaclass_as_class(meta), 
                                    test_callback, 
                                    &result);
-   printf("Total metaclass methodlists: %d\n", result.count);
-   printf("Checking wraparound: Should include NSObject infraclass methods at end\n\n");
+   mulle_printf("Total metaclass methodlists: %d\n", result.count);
+   mulle_printf("Checking wraparound: Should include NSObject infraclass methods at end\n\n");
    
    // Reset for infraclass test
    result.count = 0;
    
-   printf("2. Testing DerivedClass INFRACLASS (instance methods):\n");
-   printf("Expected order: DerivedCategory -> Derived -> BaseCategory -> Base -> Protocols -> NSObject\n");
+   mulle_printf("2. Testing DerivedClass INFRACLASS (instance methods):\n");
+   mulle_printf("Expected order: DerivedCategory -> Derived -> BaseCategory -> Base -> Protocols -> NSObject\n");
    mulle_objc_class_methodlist_walk(_mulle_objc_infraclass_as_class(infra), 
                                    test_callback, 
                                    &result);
-   printf("Total infraclass methodlists: %d\n\n", result.count);
+   mulle_printf("Total infraclass methodlists: %d\n\n", result.count);
    
    // Test metaclass wraparound by checking if instance methods are found
    // when searching metaclass (this should happen automatically in search)
-   printf("3. Testing inheritance chain completeness:\n");
-   printf("Metaclass should include full inheritance + wraparound to root infraclass\n");
-   printf("Infraclass should include full inheritance: categories -> class -> protocols -> super\n");
-   printf("PASS: Metaclass wraparound verified if NSObject infraclass methods found above\n");
+   mulle_printf("3. Testing inheritance chain completeness:\n");
+   mulle_printf("Metaclass should include full inheritance + wraparound to root infraclass\n");
+   mulle_printf("Infraclass should include full inheritance: categories -> class -> protocols -> super\n");
+   mulle_printf("PASS: Metaclass wraparound verified if NSObject infraclass methods found above\n");
    
    return 0;
 }

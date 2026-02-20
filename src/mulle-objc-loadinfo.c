@@ -62,37 +62,37 @@ static void  dump_bits( unsigned int bits, FILE *fp)
    delim = "";
    if( bits & _mulle_objc_loadinfo_unsorted)
    {
-      fprintf( fp, "unsorted");
+      mulle_fprintf( fp, "unsorted");
       delim = " ";
    }
 
    if( bits & _mulle_objc_loadinfo_aaomode)
    {
-      fprintf( fp, "%s.aam", delim);
+      mulle_fprintf( fp, "%s.aam", delim);
       delim = " ";
    }
 
 
-   fprintf( fp, "%s-f%sobjc-tps", delim, (bits & _mulle_objc_loadinfo_notaggedptrs)        ? "no-" : "");
+   mulle_fprintf( fp, "%s-f%sobjc-tps", delim, (bits & _mulle_objc_loadinfo_notaggedptrs)        ? "no-" : "");
    delim = " ";
 
-   fprintf( fp, "%s-f%sobjc-fcs", delim, (bits & _mulle_objc_loadinfo_nofastcalls)         ? "no-" : "");
-   fprintf( fp, "%s-f%sobjc-tao", delim, (bits & _mulle_objc_loadinfo_threadaffineobjects) ? ""    : "no-");
+   mulle_fprintf( fp, "%s-f%sobjc-fcs", delim, (bits & _mulle_objc_loadinfo_nofastcalls)         ? "no-" : "");
+   mulle_fprintf( fp, "%s-f%sobjc-tao", delim, (bits & _mulle_objc_loadinfo_threadaffineobjects) ? ""    : "no-");
 
    optLevel = (bits >> 8) & 0xF;
    if( optLevel >= 0x8)
-      fprintf( fp, "%s-O%c", delim, optLevel == 0xF ? 's' : 'z');
+      mulle_fprintf( fp, "%s-O%c", delim, optLevel == 0xF ? 's' : 'z');
    else
-      fprintf( fp, "%s-O%u", delim, optLevel);
+      mulle_fprintf( fp, "%s-O%u", delim, optLevel);
 
    inlineLevel = (bits >> 12) & 0x7;
-   fprintf( fp, "%s-fobjc-inline-method-calls=%u", delim, inlineLevel);
+   mulle_fprintf( fp, "%s-fobjc-inline-method-calls=%u", delim, inlineLevel);
 }
 
 
 static void   print_version( char *prefix, uint32_t version, FILE *fp)
 {
-   fprintf( fp, "%s=%u.%u.%u", prefix,
+   mulle_fprintf( fp, "%s=%u.%u.%u", prefix,
             mulle_objc_version_get_major( version),
             mulle_objc_version_get_minor( version),
             mulle_objc_version_get_patch( version));
@@ -116,10 +116,10 @@ static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassid
       if( protocols)
          protocol = _mulle_objc_protocollist_search_smart( protocols, protoid);
       if( protocol)
-         fprintf( fp, "%s@class %s;\n%s@protocol %s;\n",
+         mulle_fprintf( fp, "%s@class %s;\n%s@protocol %s;\n",
                           prefix, protocol->name, prefix, protocol->name);
       else
-         fprintf( fp, "%s@class %08lx;\n%s@protocol #%08lx;\n",
+         mulle_fprintf( fp, "%s@class %08lx;\n%s@protocol #%08lx;\n",
                           prefix, (unsigned long) protoid, prefix, (unsigned long) protoid);
    }
 }
@@ -133,16 +133,16 @@ static void   loadprotocols_dump( struct _mulle_objc_protocollist *protocols,
    struct _mulle_objc_protocol   *sentinel;
    char                          *sep;
 
-   fprintf( fp, " <");
+   mulle_fprintf( fp, " <");
    sep = " ";
    p        = protocols->protocols;
    sentinel = &p[ protocols->n_protocols];
    for(; p < sentinel; ++p)
    {
-      fprintf( fp, "%s%s", sep, p->name);
+      mulle_fprintf( fp, "%s%s", sep, p->name);
       sep = ", ";
    }
-   fprintf( fp, ">");
+   mulle_fprintf( fp, ">");
 }
 
 
@@ -151,7 +151,7 @@ static void   loadmethod_dump( struct _mulle_objc_method *method,
                                char type,
                                FILE *fp)
 {
-   fprintf( fp, "%s %c%s; // id=%08lx signature=\"%s\" bits=0x%lx\n",
+   mulle_fprintf( fp, "%s %c%s; // id=%08lx signature=\"%s\" bits=0x%lx\n",
                 prefix,
                 type,
                 method->descriptor.name,
@@ -179,7 +179,7 @@ static void   loadsuper_dump( struct _mulle_objc_super *p,
    if( ! methodname && universe)
       methodname = _mulle_objc_universe_describe_methodid( universe, p->superid);
 
-   fprintf( fp, "%s // super %08lx \"%s\" is class %08lx \"%s\" "
+   mulle_fprintf( fp, "%s // super %08lx \"%s\" is class %08lx \"%s\" "
                     "and method %08lx \"%s\"\n",
                 prefix,
                 (unsigned long) p->superid,
@@ -193,7 +193,7 @@ static void   loadivar_dump( struct _mulle_objc_ivar *ivar,
                              char *prefix,
                              FILE *fp)
 {
-   fprintf( fp, "%s    %s; // @%ld id=%08lx signature=\"%s\"\n",
+   mulle_fprintf( fp, "%s    %s; // @%ld id=%08lx signature=\"%s\"\n",
                 prefix,
                 ivar->descriptor.name,
                 (long) ivar->offset,
@@ -206,7 +206,7 @@ static void   loadproperty_dump( struct _mulle_objc_property *property,
                                  char *prefix,
                                  FILE *fp)
 {
-   fprintf( fp, "%s @property %s; // id=%08lx ivarid=%08lx signature=\"%s\" get=%08lx set=%08lx bits=0x%lx\n",
+   mulle_fprintf( fp, "%s @property %s; // id=%08lx ivarid=%08lx signature=\"%s\" get=%08lx set=%08lx bits=0x%lx\n",
                 prefix,
                 property->name,
                 (unsigned long) property->propertyid,
@@ -225,14 +225,14 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
    if( p->protocolclassids)
       loadprotocolclasses_dump( p->protocolclassids, prefix, p->protocols, fp);
 
-   fprintf( fp, "%s@implementation %s", prefix, p->classname);
+   mulle_fprintf( fp, "%s@implementation %s", prefix, p->classname);
    if( p->superclassname)
-      fprintf( fp, " : %s", p->superclassname);
+      mulle_fprintf( fp, " : %s", p->superclassname);
 
    if( p->protocols)
       loadprotocols_dump( p->protocols, fp);
 
-   fprintf( fp, " // %08lx : %08lx (#%08lx : #%08lx) fci=%d isize=%d",
+   mulle_fprintf( fp, " // %08lx : %08lx (#%08lx : #%08lx) fci=%d isize=%d",
                                          (unsigned long) p->classid,
                                          (unsigned long) p->superclassid,
                                          (unsigned long) p->classivarhash,
@@ -240,13 +240,13 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
                                          p->fastclassindex,
                                          p->instancesize);
    if( p->origin)
-      fprintf( fp, ", %s", p->origin);
+      mulle_fprintf( fp, ", %s", p->origin);
 
-   fprintf( fp, "\n");
+   mulle_fprintf( fp, "\n");
 
    if( p->instancevariables)
    {
-      fprintf( fp, "%s{\n", prefix);
+      mulle_fprintf( fp, "%s{\n", prefix);
       struct _mulle_objc_ivar   *ivar;
       struct _mulle_objc_ivar   *sentinel;
 
@@ -257,7 +257,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
          loadivar_dump( ivar, prefix, fp);
          ++ivar;
       }
-      fprintf( fp, "%s}\n", prefix);
+      mulle_fprintf( fp, "%s}\n", prefix);
    }
 
    if( p->properties)
@@ -302,7 +302,7 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
       }
    }
 
-   fprintf( fp, "%s@end\n", prefix);
+   mulle_fprintf( fp, "%s@end\n", prefix);
 }
 
 
@@ -316,17 +316,17 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
    if( p->protocolclassids)
       loadprotocolclasses_dump( p->protocolclassids, prefix, p->protocols, fp);
 
-   fprintf( fp, "%s@implementation %s( %s)", prefix, p->classname, p->categoryname);
+   mulle_fprintf( fp, "%s@implementation %s( %s)", prefix, p->classname, p->categoryname);
 
    if( p->protocols)
       loadprotocols_dump( p->protocols, fp);
 
-   fprintf( fp, " // %08lx,%08lx (#%08lx)", (unsigned long) p->classid,
+   mulle_fprintf( fp, " // %08lx,%08lx (#%08lx)", (unsigned long) p->classid,
                                             (unsigned long) p->categoryid,
                                             (unsigned long) p->classivarhash);
    if( p->origin)
-      fprintf( fp, ", %s", p->origin);
-   fprintf( fp, "\n");
+      mulle_fprintf( fp, ", %s", p->origin);
+   mulle_fprintf( fp, "\n");
 
    if( p->classmethods)
    {
@@ -350,7 +350,7 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
       }
    }
 
-   fprintf( fp, "%s@end\n", prefix);
+   mulle_fprintf( fp, "%s@end\n", prefix);
 }
 
 
@@ -416,17 +416,17 @@ void   mulle_objc_loadinfo_dump_fp( struct _mulle_objc_loadinfo *info,
 {
    char   *origin;
 
-   fprintf( fp, "%s", prefix);
+   mulle_fprintf( fp, "%s", prefix);
 
    origin = mulle_objc_loadinfo_get_origin( info);
-   fprintf( fp, "\"%s\" ", origin ? origin : "<optimized away>");
+   mulle_fprintf( fp, "\"%s\" ", origin ? origin : "<optimized away>");
 
    print_version( "universe", info->version.runtime, fp);
    print_version( ", foundation", info->version.foundation, fp);
    print_version( ", user", info->version.user, fp);
-   fprintf( fp, " (");
+   mulle_fprintf( fp, " (");
    dump_bits( info->version.bits, fp);
-   fprintf( fp, ")\n");
+   mulle_fprintf( fp, ")\n");
 
    loadclasslist_dump( info->loadclasslist, prefix, fp);
    loadcategorylist_dump( info->loadcategorylist, prefix, fp);
@@ -435,7 +435,7 @@ void   mulle_objc_loadinfo_dump_fp( struct _mulle_objc_loadinfo *info,
                        info->loadhashedstringlist,
                        universe,
                        fp);
-   fprintf( fp, "%s\n", prefix);
+   mulle_fprintf( fp, "%s\n", prefix);
 }
 
 

@@ -68,16 +68,16 @@ sourcetree_task_run()
 
    log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME:-.}${C_INFO} sourcetree ${C_RESET_BOLD}${MULLE_SOURCETREE_CONFIG_NAME:-config}"
 
-   local rval
+   local rc
 
-   rval=0
+   rc=0
    case ",${runs}," in
       *,cmake,*)
          exekutor mulle-sourcetree-to-cmake ${MULLE_TECHNICAL_FLAGS} "$@"
-         rval=$?
-         if [ $rval -ne 0 ]
+         rc=$?
+         if [ $rc -ne 0 ]
          then
-            log_error "mulle-sourcetree-to-cmake ${MULLE_TECHNICAL_FLAGS} $* failed ($rval)"
+            log_error "mulle-sourcetree-to-cmake ${MULLE_TECHNICAL_FLAGS} $* failed ($rc)"
          fi
       ;;
    esac
@@ -96,5 +96,5 @@ sourcetree_task_run()
       ;;
    esac
 
-   [ $rval -eq 0 -a $rval2 -eq 0 ]
+   [ $rc -eq 0 -a $rval2 -eq 0 ]
 }

@@ -30,8 +30,8 @@ int main(void)
     );
     
     object = mulle_objc_infraclass_alloc_instance(cls);
-    printf("Object created: %p\n", object);
-    printf("Object size: %zu bytes\n", 
+    mulle_printf("Object created: %p\n", object);
+    mulle_printf("Object size: %zu bytes\n",
            _mulle_objc_class_get_instancesize(&cls->base));
     
     return 0;

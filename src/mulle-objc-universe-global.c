@@ -49,14 +49,14 @@ long   __mulle_objc_personality_v0 = 1848;   // no idea what this is used for
 //
 // the mulle_objc_defaultuniverse is special and has universeid 0
 //
-struct _mulle_objc_universe
-   mulle_objc_defaultuniverse =
+MULLE_OBJC_RUNTIME_GLOBAL_VAR
+struct _mulle_objc_universe   mulle_objc_defaultuniverse =
 {
    .version = (void *) mulle_objc_universe_is_uninitialized
 };
 
 
-struct init_wrapper_for_windows
+struct mulle_objc_universe_init_wrapper_for_windows
 {
 	struct mulle_concurrent_hashmap   map;
 	int                               initvalue;
@@ -75,8 +75,8 @@ static const struct _mulle_concurrent_hashmapstorage	empty_hashmapstorage =
 };
 
 
-struct init_wrapper_for_windows
-	mulle_objc_universetable =
+MULLE_OBJC_RUNTIME_GLOBAL_VAR
+struct mulle_objc_universe_init_wrapper_for_windows   mulle_objc_universetable =
 {
 	.map =
    {

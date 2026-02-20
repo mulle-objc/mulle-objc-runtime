@@ -54,6 +54,6 @@ int  main( void)
 
    cls = [A class];
    call( &rval, cls, @selector( returnVoidptrWithFloat:), 18.48f);
-   printf( "%p\n", rval);
+   mulle_printf( "%p\n", rval);
    return( 0);
 }

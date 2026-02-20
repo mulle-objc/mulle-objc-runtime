@@ -13,12 +13,12 @@ static void  test_1( PROTOCOL first, ...)
    va_start( args, first);
    while( first)
    {
-      printf( "%s%x", delim, first);
+      mulle_printf( "%s%x", delim, first);
       first = va_arg( args, PROTOCOL);
       delim=", ";
    }
    va_end( args);
-   printf( "\n");
+   mulle_printf( "\n");
 }
 
 
@@ -31,18 +31,18 @@ static void  test_2( mulle_objc_protocolid_t first, ...)
    va_start( args, first);
    while( first)
    {
-      printf( "%s%x", delim, first);
+      mulle_printf( "%s%x", delim, first);
       first = va_arg( args, mulle_objc_protocolid_t);
       delim=", ";
    }
    va_end( args);
-   printf( "\n");
+   mulle_printf( "\n");
 }
 
 
 int   main( void)
 {
-   printf( "%x, %x, %x\n", @selector( a), @selector( b), @selector( c));
+   mulle_printf( "%x, %x, %x\n", @selector( a), @selector( b), @selector( c));
 
    test_1( @selector( a), @selector( b), @selector( c), 0);
 

@@ -50,8 +50,8 @@
 #include "mulle-objc-universe.h"
 #include "mulle-objc-universe-class.h"
 
-
 #include "include-private.h"
+
 #include <assert.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -148,7 +148,9 @@ static struct _mulle_objc_dependency
 
       if( ! infra || (_mulle_objc_infraclass_get_classid( infra) != dependencies->classid))
       {
-         infra = _mulle_objc_universe_lookup_infraclass( universe, dependencies->classid);
+         // we do not want someone "smartly" injecting a dependency class
+         // just yet, so _nodelegate
+         infra = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, dependencies->classid);
          if( ! infra)
          {
             if( universe->debug.trace.dependency)
@@ -198,7 +200,7 @@ static struct _mulle_objc_dependency
 static void  loadclass_fprintf( FILE *fp,
                                struct _mulle_objc_loadclass *info)
 {
-   fprintf( fp, "class %08lx \"%s\" (%p)",
+   mulle_fprintf( fp, "class %08lx \"%s\" (%p)",
            (unsigned long) info->classid, info->classname, info);
 }
 
@@ -218,7 +220,7 @@ static void  loadclass_trace( struct _mulle_objc_loadclass *info,
    va_end( args);
 
    if( info->origin && universe->debug.print.print_origin)
-      fprintf( stderr, " (%s)", info->origin);
+      mulle_fprintf( stderr, " (%s)", info->origin);
    fputc( '\n', stderr);
 }
 
@@ -346,7 +348,7 @@ static struct _mulle_objc_dependency
 
    if( info->superclassid)
    {
-      superclass    = _mulle_objc_universe_lookup_infraclass( universe, info->superclassid);
+      superclass    = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, info->superclassid);
       *p_superclass = superclass;
 
       if( ! superclass)
@@ -398,7 +400,7 @@ static struct _mulle_objc_dependency
                              *classid_p,
                              _mulle_objc_universe_describe_classid( universe, *classid_p));
 #endif
-         protocolclass = _mulle_objc_universe_lookup_infraclass( universe, *classid_p);
+         protocolclass = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, *classid_p);
          if( ! protocolclass)
          {
             if( universe->debug.trace.dependency)
@@ -440,11 +442,11 @@ void
       printf( "%08lx;%s;;\n", (unsigned long) dependency.classid, s_class);
 
    if( universe->debug.trace.waiters_svg)
-      fprintf( stderr, "\t\"%s\" -> \"%s\" [ label=\" waits for\" ]\n",
+      mulle_fprintf( stderr, "\t\"%s\" -> \"%s\" [ label=\" waits for\" ]\n",
               info->classname,
               s_class);
    else
-      fprintf( stderr, "\t%08lx \"%s\" -> %08lx \"%s\" [ label=\" waiting for class\" ]\n",
+      mulle_fprintf( stderr, "\t%08lx \"%s\" -> %08lx \"%s\" [ label=\" waiting for class\" ]\n",
               (unsigned long) info->classid, info->classname,
               (unsigned long) dependency.classid, s_class);
 }
@@ -663,7 +665,7 @@ static void   mulle_objc_loadclasslist_enqueue_nofail( struct _mulle_objc_loadcl
 static void  loadcategory_fprintf( FILE *fp,
                             struct _mulle_objc_loadcategory *info)
 {
-   fprintf( fp, "category %08lx,%08lx \"%s( %s)\" (%p)",
+   mulle_fprintf( fp, "category %08lx,%08lx \"%s( %s)\" (%p)",
            (unsigned long) info->classid, (unsigned long) info->categoryid,
            info->classname, info->categoryname,
            info);
@@ -685,7 +687,7 @@ static void  loadcategory_trace( struct _mulle_objc_loadcategory *info,
    va_end( args);
 
    if( info->origin && universe->debug.print.print_origin)
-      fprintf( stderr, " (%s)", info->origin);
+      mulle_fprintf( stderr, " (%s)", info->origin);
    fputc( '\n', stderr);
 }
 
@@ -778,7 +780,7 @@ static struct _mulle_objc_dependency
       loadcategory_trace( info, universe, "dependency check ...");
 #endif
    // check class
-   infra    = _mulle_objc_universe_lookup_infraclass( universe, info->classid);
+   infra    = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, info->classid);
    *p_class = infra;
 
 
@@ -805,7 +807,7 @@ static struct _mulle_objc_dependency
          if( *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_universe_lookup_infraclass( universe, *classid_p);
+         protocolclass = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, *classid_p);
          if( ! protocolclass)
          {
             if( universe->debug.trace.dependency)
@@ -861,11 +863,11 @@ void
          printf( "%08lx;%s;;\n", (unsigned long) dependency.classid, s_class);
 
       if( universe->debug.trace.waiters_svg)
-         fprintf( stderr, "\t\"%s( %s)\" -> \"%s\" [label=\" waits for\" ]\n",
+         mulle_fprintf( stderr, "\t\"%s( %s)\" -> \"%s\" [label=\" waits for\" ]\n",
                  info->classname, info->categoryname,
                  s_class);
       else
-         fprintf( stderr, "\tCategory %08lx,%08lx \"%s( %s)\" is waiting for "
+         mulle_fprintf( stderr, "\tCategory %08lx,%08lx \"%s( %s)\" is waiting for "
                           "class %08lx \"%s\"\n",
                  (unsigned long) info->classid, (unsigned long) info->categoryid,
                  info->classname, info->categoryname,
@@ -879,12 +881,12 @@ void
       printf( "%08lx;%s;%08lx;%s\n", (unsigned long) dependency.classid, s_class, (unsigned long) dependency.categoryid, s_category);
 
    if( universe->debug.trace.waiters_svg)
-      fprintf( stderr, "\t\"%s( %s)\" ->  \"%s( %s)\" [ label=\" waits for\" ]\n",
+      mulle_fprintf( stderr, "\t\"%s( %s)\" ->  \"%s( %s)\" [ label=\" waits for\" ]\n",
               info->classname, info->categoryname,
               s_class,
               s_category);
    else
-      fprintf( stderr, "\tCategory %08lx,%08lx \"%s( %s)\" is waiting for "
+      mulle_fprintf( stderr, "\tCategory %08lx,%08lx \"%s( %s)\" is waiting for "
                        "category %08lx,%08lx \"%s( %s)\"\n",
               (unsigned long) info->classid, (unsigned long) info->categoryid,
               info->classname, info->categoryname,
@@ -1557,8 +1559,8 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
 
    trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    if( trace)
-      fprintf( stderr, "%p: mulle-objc is enqueing loadinfo %p\n",
-                           (void *) mulle_thread_self(), info);
+      mulle_fprintf( stderr, "%p: mulle-objc is enqueing loadinfo %p\n",
+                           (void *) mulle_thread_id(), info);
 
    // allow NULL input so mulle_objc_list can call this once, so the
    // linker can't optimize it away
@@ -1572,7 +1574,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
    {
       if( info->loaduniverse->universeid == MULLE_OBJC_DEFAULTUNIVERSEID)
       {
-         fprintf( stderr, "loaduniverse must not use default id 0 (compiler bug!)\n");
+         mulle_fprintf( stderr, "loaduniverse must not use default id 0 (compiler bug!)\n");
          abort();;
       }
    }
@@ -1582,8 +1584,8 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
       // only trace non standard universes
       if( loaduniverse->universeid != 0)
       {
-         fprintf( stderr, "%p: mulle-objc is acquiring universe %lu \"%s\"\n",
-                              (void *) mulle_thread_self(),
+         mulle_fprintf( stderr, "%p: mulle-objc is acquiring universe %lu \"%s\"\n",
+                              (void *) mulle_thread_id(),
                               (unsigned long) loaduniverse->universeid,
                               loaduniverse->universename ? loaduniverse->universename : "");
       }
@@ -1612,9 +1614,9 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
 
    _mulle_objc_universe_assert_runtimeversion( universe, &info->version);
 
-   if( universe->callbacks.should_load_loadinfo)
+   if( universe->callback.should_load_loadinfo)
    {
-      if( ! (*universe->callbacks.should_load_loadinfo)( universe, info))
+      if( ! (*universe->callback.should_load_loadinfo)( universe, info))
       {
          if( universe->debug.trace.loadinfo)
          {
@@ -1635,7 +1637,7 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
       mulle_objc_universe_trace( universe,
                                  "loads loadinfo %p in thread %p",
                                  info,
-                                 (void *) mulle_thread_self());
+                                 (void *) mulle_thread_id());
       mulle_objc_loadinfo_dump( info, "   ", universe);
    }
 
@@ -1762,8 +1764,8 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
 
    trace = mulle_objc_environment_get_yes_no( "MULLE_OBJC_TRACE_LOADINFO");
    if( trace)
-      fprintf( stderr, "%p: mulle-objc is pushing loadinfo onto atinit %p\n",
-                           (void *) mulle_thread_self(), info);
+      mulle_fprintf( stderr, "%p: mulle-objc is pushing loadinfo %p onto atinit\n",
+                           (void *) mulle_thread_id(), info);
    //
    // comment must be static, can't and wont be freed
    // (so must remain until mulle_atinit is through)
@@ -1773,8 +1775,8 @@ void   mulle_objc_loadinfo_enqueue_nofail( struct _mulle_objc_loadinfo *info)
    mulle_atinit( _mulle_objc_loadinfo_enqueue_nofail, info, 0, comment);
 
    if( trace)
-      fprintf( stderr, "%p: mulle-objc did push loadinfo onto atinit %p\n",
-                              (void *) mulle_thread_self(), info);
+      mulle_fprintf( stderr, "%p: mulle-objc did push loadinfo %p onto atinit\n",
+                              (void *) mulle_thread_id(), info);
 }
 
 

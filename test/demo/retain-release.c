@@ -15,6 +15,8 @@
 # endif
 #endif
 
+#define MULLE_OBJC_DEFINE_REGISTER_UNIVERSE
+
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 #include <mulle-objc-debug/mulle-objc-debug.h>
@@ -266,7 +268,7 @@ static void  __load()
 }
 
 
-MULLE_C_EXTERN_GLOBAL
+
 MULLE_C_CONST_RETURN 
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,

@@ -30,18 +30,18 @@ static void   test_inconsistency( char *format, va_list args) __attribute__ ((no
 
 static void   test_fail( char *format, va_list args)
 {
-   fprintf( stderr, "general exception:");
+   mulle_fprintf( stderr, "general exception:");
    vfprintf( stderr, format, args);
-   fprintf( stderr, "\n");
+   mulle_fprintf( stderr, "\n");
    abort();
 }
 
 
 static void   test_inconsistency( char *format, va_list args)
 {
-   fprintf( stderr, "inconsistency exception:");
+   mulle_fprintf( stderr, "inconsistency exception:");
    vfprintf( stderr, format, args);
-   fprintf( stderr, "\n");
+   mulle_fprintf( stderr, "\n");
    abort();
 }
 
@@ -78,42 +78,42 @@ int main( int argc, const char * argv[])
 {
    reset_universe();
 
-   fprintf( stderr, "simple\n");
+   mulle_fprintf( stderr, "simple\n");
    test_class_simple();
    reset_universe();
 
-   fprintf( stderr, "simple_inheritance\n");
+   mulle_fprintf( stderr, "simple_inheritance\n");
    test_simple_inheritance();
    reset_universe();
 
-   fprintf( stderr, "category_inheritance\n");
+   mulle_fprintf( stderr, "category_inheritance\n");
    test_category_inheritance();
    reset_universe();
 
-   fprintf( stderr, "protocol_inheritance\n");
+   mulle_fprintf( stderr, "protocol_inheritance\n");
    test_protocol_inheritance();
    reset_universe();
 
-   fprintf( stderr, "method\n");
+   mulle_fprintf( stderr, "method\n");
    test_method();
    reset_universe();
 
-   fprintf( stderr, "message_sending\n");
+   mulle_fprintf( stderr, "message_sending\n");
    test_message_sending();
    reset_universe();
 
-   fprintf( stderr, "message_forwarding1\n");
+   mulle_fprintf( stderr, "message_forwarding1\n");
    test_message_forwarding1();
    reset_universe();
 
-   fprintf( stderr, "message_forwarding2\n");
+   mulle_fprintf( stderr, "message_forwarding2\n");
    test_message_forwarding2();
    reset_universe();
 
-   fprintf( stderr, "retain_release\n");
+   mulle_fprintf( stderr, "retain_release\n");
    test_retain_release();
 
-   fprintf( stderr, "cleanup\n");
+   mulle_fprintf( stderr, "cleanup\n");
 
    reset_universe();
 

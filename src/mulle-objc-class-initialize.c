@@ -105,8 +105,8 @@ static void   _mulle_objc_class_setup_initial_cache( struct _mulle_objc_class *c
    // your chance to change the cache algorithm and initial size
    universe  = _mulle_objc_class_get_universe( cls);
    n_entries = MULLE_OBJC_DEFAULT_CACHE_SIZE;     // could pull this from universe
-   if( universe->callbacks.will_init_cache)
-      n_entries = (*universe->callbacks.will_init_cache)( universe, cls, n_entries);
+   if( universe->callback.will_init_cache)
+      n_entries = (*universe->callback.will_init_cache)( universe, cls, n_entries);
 
    allocator = _mulle_objc_universe_get_allocator( universe);
    icache    = mulle_objc_impcache_new( n_entries, callback, allocator);
@@ -423,13 +423,13 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_classpair    *pair;
    mulle_thread_mutex_t            *initialize_lock;
-   mulle_thread_t                  current_thread;
+   mulle_thread_id_t               current_thread_id;
 
    assert( mulle_objc_class_is_current_thread_registered( cls));
 
-   pair           = _mulle_objc_class_get_classpair( cls);
-   infra          = _mulle_objc_classpair_get_infraclass( pair);
-   current_thread = mulle_thread_self();
+   pair              = _mulle_objc_class_get_classpair( cls);
+   infra             = _mulle_objc_classpair_get_infraclass( pair);
+   current_thread_id = mulle_thread_id();
 
    //
    // Allow recursion to same class in same thread
@@ -440,7 +440,7 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
    if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZING))
    {
       // if we are the same thread, we do the slow call here
-      if( (mulle_thread_t) _mulle_atomic_pointer_read( &pair->thread) == current_thread)
+      if( (mulle_thread_id_t) _mulle_atomic_pointer_read( &pair->thread_id) == current_thread_id)
       {
          // is this still true ?
          if( cls->superclass)
@@ -455,7 +455,7 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
       // this has to be set before initializing
       // we make this atomic, just to be sure that it's set before
       // initializing...
-      _mulle_atomic_pointer_write( &pair->thread, (void *) current_thread);
+      _mulle_atomic_pointer_write( &pair->thread_id, (void *) current_thread_id);
       if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZING))
       {
          // #>>> PROBLEMATIC #
@@ -510,7 +510,7 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
 }
 
 
-#pragma mark - empty_cache callbacks
+#pragma mark - empty_cache callback
 
 // the empty cache is never filled with anything
 static void   *_mulle_objc_object_call_class_slow( void *obj,
@@ -580,7 +580,7 @@ struct _mulle_objc_impcache_callback  _mulle_objc_impcache_callback_empty =
 };
 
 
-#pragma mark - initial_impcache callbacks
+#pragma mark - initial_impcache callback
 
 static void   *_mulle_objc_object_call_class_needcache( void *obj,
                                                         mulle_objc_methodid_t methodid,

@@ -37,11 +37,11 @@ int main(void)
     );
     
     if (base) {
-        printf("Base protocol: %s\n", _mulle_objc_protocol_get_name(base));
+        mulle_printf("Base protocol: %s\n", _mulle_objc_protocol_get_name(base));
     }
     
     if (extended) {
-        printf("Extended protocol: %s\n", _mulle_objc_protocol_get_name(extended));
+        mulle_printf("Extended protocol: %s\n", _mulle_objc_protocol_get_name(extended));
     }
     
     return 0;

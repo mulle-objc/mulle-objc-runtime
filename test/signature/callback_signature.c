@@ -54,7 +54,7 @@ static void   callback( char *type, struct mulle_objc_typeinfo *info, void *user
 
    if( ! info)
    {
-      fprintf( fp, "\tNULL\n");
+      mulle_fprintf( fp, "\tNULL\n");
       return;
    }
 
@@ -81,16 +81,16 @@ static void   callback( char *type, struct mulle_objc_typeinfo *info, void *user
    }
 
 
-   fprintf( p->fp, "\t(p) type              = %s\n",  type);
-   fprintf( p->fp, "\tnatural_size          = %zd\n", info->natural_size);
-   fprintf( p->fp, "\tnatural_alignment     = %d\n",  (int) info->natural_alignment);
-   fprintf( p->fp, "\tmember_type_start     = %s\n",  info->member_type_start ? info->member_type_start : "NULL");
-   fprintf( p->fp, "\thas_object            = %d\n",  info->has_object);
-   fprintf( p->fp, "\thas_retainable_type   = %d\n",  info->has_retainable_type);
-   fprintf( p->fp, "\tn_members             = %ld\n", (long) info->n_members);
- // fprintf( p->fp, "\tinvocation_offset     = %td\n", (ptrdiff_t) info->invocation_offset);
-   fprintf( p->fp, "\tbits_size             = %zd\n", info->bits_size);
-   fprintf( p->fp, "\tbits_struct_alignment = %d\n\n",  (int) info->bits_struct_alignment);
+   mulle_fprintf( p->fp, "\t(p) type              = %s\n",  type);
+   mulle_fprintf( p->fp, "\tnatural_size          = %zd\n", info->natural_size);
+   mulle_fprintf( p->fp, "\tnatural_alignment     = %d\n",  (int) info->natural_alignment);
+   mulle_fprintf( p->fp, "\tmember_type_start     = %s\n",  info->member_type_start ? info->member_type_start : "NULL");
+   mulle_fprintf( p->fp, "\thas_object            = %d\n",  info->has_object);
+   mulle_fprintf( p->fp, "\thas_retainable_type   = %d\n",  info->has_retainable_type);
+   mulle_fprintf( p->fp, "\tn_members             = %ld\n", (long) info->n_members);
+ // mulle_fprintf( p->fp, "\tinvocation_offset     = %td\n", (ptrdiff_t) info->invocation_offset);
+   mulle_fprintf( p->fp, "\tbits_size             = %zd\n", info->bits_size);
+   mulle_fprintf( p->fp, "\tbits_struct_alignment = %d\n\n",  (int) info->bits_struct_alignment);
 }
 
 

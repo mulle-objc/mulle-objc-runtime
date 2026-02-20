@@ -9,7 +9,7 @@ void my_universe_bang(struct _mulle_objc_universe *universe,
                      struct mulle_allocator *allocator,
                      void *userinfo)
 {
-    printf("Configuring universe %p\n", universe);
+    mulle_printf("Configuring universe %p\n", universe);
     
     // Use default configuration
     _mulle_objc_universe_defaultbang(universe, allocator, userinfo);
@@ -24,7 +24,7 @@ int main(void)
     
     if (universe) {
         _mulle_objc_universe_bang(universe, my_universe_bang, NULL, NULL);
-        printf("Universe configured: %p\n", universe);
+        mulle_printf("Universe configured: %p\n", universe);
     }
     
     return 0;

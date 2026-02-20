@@ -151,7 +151,7 @@ struct _mulle_objc_classpair *
    allocator = _mulle_objc_universe_get_allocator( universe);
    if( _mulle_objc_universe_is_uninitialized( universe) || ! allocator)
    {
-      fprintf( stderr, "mulle_objc_universe error: The universe %p has not "
+      mulle_fprintf( stderr, "mulle_objc_universe error: The universe %p has not "
                        "been set up yet. You probably forgot to link the "
                        "startup library\n", universe);
       errno = ENXIO;
@@ -173,7 +173,7 @@ struct _mulle_objc_classpair *
    correct = mulle_objc_classid_from_string( name);
    if( classid != correct)
    {
-      fprintf( stderr, "mulle_objc_universe error: Class \"%s\" should have "
+      mulle_fprintf( stderr, "mulle_objc_universe error: Class \"%s\" should have "
                        "classid %08lx but has classid %08lx\n", name,
                        (unsigned long) correct, (unsigned long) classid);
       errno = EINVAL;
@@ -454,7 +454,7 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
    // adding a category twice is very bad
    if( _mulle_objc_classpair_has_categoryid( pair, categoryid))
    {
-      fprintf( stderr, "mulle_objc_universe %p error: category %08lx for"
+      mulle_fprintf( stderr, "mulle_objc_universe %p error: category %08lx for"
                        " class %08lx \"%s\" is already loaded\n",
               universe,
               (unsigned long) categoryid,
@@ -469,7 +469,7 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
    {
       if( universe->debug.warn.protocolclass)
          if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
-            fprintf( stderr, "mulle_objc_universe %p warning: class %08lx \"%s\""
+            mulle_fprintf( stderr, "mulle_objc_universe %p warning: class %08lx \"%s\""
                              " is a protocolclass and gains a"
                              " category %08lx \"%s( %s)\"\n",
                     universe,

@@ -3,7 +3,7 @@
 
 int main(void)
 {
-    printf("Exception system exists (mulle_objc_exception_throw)\n");
+    mulle_printf("Exception system exists (mulle_objc_exception_throw)\n");
     
     return 0;
 }

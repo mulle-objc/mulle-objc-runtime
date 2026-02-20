@@ -18,7 +18,7 @@
 + (void) initialize
 {
    if( errno != 1848)
-      printf( "Fail 1\n");
+      mulle_printf( "Fail 1\n");
    errno = 2;
 }
 
@@ -26,7 +26,7 @@
 + (int) action
 {
    if( errno != 1848)
-      printf( "Fail 2\n");
+      mulle_printf( "Fail 2\n");
    errno = 3;
    return( -1);
 }
@@ -44,7 +44,7 @@
 + (int) action
 {
    if( errno != 1848)
-      printf( "Fail 4\n");
+      mulle_printf( "Fail 4\n");
    errno = 3;
    return( -1);
 }
@@ -64,7 +64,7 @@ int  main( void)
    {
       if( errno != 3)
       {
-         printf( "Fail 3\n");
+         mulle_printf( "Fail 3\n");
          return( 1);
       }
    }
@@ -78,11 +78,11 @@ int  main( void)
    {
       if( errno != 3)
       {
-         printf( "Fail 5\n");
+         mulle_printf( "Fail 5\n");
          return( 1);
       }
    }
-   printf( "OK\n");
+   mulle_printf( "OK\n");
 
    return( 0);
 }

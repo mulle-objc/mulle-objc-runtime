@@ -19,7 +19,7 @@ int main(void)
     {
         // Count objects in varargs
         count = mulle_vararg_count_objects(obj1, obj2, obj3, NULL);
-        printf("Counted %d objects in varargs\n", count);
+        mulle_printf("Counted %d objects in varargs\n", count);
     }
     
     return 0;

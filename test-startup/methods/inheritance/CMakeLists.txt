@@ -45,4 +45,12 @@ target_link_libraries( inheritance.exe
    ${TEST_LIBRARIES}
 )
 
+# Export symbols needed for Windows DLL dynamic linking
+if( WIN32)
+   target_link_options( inheritance.exe
+      PUBLIC
+         "-Wl,--export-all-symbols"
+   )
+endif()
+
 

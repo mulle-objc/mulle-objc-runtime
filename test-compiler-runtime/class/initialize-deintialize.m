@@ -18,13 +18,13 @@
 
 + (void) initialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 
 + (void) deinitialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 + (void) nop
@@ -39,12 +39,12 @@
 @implementation A
 + (void) initialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 + (void) deinitialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 @end
 
@@ -53,12 +53,12 @@
 @implementation B
 + (void) initialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 + (void) deinitialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 @end
 

@@ -92,18 +92,18 @@ static void
    if( categoryid)
    {
       categoryname = mulle_objc_methodlist_get_categoryname( result->list);
-      fprintf( fp, "%08lx;%s;%08lx;%s;",
+      mulle_fprintf( fp, "%08lx;%s;%08lx;%s;",
               (unsigned long) _mulle_objc_class_get_classid( result->class),
               classname,
               (unsigned long) categoryid,
               categoryname);
    }
    else
-      fprintf( fp, "%08lx;%s;;;",
+      mulle_fprintf( fp, "%08lx;%s;;;",
               (unsigned long) _mulle_objc_class_get_classid( result->class),
               classname);
 
-   fprintf( fp, "%08lx;%c%s\n",
+   mulle_fprintf( fp, "%08lx;%c%s\n",
            (unsigned long) _mulle_objc_method_get_methodid( result->method),
            _mulle_objc_class_is_metaclass( result->class) ? '+' : '-',
            _mulle_objc_method_get_name( result->method));
@@ -162,7 +162,7 @@ void
          mulle_objc_universe_fail_inconsistency( mulle_objc_class_get_universe( cls),
                                                  "universe information has disappeared");
 
-      fprintf( fp, "%08lx;%s;",
+      mulle_fprintf( fp, "%08lx;%s;",
               (unsigned long) _mulle_objc_class_get_classid( cls),
               _mulle_objc_class_get_name( cls));
 
@@ -302,13 +302,13 @@ void
       }
 
       nada = 0;
-      fprintf( fp, "%08lx;%s\n",
+      mulle_fprintf( fp, "%08lx;%s\n",
               (unsigned long) _mulle_objc_infraclass_get_classid( infra),
               _mulle_objc_infraclass_get_name( infra));
    }
 
    if( nada)
-      fprintf( stderr, "mulle_objc_universe %p warning: no coverage generated "
+      mulle_fprintf( stderr, "mulle_objc_universe %p warning: no coverage generated "
                        "as no Objective-C code has run yet\n", universe);
 }
 
@@ -330,7 +330,7 @@ static void  dump_cachesize( struct _mulle_objc_class *cls,
        return;
    }
 
-   fprintf( fp, "%08lx;%c%s;%u;%u;%x\n",
+   mulle_fprintf( fp, "%08lx;%c%s;%u;%u;%x\n",
            (unsigned long) _mulle_objc_class_get_classid( cls),
            prefix,
            _mulle_objc_class_get_name( cls),
@@ -383,7 +383,7 @@ void
 
    fclose( fp);
 
-   fprintf( stderr, "Dumped method coverage to \"%s\"\n", filename);
+   mulle_fprintf( stderr, "Dumped method coverage to \"%s\"\n", filename);
 }
 
 
@@ -404,7 +404,7 @@ void
 
    fclose( fp);
 
-   fprintf( stderr, "Dumped class coverage to \"%s\"\n", filename);
+   mulle_fprintf( stderr, "Dumped class coverage to \"%s\"\n", filename);
 }
 
 
@@ -425,7 +425,7 @@ void
 
    fclose( fp);
 
-   fprintf( stderr, "Dumped cache sizes to \"%s\"\n", filename);
+   mulle_fprintf( stderr, "Dumped cache sizes to \"%s\"\n", filename);
 }
 
 
@@ -433,7 +433,7 @@ void
 
 static void   _fprint_csv_version( FILE *fp, uint32_t version)
 {
-   fprintf( fp, "%u.%u.%u;",
+   mulle_fprintf( fp, "%u.%u.%u;",
             mulle_objc_version_get_major( version),
             mulle_objc_version_get_minor( version),
             mulle_objc_version_get_patch( version));
@@ -449,12 +449,12 @@ void   mulle_objc_loadinfo_csvdump_terse_to_fp( struct _mulle_objc_loadinfo *inf
       mulle_objc_universe_fail_code( NULL, EINVAL);
 
    s = mulle_objc_loadinfo_get_origin( info);
-   fprintf( fp, "%s;", s ? s : "");
+   mulle_fprintf( fp, "%s;", s ? s : "");
    _fprint_csv_version( fp, info->version.runtime);
    _fprint_csv_version( fp, info->version.foundation);
    _fprint_csv_version( fp, info->version.user);
-   fprintf( fp, "%u;",  (unsigned int) ((info->version.bits >> 8) & 0x7));
-   fprintf( fp, "0x%lx", (unsigned long) info->version.bits);
-   fprintf( fp, "\n");
+   mulle_fprintf( fp, "%u;",  (unsigned int) ((info->version.bits >> 8) & 0x7));
+   mulle_fprintf( fp, "0x%lx", (unsigned long) info->version.bits);
+   mulle_fprintf( fp, "\n");
 }
 

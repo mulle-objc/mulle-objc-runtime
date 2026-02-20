@@ -33,7 +33,7 @@ int main(void)
     );
     
     if (protocol) {
-        printf("Protocol: %s\n", _mulle_objc_protocol_get_name(protocol));
+        mulle_printf("Protocol: %s\n", _mulle_objc_protocol_get_name(protocol));
     }
     
     return 0;

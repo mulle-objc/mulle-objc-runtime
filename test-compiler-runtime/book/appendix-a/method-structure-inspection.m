@@ -24,20 +24,20 @@ int main()
     method = mulle_objc_class_lookup_method( cls, MULLE_OBJC_METHODID_INIT);
     if( method)
     {
-        printf( "method name: %s\n", mulle_objc_method_get_name( method));
-        printf( "method signature: %s\n", mulle_objc_method_get_signature( method));
-        printf( "method id: %llu\n", (unsigned long long) mulle_objc_method_get_methodid( method));
+        mulle_printf( "method name: %s\n", mulle_objc_method_get_name( method));
+        mulle_printf( "method signature: %s\n", mulle_objc_method_get_signature( method));
+        mulle_printf( "method id: %llu\n", (unsigned long long) mulle_objc_method_get_methodid( method));
         
         // Test descriptor access
         struct _mulle_objc_descriptor *desc = mulle_objc_method_get_descriptor( method);
-        printf( "descriptor methodid: %llu\n", (unsigned long long) desc->methodid);
-        printf( "descriptor name: %s\n", desc->name);
-        printf( "descriptor signature: %s\n", desc->signature);
-        printf( "descriptor bits: 0x%08x\n", desc->bits);
+        mulle_printf( "descriptor methodid: %llu\n", (unsigned long long) desc->methodid);
+        mulle_printf( "descriptor name: %s\n", desc->name);
+        mulle_printf( "descriptor signature: %s\n", desc->signature);
+        mulle_printf( "descriptor bits: 0x%08x\n", desc->bits);
         
         // Check method family
         enum _mulle_objc_methodfamily family = _mulle_objc_descriptor_get_methodfamily( desc);
-        printf( "method family: %s\n", mulle_objc_methodfamily_utf8( family));
+        mulle_printf( "method family: %s\n", mulle_objc_methodfamily_utf8( family));
     }
     
     return 0;

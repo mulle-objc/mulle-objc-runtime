@@ -182,6 +182,31 @@ struct _mulle_objc_cacheentry   *
 }
 
 
+typedef void   mulle_objc_delayed_loader_t( struct _mulle_objc_universe *universe,
+                                             mulle_objc_classid_t classid);
+
+
+struct _mulle_objc_cacheentry   *
+   _mulle_objc_universe_refresh_classcache_nodelegate( struct _mulle_objc_universe *universe,
+                                                       mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_infraclass   *infra;
+   struct _mulle_objc_cacheentry   *entry;
+
+   for(;;)
+   {
+      infra = _mulle_concurrent_hashmap_lookup( &universe->classtable, classid);
+      if( infra)
+      {
+         entry = _mulle_objc_universe_fill_classcache( universe, infra);
+         assert( entry);
+         return( entry);
+      }
+      return( NULL);
+   }
+}
+
+
 struct _mulle_objc_cacheentry   *
    _mulle_objc_universe_refresh_classcache( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid)
@@ -190,7 +215,9 @@ struct _mulle_objc_cacheentry   *
    struct _mulle_objc_cacheentry   *entry;
    int                             preserve;
    int                             retry;
+   int                             nochange;
 
+   // used to have multiple loaders
    retry = 0;
    for(;;)
    {
@@ -202,14 +229,20 @@ struct _mulle_objc_cacheentry   *
          return( entry);
       }
 
-      if( retry)
+      if( retry == 1)
          return( NULL);
 
-      // preserve errno for use
+      // class_is_missing is a nop by default
+      if( _mulle_objc_universe_is_deinitializing( universe))
+         return( NULL);
+
       preserve = errno;
-      (*universe->classdefaults.class_is_missing)( universe, classid);
-      errno = preserve;
-      retry++;
+      nochange = (*universe->callback.class_is_missing)( universe, classid);
+      errno    = preserve;
+
+      if( nochange)
+         return( NULL);
+      ++retry;
    }
 }
 
@@ -293,6 +326,20 @@ MULLE_C_CONST_NONNULL_RETURN struct _mulle_objc_infraclass  *
 
 
 #pragma mark - infraclass lookup, fastclass lookup then cached
+
+
+struct _mulle_objc_infraclass  *
+    _mulle_objc_universe_lookup_infraclass_nodelegate( struct _mulle_objc_universe *universe,
+                                                        mulle_objc_classid_t classid)
+{
+   struct _mulle_objc_infraclass   *infra;
+
+   infra = universe->config.no_fast_call
+           ? _mulle_objc_universe_lookup_infraclass_inline_nofast_nodelegate( universe, classid)
+           : _mulle_objc_universe_lookup_infraclass_inline_nodelegate( universe, classid);
+   return( infra);
+}
+
 
 
 struct _mulle_objc_infraclass  *

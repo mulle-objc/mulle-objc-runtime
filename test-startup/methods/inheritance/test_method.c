@@ -24,7 +24,7 @@ MULLE_C_NO_RETURN
 static void   crash_catch( char *format, va_list args)
 {
    vfprintf( stderr, format, args);
-   fprintf( stderr, "\n");
+   mulle_fprintf( stderr, "\n");
    longjmp( crashbuf, 1);
 }
 
@@ -57,7 +57,7 @@ void   test_method( void)
       clone.name      = "x";
 
 #if DEBUG
-      fprintf( stderr, "possibly following warning about x's different method id is expected\n");
+      mulle_fprintf( stderr, "possibly following warning about x's different method id is expected\n");
 #endif
 
       rval = _mulle_objc_universe_add_descriptor( universe, &clone, NULL, NULL);
@@ -70,7 +70,7 @@ void   test_method( void)
    clone.signature = "@:@";
 
 #if DEBUG
-   fprintf( stderr, "possibly following warning about x's different signature is expected\n");
+   mulle_fprintf( stderr, "possibly following warning about x's different signature is expected\n");
 #endif
    rval = _mulle_objc_universe_add_descriptor( universe, &clone, NULL, NULL);
    assert( ! rval);
@@ -80,7 +80,7 @@ void   test_method( void)
    clone.methodid = B_bar_method->descriptor.methodid;
 
 #if DEBUG
-   fprintf( stderr, "possibly following warning about foo's different method id is expected\n");
+   mulle_fprintf( stderr, "possibly following warning about foo's different method id is expected\n");
 #endif
    rval = _mulle_objc_universe_add_descriptor( universe, &clone, NULL, NULL);
 }

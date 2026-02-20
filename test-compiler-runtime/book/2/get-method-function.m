@@ -27,12 +27,12 @@ int main(void)
     
     method = mulle_objc_infraclass_defaultsearch_method(cls, mulle_objc_uniqueid_from_string("instanceMethod"));
     if (method) {
-        printf("instanceMethod implementation: %p\n", _mulle_objc_method_get_implementation(method));
+        mulle_printf("instanceMethod implementation: %p\n", _mulle_objc_method_get_implementation(method));
     }
     
     method = mulle_objc_infraclass_defaultsearch_method(cls, mulle_objc_uniqueid_from_string("classMethod"));
     if (method) {
-        printf("classMethod implementation: %p\n", _mulle_objc_method_get_implementation(method));
+        mulle_printf("classMethod implementation: %p\n", _mulle_objc_method_get_implementation(method));
     }
     
     return 0;

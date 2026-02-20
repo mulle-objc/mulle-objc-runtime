@@ -37,6 +37,7 @@
 #ifndef mulle_objc_universe_h__
 #define mulle_objc_universe_h__
 
+
 #include "include.h"
 
 #include "mulle-objc-cache.h"
@@ -56,23 +57,20 @@
 // __register_mulle_objc_universe is defined by the user in main or 
 // or statically linked from somewhere else
 //
-// Windows needs are special here, because this is a rendezvous function
-// The rendezvous function is guaranteed to be statically linked to main.exe.
-// Therefore it must not be dllimport.
+// Windows needs are special here.
 //
-// build mulle-objc-runtime: _declspec( dllimport) -> MULLE_C_EXTERN_GLOBAL
-// build MulleObjC-startup:  _declspec( dllexport) -> MULLE_C_GLOBAL
-// build others:             _declspec( dllimport) -> MULLE_C_EXTERN_GLOBAL
-//
-#ifdef MULLE__OBJC__RUNTIME_BUILD
-MULLE_C_EXTERN_RENDEZVOUS_SYMBOL
+
+// MULLE_OBJC_DEFINE_REGISTER_UNIVERSE is defined in the implementing C source and
+// nowhere else
+#ifdef MULLE_OBJC_DEFINE_REGISTER_UNIVERSE
+MULLE_C_GLOBAL
 #else
-MULLE_C_RENDEZVOUS_SYMBOL
+MULLE_C_EXTERN_GLOBAL
 #endif
-MULLE_C_CONST_RETURN 
-struct _mulle_objc_universe  *
-   __register_mulle_objc_universe( mulle_objc_universeid_t universe,
-                                   char *universename);
+MULLE_C_CONST_RETURN
+   struct _mulle_objc_universe  *
+      __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
+                                      char *universename);
 
 #pragma mark - stuff to be used in _get_or_create
 
@@ -118,6 +116,11 @@ struct _mulle_objc_universe  *
 MULLE_OBJC_RUNTIME_GLOBAL
 void  _mulle_objc_universe_done( struct _mulle_objc_universe *universe);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+void
+   __mulle_objc_universe_atexit_ifneeded( struct _mulle_objc_universe *universe);
+
+
 
 // use
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -125,6 +128,27 @@ intptr_t  _mulle_objc_universe_retain( struct _mulle_objc_universe *universe);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 intptr_t  _mulle_objc_universe_release( struct _mulle_objc_universe *universe);
+
+#pragma mark - debug support
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
+                                    FILE *fp,
+                                    char *format,
+                                    ...);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void  mulle_objc_universe_trace( struct _mulle_objc_universe *universe,
+                                 char *format,
+                                 ...);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void  mulle_objc_universe_trace_nolf( struct _mulle_objc_universe *universe,
+                                      char *format,
+                                      ...);
 
 
 #pragma mark - globals / tables
@@ -198,7 +222,7 @@ static inline struct _mulle_objc_exceptionstackentry *
 
 
 static inline void
-   _mulle_objc_threadinfo_set_exception_stack( struct _mulle_objc_threadinfo  *config,
+   _mulle_objc_threadinfo_set_exception_stack( struct _mulle_objc_threadinfo *config,
                                                struct _mulle_objc_exceptionstackentry *stack)
 {
    config->exception_stack = stack;
@@ -523,18 +547,24 @@ static inline int   _mulle_objc_universe_unlock_waitqueues( struct _mulle_objc_u
 //
 static inline int   _mulle_objc_universe_lock( struct _mulle_objc_universe  *universe)
 {
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe lock");
    return( mulle_thread_mutex_lock( &universe->lock));
 }
 
 
 static inline int   _mulle_objc_universe_trylock( struct _mulle_objc_universe  *universe)
 {
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe try lock");
    return( mulle_thread_mutex_trylock( &universe->lock));
 }
 
 
 static inline int   _mulle_objc_universe_unlock( struct _mulle_objc_universe  *universe)
 {
+   if( universe->debug.trace.universe)
+      mulle_objc_universe_trace( universe, "universe unlock");
    return( mulle_thread_mutex_unlock( &universe->lock));
 }
 
@@ -1062,32 +1092,12 @@ static inline enum mulle_objc_universe_status
 }
 
 
-/* debug support */
-// TODO: probably useless ...
-MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_universe_trace_preamble( struct _mulle_objc_universe *universe);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_universe_fprintf( struct _mulle_objc_universe *universe,
-                                    FILE *fp,
-                                    char *format,
-                                    ...);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void  mulle_objc_universe_trace( struct _mulle_objc_universe *universe,
-                                 char *format,
-                                 ...);
-
-MULLE_OBJC_RUNTIME_GLOBAL
-void  mulle_objc_universe_trace_nolf( struct _mulle_objc_universe *universe,
-                                      char *format,
-                                      ...);
 
 // this walks recursively through the whole universe
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
    mulle_objc_universe_walk( struct _mulle_objc_universe *universe,
-                             mulle_objc_walkcallback_t   callback,
+                             mulle_objc_walkcallback_t callback,
                              void *userinfo);
 
 // this just walks over the classes

@@ -103,7 +103,7 @@ MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_wrongthread( struct _mulle_objc_universe *universe,
                                          struct _mulle_objc_object *obj,
-                                         mulle_thread_t affinity_thread,
+                                         mulle_thread_id_t affinity_thread,
                                          struct _mulle_objc_descriptor *desc);
 
 static inline
@@ -117,6 +117,18 @@ void
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NO_RETURN
+void   _mulle_objc_printf_abort( char *format, ...);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NO_RETURN
+void   _mulle_objc_vprintf_abort( char *format, va_list args);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NO_RETURN
+void   _mulle_objc_vperror_abort( char *format, va_list args);
 
 
 # pragma aborts - non vectored
@@ -136,6 +148,6 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    _mulle_objc_object_abort_wrongthread( struct _mulle_objc_object *obj,
-                                  mulle_thread_t affinity_thread,
-                                  struct _mulle_objc_descriptor *desc);
+                                         mulle_thread_id_t affinity_thread,
+                                         struct _mulle_objc_descriptor *desc);
 #endif

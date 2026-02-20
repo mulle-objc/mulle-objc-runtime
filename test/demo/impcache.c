@@ -8,6 +8,9 @@
 # endif
 #endif
 
+#define MULLE_OBJC_DEFINE_REGISTER_UNIVERSE
+
+
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 #include <stdio.h>
@@ -113,10 +116,10 @@ static void   demo_class_print_cache( struct demo_class *cls, unsigned int index
    cache = _mulle_objc_cachepivot_get_cache_atomic( &cls->cachepivot[ index].pivot);
    n     = _mulle_objc_cache_get_size( cache);
 
-   fprintf( stderr, "%d:\n", index);
+   mulle_fprintf( stderr, "%d:\n", index);
    for( i = 0; i < n; i++)
    {
-      fprintf( stderr, "   % 2d: [ 0x%08x, %p ]\n", 
+      mulle_fprintf( stderr, "   % 2d: [ 0x%08x, %p ]\n",
                         i,
                         cache->entries[ i].key.uniqueid, 
                         (void *) cache->entries[ i].value.functionpointer);
@@ -200,7 +203,6 @@ static struct _mulle_objc_method   methods[ N_METHODS] =
 
 
 // MEMO: needed for linking will not be used in test
-MULLE_C_EXTERN_GLOBAL
 MULLE_C_CONST_RETURN 
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
@@ -226,6 +228,7 @@ static int   aba_free( void *aba,
                        void *owner)
 {
    (*free)( block, owner);
+   return( 0);
 }
 
 
@@ -253,7 +256,7 @@ int  main( int argc, char *argv[])
    {
       icache = mulle_objc_impcache_new( 4, NULL, &allocator);
 
-      // we don't have these callbacks
+      // we don't have these callback
       icache->callback.call                       = 0;
       icache->callback.call_cache_collision       = 0;
       icache->callback.call_cache_miss            = 0;

@@ -18,7 +18,7 @@ static mulle_objc_walkcommand_t print_method_name(struct _mulle_objc_method *met
                                                   struct _mulle_objc_class *cls,
                                                   void *userinfo)
 {
-    printf("  %s\n", _mulle_objc_method_get_name(method));
+    mulle_printf("  %s\n", _mulle_objc_method_get_name(method));
     return mulle_objc_walk_ok;
 }
 
@@ -33,7 +33,7 @@ int main(void)
         mulle_objc_classid_from_string("TestClass")
     );
     
-    printf("Methods in TestClass:\n");
+    mulle_printf("Methods in TestClass:\n");
     _mulle_objc_class_walk_methods(&cls->base, 0, print_method_name, NULL);
     
     return 0;

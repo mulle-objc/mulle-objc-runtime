@@ -67,7 +67,7 @@ static void  print( size_t size)
    mulle_buffer_do( buffer)
    {
       mulle_buffer_hexdump( buffer, x, sizeof( x), 0, mulle_buffer_hexdump_default);
-      printf( "%td:\n%s\n\n", size, mulle_buffer_get_string( buffer));
+      mulle_printf( "%td:\n%s\n\n", size, mulle_buffer_get_string( buffer));
    }
 }
 

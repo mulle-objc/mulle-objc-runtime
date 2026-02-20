@@ -170,49 +170,48 @@ void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
       return;
 
    // why do i need this ? How is this different from "cls" ?
-   isa         = _mulle_objc_object_get_isa_universe( obj, universe);
+   isa    = _mulle_objc_object_get_isa_universe( obj, universe);
    assert( isa == cls); // see when this fails...
 
    // we need the search result for display, so need to re-search method
    inheritance = _mulle_objc_class_get_inheritance( cls);
    // this will not trigger +initialize
-   search      = mulle_objc_searcharguments_make_imp_no_initialize( imp);
-   method      = mulle_objc_class_search_method( cls,
-                                                 &search,
-                                                 inheritance,
-                                                 &result);
-
+   search = mulle_objc_searcharguments_make_imp_no_initialize( imp);
+   method = mulle_objc_class_search_method( cls,
+                                            &search,
+                                            inheritance,
+                                            &result);
 
    mulle_thread_mutex_lock( &universe->debug.lock);
    {
       mulle_objc_universe_trace_preamble( universe);
 
-      fprintf( stderr, "[::] ");
+      mulle_fprintf( stderr, "[::] ");
       frames = (*universe->debug.count_stackdepth)();
       while( frames--)
          fputc( ' ', stderr);
-      fprintf( stderr, "%c[", _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
+      mulle_fprintf( stderr, "%c[", _mulle_objc_class_is_metaclass( cls) ? '+' : '-');
 
       if( method)
       {
-         fprintf( stderr, "%s", _mulle_objc_class_get_name( result.class));
+         mulle_fprintf( stderr, "%s", _mulle_objc_class_get_name( result.class));
          name = mulle_objc_methodlist_get_categoryname( result.list);
          if( name)
-            fprintf( stderr, "(%s)", name);
-         fprintf( stderr, " %s]", _mulle_objc_method_get_name( method));
+            mulle_fprintf( stderr, "(%s)", name);
+         mulle_fprintf( stderr, " %s]", _mulle_objc_method_get_name( method));
       }
       else
       {
          // fallback in case...
-         fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
+         mulle_fprintf( stderr, "?%s", _mulle_objc_class_get_name( cls));
          desc = _mulle_objc_universe_lookup_descriptor( universe, methodid);
          if( desc)
-            fprintf( stderr, " %s]", desc->name);
+            mulle_fprintf( stderr, " %s]", desc->name);
          else
-            fprintf( stderr, " #%08lx]", (unsigned long) methodid);
+            mulle_fprintf( stderr, " #%08lx]", (unsigned long) methodid);
       }
 
-      fprintf( stderr, " @%p %s (%p, #%08lx, %p)\n",
+      mulle_fprintf( stderr, " @%p %s (%p, #%08lx, %p)\n",
                imp,
                _mulle_objc_class_get_name( isa),
                obj,
@@ -238,8 +237,8 @@ void   mulle_objc_implementation_trace( mulle_objc_implementation_t imp,
 void   mulle_objc_object_taocheck_call( void *obj,
                                         mulle_objc_methodid_t methodid)
 {
-   mulle_thread_t                  object_thread;
-   mulle_thread_t                  curr_thread;
+   mulle_thread_id_t               object_thread_id;
+   mulle_thread_id_t               curr_thread_id;
    struct _mulle_objc_universe     *universe;
    struct _mulle_objc_class        *cls;
    struct _mulle_objc_infraclass   *infra;
@@ -274,11 +273,11 @@ void   mulle_objc_object_taocheck_call( void *obj,
       return;
    }
 
-   object_thread = _mulle_objc_object_get_thread( obj);
-   if( ! object_thread)
+   object_thread_id = _mulle_objc_object_get_thread_id( obj);
+   if( ! object_thread_id)
       return;
 
-   curr_thread = mulle_thread_self();
+   curr_thread_id = mulle_thread_id();
 
    //
    // dealloc is single threaded by default, change affinity to current thread
@@ -291,7 +290,7 @@ void   mulle_objc_object_taocheck_call( void *obj,
    //    return( 0);
    // }
 
-   if( object_thread == curr_thread)
+   if( object_thread_id == curr_thread_id)
       return;
 
    //
@@ -350,7 +349,7 @@ void   mulle_objc_object_taocheck_call( void *obj,
    if( _mulle_objc_universe_is_deinitializing( universe))
       return;
 
-   mulle_objc_universe_fail_wrongthread( universe, obj, object_thread, desc);
+   mulle_objc_universe_fail_wrongthread( universe, obj, object_thread_id, desc);
 }
 
 

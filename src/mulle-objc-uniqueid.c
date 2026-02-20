@@ -84,7 +84,7 @@ mulle_objc_uniqueid_t   mulle_objc_uniqueid_from_string( char *s)
 
    if( value == MULLE_OBJC_INVALID_UNIQUEID)
    {
-      fprintf( stderr, "Congratulations, your string \"%s\" "
+      mulle_fprintf( stderr, "Congratulations, your string \"%s\" "
               "hashes badly (rare and precious, please tweet it @mulle_nat, then rename it).", s);
 #ifdef DEBUG
       abort();
@@ -110,7 +110,7 @@ int   mulle_objc_uniqueid_is_sane_string( mulle_objc_uniqueid_t uniqueid, char *
       correct = mulle_objc_uniqueid_from_string( s);
       if( uniqueid != correct)
       {
-         fprintf( stderr, "error: String \"%s\" should have "
+         mulle_fprintf( stderr, "error: String \"%s\" should have "
                  "uniqueid %08lx but has uniqueid %08lx\n",
                  s, (unsigned long) correct, (unsigned long)uniqueid);
          errno = EINVAL;  // this is needed for tests

@@ -15,6 +15,9 @@
 # endif
 #endif
 
+#define MULLE_OBJC_DEFINE_REGISTER_UNIVERSE
+
+
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 #include <stdio.h>
@@ -526,7 +529,7 @@ static void  __load()
 {
    static int  has_loaded;
 
-   fprintf( stderr, "--> __load\n");
+   mulle_fprintf( stderr, "--> __load\n");
 
    // windows w/o mulle-clang
    if( has_loaded)
@@ -537,7 +540,6 @@ static void  __load()
 }
 
 
-MULLE_C_EXTERN_GLOBAL
 MULLE_C_CONST_RETURN 
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
@@ -565,32 +567,32 @@ int   main( int argc, const char * argv[])
    __load();
 #endif
 
-   fprintf( stderr, "--> main\n");
+   mulle_fprintf( stderr, "--> main\n");
 
    // obj = [[Foo alloc] init];
 
-   fprintf( stderr, "-==> mulle_objc_fastlookup_infraclass_nofail()\n");
+   mulle_fprintf( stderr, "-==> mulle_objc_fastlookup_infraclass_nofail()\n");
    cls = mulle_objc_global_lookup_infraclass_nofail( MULLE_OBJC_DEFAULTUNIVERSEID, ___Foo_classid);
 
-   fprintf( stderr, "-==> _mulle_objc_infraclass_setup_if_needed()\n");
+   mulle_fprintf( stderr, "-==> _mulle_objc_infraclass_setup_if_needed()\n");
    _mulle_objc_infraclass_setup_if_needed( cls);
 
-   fprintf( stderr, "-==> mulle_objc_infraclass_alloc_instance()\n");
+   mulle_fprintf( stderr, "-==> mulle_objc_infraclass_alloc_instance()\n");
    obj = mulle_objc_infraclass_alloc_instance( cls);
 
-   fprintf( stderr, "-==> mulle_objc_object_call( ... ___init__methodid ...)\n");
+   mulle_fprintf( stderr, "-==> mulle_objc_object_call( ... ___init__methodid ...)\n");
    obj = (void *) mulle_objc_object_call( obj, ___init__methodid, NULL); // init == 0xa8ba672d
 
    // [obj setA:18 b:48];
-   fprintf( stderr, "-==> mulle_objc_object_call( ... ___setA_b___methodid ...)\n");
+   mulle_fprintf( stderr, "-==> mulle_objc_object_call( ... ___setA_b___methodid ...)\n");
    mulle_objc_object_call( obj, ___setA_b___methodid, &(struct { int a; int b; }){ .a = 18, .b = 48 });
 
    // [obj print];
-   fprintf( stderr, "-==> mulle_objc_object_call( ... ___print__methodid ...)\n");
+   mulle_fprintf( stderr, "-==> mulle_objc_object_call( ... ___print__methodid ...)\n");
    mulle_objc_object_call( obj, ___print__methodid, NULL);
 
    // [obj release];
-   fprintf( stderr, "-==> mulle_objc_instance_free( ... )\n");
+   mulle_fprintf( stderr, "-==> mulle_objc_instance_free( ... )\n");
    mulle_objc_instance_free( obj);
 
    return 0;

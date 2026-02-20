@@ -12,7 +12,7 @@ int main(void)
     universe = mulle_objc_global_get_defaultuniverse();
     
     if (universe) {
-        printf("Default universe: %p\n", (void *)universe);
+        mulle_printf("Default universe: %p\n", (void *)universe);
     }
     
     return 0;

@@ -16,6 +16,8 @@
 #endif
 
 
+#define MULLE_OBJC_DEFINE_REGISTER_UNIVERSE
+
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
@@ -285,7 +287,7 @@ static void  __load()
 {
    static int  has_loaded;
 
-   fprintf( stderr, "--> __load\n");
+   mulle_fprintf( stderr, "--> __load\n");
 
    // windows w/o mulle-clang
    if( has_loaded)
@@ -296,7 +298,6 @@ static void  __load()
 }
 
 
-MULLE_C_GLOBAL
 MULLE_C_CONST_RETURN 
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,

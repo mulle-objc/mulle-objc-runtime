@@ -256,6 +256,7 @@ static inline void
 // 1 means successfully, set
 // 0 means is already set
 //
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
                                        unsigned int bit);
 
@@ -263,6 +264,7 @@ int   _mulle_objc_class_set_state_bit( struct _mulle_objc_class *cls,
 // 1 means successfully cleared
 // 0 means is already clear
 //
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_class_clear_state_bit( struct _mulle_objc_class *cls,
                                         unsigned int bit);
 
@@ -295,6 +297,7 @@ static inline int   _mulle_objc_class_is_protocolclass( struct _mulle_objc_class
 }
 
 
+MULLE_OBJC_RUNTIME_GLOBAL
 char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit);
 
 

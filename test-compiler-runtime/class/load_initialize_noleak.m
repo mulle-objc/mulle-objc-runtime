@@ -16,7 +16,7 @@
 
 + (void) load
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 + (void) nop
@@ -30,7 +30,7 @@
 
 + (void) initialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 @end
@@ -40,12 +40,12 @@
 
 + (void) load
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 + (void) initialize
 {
-   printf( "%s\n", __PRETTY_FUNCTION__);
+   mulle_printf( "%s\n", __PRETTY_FUNCTION__);
 }
 
 @end

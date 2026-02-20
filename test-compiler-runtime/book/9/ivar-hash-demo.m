@@ -31,7 +31,7 @@ int main(void)
         if (ivar)
         {
             offset = mulle_objc_ivar_get_offset(ivar);
-            printf("Ivar 'isa' offset: %d\n", offset);
+            mulle_printf("Ivar 'isa' offset: %d\n", offset);
         }
     }
     

@@ -26,12 +26,12 @@ int main(void)
     
     ivar = _mulle_objc_infraclass_search_ivar(cls, mulle_objc_uniqueid_from_string("number"));
     if (ivar) {
-        printf("Offset of 'number': %d bytes\n", ivar->offset);
+        mulle_printf("Offset of 'number': %d bytes\n", ivar->offset);
     }
     
     ivar = _mulle_objc_infraclass_search_ivar(cls, mulle_objc_uniqueid_from_string("text"));
     if (ivar) {
-        printf("Offset of 'text': %d bytes\n", ivar->offset);
+        mulle_printf("Offset of 'text': %d bytes\n", ivar->offset);
     }
     
     return 0;

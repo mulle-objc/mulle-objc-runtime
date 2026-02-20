@@ -26,6 +26,12 @@ if( NOT LIBRARY_DOWNCASE_IDENTIFIER)
    string( TOLOWER "${LIBRARY_IDENTIFIER}" LIBRARY_DOWNCASE_IDENTIFIER)
 endif()
 
+if( BUILD_SHARED_LIBS)
+   message( STATUS "Building dynamic \"${LIBRARY_NAME}\"")
+else()
+   message( STATUS "Building static \"${LIBRARY_NAME}\"")
+endif()
+
 # if( NOT LIBRARY_DOWNCASE_IDENTIFIER)
 #    string( TOLOWER "${LIBRARY_IDENTIFIER}" LIBRARY_DOWNCASE_IDENTIFIER)
 # endif()
@@ -41,9 +47,11 @@ if( NOT LIBRARY_RESOURCES)
    set( __LIBRARY_RESOURCES_UNSET ON)
 endif()
 
+option( DLL_EXPORT_ALL "Export all global symbols for DLL" ON)
+set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ${DLL_EXPORT_ALL})
+
 
 include( PreLibrary OPTIONAL)
-
 
 # support header only library, and library just made up of pre-compiled
 # object files
@@ -51,9 +59,6 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
    # RPATH must be ahead of add_library, but is it really needed ?
    include( InstallRpath OPTIONAL)
 
-   option( DLL_EXPORT_ALL "Export all global symbols for DLL" ON)
-
-   set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ${DLL_EXPORT_ALL})
 
    set( ALL_OBJECT_FILES
       ${OTHER_LIBRARY_OBJECT_FILES}
@@ -67,7 +72,7 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
    # This allows PostLibrary to run an analysis step over PROJECT_FILES and
    # generate files to be included by STAGE2_SOURCES. If there are no
    # STAGE2_SOURCES then this is just a more verbose way of doing it.
-   # OBJC_LOADER_INC is the generated analysis step.
+   # OBJC_DEPS_INC is the generated analysis step.
    #
    # This also enables parallel builds, when the products for a link aren't
    # available yet.
@@ -89,14 +94,8 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
       set_target_properties( ${LIBRARY_COMPILE_TARGET}
          PROPERTIES
             CXX_STANDARD 11
-#            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
       )
-
       target_compile_definitions( ${LIBRARY_COMPILE_TARGET} PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
-
-      #
-      # Sometimes needed for elder linux ? Seen on xenial, with mulle-mmap
-      #
       if( BUILD_SHARED_LIBS)
          set_property( TARGET ${LIBRARY_COMPILE_TARGET} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
       endif()
@@ -118,20 +117,20 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
          $<TARGET_OBJECTS:${LIBRARY_STAGE2_TARGET}>
       )
 
+      # set on all stages
       set_target_properties( ${LIBRARY_STAGE2_TARGET}
          PROPERTIES
             CXX_STANDARD 11
-#            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
       )
       target_compile_definitions( ${LIBRARY_STAGE2_TARGET} PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
-
       if( BUILD_SHARED_LIBS)
-         set_property(TARGET ${LIBRARY_STAGE2_TARGET} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+         set_property( TARGET ${LIBRARY_STAGE2_TARGET} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
       endif()
    else()
       if( STAGE2_HEADERS)
          message( SEND_ERROR "No STAGE2_SOURCES found but STAGE2_HEADERS exist")
       endif()
+      unset( LIBRARY_STAGE2_TARGET)
    endif()
 
 
@@ -159,24 +158,14 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
          add_dependencies( "${LIBRARY_NAME}" ${LIBRARY_STAGE2_TARGET})
       endif()
 
-      # MEMO: DEFINE_SYMBOL is only active when building shared libs
-      #                     we want it for static too..
-      set_target_properties( "${LIBRARY_NAME}"
-         PROPERTIES
-            CXX_STANDARD 11
-#            DEFINE_SYMBOL "${LIBRARY_UPCASE_IDENTIFIER}_SHARED_BUILD"
-      )
-      target_compile_definitions( "${LIBRARY_NAME}" PRIVATE "${LIBRARY_UPCASE_IDENTIFIER}_BUILD")
-
-      # output library with 'd' suffix when in windows (and creating a debug lib)
-      if( MSVC)
-         set_target_properties( "${LIBRARY_NAME}" PROPERTIES DEBUG_POSTFIX "d")
-      endif()
-      
       #
       # allow forward definitions in shared library
       #
       option( SHARED_UNRESOLVED_SYMBOLS "Shared libraries may have unresolved symbols" ON)
+      # output library with 'd' suffix when in windows (and creating a debug lib)
+      if( MSVC)
+         set_target_properties( "${LIBRARY_NAME}" PROPERTIES DEBUG_POSTFIX "d")
+      endif()
 
       include( LibraryAux OPTIONAL)
 

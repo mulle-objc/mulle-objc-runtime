@@ -55,51 +55,59 @@
 
 #pragma mark - default universe (0)
 
+// must "unhide" this for windows :(
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_universe   mulle_objc_defaultuniverse;
+
+
 // always returns same value (in same thread)
 MULLE_C_CONST_NONNULL_RETURN static inline struct _mulle_objc_universe *
    mulle_objc_global_get_defaultuniverse( void)
 {
-   MULLE_OBJC_RUNTIME_GLOBAL
-      struct _mulle_objc_universe   mulle_objc_defaultuniverse;
-
    assert( ! _mulle_objc_universe_is_uninitialized( &mulle_objc_defaultuniverse) \
                && "The universe not initialized yet.\nIs a C function - possibly __attribute__((constructor)) - calling Objective-C prematurely? ");
    return( &mulle_objc_defaultuniverse);
 }
 
+
 // only __mulle_objc_global_get_universe should use this
 MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_universe  *
    __mulle_objc_global_get_defaultuniverse( void)
 {
-   MULLE_OBJC_RUNTIME_GLOBAL
-      struct _mulle_objc_universe   mulle_objc_defaultuniverse;
-
    return( &mulle_objc_defaultuniverse);
 }
 
 #pragma mark - named universes
 
+// must "unhide" this for windows :(
+
+struct mulle_objc_universe_init_wrapper_for_windows
+{
+   struct mulle_concurrent_hashmap   map;
+   int                               initvalue;
+};
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct mulle_objc_universe_init_wrapper_for_windows   mulle_objc_universetable;
+
 // only __mulle_objc_global_get_universe should use this
 static inline struct _mulle_objc_universe  *
    __mulle_objc_global_lookup_universe( mulle_objc_universeid_t universeid)
 {
-   MULLE_OBJC_RUNTIME_GLOBAL
-      struct mulle_concurrent_hashmap   mulle_objc_universetable;
 
-   return( mulle_concurrent_hashmap_lookup( &mulle_objc_universetable, universeid));
+   return( mulle_concurrent_hashmap_lookup( &mulle_objc_universetable.map, universeid));
 }
 
 
 static inline struct _mulle_objc_universe  *
    mulle_objc_global_lookup_universe( mulle_objc_universeid_t universeid)
 {
-   MULLE_OBJC_RUNTIME_GLOBAL
-      struct mulle_concurrent_hashmap   mulle_objc_universetable;
    struct _mulle_objc_universe  *universe;
 
    assert( universeid && "lookup would fail for default universe (use mulle_objc_global_get_universe)");
 
-   universe = mulle_concurrent_hashmap_lookup( &mulle_objc_universetable, universeid);
+   universe = mulle_concurrent_hashmap_lookup( &mulle_objc_universetable.map, universeid);
    assert( ! universe || ! _mulle_objc_universe_is_uninitialized( universe) \
                && "universe not initialized yet");
    return( universe);

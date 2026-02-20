@@ -135,12 +135,14 @@ static void   test_simple_retain_release( struct _mulle_objc_infraclass *A_infra
 static void   test_permanent_retain_release( struct _mulle_objc_infraclass *A_infra)
 {
    struct _mulle_objc_object   *a;
-   long                        retain_count;
+   intptr_t                     retain_count;
 
    a = _mulle_objc_infraclass_allocator_alloc_instance_extra( A_infra, 0, &my_allocator);
    _mulle_objc_object_constantify_noatomic( a);
 
    retain_count = mulle_objc_object_get_retaincount( a);
+   assert( mulle_objc_object_get_retaincount( a) == MULLE_OBJC_NEVER_RELEASE);
+
    mulle_objc_object_call_retain( a);
    assert( mulle_objc_object_get_retaincount( a) == retain_count);
 

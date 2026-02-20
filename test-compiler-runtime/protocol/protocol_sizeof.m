@@ -3,6 +3,6 @@
 
 int   main( void)
 {
-   printf( "%s\n",
+   mulle_printf( "%s\n",
       sizeof( mulle_objc_protocolid_t) == sizeof( PROTOCOL) ? "YES" : "NO");
 }

@@ -119,7 +119,8 @@ void   _mulle_objc_vperror_abort( char *format, va_list args)
 }
 
 
-MULLE_C_NO_RETURN MULLE_C_NEVER_INLINE
+MULLE_C_NO_RETURN
+MULLE_C_NEVER_INLINE
 void   _mulle_objc_printf_abort( char *format, ...)
 {
    va_list   args;
@@ -165,12 +166,12 @@ static void   *mulle_objc_create_debug_symbol( const char* symbol_name, void *ta
       source_path = mulle_buffer_get_string( source);
 
       fp = fopen( source_path, "w");
-      fprintf( fp, "struct va_list;\n");
-      fprintf( fp, "typedef void (*fn_ptr)( char *, struct va_list *);\n");
-      fprintf( fp, "static void   debug_trampoline( char *a, struct va_list *b)\n"
+      mulle_fprintf( fp, "struct va_list;\n");
+      mulle_fprintf( fp, "typedef void (*fn_ptr)( char *, struct va_list *);\n");
+      mulle_fprintf( fp, "static void   debug_trampoline( char *a, struct va_list *b)\n"
                    "{\n   (*(fn_ptr) %p)( a, b);\n}\n", target_fn);
-      fprintf( fp, "asm(\".globl \\\"%s\\\"\");\n", symbol_name);
-      fprintf( fp, "asm(\".set \\\"%s\\\", debug_trampoline\");\n", symbol_name);
+      mulle_fprintf( fp, "asm(\".globl \\\"%s\\\"\");\n", symbol_name);
+      mulle_fprintf( fp, "asm(\".set \\\"%s\\\", debug_trampoline\");\n", symbol_name);
       fclose( fp);
 
       mulle_buffer_do( library)
@@ -264,7 +265,7 @@ char   *mulle_objc_known_name_for_uniqueid( mulle_objc_uniqueid_t uniqueid)
 
    case MULLE_OBJC_MULLE_ALLOCATOR_METHODID : return( "mulleAllocator");
 
-   case 0x47a9beb6                          : return( "MulleObjCLoader");
+   case 0x3c20656f                          : return( "MulleObjCDeps");
    case 0x58bb178a                          : return( "NSAutoreleasePool");
    case 0xa41284db                          : return( "NSException");
    }
@@ -354,7 +355,7 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    _mulle_objc_object_abort_wrongthread( struct _mulle_objc_object *obj,
-                                         mulle_thread_t affinity_thread,
+                                         mulle_thread_id_t affinity_thread,
                                          struct _mulle_objc_descriptor *desc)
 {
    struct _mulle_objc_class   *cls;
@@ -363,7 +364,7 @@ MULLE_C_NO_RETURN void
    cls    = _mulle_objc_object_get_isa( obj);
    ismeta = _mulle_objc_class_is_metaclass( cls);
 
-   if( affinity_thread == (mulle_thread_t) -1)
+   if( affinity_thread == (mulle_thread_id_t) -1)
    {
       _mulle_objc_printf_abort( "%s <%s %p> with no affinity to any thread "
                                 "gets a -%s call from thread %p",
@@ -371,7 +372,7 @@ MULLE_C_NO_RETURN void
                                 _mulle_objc_class_get_name( cls),
                                 obj,
                                 _mulle_objc_descriptor_get_name( desc),
-                                mulle_thread_self());
+                                (void *) mulle_thread_id());
    }
 
    _mulle_objc_printf_abort( "%s <%s %p> with affinity to thread %p "
@@ -379,9 +380,9 @@ MULLE_C_NO_RETURN void
                              ismeta ? "Class" : "Object",
                              _mulle_objc_class_get_name( cls),
                              obj,
-                             affinity_thread,
+                             (void *) affinity_thread,
                              _mulle_objc_descriptor_get_name( desc),
-                             mulle_thread_self());
+                             (void *) mulle_thread_id());
 }
 
 
@@ -512,7 +513,7 @@ MULLE_C_NO_RETURN void
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_wrongthread( struct _mulle_objc_universe *universe,
                                          struct _mulle_objc_object *obj,
-                                         mulle_thread_t affinity_thread,
+                                         mulle_thread_id_t affinity_thread,
                                          struct _mulle_objc_descriptor *desc)
 {
    if( ! universe || _mulle_objc_universe_is_uninitialized( universe))

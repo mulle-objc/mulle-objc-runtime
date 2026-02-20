@@ -126,10 +126,13 @@ struct mulle_objc_signaturesupplier
 };
 
 
-typedef void  (*mulle_objc_type_parse_callback_t)( char *type, struct mulle_objc_typeinfo *info, void *userinfo);
+typedef void  (*mulle_objc_type_parse_callback_t)( char *type,
+                                                   struct mulle_objc_typeinfo *info,
+                                                   void *userinfo);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int   _mulle_objc_signature_supply_scalar_typeinfo( char c, struct mulle_objc_typeinfo *info);
+int   _mulle_objc_signature_supply_scalar_typeinfo( char c,
+                                                    struct mulle_objc_typeinfo *info);
 
 //
 // low level routine, you are "supposed to" use a wrapper function like
@@ -395,6 +398,7 @@ static inline int   _mulle_objc_type_is_fp( char *type)
 // coming up. Should be faster than parse and compare. Algorithm believes its
 // being fed only well formed types though.
 //
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_type_is_equal_to_type( char *type_a, char *type_b);
 
 
@@ -415,8 +419,11 @@ static inline enum mulle_metaabi_param
  * they check if two structs/unions/array are fundamentally the same
  * e.g. CGPoint == float[ 2]
  */
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_typeinfo_is_binary_compatible( struct mulle_objc_typeinfo *a,
                                                  struct mulle_objc_typeinfo *b);
+
+MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_ivarsignature_is_binary_compatible( char *a, char *b);
 
 
