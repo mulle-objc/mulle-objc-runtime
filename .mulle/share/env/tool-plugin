@@ -12,6 +12,7 @@ chown;required
 clear
 column
 cp;required
+cs
 curl
 cut;required
 date;required

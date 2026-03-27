@@ -49,17 +49,22 @@ if( NOT __ALL_LOAD_C_CMAKE__)
    # ALL_LOAD_PREFIX can be set to "-Xlinker -reexport_library " and then 
    # symbols will be reexported. 
    #
-   function( CreateForceAllLoadList listname outputname)
+   # For Windows if we are actuall linking shared libraries, --wholearchive
+   # is a) not needed and b) a bad idea
+   function( CreateForceAllLoadList listname outputname leftovername)
       set( list "")
+      set( leftovers "${${leftovername}}")
       if( ${listname})
          set( list ${BEGIN_ALL_LOAD})
          foreach( library ${${listname}})
+            if( WIN32 OR MINGW)
+               if( "${library}" MATCHES "\\.dll\\.a$")
+                  list( PREPEND leftovers "${library}")
+                  continue()
+               endif()
+            endif()
             if( APPLE)
                list( APPEND list "${ALL_LOAD_PREFIX}${library}")
-               # if FORCE_LOAD_PREFIX is empty, we can skip the output
-               # which is handy sometimes when we have dynamic frameworks
-               # (hacque). But only on APPLE, where we emitted something
-               # already...
                if( FORCE_LOAD_PREFIX)
                   list( APPEND list "${FORCE_LOAD_PREFIX}${library}")
                endif()
@@ -70,7 +75,10 @@ if( NOT __ALL_LOAD_C_CMAKE__)
          list( APPEND list ${END_ALL_LOAD})
       endif()
       set( ${outputname} "${list}" PARENT_SCOPE)
+      set( ${leftovername} "${leftovers}" PARENT_SCOPE)
    endfunction()
+
+
 
    include( AllLoadAuxC OPTIONAL)
 
