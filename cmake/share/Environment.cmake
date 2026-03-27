@@ -24,6 +24,7 @@ if( NOT __ENVIRONMENT__CMAKE__)
       string( TOLOWER "${PROJECT_IDENTIFIER}" PROJECT_DOWNCASE_IDENTIFIER)
    endif()
 
+
    if( NOT MULLE_VIRTUAL_ROOT)
       set( MULLE_VIRTUAL_ROOT "$ENV{MULLE_VIRTUAL_ROOT}")
       if( NOT MULLE_VIRTUAL_ROOT)
@@ -161,6 +162,12 @@ if( NOT __ENVIRONMENT__CMAKE__)
    set( TMP_CMAKE_LIBRARY_PATH)
    set( TMP_CMAKE_FRAMEWORK_PATH)
 
+   message( STATUS "")
+   message( STATUS "PROJECT_NAME=\"{PROJECT_NAME}\""                 )
+   message( STATUS "")
+   message( STATUS "MULLE_VIRTUAL_ROOT=\"{MULLE_VIRTUAL_ROOT}\""     )
+
+
    message( STATUS "MULLE_SDK_DEPENDENCY_DIR=\"${MULLE_SDK_DEPENDENCY_DIR}\"")
    message( STATUS "MULLE_SDK_FALLBACK_SUBDIR=\"${MULLE_SDK_FALLBACK_SUBDIR}\"")
    message( STATUS "MULLE_SDK_PATH=\"${MULLE_SDK_PATH}\"")
@@ -287,6 +294,14 @@ if( NOT __ENVIRONMENT__CMAKE__)
    #
    if( MSVC AND NOT CMAKE_DEBUG_POSTFIX AND "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
       set( CMAKE_DEBUG_POSTFIX "d")
+   endif()
+
+   if( WIN32)
+      if( BUILD_SHARED_LIBS)
+         set( CMAKE_FIND_LIBRARY_SUFFIXES ".dll.a;.a;.lib;.dll")
+      else()
+         set( CMAKE_FIND_LIBRARY_SUFFIXES ".a;.lib;.dll.a;.dll")
+      endif()
    endif()
 
    unset( TMP_INCLUDE_DIRS)

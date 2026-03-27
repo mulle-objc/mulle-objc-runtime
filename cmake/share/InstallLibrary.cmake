@@ -29,7 +29,17 @@ if( LINK_PHASE)
 
    include( StringCase)
 
-   install( TARGETS ${INSTALL_LIBRARY_TARGETS} DESTINATION "lib")
+   #
+   # Use explicit per-artifact destinations so CMake handles all platforms
+   # correctly:
+   #   RUNTIME = DLLs on Windows  -> bin
+   #   LIBRARY = shared libs on Unix -> lib
+   #   ARCHIVE = static libs + import libs -> lib
+   #
+   install( TARGETS ${INSTALL_LIBRARY_TARGETS}
+            RUNTIME DESTINATION "bin"
+            LIBRARY DESTINATION "lib"
+            ARCHIVE DESTINATION "lib")
 
    foreach( TMP_NAME ${INSTALL_LIBRARY_TARGETS})
       snakeCaseString( "${TMP_NAME}" TMP_IDENTIFIER)

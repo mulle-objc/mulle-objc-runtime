@@ -1,14 +1,20 @@
 # mulle-sde Dependency and File inclusion guidelines
-<!-- Keywords: craft, build, run -->
+<!-- Keywords: mulle-sde, sourcetree, dependency, craft, build, run -->
+
+You should add third party dependencies and your own projects that are missing
+from project with `mulle-sde dependency add`.
+
+You should add system libraries like `m` or `pthreads` with `mulle-sde library add`.
 
 You should add remote single files like `stb_image.h` or complete repositories
-like  `zlib` with the `mulle-sde dependency` command. Check out the help
-file for examples:
+like  `zlib` with the `mulle-sde dependency add` command.
+
+Check out the help for bot commands for easy to reuse examples:
 
 ```bash
 mulle-sde dependency help
+mulle-sde library help
 ```
-
 
 ## Preference for github repositories
 
@@ -34,6 +40,19 @@ mulle-sourcetree-to-c --show-marks
 mulle-sourcetree-to-cmake --show-marks
 ```
 
+Some important marks:
+
+| Mark               | Meaning
+|--------------------|----------------------------
+|no-bequeath         | is not inheritable
+|no-platform-windows | not available on windows
+
+## Dependency Order
+
+If dependency `a` depends on dependency `b` it must be ordered after `b`.
+This rule is relaxed if both dependencies are `no-singlephase` and aren't
+gapped by a dependency that is `singlephase` (as no `no-singlephase`).
+
 
 ## Debug cmake find_library
 
@@ -57,63 +76,8 @@ default SDK `Default` are folded in.
 /home/nat/.mulle/var/cache/sde/mulle-time-9ffd13004743/dependency
 ├── bin
 ├── Debug
-│   ├── bin
-│   ├── include
-│   │   ├── include.h
-│   │   ├── mulle-c11
-│   │   │   ├── mulle-c11-align.h
-│   │   │   └── mulle-c11-integer.h
-│   │   └── mulle-time
-│   │       ├── cmake
-│   │       │   ├── DependenciesAndLibraries.cmake
-│   │       │   ├── _Dependencies.cmake
-│   │       │   └── _Libraries.cmake
-│   │       ├── include.h
-│   │       ├── mulle-timetype.h
-│   │       └── mulle-timeval.h
-│   ├── lib
-│   │   ├── cmake
-│   │   │   └── mulle-c11
-│   │   │       └── mulle-c11-config.cmake
-│   │   └── libmulle-time.so
-│   └── share
-│       └── mulle-time
-│           └── dox
-│               └── TOC.md
 ├── etc
-│   ├── craftorder
-│   ├── done--Default-linux-Debug
-│   ├── done--Default-windows-Debug
-│   ├── link--Default-linux-Debug
-│   ├── link--Default-linux-Debug--startup
-│   ├── link--Default-windows-Debug
-│   └── link--Default-windows-Debug--startup
 └── windows
-    └── Debug
-        ├── bin
-        ├── include
-        │   ├── include.h
-        │   ├── mulle-c11
-        │   │   ├── mulle-c11-align.h
-        │   │   └── mulle-c11-integer.h
-        │   └── mulle-time
-        │       ├── cmake
-        │       │   ├── DependenciesAndLibraries.cmake
-        │       │   ├── _Dependencies.cmake
-        │       │   └── _Libraries.cmake
-        │       ├── include.h
-        │       ├── mulle-absolutetime.h
-        │       └── mulle-timeval.h
-        ├── lib
-        │   ├── cmake
-        │   │   └── mulle-c11
-        │   │       └── mulle-c11-config.cmake
-        │   ├── libmulle-time.dll
-        │   └── libmulle-time.dll.a
-        └── share
-            └── mulle-time
-                └── dox
-                    └── TOC.md
 ```
 
 ### /etc
@@ -121,11 +85,9 @@ default SDK `Default` are folded in.
 ```
 ├── etc
 │   ├── craftorder
-│   ├── done--Default-linux-Debug
+|   |..
 │   ├── done--Default-windows-Debug
-│   ├── link--Default-linux-Debug
-│   ├── link--Default-linux-Debug--startup
-│   ├── link--Default-windows-Debug
+|   |..
 │   └── link--Default-windows-Debug--startup
 ```
 
@@ -146,24 +108,26 @@ line arguments to use to link the dependencies.
 ```
 └── windows
     └── Debug
-        ├── bin
+        |.. |..
         ├── include
         │   ├── include.h
         │   ├── mulle-c11
         │   │   ├── mulle-c11-align.h
+        |   |..
 ```
 
 ### Cmake inheritance
 
 ```
 ├── Debug
-│   ├── bin
+|.. |..
 │   ├── include
 │   │   └── mulle-time
 │   │       ├── cmake
 │   │       │   ├── DependenciesAndLibraries.cmake
 │   │       │   ├── _Dependencies.cmake
 │   │       │   └── _Libraries.cmake
+|   |       |..
 ```
 
 `DependenciesAndLibraries.cmake` is read by the custom mulle-sde cmake file
@@ -173,6 +137,8 @@ to inherit dependencies recursively from other dependencies.
 
 
 ```
+├── Debug
+|.. |..
 │   └── share
 │       └── mulle-time
 │           └── dox
