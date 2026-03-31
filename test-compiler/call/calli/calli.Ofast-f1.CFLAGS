@@ -1,1 +1,1 @@
--Ofast -fobjc-inline-method-calls=1 -g
+-Ofast -fobjc-inline-method-calls=1 -g -fobjc-tao

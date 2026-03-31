@@ -19,7 +19,6 @@
 
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-#include <mulle-objc-debug/mulle-objc-debug.h>
 #include <stdio.h>
 
 
@@ -310,7 +309,6 @@ int   main( int argc, const char * argv[])
    //    printf( "A\n");
 
    universe = mulle_objc_global_get_universe( UNIVERSE_ID);
-   mulle_objc_universe_dotdump_to_directory( universe, ".");
 
    if( mulle_objc_object_call( obj, ___conforms_to_protocol__methodid, &(struct { mulle_objc_protocolid_t a;  }){ .a = ___A__protocolid } ))
       printf( "A\n");

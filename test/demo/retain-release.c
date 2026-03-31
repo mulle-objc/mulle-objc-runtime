@@ -19,7 +19,6 @@
 
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-#include <mulle-objc-debug/mulle-objc-debug.h>
 #include <stdio.h>
 
 

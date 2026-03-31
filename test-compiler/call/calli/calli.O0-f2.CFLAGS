@@ -1,1 +1,1 @@
--O0 -fobjc-inline-method-calls=2 -g
+-O0 -fobjc-inline-method-calls=2 -g -fobjc-tao

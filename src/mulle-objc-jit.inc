@@ -35,21 +35,24 @@
 //
 
 //
-// the mulle-clang compiler needs a small subset of the mulle-objc-runtime
+// MEMO: An older version used to be used by mulle-lldb I believe, now its
+//       unused AFAIK
+//
+// The mulle-clang compiler needs a small subset of the mulle-objc-runtime
 // for operation. For JIT operation use of the full mulle-objc-runtime
 // header is preferred. But if locating the proper header is impossible
 // (say during deployment) but the content of the file at the top of your
 // JIT code.
 //
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0   // max 511
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  27  // max 1023
+#define MULLE_OBJC_RUNTIME_VERSION_MINOR  28  // max 1023
 #define MULLE_OBJC_RUNTIME_VERSION_PATCH  0   // max 255
 
 //
 // up the number if binary loads are incompatible
 // this is read and checked by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   18
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   19
 
 
 #ifndef __TEST_VERSION
@@ -68,7 +71,7 @@
 
 struct _mulle_objc_infraclass;
 
-// preferably defined elsewhre
+// preferably defined elsewhere
 typedef int    mulle_objc_uniqueid_t;  // ** MUST BE 32 bit (on the stack) **
 
 
@@ -85,8 +88,8 @@ static inline struct _mulle_objc_infraclass *
 
 static inline void  *
 	mulle_objc_object_call_inline( void *obj,
-                                                 mulle_objc_uniqueid_t methodid,
-                                                 void *parameter)
+                                  mulle_objc_uniqueid_t methodid,
+                                  void *parameter)
 {
 	extern void  *mulle_objc_object_call( void *obj,
                                         mulle_objc_uniqueid_t methodid,
@@ -97,18 +100,18 @@ static inline void  *
 
 
 static inline void  *
-   mulle_objc_object_supercall_inline( void *obj,
-                                       mulle_objc_uniqueid_t methodid,
-                                       void *parameter,
-                                       mulle_objc_uniqueid_t superid)
+   mulle_objc_object_call_super_inline( void *obj,
+                                        mulle_objc_uniqueid_t methodid,
+                                        void *parameter,
+                                        mulle_objc_uniqueid_t superid)
 {
 	extern void  *
-	   mulle_objc_object_supercall( void *obj,
+	   mulle_objc_object_call_super( void *obj,
 	                                 mulle_objc_uniqueid_t methodid,
 	                                 void *parameter,
 	                                 mulle_objc_uniqueid_t superid);
 
-	return( mulle_objc_object_supercall( obj, methodid, parameter, superid));
+	return( mulle_objc_object_call_super( obj, methodid, parameter, superid));
 }
 
 
@@ -150,18 +153,18 @@ static inline void  *
 
 
 static inline void   *
-   mulle_objc_object_supercall_inline_partial( void *obj,
-                                              mulle_objc_uniqueid_t methodid,
-                                              void *parameter,
-                                              mulle_objc_uniqueid_t superid)
+   mulle_objc_object_call_super_inline_partial( void *obj,
+                                                mulle_objc_uniqueid_t methodid,
+                                                void *parameter,
+                                                mulle_objc_uniqueid_t superid)
 {
 	extern void   *
-   	mulle_objc_object_supercall( void *obj,
-      	                          mulle_objc_uniqueid_t methodid,
+   	mulle_objc_object_call_super( void *obj,
+      	                           mulle_objc_uniqueid_t methodid,
          	                        void *parameter,
-            	                    mulle_objc_uniqueid_t superid);
+            	                     mulle_objc_uniqueid_t superid);
 
-	return( mulle_objc_object_supercall( obj, methodid, parameter, superid));
+	return( mulle_objc_object_call_super( obj, methodid, parameter, superid));
 }
 
 #endif

@@ -120,8 +120,7 @@ struct _mulle_objc_class *_mulle_objc_object_get_isa( void *obj)
       return( _mulle_objc_objectheader_get_isa( _mulle_objc_object_get_objectheader( obj)));
 
    universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
-   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly aligned ?");
-   infra    = universe->taggedpointers.pointerclass[ index];
+   infra    = __mulle_objc_universe_get_taggedpointerinfraclass( universe, index);
    return( _mulle_objc_infraclass_as_class( infra));
 }
 
@@ -138,10 +137,9 @@ static inline struct _mulle_objc_class  *__mulle_objc_object_get_isa( void *obj)
    index = mulle_objc_object_get_taggedpointerindex( obj);
    if( MULLE_C_EXPECT( ! index, MULLE_OBJC_CALL_PREFER_TPS)) // prefer tagged pointers path
       return( _mulle_objc_objectheader_get_isa( __mulle_objc_object_get_objectheader( obj)));
-
+                                             // ^----difference
    universe = mulle_objc_global_get_universe_inline( MULLE_OBJC_DEFAULTUNIVERSEID);
-   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly aligned ?");
-   infra    = universe->taggedpointers.pointerclass[ index];
+   infra    = __mulle_objc_universe_get_taggedpointerinfraclass( universe, index);
    return( _mulle_objc_infraclass_as_class( infra));
 }
 

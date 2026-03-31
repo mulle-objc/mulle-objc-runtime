@@ -18,7 +18,6 @@
 
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-#include <mulle-objc-debug/mulle-objc-debug.h>
 
 #include <stdio.h>
 
@@ -33,6 +32,22 @@ static char   *signatures[] =
    "i28@0:8q16f24",
    0
 };
+
+
+static void   mulle_objc_typeinfo_dump_to_file( struct mulle_objc_typeinfo *info,
+                                                char *indent,
+                                                FILE *fp)
+{
+   mulle_fprintf( fp, "%stype=%.*s\n", indent, (int) (info->pure_type_end - info->type), info->type);
+   mulle_fprintf( fp, "%sinvocation_offset=%d\n", indent, (int) info->invocation_offset);
+   mulle_fprintf( fp, "%snatural_size=%u\n", indent, (unsigned int) info->natural_size);
+   mulle_fprintf( fp, "%sbits_size=%u\n", indent, (unsigned int) info->bits_size);
+   mulle_fprintf( fp, "%sbits_struct_alignment=%u\n", indent, (unsigned int) info->bits_struct_alignment);
+   mulle_fprintf( fp, "%snatural_alignment=%u\n", indent, (unsigned int) info->natural_alignment);
+   mulle_fprintf( fp, "%sn_members= %d\n", indent, info->n_members);
+   mulle_fprintf( fp, "%shas_object= %d\n", indent, info->has_object);
+}
+
 
 
 static int   test_info( char *s)

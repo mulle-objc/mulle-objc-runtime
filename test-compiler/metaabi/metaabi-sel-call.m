@@ -6,6 +6,7 @@
 //  Copyright © 2015 Mulle kybernetiK. All rights reserved.
 //
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <mulle-core/mulle-core.h>
 #include <limits.h>
 #include <stdio.h>
 
@@ -23,13 +24,13 @@
                                   userInfo:(id) userInfo
                 fireUsesUserInfoAsArgument:(BOOL) flag
 {
-   printf( "%g %g %p %p %p %p\n",
-               seconds,
-               repeatSeconds,
-               (void *) target,
-               (void *) (uintptr_t) selector,
-               userInfo,
-               (void *) flag);
+   mulle_printf( "%g %g %p %p %p %p\n",
+                 seconds,
+                 repeatSeconds,
+                 (void *) target,
+                 (void *) (uintptr_t) selector,
+                 userInfo,
+                 (void *) flag);
 }
 
 @end

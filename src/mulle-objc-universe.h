@@ -298,6 +298,28 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_set_loadbit( struct _mulle_objc_universe *universe,
                                          uintptr_t value);
 
+#ifdef _WIN32
+MULLE_OBJC_RUNTIME_GLOBAL
+int   _mulle_objc_universe_tps_class_is_missing( struct _mulle_objc_universe *universe,
+                                                 unsigned int i);
+#endif
+
+
+static inline struct _mulle_objc_infraclass *
+   __mulle_objc_universe_get_taggedpointerinfraclass( struct _mulle_objc_universe  *universe,
+                                                      unsigned int index)
+{
+   struct _mulle_objc_infraclass  *infra;
+
+   assert( index && index <= mulle_objc_get_taggedpointer_mask());
+   infra = universe->taggedpointers.pointerclass[ index];
+#ifdef _WIN32
+   if( ! infra)
+      _mulle_objc_universe_tps_class_is_missing( universe, index);
+#endif
+   assert( universe->taggedpointers.pointerclass[ index] && "Tagged pointer class not configured. Is your object properly aligned ?");
+   return( infra);
+}
 
 //
 // returns 1 if index is out of bounds for this cpu
@@ -309,7 +331,7 @@ static inline struct _mulle_objc_infraclass *
    if( ! index || index > mulle_objc_get_taggedpointer_mask())
       return( (void *) -1);
 
-   return( universe->taggedpointers.pointerclass[ index]);
+   return( __mulle_objc_universe_get_taggedpointerinfraclass( universe, index));
 }
 
 
@@ -754,6 +776,7 @@ static inline struct _mulle_objc_descriptor *
 }
 
 // get name from methodid for example
+MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_descriptor *
    mulle_objc_universe_lookup_descriptor_nofail( struct _mulle_objc_universe *universe,
                                                  mulle_objc_methodid_t methodid);
@@ -781,6 +804,8 @@ typedef mulle_objc_walkcommand_t
    (*mulle_objc_walk_hashmap_callback_t)( struct _mulle_objc_universe *,
                                           void *,
                                           void *);
+
+MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
    _mulle_objc_universe_walk_hashmap( struct _mulle_objc_universe  *universe,
                                       struct mulle_concurrent_hashmap *hashmap,

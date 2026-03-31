@@ -139,19 +139,19 @@ main()
             if [ -z "${optimization}" ]
             then
                name="calli.none"
-               redirect_exekutor "${name}.CFLAGS" echo "-g"
+               redirect_exekutor "${name}.CFLAGS" echo "-g -fobjc-tao"
             else
                name="calli.O${optimization}"
-               redirect_exekutor "${name}.CFLAGS" echo "-O${optimization} -g"
+               redirect_exekutor "${name}.CFLAGS" echo "-O${optimization} -g -fobjc-tao"
             fi
          else
             if [ -z "${optimization}" ]
             then
                name="calli.f${call}"
-               redirect_exekutor "${name}.CFLAGS" echo "-fobjc-inline-method-calls=${call} -g"
+               redirect_exekutor "${name}.CFLAGS" echo "-fobjc-inline-method-calls=${call} -g -fobjc-tao"
             else
                name="calli.O${optimization}-f${call}"
-               redirect_exekutor "${name}.CFLAGS" echo "-O${optimization} -fobjc-inline-method-calls=${call} -g"
+               redirect_exekutor "${name}.CFLAGS" echo "-O${optimization} -fobjc-inline-method-calls=${call} -g -fobjc-tao"
             fi
          fi
 

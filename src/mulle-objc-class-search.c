@@ -905,7 +905,8 @@ retry:
 
       assert( result->error == ENOENT);
 
-      // returns 0 if we should retry, must not return 0 if nothing changed
+      // method_is_missing returns 0, if we should retry.
+      // It must not return 0 if nothing changed
       if( ! _mulle_objc_universe_is_deinitializing( cls->universe))
          if( ! cls->universe->callback.method_is_missing( cls->universe, cls, search->args.methodid))
             goto retry;

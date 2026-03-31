@@ -1,1 +1,1 @@
--Oz -fobjc-inline-method-calls=5 -g
+-Oz -fobjc-inline-method-calls=5 -g -fobjc-tao

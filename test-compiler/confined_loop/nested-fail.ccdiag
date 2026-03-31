@@ -1,1 +1,1 @@
-only allowed in non-nested loops within
+only allowed in the outermost mulle_confined_loop
