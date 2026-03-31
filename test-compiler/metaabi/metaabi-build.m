@@ -6,6 +6,7 @@
 //  Copyright © 2024 Mulle kybernetiK. All rights reserved.
 //
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <mulle-core/mulle-core.h>
 #include <stdio.h>
 #include <ctype.h>
 

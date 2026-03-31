@@ -433,7 +433,7 @@ static inline enum mulle_metaabi_param   _mulle_metaabi_get_metaabiparamtype( ch
    case _C_ULNG_LNG  : return( mulle_metaabi_is_voidptr_storage_compatible( unsigned long long)
                                   ? mulle_metaabi_param_void_pointer
                                   : mulle_metaabi_param_struct);
-   case _C_PTR       : if( type[ 1] == '?')
+   case _C_PTR       : if( type[ 1] != '?')
                           return( mulle_metaabi_param_void_pointer);
                        return( mulle_metaabi_is_voidptr_storage_compatible( void( *)( void))
                                  ? mulle_metaabi_param_void_pointer

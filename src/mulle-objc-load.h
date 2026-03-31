@@ -71,7 +71,7 @@ struct _mulle_objc_dependency
 // We changed the fast method ids in 0.19. Does that mean we have to up the
 // load version ? No the runtime version check should be sufficient ?
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   18
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   19
 
 
 // future idea: specify more than one universe
@@ -246,7 +246,7 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_optlevel_1          = (1 << 8),
    _mulle_objc_loadinfo_optlevel_2          = (2 << 8),
    _mulle_objc_loadinfo_optlevel_3          = (3 << 8),
-   _mulle_objc_loadinfo_optlevel_s          = (7 << 8),  
+   _mulle_objc_loadinfo_optlevel_s          = (7 << 8),
 
    // 3 bits inline level
    _mulle_objc_loadinfo_inlinelevel_none    = (0 << 12),
@@ -256,8 +256,20 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_inlinelevel_full    = (4 << 12),
    // 1 bit unused
 
-   // next 12 bits free for foundation (future: somehow)
-   // last  4 bits free for user       (future: somehow)
+   // Brainstormed. Not for real yet.
+   // 12 bits used for code-features
+   _mulle_objc_loadinfo_no_pointer_dereference_read   = 0x010000,
+   _mulle_objc_loadinfo_no_pointer_dereference_write  = 0x020000,
+   _mulle_objc_loadinfo_no_pointer_arithmetic         = 0x040000,
+   _mulle_objc_loadinfo_no_c_data_pointer_changes     = 0x080000,
+
+   _mulle_objc_loadinfo_no_c_function_pointer_changes = 0x100000,
+   _mulle_objc_loadinfo_no_c_function_calls           = 0x200000,
+   _mulle_objc_loadinfo_no_alloc_free                 = 0x400000,
+   _mulle_objc_loadinfo_no_retain_release             = 0x800000
+
+   // next  2 bits free for foundation (future: somehow)
+   // last  2 bits free for user       (future: somehow)
 };
 
 

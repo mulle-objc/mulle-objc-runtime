@@ -45,6 +45,7 @@ mknod
 more
 mount
 mulle-column
+mulle-roam
 mv;required
 nano
 ninja
@@ -53,6 +54,7 @@ pwd;required
 readlink;required
 rmdir;required
 rm;required
+roam
 sed;required
 shasum
 sh;required

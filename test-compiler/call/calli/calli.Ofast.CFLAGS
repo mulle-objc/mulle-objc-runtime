@@ -1,1 +1,1 @@
--Ofast -g
+-Ofast -g -fobjc-tao

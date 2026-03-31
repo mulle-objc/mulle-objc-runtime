@@ -52,11 +52,11 @@
 +[A returnDoubleWithVA:] (4 , 1, 8, 4, 8) -> 18.54
 +[A returnVoidptr] -> 0x738
 +[A returnVoidptrWithFloat:] (18.48) -> 0x739
-+[A returnVoidptrWithDouble:] (18.48) -> 0x73A
-+[A returnVoidptrWithVoidptr:] (0x1848) -> 0x73B
-+[A returnVoidptrWithStruct:] ('b' 18.48 1848) -> 0x73C
-+[A returnVoidptrWithChar:double:int:] ('b' 18.48 1848) -> 0x73D
-+[A returnVoidptrWithVA:] (4 , 1, 8, 4, 8) -> 0x73E
++[A returnVoidptrWithDouble:] (18.48) -> 0x73a
++[A returnVoidptrWithVoidptr:] (0x1848) -> 0x73b
++[A returnVoidptrWithStruct:] ('b' 18.48 1848) -> 0x73c
++[A returnVoidptrWithChar:double:int:] ('b' 18.48 1848) -> 0x73d
++[A returnVoidptrWithVA:] (4 , 1, 8, 4, 8) -> 0x73e
 +[A returnStruct] -> a='a' b=18.48 c=1848
 +[A returnStructWithFloat:] (18.48) -> a='a' b=18.48 c=1859
 +[A returnStructWithDouble:] (18.48) -> a='a' b=18.48 c=1850

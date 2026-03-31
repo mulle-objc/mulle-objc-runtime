@@ -338,18 +338,18 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_classpair_add_categoryid( struct _mulle_objc_classpair *pair,
                                              mulle_objc_categoryid_t categoryid);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
+                                                   mulle_atomic_pointer_t *pointer,
+                                                   unsigned int n,
+                                                   mulle_objc_uniqueid_t *uniqueids,
+                                                   int sort);
 
 static inline void
    _mulle_objc_classpair_add_categoryids( struct _mulle_objc_classpair *pair,
                                           unsigned int n,
                                           mulle_objc_protocolid_t *categoryids)
 {
-   void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
-                                                      mulle_atomic_pointer_t *pointer,
-                                                      unsigned int n,
-                                                      mulle_objc_uniqueid_t *uniqueids,
-                                                      int sort);
-
    _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_categoryids.pointer, n, categoryids, 1);
 }
 
@@ -454,12 +454,6 @@ static inline void
                                           unsigned int n,
                                           mulle_objc_protocolid_t *protocolids)
 {
-   void  _mulle_objc_classpair_add_uniqueidarray_ids( struct _mulle_objc_classpair *pair,
-                                                      mulle_atomic_pointer_t *pointer,
-                                                      unsigned int n,
-                                                      mulle_objc_uniqueid_t *uniqueids,
-                                                      int sort);
-
    _mulle_objc_classpair_add_uniqueidarray_ids( pair, &pair->p_protocolids.pointer, n, protocolids, 1);
 }
 
@@ -604,11 +598,6 @@ struct _mulle_objc_infraclass  *
    _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover);
 
 
-
-
-
-
-
 #pragma mark - debug support
 
 MULLE_OBJC_RUNTIME_GLOBAL
@@ -616,7 +605,6 @@ mulle_objc_walkcommand_t
    mulle_objc_classpair_walk( struct _mulle_objc_classpair *pair,
                               mulle_objc_walkcallback_t callback,
                               void *userinfo);
-
 
 
 #pragma mark - conveniences for infraclass

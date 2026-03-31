@@ -7,31 +7,32 @@
 # If mulle-env is broken, sometimes its nice just to source this file.
 # If you're sourcing this manually on a regular basis, you're doing it wrong.
 #
-# We need some minimal stuff to get things going though:
-#     sed, cut, tr, hostname, pwd, uname
-#
-if [ -z "${MULLE_UNAME}" ]
-then
-   MULLE_UNAME="`PATH=/bin:/usr/bin uname | \
-                  PATH=/bin:/usr/bin cut -d_ -f1 | \
-                  PATH=/bin:/usr/bin sed 's/64$//' | \
-                  PATH=/bin:/usr/bin tr 'A-Z' 'a-z'`"
-   export MULLE_UNAME
-fi
-if [ -z "${MULLE_HOSTNAME}" ]
-then
-   MULLE_HOSTNAME="`PATH=/bin:/usr/bin:/sbin:/usr/sbin hostname -s`"
-   if [ "${MULLE_HOSTNAME:0:1}" = '.' ]
-   then
-      MULLE_HOSTNAME="_${MULLE_HOSTNAME}"
-   fi
-   export MULLE_HOSTNAME
-fi
 if [ -z "${MULLE_VIRTUAL_ROOT}" ]
 then
    MULLE_VIRTUAL_ROOT="`PATH=/bin:/usr/bin pwd -P`"
    echo "Using ${MULLE_VIRTUAL_ROOT} as MULLE_VIRTUAL_ROOT for \
 your convenience" >&2
+   export MULLE_VIRTUAL_ROOT
+fi
+
+if [ -z "${MULLE_VIRTUAL_ROOT_ID}" ]
+then
+   #
+   # create an identifier that changes with the location, the project is in
+   # usefule for related directories, that are placed outside of the
+   # project like maybe KITCHEN_DIR
+   #
+   MULLE_VIRTUAL_ROOT_ID="$(shasum -a 256 <<< "${MULLE_VIRTUAL_ROOT}")"
+   MULLE_VIRTUAL_ROOT_ID="${MULLE_VIRTUAL_ROOT_ID:1:12}"
+   export MULLE_VIRTUAL_ROOT_ID
+fi
+
+if [ -z "${MULLE_UNAME}" ]
+then
+   MULLE_UNAME="`PATH=/bin:/usr/bin uname -s 2> /dev/null | tr '[:upper:]' '[:lower:]'`"
+   MULLE_UNAME="${MULLE_UNAME:-unknown}"
+   echo "Using ${MULLE_UNAME} as MULLE_UNAME for your convenience" >&2
+   export MULLE_UNAME
 fi
 
 #
@@ -54,7 +55,7 @@ case "${MULLE_SHELL_MODE}" in
          ;;
 
          *\\h*)
-            PS1="$(sed 's/\\h/\\h\['${envname}'\]/' <<< '${PS1}' )"
+            PS1="$( PATH=/bin:/usr/bin sed 's/\\h/\\h\['${envname}'\]/' <<< "${PS1}" )"
          ;;
 
          *)
@@ -66,30 +67,32 @@ case "${MULLE_SHELL_MODE}" in
       unset envname
 
       # install cd catcher
-      . "${MULLE_ENV_LIBEXEC_DIR}/mulle-env-cd.sh"
-      unset MULLE_ENV_LIBEXEC_DIR
+      if [ ! -z "${MULLE_ENV_LIBEXEC_DIR}" ]
+      then
+         . "${MULLE_ENV_LIBEXEC_DIR}/mulle-env-cd.sh"
+         unset MULLE_ENV_LIBEXEC_DIR
+      fi
 
       # install mulle-env-reload
 
       alias mulle-env-reload='. "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/include-environment.sh"'
 
-
       #
       # source in any bash completion files
       #
-      DEFAULT_IFS="${IFS}"
-      shopt -s nullglob; IFS=$'\n'
-      for FILENAME in "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/libexec"/*-bash-completion.sh
+      # memo: nullglob not easily done on both bash and zsh
+      for filename in "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/libexec"/*-bash-completion.sh
       do
-         . "${FILENAME}"
+         if [ -f "${filename}" ]
+         then
+            . "${filename}"
+         fi
       done
-      shopt -u nullglob; IFS="${DEFAULT_IFS}"
 
-      unset DEFAULT_IFS
-      unset FILENAME
+      unset filename
 
-      vardir="${MULLE_VIRTUAL_ROOT}/.mulle/var/${MULLE_HOSTNAME}"
-      [ -d "${vardir}" ] || mkdir -p "${vardir}"
+      vardir="${MULLE_VIRTUAL_ROOT}/.mulle/var/${MULLE_HOSTNAME:-unknown-host}"
+      [ -d "${vardir}" ] || PATH=/bin:/usr/bin mkdir -p "${vardir}"
 
       HISTFILE="${vardir}/bash_history"
       export HISTFILE
@@ -124,37 +127,38 @@ unset TRACE
 
 case "${MULLE_SHELL_MODE}" in
    *INTERACTIVE*)
-      if [ -z "" ]
+      if [ -z "${MULLE_SDE_NO_ALIAS}" ]
       then
-         alias craftorder="mulle-sde craftorder"
          alias clean="mulle-sde clean"
          alias craft="mulle-sde craft"
+         alias craftorder="mulle-sde craftorder"
          alias dependency="mulle-sde dependency"
          alias environment="mulle-sde environment"
          alias extension="mulle-sde extension"
          alias fetch="mulle-sde fetch"
-         alias show="mulle-sde show"
-         alias list="mulle-sde list"
          alias library="mulle-sde library"
+         alias list="mulle-sde list"
          alias log="mulle-sde log"
          alias match="mulle-sde match"
          alias monitor="mulle-sde monitor"
-         alias reflect="mulle-sde reflect"
          alias patternfile="mulle-sde patternfile"
+         alias reflect="mulle-sde reflect"
+         alias run="mulle-sde run"
+         alias show="mulle-sde show"
          alias subproject="mulle-sde subproject"
       fi
 
-      if [ -z "" ]
+      if [ -z "${MULLE_SDE_NO_QUICK_ALIAS}" ]
       then
-         alias c="mulle-sde craft"
          alias C="mulle-sde clean; mulle-sde craft"
+         alias c="mulle-sde craft"
          alias CC="mulle-sde clean all; mulle-sde craft"
-         alias t="mulle-sde test rerun --serial"
-         alias tt="mulle-sde test craft ; mulle-sde test rerun --serial"
-         alias T="mulle-sde test craft ; mulle-sde test"
-         alias TT="mulle-sde test clean all; mulle-sde test"
+         alias l="mulle-sde files"
          alias r="mulle-sde reflect"
-         alias l="mulle-sde list --files"
+         alias T="mulle-sde test craft ; mulle-sde test"
+         alias t="mulle-sde test rerun --serial"
+         alias TT="mulle-sde test clean all; mulle-sde test"
+         alias tt="mulle-sde test craft ; mulle-sde test rerun --serial"
       fi
    ;;
 esac

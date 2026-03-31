@@ -90,7 +90,7 @@ static int   mulle_objc_missing_class_nop( struct _mulle_objc_universe  *univers
 
 void   mulle_objc_hang( void)
 {
-   mulle_fprintf( stderr, "Hanging for debugger to attach\n");
+   mulle_fprintf( stderr, "Hanging for debugger to attach (MULLE_OBJC_WARN_HANG)\n");
    for(;;)
       mulle_thread_yield();  // better for windows than sleep
 }
@@ -99,7 +99,10 @@ void   mulle_objc_hang( void)
 void   mulle_objc_universe_maybe_hang_or_abort( struct _mulle_objc_universe *universe)
 {
    if( universe->debug.warn.crash)
+   {
+      mulle_fprintf( stderr, "Crash on warning (MULLE_OBJC_WARN_CRASH)\n");
       abort();
+   }
    if( universe->debug.warn.hang)
       mulle_objc_hang();
 }
@@ -1219,14 +1222,34 @@ static void
 
 
 #ifdef _WIN32
+static BOOL  mulle_objc_universe_dll_trace_once;
+
+int   _mulle_objc_universe_tps_class_is_missing( struct _mulle_objc_universe *universe,
+                                                 unsigned int index)
+{
+
+   if( universe->debug.trace.universe && ! mulle_objc_universe_dll_trace_once)
+   {
+      mulle_objc_universe_dll_trace_once = YES;
+      mulle_objc_universe_trace( universe,
+                                 "TPS class with index %u is missing, invoking DLL loader",
+                                 index);
+   }
+   return( _mulle_objc_universe_dll_loader( universe, "__exe__;__self__"));
+}
+
+
 int   _mulle_objc_universe_win32_class_is_missing( struct _mulle_objc_universe *universe,
                                                    mulle_objc_classid_t classid)
 {
-   if( universe->debug.trace.universe)
+   if( universe->debug.trace.universe && ! mulle_objc_universe_dll_trace_once)
+   {
+      mulle_objc_universe_dll_trace_once = YES;
       mulle_objc_universe_trace( universe,
                                  "class with id %08x is missing, invoking DLL loader",
                                  classid);
 
+   }
    return( _mulle_objc_universe_dll_loader( universe, "__exe__;__self__"));
 }
 
@@ -1234,12 +1257,15 @@ static int   _mulle_objc_universe_win32_method_is_missing( struct _mulle_objc_un
                                                            struct _mulle_objc_class *cls,
                                                            mulle_objc_methodid_t methodid)
 {
-   if( universe->debug.trace.universe)
+   if( universe->debug.trace.universe && ! mulle_objc_universe_dll_trace_once)
+   {
+      mulle_objc_universe_dll_trace_once = YES;
       mulle_objc_universe_trace( universe,
                                  "method with id %08x is missing from class %08x \"%s\", invoking DLL loader",
                                  methodid,
                                  _mulle_objc_class_get_classid( cls),
                                  _mulle_objc_class_get_name( cls));
+   }
 
    return( _mulle_objc_universe_dll_loader( universe, "__exe__;__self__"));
 }
@@ -1654,10 +1680,15 @@ enum mulle_objc_universe_status
    unsigned int  n_categories;
 
    rval         = mulle_objc_universe_is_ok;
+retry:
    n_classes    = mulle_concurrent_hashmap_count( &universe->waitqueues.classestoload);
    n_categories = mulle_concurrent_hashmap_count( &universe->waitqueues.categoriestoload);
    if( ! (n_classes + n_categories))
       return( rval);
+
+   // this will on win32 trigger the dll loader
+   if( ! (*universe->callback.class_is_missing)( universe, MULLE_OBJC_NO_CLASSID))
+      goto retry;
 
    /*
     * free various stuff

@@ -5,24 +5,16 @@
 
 void   call( void **p_rval, void *obj, mulle_objc_methodid_t sel, float arg)
 {
-   void   *param;
-   union
-   {
-      __typeof__( arg)  v;
-      void   *param;
-   } tmp;
+   struct { float v; }   tmp;
    union
    {
       __typeof__( *p_rval)  v;
       void   *ptr;
    } rval;
 
-   MULLE_C_ASSERT( sizeof( *p_rval) <= sizeof( void *));
-   MULLE_C_ASSERT( sizeof( tmp) <= sizeof( void *));
-
    tmp.v = arg;
 
-   rval.ptr = mulle_objc_object_call( obj, sel, tmp.param);
+   rval.ptr = mulle_objc_object_call( obj, sel, &tmp);
 
    *p_rval = (__typeof__( *p_rval)) (intptr_t) rval.ptr;
 }

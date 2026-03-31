@@ -45,29 +45,6 @@ Add `protocolid` to class `cls`. The protocolid should be added to the infraclas
 
 
 
-### `mulle_objc_infraclass_is_protocol_class`
-
-```c
-int  mulle_objc_infraclass_is_protocol_class( struct _mulle_objc_infraclass *cls);
-```
-
-A class is a protocol class if (and only if)
-
-1. It is a root class (has no superclass)
-2. It has one and only one protocol. That protocolid must be identical to the
-classid (which means both names are the same)
-3. It has no instance variables
-
-Example:
-
-```objc
-@protocol Foo
-@end
-
-@implementation Foo < Foo>
-@end
-```
-
 ### `mulle_objc_class_get_superclass`
 
 ```c
@@ -197,10 +174,10 @@ struct _mulle_objc_class   *mulle_objc_class_get_metaclass( struct _mulle_objc_c
 Given any class of a classpair, returns the metaclass.
 
 
-### `mulle_objc_class_conformsto_protocol`
+### `mulle_objc_class_conforms_to_protocol`
 
 ```c
-int   mulle_objc_class_conformsto_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid)
+int   mulle_objc_class_conforms_to_protocol( struct _mulle_objc_class *cls, mulle_objc_protocolid_t protocolid)
 ```
 
 Returns 1 if `cls` conforms to a protocol with `protocolid`. This can be asked

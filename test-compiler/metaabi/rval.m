@@ -6,7 +6,7 @@
 //  Copyright © 2015 Mulle kybernetiK. All rights reserved.
 //
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-#include <mulle-c11/mulle-c11-integer.h>
+#include <mulle-c11/mulle-c11.h>
 
 
 #include <limits.h>

@@ -86,24 +86,24 @@ Using `mulle_objc_objects_call` can be more efficient then using a boiler plate
 for loop yourself.
 
 
-### `mulle_objc_object_retain`
+### `mulle_objc_object_retain_inline`
 
 ```
-void   *mulle_objc_object_retain( void *obj)
+void   *mulle_objc_object_retain_inline( void *obj)
 ```
 
 Increment the reference count of `obj`. `obj` may be NULL. Returns `obj`
 back, this is a convenience and somewhat of an optimisation, since the caller
 does not not need to save `obj` for the call.
 
-So `obj = mulle_objc_object_retain( obj)` is safe and may be faster than
-just `mulle_objc_object_retain( obj)`.
+So `obj = mulle_objc_object_retain_inline( obj)` is safe and may be faster than
+just `mulle_objc_object_retain_inline( obj)`.
 
 
-### `mulle_objc_object_release`
+### `mulle_objc_object_release_inline`
 
 ```
-void   mulle_objc_object_release( void *obj)
+void   mulle_objc_object_release_inline( void *obj)
 ```
 
 Decrement the reference count of `obj`. `obj` may be NULL. If the reference
@@ -171,13 +171,13 @@ void   *mulle_objc_object_copy( void *obj)
 A C way of calling `-copy` on an object, returns `obj`.
 
 
-### `mulle_objc_object_release`
+### `mulle_objc_object_release_inline`
 
 ```
-void   mulle_objc_object_release( void *obj)
+void   mulle_objc_object_release_inline( void *obj)
 ```
 
-A C way of calling `mulle_objc_object_release` on an object. It's not any faster
+A C way of calling `mulle_objc_object_release_inline` on an object. It's not any faster
 then calling `-release`.
 
 ### `mulle_objc_object_autorelease`

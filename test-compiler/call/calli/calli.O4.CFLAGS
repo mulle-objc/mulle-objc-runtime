@@ -1,1 +1,1 @@
--O4 -g
+-O4 -g -fobjc-tao

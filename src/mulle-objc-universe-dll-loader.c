@@ -176,6 +176,7 @@ int   _mulle_objc_universe_dll_loader_filtered( struct _mulle_objc_universe *uni
    size_t      length;
    size_t      n_candidates;
    size_t      n_loaded;
+   char        *loaded_name;
    
    if( ! dllpath || ! *dllpath)
       return( -1);
@@ -189,9 +190,15 @@ int   _mulle_objc_universe_dll_loader_filtered( struct _mulle_objc_universe *uni
    {
       collect_loaded_dlls( loaded);
       if( universe->debug.trace.universe)
+      {
          mulle_objc_universe_trace( universe,
                                     "found %td DLLs already loaded",
                                     mulle_set_get_count( loaded));
+         mulle_set_for( loaded, loaded_name)
+         {
+            mulle_objc_universe_trace( universe, "   %s", loaded_name);
+         }
+      }
 
       mulle_array_do( candidates, &mulle_container_keycallback_copied_cstring)
       {
@@ -286,7 +293,7 @@ int   _mulle_objc_universe_dll_loader( struct _mulle_objc_universe *universe, ch
    // execute this only once, do not block if LoadLibrary by chance executes
    // another ObjC call that would then rerun everything again
    //
-   mulle_thread_once_do_noblock( once)
+   mulle_thread_once_do_recursive( once)
    {
       rval = _mulle_objc_universe_dll_loader_filtered( universe, dllpath, should_load_dll);
    }

@@ -1,1 +1,1 @@
--Os -g
+-Os -g -fobjc-tao

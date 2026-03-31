@@ -1,5 +1,5 @@
 # mulle-sde Debug Crashes Guidelines
-<!-- Keywords: debug, crash, stacktrace  -->
+<!-- Keywords: debug, debugging, crash, stacktrace  -->
 
 
 ## Workflow

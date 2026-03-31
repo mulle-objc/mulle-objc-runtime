@@ -163,9 +163,9 @@ if( NOT __ENVIRONMENT__CMAKE__)
    set( TMP_CMAKE_FRAMEWORK_PATH)
 
    message( STATUS "")
-   message( STATUS "PROJECT_NAME=\"{PROJECT_NAME}\""                 )
+   message( STATUS "PROJECT_NAME=\"${PROJECT_NAME}\""                 )
    message( STATUS "")
-   message( STATUS "MULLE_VIRTUAL_ROOT=\"{MULLE_VIRTUAL_ROOT}\""     )
+   message( STATUS "MULLE_VIRTUAL_ROOT=\"${MULLE_VIRTUAL_ROOT}\""     )
 
 
    message( STATUS "MULLE_SDK_DEPENDENCY_DIR=\"${MULLE_SDK_DEPENDENCY_DIR}\"")
