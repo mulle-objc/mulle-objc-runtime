@@ -207,7 +207,7 @@ while( 0)
 #define _mulle_metaabi_object_call_struct_n( p_rval, obj, sel, ...)                                             \
 do                                                                                                              \
 {                                                                                                               \
-   void   *dummy;                                                                                               \
+   intptr_t dummy;                                                                                               \
    void   *rval;                                                                                                \
    mulle_metaabi_union(                                                                                         \
       struct                                                                                                    \
@@ -235,7 +235,7 @@ while( 0)
 #define mulle_metaabi_object_call( p_rval, obj, sel, ...)                                              \
 do                                                                                                     \
 {                                                                                                      \
-   void   *dummy;                                                                                      \
+   intptr_t dummy;                                                                                      \
                                                                                                        \
    if( MULLE_C_IS_EMPTY( p_rval))                                                                      \
       _mulle_metaabi_object_call_void_return( obj, sel __VA_OPT__(,) __VA_ARGS__);                     \

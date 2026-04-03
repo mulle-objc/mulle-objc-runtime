@@ -117,8 +117,6 @@ main()
 
    options_setup_trace "${MULLE_TRACE}" && set -x
 
-
-
 #   [ -z "${MULLE_VIRTUAL_ROOT}" ] && fail "run must run in a mulle-sde environemnt"
 #
 #   r_relative_path_between "${PWD}" "${MULLE_VIRTUAL_ROOT}"
@@ -129,6 +127,13 @@ main()
    export PROJECT_IDENTIFIER="$(mulle-sde env get 'PROJECT_IDENTIFIER')"
    export PROJECT_LANGUAGE="$(mulle-sde env get 'PROJECT_LANGUAGE')"
    export PROJECT_NAME="$(mulle-sde env get 'PROJECT_NAME')"
+
+   local call
+   local name
+   local optimization
+   local rc
+   local srcfile
+   local stdoutfile
 
    for call in "" 1 2 3 4 5
    do
@@ -155,8 +160,9 @@ main()
             fi
          fi
 
+         # don't wanna touch srcfile all the time for git ugliness
          srcfile="${name}.m"
-         if [ ! -f "${srcfile}" ]
+         if [ ! -f "${srcfile}" ] || ! cmp -s "${srcfile}" "${origfile}"
          then
             exekutor cp "calli.m.orig" "${srcfile}"
          fi
@@ -165,9 +171,16 @@ main()
          # one failure is enough, because this gets tedious real fast
          if [ ! -f "${stdoutfile}" ]
          then
-            exekutor mulle-sde ${MULLE_TECHNICAL_FLAGS} test run --no-run-script --golden-stdout "${srcfile}"
+            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script --golden-stdout "${srcfile}"
+            rc=$?
          else
-            exekutor mulle-sde ${MULLE_TECHNICAL_FLAGS} test run --no-run-script "${srcfile}"
+            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script "${srcfile}"
+            rc=$?
+         fi
+
+         if [ $rc -ne 0 ]
+         then
+            log_verbose "Calli runner encountered failure"
          fi
       done
    done

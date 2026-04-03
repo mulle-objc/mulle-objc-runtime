@@ -30,6 +30,7 @@ src/reflect/_mulle-objc-runtime-include-private.h
 set( PUBLIC_HEADERS
 src/generic/include.h
 src/minimal.h
+src/mulle-metaabi-call.h
 src/mulle-metaabi.h
 src/mulle-objc-atomicpointer.h
 src/mulle-objc-builtin.h
