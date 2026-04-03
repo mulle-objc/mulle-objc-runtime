@@ -88,3 +88,5 @@ dox.unreleased/
 perf.data
 *.orig
 *.notyet
+.roam
+.graveyard

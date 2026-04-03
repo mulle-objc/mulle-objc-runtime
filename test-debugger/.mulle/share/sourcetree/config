@@ -1,0 +1,1 @@
+mulle-objc-runtime;${MULLE__OBJC__RUNTIME_NODETYPE:-tar};;4B748201-BE7D-48FF-A337-65433173928A;${MULLE__OBJC__RUNTIME_URL:-https://github.com/nat/mulle-objc-runtime/archive/${MULLE_TAG}.tar.gz};${MULLE__OBJC__RUNTIME_BRANCH};${MULLE__OBJC__RUNTIME_TAG:-latest};;

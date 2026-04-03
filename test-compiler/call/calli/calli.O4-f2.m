@@ -1,11 +1,9 @@
-
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  27
+#define MULLE_OBJC_RUNTIME_VERSION_MINOR  28
 #define MULLE_OBJC_RUNTIME_VERSION_PATCH  0
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   18
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   19
 
-#include <stdio.h>
-#include <stdint.h>
+#include <mulle-core/mulle-core.h>
 
 @interface NoWarn
 - (void) call:(char *) s;
@@ -17,35 +15,35 @@
 //
 void   *mulle_objc_object_call( void *self, uint32_t sel, void *param)
 {
-   printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
+   mulle_printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
    return( self);
 }
 
 
 void   *mulle_objc_object_call_inline_minimal( void *self, uint32_t sel, void *param)
 {
-   printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
+   mulle_printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
    return( self);
 }
 
 
 void   *mulle_objc_object_call_inline_partial( void *self, uint32_t sel, void *param)
 {
-   printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
+   mulle_printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
    return( self);
 }
 
 
 void   *mulle_objc_object_call_inline( void *self, uint32_t sel, void *param)
 {
-   printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
+   mulle_printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
    return( self);
 }
 
 
 void   *mulle_objc_object_call_inline_full( void *self, uint32_t sel, void *param)
 {
-   printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
+   mulle_printf( "%s %p: %s\n", __FUNCTION__, self, (char *) param);
    return( self);
 }
 

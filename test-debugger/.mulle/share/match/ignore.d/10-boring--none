@@ -1,0 +1,14 @@
+*.old
+*.old/
+old/
+
+# certain old nibs :)
+*~.*/
+
+# vi backup files or somesuch
+*~
+
+# good old
+*.bak
+
+# not too much more as .o and such things shouldn't even be in the search space
