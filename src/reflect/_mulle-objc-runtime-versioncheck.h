@@ -7,10 +7,10 @@
 
 #if defined( MULLE__CORE_VERSION)
 # ifndef MULLE__CORE_VERSION_MIN
-#  define MULLE__CORE_VERSION_MIN  ((0UL << 20) | (7 << 8) | 0)
+#  define MULLE__CORE_VERSION_MIN  ((0UL << 20) | (8 << 8) | 0)
 # endif
 # ifndef MULLE__CORE_VERSION_MAX
-#  define MULLE__CORE_VERSION_MAX  ((0UL << 20) | (8 << 8) | 0)
+#  define MULLE__CORE_VERSION_MAX  ((0UL << 20) | (9 << 8) | 0)
 # endif
 # if MULLE__CORE_VERSION < MULLE__CORE_VERSION_MIN || MULLE__CORE_VERSION >= MULLE__CORE_VERSION_MAX
 #  pragma message("MULLE__CORE_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__CORE_VERSION))
@@ -25,10 +25,10 @@
 #endif
 #if defined( MULLE__CORE__ALL__LOAD_VERSION)
 # ifndef MULLE__CORE__ALL__LOAD_VERSION_MIN
-#  define MULLE__CORE__ALL__LOAD_VERSION_MIN  ((0UL << 20) | (7 << 8) | 56)
+#  define MULLE__CORE__ALL__LOAD_VERSION_MIN  ((0UL << 20) | (8 << 8) | 0)
 # endif
 # ifndef MULLE__CORE__ALL__LOAD_VERSION_MAX
-#  define MULLE__CORE__ALL__LOAD_VERSION_MAX  ((0UL << 20) | (8 << 8) | 0)
+#  define MULLE__CORE__ALL__LOAD_VERSION_MAX  ((0UL << 20) | (9 << 8) | 0)
 # endif
 # if MULLE__CORE__ALL__LOAD_VERSION < MULLE__CORE__ALL__LOAD_VERSION_MIN || MULLE__CORE__ALL__LOAD_VERSION >= MULLE__CORE__ALL__LOAD_VERSION_MAX
 #  pragma message("MULLE__CORE__ALL__LOAD_VERSION     is " MULLE_C_STRINGIFY_MACRO( MULLE__CORE__ALL__LOAD_VERSION))
