@@ -29,7 +29,7 @@
 
 + (id) new
 {
-   return( mulle_objc_infraclass_alloc_instance( self));
+   return( mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) self));
 }
 
 
@@ -82,7 +82,7 @@ static void   dump_property_with_id( Class cls, mulle_objc_propertyid_t pid)
 {
    struct _mulle_objc_property   *property;
 
-   property = _mulle_objc_infraclass_search_property( cls, pid);
+   property = _mulle_objc_infraclass_search_property( (struct _mulle_objc_infraclass *) cls, pid);
    if( ! property)
       abort();
 

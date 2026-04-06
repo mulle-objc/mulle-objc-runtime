@@ -35,7 +35,7 @@ struct larger_struct
 
 + (struct _mulle_objc_infraclass *) class
 {
-   return( self);
+   return( (struct _mulle_objc_infraclass *) self);
 }
 
 

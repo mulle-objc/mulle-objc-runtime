@@ -17,7 +17,7 @@
 
 + (id) new
 {
-   return( mulle_objc_infraclass_alloc_instance( self));
+   return( mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) self));
 }
 
 
@@ -37,7 +37,7 @@
 int   main( void)
 {
    Foo     *foo;
-   Class   cls;
+   struct _mulle_objc_infraclass   *cls;
 
    foo = [Foo new];
    cls =  mulle_objc_object_get_infraclass( foo);

@@ -25,7 +25,7 @@ extern void  object_dispose( id obj);
 + (instancetype) alloc
 {
 #ifdef __MULLE_OBJC__
-   return( mulle_objc_infraclass_alloc_instance( self));
+   return( mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) self));
 #else
    return( class_createInstance( self, 0));
 #endif

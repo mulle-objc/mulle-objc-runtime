@@ -40,7 +40,7 @@ int   main( void)
 
    cls = [Bar class];
 
-   obj = mulle_objc_infraclass_alloc_instance( cls);
+   obj = mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) cls);
 
    printf( "a: %d\n", (int) (intptr_t) [obj a]);
    printf( "a: %d\n", (int) (intptr_t) [obj a]);

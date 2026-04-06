@@ -26,14 +26,14 @@ int   main( void)
    struct _mulle_objc_property   *property;
 
    cls      = [Bar class];
-   property = mulle_objc_infraclass_search_property( cls, @selector( b));
+   property = mulle_objc_infraclass_search_property( (struct _mulle_objc_infraclass *) cls, @selector( b));
    if( ! property)
       return( -1);
 
    printf( "%x\n", _mulle_objc_property_get_bits( property));
    printf( "%s\n", _mulle_objc_property_get_signature( property));
 
-   property = mulle_objc_infraclass_search_property( cls, @selector( c));
+   property = mulle_objc_infraclass_search_property( (struct _mulle_objc_infraclass *) cls, @selector( c));
    if( ! property)
       return( -1);
 

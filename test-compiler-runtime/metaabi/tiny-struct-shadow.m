@@ -3,6 +3,8 @@
 
 #pragma clang diagnostic ignored "-Wobjc-root-class"
 
+@interface A @end
+
 struct tiny
 {
    char   a[ 3];

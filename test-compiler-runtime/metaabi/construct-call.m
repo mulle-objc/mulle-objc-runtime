@@ -367,6 +367,8 @@ while( 0)
 
 
 
+@interface A @end
+
 @implementation A
 
 + (Class) class

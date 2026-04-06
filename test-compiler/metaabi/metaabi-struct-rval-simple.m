@@ -55,7 +55,7 @@ int   main( int argc, const char * argv[])
    struct duo   value;
    Foo          *foo;
 
-   foo   = mulle_objc_infraclass_alloc_instance( [Foo class]);
+   foo   = mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) [Foo class]);
    value = [foo ab];
 
    // printf( "%g %g", value.a, value.b);

@@ -25,11 +25,11 @@
 
 int   main( void)
 {
-   Class   cls;
+   struct _mulle_objc_infraclass   *cls;
    struct _mulle_objc_ivar       *ivar;
    struct _mulle_objc_property   *property;
 
-   cls = [Foo class];
+   cls = (struct _mulle_objc_infraclass *) [Foo class];
 
    property = _mulle_objc_infraclass_search_property( cls, @selector( a));
    ivar     = _mulle_objc_infraclass_search_ivar( cls, @selector( _a));

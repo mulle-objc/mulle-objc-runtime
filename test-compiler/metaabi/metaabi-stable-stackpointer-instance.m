@@ -17,7 +17,7 @@
 
 + (id) new
 {
-   return( _mulle_objc_infraclass_alloc_instance( self));
+   return( _mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) self));
 }
 
 
