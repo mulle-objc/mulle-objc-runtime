@@ -3,6 +3,10 @@
 #include <string.h>
 #include <assert.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
+@interface A @end
+
 void   call( void **p_rval, void *obj, mulle_objc_methodid_t sel, float arg)
 {
    struct { float v; }   tmp;

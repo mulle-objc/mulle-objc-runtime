@@ -168,13 +168,21 @@ main()
          fi
 
          stdoutfile="${name}.stdout"
+
+         local platform_flag
+         platform_flag=""
+         if [ ! -z "${TEST_PLATFORM}" ]
+         then
+            platform_flag="--platform ${TEST_PLATFORM}"
+         fi
+
          # one failure is enough, because this gets tedious real fast
          if [ ! -f "${stdoutfile}" ]
          then
-            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script --golden-stdout "${srcfile}"
+            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run ${platform_flag} --no-run-script --golden-stdout "${srcfile}"
             rc=$?
          else
-            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run --no-run-script "${srcfile}"
+            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run ${platform_flag} --no-run-script "${srcfile}"
             rc=$?
          fi
 

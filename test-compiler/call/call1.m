@@ -40,14 +40,14 @@ static void   fprint_cache( FILE *fp, id foo)
 
 + (void) load
 {
-   _mulle_objc_class_set_state_bit( _mulle_objc_infraclass_as_class( self),
+   _mulle_objc_class_set_state_bit( _mulle_objc_infraclass_as_class( (struct _mulle_objc_infraclass *) self),
                                     MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE);
 }
 
 
 + (id) new
 {
-   return( mulle_objc_infraclass_alloc_instance( self));
+   return( mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) self));
 }
 
 

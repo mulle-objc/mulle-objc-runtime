@@ -200,20 +200,20 @@ static inline size_t   mulle_char7_decode_ascii( uintptr_t value, char *src, siz
 int   main( void)
 {
    struct _mulle_objc_universe  *universe;
-   struct _mulle_objc_class     *cls;
+   struct _mulle_objc_infraclass    *cls;
 
    universe = mulle_objc_global_get_universe( 0);
-   cls      = (struct _mulle_objc_class *) [SomeString class];
+   cls      = (struct _mulle_objc_infraclass *) [SomeString class];
    _mulle_objc_universe_set_staticstringclass( universe, cls, 1);
 
    // 0x1 constant must be in "tune" with the compiler
-   cls     = (struct _mulle_objc_class *)  [SomeString5TaggedPointer class];
+   cls     = (struct _mulle_objc_infraclass *)  [SomeString5TaggedPointer class];
    _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x1);
 
    // 0x4 constant must be in "tune" with the compiler
    if( mulle_objc_get_taggedpointer_mask() > 0x4)
    {
-      cls     = (struct _mulle_objc_class *)  [SomeString7TaggedPointer class];
+      cls     = (struct _mulle_objc_infraclass *)  [SomeString7TaggedPointer class];
       _mulle_objc_universe_set_taggedpointerclass_at_index( universe, cls, 0x4);
    }
 

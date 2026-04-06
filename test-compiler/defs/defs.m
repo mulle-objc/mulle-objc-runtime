@@ -32,7 +32,7 @@
 
 + (id) new
 {
-   return( (Foo *) mulle_objc_infraclass_alloc_instance( self));
+   return( (Foo *) mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) self));
 }
 
 
@@ -44,7 +44,10 @@
 
 - (void) takeFooDefs:(struct { @defs( Foo); } *) defs
 {
-   [super takeBarDefs:(struct { @defs( Bar); } *) defs];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+   [super takeBarDefs:defs];
+#pragma clang diagnostic pop
 
    self->y = defs->y;
    [self setZ:defs->_z];
@@ -58,7 +61,10 @@ int   main( void)
    Foo  *foo;
 
    foo = [Foo new];
-   [foo takeFooDefs:&( struct { @defs( Foo); }){ .x = 1, .y = 2, ._z = 3 }];
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types"
+   [foo takeFooDefs:(struct { @defs( Foo); } *)(void *) &( struct { @defs( Foo); }){ .x = 1, .y = 2, ._z = 3 }];
+#pragma clang diagnostic pop
    [foo dealloc];
    return( 0);
 }

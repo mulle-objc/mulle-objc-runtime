@@ -24,9 +24,9 @@
 
 int   main( void)
 {
-   Class   cls;
+   struct _mulle_objc_infraclass   *cls;
 
-   cls = [Foo class];
+   cls = (struct _mulle_objc_infraclass *) [Foo class];
    printf( "A: %s\n",
        _mulle_objc_infraclass_conformsto_protocolid( cls,
                                               @protocol( A)) ? "YES" : "NO");
