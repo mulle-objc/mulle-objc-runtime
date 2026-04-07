@@ -856,7 +856,7 @@ enum mulle_metaabi_param
    if( ! types)
       return( mulle_metaabi_param_void);
 
-   p_type = _mulle_objc_signature_get_metaabiparamtype( types);
+   p_type = _mulle_objc_signature_get_metaabiparamtype_for_param( types);
    if( p_type == mulle_metaabi_param_void_pointer)
    {
       // skip current
