@@ -410,6 +410,33 @@ static inline enum mulle_metaabi_param
 }
 
 
+// For param classification only (NOT for return types).
+// Tiny structs/unions (size <= sizeof(void*), align <= alignof(void*)) are
+// void*-packed, matching what the compiler and C-macro path already do.
+// Do NOT use this for return-type classification — the return-type guard in
+// mulle_objc_signature_get_metaabiparamtype() relies on the existing function
+// returning mulle_metaabi_param_struct for all struct/union return types.
+static inline enum mulle_metaabi_param
+   _mulle_objc_signature_get_metaabiparamtype_for_param( char *type)
+{
+   struct mulle_objc_typeinfo   info;
+
+   type = _mulle_objc_signature_skip_type_qualifier( type);
+   switch( *type)
+   {
+   case _C_STRUCT_B :
+   case _C_UNION_B  :
+      if( ! _mulle_objc_signature_supply_typeinfo( type, NULL, &info))
+         return( mulle_metaabi_param_error);
+      if( info.natural_size <= sizeof( void *) &&
+          info.natural_alignment <= alignof( void *))
+         return( mulle_metaabi_param_void_pointer);
+      return( mulle_metaabi_param_struct);
+   }
+   return( _mulle_metaabi_get_metaabiparamtype( type));
+}
+
+
 /*
  *
  * _mulle_objc_typeinfo_is_binary_compatible
