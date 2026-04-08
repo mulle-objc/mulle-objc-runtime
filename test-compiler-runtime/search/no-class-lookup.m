@@ -137,30 +137,30 @@ static void   test_no_class( struct _mulle_objc_infraclass *infra, char *name)
 
 int   main()
 {
-   test_no_class( [A class], "a");
-   test_no_class( [A class], "b");
-   test_no_class( [A class], "c");
-   test_no_class( [A class], "a_x");
-   test_no_class( [A class], "b_x");
-   test_no_class( [A class], "c_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [A class], "a");
+   test_no_class( (struct _mulle_objc_infraclass *) [A class], "b");
+   test_no_class( (struct _mulle_objc_infraclass *) [A class], "c");
+   test_no_class( (struct _mulle_objc_infraclass *) [A class], "a_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [A class], "b_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [A class], "c_x");
 
    mulle_printf( "\n");
 
-   test_no_class( [B class], "a");
-   test_no_class( [B class], "b");
-   test_no_class( [B class], "c");
-   test_no_class( [B class], "a_x");
-   test_no_class( [B class], "b_x");
-   test_no_class( [B class], "c_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [B class], "a");
+   test_no_class( (struct _mulle_objc_infraclass *) [B class], "b");
+   test_no_class( (struct _mulle_objc_infraclass *) [B class], "c");
+   test_no_class( (struct _mulle_objc_infraclass *) [B class], "a_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [B class], "b_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [B class], "c_x");
 
    mulle_printf( "\n");
 
-   test_no_class( [C class], "a");
-   test_no_class( [C class], "b");
-   test_no_class( [C class], "c");
-   test_no_class( [C class], "a_x");
-   test_no_class( [C class], "b_x");
-   test_no_class( [C class], "c_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [C class], "a");
+   test_no_class( (struct _mulle_objc_infraclass *) [C class], "b");
+   test_no_class( (struct _mulle_objc_infraclass *) [C class], "c");
+   test_no_class( (struct _mulle_objc_infraclass *) [C class], "a_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [C class], "b_x");
+   test_no_class( (struct _mulle_objc_infraclass *) [C class], "c_x");
 
    return( 0);
 }

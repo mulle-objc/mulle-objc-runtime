@@ -22,14 +22,14 @@
 
 int   main( void)
 {
-   Class                          cls;
+   struct _mulle_objc_infraclass  *cls;
    struct _mulle_objc_property    *property;
    struct _mulle_objc_universe    *universe;
    struct _mulle_objc_ivar        *ivar;
    struct _mulle_objc_descriptor  *desc;
    mulle_objc_methodid_t          sel;
 
-   cls      = [Foo class];
+   cls      = (struct _mulle_objc_infraclass *) [Foo class];
    universe = _mulle_objc_infraclass_get_universe( cls);
 
    property = mulle_objc_infraclass_search_property( cls, @selector( value));

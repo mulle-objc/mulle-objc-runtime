@@ -25,11 +25,11 @@
 @implementation A
 + (id) new
 {
-   return( (id) _mulle_objc_infraclass_alloc_instance( self));
+   return( (id) _mulle_objc_infraclass_alloc_instance( (struct _mulle_objc_infraclass *) self));
 }
 + (Class) class
 {
-   return( self);
+   return( (Class) self);
 }
 - (void) dealloc
 {
@@ -139,7 +139,7 @@ int   main()
 #endif
 
    b          = [B new];
-   infraclass = [B class];
+   infraclass = (struct _mulle_objc_infraclass *) [B class];
    metaclass  = _mulle_objc_infraclass_get_metaclass( infraclass);
 
    test_overridden( b, @selector( foo), @selector( B), @selector( C), infraclass, metaclass);

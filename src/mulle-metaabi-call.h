@@ -240,7 +240,7 @@ while( 0)
 #define _mulle_metaabi_object_call_struct_n( p_rval, obj, sel, ...)                                             \
 do                                                                                                              \
 {                                                                                                               \
-   intptr_t dummy;                                                                                               \
+   intptr_t dummy;                                                                                              \
    void   *rval;                                                                                                \
    mulle_metaabi_union(                                                                                         \
       struct                                                                                                    \
@@ -268,7 +268,7 @@ while( 0)
 #define mulle_metaabi_object_call( p_rval, obj, sel, ...)                                                         \
 do                                                                                                                \
 {                                                                                                                 \
-   intptr_t dummy;                                                                                                 \
+   intptr_t dummy;                                                                                                \
                                                                                                                   \
    if( MULLE_C_IS_EMPTY( p_rval))                                                                                 \
       _mulle_metaabi_object_call_void_return( obj, sel __VA_OPT__(,) __VA_ARGS__);                                \
@@ -308,18 +308,19 @@ while( 0)
 
 #define MULLE_C_WHEN_NOT( c)         MULLE_C_IIF(c)( MULLE_C_EAT, MULLE_C_EXPAND)
 
-#define _MULLE_C_FOR_EACH_IDENTIFIER( s, first, ...) \
-    MULLE_C_WHEN( MULLE_C_HAS_ARGS(__VA_ARGS__)) \
-    ( \
-        MULLE_C_OBSTRUCT( __MULLE_C_FOR_EACH_IDENTIFIER) () \
-        ( \
-            s ## i, __VA_ARGS__ \
-        ) \
-    ) \
-    MULLE_C_WHEN_NOT( MULLE_C_HAS_ARGS(__VA_ARGS__)) \
-    ( \
-      s \
+#define _MULLE_C_FOR_EACH_IDENTIFIER( s, first, ...)           \
+    MULLE_C_WHEN( MULLE_C_HAS_ARGS(__VA_ARGS__))               \
+    (                                                          \
+        MULLE_C_OBSTRUCT( __MULLE_C_FOR_EACH_IDENTIFIER) ()    \
+        (                                                      \
+            s ## i, __VA_ARGS__                                \
+        )                                                      \
+    )                                                          \
+    MULLE_C_WHEN_NOT( MULLE_C_HAS_ARGS(__VA_ARGS__))           \
+    (                                                          \
+      s                                                        \
     )
+
 
 #define __MULLE_C_FOR_EACH_IDENTIFIER() \
     _MULLE_C_FOR_EACH_IDENTIFIER
