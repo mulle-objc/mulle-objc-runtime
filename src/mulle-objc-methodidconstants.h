@@ -32,4 +32,7 @@
 // used for boring trace
 #define MULLE_OBJC_MULLE_COUNT_OBJECT_METHODID   MULLE_OBJC_METHODID( 0xf1cb600c) // "mulleCountObject:"
 
+// used for category dependency check
+#define MULLE_OBJC_MULLEOBJCDEPS_CLASSID         MULLE_OBJC_CLASSID( 0x3c20656f) // "MulleObjCDeps"
+
 #endif

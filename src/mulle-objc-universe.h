@@ -1085,6 +1085,7 @@ enum mulle_objc_universe_status
    mulle_objc_universe_is_incomplete    = -2,
    mulle_objc_universe_is_locked        = -3,
    mulle_objc_universe_is_wrong_version = -4,
+   mulle_objc_universe_is_inconsistent  = -5,
 };
 
 
@@ -1092,6 +1093,13 @@ MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
 enum mulle_objc_universe_status
    _mulle_objc_universe_check_waitqueues( struct _mulle_objc_universe *universe);
+
+// Check that category method overrides have proper +dependencies declarations.
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+enum mulle_objc_universe_status
+   _mulle_objc_universe_check_category_method_dependencies(
+      struct _mulle_objc_universe *universe);
 
 // as above just a bit more convenient and does a version check!
 MULLE_OBJC_RUNTIME_GLOBAL

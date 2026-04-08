@@ -41,6 +41,7 @@
 #include "mulle-objc-class.h"
 #include "mulle-objc-class-initialize.h"
 #include "mulle-objc-class-lookup.h"
+#include "mulle-objc-load.h"
 #include "mulle-objc-universe-class.h"
 #include "mulle-objc-universe-dll-loader.h"
 #include "mulle-objc-universe-exception.h"
@@ -1749,11 +1750,218 @@ retry:
 }
 
 
+//
+// Check that category method overrides have proper +dependencies declarations.
+// For each class (infra and meta), walk category methodlists (skip index 0
+// which is the class itself). Track seen methodids in a pointermap. When a
+// duplicate is found, the overriding category must declare +dependencies and
+// list the overridden category. Then update the map so the next override must
+// depend on this one.
+//
+static int
+   _mulle_objc_universe_check_class_category_dependencies(
+      struct _mulle_objc_universe *universe,
+      struct _mulle_objc_class *cls)
+{
+   struct mulle_concurrent_pointerarrayenumerator   rover;
+   struct _mulle_objc_methodlist                    *list;
+   struct _mulle_objc_method                        *method;
+   struct _mulle_objc_method                        *sentinel;
+   struct _mulle_objc_methodlist                    *previous;
+   struct _mulle_objc_loadcategory                  *overrider;
+   struct _mulle_objc_loadcategory                  *overridden;
+   struct _mulle_objc_dependency                    *dependencies;
+   mulle_objc_implementation_t                      imp;
+   void                                             *stored;
+   int                                              found;
+   int                                              is_first;
+   int                                              rval;
+
+   rval = 0;
+
+   mulle__pointermap_do( map)
+   {
+      is_first = 1;
+      rover    = mulle_concurrent_pointerarray_enumerate( &cls->methodlists);
+      while( list = _mulle_concurrent_pointerarrayenumerator_next( &rover))
+      {
+         // skip index 0 (class itself)
+         if( is_first)
+         {
+            is_first = 0;
+            continue;
+         }
+
+         // only category methodlists have loadcategory set
+         if( ! list->loadcategory)
+            continue;
+
+         method   = list->methods;
+         sentinel = &method[ list->n_methods];
+         for( ; method < sentinel; method++)
+         {
+            // skip +dependencies itself, it's expected to be overridden
+            if( method->descriptor.methodid == MULLE_OBJC_DEPENDENCIES_METHODID)
+               continue;
+
+            stored = _mulle__pointermap_get( map,
+                                             (void *) (uintptr_t) method->descriptor.methodid);
+            if( ! stored)
+            {
+               _mulle__pointermap_set( map,
+                                       (void *) (uintptr_t) method->descriptor.methodid,
+                                       list,
+                                       NULL);
+               continue;
+            }
+
+            // duplicate: list overrides stored (previous)
+            previous   = (struct _mulle_objc_methodlist *) stored;
+            overrider  = list->loadcategory;
+            overridden = previous->loadcategory;
+
+            if( ! overridden)
+            {
+               _mulle__pointermap_set( map,
+                                       (void *) (uintptr_t) method->descriptor.methodid,
+                                       list,
+                                       NULL);
+               continue;
+            }
+
+            // get +dependencies from the overrider's classmethods
+            imp = 0;
+            if( overrider->classmethods)
+            {
+               struct _mulle_objc_method   *dep_method;
+
+               dep_method = mulle_objc_method_bsearch( overrider->classmethods->methods,
+                                                       overrider->classmethods->n_methods,
+                                                       MULLE_OBJC_DEPENDENCIES_METHODID);
+               if( dep_method)
+                  imp = _mulle_objc_method_get_implementation( dep_method);
+            }
+
+            if( ! imp)
+            {
+               mulle_fprintf( stderr,
+                  "mulle_objc_universe %p error: category \"%s( %s)\" overrides "
+                  "method %08lx \"%s\" of category \"%s( %s)\" in class \"%s\" "
+                  "but does not implement +dependencies\n",
+                     universe,
+                     overrider->classname,
+                     overrider->categoryname ? overrider->categoryname : "???",
+                     (unsigned long) method->descriptor.methodid,
+                     _mulle_objc_method_get_name( method),
+                     overridden->classname,
+                     overridden->categoryname ? overridden->categoryname : "???",
+                     _mulle_objc_class_get_name( cls));
+               rval = -1;
+               continue;
+            }
+
+            // call +dependencies (same convention as in mulle-objc-load.c)
+            dependencies = (*imp)( cls->infraclass,
+                                   MULLE_OBJC_DEPENDENCIES_METHODID,
+                                   cls->infraclass);
+            if( ! dependencies)
+            {
+               mulle_fprintf( stderr,
+                  "mulle_objc_universe %p error: +[%s( %s) dependencies] "
+                  "returned NULL\n",
+                     universe,
+                     overrider->classname,
+                     overrider->categoryname ? overrider->categoryname : "???");
+               rval = -1;
+               continue;
+            }
+
+            // check that overrider depends on overridden
+            found = 0;
+            while( dependencies->classid != MULLE_OBJC_NO_CLASSID)
+            {
+               if( dependencies->classid == overridden->classid &&
+                   dependencies->categoryid == overridden->categoryid)
+               {
+                  found = 1;
+                  break;
+               }
+               ++dependencies;
+            }
+
+            if( ! found)
+            {
+               mulle_fprintf( stderr,
+                  "mulle_objc_universe %p error: category \"%s( %s)\" overrides "
+                  "method %08lx \"%s\" of category \"%s( %s)\" in class \"%s\" "
+                  "but +dependencies does not list { %08lx, %08lx }\n",
+                     universe,
+                     overrider->classname,
+                     overrider->categoryname ? overrider->categoryname : "???",
+                     (unsigned long) method->descriptor.methodid,
+                     _mulle_objc_method_get_name( method),
+                     overridden->classname,
+                     overridden->categoryname ? overridden->categoryname : "???",
+                     _mulle_objc_class_get_name( cls),
+                     (unsigned long) overridden->classid,
+                     (unsigned long) overridden->categoryid);
+               rval = -1;
+            }
+
+            // update map: next dupe must depend on this one
+            _mulle__pointermap_set( map,
+                                    (void *) (uintptr_t) method->descriptor.methodid,
+                                    list,
+                                    NULL);
+         }
+      }
+      mulle_concurrent_pointerarrayenumerator_done( &rover);
+   }
+
+   return( rval);
+}
+
+
+enum mulle_objc_universe_status
+   _mulle_objc_universe_check_category_method_dependencies(
+      struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_infraclass        *infra;
+   struct _mulle_objc_metaclass         *meta;
+   intptr_t                             classid;
+   enum mulle_objc_universe_status      rval;
+
+   rval = mulle_objc_universe_is_ok;
+   mulle_concurrent_hashmap_for( &universe->classtable, classid, infra)
+   {
+      if( _mulle_objc_class_is_protocolclass( _mulle_objc_infraclass_as_class( infra)))
+         continue;
+
+      // MulleObjCDeps is a special dependency collector class, skip it
+      if( _mulle_objc_infraclass_get_classid( infra) == MULLE_OBJC_MULLEOBJCDEPS_CLASSID)
+         continue;
+
+      if( _mulle_objc_universe_check_class_category_dependencies( universe,
+             _mulle_objc_infraclass_as_class( infra)))
+         rval = mulle_objc_universe_is_inconsistent;
+
+      meta = _mulle_objc_infraclass_get_metaclass( infra);
+      if( meta)
+         if( _mulle_objc_universe_check_class_category_dependencies( universe,
+                _mulle_objc_metaclass_as_class( meta)))
+            rval = mulle_objc_universe_is_inconsistent;
+   }
+
+   return( rval);
+}
+
+
 enum mulle_objc_universe_status
    __mulle_objc_universe_check( struct _mulle_objc_universe *universe,
                                 uint32_t version)
 {
-   uint32_t   universe_version;
+   enum mulle_objc_universe_status   rval;
+   uint32_t                          universe_version;
 
    universe_version = _mulle_objc_universe_get_version( universe);
 
@@ -1765,7 +1973,11 @@ enum mulle_objc_universe_status
        (mulle_objc_version_get_minor( version) != mulle_objc_version_get_minor( universe_version)))
       return( mulle_objc_universe_is_wrong_version);
 
-   return( _mulle_objc_universe_check_waitqueues( universe));
+   rval = _mulle_objc_universe_check_waitqueues( universe);
+   if( rval != mulle_objc_universe_is_ok)
+      return( rval);
+
+   return( _mulle_objc_universe_check_category_method_dependencies( universe));
 }
 
 

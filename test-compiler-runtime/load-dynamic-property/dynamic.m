@@ -33,7 +33,7 @@
 
 int  main( void)
 {
-   Class                          cls;
+   struct _mulle_objc_infraclass  *cls;
    struct _mulle_objc_property    *property;
    struct _mulle_objc_universe    *universe;
    struct _mulle_objc_ivar        *ivar;
@@ -42,7 +42,7 @@ int  main( void)
    struct _mulle_objc_descriptor  *setterReference;
    mulle_objc_methodid_t          sel;
 
-   cls      = [Foo class];
+   cls      = (struct _mulle_objc_infraclass *) [Foo class];
    universe = _mulle_objc_infraclass_get_universe( cls);
 
    getterReference = _mulle_objc_universe_lookup_descriptor( universe, @selector( example));
