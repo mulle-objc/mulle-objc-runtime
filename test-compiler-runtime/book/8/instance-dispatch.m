@@ -3,6 +3,8 @@
 
 #import "include.h"
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface TestClass
 - (int)add:(int)a to:(int)b;
 @end

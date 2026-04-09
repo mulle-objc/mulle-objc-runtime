@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 struct large_struct
 {

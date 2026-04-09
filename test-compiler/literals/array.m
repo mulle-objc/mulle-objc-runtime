@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @interface NSArray
 
@@ -16,6 +18,7 @@
                   count:(long) count
 {
    printf( "%ld\n", count);
+   return( nil);
 }
 
 @end

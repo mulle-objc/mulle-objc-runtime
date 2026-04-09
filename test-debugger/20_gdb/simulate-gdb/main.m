@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include "defs.h"
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @class C;
 @protocol C

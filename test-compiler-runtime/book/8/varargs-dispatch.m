@@ -4,6 +4,8 @@
 #import "include.h"
 #include <stdarg.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface TestClass
 - (int)sumValues:(int)count, ...;
 - (const char *)formatValues:(const char *)format, ...;

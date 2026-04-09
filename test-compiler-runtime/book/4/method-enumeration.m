@@ -3,6 +3,8 @@
 
 #import "include.h"
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface BaseClass
 - (void)baseMethod;
 - (int)baseValue;

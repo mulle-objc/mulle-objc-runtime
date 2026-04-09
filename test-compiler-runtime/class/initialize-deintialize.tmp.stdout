@@ -1,0 +1,6 @@
++[Foo initialize]
++[A initialize]
++[B initialize]
++[B deinitialize]
++[A deinitialize]
++[Foo deinitialize]

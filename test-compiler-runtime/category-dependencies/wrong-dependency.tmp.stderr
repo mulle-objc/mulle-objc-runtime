@@ -1,0 +1,1 @@
+mulle_objc_universe 0x6ffffc3ab158 error: category "A( Cat2)" overrides method 9f37ed7a "foo" of category "A( Cat1)" in class "A" but +dependencies does not list { 40bf6ccc, f597522d }

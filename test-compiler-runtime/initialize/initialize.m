@@ -13,6 +13,8 @@ static char  *get_class_name( Class self)
 #endif
 
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface A
 @end
 

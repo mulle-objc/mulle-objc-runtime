@@ -7,6 +7,8 @@ extern void  object_dispose( id obj);
 
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @interface Bar
 

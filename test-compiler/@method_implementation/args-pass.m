@@ -1,4 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // alias with return value and arguments
 
 @interface Foo

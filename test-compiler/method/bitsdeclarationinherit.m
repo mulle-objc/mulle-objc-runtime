@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 //
 // this test shows: that objc_user_2 is inherited by both whatever

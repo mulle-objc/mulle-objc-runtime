@@ -1,6 +1,8 @@
 #define MULLE_OBJC_FASTMETHODHASH_15   0xe31996f9
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 #define MULLE_OBJC_FASTMETHODID_15     MULLE_OBJC_METHODID( MULLE_OBJC_FASTMETHODHASH_15)
 

@@ -7,6 +7,8 @@
 //
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 #ifdef JUST_COMPILE
 id     mulle_objc_infraclass_alloc_instance( Class);
 void   mulle_objc_instance_free( id);

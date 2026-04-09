@@ -353,10 +353,11 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
    if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
    {
-      universe->debug.warn.protocolclass  = 1;
-      universe->debug.warn.stuck_loadable = 1;
-      universe->debug.warn.method_bits    = 1;
-      universe->debug.warn.method_type    = MULLE_OBJC_WARN_METHOD_TYPE_NORMAL;
+      universe->debug.warn.protocolclass           = 1;
+      universe->debug.warn.stuck_loadable          = 1;
+      universe->debug.warn.method_bits             = 1;
+      universe->debug.warn.method_type              = MULLE_OBJC_WARN_METHOD_TYPE_NORMAL;
+      universe->debug.warn.load_category_dependency = 1;
    }
    else
    {
@@ -1801,8 +1802,18 @@ static int
          for( ; method < sentinel; method++)
          {
             // skip +dependencies itself, it's expected to be overridden
-            if( method->descriptor.methodid == MULLE_OBJC_DEPENDENCIES_METHODID)
+            switch( method->descriptor.methodid)
+            {
+            case MULLE_OBJC_DEPENDENCIES_METHODID :
                continue;
+
+            // do these can make sense to check but not by default
+            case MULLE_OBJC_LOAD_METHODID    :
+            case MULLE_OBJC_UNLOAD_METHODID  :
+               if( ! universe->debug.warn.load_category_dependency)
+                  continue;
+            }
+
 
             stored = _mulle__pointermap_get( map,
                                              (void *) (uintptr_t) method->descriptor.methodid);

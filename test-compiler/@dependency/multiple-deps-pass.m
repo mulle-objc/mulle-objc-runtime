@@ -1,5 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // multiple @dependency directives in a single @implementation
 @interface Foo
 @end

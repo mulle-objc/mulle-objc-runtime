@@ -9,6 +9,8 @@
 #include <limits.h>
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 typedef struct _mulle_objc_infraclass *Class;
 

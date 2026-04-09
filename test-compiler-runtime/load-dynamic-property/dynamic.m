@@ -1,5 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @interface Foo
 
@@ -22,6 +24,7 @@
 
 - (int) example
 {
+   return( 0);
 }
 
 - (void) setExample:(int) x

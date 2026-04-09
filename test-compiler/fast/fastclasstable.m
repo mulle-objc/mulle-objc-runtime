@@ -3,6 +3,8 @@
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 #define MULLE_OBJC_FASTCLASSID_31  MULLE_OBJC_CLASSID( MULLE_OBJC_FASTCLASSHASH_31)
 
 @interface Foo

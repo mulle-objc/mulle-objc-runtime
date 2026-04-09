@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 struct opaque_struct;
 

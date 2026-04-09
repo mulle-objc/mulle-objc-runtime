@@ -1,0 +1,52 @@
+=== Comprehensive mulle_objc_class_methodlist_walk Test ===
+
+1. Testing DerivedClass METACLASS (class methods):
+Expected order: DerivedCategory -> Derived -> BaseCategory -> Base -> Protocols -> NSObject -> NSObject infraclass (wraparound)
+1. DerivedClass (DerivedCategory):
+   + derivedCategoryClassMethod
+2. DerivedClass (class):
+   + derivedClassMethod
+3. ThirdProtocol (protocol class):
+   + thirdProtocolClassMethod
+4. SecondProtocol (protocol class):
+   + secondProtocolClassMethod
+5. BaseClass (SecondBaseCategory):
+   + secondBaseCategoryClassMethod
+6. BaseClass (BaseCategory):
+   + baseCategoryClassMethod
+7. BaseClass (class):
+   + protocolClassMethod
+   + baseClassMethod
+8. BaseClass (SecondBaseCategory):
+   - secondBaseCategoryInstanceMethod
+9. BaseClass (BaseCategory):
+   - baseCategoryInstanceMethod
+10. BaseClass (class):
+   - baseInstanceMethod
+   - protocolInstanceMethod
+Total metaclass methodlists: 10
+Checking wraparound: Should include NSObject infraclass methods at end
+
+2. Testing DerivedClass INFRACLASS (instance methods):
+Expected order: DerivedCategory -> Derived -> BaseCategory -> Base -> Protocols -> NSObject
+1. DerivedClass (DerivedCategory):
+   - derivedCategoryInstanceMethod
+2. DerivedClass (class):
+   - derivedInstanceMethod
+3. ThirdProtocol (protocol class):
+   - thirdProtocolInstanceMethod
+4. SecondProtocol (protocol class):
+   - secondProtocolInstanceMethod
+5. BaseClass (SecondBaseCategory):
+   - secondBaseCategoryInstanceMethod
+6. BaseClass (BaseCategory):
+   - baseCategoryInstanceMethod
+7. BaseClass (class):
+   - baseInstanceMethod
+   - protocolInstanceMethod
+Total infraclass methodlists: 7
+
+3. Testing inheritance chain completeness:
+Metaclass should include full inheritance + wraparound to root infraclass
+Infraclass should include full inheritance: categories -> class -> protocols -> super
+PASS: Metaclass wraparound verified if NSObject infraclass methods found above

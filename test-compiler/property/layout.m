@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @interface Bar
 {

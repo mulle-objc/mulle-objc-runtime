@@ -155,12 +155,13 @@ struct _mulle_objc_universedebug
 
    struct
    {
-      unsigned   protocolclass          : 1;
-      unsigned   stuck_loadable         : 1;  // set by default
-      unsigned   method_type            : 2;
-      unsigned   method_bits            : 1;
-      unsigned   crash                  : 1;
-      unsigned   hang                   : 1;
+      unsigned   protocolclass            : 1;
+      unsigned   stuck_loadable           : 1;  // set by default
+      unsigned   method_type              : 2;
+      unsigned   method_bits              : 1;
+      unsigned   crash                    : 1;
+      unsigned   hang                     : 1;
+      unsigned   load_category_dependency : 1;
    } warn;
 
    struct

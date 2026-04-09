@@ -167,7 +167,7 @@ do                                                                              
       param;                                                                              \
                                                                                           \
    if( sizeof( param) <= sizeof( void *))                                                 \
-      mulle_objc_object_call( obj, sel, *(void *) &param);                                \
+      mulle_objc_object_call( obj, sel, *(void **) &param);                               \
    else                                                                                   \
       mulle_objc_object_call( obj, sel, &param);                                          \
    *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)) = param.r.v;                          \
@@ -196,9 +196,9 @@ do                                                                              
       };                                                                                   \
                                                                                            \
    if( sizeof( param) <= sizeof( void *))                                                  \
-      mulle_objc_object_call( obj, sel, *(void *) &param);                                 \
+      rval = mulle_objc_object_call( obj, sel, *(void **) &param);                         \
    else                                                                                    \
-      mulle_objc_object_call( obj, sel, &param);                                           \
+      rval = mulle_objc_object_call( obj, sel, &param);                                    \
    *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)) =                                      \
       (__typeof__(*(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))))                       \
       {                                                                                    \

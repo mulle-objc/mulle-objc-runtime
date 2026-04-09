@@ -5,6 +5,8 @@
 
 #include <mulle-core/mulle-core.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface NoWarn
 - (void) call:(char *) s;
 @end

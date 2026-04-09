@@ -1,0 +1,20 @@
+/opt/mulle-clang-project-windows/latest/bin/x86_64-w64-mingw32-clang -O0 -g -fobjc-tao -o /home/src/srcO/mulle-objc/mulle-objc-runtime/test-compiler-runtime/search/collect.exe collect.m -DMULLE_TEST=1 -I/home/src/srcO/mulle-objc/mulle-objc-runtime/test-compiler-runtime -I/home/nat/.mulle/var/cache/sde/mulle-objc-runtime-a98cd9f4aec5/dependency/windows/Debug/include -L/home/nat/.mulle/var/cache/sde/mulle-objc-runtime-a98cd9f4aec5/dependency/windows/Debug/lib -lmulle-objc-runtime -lmulle-core -Wl,--whole-archive -lmulle-core-all-load -lmulle-objc-runtime-startup -Wl,--no-whole-archive -lmulle-testallocator -lpsapi -lunwind -Wl,--export-all-symbols
+collect.m:4:12: warning: class 'A' defined without specifying a base class [-Wobjc-root-class]
+    4 | @interface A
+      |            ^
+collect.m:4:13: note: add a super class to fix this problem
+    4 | @interface A
+      |             ^
+collect.m:11:12: warning: class 'P' defined without specifying a base class [-Wobjc-root-class]
+   11 | @interface P < P>
+      |            ^
+collect.m:11:13: note: add a super class to fix this problem
+   11 | @interface P < P>
+      |             ^
+collect.m:18:12: warning: class 'Q' defined without specifying a base class [-Wobjc-root-class]
+   18 | @interface Q < Q>
+      |            ^
+collect.m:18:13: note: add a super class to fix this problem
+   18 | @interface Q < Q>
+      |             ^
+3 warnings generated.

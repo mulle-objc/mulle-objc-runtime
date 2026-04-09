@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 // https://clang.llvm.org/docs/ObjectiveCLiterals.html
 

@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 // this tries to replicate a problem I had with EOAttribute
 

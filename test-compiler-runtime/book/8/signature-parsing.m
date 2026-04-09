@@ -3,6 +3,8 @@
 
 #import "include.h"
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface TestClass
 - (int)simpleMethod;
 - (const char *)stringMethod:(const char *)str;
