@@ -17,13 +17,4 @@ wraparound_protoclass3.m:94:12: warning: class 'C' defined without specifying a 
 wraparound_protoclass3.m:94:13: note: add a super class to fix this problem
    94 | @interface C < A, B>
       |             ^
-wraparound_protoclass3.m:176:7: warning: class method '+a' not found (return type defaults to 'id') [-Wobjc-method-access]
-  176 |    [D a];
-      |       ^
-wraparound_protoclass3.m:177:7: warning: class method '+ab' not found (return type defaults to 'id') [-Wobjc-method-access]
-  177 |    [D ab];
-      |       ^~
-wraparound_protoclass3.m:181:7: warning: class method '+b' not found (return type defaults to 'id') [-Wobjc-method-access]
-  181 |    [D b];
-      |       ^
-6 warnings generated.
+3 warnings generated.

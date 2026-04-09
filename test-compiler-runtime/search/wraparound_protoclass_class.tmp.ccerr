@@ -11,10 +11,4 @@ wraparound_protoclass_class.m:28:12: warning: class 'B' defined without specifyi
 wraparound_protoclass_class.m:28:13: note: add a super class to fix this problem
    28 | @interface B < A>
       |             ^
-wraparound_protoclass_class.m:56:7: warning: class method '+x' not found (return type defaults to 'id') [-Wobjc-method-access]
-   56 |    [C x];
-      |       ^
-wraparound_protoclass_class.m:57:7: warning: class method '+y' not found (return type defaults to 'id') [-Wobjc-method-access]
-   57 |    [C y];
-      |       ^
-4 warnings generated.
+2 warnings generated.

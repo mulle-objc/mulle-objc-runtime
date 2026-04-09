@@ -1,5 +1,8 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+#pragma clang diagnostic ignored "-Wobjc-method-access"
+
 
 @implementation Foo
 

@@ -49,6 +49,11 @@
 @end
 
 
+@interface C (Forward)
++ (void) x;
++ (void) y;
+@end
+
 
 int   main()
 {

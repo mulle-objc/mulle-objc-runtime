@@ -26,6 +26,9 @@ struct large_struct
 @interface Foo
 @end
 
+@interface Foo (Forward)
++ (void) callLargeStruct:(struct large_struct) v;
+@end
 
 // plain clang on darwin: 
 // mulle-clang -isysroot `xcrun --show-sdk-path` -c test-compiler/0_compiler/metaabi/metaabi-struct-call-forward.m 
