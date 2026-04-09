@@ -1,0 +1,35 @@
+/opt/mulle-clang-project-windows/latest/bin/x86_64-w64-mingw32-clang -O0 -g -fobjc-tao -o /home/src/srcO/mulle-objc/mulle-objc-runtime/test-compiler-runtime/search/wraparound_protoclass4.exe wraparound_protoclass4.m -DMULLE_TEST=1 -I/home/src/srcO/mulle-objc/mulle-objc-runtime/test-compiler-runtime -I/home/nat/.mulle/var/cache/sde/mulle-objc-runtime-a98cd9f4aec5/dependency/windows/Debug/include -L/home/nat/.mulle/var/cache/sde/mulle-objc-runtime-a98cd9f4aec5/dependency/windows/Debug/lib -lmulle-objc-runtime -lmulle-core -Wl,--whole-archive -lmulle-core-all-load -lmulle-objc-runtime-startup -Wl,--no-whole-archive -lmulle-testallocator -lpsapi -lunwind -Wl,--export-all-symbols
+wraparound_protoclass4.m:11:12: warning: class 'A' defined without specifying a base class [-Wobjc-root-class]
+   11 | @interface A <A>
+      |            ^
+wraparound_protoclass4.m:11:13: note: add a super class to fix this problem
+   11 | @interface A <A>
+      |             ^
+wraparound_protoclass4.m:38:12: warning: class 'B' defined without specifying a base class [-Wobjc-root-class]
+   38 | @interface B <B>
+      |            ^
+wraparound_protoclass4.m:38:13: note: add a super class to fix this problem
+   38 | @interface B <B>
+      |             ^
+wraparound_protoclass4.m:62:12: warning: class 'C' defined without specifying a base class [-Wobjc-root-class]
+   62 | @interface C < A, B>
+      |            ^
+wraparound_protoclass4.m:62:13: note: add a super class to fix this problem
+   62 | @interface C < A, B>
+      |             ^
+wraparound_protoclass4.m:112:7: warning: class method '+a' not found (return type defaults to 'id') [-Wobjc-method-access]
+  112 |    [D a];
+      |       ^
+wraparound_protoclass4.m:113:7: warning: class method '+ab' not found (return type defaults to 'id') [-Wobjc-method-access]
+  113 |    [D ab];
+      |       ^~
+wraparound_protoclass4.m:115:7: warning: class method '+ad' not found (return type defaults to 'id') [-Wobjc-method-access]
+  115 |    [D ad];
+      |       ^~
+wraparound_protoclass4.m:117:7: warning: class method '+b' not found (return type defaults to 'id') [-Wobjc-method-access]
+  117 |    [D b];
+      |       ^
+wraparound_protoclass4.m:120:7: warning: class method '+bd' not found (return type defaults to 'id') [-Wobjc-method-access]
+  120 |    [D bd];
+      |       ^~
+8 warnings generated.

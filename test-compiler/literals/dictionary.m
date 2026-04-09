@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @interface NSDictionary
 
@@ -18,6 +20,7 @@
                        count:(long) count
 {
    printf( "%ld\n", count);
+   return( nil);
 }
 
 @end

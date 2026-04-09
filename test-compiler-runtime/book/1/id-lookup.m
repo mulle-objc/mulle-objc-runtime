@@ -3,6 +3,8 @@
 
 #import "import.h"
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface MyClass
 @end
 @implementation MyClass

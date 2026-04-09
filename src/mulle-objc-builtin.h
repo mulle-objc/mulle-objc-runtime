@@ -200,6 +200,10 @@ static inline void
    if( ! self)
       return;
 
+   // proetection against wrap-around to root meta, which then clobbers
+   // the runtime struct !
+   assert( _mulle_objc_class_is_infraclass( _mulle_objc_object_get_isa( self)));
+
    if( strategy & mulle_objc_property_accessor_copy)
    {
       if( strategy & mulle_objc_property_accessor_mutable_copy)  // da apple way
@@ -240,8 +244,14 @@ void   *
 
    MULLE_C_UNUSED( _cmd);
 
+   // TODO: check if these self checks arent super superflous in terms of
+   //       compiler emission )
    if( ! self)
       return( NULL);
+
+   // protection against wrap-around to root meta, which then clobbers
+   // the runtime struct !
+   assert( _mulle_objc_class_is_infraclass( _mulle_objc_object_get_isa( self)));
 
    p_ivar = (void **) &((char *) self)[ offset];
    if( strategy & mulle_objc_property_accessor_atomic)
@@ -271,6 +281,15 @@ static inline void   mulle_objc_object_add_to_container( void *self,
 {
    void   **p_ivar;
 
+   // TODO: check if these self checks arent super superflous in terms of
+   //       compiler emission )
+   if( ! self)
+      return;
+
+   // protection against wrap-around to root meta, which then clobbers
+   // the runtime struct !
+   assert( _mulle_objc_class_is_infraclass( _mulle_objc_object_get_isa( self)));
+
    p_ivar = (void **) &((char *) self)[ offset];
 
    assert_same_mulle_allocator( self, value);
@@ -283,6 +302,15 @@ static inline void   mulle_objc_object_remove_from_container( void *self,
                                                               void *value)
 {
    void   **p_ivar;
+
+   // TODO: check if these self checks arent super superflous in terms of
+   //       compiler emission )
+   if( ! self)
+      return;
+
+   // protection against wrap-around to root meta, which then clobbers
+   // the runtime struct !
+   assert( _mulle_objc_class_is_infraclass( _mulle_objc_object_get_isa( self)));
 
    p_ivar = (void **) &((char *) self)[ offset];
    mulle_objc_object_call_removeobject( *p_ivar, value);
@@ -299,6 +327,15 @@ static inline void   mulle_objc_object_will_read_relationship( void *self,
                                                                ptrdiff_t offset)
 {
    void   **p_ivar;
+
+   // TODO: check if these self checks arent super superflous in terms of
+   //       compiler emission )
+   if( ! self)
+      return;
+
+   // protection against wrap-around to root meta, which then clobbers
+   // the runtime struct !
+   assert( _mulle_objc_class_is_infraclass( _mulle_objc_object_get_isa( self)));
 
    p_ivar  = (void **) &((char *) self)[ offset];
    *p_ivar = mulle_objc_object_call_willreadrelationship( self, *p_ivar);

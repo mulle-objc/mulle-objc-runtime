@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 //
 // this test check if we can build up an example metaabi frame with

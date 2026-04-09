@@ -1,4 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // method in a "Forward" category: no warning
 @interface Foo
 @end

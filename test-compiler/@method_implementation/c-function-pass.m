@@ -1,4 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // C function alias: mulle metaabi signature
 // zero-arg method: (id, SEL) -> void * **WRONG**
 // with-arg method: (id, SEL, void *) -> void *

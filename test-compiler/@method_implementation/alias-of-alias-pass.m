@@ -1,5 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // alias of an alias — should work if both are in the same impl
 @interface Foo
 - (void)a;

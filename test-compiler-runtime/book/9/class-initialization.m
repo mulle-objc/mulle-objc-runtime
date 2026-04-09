@@ -3,6 +3,8 @@
 
 #import "include.h"
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 static int initialize_called = 0;
 static int initialized_value = 0;
 

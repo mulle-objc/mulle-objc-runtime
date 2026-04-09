@@ -1,4 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // multi-arg selector alias
 typedef struct objc_object *id;
 

@@ -1,0 +1,20 @@
+a not found in class A
+b not found in class A
+c not found in class A
+a_x found in class A
+b_x not found in class A
+c_x not found in class A
+
+a found in class B
+b not found in class B
+c not found in class B
+a_x found in class B
+b_x found in class B
+c_x not found in class B
+
+a found in class C
+b not found in class C
+c not found in class C
+a_x found in class C
+b_x not found in class C
+c_x found in class C

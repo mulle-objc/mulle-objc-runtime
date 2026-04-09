@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface TestClass {
     int     intValue;
     float   floatValue;

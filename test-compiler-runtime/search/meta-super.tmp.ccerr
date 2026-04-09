@@ -1,0 +1,20 @@
+/opt/mulle-clang-project-windows/latest/bin/x86_64-w64-mingw32-clang -O0 -g -fobjc-tao -o /home/src/srcO/mulle-objc/mulle-objc-runtime/test-compiler-runtime/search/meta-super.exe meta-super.m -DMULLE_TEST=1 -I/home/src/srcO/mulle-objc/mulle-objc-runtime/test-compiler-runtime -I/home/nat/.mulle/var/cache/sde/mulle-objc-runtime-a98cd9f4aec5/dependency/windows/Debug/include -L/home/nat/.mulle/var/cache/sde/mulle-objc-runtime-a98cd9f4aec5/dependency/windows/Debug/lib -lmulle-objc-runtime -lmulle-core -Wl,--whole-archive -lmulle-core-all-load -lmulle-objc-runtime-startup -Wl,--no-whole-archive -lmulle-testallocator -lpsapi -lunwind -Wl,--export-all-symbols
+meta-super.m:8:12: warning: class 'A' defined without specifying a base class [-Wobjc-root-class]
+    8 | @interface A
+      |            ^
+meta-super.m:8:13: note: add a super class to fix this problem
+    8 | @interface A
+      |             ^
+meta-super.m:32:12: warning: class 'X' defined without specifying a base class [-Wobjc-root-class]
+   32 | @interface X <X>
+      |            ^
+meta-super.m:32:13: note: add a super class to fix this problem
+   32 | @interface X <X>
+      |             ^
+meta-super.m:49:12: warning: class 'C' defined without specifying a base class [-Wobjc-root-class]
+   49 | @interface C < X>
+      |            ^
+meta-super.m:49:13: note: add a super class to fix this problem
+   49 | @interface C < X>
+      |             ^
+3 warnings generated.

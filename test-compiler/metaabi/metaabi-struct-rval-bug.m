@@ -9,6 +9,8 @@
 #include <limits.h>
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 struct large_struct
 {

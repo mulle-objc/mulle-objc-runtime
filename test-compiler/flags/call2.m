@@ -1,5 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // use mulle_objc_method_call
 #define __MULLE_OBJC_INLINE_METHOD_CALLS__ 2
 

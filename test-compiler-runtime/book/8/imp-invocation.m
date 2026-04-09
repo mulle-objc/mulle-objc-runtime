@@ -3,6 +3,8 @@
 
 #import "include.h"
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface TestClass
 - (int)compute:(int)value;
 + (const char *)staticCompute:(int)x;

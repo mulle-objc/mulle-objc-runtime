@@ -4,6 +4,8 @@
 #import "include.h"
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @protocol ConformanceProtocol
 - (void)protocolMethod;
 @property int protocolProperty;

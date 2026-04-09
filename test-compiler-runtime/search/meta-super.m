@@ -5,6 +5,8 @@
 #endif
 
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface A
 @end
 

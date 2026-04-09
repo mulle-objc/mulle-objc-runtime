@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface NSString
 
 + (id) stringWithUTF8String:(char *) s;
@@ -40,7 +42,7 @@ int  main( int argc, char *argv[])
    foo = @( argv[ 1]);
    // just be happy that it compiles :)
    printf( "%d\n", [foo length]);
-   printf( "%d\n", strlen( argv[ 1]));
+   printf( "%zu\n", strlen( argv[ 1]));
    return( 0);
 }
 

@@ -1,6 +1,8 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 #include <stdio.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @interface Container
 {

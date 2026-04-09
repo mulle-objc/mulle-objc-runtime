@@ -1,6 +1,8 @@
 // Test for ivar offset calculation
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // Define a test class
 @interface TestClass
 {

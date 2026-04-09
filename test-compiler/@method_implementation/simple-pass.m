@@ -1,5 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // simplest case: alias void no-arg method to another
 @interface Foo
 - (void)doSomething;

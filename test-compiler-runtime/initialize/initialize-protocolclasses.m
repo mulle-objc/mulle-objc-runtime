@@ -11,6 +11,8 @@ static void   trace( Class self, char *name)
 
 #define METHOD_NAME  ((char *) __PRETTY_FUNCTION__)
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 @interface A
 @end
 

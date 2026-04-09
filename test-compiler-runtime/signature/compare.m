@@ -2,6 +2,8 @@
 
 #include <stdarg.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 @class Bar;
 @class Baz;

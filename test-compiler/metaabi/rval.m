@@ -12,6 +12,8 @@
 #include <limits.h>
 #include <float.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 
 typedef struct
 {

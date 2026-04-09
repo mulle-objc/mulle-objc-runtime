@@ -1,5 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
+#pragma clang diagnostic ignored "-Wobjc-root-class"
+
 // shadow locals: multi-arg method params accessible by name
 // verifies that 'a' and 'b' resolve to shadow VarDecls (not _param->a)
 
