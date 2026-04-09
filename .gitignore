@@ -90,3 +90,4 @@ perf.data
 *.notyet
 .roam
 .graveyard
+*.tmp.*

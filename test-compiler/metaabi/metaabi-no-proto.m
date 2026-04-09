@@ -39,6 +39,20 @@ struct _received
 @interface Foo
 @end
 
+@interface Foo (Forward)
++ (void) callChar:(char) v;
++ (void) callShort:(short) v;
++ (void) callInt:(int) v;
++ (void) callLong:(long) v;
++ (void) callLongLong:(long long) v;
++ (void) callCharPtr:(char *) v;
++ (void) callSmallStruct:(struct small_struct) v;
++ (void) callLargeStruct:(struct large_struct) v;
++ (void) callChar:(char) v longLong:(long long) v2;
++ (void) callCharPtr:(char *) v longLong:(long long) v2;
++ (void) callLongLong:(long long) v1 longLong:(long long) v2 longLong:(long long) v3 longLong:(long long) v4 longLong:(long long) v5 longLong:(long long) v6 longLong:(long long) v7 longLong:(long long) v8 longLong:(long long) v9 longLong:(long long) v10 longLong:(long long) v11 longLong:(long long) v12 longLong:(long long) v13 longLong:(long long) v14 longLong:(long long) v15 longLong:(long long) v16;
+@end
+
 
 void  single_args()
 {

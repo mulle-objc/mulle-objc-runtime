@@ -18,7 +18,7 @@
                   count:(long) count
 {
    printf( "%ld\n", count);
-   return( nil);
+   return( (id) 0);
 }
 
 @end

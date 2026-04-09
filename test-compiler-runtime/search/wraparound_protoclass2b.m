@@ -61,6 +61,11 @@
 @end
 
 
+@interface C (Forward)
++ (void) x;
+@end
+
+
 int   main()
 {
    // we call +x defined on A and B (+x is a class method)

@@ -107,6 +107,15 @@
 @end
 
 
+@interface D (Forward)
++ (void) a;
++ (void) ab;
++ (void) ad;
++ (void) b;
++ (void) bd;
+@end
+
+
 int   main()
 {
    [D a];

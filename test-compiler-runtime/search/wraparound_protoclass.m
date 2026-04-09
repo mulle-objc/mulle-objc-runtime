@@ -37,6 +37,12 @@
 @end
 
 
+@interface B (Forward)
++ (void) x;
++ (void) y;
+@end
+
+
 int   main()
 {
    [B x];
