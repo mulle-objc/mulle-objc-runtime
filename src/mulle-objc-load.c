@@ -429,6 +429,7 @@ void
    struct _mulle_objc_dependency   dependency;
    struct _mulle_objc_infraclass   *infra;
    char                            *s_class;
+   char                            *s_category;
 
    if( ! info || ! universe)
       return;
@@ -438,17 +439,37 @@ void
       return;
 
    s_class = _mulle_objc_universe_describe_classid( universe, dependency.classid);
-   if( universe->debug.print.stuck_class_coverage)
-      printf( "%08lx;%s;;\n", (unsigned long) dependency.classid, s_class);
+   if( dependency.categoryid == MULLE_OBJC_NO_CATEGORYID)
+   {
+      if( universe->debug.print.stuck_class_coverage)
+         printf( "%08lx;%s;;\n", (unsigned long) dependency.classid, s_class);
+
+      if( universe->debug.trace.waiters_svg)
+         mulle_fprintf( stderr, "\t\"%s\" -> \"%s\" [ label=\" waits for\" ]\n",
+                 info->classname,
+                 s_class);
+      else
+         mulle_fprintf( stderr, "\t%08lx \"%s\" -> %08lx \"%s\" [ label=\" waiting for class\" ]\n",
+                 (unsigned long) info->classid, info->classname,
+                 (unsigned long) dependency.classid, s_class);
+      return;
+   }
+
+   s_category = _mulle_objc_universe_describe_categoryid( universe, dependency.categoryid);
+   if( universe->debug.print.stuck_category_coverage)
+      printf( "%08lx;%s;%08lx;%s\n", (unsigned long) dependency.classid, s_class,
+              (unsigned long) dependency.categoryid, s_category);
 
    if( universe->debug.trace.waiters_svg)
-      mulle_fprintf( stderr, "\t\"%s\" -> \"%s\" [ label=\" waits for\" ]\n",
+      mulle_fprintf( stderr, "\t\"%s\" -> \"%s( %s)\" [ label=\" waits for\" ]\n",
               info->classname,
-              s_class);
+              s_class,
+              s_category);
    else
-      mulle_fprintf( stderr, "\t%08lx \"%s\" -> %08lx \"%s\" [ label=\" waiting for class\" ]\n",
+      mulle_fprintf( stderr, "\t%08lx \"%s\" -> %08lx,%08lx \"%s( %s)\" [ label=\" waiting for category\" ]\n",
               (unsigned long) info->classid, info->classname,
-              (unsigned long) dependency.classid, s_class);
+              (unsigned long) dependency.classid, (unsigned long) dependency.categoryid,
+              s_class, s_category);
 }
 
 
