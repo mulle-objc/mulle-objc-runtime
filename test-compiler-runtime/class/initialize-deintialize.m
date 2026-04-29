@@ -2,12 +2,12 @@
 
 
 
-@class A;
-@protocol A
+@protocol_class A;
+@protocol_interface A
 @end
 
-@class B;
-@protocol B
+@protocol_class B;
+@protocol_interface B
 @end
 
 
@@ -34,9 +34,7 @@
 
 @end
 
-@interface A <A>
-@end
-@implementation A
+@protocol_implementation A
 + (void) initialize
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);
@@ -48,9 +46,7 @@
 }
 @end
 
-@interface B <B>
-@end
-@implementation B
+@protocol_implementation B
 + (void) initialize
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

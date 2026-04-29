@@ -162,40 +162,36 @@ static struct _mulle_objc_method   methods[ N_METHODS] =
    {
       .descriptor =
       {
-         0x10100,             // descriptor.methodid
-         "@:",                // descriptor.signature
-         "m0",                // descriptor.name
-         0                    // descriptor.bits
+         .methodid  = 0x10100,
+         .signature = "@:",
+         .name      = "m0",
       },
       .value = imp0
    },
    {
       .descriptor =
       {
-         0x10110,             // descriptor.methodid
-         "@:",                // descriptor.signature
-         "m1",                // descriptor.name
-         0                    // descriptor.bits
+         .methodid  = 0x10110,
+         .signature = "@:",
+         .name      = "m1",
       },
       .value = imp1
    },
    {
       .descriptor =
       {
-         0x10120,             // descriptor.methodid
-         "@:",                // descriptor.signature
-         "m2",                // descriptor.name
-         0                    // descriptor.bits
+         .methodid  = 0x10120,
+         .signature = "@:",
+         .name      = "m2",
       },
       .value = imp2
    },
    {
       .descriptor =
       {
-         0x10130,             // descriptor.methodid
-         "@:",                // descriptor.signature
-         "m3",                // descriptor.name
-         0                    // descriptor.bits
+         .methodid  = 0x10130,
+         .signature = "@:",
+         .name      = "m3",
       },
       .value = imp3
    }

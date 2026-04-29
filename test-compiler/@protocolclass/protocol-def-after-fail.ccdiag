@@ -1,1 +1,2 @@
-is a protocolclass; use @protocolclass for protocol definition
+is a protocol class; use @protocol_interface for protocol definition
+protocol has circular dependency

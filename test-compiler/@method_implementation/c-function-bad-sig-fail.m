@@ -3,7 +3,7 @@
 typedef struct objc_selector *SEL;
 typedef struct objc_object   *id;
 
-int bad_c_function(id self, SEL _cmd);
+int bad_c_function(id self, SEL _cmd, void *);
 
 @interface Foo
 - (void *)doSomething;

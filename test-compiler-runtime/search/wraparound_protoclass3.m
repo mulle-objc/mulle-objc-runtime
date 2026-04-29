@@ -5,14 +5,11 @@
 #endif
 
 
-@class A;
-@protocol A
-@end
-@interface A <A>
+@protocol_class A;
+@protocol_interface A
 @end
 
-
-@implementation A
+@protocol_implementation A
 + (void) a
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);
@@ -48,14 +45,11 @@
 @end
 
 
-@class B;
-@protocol B
-@end
-@interface B <B>
+@protocol_class B;
+@protocol_interface B
 @end
 
-
-@implementation B
+@protocol_implementation B
 + (void) b
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

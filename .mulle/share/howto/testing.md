@@ -44,16 +44,16 @@ mulle-sde test init
 mulle-sde vibecoding
 ```
 
-Enable vibecoding to get persistent stdout and stderr logs as `*.test.*` files
+Enable vibecoding to get persistent stdout and stderr logs as `*.tmp.*` files
 and make your life much easier. With vibecoding enabled, the files generated
 by the test will be besides the testfile. Also the generated test executable
 with the suffix `.exe` will not be removed.
 
 ## Test Result Files
 
-- `.test.stdout` - actual test output
-- `.test.stderr` - runtime errors
-- `.test.ccerr` (or `.test.ccdiag`) - compiler warnings/errors
+- `.tmp.stdout` - actual test output
+- `.tmp.stderr` - runtime errors
+- `.tmp.ccerr` (or `.tmp.ccdiag`) - compiler warnings/errors
 - `.exe` - compiled executable (don't run directly)
 
 
@@ -115,13 +115,13 @@ mulle-sde test run path/to/filename.extension
 
 ## Checking Test Output
 
-Compiler errors go to `*.test.ccerr`
-Check `.test.stdout|stderr` files for actual output.
+Compiler errors go to `*.tmp.ccerr`
+Check `.tmp.stdout|stderr` files for actual output.
 
 ```bash
-# Output is in .test.stdout file and stderr
-cat path/to/filename.test.stdout
-cat path/to/filename.test.stderr
+# Output is in .tmp.stdout file and stderr
+cat path/to/filename.tmp.stdout
+cat path/to/filename.tmp.stderr
 ```
 
 

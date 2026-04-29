@@ -108,18 +108,18 @@ static struct test
    unsigned int  align;
 } tests[] =
 {
-   { "{?=c}",  sizeof( struct test_0), alignof( struct test_0) },
-   { "{?=cs}", sizeof( struct test_1), alignof( struct test_1) },
-   { "{?=ci}", sizeof( struct test_2), alignof( struct test_2) },
-   { "{?=cd}", sizeof( struct test_3), alignof( struct test_3) },
-   { "{?=cc}", sizeof( struct test_4), alignof( struct test_4) },
-   { "{?=sd}", sizeof( struct test_5), alignof( struct test_5) },
-   { "{?={?=c}{?=c}}", sizeof( struct test_6), alignof( struct test_6) },
-   { "{?=sc}", sizeof( struct test_7), alignof( struct test_7) },
-   { "{?=ic}", sizeof( struct test_8), alignof( struct test_8) },
-   { "{?=dc}", sizeof( struct test_9), alignof( struct test_9) },
-   { "{?=ds}", sizeof( struct test_10), alignof( struct test_10) },
-   { "{?={?=cs}{?=ci}{?=sc}{?=ic}}", sizeof( struct test_11), alignof( struct test_11) },
+   { .signature = "{?=c}",  .size = sizeof( struct test_0), .align = alignof( struct test_0) },
+   { .signature = "{?=cs}", .size = sizeof( struct test_1), .align = alignof( struct test_1) },
+   { .signature = "{?=ci}", .size = sizeof( struct test_2), .align = alignof( struct test_2) },
+   { .signature = "{?=cd}", .size = sizeof( struct test_3), .align = alignof( struct test_3) },
+   { .signature = "{?=cc}", .size = sizeof( struct test_4), .align = alignof( struct test_4) },
+   { .signature = "{?=sd}", .size = sizeof( struct test_5), .align = alignof( struct test_5) },
+   { .signature = "{?={?=c}{?=c}}", .size = sizeof( struct test_6), .align = alignof( struct test_6) },
+   { .signature = "{?=sc}", .size = sizeof( struct test_7), .align = alignof( struct test_7) },
+   { .signature = "{?=ic}", .size = sizeof( struct test_8), .align = alignof( struct test_8) },
+   { .signature = "{?=dc}", .size = sizeof( struct test_9), .align = alignof( struct test_9) },
+   { .signature = "{?=ds}", .size = sizeof( struct test_10), .align = alignof( struct test_10) },
+   { .signature = "{?={?=cs}{?=ci}{?=sc}{?=ic}}", .size = sizeof( struct test_11), .align = alignof( struct test_11) },
    { 0 }
 };
 

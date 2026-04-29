@@ -52,7 +52,7 @@
 // up the number if binary loads are incompatible
 // this is read and checked by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   19
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   20
 
 
 #ifndef __TEST_VERSION

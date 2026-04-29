@@ -195,17 +195,17 @@ static void   *Object_init( struct Object *self, mulle_objc_methodid_t _cmd, voi
 
 static struct _mulle_objc_methodlist  Object_instance_methodlist =
 {
-   1,				// n_methods
-   NULL,			// owner, for debugging
+   .n_methods = 1,
+   .methods   =
    {
       {
+         .descriptor =
          {
-            ___init__methodid,	// descriptor.methodid
-            "@@:",                // descriptor.signature
-            "init",		         // descriptor.name
-            0			            // descriptor.bits
+            .methodid  = ___init__methodid,
+            .signature = "@@:",
+            .name      = "init",
          },
-         (mulle_objc_implementation_t) Object_init	// implementation
+         .value = (mulle_objc_implementation_t) Object_init
       }
    }
 };
@@ -239,23 +239,13 @@ static struct _mulle_objc_methodlist  Object_instance_methodlist =
 
 static struct _mulle_objc_loadclass  Object_loadclass =
 {
-   ___Object_classid,
-   "Object",
-   0,
+   .base.classid         = ___Object_classid,
+   .base.classname       = "Object",
 
-   0,
-   NULL,
-   0,
+   .fastclassindex       = -1,
+   .instancesize         = 4,  // some size
 
-   -1,
-   4,  // some size
-
-   NULL,
-   NULL,
-   &Object_instance_methodlist,
-   NULL,
-
-   NULL
+   .base.instancemethods = &Object_instance_methodlist,
 };
 
 
@@ -315,24 +305,27 @@ static void   Foo_setA_b_( struct Foo *self, mulle_objc_methodid_t _cmd, struct 
 
 static struct _gnu_mulle_objc_ivarlist  Foo_ivarlist =
 {
-   2,
+   .n_ivars = 2,
    // must be sorted by ivarid !!!
+   .ivars   =
    {
       {
+         .descriptor =
          {
-            ___a___ivarid,
-            "a",
-            "i"
+            .ivarid    = ___a___ivarid,
+            .name      = "a",
+            .signature = "i"
          },
-         offsetof( struct Foo, a)
+         .offset = offsetof( struct Foo, a)
       },
       {
+         .descriptor =
          {
-            ___b___ivarid,
-            "b",
-            "i"
+            .ivarid    = ___b___ivarid,
+            .name      = "b",
+            .signature = "i"
          },
-         offsetof( struct Foo, b)
+         .offset = offsetof( struct Foo, b)
       }
    }
 };
@@ -340,26 +333,26 @@ static struct _gnu_mulle_objc_ivarlist  Foo_ivarlist =
 
 static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
 {
-   2,
-   NULL,
+   .n_methods = 2,
+   .methods   =
    {
       {
+         .descriptor =
          {
-            ___init__methodid,
-            "@@:",
-            "init",
-            0
+            .methodid  = ___init__methodid,
+            .signature = "@@:",
+            .name      = "init",
          },
-         (mulle_objc_implementation_t) Foo_init
+         .value = (mulle_objc_implementation_t) Foo_init
       },
       {
+         .descriptor =
          {
-            ___setA_b___methodid,
-            "^v@:ii",
-            "setA:b:",
-            0
+            .methodid  = ___setA_b___methodid,
+            .signature = "^v@:ii",
+            .name      = "setA:b:",
          },
-         (mulle_objc_implementation_t) Foo_setA_b_
+         .value = (mulle_objc_implementation_t) Foo_setA_b_
       }
    }
 };
@@ -367,23 +360,17 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
 
 static struct _mulle_objc_loadclass  Foo_loadclass =
 {
-   ___Foo_classid,
-   "Foo",
-   0,
+   .base.classid         = ___Foo_classid,
+   .base.classname       = "Foo",
 
-   ___Object_classid,
-   "Object",
-   0,
+   .superclassid         = ___Object_classid,
+   .superclassname       = "Object",
 
-   -1,
-   sizeof( struct Foo),
+   .fastclassindex       = -1,
+   .instancesize         = sizeof( struct Foo),
 
-   (struct _mulle_objc_ivarlist *)  &Foo_ivarlist,
-   NULL,
-   (struct _mulle_objc_methodlist *) &Foo_instance_methodlist,
-   NULL,
-
-   NULL
+   .instancevariables    = (struct _mulle_objc_ivarlist *)  &Foo_ivarlist,
+   .base.instancemethods = (struct _mulle_objc_methodlist *) &Foo_instance_methodlist,
 };
 
 
@@ -404,17 +391,17 @@ static void   Foo_Print_print( struct Foo *self, mulle_objc_methodid_t _cmd, voi
 
 static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
 {
-   1,
-   NULL,
+   .n_methods = 1,
+   .methods   =
    {
       {
+         .descriptor =
          {
-            ___print__methodid,
-            "^v@:",
-            "print",
-            0
+            .methodid  = ___print__methodid,
+            .signature = "^v@:",
+            .name      = "print",
          },
-         (mulle_objc_implementation_t) Foo_Print_print
+         .value = (mulle_objc_implementation_t) Foo_Print_print
       }
    }
 };
@@ -437,32 +424,28 @@ static struct _mulle_objc_methodlist  Foo_Print_instance_methodlist =
 
 struct _mulle_objc_loadcategory   Foo_Print_category_load =
 {
-   ___Print_categoryid,
-   "Print",
+   .categoryid       = ___Print_categoryid,
+   .categoryname     = "Print",
 
-   ___Foo_classid,
-   "Foo",
-   0,
+   .classid          = ___Foo_classid,
+   .classname        = "Foo",
 
-   NULL,
-   &Foo_Print_instance_methodlist,
-   NULL,
-
-   NULL
+   .instancemethods  = &Foo_Print_instance_methodlist,
 };
 
 
 struct _mulle_objc_loadcategorylist category_list =
 {
-   1,
-   &Foo_Print_category_load
+   .n_loadcategories = 1,
+   .loadcategories   = { &Foo_Print_category_load }
 };
 
 
 
 struct _gnu_mulle_objc_loadclasslist  class_list =
 {
-   2,
+   .n_loadclasses = 2,
+   .loadclasses   =
    {
       &Object_loadclass,
       &Foo_loadclass
@@ -476,13 +459,14 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 
 struct _gnu_mulle_objc_superlist  super_list =
 {
-   1,
+   .n_supers = 1,
+   .supers   =
    {
       {
-         ___Foo_init_superid,
-         ___Foo_init_supername,
-         ___Foo_classid,
-         ___init__methodid
+         .superid  = ___Foo_init_superid,
+         .name     = ___Foo_init_supername,
+         .classid  = ___Foo_classid,
+         .methodid = ___init__methodid
       }
    }
 };
@@ -510,17 +494,15 @@ struct _gnu_mulle_objc_superlist  super_list =
 
 static struct _mulle_objc_loadinfo  load_info =
 {
+   .version =
    {
-      MULLE_OBJC_RUNTIME_LOAD_VERSION,
-      MULLE_OBJC_RUNTIME_VERSION,
-      0,
-      0,
-      TPS_BIT | FCS_BIT | TAO_BIT
+      .load    = MULLE_OBJC_RUNTIME_LOAD_VERSION,
+      .runtime = MULLE_OBJC_RUNTIME_VERSION,
+      .bits    = TPS_BIT | FCS_BIT | TAO_BIT
    },
-   NULL,
-   (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
-   &category_list,
-   (struct _mulle_objc_superlist *) &super_list
+   .loadclasslist    = (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
+   .loadcategorylist = &category_list,
+   .loadsuperlist    = (struct _mulle_objc_superlist *) &super_list
 };
 
 

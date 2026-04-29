@@ -20,14 +20,12 @@ static void   trace( Class self, char *name)
 @end
 
 
-@protocol C
-@end
-@interface C <C>
+@protocol_class C;
+@protocol_interface C
 @end
 
-@protocol D
-@end
-@interface D <D>
+@protocol_class D;
+@protocol_interface D
 @end
 
 
@@ -47,14 +45,12 @@ static void   trace( Class self, char *name)
 @end
 
 
-@protocol I
-@end
-@interface I <I>
+@protocol_class I;
+@protocol_interface I
 @end
 
-@protocol J
-@end
-@interface J <J>
+@protocol_class J;
+@protocol_interface J
 @end
 
 
@@ -96,7 +92,7 @@ static void   trace( Class self, char *name)
 
 @end
 
-@implementation C
+@protocol_implementation C
 + (void) initialize
 {
    trace( self, METHOD_NAME);
@@ -108,7 +104,7 @@ static void   trace( Class self, char *name)
 
 @end
 
-@implementation D
+@protocol_implementation D
 + (void) initialize
 {
    trace( self, METHOD_NAME);
@@ -164,7 +160,7 @@ static void   trace( Class self, char *name)
 @end
 
 
-@implementation I
+@protocol_implementation I
 + (void) initialize
 {
    trace( self, METHOD_NAME);
@@ -175,7 +171,7 @@ static void   trace( Class self, char *name)
 }
 @end
 
-@implementation J
+@protocol_implementation J
 // has none
 //+ (void) initialize
 //{

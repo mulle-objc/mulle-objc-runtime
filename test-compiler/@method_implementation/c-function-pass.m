@@ -9,7 +9,7 @@
 typedef struct objc_selector *SEL;
 typedef struct objc_object   *id;
 
-void *my_zero_arg(id self, SEL _cmd) { return( NULL); }
+void *my_zero_arg(id self, SEL _cmd, void *_param) { return( NULL); }
 void *my_with_arg(id self, SEL _cmd, void *_param) { return( NULL); }
 
 @interface Foo

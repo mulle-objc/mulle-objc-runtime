@@ -162,7 +162,7 @@ main()
 
          # don't wanna touch srcfile all the time for git ugliness
          srcfile="${name}.m"
-         if [ ! -f "${srcfile}" ] || ! cmp -s "${srcfile}" "${origfile}"
+         if [ ! -f "${srcfile}" ] || ! diff -q "${srcfile}" "${origfile}" >/dev/null 2>&1
          then
             exekutor cp "calli.m.orig" "${srcfile}"
          fi

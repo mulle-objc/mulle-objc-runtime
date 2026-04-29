@@ -108,18 +108,18 @@ static struct test
    unsigned int  align;
 } tests[] =
 {
-   { "[3{?=c}]",  sizeof( struct test_0 [3]), alignof( struct test_0 [3])},
-   { "[3{?=cs}]", sizeof( struct test_1 [3]), alignof( struct test_1 [3]) },
-   { "[3{?=ci}]", sizeof( struct test_2 [3]), alignof( struct test_2 [3]) },
-   { "[3{?=cd}]", sizeof( struct test_3 [3]), alignof( struct test_3 [3]) },
-   { "[3{?=cc}]", sizeof( struct test_4 [3]), alignof( struct test_4 [3]) },
-   { "[3{?=sd}]", sizeof( struct test_5 [3]), alignof( struct test_5 [3]) },
-   { "[3{?={?=c}{?=c}}]", sizeof( struct test_6 [3]), alignof( struct test_6  [3]) },
-   { "[3{?=sc}]", sizeof( struct test_7 [3]), alignof( struct test_7 [3] ) },
-   { "[3{?=ic}]", sizeof( struct test_8 [3]), alignof( struct test_8 [3] ) },
-   { "[3{?=dc}]", sizeof( struct test_9 [3]), alignof( struct test_9 [3] ) },
-   { "[3{?=ds}]", sizeof( struct test_10 [3]), alignof( struct test_10  [3]) },
-   { "[3{?={?=cs}{?=ci}{?=sc}{?=ic}}]", sizeof( struct test_11 [3]), alignof( struct test_11 [3]) },
+   { .signature = "[3{?=c}]",  .size = sizeof( struct test_0 [3]), .align = alignof( struct test_0 [3])},
+   { .signature = "[3{?=cs}]", .size = sizeof( struct test_1 [3]), .align = alignof( struct test_1 [3]) },
+   { .signature = "[3{?=ci}]", .size = sizeof( struct test_2 [3]), .align = alignof( struct test_2 [3]) },
+   { .signature = "[3{?=cd}]", .size = sizeof( struct test_3 [3]), .align = alignof( struct test_3 [3]) },
+   { .signature = "[3{?=cc}]", .size = sizeof( struct test_4 [3]), .align = alignof( struct test_4 [3]) },
+   { .signature = "[3{?=sd}]", .size = sizeof( struct test_5 [3]), .align = alignof( struct test_5 [3]) },
+   { .signature = "[3{?={?=c}{?=c}}]", .size = sizeof( struct test_6 [3]), .align = alignof( struct test_6  [3]) },
+   { .signature = "[3{?=sc}]", .size = sizeof( struct test_7 [3]), .align = alignof( struct test_7 [3] ) },
+   { .signature = "[3{?=ic}]", .size = sizeof( struct test_8 [3]), .align = alignof( struct test_8 [3] ) },
+   { .signature = "[3{?=dc}]", .size = sizeof( struct test_9 [3]), .align = alignof( struct test_9 [3] ) },
+   { .signature = "[3{?=ds}]", .size = sizeof( struct test_10 [3]), .align = alignof( struct test_10  [3]) },
+   { .signature = "[3{?={?=cs}{?=ci}{?=sc}{?=ic}}]", .size = sizeof( struct test_11 [3]), .align = alignof( struct test_11 [3]) },
    { 0 }
 };
 

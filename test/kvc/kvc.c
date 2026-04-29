@@ -153,16 +153,17 @@ static void   *Foo_a( struct Foo *self, mulle_objc_methodid_t _cmd, void *_param
 
 static struct _gnu_mulle_objc_ivarlist  Foo_ivarlist =
 {
-   1,
+   .n_ivars = 1,
    // must be sorted by ivarid !!!
-   {
+   .ivars   = {
       {
+         .descriptor =
          {
-            ___a___ivarid,
-            "a",
-            "i"
+            .ivarid    = ___a___ivarid,
+            .name      = "a",
+            .signature = "i"
          },
-         offsetof( struct Foo, a)
+         .offset = offsetof( struct Foo, a)
       }
    }
 };
@@ -170,41 +171,35 @@ static struct _gnu_mulle_objc_ivarlist  Foo_ivarlist =
 
 static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
 {
-   3,
-   NULL,
+   .n_methods = 3,
+   .methods   =
    {
       {
-         // idee make this "197380f3\0setA:b:\0@:ii" as a uniquable string
-         // also saving an additional 2 pointers for method definition
-         // but what if the type differs ?
+         .descriptor =
          {
-            ___a___methodid,
-            "@:",
-            "a",
-            0
+            .methodid  = ___a___methodid,
+            .signature = "@:",
+            .name      = "a",
          },
-         (void *) Foo_setA_b_
+         .value = (mulle_objc_implementation_t) Foo_setA_b_
       },
       {
+         .descriptor =
          {
-            ___init__methodid,
-            "@:",
-            "init",
-            0
+            .methodid  = ___init__methodid,
+            .signature = "@:",
+            .name      = "init",
          },
-         (void *) Foo_init
+         .value = (mulle_objc_implementation_t) Foo_init
       },
       {
-         // idee make this "197380f3\0setA:b:\0@:ii" as a uniquable string
-         // also saving an additional 2 pointers for method definition
-         // but what if the type differs ?
+         .descriptor =
          {
-            ___setA___methodid,
-            "@:ii",
-            "setA:",
-            0
+            .methodid  = ___setA___methodid,
+            .signature = "@:ii",
+            .name      = "setA:",
          },
-         (void *) Foo_setA_b_
+         .value = (mulle_objc_implementation_t) Foo_setA_b_
       }
    }
 };
@@ -212,33 +207,22 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
 
 static struct _mulle_objc_loadclass  Foo_loadclass =
 {
-   ___Foo_classid,
-   "Foo",
-   0,
+   .base.classid         = ___Foo_classid,
+   .base.classname       = "Foo",
 
-   0,
-   NULL,
-   0,
+   .fastclassindex       = -1,
+   .instancesize         = sizeof( struct Foo),
 
-   -1,
-   sizeof( struct Foo),
-
-   (struct _mulle_objc_ivarlist *)  &Foo_ivarlist,
-   NULL,
-   (struct _mulle_objc_methodlist *) &Foo_instance_methodlist,
-   NULL,
-
-   NULL
+   .instancevariables    = (struct _mulle_objc_ivarlist *)  &Foo_ivarlist,
+   .base.instancemethods = (struct _mulle_objc_methodlist *) &Foo_instance_methodlist,
 };
 
 
 
 struct _gnu_mulle_objc_loadclasslist  class_list =
 {
-   1,
-   {
-      &Foo_loadclass
-   }
+   .n_loadclasses = 1,
+   .loadclasses   = { &Foo_loadclass }
 };
 
 
@@ -266,18 +250,13 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 
 static struct _mulle_objc_loadinfo  load_info =
 {
+   .version =
    {
-      MULLE_OBJC_RUNTIME_LOAD_VERSION,
-      MULLE_OBJC_RUNTIME_VERSION,
-      0,
-      0,
-      TPS_BIT | FCS_BIT | TAO_BIT
+      .load    = MULLE_OBJC_RUNTIME_LOAD_VERSION,
+      .runtime = MULLE_OBJC_RUNTIME_VERSION,
+      .bits    = TPS_BIT | FCS_BIT | TAO_BIT
    },
-   NULL,
-   (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
-   NULL,
-   NULL,
-   NULL,
+   .loadclasslist = (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
 };
 
 

@@ -81,7 +81,7 @@ struct _mulle_objc_classpair
 
    mulle_thread_mutex_t                      lock;       // used for initialize
    mulle_atomic_pointer_t                    thread_id;  // used for initialize
-   struct _mulle_objc_loadclass              *loadclass;
+   struct _mulle_objc_loadclassbase          *loadclass;
 
    uint32_t                                  classindex;       // set when added
 //   uint32_t                                  taoprotection;
@@ -161,7 +161,7 @@ static inline mulle_thread_mutex_t *
 }
 
 
-static inline struct _mulle_objc_loadclass  *
+static inline void  *
    _mulle_objc_classpair_get_loadclass( struct _mulle_objc_classpair *pair)
 {
    return( pair->loadclass);
@@ -170,13 +170,13 @@ static inline struct _mulle_objc_loadclass  *
 
 static inline void
    _mulle_objc_classpair_set_loadclass( struct _mulle_objc_classpair *pair,
-                                        struct _mulle_objc_loadclass *loadclass)
+                                        struct _mulle_objc_loadclassbase *loadclass)
 {
    pair->loadclass = loadclass;
 }
 
 
-static inline char   *
+static inline char *
    _mulle_objc_classpair_get_origin( struct _mulle_objc_classpair *pair)
 {
    return( pair->loadclass ? pair->loadclass->origin : 0);

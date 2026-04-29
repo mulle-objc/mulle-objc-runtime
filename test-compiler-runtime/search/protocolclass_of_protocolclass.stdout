@@ -1,11 +1,14 @@
 C:
 	+[C print]
+	+[B print]
 	+[A print]
 D:
 	+[D print]
+	+[B print]
 E:
 	+[E print]
 	+[A print]
 F:
 	+[F print]
 	+[A print]
+	+[B print]

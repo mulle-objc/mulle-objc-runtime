@@ -62,14 +62,11 @@ static void  print_self_and_call_super_if_available( id self,
 // MEMO: a protocolclass may "adopt" another protocolclass, but only as
 //       a protocol (syntactically)
 //
-@class A;
-@protocol A
-@end
-@interface A <A>
+@protocol_class A;
+@protocol_interface A
 @end
 
-
-@implementation A
+@protocol_implementation A
 + (void) print
 {
    print_self_and_call_super_if_available( self, _cmd, @selector( A), (char *) __PRETTY_FUNCTION__);
@@ -77,14 +74,11 @@ static void  print_self_and_call_super_if_available( id self,
 @end
 
 
-@class B;
-@protocol B
-@end
-@interface B <B, A>
+@protocol_class B;
+@protocol_interface B <A>
 @end
 
-
-@implementation B
+@protocol_implementation B
 + (void) print
 {
    print_self_and_call_super_if_available( self, _cmd, @selector( B), (char *) __PRETTY_FUNCTION__);
@@ -130,8 +124,6 @@ static void  print_self_and_call_super_if_available( id self,
 @end
 
 
-// MEMO: there is a bug in the compiler, in that protocolids are sorted, which
-//       is bad in this case.
 // MEMO: THIS SEEMS TO WORK NOW!
 @interface F < B, A>
 @end

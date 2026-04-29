@@ -30,7 +30,7 @@
    printf( "%s\n", __FUNCTION__);
 }
 
-- (id) retain
+- (instancetype) retain
 {
    _mulle_objc_object_retain_inline( self);
    return( self);

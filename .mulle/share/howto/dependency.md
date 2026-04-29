@@ -21,15 +21,52 @@ mulle-sde library help
 Use this style:
 
 ``` bash
-mulle-sde dependency add github:name/repo
+mulle-sde dependency insert github:name/repo
 ```
 
-This will do what you need in most cases.
-If you need to tweak the dependency read the documentation with regards to
-"marks" of a sourcetree.
+This will do what you need in most cases and place the dependency ahead of
+the existing dependencies. Use the `add` command to place dependencies at the
+bottom.
+
+
+## Add a local project (via symlink)
+
+You want to add a repository, that's on your system. That may not even be
+published yet. You may want to publish it in the future or you may not.
+
+Let's assume its in `/home/me/other/repo`.
+
+1. Check with `mulle-sde dependency show` that it is accessible through `MULLE_FETCH_SEARCH_PATH`
+2. If not listed use `mulle-sde env set --same-scope --append MULLE_FETCH_SEARCH_PATH `/home/me/other` to add it (check again with show)
+3. Create a regular github dependency `mulle-sde dependency add github:other/repo`, where the name for "repo" must match, but "other" doesn't really matter. It does not need to be on github!
+4. With the next fetch you will get your repository symlinked into `$(mulle-sde stash-dir)`
+
+
+``` bash
+mulle-sde dependency insert github:name/repo
+```
+
+## Dependency Order
+
+The order in which the dependencies are listed with `mulle-sde dependency list`
+is very important.
+
+If dependency `a` depends on dependency `b` it must be ordered after `b`.
+This rule is relaxed if both dependencies are `no-singlephase` and aren't
+gapped by a dependency that is `singlephase` (as no `no-singlephase`).
+
+IMPORTANT:
+
+- keep `mulle-testallocator` if you have it, at the very bottom
+- keep any `mulle-objc-list` dependencies at the bottom (but above `mulle-testallocator`)
+- keep any `*-startup` depedencies at the bottom (but above `mulle-objc-list`)
+
+``` bash
+mulle-sde dependency move zlib to top  # Must build before your project
+```
+
 
 ## Dependency Marks
-
 
 To work with dependencies, you should be familiar with the sourcetree marks
 that accompany each dependendy, they steer mulle-sde:
@@ -47,11 +84,6 @@ Some important marks:
 |no-bequeath         | is not inheritable
 |no-platform-windows | not available on windows
 
-## Dependency Order
-
-If dependency `a` depends on dependency `b` it must be ordered after `b`.
-This rule is relaxed if both dependencies are `no-singlephase` and aren't
-gapped by a dependency that is `singlephase` (as no `no-singlephase`).
 
 
 ## Debug cmake find_library
@@ -182,3 +214,8 @@ mulle-sde library mark z no-header
 mulle-sde dependency mark zlib no-header
 ```
 
+## Dealing with the dependency changes
+
+Your project will detect the added dependency and will automatically
+affect a "fetch". But other projects dependening on your project like "test"
+will not. These need to `recraft` or `retest`.

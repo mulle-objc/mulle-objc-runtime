@@ -1,6 +1,0 @@
-Testing mulle_objc_class_methodlist_walk
-Walking TestClass metaclass methodlists:
-Class: TestClass, Methods: 1
-Class: TestClass, Methods: 2
-Class: TestClass, Methods: 0
-Total methodlists visited: 3

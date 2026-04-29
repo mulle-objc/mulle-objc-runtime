@@ -6,16 +6,12 @@
 @interface A
 @end
 
-@class P;
-@protocol P
-@end
-@interface P < P>
+@protocol_class P;
+@protocol_interface P
 @end
 
-@class Q;
-@protocol Q
-@end
-@interface Q < Q>
+@protocol_class Q;
+@protocol_interface Q
 @end
 
 @interface B : A < P, Q>
@@ -48,7 +44,7 @@
 @end
 
 
-@implementation P
+@protocol_implementation P
 + (void) foo
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);
@@ -59,7 +55,7 @@
 }
 @end
 
-@implementation Q
+@protocol_implementation Q
 + (void) foo
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

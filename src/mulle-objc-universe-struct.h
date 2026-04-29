@@ -306,10 +306,11 @@ struct _mulle_objc_foundation
 {
    struct _mulle_objc_universefriend    universefriend;
    void                                 *(*retain_autorelease)( void *); // does -retain/-autorelease
-   struct _mulle_objc_infraclass        *staticstringclass;
-   struct mulle_allocator               *allocator;       // allocator for objects, must not be NULL
-   size_t                               headerextrasize;  // usually 0, will be copied into each class
-   mulle_objc_classid_t                 rootclassid;      // NSObject = e9e78cbd
+   struct _mulle_objc_infraclass        *staticstringclass[ 3];    // isa will contain index
+   struct mulle_allocator               *allocator;                // allocator for objects, must not be NULL
+   size_t                               headerextrasize;           // usually 0, will be copied into each class
+   mulle_objc_classid_t                 rootclassid;               // NSObject = e9e78cbd
+   char                                 utf8staticstrings;         // 0: ASCII in staticstringclass[ 0]  1: UTF8 (classes1-2 can be NULL)
 };
 
 

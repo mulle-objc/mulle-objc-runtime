@@ -455,7 +455,7 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
    if( _mulle_objc_classpair_has_categoryid( pair, categoryid))
    {
       mulle_fprintf( stderr, "mulle_objc_universe %p error: category %08lx for"
-                       " class %08lx \"%s\" is already loaded\n",
+                             " class %08lx \"%s\" is already loaded\n",
               universe,
               (unsigned long) categoryid,
               (unsigned long) _mulle_objc_classpair_get_classid( pair),
@@ -470,8 +470,8 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
       if( universe->debug.warn.protocolclass)
          if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
             mulle_fprintf( stderr, "mulle_objc_universe %p warning: class %08lx \"%s\""
-                             " is a protocolclass and gains a"
-                             " category %08lx \"%s( %s)\"\n",
+                                   " is a protocolclass and gains a"
+                                   " category %08lx \"%s( %s)\"\n",
                     universe,
                     (unsigned long) _mulle_objc_classpair_get_classid( pair),
                     _mulle_objc_classpair_get_name( pair),
@@ -569,10 +569,8 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
                                                          mulle_objc_protocolid_t *protocolclassids)
 {
    struct _mulle_objc_infraclass   *proto_infra;
-   struct _mulle_objc_metaclass    *proto_meta;
    struct _mulle_objc_universe     *universe;
    mulle_objc_protocolid_t         protocolclassid;
-   mulle_objc_classid_t            classid;
 
    if( ! pair)
       mulle_objc_universe_fail_code( NULL, EINVAL);
@@ -581,68 +579,28 @@ void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_clas
       return;
 
    universe = _mulle_objc_classpair_get_universe( pair);
-   classid  = _mulle_objc_classpair_get_classid( pair);
    while( (protocolclassid = *protocolclassids++) != MULLE_OBJC_NO_PROTOCOLID)
    {
-      if( ! mulle_objc_uniqueid_is_sane( protocolclassid))
-         _mulle_objc_classpair_fail_einval( pair);
-
-      // if same as myself, no point in adding the protocolclass
-      if( protocolclassid == classid)
-         continue;
-
-      // must already have this protocol
-      if( ! _mulle_objc_classpair_has_protocolid( pair, protocolclassid))
-         _mulle_objc_classpair_fail_einval( pair);
+      // just checking the compiler, a protocolclass has no protocolclassids
+      assert( mulle_objc_uniqueid_is_sane( protocolclassid));
+      assert( protocolclassid != _mulle_objc_classpair_get_classid( pair));
+      assert( _mulle_objc_classpair_has_protocolid( pair, protocolclassid));
 
       proto_infra = _mulle_objc_universe_lookup_infraclass( universe, protocolclassid);
       if( ! proto_infra)
          _mulle_objc_classpair_fail_einval( pair);
 
-      //
-      // A class was assumed by the compiler to be a protocol class, but
-      // it turns out it is not, since it's not a rootclass or has instance
-      // variables or some-such, we warn and ignore, since the compiler can
-      // not discern this for sure.
-      //
-      if( ! mulle_objc_infraclass_check_protocolclass( proto_infra))
-         continue;
-
-      if( _mulle_objc_classpair_has_protocolclass( pair, proto_infra))
-         continue;
-
-      if( _mulle_objc_infraclass_set_state_bit( proto_infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
-      {
-         proto_meta = _mulle_objc_infraclass_get_metaclass( proto_infra);
-         _mulle_objc_metaclass_set_state_bit( proto_meta, MULLE_OBJC_METACLASS_IS_PROTOCOLCLASS);
-
-/*
- * MEMO: the problem with this code is that its not atomic, so this could have
- *       funny side effects. We instead do the check inside the search and
- *       preempt for protocol classes. In a brighter future a mulle-cc
- *       compiler will set the property inheritance in the @implementation
- *       of a protocolclass.
- *
- *       proto_infra->base.inheritance &= ~(MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS
- *                                            |MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES
- *                                            |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
- *                                            |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES);
- *         proto_meta = _mulle_objc_infraclass_get_metaclass( proto_infra);
- *         proto_meta->base.inheritance &= ~(MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS
- *                                           |MULLE_OBJC_CLASS_DONT_INHERIT_CATEGORIES
- *                                           |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS
- *                                           |MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOL_CATEGORIES);
- */
-         if( universe->debug.trace.protocol_add)
-            mulle_objc_universe_trace( universe,
-                                       "class %08lx \"%s\" "
-                                       "has become a protocolclass",
-                                       (unsigned long) _mulle_objc_infraclass_get_classid( proto_infra),
-                                       _mulle_objc_infraclass_get_name( proto_infra));
-      }
+      if( ! _mulle_objc_infraclass_get_state_bit( proto_infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+         mulle_objc_universe_fail_inconsistency( universe,
+               "mulle_objc_universe %p: class %08lx \"%s\" is listed as a "
+               "protocolclass of %08lx \"%s\", but is not a protocolclass.\n",
+               universe,
+               (unsigned long) protocolclassid,
+               _mulle_objc_infraclass_get_name( proto_infra),
+               (unsigned long) _mulle_objc_classpair_get_classid( pair),
+               _mulle_objc_classpair_get_name( pair));
 
       _mulle_objc_classpair_add_protocolclass( pair, proto_infra);
-//      _mulle_concurrent_pointerarray_add( &pair->protocolclasses, proto_infra);
    }
 }
 

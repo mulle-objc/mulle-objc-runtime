@@ -10,20 +10,18 @@ _Pragma("clang diagnostic ignored \"-Wprotocol\"")
 _Pragma("clang diagnostic ignored \"-Wobjc-root-class\"")
 _Pragma("clang diagnostic ignored \"-Wobjc-missing-super-calls\"")
 
-@class X;
-@protocol X
+@protocol_class X;
+@protocol_interface X
 @optional
 + (void) method;
 - (void) method;
-@end
-@interface X < X>
 @end
 
 @interface C < X>     - (void) method; + (void) method; @end
 
 
 @implementation C     - (void) method {}; + (void) method {}; @end
-@implementation X     - (void) method {}; + (void) method {}; @end
+@protocol_implementation X     - (void) method {}; + (void) method {}; @end
 
 static int   method_printer( struct _mulle_objc_class *cls,
                              struct _mulle_objc_searcharguments *search,

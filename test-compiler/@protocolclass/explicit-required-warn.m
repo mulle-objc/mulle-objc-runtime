@@ -1,14 +1,14 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-// explicit @required in @protocolclass still works
-@protocolclass Foo
+// explicit @required in @protocol_interface still works
+@protocol_interface Foo
 
 @required
 - (void)mustImplement;
 
 @end
 
-@protocolimplementation Foo
+@protocol_implementation Foo
 - (void)mustImplement {}
 @end
 

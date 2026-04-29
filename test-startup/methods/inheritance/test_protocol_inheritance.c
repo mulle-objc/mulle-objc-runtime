@@ -67,6 +67,11 @@ static void  add_ABC_PROTO_classes( struct abc_classes *classes)
 
    mulle_objc_universe_register_infraclass_nofail( universe, classes->A_infra);
    mulle_objc_universe_register_infraclass_nofail( universe, classes->B_infra);
+
+   /* C acts as a protocolclass, so mark it as such before registering */
+   _mulle_objc_infraclass_set_state_bit( classes->C_infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS);
+   _mulle_objc_metaclass_set_state_bit( classes->C_meta, MULLE_OBJC_METACLASS_IS_PROTOCOLCLASS);
+
    mulle_objc_universe_register_infraclass_nofail( universe, classes->C_infra);
 
    pair = _mulle_objc_infraclass_get_classpair( classes->B_infra);

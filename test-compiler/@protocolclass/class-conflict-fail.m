@@ -1,5 +1,5 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-// @class before @protocolclass is an error
+// @class before @protocol_class is an error
 @class Foo;
-@protocolclass Foo;
+@protocol_class Foo;

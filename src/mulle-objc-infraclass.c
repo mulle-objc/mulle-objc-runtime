@@ -830,11 +830,13 @@ mulle_objc_walkcommand_t
 
 //
 // Checks that infra must be root, must conform to own protocol, must not have
-// ivars must not conform to other protocols (it's tempting to conform to NSObject)
+// ivars must not conform to other protocolclasses 
+// (it's tempting to conform to NSObject).
+//
 // If you conform to NSObject, NSObject methods will override your superclass(!)
 //
 static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_objc_infraclass *infra,
-                                                      int warn)
+                                                               int warn)
 {
    struct _mulle_objc_universe         *universe;
    struct _mulle_objc_classpair       *pair;

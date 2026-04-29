@@ -47,6 +47,7 @@
 #include "mulle-objc-methodlist.h"
 #include "mulle-objc-universe.h"
 #include "mulle-objc-taggedpointer.h"
+#include "mulle-objc-class-search.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -395,9 +396,15 @@ int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
                                                 struct _mulle_objc_methodlist *list)
 {
    struct _mulle_objc_methodlistenumerator   rover;
-   struct _mulle_objc_method                 *method;
+   struct _mulle_objc_method                 *other;
    struct _mulle_objc_universe               *universe;
+   struct _mulle_objc_class                  *search_cls;
+   struct _mulle_objc_searcharguments        search;
+   struct _mulle_objc_searchresult           result;
+   struct _mulle_objc_method                 *method;
    mulle_objc_uniqueid_t                     last;
+   unsigned int                              inheritance;
+   int                                       is_meta;
 
    universe = _mulle_objc_class_get_universe( cls);
    if( ! list)
@@ -422,6 +429,48 @@ int   _mulle_objc_class_add_methodlist_nocache( struct _mulle_objc_class *cls,
       {
          errno = EDOM;
          return( -1);
+      }
+
+      // since we do this only once, there is no need to clear these bits
+      if( method->descriptor.bits & (_mulle_objc_method_infra_alias_on_load | _mulle_objc_method_meta_alias_on_load))
+      {
+         // resolve now before method has been added. IF! this fails we
+         // gotta do what ? We error!
+         is_meta = _mulle_objc_class_is_metaclass( cls);
+
+         // if both are same (both not meta or both meta, we fine
+         if( is_meta && (method->descriptor.bits & _mulle_objc_method_meta_alias_on_load)
+             || ! is_meta && (method->descriptor.bits & _mulle_objc_method_infra_alias_on_load))
+            search_cls = cls;
+         else
+            search_cls = is_meta
+                         ? &_mulle_objc_class_get_infraclass( cls)->base
+                         : &_mulle_objc_class_get_metaclass( cls)->base;
+
+         // skip alias resolution if search class has no method lists yet
+         // (can happen during class loading when companion class not yet loaded)
+         if( mulle_concurrent_pointerarray_get_count( &search_cls->methodlists) == 0)
+         {
+            mulle_objc_universe_trace( cls->universe,
+               "Deferred alias \"%s\" in %s (search class \"%s\") not yet loaded",
+               method->descriptor.name, cls->name, search_cls->name);
+            continue;
+         }
+
+         inheritance       = _mulle_objc_class_get_inheritance( search_cls);
+         search            = mulle_objc_searcharguments_make_default( method->alias);
+         // turn off running class setup though, this is too early
+         search.initialize = 0;
+         other             = mulle_objc_class_search_method( search_cls,
+                                                             &search,
+                                                             inheritance,
+                                                             &result);
+         if( ! other)
+         {
+            mulle_objc_universe_trace( cls->universe, "Could not alias method \"%s\"\n", method->descriptor.name);
+            mulle_objc_universe_fail_methodnotfound( cls->universe, cls, method->alias);
+         }
+         method->implementation = other->implementation;
       }
 
       last = method->descriptor.methodid;

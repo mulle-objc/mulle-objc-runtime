@@ -111,7 +111,6 @@ enum
    _mulle_objc_method_guessed_signature         = 0x10,
    _mulle_objc_method_designated_initializer    = 0x20,
 
-
    // this "coverage" bit gets set, when a method has been searched and found.
    // Should setting the bit be atomic, though it will never be cleared ?
    // And it's the only bit in this enum, that is set at runtime, so does
@@ -119,6 +118,12 @@ enum
    // if there are 2 writable bits though.
 
    _mulle_objc_method_searched_and_found        = 0x80,
+
+   // this uses method->alias to figure out the method to alias at runtime
+   // you can't have both bits set!
+   _mulle_objc_method_infra_alias_on_load       = 0x100,
+   _mulle_objc_method_meta_alias_on_load        = 0x200,
+
 
    // user mask (MSB is currently used by MulleThreadSafeObject to mark
    // methods which should not lock)
@@ -305,6 +310,7 @@ struct _mulle_objc_method
    union
    {
       mulle_objc_implementation_t      value;
+      mulle_objc_methodid_t            alias;
       mulle_atomic_functionpointer_t   implementation;
    };
 };

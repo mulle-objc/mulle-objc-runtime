@@ -5,8 +5,8 @@
 #pragma clang diagnostic ignored "-Wobjc-root-class"
 
 
-@class C;
-@protocol C
+@protocol_class C;
+@protocol_interface C
 
 @optional
 + (Class) class;
@@ -15,10 +15,7 @@
 
 @end
 
-@interface C <C>
-@end
-
-@implementation C
+@protocol_implementation C
 
 + (Class) class
 {
@@ -36,8 +33,8 @@
 @end
 
 
-@class D;
-@protocol D
+@protocol_class D;
+@protocol_interface D
 
 @optional
 + (Class) class;
@@ -46,11 +43,7 @@
 
 @end
 
-@interface D <D>
-@end
-
-
-@implementation D
+@protocol_implementation D
 
 + (Class) class
 {
