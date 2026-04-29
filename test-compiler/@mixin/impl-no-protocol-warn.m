@@ -1,7 +1,9 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-// @protocol_implementation without @protocol_class declaration warns
-@protocol_implementation Unknown
+// @implementation of @mixin without protocol definition warns
+@mixin Unknown;
+
+@implementation Unknown
 - (void)doSomething {}
 @end
 

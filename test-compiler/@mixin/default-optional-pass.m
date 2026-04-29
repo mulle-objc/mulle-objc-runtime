@@ -1,13 +1,13 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-// methods in @protocol_interface default to @optional — no @optional keyword needed
-@protocol_interface Foo
+// methods in @mixin default to @optional — no @optional keyword needed
+@mixin Foo
 
 - (void) doSomething;
 
 @end
 
-@protocol_implementation Foo
+@implementation Foo
 - (void) doSomething {}
 @end
 

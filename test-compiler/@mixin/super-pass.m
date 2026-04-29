@@ -1,10 +1,10 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-@protocol_interface Foo
+@mixin Foo
 - (void) doSomething;
 @end
 
-@protocol_implementation Foo
+@implementation Foo
 - (void) doSomething {}
 @end
 
@@ -24,7 +24,7 @@
 
 - (void) doSomething
 {
-   [super nonExistent];
+   [super doSomething];
 }
 
 @end
