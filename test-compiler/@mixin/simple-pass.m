@@ -1,13 +1,13 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-@protocol_class Foo;
+@mixin Foo;
 
-@protocol_interface Foo
+@mixin Foo
 @optional
 - (void)doSomething;
 @end
 
-@protocol_implementation Foo
+@implementation Foo
 - (void)doSomething {}
 @end
 

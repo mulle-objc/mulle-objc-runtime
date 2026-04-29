@@ -1,11 +1,11 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-// @protocol_implementation with @method_implementation
-@protocol Foo
+// @implementation of mixin with @method_implementation
+@mixin Foo
 - (void)doSomething;
 - (void)doSomethingElse;
 @end
 
-@protocol_implementation Foo
+@implementation Foo
 - (void)doSomething {}
 @method_implementation -doSomethingElse = -doSomething;
 @end

@@ -1,7 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 
-@protocol_interface X
+@mixin X
 
 @required
 - (void) doFuture;
@@ -12,7 +12,7 @@
 @end
 
 
-@protocol_implementation X
+@implementation X
 
 - (void) doSomething 
 {
