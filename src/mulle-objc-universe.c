@@ -3390,7 +3390,7 @@ void    mulle_objc_universe_register_category_nofail( struct _mulle_objc_univers
 
 struct _NSConstantString
 {
-   char           *_storage;   // ivar #0:: must be defined EXACTLY like this
+   void           *_storage;   // ivar #0:: must be defined EXACTLY like this
    unsigned int   _length;     // ivar #1:: must be defined EXACTLY like this
 };
 
@@ -3398,16 +3398,35 @@ struct _NSConstantString
 void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *universe,
                                               struct _mulle_objc_object *string)
 {
+   uintptr_t                       classindex;
+   struct _mulle_objc_infraclass   *infra;
+
    assert( universe);
    assert( string);
 
-   if( ! universe->foundation.staticstringclass)
+   // need __ to get fake
+   classindex = (uintptr_t) __mulle_objc_object_get_isa( string);
+   assert( classindex <= 2);
+   infra      = universe->foundation.staticstringclass[ classindex];
+   //
+   // you can't really add classes piece by piece though
+   // because the did_add routine will set all at the same time
+   //
+   if( ! infra)
    {
       if( universe->debug.trace.string_add)
+      {
+         static char  *formats[ 3] =
+         {
+            "delay adding of string @\"%s\" (%p)",
+            "delay adding of string @\"%hS\" (%p)",
+            "delay adding of string @\"%S\" (%p)"
+         };
          mulle_objc_universe_trace( universe,
-                                    "delay add of string @\"%s\" (%p)",
+                                    formats[ classindex],
                                     ((struct _NSConstantString *) string)->_storage,
                                     string);
+      }
 
       // memorize it anyway
       _mulle_concurrent_pointerarray_add( &universe->staticstrings, (void *) string);
@@ -3415,12 +3434,21 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
    }
 
    _mulle_objc_object_set_isa( string,
-                               _mulle_objc_infraclass_as_class( universe->foundation.staticstringclass));
+                               _mulle_objc_infraclass_as_class( infra));
+
    if( universe->debug.trace.string_add)
+   {
+      static char  *formats[ 3] =
+      {
+         "add string @\"%s\" (%p)",
+         "add string @\"%hS\" (%p)",
+         "add string @\"%S\" (%p)"
+      };
       mulle_objc_universe_trace( universe,
-                                 "add string @\"%s\" (%p)",
+                                 formats[ classindex],
                                  ((struct _NSConstantString *) string)->_storage,
                                  string);
+   }
 
    if( ! universe->config.forget_strings)
       _mulle_concurrent_pointerarray_add( &universe->staticstrings, (void *) string);
@@ -3430,9 +3458,11 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
 void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe,
                                                          int constantify)
 {
-   struct _mulle_objc_object   *string;
-   struct mulle_allocator      *allocator;
-   int                         flag;
+   struct _mulle_objc_object       *string;
+   struct mulle_allocator          *allocator;
+   uintptr_t                       classindex;
+   int                             flag;
+   struct _mulle_objc_infraclass   *infra;
 
    if( constantify)
       mulle_concurrent_pointerarray_for( &universe->staticstrings, string)
@@ -3443,13 +3473,26 @@ void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_univ
    flag = universe->debug.trace.string_add;
    mulle_concurrent_pointerarray_for( &universe->staticstrings, string)
    {
+      classindex = (uintptr_t) __mulle_objc_object_get_isa( string);
+      assert( classindex <= 2);
+      infra      = universe->foundation.staticstringclass[ classindex];
+
       _mulle_objc_object_set_isa( string,
-                                 _mulle_objc_infraclass_as_class( universe->foundation.staticstringclass));
+                                 _mulle_objc_infraclass_as_class( infra));
       if( flag)
+      {
+         static char  *formats[ 3] =
+         {
+            "patched class of string @\"%s\" (%p)",
+            "patched class of string @\"%hS\" (%p)",
+            "patched class of string @\"%S\" (%p)"
+         };
+
          mulle_objc_universe_trace( universe,
-                                    "patch string class @\"%s\" (%p)",
+                                    formats[ classindex],
                                     ((struct _NSConstantString *) string)->_storage,
                                     string);
+      }
    }
 
    // if so configured wipe the list
@@ -3474,7 +3517,21 @@ void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *u
    assert( universe);
    assert( infra);
 
-   universe->foundation.staticstringclass = infra;
+   universe->foundation.staticstringclass[ 0] = infra;
+   universe->foundation.staticstringclass[ 1] = NULL;
+   universe->foundation.staticstringclass[ 2] = NULL;
+   _mulle_objc_universe_didchange_staticstringclass( universe, constantify);
+}
+
+
+void  _mulle_objc_universe_set_staticstringclasses( struct _mulle_objc_universe *universe,
+                                                    struct _mulle_objc_infraclass *infra[ 3],
+                                                    int constantify)
+{
+   assert( universe);
+   assert( infra);
+
+   memcpy( universe->foundation.staticstringclass, infra, 3 * sizeof( struct _mulle_objc_infraclass *));
    _mulle_objc_universe_didchange_staticstringclass( universe, constantify);
 }
 

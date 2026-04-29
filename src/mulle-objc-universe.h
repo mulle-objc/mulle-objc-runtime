@@ -945,13 +945,13 @@ char   *_mulle_objc_universe_lookup_category( struct _mulle_objc_universe *unive
 
 MULLE_OBJC_RUNTIME_GLOBAL
 int   _mulle_objc_universe_register_category( struct _mulle_objc_universe *universe,
-                                         mulle_objc_categoryid_t categoryid,
-                                         char *name);
+                                               mulle_objc_categoryid_t categoryid,
+                                               char *name);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 void    mulle_objc_universe_register_category_nofail( struct _mulle_objc_universe *universe,
-                                                 mulle_objc_categoryid_t categoryid,
-                                                 char *name);
+                                                      mulle_objc_categoryid_t categoryid,
+                                                      char *name);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 char   *mulle_objc_lookup_category( mulle_objc_categoryid_t categoryid);
@@ -1029,11 +1029,25 @@ void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *u
                                                   struct _mulle_objc_infraclass *infra,
                                                   int constantify);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+MULLE_C_NONNULL_FIRST
+void  _mulle_objc_universe_set_staticstringclasses( struct _mulle_objc_universe *universe,
+                                                    struct _mulle_objc_infraclass *infra[ 3],
+                                                    int constantify);
+
 MULLE_C_NONNULL_FIRST
 static inline struct _mulle_objc_infraclass  *
    _mulle_objc_universe_get_staticstringclass( struct _mulle_objc_universe *universe)
 {
-  return( universe->foundation.staticstringclass);
+  return( universe->foundation.staticstringclass[ 0]);
+}
+
+
+MULLE_C_NONNULL_FIRST_SECOND
+static inline void
+   _mulle_objc_universe_get_staticstringclasses( struct _mulle_objc_universe *universe, struct _mulle_objc_infraclass *infra[ 3])
+{
+   memcpy( infra, universe->foundation.staticstringclass, 3 * sizeof( struct _mulle_objc_infraclass *));
 }
 
 

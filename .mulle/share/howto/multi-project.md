@@ -88,12 +88,11 @@ mulle-sde fetch
 ```
 
 
-
 ## Working on ProjectA while building ProjectB
 
 ProjectB's `mulle-sde retest` rebuilds ProjectA from source automatically (via symlink in stash).
 You should ensure that ProjectA has up to date objc-deps.inc by running a
-`-f craft` there first.
+`mulle-sde -f craft` there first.
 
 ```bash
 cd ProjectA && mulle-sde -f craft   # updates objc-deps.inc + installs headers

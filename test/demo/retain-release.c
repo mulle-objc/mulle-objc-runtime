@@ -179,21 +179,21 @@ static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
 
 static struct _mulle_objc_loadclass  Object_loadclass =
 {
-   .classid         = ___Object_classid,
-   .classname       = "Object",
+   .base.classid         = ___Object_classid,
+   .base.classname       = "Object",
 
-   .fastclassindex  = -1,
-   .instancesize    = 0,
+   .fastclassindex       = -1,
+   .instancesize         = 0,
 
-   .classmethods    = (struct _mulle_objc_methodlist *) &Object_class_methodlist,
-   .instancemethods = (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
+   .base.classmethods    = (struct _mulle_objc_methodlist *) &Object_class_methodlist,
+   .base.instancemethods = (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
 };
 
 
 struct _mulle_objc_loadclasslist class_list =
 {
-   1,
-   &Object_loadclass
+   .n_loadclasses = 1,
+   .loadclasses   = { &Object_loadclass }
 };
 
 

@@ -28,14 +28,11 @@
 
 
 
-@class X;
-@protocol X
-@end
-@interface X <X>
+@protocol_class X;
+@protocol_interface X
 @end
 
-
-@implementation X
+@protocol_implementation X
 + (void) x
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

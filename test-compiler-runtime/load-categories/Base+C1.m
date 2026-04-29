@@ -3,8 +3,7 @@
 #include <stdio.h>
 
 
-@class ProtoClass1;
-@protocol ProtoClass1;
+@protocol_class ProtoClass1;
 
 @interface Base( C1) < ProtoClass1>
 @end

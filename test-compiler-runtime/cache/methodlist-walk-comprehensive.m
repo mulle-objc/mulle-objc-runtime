@@ -7,19 +7,18 @@
 - (void) protocolInstanceMethod;
 @end
 
-@protocol SecondProtocol
+// Protocolclasses
+@protocol_class SecondProtocol;
+@protocol_interface SecondProtocol
 + (void) secondProtocolClassMethod;
 - (void) secondProtocolInstanceMethod;
 @end
 
-@protocol ThirdProtocol
+@protocol_class ThirdProtocol;
+@protocol_interface ThirdProtocol
 + (void) thirdProtocolClassMethod;
 - (void) thirdProtocolInstanceMethod;
 @end
-
-// Forward declarations for protocolclasses
-@class SecondProtocol;
-@class ThirdProtocol;
 
 // Base class with categories
 @interface BaseClass <TestProtocol>
@@ -35,13 +34,6 @@
 @interface BaseClass (SecondBaseCategory)
 + (void) secondBaseCategoryClassMethod;
 - (void) secondBaseCategoryInstanceMethod;
-@end
-
-// Protocolclasses (class name matches protocol name)
-@interface SecondProtocol <SecondProtocol>
-@end
-
-@interface ThirdProtocol <ThirdProtocol>
 @end
 
 // Derived class with categories that uses protocolclasses
@@ -68,12 +60,12 @@
 - (void) baseCategoryInstanceMethod { }
 @end
 
-@implementation SecondProtocol
+@protocol_implementation SecondProtocol
 + (void) secondProtocolClassMethod { }
 - (void) secondProtocolInstanceMethod { }
 @end
 
-@implementation ThirdProtocol
+@protocol_implementation ThirdProtocol
 + (void) thirdProtocolClassMethod { }
 - (void) thirdProtocolInstanceMethod { }
 @end

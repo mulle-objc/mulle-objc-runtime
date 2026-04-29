@@ -1,27 +1,25 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-@class A;
-@protocol A
+@protocol_class A;
+@protocol_interface A
 @optional
 + (void) print;
 @end
-@interface A < A>
-@end
-@implementation A
+
+@protocol_implementation A
 + (void) print
 {
    printf( "%s\n", __FUNCTION__);
 }
 @end
 
-@class B;
-@protocol B
+@protocol_class B;
+@protocol_interface B
 @optional
 + (void) print;
 @end
-@interface B < B>
-@end
-@implementation B
+
+@protocol_implementation B
 + (void) print
 {
    printf( "%s\n", __FUNCTION__);

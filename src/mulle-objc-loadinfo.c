@@ -116,11 +116,12 @@ static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassid
       if( protocols)
          protocol = _mulle_objc_protocollist_search_smart( protocols, protoid);
       if( protocol)
-         mulle_fprintf( fp, "%s@class %s;\n%s@protocol %s;\n",
-                          prefix, protocol->name, prefix, protocol->name);
+         mulle_fprintf( fp, "%s@protocol_class %s;\n",
+                          prefix, protocol->name);
       else
-         mulle_fprintf( fp, "%s@class %08lx;\n%s@protocol #%08lx;\n",
-                          prefix, (unsigned long) protoid, prefix, (unsigned long) protoid);
+         // todo: ah
+         mulle_fprintf( fp, "%s@protocol_class %08lx;\n",
+                          prefix, (unsigned long) protoid);
    }
 }
 
@@ -218,48 +219,10 @@ static void   loadproperty_dump( struct _mulle_objc_property *property,
 }
 
 
-static void   loadclass_dump( struct _mulle_objc_loadclass *p,
-                              char *prefix,
-                              FILE *fp)
+static void   loadclassbase_dump( struct _mulle_objc_loadclassbase *p,
+                                  char *prefix,
+                                  FILE *fp)
 {
-   if( p->protocolclassids)
-      loadprotocolclasses_dump( p->protocolclassids, prefix, p->protocols, fp);
-
-   mulle_fprintf( fp, "%s@implementation %s", prefix, p->classname);
-   if( p->superclassname)
-      mulle_fprintf( fp, " : %s", p->superclassname);
-
-   if( p->protocols)
-      loadprotocols_dump( p->protocols, fp);
-
-   mulle_fprintf( fp, " // %08lx : %08lx (#%08lx : #%08lx) fci=%d isize=%d",
-                                         (unsigned long) p->classid,
-                                         (unsigned long) p->superclassid,
-                                         (unsigned long) p->classivarhash,
-                                         (unsigned long) p->superclassivarhash,
-                                         p->fastclassindex,
-                                         p->instancesize);
-   if( p->origin)
-      mulle_fprintf( fp, ", %s", p->origin);
-
-   mulle_fprintf( fp, "\n");
-
-   if( p->instancevariables)
-   {
-      mulle_fprintf( fp, "%s{\n", prefix);
-      struct _mulle_objc_ivar   *ivar;
-      struct _mulle_objc_ivar   *sentinel;
-
-      ivar     = p->instancevariables->ivars;
-      sentinel = &ivar[ p->instancevariables->n_ivars];
-      while( ivar < sentinel)
-      {
-         loadivar_dump( ivar, prefix, fp);
-         ++ivar;
-      }
-      mulle_fprintf( fp, "%s}\n", prefix);
-   }
-
    if( p->properties)
    {
       struct _mulle_objc_property   *property;
@@ -301,6 +264,74 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
          ++method;
       }
    }
+}
+
+
+static void   loadclass_dump( struct _mulle_objc_loadclass *p,
+                              char *prefix,
+                              FILE *fp)
+{
+   if( p->protocolclassids)
+      loadprotocolclasses_dump( p->protocolclassids, prefix, p->base.protocols, fp);
+
+   mulle_fprintf( fp, "%s@implementation %s", prefix, p->base.classname);
+   if( p->superclassname)
+      mulle_fprintf( fp, " : %s", p->superclassname);
+
+   if( p->base.protocols)
+      loadprotocols_dump( p->base.protocols, fp);
+
+   mulle_fprintf( fp, " // %08lx : %08lx (#%08lx : #%08lx) fci=%d isize=%d",
+                                         (unsigned long) p->base.classid,
+                                         (unsigned long) p->superclassid,
+                                         (unsigned long) p->classivarhash,
+                                         (unsigned long) p->superclassivarhash,
+                                         p->fastclassindex,
+                                         p->instancesize);
+   if( p->base.origin)
+      mulle_fprintf( fp, ", %s", p->base.origin);
+
+   mulle_fprintf( fp, "\n");
+
+   if( p->instancevariables)
+   {
+      mulle_fprintf( fp, "%s{\n", prefix);
+      struct _mulle_objc_ivar   *ivar;
+      struct _mulle_objc_ivar   *sentinel;
+
+      ivar     = p->instancevariables->ivars;
+      sentinel = &ivar[ p->instancevariables->n_ivars];
+      while( ivar < sentinel)
+      {
+         loadivar_dump( ivar, prefix, fp);
+         ++ivar;
+      }
+      mulle_fprintf( fp, "%s}\n", prefix);
+   }
+
+   loadclassbase_dump( &p->base, prefix, fp);
+
+   mulle_fprintf( fp, "%s@end\n", prefix);
+}
+
+
+static void   loadprotocolclass_dump( struct _mulle_objc_loadprotocolclass *p,
+                                      char *prefix,
+                                      FILE *fp)
+{
+   mulle_fprintf( fp, "%s@protocol_implementation %s", prefix, p->base.classname);
+
+   if( p->base.protocols)
+      loadprotocols_dump( p->base.protocols, fp);
+
+   mulle_fprintf( fp, " // %08lx", (unsigned long) p->base.classid);
+
+   if( p->base.origin)
+      mulle_fprintf( fp, ", %s", p->base.origin);
+
+   mulle_fprintf( fp, "\n");
+
+   loadclassbase_dump( &p->base, prefix, fp);
 
    mulle_fprintf( fp, "%s@end\n", prefix);
 }
@@ -372,6 +403,24 @@ static void   loadclasslist_dump( struct _mulle_objc_loadclasslist *list,
 }
 
 
+static void   loadprotocolclasslist_dump( struct _mulle_objc_loadprotocolclasslist *list,
+                                          char *prefix,
+                                          FILE *fp)
+{
+   struct _mulle_objc_loadprotocolclass   **p;
+   struct _mulle_objc_loadprotocolclass   **sentinel;
+
+   if( ! list)
+      return;
+
+   p        = list->loadprotocolclasses;
+   sentinel = &p[ list->n_loadprotocolclasses];
+   while( p < sentinel)
+      loadprotocolclass_dump( *p++, prefix, fp);
+}
+
+
+
 static void   loadcategorylist_dump( struct _mulle_objc_loadcategorylist *list,
                                      char *prefix,
                                      FILE *fp)
@@ -429,6 +478,7 @@ void   mulle_objc_loadinfo_dump_fp( struct _mulle_objc_loadinfo *info,
    mulle_fprintf( fp, ")\n");
 
    loadclasslist_dump( info->loadclasslist, prefix, fp);
+   loadprotocolclasslist_dump( info->loadprotocolclasslist, prefix, fp);
    loadcategorylist_dump( info->loadcategorylist, prefix, fp);
    loadsuperlist_dump( info->loadsuperlist,
                        prefix,

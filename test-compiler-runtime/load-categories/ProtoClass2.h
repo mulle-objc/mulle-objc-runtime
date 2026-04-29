@@ -1,5 +1,5 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-@class ProtoClass2;
-@protocol ProtoClass2
+@protocol_class ProtoClass2;
+@protocol_interface ProtoClass2
 @end

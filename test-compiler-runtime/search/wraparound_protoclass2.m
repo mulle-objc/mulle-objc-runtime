@@ -5,19 +5,14 @@
 #endif
 
 
-// class A with protocol of the same name -> protocolclass
-@class A;
-@protocol A
-@end
-@interface A <A>
+// protocolclass A
+@protocol_class A;
+@protocol_interface A
 @end
 
-
-// class B with protocol of the same name -> protocolclass
-@class B;
-@protocol B
-@end
-@interface B <B>
+// protocolclass B
+@protocol_class B;
+@protocol_interface B
 @end
 
 // class C inherits two protocolclasses
@@ -25,7 +20,7 @@
 @end
 
 
-@implementation A
+@protocol_implementation A
 + (void) x
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);
@@ -37,7 +32,7 @@
 @end
 
 
-@implementation B
+@protocol_implementation B
 + (void) x
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

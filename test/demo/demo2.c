@@ -132,26 +132,26 @@ struct _gnu_mulle_objc_methodlist
 
 static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
 {
-   2,
-   NULL,
+   .n_methods = 2,
+   .methods   =
    {
       {
+         .descriptor =
          {
-            ___conforms_to_protocol__methodid,
-            "@:*i",
-            "conformsToProtocol:",
-            0
+            .methodid  = ___conforms_to_protocol__methodid,
+            .signature = "@:*i",
+            .name      = "conformsToProtocol:",
          },
-         (mulle_objc_implementation_t) Object_conforms_to_protocol
+         .value = (mulle_objc_implementation_t) Object_conforms_to_protocol
       },
       {
+         .descriptor =
          {
-            ___init__methodid,
-            "@:",
-            "init",
-            0
+            .methodid  = ___init__methodid,
+            .signature = "@:",
+            .name      = "init",
          },
-         (mulle_objc_implementation_t) Object_init
+         .value = (mulle_objc_implementation_t) Object_init
       },
    }
 };
@@ -170,43 +170,36 @@ struct _gnu_mulle_objc_protocollist
 
 static struct _gnu_mulle_objc_protocollist   Object_protocollist =
 {
-   5,
+   .n_protocols = 5,
+   .protocols   =
    {
       // keep sorted by protocolid
-      { ___E__protocolid, "E" },
-      { ___D__protocolid, "D" },
-      { ___A__protocolid, "A" },
-      { ___C__protocolid, "C" },
-      { ___B__protocolid, "B" },
+      { .protocolid = ___E__protocolid, .name = "E" },
+      { .protocolid = ___D__protocolid, .name = "D" },
+      { .protocolid = ___A__protocolid, .name = "A" },
+      { .protocolid = ___C__protocolid, .name = "C" },
+      { .protocolid = ___B__protocolid, .name = "B" },
    }
 };
 
 
 static struct _mulle_objc_loadclass  Object_loadclass =
 {
-   ___Object_classid,
-   "Object",
-   0,
+   .base.classid         = ___Object_classid,
+   .base.classname       = "Object",
 
-   0,
-   NULL,
-   0,
+   .fastclassindex       = -1,
+   .instancesize         = 4,
 
-   -1,
-   4,
-
-   NULL,
-   &Object_class_methodlist,
-   (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
-   NULL,
-   (struct _mulle_objc_protocollist *) &Object_protocollist
+   .base.instancemethods = (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
+   .base.protocols       = (struct _mulle_objc_protocollist *) &Object_protocollist
 };
 
 
 struct _mulle_objc_loadclasslist class_list =
 {
-   1,
-   &Object_loadclass
+   .n_loadclasses = 1,
+   .loadclasses   = { &Object_loadclass }
 };
 
 
@@ -234,22 +227,21 @@ struct _mulle_objc_loadclasslist class_list =
 
 static struct _mulle_objc_loaduniverse  universe_info =
 {
-   UNIVERSE_ID,
-   UNIVERSE_NAME
+   .universeid   = UNIVERSE_ID,
+   .universename = UNIVERSE_NAME
 };
 
 
 static struct _mulle_objc_loadinfo  load_info =
 {
+   .version =
    {
-      MULLE_OBJC_RUNTIME_LOAD_VERSION,
-      MULLE_OBJC_RUNTIME_VERSION,
-      0,
-      0,
-      TPS_BIT | FCS_BIT | TAO_BIT
+      .load    = MULLE_OBJC_RUNTIME_LOAD_VERSION,
+      .runtime = MULLE_OBJC_RUNTIME_VERSION,
+      .bits    = TPS_BIT | FCS_BIT | TAO_BIT
    },
-   &universe_info,
-   &class_list
+   .loaduniverse  = &universe_info,
+   .loadclasslist = &class_list
 };
 
 

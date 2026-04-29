@@ -1,11 +1,12 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-@protocol  Baz;
 
+// MEMO: not sure why this test is called protocol_cast ???
 
 @protocol Foo
 @end
 
+// not a protocolclass anymore
 @interface Foo < Foo>
 @end
 
@@ -16,7 +17,6 @@
 {
    struct _mulle_objc_classpair   *pair;
 
-   // has is shallow, conforms is deep
    pair = _mulle_objc_infraclass_get_classpair( (struct _mulle_objc_infraclass *) self);
    if( _mulle_objc_classpair_has_protocolid( pair, @protocol( Foo)))
       printf( "OUI\n");

@@ -1,21 +1,24 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-// methods in @protocolclass default to @optional — no @optional keyword needed
-@protocolclass Foo
+// methods in @protocol_interface default to @optional — no @optional keyword needed
+@protocol_interface Foo
 
-- (void)doSomething;
+- (void) doSomething;
 
 @end
 
-@protocolimplementation Foo
-- (void)doSomething {}
+@protocol_implementation Foo
+- (void) doSomething {}
 @end
 
-@interface MyClass : Foo < Foo>
+@interface MyClass < Foo>
 @end
 
 @implementation MyClass
 // doSomething not implemented — should NOT warn with -Wprotocol
 @end
 
-int main(void) { return 0; }
+int main( void)
+{
+   return 0;
+}

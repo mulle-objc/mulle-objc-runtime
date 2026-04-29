@@ -34,8 +34,12 @@ first. You can reorder with the `mulle-sde move` command.
 
 ``` bash
 mulle-sde move MulleObjC below MyLibrary
+mulle-sde move mulle-objc-list to bottom
 mulle-sde move mulle-testallocator to bottom
 ```
+
+Tip: if you have `mulle-objc-list` and `mulle-testallocator` in your project
+move them to the bottom.
 
 ## Adding the right startup library
 

@@ -68,10 +68,7 @@ struct _mulle_objc_dependency
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-// We changed the fast method ids in 0.19. Does that mean we have to up the
-// load version ? No the runtime version check should be sufficient ?
-//
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   19
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   20
 
 
 // future idea: specify more than one universe
@@ -82,10 +79,25 @@ struct _mulle_objc_loaduniverse
 };
 
 
-struct _mulle_objc_loadclass
+struct _mulle_objc_loadclassbase
 {
    mulle_objc_classid_t              classid;
    char                              *classname;
+
+   struct _mulle_objc_methodlist     *classmethods;
+   struct _mulle_objc_methodlist     *instancemethods;
+   struct _mulle_objc_propertylist   *properties;
+
+   struct _mulle_objc_protocollist   *protocols;
+
+   char                              *origin;
+};
+
+
+struct _mulle_objc_loadclass
+{
+   struct _mulle_objc_loadclassbase  base;
+
    mulle_objc_hash_t                 classivarhash;
 
    mulle_objc_classid_t              superclassid;
@@ -97,14 +109,13 @@ struct _mulle_objc_loadclass
 
    struct _mulle_objc_ivarlist       *instancevariables;
 
-   struct _mulle_objc_methodlist     *classmethods;
-   struct _mulle_objc_methodlist     *instancemethods;
-   struct _mulle_objc_propertylist   *properties;
-
-   struct _mulle_objc_protocollist   *protocols;
    mulle_objc_classid_t              *protocolclassids;
+};
 
-   char                              *origin;
+
+struct _mulle_objc_loadprotocolclass
+{
+   struct _mulle_objc_loadclassbase  base;
 };
 
 
@@ -128,6 +139,7 @@ struct _mulle_objc_loadcategory
 };
 
 
+// class
 struct _mulle_objc_loadclasslist
 {
    unsigned int                    n_loadclasses;
@@ -141,7 +153,22 @@ static inline size_t  mulle_objc_sizeof_loadclasslist( unsigned int n_loadclasse
                   (n_loadclasses - 1) * sizeof( struct _mulle_objc_loadclass *));
 }
 
+// protocolclass
+struct _mulle_objc_loadprotocolclasslist
+{
+   unsigned int                            n_loadprotocolclasses;
+   struct _mulle_objc_loadprotocolclass    *loadprotocolclasses[ 1];
+};
 
+
+static inline size_t  mulle_objc_sizeof_loadprotocolclasslist( unsigned int n_loadprotocolclasses)
+{
+   return( sizeof( struct _mulle_objc_loadprotocolclasslist) +
+                  (n_loadprotocolclasses - 1) * sizeof( struct _mulle_objc_loadprotocolclass *));
+}
+
+
+// category
 struct _mulle_objc_loadcategorylist
 {
    unsigned int                      n_loadcategories;
@@ -238,6 +265,7 @@ enum _mulle_objc_loadinfobits
    _mulle_objc_loadinfo_notaggedptrs        = 0x4,
    _mulle_objc_loadinfo_nofastcalls         = 0x8,
    _mulle_objc_loadinfo_threadaffineobjects = 0x10,
+   _mulle_objc_loadinfo_utf8_strings        = 0x20,
 
    // 0x20, 0x40, 0x80 still unused
 
@@ -298,6 +326,7 @@ struct _mulle_objc_loadinfo
 
    struct _mulle_objc_loaduniverse           *loaduniverse;
    struct _mulle_objc_loadclasslist          *loadclasslist;
+   struct _mulle_objc_loadprotocolclasslist  *loadprotocolclasslist;
    struct _mulle_objc_loadcategorylist       *loadcategorylist;
    struct _mulle_objc_superlist              *loadsuperlist;
    struct _mulle_objc_loadstringlist         *loadstringlist;

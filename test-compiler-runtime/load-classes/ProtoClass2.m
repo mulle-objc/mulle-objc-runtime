@@ -2,11 +2,8 @@
 
 #include <stdio.h>
 
-@interface ProtoClass2 < ProtoClass2>
-@end
 
-
-@implementation ProtoClass2
+@protocol_implementation ProtoClass2
 
 + (void) load
 {

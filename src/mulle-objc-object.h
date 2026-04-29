@@ -108,7 +108,7 @@ struct _mulle_objc_class   *_mulle_objc_object_const_get_isa( void *obj)
 //
 MULLE_C_STATIC_ALWAYS_INLINE
 MULLE_C_NONNULL_RETURN
-struct _mulle_objc_class *_mulle_objc_object_get_isa( void *obj)
+struct _mulle_objc_class *   _mulle_objc_object_get_isa( void *obj)
 {
    unsigned int                    index;
    struct _mulle_objc_universe     *universe;
@@ -126,7 +126,7 @@ struct _mulle_objc_class *_mulle_objc_object_get_isa( void *obj)
 
 
 
-// this does not assert at for tao
+// this does not assert at for tao, does not need a "real" class in isa yet
 static inline struct _mulle_objc_class  *__mulle_objc_object_get_isa( void *obj)
 {
    unsigned int                    index;

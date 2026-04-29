@@ -1,11 +1,11 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
-// @protocolimplementation with @method_implementation
+// @protocol_implementation with @method_implementation
 @protocol Foo
 - (void)doSomething;
 - (void)doSomethingElse;
 @end
 
-@protocolimplementation Foo
+@protocol_implementation Foo
 - (void)doSomething {}
 @method_implementation -doSomethingElse = -doSomething;
 @end

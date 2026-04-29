@@ -108,18 +108,18 @@ static struct test
    unsigned int  align;
 } tests[] =
 {
-   { "(?=c)",  sizeof( union test_0), alignof( union test_0) },
-   { "(?=cs)", sizeof( union test_1), alignof( union test_1) },
-   { "(?=ci)", sizeof( union test_2), alignof( union test_2) },
-   { "(?=cd)", sizeof( union test_3), alignof( union test_3) },
-   { "(?=cc)", sizeof( union test_4), alignof( union test_4) },
-   { "(?=sd)", sizeof( union test_5), alignof( union test_5) },
-   { "(?=(?=c)(?=c))", sizeof( union test_6), alignof( union test_6) },
-   { "(?=sc)", sizeof( union test_7), alignof( union test_7) },
-   { "(?=ic)", sizeof( union test_8), alignof( union test_8) },
-   { "(?=dc)", sizeof( union test_9), alignof( union test_9) },
-   { "(?=ds)", sizeof( union test_10), alignof( union test_10) },
-   { "(?=(?=cs)(?=ci)(?=sc)(?=ic))", sizeof( union test_11), alignof( union test_11) },
+   { .signature = "(?=c)",  .size = sizeof( union test_0), .align = alignof( union test_0) },
+   { .signature = "(?=cs)", .size = sizeof( union test_1), .align = alignof( union test_1) },
+   { .signature = "(?=ci)", .size = sizeof( union test_2), .align = alignof( union test_2) },
+   { .signature = "(?=cd)", .size = sizeof( union test_3), .align = alignof( union test_3) },
+   { .signature = "(?=cc)", .size = sizeof( union test_4), .align = alignof( union test_4) },
+   { .signature = "(?=sd)", .size = sizeof( union test_5), .align = alignof( union test_5) },
+   { .signature = "(?=(?=c)(?=c))", .size = sizeof( union test_6), .align = alignof( union test_6) },
+   { .signature = "(?=sc)", .size = sizeof( union test_7), .align = alignof( union test_7) },
+   { .signature = "(?=ic)", .size = sizeof( union test_8), .align = alignof( union test_8) },
+   { .signature = "(?=dc)", .size = sizeof( union test_9), .align = alignof( union test_9) },
+   { .signature = "(?=ds)", .size = sizeof( union test_10), .align = alignof( union test_10) },
+   { .signature = "(?=(?=cs)(?=ci)(?=sc)(?=ic))", .size = sizeof( union test_11), .align = alignof( union test_11) },
    { 0 }
 };
 

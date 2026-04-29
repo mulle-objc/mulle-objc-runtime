@@ -401,8 +401,8 @@ void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe)
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_failv_generic( struct _mulle_objc_universe *universe,
-                                       char *format,
-                                       va_list args)
+                                      char *format,
+                                      va_list args)
 {
    if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
       _mulle_objc_vprintf_abort( format, args);
@@ -414,7 +414,7 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_generic( struct _mulle_objc_universe *universe,
-                                      char *format, ...)
+                                     char *format, ...)
 {
    va_list   args;
 
@@ -463,7 +463,7 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_inconsistency( struct _mulle_objc_universe *universe,
-                                            char *format, ...)
+                                           char *format, ...)
 {
    va_list   args;
 
@@ -475,7 +475,7 @@ MULLE_C_NO_RETURN void
 
 MULLE_C_NO_RETURN void
    mulle_objc_universe_fail_supernotfound( struct _mulle_objc_universe *universe,
-                                            mulle_objc_superid_t superid)
+                                           mulle_objc_superid_t superid)
 {
    if ( ! universe || _mulle_objc_universe_is_uninitialized(universe))
       _mulle_objc_universe_abort_supernotfound( universe, superid);

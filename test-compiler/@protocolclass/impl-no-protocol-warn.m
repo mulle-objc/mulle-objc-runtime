@@ -1,7 +1,7 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-// @protocolimplementation without @protocolclass declaration warns
-@protocolimplementation Unknown
+// @protocol_implementation without @protocol_class declaration warns
+@protocol_implementation Unknown
 - (void)doSomething {}
 @end
 
