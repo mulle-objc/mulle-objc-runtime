@@ -20,12 +20,12 @@ static void   trace( Class self, char *name)
 @end
 
 
-@protocol_class C;
-@protocol_interface C
+@mixin C;
+@mixin C
 @end
 
-@protocol_class D;
-@protocol_interface D
+@mixin D;
+@mixin D
 @end
 
 
@@ -45,12 +45,12 @@ static void   trace( Class self, char *name)
 @end
 
 
-@protocol_class I;
-@protocol_interface I
+@mixin I;
+@mixin I
 @end
 
-@protocol_class J;
-@protocol_interface J
+@mixin J;
+@mixin J
 @end
 
 
@@ -92,7 +92,7 @@ static void   trace( Class self, char *name)
 
 @end
 
-@protocol_implementation C
+@implementation C
 + (void) initialize
 {
    trace( self, METHOD_NAME);
@@ -104,7 +104,7 @@ static void   trace( Class self, char *name)
 
 @end
 
-@protocol_implementation D
+@implementation D
 + (void) initialize
 {
    trace( self, METHOD_NAME);
@@ -160,7 +160,7 @@ static void   trace( Class self, char *name)
 @end
 
 
-@protocol_implementation I
+@implementation I
 + (void) initialize
 {
    trace( self, METHOD_NAME);
@@ -171,7 +171,7 @@ static void   trace( Class self, char *name)
 }
 @end
 
-@protocol_implementation J
+@implementation J
 // has none
 //+ (void) initialize
 //{

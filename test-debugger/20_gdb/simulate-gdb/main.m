@@ -6,7 +6,7 @@
 
 
 @protocol_class C;
-@protocol_interface C
+@mixin C
 
 @optional
 + (Class) class;
@@ -15,7 +15,7 @@
 
 @end
 
-@protocol_implementation C
+@implementation C
 
 + (Class) class
 {
@@ -34,7 +34,7 @@
 
 
 @protocol_class D;
-@protocol_interface D
+@mixin D
 
 @optional
 + (Class) class;
@@ -43,7 +43,7 @@
 
 @end
 
-@protocol_implementation D
+@implementation D
 
 + (Class) class
 {

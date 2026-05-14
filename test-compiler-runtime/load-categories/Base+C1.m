@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 
-@protocol_class ProtoClass1;
+@mixin ProtoClass1;
 
 @interface Base( C1) < ProtoClass1>
 @end

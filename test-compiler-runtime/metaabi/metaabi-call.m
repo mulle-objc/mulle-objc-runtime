@@ -562,6 +562,36 @@ struct abc
    return( (struct abc) { .a = 'a', .b = 18.48, .c = 1854 });
 }
 
+
+// struct tiny return (sizeof <= sizeof(void*))
+
++ (struct tiny) returnTiny
+{
+   mulle_printf( "%s", __FUNCTION__);
+   return( (struct tiny) {{ 'V', 'f', 'L' }});
+}
+
++ (struct tiny) returnTinyWithInt:(int) v
+{
+   mulle_printf( "%s (%d)", __FUNCTION__, v);
+   return( (struct tiny) {{ 'a', 'b', 'c' }});
+}
+
++ (struct tiny) returnTinyWithTiny:(struct tiny) v
+{
+   mulle_printf( "%s ('%c' '%c' '%c')", __FUNCTION__, v.a[0], v.a[1], v.a[2]);
+   return( (struct tiny) {{ 'x', 'y', 'z' }});
+}
+
+
+// int return with tiny struct param (leaf G: voidptr-compat return, tiny struct param)
+
++ (int) returnIntWithTiny:(struct tiny) v
+{
+   mulle_printf( "%s ('%c' '%c' '%c')", __FUNCTION__, v.a[0], v.a[1], v.a[2]);
+   return( 1855);
+}
+
 @end
 
 
@@ -715,6 +745,22 @@ int   main()
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
    mulle_metaabi_object_call( &abcrval, cls, @selector( returnStructWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
+
+   // struct tiny return (sizeof <= sizeof(void*), exercises struct-return path for tiny structs)
+   {
+      struct tiny  tinyrval;
+
+      mulle_metaabi_object_call( &tinyrval, cls, @selector( returnTiny));
+      mulle_printf( " -> '%c' '%c' '%c'\n", tinyrval.a[0], tinyrval.a[1], tinyrval.a[2]);
+      mulle_metaabi_object_call( &tinyrval, cls, @selector( returnTinyWithInt:), 1848);
+      mulle_printf( " -> '%c' '%c' '%c'\n", tinyrval.a[0], tinyrval.a[1], tinyrval.a[2]);
+      mulle_metaabi_object_call( &tinyrval, cls, @selector( returnTinyWithTiny:), ((struct tiny) {{ 'A', 'B', 'C' }}));
+      mulle_printf( " -> '%c' '%c' '%c'\n", tinyrval.a[0], tinyrval.a[1], tinyrval.a[2]);
+   }
+
+   // int return with tiny struct param (leaf G: voidptr return, tiny struct param)
+   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithTiny:), ((struct tiny) {{ 'X', 'Y', 'Z' }}));
+   mulle_printf( " -> %d\n", intrval);
 
    return( 0);
 }

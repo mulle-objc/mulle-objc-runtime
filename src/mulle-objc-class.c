@@ -69,7 +69,7 @@ char   *_mulle_objc_global_lookup_state_bit_name( unsigned int bit)
    case MULLE_OBJC_CLASS_ALWAYS_EMPTY_CACHE       : return( "ALWAYS_EMPTY_CACHE");
    case MULLE_OBJC_CLASS_FIXED_SIZE_CACHE         : return( "FIXED_SIZE_CACHE");
    case _MULLE_OBJC_CLASS_WARN_PROTOCOL           : return( "WARN_PROTOCOL");
-   case MULLE_OBJC_CLASS_IS_PROTOCOLCLASS         : return( "IS_PROTOCOLCLASS");
+   case MULLE_OBJC_CLASS_IS_MIXIN         : return( "IS_MIXIN");
    case _MULLE_OBJC_CLASS_LOAD_SCHEDULED          : return( "LOAD_SCHEDULED");
    case _MULLE_OBJC_CLASS_HAS_CLEARABLE_PROPERTY  : return( "HAS_CLEARABLE_PROPERTY");
    case MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE     : return( "NOT_THREAD_AFFINE");
@@ -528,7 +528,7 @@ static mulle_objc_walkcommand_t
    struct _mulle_objc_metaclass                 *meta_proto_cls;
    struct _mulle_objc_infraclass                *proto_cls;
    struct _mulle_objc_classpair                 *pair;
-   struct _mulle_objc_protocolclassenumerator   rover;
+   struct _mulle_objc_mixinenumerator   rover;
    int                                          is_meta;
 
    rval    = 0;
@@ -536,8 +536,8 @@ static mulle_objc_walkcommand_t
    infra   = _mulle_objc_classpair_get_infraclass( pair);
    is_meta = _mulle_objc_class_is_metaclass( cls);
 
-   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-   while( proto_cls = _mulle_objc_protocolclassenumerator_next( &rover))
+   rover = _mulle_objc_classpair_enumerate_mixins( pair);
+   while( proto_cls = _mulle_objc_mixinenumerator_next( &rover))
    {
       if( proto_cls == infra)
          continue;
@@ -555,7 +555,7 @@ static mulle_objc_walkcommand_t
                                                  userinfo))
          break;
    }
-   _mulle_objc_protocolclassenumerator_done( &rover);
+   _mulle_objc_mixinenumerator_done( &rover);
 
    return( rval);
 }
@@ -643,7 +643,7 @@ static mulle_objc_walkcommand_t
    struct _mulle_objc_metaclass                            *meta_proto_cls;
    struct _mulle_objc_infraclass                           *proto_cls;
    struct _mulle_objc_classpair                            *pair;
-   struct _mulle_objc_protocolclassreverseenumerator       rover;
+   struct _mulle_objc_mixinreverseenumerator       rover;
    struct _mulle_objc_methodlist                           *list;
    struct mulle_concurrent_pointerarrayreverseenumerator   list_rover;
    unsigned int                                            n;
@@ -654,8 +654,8 @@ static mulle_objc_walkcommand_t
    infra   = _mulle_objc_classpair_get_infraclass( pair);
    is_meta = _mulle_objc_class_is_metaclass( cls);
 
-   rover = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
-   while( proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover))
+   rover = _mulle_objc_classpair_reverseenumerate_mixins( pair);
+   while( proto_cls = _mulle_objc_mixinreverseenumerator_next( &rover))
    {
       if( proto_cls == infra)
          continue;
@@ -678,7 +678,7 @@ static mulle_objc_walkcommand_t
       if( rval)
          break;
    }
-   _mulle_objc_protocolclassreverseenumerator_done( &rover);
+   _mulle_objc_mixinreverseenumerator_done( &rover);
 
    return( rval);
 }
@@ -718,7 +718,7 @@ static mulle_objc_walkcommand_t
          return( rval);
    }
 
-   // Walk protocolclasses  
+   // Walk mixins  
    if( ! (inheritance & MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS))
    {
       if( rval = _mulle_objc_class_protocol_walk_methodlists( cls, callback, userinfo))

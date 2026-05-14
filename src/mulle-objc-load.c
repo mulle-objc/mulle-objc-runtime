@@ -78,7 +78,7 @@ static void
                                         struct _mulle_objc_universe *universe);
 
 static void
-   mulle_objc_loadprotocolclass_enqueue_nofail( struct _mulle_objc_loadprotocolclass *info,
+   mulle_objc_loadmixin_enqueue_nofail( struct _mulle_objc_loadmixin *info,
                                                 struct _mulle_objc_callqueue *loads,
                                                 struct _mulle_objc_universe *universe);
 
@@ -342,7 +342,7 @@ static struct _mulle_objc_dependency
                                                 struct _mulle_objc_universe *universe,
                                                 struct _mulle_objc_infraclass  **p_superclass)
 {
-   struct _mulle_objc_infraclass    *protocolclass;
+   struct _mulle_objc_infraclass    *mixin;
    struct _mulle_objc_infraclass    *superclass;
    mulle_objc_classid_t             *classid_p;
    struct _mulle_objc_dependency    dependency;
@@ -404,25 +404,25 @@ static struct _mulle_objc_dependency
    }
 
    // protocol classes present ?
-   if( info->protocolclassids)
+   if( info->mixinids)
    {
-      for( classid_p = info->protocolclassids; *classid_p; ++classid_p)
+      for( classid_p = info->mixinids; *classid_p; ++classid_p)
       {
          // avoid duplication and waiting for seld
          if( *classid_p == info->superclassid || *classid_p == info->base.classid)
             continue;
 #if 0
          if( universe->debug.trace.dependency)
-            loadclass_trace( info, universe, "dependency check protocolclass %08lx \"%s\" ...",
+            loadclass_trace( info, universe, "dependency check mixin %08lx \"%s\" ...",
                              *classid_p,
                              _mulle_objc_universe_describe_classid( universe, *classid_p));
 #endif
-         protocolclass = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, *classid_p);
-         if( ! protocolclass)
+         mixin = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, *classid_p);
+         if( ! mixin)
          {
             if( universe->debug.trace.dependency)
             {
-               loadclass_trace( info, universe, "protocolclass %08lx \"%s\" is "
+               loadclass_trace( info, universe, "mixin %08lx \"%s\" is "
                                                 "not present yet",
                                (unsigned long) *classid_p,
                                _mulle_objc_universe_describe_classid( universe, *classid_p));
@@ -577,7 +577,7 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
 
    _mulle_objc_classpair_set_loadclass( pair, &info->base);
    mulle_objc_classpair_add_protocollist_nofail( pair, info->base.protocols);
-   mulle_objc_classpair_add_protocolclassids_nofail( pair, info->protocolclassids);
+   mulle_objc_classpair_add_mixinids_nofail( pair, info->mixinids);
 
    meta = _mulle_objc_classpair_get_metaclass( pair);
 
@@ -658,8 +658,8 @@ static void
 
 static void   _mulle_objc_loadclass_sort_lists( struct _mulle_objc_loadclass *lcls)
 {
-   mulle_qsort_r( lcls->protocolclassids,
-                  _mulle_objc_uniqueid_arraycount( lcls->protocolclassids),
+   mulle_qsort_r( lcls->mixinids,
+                  _mulle_objc_uniqueid_arraycount( lcls->mixinids),
                   sizeof( mulle_objc_protocolid_t),
                   _mulle_objc_uniqueid_compare_r,
                   NULL);
@@ -672,7 +672,7 @@ static void   _mulle_objc_loadclass_sort_lists( struct _mulle_objc_loadclass *lc
 
 
 
-static void   _mulle_objc_loadprotocolclass_enqueue( struct _mulle_objc_loadprotocolclass *info,
+static void   _mulle_objc_loadmixin_enqueue( struct _mulle_objc_loadmixin *info,
                                                      struct _mulle_objc_callqueue *loads,
                                                      struct _mulle_objc_universe *universe)
 {
@@ -703,7 +703,7 @@ static void   _mulle_objc_loadprotocolclass_enqueue( struct _mulle_objc_loadprot
    mulle_objc_metaclass_add_methodlist_nofail( meta, info->base.classmethods);
    mulle_objc_methodlist_add_load_to_callqueue_nofail( info->base.classmethods, meta, loads);
 
-   _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_IS_PROTOCOLCLASS);
+   _mulle_objc_metaclass_set_state_bit( meta, MULLE_OBJC_METACLASS_IS_MIXIN);
 
    infra = _mulle_objc_classpair_get_infraclass( pair);
    assert( meta == _mulle_objc_class_get_metaclass( &infra->base));
@@ -713,25 +713,25 @@ static void   _mulle_objc_loadprotocolclass_enqueue( struct _mulle_objc_loadprot
    mulle_objc_infraclass_add_methodlist_nofail( infra, info->base.instancemethods);
    mulle_objc_infraclass_add_propertylist_nofail( infra, info->base.properties);
 
-   _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS);
+   _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_MIXIN);
 
    if( mulle_objc_universe_register_infraclass( universe, infra))
    {
       if( errno == EFAULT)
          mulle_objc_universe_fail_inconsistency( universe,
                "error in mulle_objc_universe %p: "
-               "protocolclass %08lx \"%s\" should never EFAULT.\n",
+               "mixin %08lx \"%s\" should never EFAULT.\n",
                 universe,
                 (unsigned long) infra->base.classid, infra->base.name);
 
       if( errno == EEXIST)
          mulle_objc_universe_fail_generic( universe,
                "error in mulle_objc_universe %p: "
-               "duplicate protocolclass %08lx \"%s\".\n",
+               "duplicate mixin %08lx \"%s\".\n",
                 universe, (unsigned long) infra->base.classid, infra->base.name);
 
       mulle_objc_universe_fail_generic( universe,
-            "error adding protocolclass %08lx \"%s\" to mulle_objc_universe %p "
+            "error adding mixin %08lx \"%s\" to mulle_objc_universe %p "
             "errno=%d\n",
             (unsigned long) infra->base.classid, infra->base.name, universe, errno);
    }
@@ -754,7 +754,7 @@ static void   _mulle_objc_loadprotocolclass_enqueue( struct _mulle_objc_loadprot
 
 
 static void
-   mulle_objc_loadprotocolclass_enqueue_nofail( struct _mulle_objc_loadprotocolclass *info,
+   mulle_objc_loadmixin_enqueue_nofail( struct _mulle_objc_loadmixin *info,
                                                 struct _mulle_objc_callqueue *loads,
                                                 struct _mulle_objc_universe *universe)
 {
@@ -762,12 +762,12 @@ static void
    if( ! mulle_objc_loadclassbase_is_sane( &info->base))
       mulle_objc_universe_fail_code( universe, EINVAL);
 
-   _mulle_objc_loadprotocolclass_enqueue( info, loads, universe);
+   _mulle_objc_loadmixin_enqueue( info, loads, universe);
 }
 
 
 
-static void   _mulle_objc_loadprotocolclass_sort_lists( struct _mulle_objc_loadprotocolclass *lcls)
+static void   _mulle_objc_loadmixin_sort_lists( struct _mulle_objc_loadmixin *lcls)
 {
    mulle_objc_methodlist_sort( lcls->base.instancemethods);
    mulle_objc_methodlist_sort( lcls->base.classmethods);
@@ -803,27 +803,27 @@ static void   mulle_objc_loadclasslist_enqueue_nofail( struct _mulle_objc_loadcl
 }
 
 
-#pragma mark - protocolclasslists
+#pragma mark - mixinlists
 
-static void   mulle_objc_loadprotocolclasslist_enqueue_nofail( struct _mulle_objc_loadprotocolclasslist *list,
+static void   mulle_objc_loadmixinlist_enqueue_nofail( struct _mulle_objc_loadmixinlist *list,
                                                                int need_sort,
                                                                struct _mulle_objc_callqueue *loads,
                                                                struct _mulle_objc_universe *universe)
 {
-   struct _mulle_objc_loadprotocolclass   **p_class;
-   struct _mulle_objc_loadprotocolclass   **sentinel;
+   struct _mulle_objc_loadmixin   **p_class;
+   struct _mulle_objc_loadmixin   **sentinel;
 
    if( ! list)
       return;
 
-   p_class = list->loadprotocolclasses;
-   sentinel = &p_class[ list->n_loadprotocolclasses];
+   p_class = list->loadmixins;
+   sentinel = &p_class[ list->n_loadmixins];
    while( p_class < sentinel)
    {
       if( need_sort)
-         _mulle_objc_loadprotocolclass_sort_lists( *p_class);
+         _mulle_objc_loadmixin_sort_lists( *p_class);
 
-      mulle_objc_loadprotocolclass_enqueue_nofail( *p_class, loads, universe);
+      mulle_objc_loadmixin_enqueue_nofail( *p_class, loads, universe);
       p_class++;
    }
 }
@@ -937,7 +937,7 @@ static struct _mulle_objc_dependency
                                                   struct _mulle_objc_infraclass **p_class)
 {
    struct _mulle_objc_infraclass   *infra;
-   struct _mulle_objc_infraclass   *protocolclass;
+   struct _mulle_objc_infraclass   *mixin;
    mulle_objc_classid_t            *classid_p;
    struct _mulle_objc_dependency   dependency;
 
@@ -969,21 +969,21 @@ static struct _mulle_objc_dependency
    }
 
    // protocol classes present ?
-   if( info->protocolclassids)
+   if( info->mixinids)
    {
-      for( classid_p = info->protocolclassids; *classid_p; ++classid_p)
+      for( classid_p = info->mixinids; *classid_p; ++classid_p)
       {
          // avoid duplication
          if( *classid_p == info->classid)
             continue;
 
-         protocolclass = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, *classid_p);
-         if( ! protocolclass)
+         mixin = _mulle_objc_universe_lookup_infraclass_nodelegate( universe, *classid_p);
+         if( ! mixin)
          {
             if( universe->debug.trace.dependency)
             {
                loadcategory_trace( info, universe,
-                                   "protocolclass %08lx \"%s\" is not present yet",
+                                   "mixin %08lx \"%s\" is not present yet",
                                    (unsigned long) *classid_p,
                                    _mulle_objc_universe_describe_classid( universe, *classid_p));
             }
@@ -1197,7 +1197,7 @@ static mulle_objc_classid_t
    // universe
    //
    mulle_objc_classpair_add_protocollist_nofail( pair, info->protocols);
-   mulle_objc_classpair_add_protocolclassids_nofail( pair, info->protocolclassids);
+   mulle_objc_classpair_add_mixinids_nofail( pair, info->mixinids);
    if( info->categoryid)
       mulle_objc_classpair_add_categoryid_nofail( pair, info->categoryid);
 
@@ -1244,8 +1244,8 @@ static void
 
 static void   _mulle_objc_loadcategory_sort_lists( struct _mulle_objc_loadcategory *lcat)
 {
-   mulle_qsort_r( lcat->protocolclassids,
-                  _mulle_objc_uniqueid_arraycount( lcat->protocolclassids),
+   mulle_qsort_r( lcat->mixinids,
+                  _mulle_objc_uniqueid_arraycount( lcat->mixinids),
                   sizeof( mulle_objc_protocolid_t),
                   _mulle_objc_uniqueid_compare_r,
                   NULL);
@@ -1716,8 +1716,8 @@ char   *mulle_objc_loadinfo_get_origin( struct _mulle_objc_loadinfo *info)
       s = info->loadclasslist->loadclasses[ 0]->base.origin;
    if( ! s)
    {
-      if( info->loadprotocolclasslist && info->loadprotocolclasslist->n_loadprotocolclasses)
-         s = info->loadprotocolclasslist->loadprotocolclasses[ 0]->base.origin;
+      if( info->loadmixinlist && info->loadmixinlist->n_loadmixins)
+         s = info->loadmixinlist->loadmixins[ 0]->base.origin;
       if( ! s)
       {
          if( info->loadcategorylist && info->loadcategorylist->n_loadcategories)
@@ -1903,9 +1903,9 @@ static void   _mulle_objc_loadinfo_enqueue_nofail( void *_info)
                                                &loads,
                                                universe);
       if( universe->debug.trace.loadinfo)
-         mulle_objc_universe_trace( universe,  "loading protocolclasses...");
+         mulle_objc_universe_trace( universe,  "loading mixins...");
 
-      mulle_objc_loadprotocolclasslist_enqueue_nofail( info->loadprotocolclasslist,
+      mulle_objc_loadmixinlist_enqueue_nofail( info->loadmixinlist,
                                                        need_sort,
                                                        &loads,
                                                        universe);

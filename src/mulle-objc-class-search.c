@@ -355,7 +355,7 @@ static struct _mulle_objc_method  *
    struct _mulle_objc_class                            *walk_cls;
    struct _mulle_objc_infraclass                       *proto_cls;
    struct _mulle_objc_infraclass                       *next_proto_cls;
-   struct _mulle_objc_protocolclassreverseenumerator   rover;
+   struct _mulle_objc_mixinreverseenumerator   rover;
    struct _mulle_objc_method                           *found;
    struct _mulle_objc_method                           *method;
    int                                                 is_meta;
@@ -365,10 +365,10 @@ static struct _mulle_objc_method  *
    pair         = _mulle_objc_class_get_classpair( cls);
    infra        = _mulle_objc_classpair_get_infraclass( pair);
 
-   // TODO: if we is a protocolclass ourselves, and we inherited protocols
+   // TODO: if we is a mixin ourselves, and we inherited protocols
    //       we don't search them. Gotta figure out if the compiler should
    //       set proper inheritance though ?
-   is_proto = _mulle_objc_class_is_protocolclass( _mulle_objc_infraclass_as_class( infra));
+   is_proto = _mulle_objc_class_is_mixin( _mulle_objc_infraclass_as_class( infra));
    if( is_proto)
       return( found);
 
@@ -378,11 +378,11 @@ static struct _mulle_objc_method  *
                     | MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
    is_meta        = _mulle_objc_class_is_metaclass( cls);
 
-   rover          = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
-   next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
+   rover          = _mulle_objc_classpair_reverseenumerate_mixins( pair);
+   next_proto_cls = _mulle_objc_mixinreverseenumerator_next( &rover);
    while( (proto_cls = next_proto_cls))
    {
-      next_proto_cls = _mulle_objc_protocolclassreverseenumerator_next( &rover);
+      next_proto_cls = _mulle_objc_mixinreverseenumerator_next( &rover);
       if( proto_cls == infra)
          continue;
 
@@ -441,7 +441,7 @@ static struct _mulle_objc_method  *
       if( ! _mulle_objc_descriptor_is_hidden_override_fatal( &method->descriptor))
          break;
    }
-   _mulle_objc_protocolclassreverseenumerator_done( &rover);
+   _mulle_objc_mixinreverseenumerator_done( &rover);
 
    return( found);
 }
@@ -581,7 +581,7 @@ static struct _mulle_objc_method   *
       switch( *mode)
       {
       case search_overridden_method_3 :
-         // as protocolclasses can appear multiple times, ensure that
+         // as mixins can appear multiple times, ensure that
          // we didn't hit "self" again
          if( search->args.classid == cls->classid &&
              search->args.categoryid == _mulle_objc_methodlist_get_categoryid( list))
@@ -711,8 +711,8 @@ next_class:
    //  @interface B : A     -b {}; +b{};
    //  @interface C < X, Y> -c {}; +c{};
    //  @interface D : C     -d {}; +d{};
-   //  @protocolclass X     -x {}; +x{};
-   //  @protocolclass Y     -y {}; +y{};
+   //  @mixin X     -x {}; +x{};
+   //  @mixin Y     -y {}; +y{};
    //
    // Invariably at this point we have searched the protocols < X, Y>.
    // now there is a divergence depending on:

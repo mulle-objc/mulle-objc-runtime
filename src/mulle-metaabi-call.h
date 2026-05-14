@@ -41,7 +41,9 @@
 // mulle-objc-runtime.h
 
 #include "mulle-metaabi.h"
+#include <mulle-c11/mulle-c11-eval.h>
 
+#if MULLE_C_HAS_VA_OPT
 ///
 ///
 
@@ -79,7 +81,7 @@
 #define MULLE_METAABI_STRUCT_FIELD( expr, s) __typeof__( expr)  s;
 #define MULLE_METAABI_STRUCT_VALUE( expr, s) .p.s = (expr)
 
-#define _mulle_metaabi_object_call_struct_n_void_return( obj, sel, ...)                                \
+#define _mulle_metaabi_call_struct_n_void_return( obj, sel, ...)                                       \
    mulle_objc_object_call( obj, sel,                                                                   \
       & (mulle_metaabi_union_void_return(                                                              \
             struct                                                                                     \
@@ -98,10 +100,10 @@
          }                                                                                             \
    )
 
-#define _mulle_metaabi_object_call_0( obj, sel) \
+#define _mulle_metaabi_call_0( obj, sel) \
    mulle_objc_object_call( obj, sel, obj)
 
-#define _mulle_metaabi_object_call_1_voidptr( obj, sel, ...)                             \
+#define _mulle_metaabi_call_1_voidptr( obj, sel, ...)                                    \
 do                                                                                       \
 {                                                                                        \
    union                                                                                 \
@@ -123,18 +125,18 @@ do                                                                              
 while( 0)
 
 
-#define _mulle_metaabi_object_call_void_return( obj, sel, ...)                                                 \
+#define _mulle_metaabi_call_void_return( obj, sel, ...)                                                        \
 do                                                                                                             \
 {                                                                                                              \
    if( MULLE_C_VA_ARGS_COUNT( __VA_ARGS__) == 0)                                                               \
-      _mulle_metaabi_object_call_0( obj, sel);                                                                 \
+      _mulle_metaabi_call_0( obj, sel);                                                                        \
    else                                                                                                        \
       if( MULLE_C_VA_ARGS_COUNT( __VA_ARGS__) == 1  &&                                                         \
           mulle_metaabi_is_voidptr_compatible_expression( MULLE_C_VA_ARGS_0_WITH_DEFAULT( NULL, __VA_ARGS__))  \
         )                                                                                                      \
-         _mulle_metaabi_object_call_1_voidptr( obj, sel __VA_OPT__(,)  __VA_ARGS__);                           \
+         _mulle_metaabi_call_1_voidptr( obj, sel __VA_OPT__(,)  __VA_ARGS__);                                  \
       else                                                                                                     \
-         _mulle_metaabi_object_call_struct_n_void_return( obj, sel __VA_OPT__(,)  __VA_ARGS__);                \
+         _mulle_metaabi_call_struct_n_void_return( obj, sel __VA_OPT__(,)  __VA_ARGS__);                       \
 }                                                                                                              \
 while( 0)
 
@@ -143,13 +145,12 @@ while( 0)
 // The union is needed for cpp expansion, to fake syntactically correct C
 // code, even if the whole exapanded  will be ifed away by the optimizer.
 // The break code is just there for compiler warnings suppression, it will
-// get optimized away as checks above _mulle_metaabi_object_call_voidptr will
+// get optimized away as checks above _mulle_metaabi_call_voidptr will
 // ensure that only void* or smaller stuff reaches this
 //
-#define _mulle_metaabi_object_call_voidptr( p_rval, obj, sel, ...)                           \
+#define _mulle_metaabi_call_voidptr( p_rval, obj, sel, ...)                                  \
 do                                                                                           \
 {                                                                                            \
-   void   *param;                                                                            \
    union                                                                                     \
    {                                                                                         \
       __typeof__( MULLE_C_VA_ARGS_0_WITH_DEFAULT( obj, __VA_ARGS__))  v;                     \
@@ -189,7 +190,7 @@ while( 0)
 // TODO: as a convenience mulle_objc_object_call with struct return should
 //       return _param
 //
-#define _mulle_metaabi_object_call_0_struct_return( p_rval, obj, sel, ...)                   \
+#define _mulle_metaabi_call_0_struct_return( p_rval, obj, sel, ...)                          \
 do                                                                                           \
 {                                                                                            \
    mulle_metaabi_union_void_parameter(                                                       \
@@ -205,7 +206,7 @@ do                                                                              
 while( 0)
 
 
-#define _mulle_metaabi_object_call_struct_n_voidptr_return( p_rval, obj, sel, ...)                              \
+#define _mulle_metaabi_call_struct_n_voidptr_return( p_rval, obj, sel, ...)                                     \
 do                                                                                                              \
 {                                                                                                               \
    void   *rval;                                                                                                \
@@ -237,10 +238,11 @@ while( 0)
 
 
 
-#define _mulle_metaabi_object_call_struct_n( p_rval, obj, sel, ...)                                             \
+#define _mulle_metaabi_call_struct_n( p_rval, obj, sel, ...)                                                    \
 do                                                                                                              \
 {                                                                                                               \
    intptr_t dummy;                                                                                              \
+   (void) dummy;                                                                                                \
    void   *rval;                                                                                                \
    mulle_metaabi_union(                                                                                         \
       struct                                                                                                    \
@@ -259,45 +261,50 @@ do                                                                              
       };                                                                                                        \
                                                                                                                 \
    rval = mulle_objc_object_call( obj, sel, &param);                                                            \
+   (void) rval;                                                                                                 \
    *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)) = param.r.v;                                                \
 }                                                                                                               \
 while( 0)
 
 
+// use this as "p_rval" when the call returns void
+#define mulle_metaabi_void
 
-#define mulle_metaabi_object_call( p_rval, obj, sel, ...)                                                         \
-do                                                                                                                \
-{                                                                                                                 \
-   intptr_t dummy;                                                                                                \
-                                                                                                                  \
-   if( MULLE_C_IS_EMPTY( p_rval))                                                                                 \
-      _mulle_metaabi_object_call_void_return( obj, sel __VA_OPT__(,) __VA_ARGS__);                                \
-   else                                                                                                           \
-      if( mulle_metaabi_is_voidptr_compatible_expression( *MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)) &&      \
-          MULLE_C_VA_ARGS_COUNT( __VA_ARGS__) <= 1 &&                                                             \
-          mulle_metaabi_is_voidptr_compatible_expression( MULLE_C_VA_ARGS_0_WITH_DEFAULT( obj, __VA_ARGS__))      \
-        )                                                                                                         \
-         _mulle_metaabi_object_call_voidptr( MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                       \
-                                             obj,                                                                 \
-                                             sel __VA_OPT__( ,) __VA_ARGS__);                                     \
-      else                                                                                                        \
-         if( MULLE_C_VA_ARGS_COUNT( __VA_ARGS__) == 0)                                                            \
-            _mulle_metaabi_object_call_0_struct_return( MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),            \
-                                                        obj,                                                      \
-                                                        sel);                                                     \
-         else                                                                                                     \
-            if( mulle_metaabi_is_voidptr_compatible_expression( *MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)))  \
-                                                                                                                  \
-               _mulle_metaabi_object_call_struct_n_voidptr_return(                                                \
-                                                    MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                \
-                                                    obj,                                                          \
-                                                    sel __VA_OPT__( ,) __VA_ARGS__);                              \
-            else                                                                                                  \
-               _mulle_metaabi_object_call_struct_n( MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                \
-                                                    obj,                                                          \
-                                                    sel __VA_OPT__( ,) __VA_ARGS__);                              \
-}                                                                                                                 \
+#define mulle_metaabi_call( p_rval, obj, sel, ...)                                                                      \
+do                                                                                                                      \
+{                                                                                                                       \
+   intptr_t dummy;                                                                                                      \
+   (void) dummy;                                                                                                        \
+                                                                                                                        \
+   if( MULLE_C_IS_EMPTY( p_rval))                                                                                       \
+      _mulle_metaabi_call_void_return( obj, sel __VA_OPT__(,) __VA_ARGS__);                                             \
+   else                                                                                                                 \
+      if( mulle_metaabi_is_voidptr_compatible_return_expression( *MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)) &&     \
+          MULLE_C_VA_ARGS_COUNT( __VA_ARGS__) <= 1 &&                                                                   \
+          mulle_metaabi_is_voidptr_compatible_expression( MULLE_C_VA_ARGS_0_WITH_DEFAULT( obj, __VA_ARGS__))            \
+        )                                                                                                               \
+         _mulle_metaabi_call_voidptr( MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                                    \
+                                             obj,                                                                       \
+                                             sel __VA_OPT__( ,) __VA_ARGS__);                                           \
+      else                                                                                                              \
+         if( MULLE_C_VA_ARGS_COUNT( __VA_ARGS__) == 0)                                                                  \
+            _mulle_metaabi_call_0_struct_return( MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                         \
+                                                        obj,                                                            \
+                                                        sel);                                                           \
+         else                                                                                                           \
+            if( mulle_metaabi_is_voidptr_compatible_return_expression( *MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))) \
+                                                                                                                        \
+               _mulle_metaabi_call_struct_n_voidptr_return(                                                             \
+                                                    MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                      \
+                                                    obj,                                                                \
+                                                    sel __VA_OPT__( ,) __VA_ARGS__);                                    \
+            else                                                                                                        \
+               _mulle_metaabi_call_struct_n( MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                             \
+                                                    obj,                                                                \
+                                                    sel __VA_OPT__( ,) __VA_ARGS__);                                    \
+}                                                                                                                       \
 while( 0)
+
 
 
 #define mulle_metaabi_param_struct( ...)                                                      \
@@ -397,6 +404,12 @@ do                                                                \
    }                                                              \
 }                                                                 \
 while( 0)
+
+#else
+
+#error "the mulle-metabi-call macros need __VA_OPT__ to work (C23)"
+
+#endif
 
 
 #endif

@@ -28,11 +28,11 @@
 
 
 
-@protocol_class X;
-@protocol_interface X
+@mixin X;
+@mixin X
 @end
 
-@protocol_implementation X
+@implementation X
 + (void) x
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

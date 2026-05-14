@@ -67,7 +67,7 @@ enum _mulle_objc_infraclass_state
    MULLE_OBJC_INFRACLASS_INITIALIZING           = MULLE_OBJC_CLASS_INITIALIZING,
    MULLE_OBJC_INFRACLASS_INITIALIZE_DONE        = MULLE_OBJC_CLASS_INITIALIZE_DONE,
    MULLE_OBJC_INFRACLASS_FINALIZE_DONE          = MULLE_OBJC_CLASS_FINALIZE_DONE,
-   MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS       = MULLE_OBJC_CLASS_IS_PROTOCOLCLASS
+   MULLE_OBJC_INFRACLASS_IS_MIXIN       = MULLE_OBJC_CLASS_IS_MIXIN
 };
 
 
@@ -571,11 +571,11 @@ mulle_objc_walkcommand_t
 #pragma mark - some other methods, that are only defined on infraclass
 
 MULLE_OBJC_RUNTIME_GLOBAL
-int    mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra);
+int    mulle_objc_infraclass_is_mixin( struct _mulle_objc_infraclass *infra);
 
 // check is same, but also emits warnings
 MULLE_OBJC_RUNTIME_GLOBAL
-int    mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *infra);
+int    mulle_objc_infraclass_check_mixin( struct _mulle_objc_infraclass *infra);
 
 
 // hairy code for the compat layer

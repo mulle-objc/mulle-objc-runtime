@@ -826,16 +826,16 @@ mulle_objc_walkcommand_t
 }
 
 
-# pragma mark - protocolclass check
+# pragma mark - mixin check
 
 //
 // Checks that infra must be root, must conform to own protocol, must not have
-// ivars must not conform to other protocolclasses 
+// ivars must not conform to other mixins 
 // (it's tempting to conform to NSObject).
 //
 // If you conform to NSObject, NSObject methods will override your superclass(!)
 //
-static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_objc_infraclass *infra,
+static int   _mulle_objc_infraclass_conforms_to_mixin( struct _mulle_objc_infraclass *infra,
                                                                int warn)
 {
    struct _mulle_objc_universe         *universe;
@@ -892,14 +892,14 @@ static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_obj
       return( 0);
    }
 
-   if( _mulle_objc_classpair_get_protocolclasscount( pair))
+   if( _mulle_objc_classpair_get_mixincount( pair))
    {
       if( warn)
       {
          if( _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_WARN_PROTOCOL))
             mulle_fprintf( stderr, "mulle_objc_universe %p warning: class \"%s\" "
                              "matches a protocol but also inherits from other "
-                             "protocolclasses %s",
+                             "mixins %s",
                         universe,
                         _mulle_objc_infraclass_get_name( infra),
                         footer);
@@ -947,16 +947,16 @@ static int   _mulle_objc_infraclass_conforms_to_protocolclass( struct _mulle_obj
    return( 1);
 }
 
-// see _mulle_objc_infraclass_conforms_to_protocolclass, this
-int   mulle_objc_infraclass_is_protocolclass( struct _mulle_objc_infraclass *infra)
+// see _mulle_objc_infraclass_conforms_to_mixin, this
+int   mulle_objc_infraclass_is_mixin( struct _mulle_objc_infraclass *infra)
 {
    if( ! infra)
       return( 0);
-   return( _mulle_objc_infraclass_conforms_to_protocolclass( infra, 0));
+   return( _mulle_objc_infraclass_conforms_to_mixin( infra, 0));
 }
 
 
-int   mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *infra)
+int   mulle_objc_infraclass_check_mixin( struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_universe   *universe;
 
@@ -964,7 +964,7 @@ int   mulle_objc_infraclass_check_protocolclass( struct _mulle_objc_infraclass *
       return( 0);
 
    universe = _mulle_objc_infraclass_get_universe( infra);
-   return( _mulle_objc_infraclass_conforms_to_protocolclass( infra, universe->debug.warn.protocolclass));
+   return( _mulle_objc_infraclass_conforms_to_mixin( infra, universe->debug.warn.mixin));
 }
 
 

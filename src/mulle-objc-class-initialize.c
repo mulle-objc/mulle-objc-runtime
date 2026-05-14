@@ -244,34 +244,34 @@ static void
 
 
 static void
-   _mulle_objc_infraclass_call_protocolclasses_initialize( struct _mulle_objc_infraclass *owner,
+   _mulle_objc_infraclass_call_mixins_initialize( struct _mulle_objc_infraclass *owner,
                                                            struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair                 *pair;
-   struct _mulle_objc_protocolclassenumerator   rover;
+   struct _mulle_objc_mixinenumerator   rover;
    struct _mulle_objc_infraclass                *superclass;
-   struct _mulle_objc_infraclass                *protocolclass;
-   struct _mulle_objc_metaclass                 *metaprotocolclass;
+   struct _mulle_objc_infraclass                *mixin;
+   struct _mulle_objc_metaclass                 *metamixin;
 
-   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
+   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_MIXIN));
 
-   // call all +initialize protocolclass methods for superclass first
+   // call all +initialize mixin methods for superclass first
    superclass = _mulle_objc_infraclass_get_superclass( owner);
    if( superclass)
-      _mulle_objc_infraclass_call_protocolclasses_initialize( superclass, infra);
+      _mulle_objc_infraclass_call_mixins_initialize( superclass, infra);
 
    pair  = _mulle_objc_infraclass_get_classpair( owner);
-   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-   while( (protocolclass = _mulle_objc_protocolclassenumerator_next( &rover)))
+   rover = _mulle_objc_classpair_enumerate_mixins( pair);
+   while( (mixin = _mulle_objc_mixinenumerator_next( &rover)))
    {
-      metaprotocolclass  = _mulle_objc_infraclass_get_metaclass( protocolclass);
+      metamixin  = _mulle_objc_infraclass_get_metaclass( mixin);
       // just inherit from class nothing else
-      _mulle_objc_metaclass_call_initialize_deinitialize( metaprotocolclass,
+      _mulle_objc_metaclass_call_initialize_deinitialize( metamixin,
                                                           ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,
                                                           MULLE_OBJC_INITIALIZE_METHODID,
                                                           infra);
    }
-   _mulle_objc_protocolclassenumerator_done( &rover);
+   _mulle_objc_mixinenumerator_done( &rover);
 }
 
 
@@ -283,7 +283,7 @@ static void
    struct _mulle_objc_class       *cls;
    unsigned int                   inheritance;
 
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_MIXIN))
       return;
 
    meta         = _mulle_objc_infraclass_get_metaclass( infra);
@@ -299,39 +299,39 @@ static void
                                                        MULLE_OBJC_INITIALIZE_METHODID,
                                                        infra);
    //
-   _mulle_objc_infraclass_call_protocolclasses_initialize( infra, infra);
+   _mulle_objc_infraclass_call_mixins_initialize( infra, infra);
 }
 
 
 static void
-   _mulle_objc_infraclass_call_protocolclasses_deinitialize( struct _mulle_objc_infraclass *owner,
+   _mulle_objc_infraclass_call_mixins_deinitialize( struct _mulle_objc_infraclass *owner,
                                                              struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair                        *pair;
-   struct _mulle_objc_protocolclassreverseenumerator   rover;
+   struct _mulle_objc_mixinreverseenumerator   rover;
    struct _mulle_objc_infraclass                       *superclass;
-   struct _mulle_objc_infraclass                       *protocolclass;
-   struct _mulle_objc_metaclass                        *metaprotocolclass;
+   struct _mulle_objc_infraclass                       *mixin;
+   struct _mulle_objc_metaclass                        *metamixin;
 
-   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS));
+   assert( ! _mulle_objc_infraclass_get_state_bit( owner, MULLE_OBJC_INFRACLASS_IS_MIXIN));
 
    pair  = _mulle_objc_infraclass_get_classpair( owner);
-   rover = _mulle_objc_classpair_reverseenumerate_protocolclasses( pair);
-   while( protocolclass = _mulle_objc_protocolclassreverseenumerator_next( &rover))
+   rover = _mulle_objc_classpair_reverseenumerate_mixins( pair);
+   while( mixin = _mulle_objc_mixinreverseenumerator_next( &rover))
    {
-      metaprotocolclass = _mulle_objc_infraclass_get_metaclass( protocolclass);
+      metamixin = _mulle_objc_infraclass_get_metaclass( mixin);
       // just inherit from class nothing else
-      _mulle_objc_metaclass_call_initialize_deinitialize( metaprotocolclass,
+      _mulle_objc_metaclass_call_initialize_deinitialize( metamixin,
                                                           ~MULLE_OBJC_CLASS_DONT_INHERIT_CLASS,
                                                           MULLE_OBJC_DEINITIALIZE_METHODID,
                                                           infra);
    }
-   _mulle_objc_protocolclassreverseenumerator_done( &rover);
+   _mulle_objc_mixinreverseenumerator_done( &rover);
 
-   // call all +initialize protocolclass methods for superclass first
+   // call all +initialize mixin methods for superclass first
    superclass = _mulle_objc_infraclass_get_superclass( owner);
    if( superclass)
-      _mulle_objc_infraclass_call_protocolclasses_deinitialize( superclass, infra);
+      _mulle_objc_infraclass_call_mixins_deinitialize( superclass, infra);
 
 }
 
@@ -347,10 +347,10 @@ void
    if( ! _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_INITIALIZE_DONE))
       return;
 
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_MIXIN))
       return;
 
-   _mulle_objc_infraclass_call_protocolclasses_deinitialize( infra, infra);
+   _mulle_objc_infraclass_call_mixins_deinitialize( infra, infra);
 
    meta         = _mulle_objc_infraclass_get_metaclass( infra);
    cls          = _mulle_objc_metaclass_as_class( meta);
@@ -367,18 +367,18 @@ void
 static void  _mulle_objc_infraclass_setup_superclasses( struct _mulle_objc_infraclass *infra)
 {
    struct _mulle_objc_classpair                 *pair;
-   struct _mulle_objc_protocolclassenumerator   rover;
-   struct _mulle_objc_infraclass                *protocolclass;
+   struct _mulle_objc_mixinenumerator   rover;
+   struct _mulle_objc_infraclass                *mixin;
    struct _mulle_objc_infraclass                *superclass;
 
    /*
     * Ensure protocol classes are there
     */
    pair  = _mulle_objc_infraclass_get_classpair( infra);
-   rover = _mulle_objc_classpair_enumerate_protocolclasses( pair);
-   while( (protocolclass = _mulle_objc_protocolclassenumerator_next( &rover)))
-      _mulle_objc_infraclass_setup_if_needed( protocolclass);
-   _mulle_objc_protocolclassenumerator_done( &rover);
+   rover = _mulle_objc_classpair_enumerate_mixins( pair);
+   while( (mixin = _mulle_objc_mixinenumerator_next( &rover)))
+      _mulle_objc_infraclass_setup_if_needed( mixin);
+   _mulle_objc_mixinenumerator_done( &rover);
 
    /*
     * Ensure superclass is there
@@ -397,7 +397,7 @@ static void  _mulle_objc_metaclass_setup_superclass( struct _mulle_objc_metaclas
    assert( _mulle_objc_class_is_metaclass( _mulle_objc_metaclass_as_class( meta)));
 
    /*
-    * Ensure superclass is there (infraclass will do protocolclasses)
+    * Ensure superclass is there (infraclass will do mixins)
     */
    superclass = _mulle_objc_metaclass_get_superclass( meta);
    if( superclass)

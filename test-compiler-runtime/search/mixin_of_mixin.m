@@ -59,14 +59,14 @@ static void  print_self_and_call_super_if_available( id self,
 }
 
 //
-// MEMO: a protocolclass may "adopt" another protocolclass, but only as
+// MEMO: a mixin may "adopt" another mixin, but only as
 //       a protocol (syntactically)
 //
-@protocol_class A;
-@protocol_interface A
+@mixin A;
+@mixin A
 @end
 
-@protocol_implementation A
+@implementation A
 + (void) print
 {
    print_self_and_call_super_if_available( self, _cmd, @selector( A), (char *) __PRETTY_FUNCTION__);
@@ -74,11 +74,11 @@ static void  print_self_and_call_super_if_available( id self,
 @end
 
 
-@protocol_class B;
-@protocol_interface B <A>
+@mixin B;
+@mixin B <A>
 @end
 
-@protocol_implementation B
+@implementation B
 + (void) print
 {
    print_self_and_call_super_if_available( self, _cmd, @selector( B), (char *) __PRETTY_FUNCTION__);

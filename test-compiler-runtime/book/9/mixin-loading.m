@@ -1,5 +1,5 @@
 // Test for Chapter 9: Protocolclass Loading
-// Tests loading protocolclasses (protocol-conforming classes) through loadinfo
+// Tests loading mixines (protocol-conforming classes) through loadinfo
 
 #include "include.h"
 
@@ -8,7 +8,7 @@
 - (const char *)draw;
 @end
 
-// Define a protocolclass that conforms to Drawable
+// Define a mixin that conforms to Drawable
 @interface CircleClass <Drawable>
 @end
 
@@ -16,7 +16,7 @@
 - (const char *)draw { return "Drawing a circle"; }
 @end
 
-// Define another protocolclass
+// Define another mixin
 @interface SquareClass <Drawable>
 @end
 
@@ -36,7 +36,7 @@ int main(void)
     
     mulle_printf("Test: Protocolclass loading\n");
     
-    // Look up the protocolclasses by name
+    // Look up the mixines by name
     circleClass = mulle_objc_universe_lookup_infraclass_nofail(
         universe, 
         mulle_objc_classid_from_string("CircleClass"));

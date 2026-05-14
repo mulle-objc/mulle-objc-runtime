@@ -8,7 +8,7 @@ int   main( void)
 {
    mulle_printf( "pair.infraclass      = %td\n", offsetof( struct _mulle_objc_classpair, infraclass));
    mulle_printf( "pair.metaclass       = %td\n", offsetof( struct _mulle_objc_classpair, metaclass));
-   mulle_printf( "pair.protocolclasses = %td\n", offsetof( struct _mulle_objc_classpair, protocolclasses));
+   mulle_printf( "pair.mixins = %td\n", offsetof( struct _mulle_objc_classpair, mixins));
 
    return( 0);
 }

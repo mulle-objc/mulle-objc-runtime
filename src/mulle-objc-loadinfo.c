@@ -99,7 +99,7 @@ static void   print_version( char *prefix, uint32_t version, FILE *fp)
 }
 
 
-static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassids,
+static void   loadmixins_dump( mulle_objc_protocolid_t *mixinids,
                                         char *prefix,
                                         struct _mulle_objc_protocollist *protocols,
                                         FILE *fp)
@@ -108,19 +108,19 @@ static void   loadprotocolclasses_dump( mulle_objc_protocolid_t *protocolclassid
    mulle_objc_protocolid_t      protoid;
    struct _mulle_objc_protocol  *protocol;
 
-   for(; *protocolclassids; ++protocolclassids)
+   for(; *mixinids; ++mixinids)
    {
-      protoid = *protocolclassids;
+      protoid = *mixinids;
 
       protocol = NULL;
       if( protocols)
          protocol = _mulle_objc_protocollist_search_smart( protocols, protoid);
       if( protocol)
-         mulle_fprintf( fp, "%s@protocol_class %s;\n",
+         mulle_fprintf( fp, "%s@mixin %s;\n",
                           prefix, protocol->name);
       else
          // todo: ah
-         mulle_fprintf( fp, "%s@protocol_class %08lx;\n",
+         mulle_fprintf( fp, "%s@mixin %08lx;\n",
                           prefix, (unsigned long) protoid);
    }
 }
@@ -271,8 +271,8 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
                               char *prefix,
                               FILE *fp)
 {
-   if( p->protocolclassids)
-      loadprotocolclasses_dump( p->protocolclassids, prefix, p->base.protocols, fp);
+   if( p->mixinids)
+      loadmixins_dump( p->mixinids, prefix, p->base.protocols, fp);
 
    mulle_fprintf( fp, "%s@implementation %s", prefix, p->base.classname);
    if( p->superclassname)
@@ -315,11 +315,11 @@ static void   loadclass_dump( struct _mulle_objc_loadclass *p,
 }
 
 
-static void   loadprotocolclass_dump( struct _mulle_objc_loadprotocolclass *p,
+static void   loadmixin_dump( struct _mulle_objc_loadmixin *p,
                                       char *prefix,
                                       FILE *fp)
 {
-   mulle_fprintf( fp, "%s@protocol_implementation %s", prefix, p->base.classname);
+   mulle_fprintf( fp, "%s@implementation %s", prefix, p->base.classname);
 
    if( p->base.protocols)
       loadprotocols_dump( p->base.protocols, fp);
@@ -344,8 +344,8 @@ static void   loadcategory_dump( struct _mulle_objc_loadcategory *p,
    struct _mulle_objc_method   *method;
    struct _mulle_objc_method   *sentinel;
 
-   if( p->protocolclassids)
-      loadprotocolclasses_dump( p->protocolclassids, prefix, p->protocols, fp);
+   if( p->mixinids)
+      loadmixins_dump( p->mixinids, prefix, p->protocols, fp);
 
    mulle_fprintf( fp, "%s@implementation %s( %s)", prefix, p->classname, p->categoryname);
 
@@ -403,20 +403,20 @@ static void   loadclasslist_dump( struct _mulle_objc_loadclasslist *list,
 }
 
 
-static void   loadprotocolclasslist_dump( struct _mulle_objc_loadprotocolclasslist *list,
+static void   loadmixinlist_dump( struct _mulle_objc_loadmixinlist *list,
                                           char *prefix,
                                           FILE *fp)
 {
-   struct _mulle_objc_loadprotocolclass   **p;
-   struct _mulle_objc_loadprotocolclass   **sentinel;
+   struct _mulle_objc_loadmixin   **p;
+   struct _mulle_objc_loadmixin   **sentinel;
 
    if( ! list)
       return;
 
-   p        = list->loadprotocolclasses;
-   sentinel = &p[ list->n_loadprotocolclasses];
+   p        = list->loadmixins;
+   sentinel = &p[ list->n_loadmixins];
    while( p < sentinel)
-      loadprotocolclass_dump( *p++, prefix, fp);
+      loadmixin_dump( *p++, prefix, fp);
 }
 
 
@@ -478,7 +478,7 @@ void   mulle_objc_loadinfo_dump_fp( struct _mulle_objc_loadinfo *info,
    mulle_fprintf( fp, ")\n");
 
    loadclasslist_dump( info->loadclasslist, prefix, fp);
-   loadprotocolclasslist_dump( info->loadprotocolclasslist, prefix, fp);
+   loadmixinlist_dump( info->loadmixinlist, prefix, fp);
    loadcategorylist_dump( info->loadcategorylist, prefix, fp);
    loadsuperlist_dump( info->loadsuperlist,
                        prefix,

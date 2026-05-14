@@ -2,12 +2,12 @@
 
 
 
-@protocol_class A;
-@protocol_interface A
+@mixin A;
+@mixin A
 @end
 
-@protocol_class B;
-@protocol_interface B
+@mixin B;
+@mixin B
 @end
 
 
@@ -34,7 +34,7 @@
 
 @end
 
-@protocol_implementation A
+@implementation A
 + (void) initialize
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);
@@ -46,7 +46,7 @@
 }
 @end
 
-@protocol_implementation B
+@implementation B
 + (void) initialize
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

@@ -64,3 +64,7 @@
 +[A returnStructWithStruct:] ('b' 18.48 1848) -> a='a' b=18.48 c=1852
 +[A returnStructWithChar:double:int:] ('b' 18.48 1848) -> a='a' b=18.48 c=1853
 +[A returnStructWithVA:] (4 , 1, 8, 4, 8) -> a='a' b=18.48 c=1854
++[A returnTiny] -> 'V' 'f' 'L'
++[A returnTinyWithInt:] (1848) -> 'a' 'b' 'c'
++[A returnTinyWithTiny:] ('A' 'B' 'C') -> 'x' 'y' 'z'
++[A returnIntWithTiny:] ('X' 'Y' 'Z') -> 1855

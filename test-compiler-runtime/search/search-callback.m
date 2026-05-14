@@ -10,15 +10,15 @@ _Pragma("clang diagnostic ignored \"-Wprotocol\"")
 _Pragma("clang diagnostic ignored \"-Wobjc-root-class\"")
 _Pragma("clang diagnostic ignored \"-Wobjc-missing-super-calls\"")
 
-@protocol_class X;
-@protocol_interface X
+@mixin X;
+@mixin X
 @optional
 - (void) x;
 + (void) x;
 @end
 
-@protocol_class Y;
-@protocol_interface Y
+@mixin Y;
+@mixin Y
 @optional
 - (void) y;
 + (void) y;
@@ -34,8 +34,8 @@ _Pragma("clang diagnostic ignored \"-Wobjc-missing-super-calls\"")
 @implementation B     - (void) b {}; + (void) b {}; @end
 @implementation C     - (void) c {}; + (void) c {}; @end
 @implementation D     - (void) d {}; + (void) d {}; @end
-@protocol_implementation X     - (void) x {}; + (void) x {}; @end
-@protocol_implementation Y     - (void) y {}; + (void) y {}; @end
+@implementation X     - (void) x {}; + (void) x {}; @end
+@implementation Y     - (void) y {}; + (void) y {}; @end
 @implementation D( D) - (void) d {}; + (void) d {}; @end
 @implementation D( Z) - (void) z {}; + (void) z {}; @end
 

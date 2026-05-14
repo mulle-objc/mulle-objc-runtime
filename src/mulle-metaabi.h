@@ -39,7 +39,6 @@
 // #include "include.h" // need mulle-c11 for stdalign
 
 #include "mulle-objc-c-types.h"
-#include <mulle-c11/mulle-c11-eval.h>
 #include <mulle-vararg/mulle-vararg.h>
 
 // maybe rename to kind ?
@@ -389,11 +388,27 @@ static inline void  *
 #define mulle_metaabi_is_fp_expression( expr)  \
    _Generic( (expr), float: 1, double: 1, long double: 1, default: 0)
 
-#define mulle_metaabi_is_voidptr_storage_compatible( type_or_expr) \
-   (alignof( type_or_expr) <= alignof( void *) && sizeof( type_or_expr) <= sizeof( void *))
+// A type's alignment requirement can never exceed its size — that's a
+// fundamental C guarantee (otherwise arrays of that type would have gaps).
+// On GCC/Clang we still check alignof for extra safety (e.g. over-aligned
+// types via __attribute__((aligned))).
+#if defined( __GNUC__) || defined( __clang__)
+# define mulle_metaabi_is_voidptr_storage_compatible( type_or_expr) \
+   (alignof( __typeof__( type_or_expr)) <= alignof( void *) && sizeof( type_or_expr) <= sizeof( void *))
+#else
+# define mulle_metaabi_is_voidptr_storage_compatible( type_or_expr) \
+   (sizeof( type_or_expr) <= sizeof( void *))
+#endif
+
+#define mulle_metaabi_is_struct_expression( expr) \
+   (__builtin_classify_type( expr) == 12)
 
 #define mulle_metaabi_is_voidptr_compatible_expression( expr) \
    (mulle_metaabi_is_voidptr_storage_compatible( expr) && ! mulle_metaabi_is_fp_expression( expr))
+
+// for return values: structs always use struct-return regardless of size
+#define mulle_metaabi_is_voidptr_compatible_return_expression( expr) \
+   (mulle_metaabi_is_voidptr_compatible_expression( expr) && ! mulle_metaabi_is_struct_expression( expr))
 
 
 static inline enum mulle_metaabi_param   _mulle_metaabi_get_metaabiparamtype( char *type)
