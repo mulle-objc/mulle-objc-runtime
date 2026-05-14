@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 
-@protocol_implementation ProtoClass1
+@implementation ProtoClass1
 
 + (void) load
 {

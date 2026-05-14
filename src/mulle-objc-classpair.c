@@ -55,7 +55,7 @@ void    _mulle_objc_classpair_plusinit( struct _mulle_objc_classpair *pair,
    if( mulle_thread_mutex_init( &pair->lock))
       abort();
 
-   _mulle_concurrent_pointerarray_init( &pair->protocolclasses, 0, allocator);
+   _mulle_concurrent_pointerarray_init( &pair->mixins, 0, allocator);
 
    _mulle_atomic_pointer_write_nonatomic( &pair->p_protocolids.pointer,
                                           &universe->empty_uniqueidarray);
@@ -85,7 +85,7 @@ void    _mulle_objc_classpair_plusdone( struct _mulle_objc_classpair *pair,
    if( array != &universe->empty_uniqueidarray)
       mulle_objc_uniqueidarray_abafree( array, allocator);
 
-   _mulle_concurrent_pointerarray_done( &pair->protocolclasses);
+   _mulle_concurrent_pointerarray_done( &pair->mixins);
 }
 
 
@@ -465,12 +465,12 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
 
 
    infra = _mulle_objc_classpair_get_infraclass( pair);
-   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_MIXIN))
    {
-      if( universe->debug.warn.protocolclass)
+      if( universe->debug.warn.mixin)
          if( universe->foundation.rootclassid != _mulle_objc_classpair_get_classid( pair))
             mulle_fprintf( stderr, "mulle_objc_universe %p warning: class %08lx \"%s\""
-                                   " is a protocolclass and gains a"
+                                   " is a mixin and gains a"
                                    " category %08lx \"%s( %s)\"\n",
                     universe,
                     (unsigned long) _mulle_objc_classpair_get_classid( pair),
@@ -493,9 +493,9 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
 }
 
 
-#pragma mark - protocolclasses
+#pragma mark - mixins
 
-void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pair,
+void   _mulle_objc_classpair_add_mixin( struct _mulle_objc_classpair *pair,
                                                 struct _mulle_objc_infraclass *proto_infra)
 {
    struct _mulle_objc_universe   *universe;
@@ -508,14 +508,14 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
 
    assert( pair);
 
-   if( ! _mulle_objc_classpair_has_protocolclass( pair, proto_infra))
+   if( ! _mulle_objc_classpair_has_mixin( pair, proto_infra))
    {
-      _mulle_concurrent_pointerarray_add( &pair->protocolclasses, proto_infra);
+      _mulle_concurrent_pointerarray_add( &pair->mixins, proto_infra);
 
       universe = _mulle_objc_classpair_get_universe( pair);
       if( universe->debug.trace.protocol_add || universe->debug.trace.dependency)
          mulle_objc_universe_trace( universe,
-                                    "add protocolclass %08lx \"%s\" "
+                                    "add mixin %08lx \"%s\" "
                                     "to class %08lx \"%s\"",
                                     (unsigned long) proto_infra->base.classid,
                                     proto_infra->base.name,
@@ -527,9 +527,9 @@ void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pa
 
 
 mulle_objc_walkcommand_t
-	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
+	_mulle_objc_classpair_walk_mixins( struct _mulle_objc_classpair *pair,
                                                unsigned int inheritance,
-                                               mulle_objc_walkprotocolclassescallback_t f,
+                                               mulle_objc_walkmixinscallback_t f,
                                                void *userinfo)
 {
    mulle_objc_walkcommand_t                         rval;
@@ -539,7 +539,7 @@ mulle_objc_walkcommand_t
    struct _mulle_objc_infraclass                    *superclass;
    struct _mulle_objc_classpair                     *superpair;
 
-   rover = mulle_concurrent_pointerarray_enumerate( &pair->protocolclasses);
+   rover = mulle_concurrent_pointerarray_enumerate( &pair->mixins);
    while( proto_infra = _mulle_concurrent_pointerarrayenumerator_next( &rover))
    {
       if( rval = (*f)( proto_infra, pair, userinfo))
@@ -557,7 +557,7 @@ mulle_objc_walkcommand_t
       if( superclass && superclass != infra)
       {
          superpair = _mulle_objc_infraclass_get_classpair( superclass);
-         return( _mulle_objc_classpair_walk_protocolclasses( superpair, inheritance, f, userinfo));
+         return( _mulle_objc_classpair_walk_mixins( superpair, inheritance, f, userinfo));
       }
    }
 
@@ -565,53 +565,53 @@ mulle_objc_walkcommand_t
 }
 
 
-void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_classpair *pair,
-                                                         mulle_objc_protocolid_t *protocolclassids)
+void   mulle_objc_classpair_add_mixinids_nofail( struct _mulle_objc_classpair *pair,
+                                                         mulle_objc_protocolid_t *mixinids)
 {
    struct _mulle_objc_infraclass   *proto_infra;
    struct _mulle_objc_universe     *universe;
-   mulle_objc_protocolid_t         protocolclassid;
+   mulle_objc_protocolid_t         mixinid;
 
    if( ! pair)
       mulle_objc_universe_fail_code( NULL, EINVAL);
 
-   if( ! protocolclassids)
+   if( ! mixinids)
       return;
 
    universe = _mulle_objc_classpair_get_universe( pair);
-   while( (protocolclassid = *protocolclassids++) != MULLE_OBJC_NO_PROTOCOLID)
+   while( (mixinid = *mixinids++) != MULLE_OBJC_NO_PROTOCOLID)
    {
-      // just checking the compiler, a protocolclass has no protocolclassids
-      assert( mulle_objc_uniqueid_is_sane( protocolclassid));
-      assert( protocolclassid != _mulle_objc_classpair_get_classid( pair));
-      assert( _mulle_objc_classpair_has_protocolid( pair, protocolclassid));
+      // just checking the compiler, a mixin has no mixinids
+      assert( mulle_objc_uniqueid_is_sane( mixinid));
+      assert( mixinid != _mulle_objc_classpair_get_classid( pair));
+      assert( _mulle_objc_classpair_has_protocolid( pair, mixinid));
 
-      proto_infra = _mulle_objc_universe_lookup_infraclass( universe, protocolclassid);
+      proto_infra = _mulle_objc_universe_lookup_infraclass( universe, mixinid);
       if( ! proto_infra)
          _mulle_objc_classpair_fail_einval( pair);
 
-      if( ! _mulle_objc_infraclass_get_state_bit( proto_infra, MULLE_OBJC_INFRACLASS_IS_PROTOCOLCLASS))
+      if( ! _mulle_objc_infraclass_get_state_bit( proto_infra, MULLE_OBJC_INFRACLASS_IS_MIXIN))
          mulle_objc_universe_fail_inconsistency( universe,
                "mulle_objc_universe %p: class %08lx \"%s\" is listed as a "
-               "protocolclass of %08lx \"%s\", but is not a protocolclass.\n",
+               "mixin of %08lx \"%s\", but is not a mixin.\n",
                universe,
-               (unsigned long) protocolclassid,
+               (unsigned long) mixinid,
                _mulle_objc_infraclass_get_name( proto_infra),
                (unsigned long) _mulle_objc_classpair_get_classid( pair),
                _mulle_objc_classpair_get_name( pair));
 
-      _mulle_objc_classpair_add_protocolclass( pair, proto_infra);
+      _mulle_objc_classpair_add_mixin( pair, proto_infra);
    }
 }
 
 
 struct _mulle_objc_infraclass  *
-   _mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
+   _mulle_objc_mixinenumerator_next( struct _mulle_objc_mixinenumerator *rover)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_infraclass   *proto_infra;
 
-   infra = _mulle_objc_protocolclassenumerator_get_infraclass( rover);
+   infra = _mulle_objc_mixinenumerator_get_infraclass( rover);
    if( ! infra)
       return( NULL);
 
@@ -623,12 +623,12 @@ struct _mulle_objc_infraclass  *
 
 
 struct _mulle_objc_infraclass  *
-   _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover)
+   _mulle_objc_mixinreverseenumerator_next( struct _mulle_objc_mixinreverseenumerator *rover)
 {
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_infraclass   *proto_infra;
 
-   infra = _mulle_objc_protocolclassreverseenumerator_get_infraclass( rover);
+   infra = _mulle_objc_mixinreverseenumerator_get_infraclass( rover);
    while( proto_infra = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover->list_rover))
       if( proto_infra != infra)  // don't recurse into self
          break;

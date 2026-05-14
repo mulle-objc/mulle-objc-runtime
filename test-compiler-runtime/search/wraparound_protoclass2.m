@@ -5,22 +5,22 @@
 #endif
 
 
-// protocolclass A
-@protocol_class A;
-@protocol_interface A
+// mixin A
+@mixin A;
+@mixin A
 @end
 
-// protocolclass B
-@protocol_class B;
-@protocol_interface B
+// mixin B
+@mixin B;
+@mixin B
 @end
 
-// class C inherits two protocolclasses
+// class C inherits two mixines
 @interface C < A, B>
 @end
 
 
-@protocol_implementation A
+@implementation A
 + (void) x
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);
@@ -32,7 +32,7 @@
 @end
 
 
-@protocol_implementation B
+@implementation B
 + (void) x
 {
    mulle_printf( "%s\n", __PRETTY_FUNCTION__);

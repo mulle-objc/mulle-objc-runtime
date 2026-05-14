@@ -1,0 +1,11 @@
+char: 'X' PASS
+int: 1848 PASS
+long long: 1848184818481848 PASS
+float: 18.48 PASS
+double: 18.48 PASS
+voidptr: 0x1848 PASS
+tiny: 'V' 'f' 'L' PASS
+one_float: 1.5 PASS
+two_floats: 1.5 2.5 PASS
+three_floats: 1.5 2.5 3.5 PASS
+abc: 'a' 18.48 1848 PASS

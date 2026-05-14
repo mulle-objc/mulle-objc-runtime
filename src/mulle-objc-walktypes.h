@@ -145,7 +145,7 @@ typedef mulle_objc_walkcommand_t
 struct _mulle_objc_classpair;
 
 typedef mulle_objc_walkcommand_t
-   (*mulle_objc_walkprotocolclassescallback_t)( struct _mulle_objc_infraclass *,
+   (*mulle_objc_walkmixinscallback_t)( struct _mulle_objc_infraclass *,
                                                 struct _mulle_objc_classpair *,
                                                 void *);
 

@@ -353,7 +353,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
 
    if( getenv_yes_no( "MULLE_OBJC_WARN_ENABLED"))
    {
-      universe->debug.warn.protocolclass           = 1;
+      universe->debug.warn.mixin           = 1;
       universe->debug.warn.stuck_loadable          = 1;
       universe->debug.warn.method_bits             = 1;
       universe->debug.warn.method_type              = MULLE_OBJC_WARN_METHOD_TYPE_NORMAL;
@@ -361,7 +361,7 @@ static void   _mulle_objc_universe_get_environment( struct _mulle_objc_universe 
    }
    else
    {
-      universe->debug.warn.protocolclass  = getenv_yes_no( "MULLE_OBJC_WARN_PROTOCOLCLASS");
+      universe->debug.warn.mixin  = getenv_yes_no( "MULLE_OBJC_WARN_MIXIN");
       universe->debug.warn.stuck_loadable = getenv_yes_no_default( "MULLE_OBJC_WARN_STUCK_LOADABLE", 1);
       universe->debug.warn.method_bits    = getenv_yes_no_default( "MULLE_OBJC_WARN_METHOD_BITS", 1);
       universe->debug.warn.method_type    = mulle_objc_environment_get_int( "MULLE_OBJC_WARN_METHOD_TYPE",
@@ -1945,7 +1945,7 @@ enum mulle_objc_universe_status
    rval = mulle_objc_universe_is_ok;
    mulle_concurrent_hashmap_for( &universe->classtable, classid, infra)
    {
-      if( _mulle_objc_class_is_protocolclass( _mulle_objc_infraclass_as_class( infra)))
+      if( _mulle_objc_class_is_mixin( _mulle_objc_infraclass_as_class( infra)))
          continue;
 
       // MulleObjCDeps is a special dependency collector class, skip it

@@ -65,25 +65,25 @@ struct _mulle_objc_loadclass;
 struct _mulle_objc_classpair
 {
    // >>> dont' add anything >>>
-   struct _mulle_objc_objectheader           infraclassheader;
-   struct _mulle_objc_infraclass             infraclass;
-   unsigned char                             _padding[ _MULLE_OBJC_CLASSPAIR_PADDING];
-   struct _mulle_objc_objectheader           metaclassheader;
-   struct _mulle_objc_metaclass              metaclass;
+   struct _mulle_objc_objectheader            infraclassheader;
+   struct _mulle_objc_infraclass              infraclass;
+   unsigned char                              _padding[ _MULLE_OBJC_CLASSPAIR_PADDING];
+   struct _mulle_objc_objectheader            metaclassheader;
+   struct _mulle_objc_metaclass               metaclass;
    // <<< dont' add anything <<<
 
    // common stuff keep for debugger >
-   struct mulle_concurrent_pointerarray      protocolclasses;
-   union _mulle_objc_uniqueidarraypointer_t  p_protocolids;
-   union _mulle_objc_uniqueidarraypointer_t  p_categoryids;
+   struct mulle_concurrent_pointerarray       mixins;
+   union _mulle_objc_uniqueidarraypointer_t   p_protocolids;
+   union _mulle_objc_uniqueidarraypointer_t   p_categoryids;
 
    // from here on the debugger doesn't care anymore
 
-   mulle_thread_mutex_t                      lock;       // used for initialize
-   mulle_atomic_pointer_t                    thread_id;  // used for initialize
-   struct _mulle_objc_loadclassbase          *loadclass;
+   mulle_thread_mutex_t                       lock;       // used for initialize
+   mulle_atomic_pointer_t                     thread_id;  // used for initialize
+   struct _mulle_objc_loadclassbase           *loadclass;
 
-   uint32_t                                  classindex;       // set when added
+   uint32_t                                   classindex;       // set when added
 //   uint32_t                                  taoprotection;
 };
 
@@ -366,38 +366,38 @@ void   mulle_objc_classpair_add_categoryid_nofail( struct _mulle_objc_classpair 
                                                    mulle_objc_categoryid_t categoryid);
 
 
-#pragma mark - protocolclasses
+#pragma mark - mixins
 
 
 static inline int
-   _mulle_objc_classpair_has_protocolclass( struct _mulle_objc_classpair *pair,
-                                            struct _mulle_objc_infraclass *proto_cls)
+   _mulle_objc_classpair_has_mixin( struct _mulle_objc_classpair *pair,
+                                    struct _mulle_objc_infraclass *proto_cls)
 {
-   return( _mulle_concurrent_pointerarray_find( &pair->protocolclasses, proto_cls));
+   return( _mulle_concurrent_pointerarray_find( &pair->mixins, proto_cls));
 }
 
 
-static inline unsigned int   _mulle_objc_classpair_get_protocolclasscount( struct _mulle_objc_classpair *pair)
+static inline unsigned int   _mulle_objc_classpair_get_mixincount( struct _mulle_objc_classpair *pair)
 {
-   return( _mulle_concurrent_pointerarray_get_count( &pair->protocolclasses));
+   return( _mulle_concurrent_pointerarray_get_count( &pair->mixins));
 }
 
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
-	_mulle_objc_classpair_walk_protocolclasses( struct _mulle_objc_classpair *pair,
-                                               unsigned int inheritance,
-                                               mulle_objc_walkprotocolclassescallback_t f,
-                                               void *userinfo);
+	_mulle_objc_classpair_walk_mixins( struct _mulle_objc_classpair *pair,
+                                      unsigned int inheritance,
+                                      mulle_objc_walkmixinscallback_t f,
+                                      void *userinfo);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   _mulle_objc_classpair_add_protocolclass( struct _mulle_objc_classpair *pair,
-                                                struct _mulle_objc_infraclass *proto_cls);
+void   _mulle_objc_classpair_add_mixin( struct _mulle_objc_classpair *pair,
+                                        struct _mulle_objc_infraclass *proto_cls);
 
 MULLE_OBJC_RUNTIME_GLOBAL
-void   mulle_objc_classpair_add_protocolclassids_nofail( struct _mulle_objc_classpair *pair,
-                                                         mulle_objc_protocolid_t *protocolids);
+void   mulle_objc_classpair_add_mixinids_nofail( struct _mulle_objc_classpair *pair,
+                                                 mulle_objc_protocolid_t *protocolids);
 
 #pragma mark - protocols
 
@@ -416,9 +416,9 @@ static inline int
 MULLE_OBJC_RUNTIME_GLOBAL
 mulle_objc_walkcommand_t
 	_mulle_objc_classpair_walk_protocolids( struct _mulle_objc_classpair *pair,
-                                          unsigned int inheritance,
-                                          mulle_objc_walkprotocolidscallback_t f,
-                                          void *userinfo);
+                                           unsigned int inheritance,
+                                           mulle_objc_walkprotocolidscallback_t f,
+                                           void *userinfo);
 
 MULLE_OBJC_RUNTIME_GLOBAL
 int
@@ -465,56 +465,56 @@ void   mulle_objc_classpair_add_protocollist_nofail( struct _mulle_objc_classpai
 
 # pragma mark - protocol class enumerator
 
-struct _mulle_objc_protocolclassenumerator
+struct _mulle_objc_mixinenumerator
 {
    struct mulle_concurrent_pointerarrayenumerator   list_rover;
    struct _mulle_objc_infraclass                    *infra;
 };
 
 
-static inline struct _mulle_objc_protocolclassenumerator
-   _mulle_objc_classpair_enumerate_protocolclasses( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_mixinenumerator
+   _mulle_objc_classpair_enumerate_mixins( struct _mulle_objc_classpair *pair)
 {
-   struct _mulle_objc_protocolclassenumerator  rover;
+   struct _mulle_objc_mixinenumerator  rover;
 
-   rover.list_rover = mulle_concurrent_pointerarray_enumerate( &pair->protocolclasses);
+   rover.list_rover = mulle_concurrent_pointerarray_enumerate( &pair->mixins);
    rover.infra      = _mulle_objc_classpair_get_infraclass( pair);
    return( rover);
 }
 
 
-static inline struct _mulle_objc_protocolclassenumerator
-   mulle_objc_classpair_enumerate_protocolclasses( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_mixinenumerator
+   mulle_objc_classpair_enumerate_mixins( struct _mulle_objc_classpair *pair)
 {
-   struct _mulle_objc_protocolclassenumerator  rover;
+   struct _mulle_objc_mixinenumerator  rover;
 
    if( ! pair)
    {
       memset( &rover, 0, sizeof( rover));
       return( rover);
    }
-   return( _mulle_objc_classpair_enumerate_protocolclasses( pair));
+   return( _mulle_objc_classpair_enumerate_mixins( pair));
 }
 
 
 static inline void
-   _mulle_objc_protocolclassenumerator_done( struct _mulle_objc_protocolclassenumerator *rover)
+   _mulle_objc_mixinenumerator_done( struct _mulle_objc_mixinenumerator *rover)
 {
    mulle_concurrent_pointerarrayenumerator_done( &rover->list_rover);
 }
 
 
 static inline void
-   mulle_objc_protocolclassenumerator_done( struct _mulle_objc_protocolclassenumerator *rover)
+   mulle_objc_mixinenumerator_done( struct _mulle_objc_mixinenumerator *rover)
 {
    if( rover)
-      _mulle_objc_protocolclassenumerator_done( rover);
+      _mulle_objc_mixinenumerator_done( rover);
 }
 
 
 
 static inline struct _mulle_objc_infraclass  *
-   _mulle_objc_protocolclassenumerator_get_infraclass( struct _mulle_objc_protocolclassenumerator *rover)
+   _mulle_objc_mixinenumerator_get_infraclass( struct _mulle_objc_mixinenumerator *rover)
 {
    return( rover->infra);
 }
@@ -522,17 +522,17 @@ static inline struct _mulle_objc_infraclass  *
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_infraclass  *
-   _mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover);
+   _mulle_objc_mixinenumerator_next( struct _mulle_objc_mixinenumerator *rover);
 
 
 static inline struct _mulle_objc_infraclass  *
-   mulle_objc_protocolclassenumerator_next( struct _mulle_objc_protocolclassenumerator *rover)
+   mulle_objc_mixinenumerator_next( struct _mulle_objc_mixinenumerator *rover)
 {
-   return( rover ? _mulle_objc_protocolclassenumerator_next( rover) : NULL);
+   return( rover ? _mulle_objc_mixinenumerator_next( rover) : NULL);
 }
 
 
-#define mulle_objc_classpair_protocolclass_for( name, item)                                  \
+#define mulle_objc_classpair_mixin_for( name, item)                                          \
    assert( sizeof( item) == sizeof( void *));                                                \
    for( struct _mulle_objc_propertylistenumerator                                            \
            rover__ ## item = mulle_objc_propertylist_enumerate( name),                       \
@@ -546,48 +546,48 @@ static inline struct _mulle_objc_infraclass  *
 
 # pragma mark - protocol class reverse enumerator
 
-struct _mulle_objc_protocolclassreverseenumerator
+struct _mulle_objc_mixinreverseenumerator
 {
    struct mulle_concurrent_pointerarrayreverseenumerator   list_rover;
    struct _mulle_objc_infraclass                           *infra;
 };
 
 
-static inline struct _mulle_objc_protocolclassreverseenumerator
-   _mulle_objc_classpair_reverseenumerate_protocolclasses( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_mixinreverseenumerator
+   _mulle_objc_classpair_reverseenumerate_mixins( struct _mulle_objc_classpair *pair)
 {
-   struct _mulle_objc_protocolclassreverseenumerator  rover;
+   struct _mulle_objc_mixinreverseenumerator  rover;
    unsigned int    n;
 
-   n                = mulle_concurrent_pointerarray_get_count( &pair->protocolclasses);
-   rover.list_rover = mulle_concurrent_pointerarray_reverseenumerate( &pair->protocolclasses, n);
+   n                = mulle_concurrent_pointerarray_get_count( &pair->mixins);
+   rover.list_rover = mulle_concurrent_pointerarray_reverseenumerate( &pair->mixins, n);
    rover.infra      = _mulle_objc_classpair_get_infraclass( pair);
    return( rover);
 }
 
 
-static inline struct _mulle_objc_protocolclassreverseenumerator
-   mulle_objc_classpair_reverseenumerate_protocolclasses( struct _mulle_objc_classpair *pair)
+static inline struct _mulle_objc_mixinreverseenumerator
+   mulle_objc_classpair_reverseenumerate_mixins( struct _mulle_objc_classpair *pair)
 {
-   struct _mulle_objc_protocolclassreverseenumerator  rover;
+   struct _mulle_objc_mixinreverseenumerator  rover;
 
    if( ! pair)
    {
       memset( &rover, 0, sizeof( rover));
       return( rover);
    }
-   return( _mulle_objc_classpair_reverseenumerate_protocolclasses( pair));
+   return( _mulle_objc_classpair_reverseenumerate_mixins( pair));
 }
 
 
-static inline void  _mulle_objc_protocolclassreverseenumerator_done( struct _mulle_objc_protocolclassreverseenumerator *rover)
+static inline void  _mulle_objc_mixinreverseenumerator_done( struct _mulle_objc_mixinreverseenumerator *rover)
 {
    mulle_concurrent_pointerarrayreverseenumerator_done( &rover->list_rover);
 }
 
 
 static inline struct _mulle_objc_infraclass  *
-   _mulle_objc_protocolclassreverseenumerator_get_infraclass( struct _mulle_objc_protocolclassreverseenumerator *rover)
+   _mulle_objc_mixinreverseenumerator_get_infraclass( struct _mulle_objc_mixinreverseenumerator *rover)
 {
    return( rover->infra);
 }
@@ -595,7 +595,7 @@ static inline struct _mulle_objc_infraclass  *
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_objc_infraclass  *
-   _mulle_objc_protocolclassreverseenumerator_next( struct _mulle_objc_protocolclassreverseenumerator *rover);
+   _mulle_objc_mixinreverseenumerator_next( struct _mulle_objc_mixinreverseenumerator *rover);
 
 
 #pragma mark - debug support

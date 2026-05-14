@@ -137,7 +137,7 @@ static inline void *
 
    alloc     = _mulle_objc_infraclass_alloc_calloc( infra, size, allocator);
    cls       = _mulle_objc_infraclass_as_class( infra);
-   assert( ! _mulle_objc_class_is_protocolclass( cls));
+   assert( ! _mulle_objc_class_is_mixin( cls));
    metaextra = _mulle_objc_class_get_metaextrasize( cls);
    header    = _mulle_objc_alloc_get_objectheader( alloc, metaextra);
    _mulle_objc_objectheader_init( header, cls, metaextra, _mulle_objc_memory_is_zeroed);

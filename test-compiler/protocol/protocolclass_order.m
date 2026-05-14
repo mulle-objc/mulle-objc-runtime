@@ -1,25 +1,25 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
-@protocol_class A;
-@protocol_interface A
+@mixin A;
+@mixin A
 @optional
 + (void) print;
 @end
 
-@protocol_implementation A
+@implementation A
 + (void) print
 {
    printf( "%s\n", __FUNCTION__);
 }
 @end
 
-@protocol_class B;
-@protocol_interface B
+@mixin B;
+@mixin B
 @optional
 + (void) print;
 @end
 
-@protocol_implementation B
+@implementation B
 + (void) print
 {
    printf( "%s\n", __FUNCTION__);

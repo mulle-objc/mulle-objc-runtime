@@ -106,7 +106,7 @@ enum _mulle_objc_class_state
    // or _MulleObjCAutoreleaseAllocation)
    MULLE_OBJC_CLASS_IS_BORING_ALLOCATION    = 0x0080,
 
-   MULLE_OBJC_CLASS_IS_PROTOCOLCLASS        = 0x0100,
+   MULLE_OBJC_CLASS_IS_MIXIN        = 0x0100,
 
    // infra/meta flags
    _MULLE_OBJC_CLASS_WARN_PROTOCOL          = 0x0200,
@@ -291,9 +291,9 @@ static inline int   _mulle_objc_class_is_threadaffine( struct _mulle_objc_class 
 }
 
 
-static inline int   _mulle_objc_class_is_protocolclass( struct _mulle_objc_class *cls)
+static inline int   _mulle_objc_class_is_mixin( struct _mulle_objc_class *cls)
 {
-   return( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_PROTOCOLCLASS));
+   return( _mulle_objc_class_get_state_bit( cls, MULLE_OBJC_CLASS_IS_MIXIN));
 }
 
 
@@ -352,8 +352,8 @@ static inline int   _mulle_objc_class_is_metaclass( struct _mulle_objc_class *cl
 
 static inline char   *_mulle_objc_class_get_classtypename( struct _mulle_objc_class *cls)
 {
-   if( _mulle_objc_class_is_protocolclass( cls))
-      return( _mulle_objc_class_is_metaclass( cls) ? "metaprotocolclass" : "infraprotocolclass");
+   if( _mulle_objc_class_is_mixin( cls))
+      return( _mulle_objc_class_is_metaclass( cls) ? "metamixin" : "inframixin");
    return( _mulle_objc_class_is_metaclass( cls) ? "metaclass" : "infraclass");
 }
 

@@ -2,8 +2,8 @@
 
 #pragma clang diagnostic ignored "-Wobjc-root-class"
 
-@protocol_class Bar;
-@protocol_interface Bar
+@mixin Bar;
+@mixin Bar
 @end
 
 @interface Foo < Bar>
@@ -25,7 +25,7 @@
 @implementation Foo
 @end
 
-@protocol_implementation Bar
+@implementation Bar
 @end
 
 

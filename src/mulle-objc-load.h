@@ -109,11 +109,11 @@ struct _mulle_objc_loadclass
 
    struct _mulle_objc_ivarlist       *instancevariables;
 
-   mulle_objc_classid_t              *protocolclassids;
+   mulle_objc_classid_t              *mixinids;
 };
 
 
-struct _mulle_objc_loadprotocolclass
+struct _mulle_objc_loadmixin
 {
    struct _mulle_objc_loadclassbase  base;
 };
@@ -133,7 +133,7 @@ struct _mulle_objc_loadcategory
    struct _mulle_objc_propertylist   *properties;
 
    struct _mulle_objc_protocollist   *protocols;
-   mulle_objc_classid_t              *protocolclassids;
+   mulle_objc_classid_t              *mixinids;
 
    char                              *origin;
 };
@@ -153,18 +153,18 @@ static inline size_t  mulle_objc_sizeof_loadclasslist( unsigned int n_loadclasse
                   (n_loadclasses - 1) * sizeof( struct _mulle_objc_loadclass *));
 }
 
-// protocolclass
-struct _mulle_objc_loadprotocolclasslist
+// mixin
+struct _mulle_objc_loadmixinlist
 {
-   unsigned int                            n_loadprotocolclasses;
-   struct _mulle_objc_loadprotocolclass    *loadprotocolclasses[ 1];
+   unsigned int                     n_loadmixins;
+   struct _mulle_objc_loadmixin    *loadmixins[ 1];
 };
 
 
-static inline size_t  mulle_objc_sizeof_loadprotocolclasslist( unsigned int n_loadprotocolclasses)
+static inline size_t  mulle_objc_sizeof_loadmixinlist( unsigned int n_loadmixins)
 {
-   return( sizeof( struct _mulle_objc_loadprotocolclasslist) +
-                  (n_loadprotocolclasses - 1) * sizeof( struct _mulle_objc_loadprotocolclass *));
+   return( sizeof( struct _mulle_objc_loadmixinlist) +
+                  (n_loadmixins - 1) * sizeof( struct _mulle_objc_loadmixin *));
 }
 
 
@@ -326,7 +326,7 @@ struct _mulle_objc_loadinfo
 
    struct _mulle_objc_loaduniverse           *loaduniverse;
    struct _mulle_objc_loadclasslist          *loadclasslist;
-   struct _mulle_objc_loadprotocolclasslist  *loadprotocolclasslist;
+   struct _mulle_objc_loadmixinlist  *loadmixinlist;
    struct _mulle_objc_loadcategorylist       *loadcategorylist;
    struct _mulle_objc_superlist              *loadsuperlist;
    struct _mulle_objc_loadstringlist         *loadstringlist;

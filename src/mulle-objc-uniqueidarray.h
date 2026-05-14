@@ -44,7 +44,7 @@
 
 //
 // _mulle_objc_uniqueidarray is sometimes sorted and sometimes not.
-// categoryids and protocolids are sorted, but protocolclassids aren't
+// categoryids and protocolids are sorted, but mixinids aren't
 // So use search or find with caution...
 //
 struct _mulle_objc_uniqueidarray

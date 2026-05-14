@@ -8,14 +8,14 @@
 @end
 
 // Protocolclasses
-@protocol_class SecondProtocol;
-@protocol_interface SecondProtocol
+@mixin SecondProtocol;
+@mixin SecondProtocol
 + (void) secondProtocolClassMethod;
 - (void) secondProtocolInstanceMethod;
 @end
 
-@protocol_class ThirdProtocol;
-@protocol_interface ThirdProtocol
+@mixin ThirdProtocol;
+@mixin ThirdProtocol
 + (void) thirdProtocolClassMethod;
 - (void) thirdProtocolInstanceMethod;
 @end
@@ -36,7 +36,7 @@
 - (void) secondBaseCategoryInstanceMethod;
 @end
 
-// Derived class with categories that uses protocolclasses
+// Derived class with categories that uses mixines
 @interface DerivedClass : BaseClass <SecondProtocol, ThirdProtocol>
 + (void) derivedClassMethod;
 - (void) derivedInstanceMethod;
@@ -60,12 +60,12 @@
 - (void) baseCategoryInstanceMethod { }
 @end
 
-@protocol_implementation SecondProtocol
+@implementation SecondProtocol
 + (void) secondProtocolClassMethod { }
 - (void) secondProtocolInstanceMethod { }
 @end
 
-@protocol_implementation ThirdProtocol
+@implementation ThirdProtocol
 + (void) thirdProtocolClassMethod { }
 - (void) thirdProtocolInstanceMethod { }
 @end
@@ -100,7 +100,7 @@ static mulle_objc_walkcommand_t test_callback(struct _mulle_objc_class *cls,
    struct _mulle_objc_method *method;
    char *list_name;
    int is_metaclass;
-   int is_protocolclass;
+   int is_mixin;
    
    if (result->count >= 20) return mulle_objc_walk_cancel;
    
@@ -109,9 +109,9 @@ static mulle_objc_walkcommand_t test_callback(struct _mulle_objc_class *cls,
       list_name = "class";
    
    is_metaclass = _mulle_objc_class_is_metaclass(cls);
-   is_protocolclass = _mulle_objc_class_is_protocolclass(cls);
+   is_mixin = _mulle_objc_class_is_mixin(cls);
    
-   if (is_protocolclass)
+   if (is_mixin)
       mulle_printf("%d. %s (protocol %s):\n", result->count + 1, _mulle_objc_class_get_name(cls), list_name);
    else
       mulle_printf("%d. %s (%s):\n", result->count + 1, _mulle_objc_class_get_name(cls), list_name);

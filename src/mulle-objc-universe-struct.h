@@ -155,7 +155,7 @@ struct _mulle_objc_universedebug
 
    struct
    {
-      unsigned   protocolclass            : 1;
+      unsigned   mixin            : 1;
       unsigned   stuck_loadable           : 1;  // set by default
       unsigned   method_type              : 2;
       unsigned   method_bits              : 1;
