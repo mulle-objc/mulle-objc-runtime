@@ -39,6 +39,7 @@
 #include "include.h"
 
 #include "mulle-objc-uniqueid.h"
+#include "mulle-metaabi.h"
 
 #include <stddef.h>
 #include <assert.h>
@@ -136,12 +137,48 @@ enum
    _mulle_objc_method_user_attribute_3          = 0x0004000,  // NOT type equal check
    _mulle_objc_method_user_attribute_4          = 0x0008000,  // // NOT type equal check, used by #threadsafe
 
-   _mulle_objc_methodfamily_mask                = 0x03F0000,
+   _mulle_objc_methodfamily_mask                = 0x003F0000,
+
+   // MetaABI type encoding for return value (bits 22-23) and parameter block
+   // (bits 24-25).  Values match MulleObjCMetaABIType: 0=VoidPointer, 1=Void,
+   // 2=ParameterBlock.  Both fields are zero when uninitialized (treated as
+   // VoidPointer, the most common case).
+   _mulle_objc_method_metaabi_rtype_mask        = 0x00C00000,   // bits 22-23
+   _mulle_objc_method_metaabi_ptype_mask        = 0x03000000,   // bits 24-25
+   _mulle_objc_method_metaabi_mask              = 0x03C00000,   // bits 22-25
 };
 
 
-#define  _mulle_objc_methodfamily_shift   16
-#define  _mulle_objc_method_user_shift    11
+#define  _mulle_objc_methodfamily_shift            16
+#define  _mulle_objc_method_user_shift             11
+#define  _mulle_objc_method_metaabi_rtype_shift    22
+#define  _mulle_objc_method_metaabi_ptype_shift    24
+
+// Extract / set the 2-bit metaABI type fields from a method descriptor bits
+// value.  Values match MulleObjCMetaABIType: 0=VoidPointer, 1=Void,
+// 2=ParameterBlock.
+static inline unsigned int
+   _mulle_objc_method_bits_get_metaabi_rtype( uint32_t bits)
+{
+   return( (bits & _mulle_objc_method_metaabi_rtype_mask) >> _mulle_objc_method_metaabi_rtype_shift);
+}
+
+static inline unsigned int
+   _mulle_objc_method_bits_get_metaabi_ptype( uint32_t bits)
+{
+   return( (bits & _mulle_objc_method_metaabi_ptype_mask) >> _mulle_objc_method_metaabi_ptype_shift);
+}
+
+static inline uint32_t
+   _mulle_objc_method_bits_set_metaabi_types( uint32_t bits,
+                                              unsigned int rType,
+                                              unsigned int pType)
+{
+   bits &= ~_mulle_objc_method_metaabi_mask;
+   bits |= (rType << _mulle_objc_method_metaabi_rtype_shift)
+           | (pType << _mulle_objc_method_metaabi_ptype_shift);
+   return( bits);
+}
 
 #define  _mulle_objc_method_bits_equality_mask     \
         (_mulle_objc_method_user_attribute_0       \
@@ -223,6 +260,19 @@ static inline enum _mulle_objc_methodfamily
    _mulle_objc_descriptor_get_methodfamily( struct _mulle_objc_descriptor *desc)
 {
    return( (unsigned long) (desc->bits & _mulle_objc_methodfamily_mask) >> _mulle_objc_methodfamily_shift);
+}
+
+static inline enum mulle_metaabi_param
+   _mulle_objc_descriptor_get_metaabiparamtype( struct _mulle_objc_descriptor *desc)
+{
+   return( (unsigned long) (desc->bits & _mulle_objc_method_metaabi_ptype_mask) >> _mulle_objc_method_metaabi_ptype_shift);
+}
+
+
+static inline enum mulle_metaabi_param
+   _mulle_objc_descriptor_get_metaabirvaltype( struct _mulle_objc_descriptor *desc)
+{
+   return( (unsigned long) (desc->bits & _mulle_objc_method_metaabi_rtype_mask) >> _mulle_objc_method_metaabi_rtype_shift);
 }
 
 

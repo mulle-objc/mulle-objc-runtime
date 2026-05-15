@@ -418,7 +418,7 @@ struct mulle_concurrent_hashmap  *
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct _mulle_concurrent_pointerarray  *
-   _mulle_objc_universe_get_staticstrings( struct _mulle_objc_universe *universe);
+   _mulle_objc_universe_get_staticinstances( struct _mulle_objc_universe *universe);
 
 
 #pragma mark - non concurrent memory allocation
@@ -1002,7 +1002,7 @@ static inline mulle_objc_classid_t
    return( foundation ->rootclassid);
 }
 
-#pragma mark - static strings
+#pragma mark - static instances
 
 struct _mulle_objc_staticstring  // really an object
 {
@@ -1012,42 +1012,97 @@ struct _mulle_objc_staticstring  // really an object
 
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST_SECOND
-void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *universe,
-                                              struct _mulle_objc_object *string);
+void   _mulle_objc_universe_add_staticinstance( struct _mulle_objc_universe *universe,
+                                                struct _mulle_objc_object *instance);
 
-// this changes the class of ALL (!) static strings to -> foundation.staticstringclass
-// the compiler will have made the default NSConstantStrings already constant.
-// Hand rolled strings you need to constantify.
+// Re-runnable scan: patches all queued instances whose slot is now registered.
+// Objects with isa > MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS-1 are already patched
+// and are skipped automatically.  NULL slots are skipped.
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
-void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe,
-                                                         int constantify);
+void   _mulle_objc_universe_didchange_staticinstanceclass( struct _mulle_objc_universe *universe,
+                                                           int constantify);
 
+// Merge non-NULL entries from infra[] into staticinstanceclass[], then re-scan.
+// infra must point to an array of MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS pointers;
+// NULL entries leave the corresponding slot unchanged.
 MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
-void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
-                                                  struct _mulle_objc_infraclass *infra,
-                                                  int constantify);
+void  _mulle_objc_universe_set_staticinstanceclasses( struct _mulle_objc_universe *universe,
+                                                      struct _mulle_objc_infraclass **infra,
+                                                      int constantify);
 
-MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NONNULL_FIRST
-void  _mulle_objc_universe_set_staticstringclasses( struct _mulle_objc_universe *universe,
-                                                    struct _mulle_objc_infraclass *infra[ 3],
-                                                    int constantify);
+static inline struct _mulle_objc_infraclass  *
+   _mulle_objc_universe_get_staticinstanceclass( struct _mulle_objc_universe *universe,
+                                                 unsigned int slot)
+{
+   assert( slot < MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS);
+   return( universe->foundation.staticinstanceclass[ slot]);
+}
+
+
+// Compatibility wrappers for existing string-oriented callers
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *universe,
+                                          struct _mulle_objc_object *string)
+{
+   _mulle_objc_universe_add_staticinstance( universe, string);
+}
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe,
+                                                     int constantify)
+{
+   _mulle_objc_universe_didchange_staticinstanceclass( universe, constantify);
+}
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
+                                               struct _mulle_objc_infraclass *infra,
+                                               int constantify)
+{
+   struct _mulle_objc_infraclass  *arr[ MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS];
+
+   memset( arr, 0, sizeof( arr));
+   arr[ 0] = infra;
+   _mulle_objc_universe_set_staticinstanceclasses( universe, arr, constantify);
+}
+
+MULLE_C_NONNULL_FIRST
+static inline void
+   _mulle_objc_universe_set_staticstringclasses( struct _mulle_objc_universe *universe,
+                                                 struct _mulle_objc_infraclass *infra[ 3],
+                                                 int constantify)
+{
+   struct _mulle_objc_infraclass  *arr[ MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS];
+
+   memset( arr, 0, sizeof( arr));
+   arr[ 0] = infra[ 0];
+   arr[ 1] = infra[ 1];
+   arr[ 2] = infra[ 2];
+   _mulle_objc_universe_set_staticinstanceclasses( universe, arr, constantify);
+}
 
 MULLE_C_NONNULL_FIRST
 static inline struct _mulle_objc_infraclass  *
    _mulle_objc_universe_get_staticstringclass( struct _mulle_objc_universe *universe)
 {
-  return( universe->foundation.staticstringclass[ 0]);
+   return( universe->foundation.staticinstanceclass[ 0]);
 }
-
 
 MULLE_C_NONNULL_FIRST_SECOND
 static inline void
-   _mulle_objc_universe_get_staticstringclasses( struct _mulle_objc_universe *universe, struct _mulle_objc_infraclass *infra[ 3])
+   _mulle_objc_universe_get_staticstringclasses( struct _mulle_objc_universe *universe,
+                                                 struct _mulle_objc_infraclass *infra[ 3])
 {
-   memcpy( infra, universe->foundation.staticstringclass, 3 * sizeof( struct _mulle_objc_infraclass *));
+   infra[ 0] = universe->foundation.staticinstanceclass[ 0];
+   infra[ 1] = universe->foundation.staticinstanceclass[ 1];
+   infra[ 2] = universe->foundation.staticinstanceclass[ 2];
 }
 
 

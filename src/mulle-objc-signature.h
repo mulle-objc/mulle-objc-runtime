@@ -113,6 +113,16 @@ struct mulle_objc_typeinfo
 };
 
 
+struct mulle_methodsignature_arginfo
+{
+   uint32_t   invocation_offset;     // byte offset into NSInvocation frame storage
+   uint32_t   natural_size;          // byte size of the argument value
+   uint16_t   type_offset;           // byte offset into _types string for this arg's type
+   uint8_t    natural_alignment;     // alignment requirement in bytes
+   uint8_t    has_retainable_type;   // non-zero if type contains retainable references
+};
+
+
 // By changing the supplier function, one can calculate info for a different
 // architecture.
 typedef int  (*mulle_objc_scalar_typeinfo_supplier_t)( char, struct mulle_objc_typeinfo *);
@@ -195,6 +205,11 @@ char   *mulle_objc_signature_supply_size_and_alignment( char *type,
 MULLE_OBJC_RUNTIME_GLOBAL
 unsigned int    mulle_objc_signature_count_typeinfos( char *types);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_signature_fill_arginfos( char *types,
+                                           struct mulle_methodsignature_arginfo *infos,
+                                           unsigned int count);
+
 
 //
 // -1: error, 0: void, 1: void *, 2: struct
@@ -211,7 +226,7 @@ enum mulle_metaabi_param   mulle_objc_signature_get_metaabireturntype( char *typ
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
-size_t    _mulle_objc_signature_sizeof_metabistruct( char *type);
+size_t    _mulle_objc_signature_sizeof_metaabistruct( char *type);
 
 
 //
@@ -495,6 +510,76 @@ static inline void *
                                                     void *src)
 {
    switch( *p->type)
+   {
+   case _C_FLT  :
+      *mulle_c_pointer_postincrement( dst, double) = *(float *) src;
+      break;
+   case _C_SEL  :
+      *mulle_c_pointer_postincrement( dst, mulle_objc_methodid_t) = *(unsigned int *) src;
+      break;
+   case _C_CHR  :
+      *mulle_c_pointer_postincrement( dst, char) = *(int *) src;
+      break;
+   case _C_UCHR :
+      *mulle_c_pointer_postincrement( dst, unsigned char) = *(unsigned int *) src;
+      break;
+   case _C_SHT  :
+      *mulle_c_pointer_postincrement( dst, short) = *(int *) src;
+      break;
+   case _C_USHT :
+      *mulle_c_pointer_postincrement( dst, unsigned short) = *(unsigned int *) src;
+      break;
+   default      :
+      memcpy( dst, src, p->natural_size);
+      dst = &((char *) dst)[ p->natural_size];
+      break;
+   }
+   return( dst);
+}
+
+
+static inline void  *
+   _mulle_methodsignature_arginfo_demote_value_to_natural( struct mulle_methodsignature_arginfo *p,
+                                                           char *types,
+                                                           void *dst,
+                                                           void *src)
+{
+   switch( types[ p->type_offset])
+   {
+   case _C_FLT  :
+      *mulle_c_pointer_postincrement( dst, float) = (float) *(double *) src;
+      break;
+   case _C_SEL  :
+      *mulle_c_pointer_postincrement( dst, unsigned int) = *(mulle_objc_methodid_t *) src;
+      break;
+   case _C_CHR  :
+      *mulle_c_pointer_postincrement( dst, int) = *(char *) src;
+      break;
+   case _C_UCHR :
+      *mulle_c_pointer_postincrement( dst, unsigned int) = *(unsigned char *) src;
+      break;
+   case _C_SHT  :
+      *mulle_c_pointer_postincrement( dst, int) = *(short *) src;
+      break;
+   case _C_USHT :
+      *mulle_c_pointer_postincrement( dst, unsigned int) = *(unsigned short *) src;
+      break;
+   default      :
+      memcpy( dst, src, p->natural_size);
+      dst = &((char *) dst)[ p->natural_size];
+      break;
+   }
+   return( dst);
+}
+
+
+static inline void *
+   _mulle_methodsignature_arginfo_promote_value_from_natural( struct mulle_methodsignature_arginfo *p,
+                                                              char *types,
+                                                              void *dst,
+                                                              void *src)
+{
+   switch( types[ p->type_offset])
    {
    case _C_FLT  :
       *mulle_c_pointer_postincrement( dst, double) = *(float *) src;

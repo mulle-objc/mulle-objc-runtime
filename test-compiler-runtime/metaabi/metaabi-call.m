@@ -609,157 +609,157 @@ int   main()
 
    cls = [A class];
 
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnChar));
+   mulle_metaabi_call( &charrval, cls, @selector( returnChar));
    mulle_printf( " -> '%c'\n", charrval);
 
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithChar:), 18);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithChar:), 18);
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithInt:), 1848);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithInt:), 1848);
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithLongLong:), 1848LL);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithLongLong:), 1848LL);
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithFloat:), 18.48f);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithFloat:), 18.48f);
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithDouble:), 18.48);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithDouble:), 18.48);
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithVoidptr:), (void *) 0x1848);
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithChar:double:int:), 'b', 18.48, 1848);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithChar:double:int:), 'b', 18.48, 1848);
    mulle_printf( " -> '%c'\n", charrval);
-   mulle_metaabi_object_call( &charrval, cls, @selector( returnCharWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( &charrval, cls, @selector( returnCharWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> '%c'\n", charrval);
 
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithInt:), 1848);
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithInt:), 1848);
    mulle_printf( " -> %d\n", intrval);
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnInt));
+   mulle_metaabi_call( &intrval, cls, @selector( returnInt));
    mulle_printf( " -> %d\n", intrval);
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithFloat:), 18.48f);
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithFloat:), 18.48f);
    mulle_printf( " -> %d\n", intrval);
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithDouble:), 18.48);
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithDouble:), 18.48);
    mulle_printf( " -> %d\n", intrval);
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithVoidptr:), (void *) 0x1848);
    mulle_printf( " -> %d\n", intrval);
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
    mulle_printf( " -> %d\n", intrval);
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithChar:double:int:), 'b', 18.48, 1848);
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithChar:double:int:), 'b', 18.48, 1848);
    mulle_printf( " -> %d\n", intrval);
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> %d\n", intrval);
 
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLong));
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLong));
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithChar:), 18);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithChar:), 18);
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithInt:), 1848);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithInt:), 1848);
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithLongLong:), 1848LL);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithLongLong:), 1848LL);
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithFloat:), 18.48f);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithFloat:), 18.48f);
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithDouble:), 18.48);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithDouble:), 18.48);
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithVoidptr:), (void *) 0x1848);
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithChar:double:int:), 'b', 18.48, 1848);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithChar:double:int:), 'b', 18.48, 1848);
    mulle_printf( " -> %lld\n", lnglngrval);
-   mulle_metaabi_object_call( &lnglngrval, cls, @selector( returnLongLongWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( &lnglngrval, cls, @selector( returnLongLongWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> %lld\n", lnglngrval);
 
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithInt:), 1848);
-   mulle_metaabi_object_call( , cls, @selector( returnVoid));
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithFloat:), 18.48f);
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithDouble:), 18.48);
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithVoidptr:), (void *) 0x1848);
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( , cls, @selector( returnVoidWithInt:), 1848);
+   mulle_metaabi_call( , cls, @selector( returnVoid));
+   mulle_metaabi_call( , cls, @selector( returnVoidWithFloat:), 18.48f);
+   mulle_metaabi_call( , cls, @selector( returnVoidWithDouble:), 18.48);
+   mulle_metaabi_call( , cls, @selector( returnVoidWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( , cls, @selector( returnVoidWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
 
 #ifdef TINY_STRUCT
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithTinyStruct:), ((struct tiny) { {  'V', 'f', 'L' }}));
+   mulle_metaabi_call( , cls, @selector( returnVoidWithTinyStruct:), ((struct tiny) { {  'V', 'f', 'L' }}));
 #endif
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithChar:double:int:), (char) 'b', 18.48, 1848);
+   mulle_metaabi_call( , cls, @selector( returnVoidWithChar:double:int:), (char) 'b', 18.48, 1848);
 
-   mulle_metaabi_object_call( , cls, @selector( returnVoidWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( , cls, @selector( returnVoidWithVA:), 4, 1, 8, 4, 8);
 
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloatWithInt:), 1848);
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloatWithInt:), 1848);
    mulle_printf( " -> %g\n", fltrval);
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloat));
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloat));
    mulle_printf( " -> %g\n", fltrval);
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloatWithFloat:), 18.48f);
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloatWithFloat:), 18.48f);
    mulle_printf( " -> %g\n", fltrval);
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloatWithDouble:), 18.48);
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloatWithDouble:), 18.48);
    mulle_printf( " -> %g\n", fltrval);
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloatWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloatWithVoidptr:), (void *) 0x1848);
    mulle_printf( " -> %g\n", fltrval);
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloatWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloatWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
    mulle_printf( " -> %g\n", fltrval);
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloatWithChar:double:int:), 'b', 18.48, 1848);
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloatWithChar:double:int:), 'b', 18.48, 1848);
    mulle_printf( " -> %g\n", fltrval);
-   mulle_metaabi_object_call( &fltrval, cls, @selector( returnFloatWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( &fltrval, cls, @selector( returnFloatWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> %g\n", fltrval);
 
-   mulle_metaabi_object_call( &dblrval, cls, @selector( returnDouble));
+   mulle_metaabi_call( &dblrval, cls, @selector( returnDouble));
    mulle_printf( " -> %g\n", dblrval);
-   mulle_metaabi_object_call( &dblrval, cls, @selector( returnDoubleWithFloat:), 18.48f);
+   mulle_metaabi_call( &dblrval, cls, @selector( returnDoubleWithFloat:), 18.48f);
    mulle_printf( " -> %g\n", dblrval);
-   mulle_metaabi_object_call( &dblrval, cls, @selector( returnDoubleWithDouble:), 18.48);
+   mulle_metaabi_call( &dblrval, cls, @selector( returnDoubleWithDouble:), 18.48);
    mulle_printf( " -> %g\n", dblrval);
-   mulle_metaabi_object_call( &dblrval, cls, @selector( returnDoubleWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( &dblrval, cls, @selector( returnDoubleWithVoidptr:), (void *) 0x1848);
    mulle_printf( " -> %g\n", dblrval);
-   mulle_metaabi_object_call( &dblrval, cls, @selector( returnDoubleWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( &dblrval, cls, @selector( returnDoubleWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
    mulle_printf( " -> %g\n", dblrval);
-   mulle_metaabi_object_call( &dblrval, cls, @selector( returnDoubleWithChar:double:int:), 'b', 18.48, 1848);
+   mulle_metaabi_call( &dblrval, cls, @selector( returnDoubleWithChar:double:int:), 'b', 18.48, 1848);
    mulle_printf( " -> %g\n", dblrval);
-   mulle_metaabi_object_call( &dblrval, cls, @selector( returnDoubleWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( &dblrval, cls, @selector( returnDoubleWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> %g\n", dblrval);
 
-   mulle_metaabi_object_call( &ptrrval, cls, @selector( returnVoidptr));
+   mulle_metaabi_call( &ptrrval, cls, @selector( returnVoidptr));
    mulle_printf( " -> %p\n", ptrrval);
-   mulle_metaabi_object_call( &ptrrval, cls, @selector( returnVoidptrWithFloat:), 18.48f);
+   mulle_metaabi_call( &ptrrval, cls, @selector( returnVoidptrWithFloat:), 18.48f);
    mulle_printf( " -> %p\n", ptrrval);
-   mulle_metaabi_object_call( &ptrrval, cls, @selector( returnVoidptrWithDouble:), 18.48);
+   mulle_metaabi_call( &ptrrval, cls, @selector( returnVoidptrWithDouble:), 18.48);
    mulle_printf( " -> %p\n", ptrrval);
-   mulle_metaabi_object_call( &ptrrval, cls, @selector( returnVoidptrWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( &ptrrval, cls, @selector( returnVoidptrWithVoidptr:), (void *) 0x1848);
    mulle_printf( " -> %p\n", ptrrval);
-   mulle_metaabi_object_call( &ptrrval, cls, @selector( returnVoidptrWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( &ptrrval, cls, @selector( returnVoidptrWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
    mulle_printf( " -> %p\n", ptrrval);
-   mulle_metaabi_object_call( &ptrrval, cls, @selector( returnVoidptrWithChar:double:int:), 'b', 18.48, 1848);
+   mulle_metaabi_call( &ptrrval, cls, @selector( returnVoidptrWithChar:double:int:), 'b', 18.48, 1848);
    mulle_printf( " -> %p\n", ptrrval);
-   mulle_metaabi_object_call( &ptrrval, cls, @selector( returnVoidptrWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( &ptrrval, cls, @selector( returnVoidptrWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> %p\n", ptrrval);
 
 
-   mulle_metaabi_object_call( &abcrval, cls, @selector( returnStruct));
+   mulle_metaabi_call( &abcrval, cls, @selector( returnStruct));
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
-   mulle_metaabi_object_call( &abcrval, cls, @selector( returnStructWithFloat:), 18.48f);
+   mulle_metaabi_call( &abcrval, cls, @selector( returnStructWithFloat:), 18.48f);
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
-   mulle_metaabi_object_call( &abcrval, cls, @selector( returnStructWithDouble:), 18.48);
+   mulle_metaabi_call( &abcrval, cls, @selector( returnStructWithDouble:), 18.48);
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
-   mulle_metaabi_object_call( &abcrval, cls, @selector( returnStructWithVoidptr:), (void *) 0x1848);
+   mulle_metaabi_call( &abcrval, cls, @selector( returnStructWithVoidptr:), (void *) 0x1848);
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
-   mulle_metaabi_object_call( &abcrval, cls, @selector( returnStructWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
+   mulle_metaabi_call( &abcrval, cls, @selector( returnStructWithStruct:), ((struct abc) { 'b', 18.48, 1848 }));
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
-   mulle_metaabi_object_call( &abcrval, cls, @selector( returnStructWithChar:double:int:), 'b', 18.48, 1848);
+   mulle_metaabi_call( &abcrval, cls, @selector( returnStructWithChar:double:int:), 'b', 18.48, 1848);
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
-   mulle_metaabi_object_call( &abcrval, cls, @selector( returnStructWithVA:), 4, 1, 8, 4, 8);
+   mulle_metaabi_call( &abcrval, cls, @selector( returnStructWithVA:), 4, 1, 8, 4, 8);
    mulle_printf( " -> a='%c' b=%g c=%d\n", abcrval.a, abcrval.b, abcrval.c);
 
    // struct tiny return (sizeof <= sizeof(void*), exercises struct-return path for tiny structs)
    {
       struct tiny  tinyrval;
 
-      mulle_metaabi_object_call( &tinyrval, cls, @selector( returnTiny));
+      mulle_metaabi_call( &tinyrval, cls, @selector( returnTiny));
       mulle_printf( " -> '%c' '%c' '%c'\n", tinyrval.a[0], tinyrval.a[1], tinyrval.a[2]);
-      mulle_metaabi_object_call( &tinyrval, cls, @selector( returnTinyWithInt:), 1848);
+      mulle_metaabi_call( &tinyrval, cls, @selector( returnTinyWithInt:), 1848);
       mulle_printf( " -> '%c' '%c' '%c'\n", tinyrval.a[0], tinyrval.a[1], tinyrval.a[2]);
-      mulle_metaabi_object_call( &tinyrval, cls, @selector( returnTinyWithTiny:), ((struct tiny) {{ 'A', 'B', 'C' }}));
+      mulle_metaabi_call( &tinyrval, cls, @selector( returnTinyWithTiny:), ((struct tiny) {{ 'A', 'B', 'C' }}));
       mulle_printf( " -> '%c' '%c' '%c'\n", tinyrval.a[0], tinyrval.a[1], tinyrval.a[2]);
    }
 
    // int return with tiny struct param (leaf G: voidptr return, tiny struct param)
-   mulle_metaabi_object_call( &intrval, cls, @selector( returnIntWithTiny:), ((struct tiny) {{ 'X', 'Y', 'Z' }}));
+   mulle_metaabi_call( &intrval, cls, @selector( returnIntWithTiny:), ((struct tiny) {{ 'X', 'Y', 'Z' }}));
    mulle_printf( " -> %d\n", intrval);
 
    return( 0);

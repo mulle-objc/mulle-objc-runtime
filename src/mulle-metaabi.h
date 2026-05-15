@@ -41,12 +41,12 @@
 #include "mulle-objc-c-types.h"
 #include <mulle-vararg/mulle-vararg.h>
 
-// maybe rename to kind ?
+// Values match MulleObjCMetaABIType: VoidPointer=0, Void=1, ParameterBlock=2
 enum mulle_metaabi_param
 {
    mulle_metaabi_param_error         = -1,
-   mulle_metaabi_param_void          = 0,
-   mulle_metaabi_param_void_pointer  = 1,
+   mulle_metaabi_param_void_pointer  = 0,
+   mulle_metaabi_param_void          = 1,
    mulle_metaabi_param_struct        = 2
 };
 

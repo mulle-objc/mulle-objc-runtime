@@ -124,56 +124,56 @@ int   main()
    // --- char ---
    {
       char  set = 'X', got;
-      mulle_metaabi_object_call( , cls, @selector( setCharValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( charValue));
+      mulle_metaabi_call( , cls, @selector( setCharValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( charValue));
       mulle_printf( "char: '%c' %s\n", got, got == set ? "PASS" : "FAIL");
    }
 
    // --- int ---
    {
       int  set = 1848, got;
-      mulle_metaabi_object_call( , cls, @selector( setIntValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( intValue));
+      mulle_metaabi_call( , cls, @selector( setIntValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( intValue));
       mulle_printf( "int: %d %s\n", got, got == set ? "PASS" : "FAIL");
    }
 
    // --- long long ---
    {
       long long  set = 1848184818481848LL, got;
-      mulle_metaabi_object_call( , cls, @selector( setLongLongValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( longLongValue));
+      mulle_metaabi_call( , cls, @selector( setLongLongValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( longLongValue));
       mulle_printf( "long long: %lld %s\n", got, got == set ? "PASS" : "FAIL");
    }
 
    // --- float ---
    {
       float  set = 18.48f, got;
-      mulle_metaabi_object_call( , cls, @selector( setFloatValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( floatValue));
+      mulle_metaabi_call( , cls, @selector( setFloatValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( floatValue));
       mulle_printf( "float: %g %s\n", got, got == set ? "PASS" : "FAIL");
    }
 
    // --- double ---
    {
       double  set = 18.48, got;
-      mulle_metaabi_object_call( , cls, @selector( setDoubleValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( doubleValue));
+      mulle_metaabi_call( , cls, @selector( setDoubleValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( doubleValue));
       mulle_printf( "double: %g %s\n", got, got == set ? "PASS" : "FAIL");
    }
 
    // --- void * ---
    {
       void  *set = (void *) 0x1848, *got;
-      mulle_metaabi_object_call( , cls, @selector( setVoidptrValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( voidptrValue));
+      mulle_metaabi_call( , cls, @selector( setVoidptrValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( voidptrValue));
       mulle_printf( "voidptr: %p %s\n", got, got == set ? "PASS" : "FAIL");
    }
 
    // --- struct tiny (3 bytes, fits in void*) ---
    {
       struct tiny  set = {{ 'V', 'f', 'L' }}, got = {{ 0 }};
-      mulle_metaabi_object_call( , cls, @selector( setTinyValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( tinyValue));
+      mulle_metaabi_call( , cls, @selector( setTinyValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( tinyValue));
       mulle_printf( "tiny: '%c' '%c' '%c' %s\n", got.a[0], got.a[1], got.a[2],
          !memcmp( &got, &set, sizeof( set)) ? "PASS" : "FAIL");
    }
@@ -181,8 +181,8 @@ int   main()
    // --- struct one_float (4 bytes, fits in void*) ---
    {
       struct one_float  set = { 1.5f }, got = { 0 };
-      mulle_metaabi_object_call( , cls, @selector( setOneFloatValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( oneFloatValue));
+      mulle_metaabi_call( , cls, @selector( setOneFloatValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( oneFloatValue));
       mulle_printf( "one_float: %g %s\n", got.x,
          !memcmp( &got, &set, sizeof( set)) ? "PASS" : "FAIL");
    }
@@ -190,8 +190,8 @@ int   main()
    // --- struct two_floats (8 bytes == sizeof(void*)) ---
    {
       struct two_floats  set = { 1.5f, 2.5f }, got = { 0 };
-      mulle_metaabi_object_call( , cls, @selector( setTwoFloatsValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( twoFloatsValue));
+      mulle_metaabi_call( , cls, @selector( setTwoFloatsValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( twoFloatsValue));
       mulle_printf( "two_floats: %g %g %s\n", got.x, got.y,
          !memcmp( &got, &set, sizeof( set)) ? "PASS" : "FAIL");
    }
@@ -199,8 +199,8 @@ int   main()
    // --- struct three_floats (12 bytes > sizeof(void*)) ---
    {
       struct three_floats  set = { 1.5f, 2.5f, 3.5f }, got = { 0 };
-      mulle_metaabi_object_call( , cls, @selector( setThreeFloatsValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( threeFloatsValue));
+      mulle_metaabi_call( , cls, @selector( setThreeFloatsValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( threeFloatsValue));
       mulle_printf( "three_floats: %g %g %g %s\n", got.x, got.y, got.z,
          !memcmp( &got, &set, sizeof( set)) ? "PASS" : "FAIL");
    }
@@ -208,8 +208,8 @@ int   main()
    // --- struct abc (> sizeof(void*)) ---
    {
       struct abc  set = { 'a', 18.48, 1848 }, got = { 0 };
-      mulle_metaabi_object_call( , cls, @selector( setAbcValue:), set);
-      mulle_metaabi_object_call( &got, cls, @selector( abcValue));
+      mulle_metaabi_call( , cls, @selector( setAbcValue:), set);
+      mulle_metaabi_call( &got, cls, @selector( abcValue));
       mulle_printf( "abc: '%c' %g %d %s\n", got.a, got.b, got.c,
          !memcmp( &got, &set, sizeof( set)) ? "PASS" : "FAIL");
    }
