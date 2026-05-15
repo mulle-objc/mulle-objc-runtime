@@ -722,7 +722,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    universe->callback.class_is_missing  = mulle_objc_missing_class_nop;
    universe->callback.method_is_missing = mulle_objc_missing_method_nop;
 
-   _mulle_concurrent_pointerarray_init( &universe->staticstrings, 0, &universe->memory.allocator);
+   _mulle_concurrent_pointerarray_init( &universe->staticinstances, 0, &universe->memory.allocator);
    _mulle_concurrent_pointerarray_init( &universe->hashnames, 0, &universe->memory.allocator);
    _mulle_concurrent_pointerarray_init( &universe->gifts, 0, &universe->memory.allocator);
 
@@ -2027,7 +2027,7 @@ static void
    _mulle_concurrent_hashmap_done( &universe->classtable);
    _mulle_concurrent_hashmap_done( &universe->categorytable);
 
-   _mulle_concurrent_pointerarray_done( &universe->staticstrings);
+   _mulle_concurrent_pointerarray_done( &universe->staticinstances);
    _mulle_concurrent_pointerarray_done( &universe->hashnames);
 
    /* free gifts */
@@ -3395,26 +3395,23 @@ struct _NSConstantString
 };
 
 
-void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *universe,
-                                              struct _mulle_objc_object *string)
+void   _mulle_objc_universe_add_staticinstance( struct _mulle_objc_universe *universe,
+                                                struct _mulle_objc_object *instance)
 {
    uintptr_t                       classindex;
    struct _mulle_objc_infraclass   *infra;
 
    assert( universe);
-   assert( string);
+   assert( instance);
 
-   // need __ to get fake
-   classindex = (uintptr_t) __mulle_objc_object_get_isa( string);
-   assert( classindex <= 2);
-   infra      = universe->foundation.staticstringclass[ classindex];
-   //
-   // you can't really add classes piece by piece though
-   // because the did_add routine will set all at the same time
-   //
+   // isa holds slot index as a small integer until class is patched in
+   classindex = (uintptr_t) __mulle_objc_object_get_isa( instance);
+   assert( classindex < MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS);
+   infra = universe->foundation.staticinstanceclass[ classindex];
+
    if( ! infra)
    {
-      if( universe->debug.trace.string_add)
+      if( universe->debug.trace.string_add && classindex < 3)
       {
          static char  *formats[ 3] =
          {
@@ -3424,19 +3421,18 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
          };
          mulle_objc_universe_trace( universe,
                                     formats[ classindex],
-                                    ((struct _NSConstantString *) string)->_storage,
-                                    string);
+                                    ((struct _NSConstantString *) instance)->_storage,
+                                    instance);
       }
-
-      // memorize it anyway
-      _mulle_concurrent_pointerarray_add( &universe->staticstrings, (void *) string);
+      // queue for later when class arrives
+      _mulle_concurrent_pointerarray_add( &universe->staticinstances, (void *) instance);
       return;
    }
 
-   _mulle_objc_object_set_isa( string,
+   _mulle_objc_object_set_isa( instance,
                                _mulle_objc_infraclass_as_class( infra));
 
-   if( universe->debug.trace.string_add)
+   if( universe->debug.trace.string_add && classindex < 3)
    {
       static char  *formats[ 3] =
       {
@@ -3446,40 +3442,43 @@ void   _mulle_objc_universe_add_staticstring( struct _mulle_objc_universe *unive
       };
       mulle_objc_universe_trace( universe,
                                  formats[ classindex],
-                                 ((struct _NSConstantString *) string)->_storage,
-                                 string);
+                                 ((struct _NSConstantString *) instance)->_storage,
+                                 instance);
    }
-
-   if( ! universe->config.forget_strings)
-      _mulle_concurrent_pointerarray_add( &universe->staticstrings, (void *) string);
+   _mulle_concurrent_pointerarray_add( &universe->staticinstances, (void *) instance);
 }
 
 
-void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_universe *universe,
-                                                         int constantify)
+void   _mulle_objc_universe_didchange_staticinstanceclass( struct _mulle_objc_universe *universe,
+                                                           int constantify)
 {
-   struct _mulle_objc_object       *string;
-   struct mulle_allocator          *allocator;
+   struct _mulle_objc_object       *instance;
    uintptr_t                       classindex;
    int                             flag;
    struct _mulle_objc_infraclass   *infra;
 
    if( constantify)
-      mulle_concurrent_pointerarray_for( &universe->staticstrings, string)
+      mulle_concurrent_pointerarray_for( &universe->staticinstances, instance)
       {
-         _mulle_objc_object_constantify_noatomic( string);
+         _mulle_objc_object_constantify_noatomic( instance);
       }
 
    flag = universe->debug.trace.string_add;
-   mulle_concurrent_pointerarray_for( &universe->staticstrings, string)
+   mulle_concurrent_pointerarray_for( &universe->staticinstances, instance)
    {
-      classindex = (uintptr_t) __mulle_objc_object_get_isa( string);
-      assert( classindex <= 2);
-      infra      = universe->foundation.staticstringclass[ classindex];
+      classindex = (uintptr_t) __mulle_objc_object_get_isa( instance);
 
-      _mulle_objc_object_set_isa( string,
-                                 _mulle_objc_infraclass_as_class( infra));
-      if( flag)
+      // already patched (isa is a real class pointer, not a slot index)
+      if( classindex >= MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS)
+         continue;
+
+      infra = universe->foundation.staticinstanceclass[ classindex];
+      if( ! infra)
+         continue;  // slot not registered yet — skip
+
+      _mulle_objc_object_set_isa( instance,
+                                  _mulle_objc_infraclass_as_class( infra));
+      if( flag && classindex < 3)
       {
          static char  *formats[ 3] =
          {
@@ -3487,52 +3486,29 @@ void   _mulle_objc_universe_didchange_staticstringclass( struct _mulle_objc_univ
             "patched class of string @\"%hS\" (%p)",
             "patched class of string @\"%S\" (%p)"
          };
-
          mulle_objc_universe_trace( universe,
                                     formats[ classindex],
-                                    ((struct _NSConstantString *) string)->_storage,
-                                    string);
+                                    ((struct _NSConstantString *) instance)->_storage,
+                                    instance);
       }
    }
-
-   // if so configured wipe the list
-   // effectivey _mulle_objc_universe_didchange_staticstringclass should then
-   // only be called once ever, which is its intention anyway
-   //
-   if( universe->config.forget_strings)
-   {
-      allocator = _mulle_objc_universe_get_allocator( universe);
-      _mulle_concurrent_pointerarray_done( &universe->staticstrings);
-      _mulle_concurrent_pointerarray_init( &universe->staticstrings,
-                                           0,
-                                           allocator);
-   }
 }
 
 
-void  _mulle_objc_universe_set_staticstringclass( struct _mulle_objc_universe *universe,
-                                                  struct _mulle_objc_infraclass *infra,
-                                                  int constantify)
+void  _mulle_objc_universe_set_staticinstanceclasses( struct _mulle_objc_universe *universe,
+                                                      struct _mulle_objc_infraclass **infra,
+                                                      int constantify)
 {
+   unsigned int   i;
+
    assert( universe);
    assert( infra);
 
-   universe->foundation.staticstringclass[ 0] = infra;
-   universe->foundation.staticstringclass[ 1] = NULL;
-   universe->foundation.staticstringclass[ 2] = NULL;
-   _mulle_objc_universe_didchange_staticstringclass( universe, constantify);
-}
+   for( i = 0; i < MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS; i++)
+      if( infra[ i])
+         universe->foundation.staticinstanceclass[ i] = infra[ i];
 
-
-void  _mulle_objc_universe_set_staticstringclasses( struct _mulle_objc_universe *universe,
-                                                    struct _mulle_objc_infraclass *infra[ 3],
-                                                    int constantify)
-{
-   assert( universe);
-   assert( infra);
-
-   memcpy( universe->foundation.staticstringclass, infra, 3 * sizeof( struct _mulle_objc_infraclass *));
-   _mulle_objc_universe_didchange_staticstringclass( universe, constantify);
+   _mulle_objc_universe_didchange_staticinstanceclass( universe, constantify);
 }
 
 

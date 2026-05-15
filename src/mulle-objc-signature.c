@@ -920,6 +920,41 @@ unsigned int   mulle_objc_signature_count_typeinfos( char *types)
 }
 
 
+void   mulle_objc_signature_fill_arginfos( char *types,
+                                           struct mulle_methodsignature_arginfo *infos,
+                                           unsigned int count)
+{
+   struct mulle_objc_signatureenumerator   rover;
+   struct mulle_objc_typeinfo              typeinfo;
+   struct mulle_methodsignature_arginfo    *p;
+
+   if( ! types || ! count)
+      return;
+
+   p     = &infos[ 1];
+   rover = mulle_objc_signature_enumerate( types);
+   while( _mulle_objc_signatureenumerator_next( &rover, &typeinfo))
+   {
+      assert( p < &infos[ count]);
+      p->invocation_offset   = (uint32_t) typeinfo.invocation_offset;
+      p->natural_size        = (uint32_t) typeinfo.natural_size;
+      p->type_offset         = (uint16_t) (typeinfo.type - types);
+      p->natural_alignment   = (uint8_t) typeinfo.natural_alignment;
+      p->has_retainable_type = (uint8_t) typeinfo.has_retainable_type;
+      ++p;
+   }
+
+   _mulle_objc_signatureenumerator_rval( &rover, &typeinfo);
+   infos[ 0].invocation_offset   = (uint32_t) typeinfo.invocation_offset;
+   infos[ 0].natural_size        = (uint32_t) typeinfo.natural_size;
+   infos[ 0].type_offset         = (uint16_t) (typeinfo.type - types);
+   infos[ 0].natural_alignment   = (uint8_t) typeinfo.natural_alignment;
+   infos[ 0].has_retainable_type = (uint8_t) typeinfo.has_retainable_type;
+
+   mulle_objc_signatureenumerator_done( &rover);
+}
+
+
 int   _mulle_objc_ivarsignature_compare( char *a, char *b)
 {
    struct mulle_objc_typeinfo  a_info;

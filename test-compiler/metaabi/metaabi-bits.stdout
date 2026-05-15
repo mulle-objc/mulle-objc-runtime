@@ -1,0 +1,9 @@
+vp_vp                 rtype=0  ptype=0
+v_vp                  rtype=1  ptype=0
+pb_vp                 rtype=2  ptype=0
+vp_v                  rtype=0  ptype=1
+v_v                   rtype=1  ptype=1
+pb_v                  rtype=2  ptype=1
+vp_pb                 rtype=0  ptype=2
+v_pb                  rtype=1  ptype=2
+pb_pb                 rtype=2  ptype=2

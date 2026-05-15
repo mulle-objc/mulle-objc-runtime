@@ -1294,11 +1294,11 @@ static void   mulle_objc_loadstringlist_enqueue_nofail( struct _mulle_objc_loads
    p_string = list->loadstrings;
    sentinel = &p_string[ list->n_loadstrings];
 
-   // memo: the actual staticstringclass is likely not installed yet
+   // memo: the actual staticinstanceclass is likely not installed yet
 
    while( p_string < sentinel)
    {
-      _mulle_objc_universe_add_staticstring( universe, *p_string);
+      _mulle_objc_universe_add_staticinstance( universe, *p_string);
       p_string++;
    }
 }

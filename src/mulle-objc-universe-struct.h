@@ -294,7 +294,7 @@ struct _mulle_objc_universefriend
 //
 // Foundation information that the universe uses. The string class will place
 // itself into the universe during +load using
-// `_mulle_objc_universe_add_staticstring`. The allocator should be setup during
+// `_mulle_objc_universe_add_staticinstance`. The allocator should be setup during
 // the universe initialization.
 // The postponer is used to wait for staticstring (or something else)
 
@@ -302,15 +302,17 @@ typedef int   mulle_objc_waitqueues_postpone_t( struct _mulle_objc_universe *,
                                                 struct _mulle_objc_loadinfo *);
 
 
+#define MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS  8
+
 struct _mulle_objc_foundation
 {
    struct _mulle_objc_universefriend    universefriend;
    void                                 *(*retain_autorelease)( void *); // does -retain/-autorelease
-   struct _mulle_objc_infraclass        *staticstringclass[ 3];    // isa will contain index
+   struct _mulle_objc_infraclass        *staticinstanceclass[ MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS];  // isa will contain index
    struct mulle_allocator               *allocator;                // allocator for objects, must not be NULL
    size_t                               headerextrasize;           // usually 0, will be copied into each class
    mulle_objc_classid_t                 rootclassid;               // NSObject = e9e78cbd
-   char                                 utf8staticstrings;         // 0: ASCII in staticstringclass[ 0]  1: UTF8 (classes1-2 can be NULL)
+   char                                 utf8staticstrings;         // 0: ASCII in staticinstanceclass[ 0]  1: UTF8 (slots 1-2 can be NULL)
 };
 
 
@@ -380,7 +382,7 @@ struct _mulle_objc_universe
    struct mulle_concurrent_hashmap          protocoltable;
    struct mulle_concurrent_hashmap          categorytable;
    struct mulle_concurrent_hashmap          supertable;
-   struct mulle_concurrent_pointerarray     staticstrings;
+   struct mulle_concurrent_pointerarray     staticinstances;
    struct mulle_concurrent_pointerarray     hashnames;
    struct mulle_concurrent_pointerarray     gifts;  // external (!) allocations that we need to free
 
