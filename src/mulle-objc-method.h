@@ -169,6 +169,12 @@ static inline unsigned int
    return( (bits & _mulle_objc_method_metaabi_ptype_mask) >> _mulle_objc_method_metaabi_ptype_shift);
 }
 
+static inline unsigned int
+   _mulle_objc_method_bits_get_metaabi_calltype( uint32_t bits)
+{
+   return( (bits & _mulle_objc_method_metaabi_mask) >> _mulle_objc_method_metaabi_rtype_shift);
+}
+
 static inline uint32_t
    _mulle_objc_method_bits_set_metaabi_types( uint32_t bits,
                                               unsigned int rType,
