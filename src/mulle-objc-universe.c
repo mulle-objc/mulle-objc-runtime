@@ -1487,10 +1487,14 @@ static struct _mulle_objc_infraclass **
    while( _mulle_concurrent_hashmapenumerator_next( &rover, &classid, (void **) p_cls))
    {
       assert( *p_cls);
-      // poser check: classes posing as another class, will appear later
-      //              again, ignore them
+      // poser check: a posing class appears under multiple classids (its own
+      // and the one it posed as). Skip the duplicate entry, which is the one
+      // where the key doesn't match AND the class is still registered under
+      // its own classid (meaning it will be freed from that entry instead).
       if( (*p_cls)->base.classid != classid)
-         continue;
+         if( _mulle_concurrent_hashmap_lookup( &universe->classtable,
+                                               (*p_cls)->base.classid) == *p_cls)
+            continue;
       if( ++p_cls >= sentinel)
          break;
    }

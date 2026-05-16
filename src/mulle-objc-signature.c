@@ -1056,7 +1056,7 @@ int   mulle_objc_signature_contains_object( char *type)
 }
 
 
-size_t   _mulle_objc_signature_sizeof_metabistruct( char *types)
+size_t   _mulle_objc_signature_sizeof_metaabistruct( char *types)
 {
    struct mulle_objc_signatureenumerator   rover;
    struct mulle_objc_typeinfo              info;

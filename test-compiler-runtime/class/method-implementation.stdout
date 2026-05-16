@@ -1,0 +1,5 @@
+compile-ok
+retain: 1
+copy: 2
+immutableCopy: 3
+copyWithZone:: 4
