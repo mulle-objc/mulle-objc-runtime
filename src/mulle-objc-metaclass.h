@@ -41,6 +41,8 @@
 #include "mulle-objc-class-struct.h"
 #include "mulle-objc-atomicpointer.h"
 #include "mulle-objc-walktypes.h"
+#include <mulle-thread/mulle-thread.h>
+#include <mulle-concurrent/mulle-concurrent.h>
 #include <assert.h>
 
 
@@ -53,7 +55,10 @@ enum _mulle_objc_metaclass_state
 
 struct _mulle_objc_metaclass
 {
-   struct _mulle_objc_class   base;
+   struct _mulle_objc_class              base;
+   mulle_thread_recursive_mutex_t        classpropertylock;  // dormant until initializeSelf
+   struct mulle_concurrent_pointerarray  propertylists;
+   struct mulle_concurrent_pointerarray  ivarlists;
 };
 
 
@@ -79,18 +84,47 @@ static inline void   _mulle_objc_metaclass_plusinit( struct _mulle_objc_metaclas
 {
    struct _mulle_objc_class   *cls;
 
-   MULLE_C_UNUSED( allocator);
-
    cls = _mulle_objc_metaclass_as_class( meta);
    _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CLASS_IS_NOT_THREAD_AFFINE);
+
+   // _depth = -1 sentinel: lock is dormant until initializeSelf is called
+   _mulle_atomic_pointer_nonatomic_write( &meta->classpropertylock._depth, (void *) -1);
+
+   _mulle_concurrent_pointerarray_init( &meta->propertylists, 0, allocator);
+   _mulle_concurrent_pointerarray_init( &meta->ivarlists, 0, allocator);
 }
 
 
 static inline void   _mulle_objc_metaclass_plusdone( struct _mulle_objc_metaclass *meta)
 {
-   MULLE_C_UNUSED( meta);
+   // only destroy lock if it was initialized (depth != -1)
+   if( _mulle_atomic_pointer_read( &meta->classpropertylock._depth) != (void *) -1)
+      mulle_thread_recursive_mutex_done( &meta->classpropertylock);
+
+   _mulle_concurrent_pointerarray_done( &meta->propertylists);
+   _mulle_concurrent_pointerarray_done( &meta->ivarlists);
 }
 
+
+#pragma mark - class property lock
+
+static inline void
+   _mulle_objc_metaclass_lock_classproperty( struct _mulle_objc_metaclass *meta)
+{
+   mulle_thread_recursive_mutex_lock( &meta->classpropertylock);
+}
+
+static inline void
+   _mulle_objc_metaclass_unlock_classproperty( struct _mulle_objc_metaclass *meta)
+{
+   mulle_thread_recursive_mutex_unlock( &meta->classpropertylock);
+}
+
+static inline int
+   _mulle_objc_metaclass_trylock_classproperty( struct _mulle_objc_metaclass *meta)
+{
+   return( mulle_thread_recursive_mutex_trylock( &meta->classpropertylock));
+}
 
 
 #pragma mark - sanity check
@@ -214,6 +248,38 @@ mulle_objc_walkcommand_t
                               mulle_objc_walkcallback_t   callback,
                               void *parent,
                               void *userinfo);
+
+
+#pragma mark - class properties
+
+MULLE_OBJC_RUNTIME_GLOBAL
+int   mulle_objc_metaclass_add_propertylist( struct _mulle_objc_metaclass *meta,
+                                             struct _mulle_objc_propertylist *list);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void  mulle_objc_metaclass_add_propertylist_nofail( struct _mulle_objc_metaclass *meta,
+                                                    struct _mulle_objc_propertylist *list);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_property *
+   mulle_objc_metaclass_search_property( struct _mulle_objc_metaclass *meta,
+                                         mulle_objc_propertyid_t propertyid);
+
+
+#pragma mark - class variables
+
+MULLE_OBJC_RUNTIME_GLOBAL
+int   mulle_objc_metaclass_add_ivarlist( struct _mulle_objc_metaclass *meta,
+                                         struct _mulle_objc_ivarlist *list);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void  mulle_objc_metaclass_add_ivarlist_nofail( struct _mulle_objc_metaclass *meta,
+                                                struct _mulle_objc_ivarlist *list);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+struct _mulle_objc_ivar *
+   mulle_objc_metaclass_search_ivar( struct _mulle_objc_metaclass *meta,
+                                     mulle_objc_ivarid_t ivarid);
 
 
 #endif /* mulle_objc_metaclass_h */

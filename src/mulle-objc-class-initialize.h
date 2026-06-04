@@ -58,6 +58,12 @@ void   _mulle_objc_class_warn_recursive_initialize( struct _mulle_objc_class *cl
 MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_infraclass_call_deinitialize( struct _mulle_objc_infraclass *infra);
 
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_infraclass_call_initialize_self( struct _mulle_objc_infraclass *infra);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   _mulle_objc_infraclass_call_deinitialize_self( struct _mulle_objc_infraclass *infra);
+
 // returns 0 if cache was already set up by someone else
 MULLE_OBJC_RUNTIME_GLOBAL
 int    _mulle_objc_class_setup_initial_cache_if_needed( struct _mulle_objc_class *cls,

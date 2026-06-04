@@ -520,24 +520,6 @@ static int  mulle_objc_loadclassbase_is_sane( struct _mulle_objc_loadclassbase *
 //
 // useless: just use a static variable in the @implementation
 //
-static size_t    call_classExtraSize( struct _mulle_objc_methodlist  *list)
-{
-   size_t                        extrasize;
-   mulle_objc_implementation_t   imp;
-   struct _mulle_objc_method     *method;
-
-   extrasize = 0;
-   if( list)
-   {
-      method = _mulle_objc_methodlist_search( list, 0x185d8c27); // classExtraSize
-      if( method)
-      {
-         imp       = _mulle_objc_method_get_implementation( method);
-         extrasize = (size_t) (*imp)( NULL, 0x185d8c27, NULL);
-      }
-   }
-   return( extrasize);
-}
 
 
 static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_loadclass *info,
@@ -549,7 +531,6 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    struct _mulle_objc_infraclass   *infra;
    struct _mulle_objc_infraclass   *superclass;
    struct _mulle_objc_dependency   dependency;
-   size_t                          extrasize;
 
    // root ?
    superclass = NULL;
@@ -565,12 +546,10 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    //
    // ready to install
 
-   extrasize = call_classExtraSize( info->base.classmethods);
-
    pair = mulle_objc_universe_new_classpair( universe, info->base.classid,
                                                        info->base.classname,
                                                        info->instancesize,
-                                                       extrasize,
+                                                       info->classinstancesize,
                                                        superclass);
    if( ! pair)
       mulle_objc_universe_fail_errno( universe);  // unfailing vectors through there
@@ -592,6 +571,14 @@ static mulle_objc_classid_t   _mulle_objc_loadclass_enqueue( struct _mulle_objc_
    mulle_objc_infraclass_add_ivarlist_nofail( infra, info->instancevariables);
    mulle_objc_infraclass_add_methodlist_nofail( infra, info->base.instancemethods);
    mulle_objc_infraclass_add_propertylist_nofail( infra, info->base.properties);
+
+   mulle_objc_metaclass_add_ivarlist_nofail( meta, info->classvariables);
+   mulle_objc_metaclass_add_propertylist_nofail( meta, info->base.classproperties);
+
+   // Init metaclass mutex if class has class property ivars (v21)
+   if( info->classinstancesize > 0)
+      if( _mulle_atomic_pointer_read( &meta->classpropertylock._depth) == (void *) -1)
+         mulle_thread_recursive_mutex_init( &meta->classpropertylock);
 
    if( info->fastclassindex >= 0)
       _mulle_objc_universe_set_fastclass( universe, infra, info->fastclassindex);
@@ -664,9 +651,11 @@ static void   _mulle_objc_loadclass_sort_lists( struct _mulle_objc_loadclass *lc
                   _mulle_objc_uniqueid_compare_r,
                   NULL);
    mulle_objc_ivarlist_sort( lcls->instancevariables);
+   mulle_objc_ivarlist_sort( lcls->classvariables);
    mulle_objc_methodlist_sort( lcls->base.instancemethods);
    mulle_objc_methodlist_sort( lcls->base.classmethods);
    mulle_objc_propertylist_sort( lcls->base.properties);
+   mulle_objc_propertylist_sort( lcls->base.classproperties);
    mulle_objc_protocollist_sort( lcls->base.protocols);
 }
 
@@ -679,18 +668,14 @@ static void   _mulle_objc_loadmixin_enqueue( struct _mulle_objc_loadmixin *info,
    struct _mulle_objc_classpair    *pair;
    struct _mulle_objc_metaclass    *meta;
    struct _mulle_objc_infraclass   *infra;
-   size_t                          extrasize;
 
    // always root
-
-   // extrasize, why not
-   extrasize = call_classExtraSize( info->base.classmethods);
 
    // no instanceSize
    pair = mulle_objc_universe_new_classpair( universe, info->base.classid,
                                                        info->base.classname,
                                                        0,
-                                                       extrasize,
+                                                       0,
                                                        NULL);
    if( ! pair)
       mulle_objc_universe_fail_errno( universe);  // unfailing vectors through there
@@ -712,6 +697,7 @@ static void   _mulle_objc_loadmixin_enqueue( struct _mulle_objc_loadmixin *info,
    mulle_objc_infraclass_add_ivarlist_nofail( infra, &universe->empty_ivarlist);
    mulle_objc_infraclass_add_methodlist_nofail( infra, info->base.instancemethods);
    mulle_objc_infraclass_add_propertylist_nofail( infra, info->base.properties);
+   mulle_objc_metaclass_add_propertylist_nofail( meta, info->base.classproperties);
 
    _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_MIXIN);
 
@@ -1191,6 +1177,10 @@ static mulle_objc_classid_t
       if( mulle_objc_infraclass_add_propertylist( infra, info->properties))
          mulle_objc_universe_fail_errno( universe);
 
+   if( info->classproperties && info->classproperties->n_properties)
+      if( mulle_objc_metaclass_add_propertylist( meta, info->classproperties))
+         mulle_objc_universe_fail_errno( universe);
+
    //
    // TODO need to check that protocolids name are actually correct
    // emit protocolnames together with ids. Keep central directory in
@@ -1253,6 +1243,7 @@ static void   _mulle_objc_loadcategory_sort_lists( struct _mulle_objc_loadcatego
    mulle_objc_methodlist_sort( lcat->instancemethods);
    mulle_objc_methodlist_sort( lcat->classmethods);
    mulle_objc_propertylist_sort( lcat->properties);
+   mulle_objc_propertylist_sort( lcat->classproperties);
    mulle_objc_protocollist_sort( lcat->protocols);
 }
 

@@ -831,7 +831,9 @@ struct _mulle_objc_method   *
       case search_default         :
       case search_previous_method :
          if( (search->args.methodid == MULLE_OBJC_UNLOAD_METHODID ||
-              search->args.methodid == MULLE_OBJC_LOAD_METHODID))
+              search->args.methodid == MULLE_OBJC_LOAD_METHODID   ||
+              search->args.methodid == MULLE_OBJC_INITIALIZESELF_METHODID ||
+              search->args.methodid == MULLE_OBJC_DEINITIALIZESELF_METHODID))
          {
             break;
          }

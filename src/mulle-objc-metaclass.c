@@ -36,6 +36,9 @@
 #include "mulle-objc-metaclass.h"
 
 #include "mulle-objc-class.h"
+#include "mulle-objc-ivarlist.h"
+#include "mulle-objc-propertylist.h"
+#include "mulle-objc-universe.h"
 
 #include "include-private.h"
 
@@ -69,3 +72,132 @@ mulle_objc_walkcommand_t
    return( cmd);
 }
 
+
+
+#pragma mark - class properties
+
+int   mulle_objc_metaclass_add_propertylist( struct _mulle_objc_metaclass *meta,
+                                             struct _mulle_objc_propertylist *list)
+{
+   mulle_objc_propertyid_t                     last;
+   struct _mulle_objc_property                 *property;
+   struct _mulle_objc_propertylistenumerator   rover;
+
+   if( ! meta || ! list)
+   {
+      if( ! meta)
+      {
+         errno = EINVAL;
+         return( -1);
+      }
+      return( 0);  // NULL list is OK — nothing to add
+   }
+
+   // validate sort order
+   last  = MULLE_OBJC_MIN_UNIQUEID - 1;
+   rover = _mulle_objc_propertylist_enumerate( list);
+   while( (property = _mulle_objc_propertylistenumerator_next( &rover)))
+   {
+      if( last > property->propertyid)
+      {
+         _mulle_objc_propertylistenumerator_done( &rover);
+         errno = EDOM;
+         return( -1);
+      }
+      last = property->propertyid;
+   }
+   _mulle_objc_propertylistenumerator_done( &rover);
+
+   _mulle_concurrent_pointerarray_add( &meta->propertylists, list);
+   return( 0);
+}
+
+
+void  mulle_objc_metaclass_add_propertylist_nofail( struct _mulle_objc_metaclass *meta,
+                                                    struct _mulle_objc_propertylist *list)
+{
+   if( mulle_objc_metaclass_add_propertylist( meta, list))
+      mulle_objc_universe_fail_errno( _mulle_objc_metaclass_get_universe( meta));
+}
+
+
+struct _mulle_objc_property *
+   mulle_objc_metaclass_search_property( struct _mulle_objc_metaclass *meta,
+                                         mulle_objc_propertyid_t propertyid)
+{
+   struct _mulle_objc_propertylist   *list;
+   struct _mulle_objc_property       *property;
+   unsigned int                       n;
+   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
+
+   if( ! meta)
+      return( NULL);
+
+   n     = mulle_concurrent_pointerarray_get_count( &meta->propertylists);
+   rover = mulle_concurrent_pointerarray_reverseenumerate( &meta->propertylists, n);
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
+   {
+      property = _mulle_objc_propertylist_search( list, propertyid);
+      if( property)
+      {
+         mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
+         return( property);
+      }
+   }
+   mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
+   return( NULL);
+}
+
+
+#pragma mark - class variables
+
+int   mulle_objc_metaclass_add_ivarlist( struct _mulle_objc_metaclass *meta,
+                                         struct _mulle_objc_ivarlist *list)
+{
+   if( ! meta)
+   {
+      errno = EINVAL;
+      return( -1);
+   }
+   if( ! list || ! list->n_ivars)
+      return( 0);
+
+   _mulle_concurrent_pointerarray_add( &meta->ivarlists, list);
+   return( 0);
+}
+
+
+void  mulle_objc_metaclass_add_ivarlist_nofail( struct _mulle_objc_metaclass *meta,
+                                                struct _mulle_objc_ivarlist *list)
+{
+   if( mulle_objc_metaclass_add_ivarlist( meta, list))
+      mulle_objc_universe_fail_errno( _mulle_objc_metaclass_get_universe( meta));
+}
+
+
+struct _mulle_objc_ivar *
+   mulle_objc_metaclass_search_ivar( struct _mulle_objc_metaclass *meta,
+                                     mulle_objc_ivarid_t ivarid)
+{
+   struct _mulle_objc_ivarlist   *list;
+   struct _mulle_objc_ivar       *ivar;
+   unsigned int                   n;
+   struct mulle_concurrent_pointerarrayreverseenumerator   rover;
+
+   if( ! meta)
+      return( NULL);
+
+   n     = mulle_concurrent_pointerarray_get_count( &meta->ivarlists);
+   rover = mulle_concurrent_pointerarray_reverseenumerate( &meta->ivarlists, n);
+   while( (list = _mulle_concurrent_pointerarrayreverseenumerator_next( &rover)))
+   {
+      ivar = _mulle_objc_ivarlist_search( list, ivarid);
+      if( ivar)
+      {
+         mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
+         return( ivar);
+      }
+   }
+   mulle_concurrent_pointerarrayreverseenumerator_done( &rover);
+   return( NULL);
+}

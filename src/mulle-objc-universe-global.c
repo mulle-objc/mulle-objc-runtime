@@ -101,7 +101,7 @@ struct _mulle_objc_universe  *
       // use stdlib allocator for this, since we leak here
       //
 	   allocator = &mulle_stdlib_allocator;
-	   assert( allocator->abafree && allocator->abafree != (int (*)()) abort);
+	   assert( allocator->abafree && (int (*)( void)) allocator->abafree != (int (*)( void)) abort);
 
 	   _mulle_atomic_pointer_cas( &mulle_objc_universetable.map.allocator, allocator, NULL);
    }

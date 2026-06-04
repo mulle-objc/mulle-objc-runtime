@@ -38,6 +38,30 @@ gdb ./executable
 (gdb) info locals
 ```
 
+## Compile-time Debug/Trace Flags
+
+Many libraries provide compile-time debugging flags (e.g.,
+`CAAnimationDebuggingFlags`). Enable them with `-DCFLAGS`:
+
+```bash
+mulle-sde -DCFLAGS="-DCAAnimationDebuggingFlags=0x5" craft --clean
+mulle-sde run
+```
+
+Use `--clean` because cached object files won't pick up new defines.
+
+To pass multiple flags:
+
+```bash
+mulle-sde -DCFLAGS="-DFLAG_A=1 -DFLAG_B=2" craft --clean
+```
+
+To return to normal:
+
+```bash
+mulle-sde craft --clean
+```
+
 ## More
 
 For other debugging options check out
