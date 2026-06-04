@@ -68,7 +68,7 @@ struct _mulle_objc_dependency
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   20
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   21
 
 
 // future idea: specify more than one universe
@@ -86,6 +86,7 @@ struct _mulle_objc_loadclassbase
 
    struct _mulle_objc_methodlist     *classmethods;
    struct _mulle_objc_methodlist     *instancemethods;
+   struct _mulle_objc_propertylist   *classproperties;    // v21: → metaclass propertylist
    struct _mulle_objc_propertylist   *properties;
 
    struct _mulle_objc_protocollist   *protocols;
@@ -106,8 +107,10 @@ struct _mulle_objc_loadclass
 
    int                               fastclassindex;
    int                               instancesize;
+   int                               classinstancesize;   // v21: size of class property ivars (incl. inherited)
 
    struct _mulle_objc_ivarlist       *instancevariables;
+   struct _mulle_objc_ivarlist       *classvariables;     // v21: → metaclass ivarlist
 
    mulle_objc_classid_t              *mixinids;
 };
@@ -130,6 +133,7 @@ struct _mulle_objc_loadcategory
 
    struct _mulle_objc_methodlist     *classmethods;       // contains categoryid
    struct _mulle_objc_methodlist     *instancemethods;
+   struct _mulle_objc_propertylist   *classproperties;    // v21: → metaclass propertylist
    struct _mulle_objc_propertylist   *properties;
 
    struct _mulle_objc_protocollist   *protocols;

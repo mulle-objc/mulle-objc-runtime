@@ -707,6 +707,10 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
    _mulle_objc_impcache_callback_init( &universe->empty_impcache.callback,
                                        &_mulle_objc_impcache_callback_empty);
 
+   //
+   // the universe has its own private aba, independent from the default
+   // allocator
+   //
    universe->memory.allocator         = *allocator;
    universe->memory.allocator.aba     = &universe->garbage.aba;
    universe->memory.allocator.abafree = abafree_nofail;
@@ -1615,6 +1619,7 @@ static void
    _mulle_objc_universe_deinitialize_infraclasses( struct _mulle_objc_universe *universe)
 {
    _mulle_objc_universe_call_infraclasses( universe, _mulle_objc_infraclass_call_deinitialize);
+   _mulle_objc_universe_call_infraclasses( universe, _mulle_objc_infraclass_call_deinitialize_self);
 }
 
 
@@ -1814,6 +1819,8 @@ static int
             // do these can make sense to check but not by default
             case MULLE_OBJC_LOAD_METHODID    :
             case MULLE_OBJC_UNLOAD_METHODID  :
+            case MULLE_OBJC_INITIALIZESELF_METHODID  :
+            case MULLE_OBJC_DEINITIALIZESELF_METHODID  :
                if( ! universe->debug.warn.load_category_dependency)
                   continue;
             }

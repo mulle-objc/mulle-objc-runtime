@@ -363,6 +363,109 @@ void
 }
 
 
+// Call all +initializeSelf implementations (main class + all categories).
+// Initializes the metaclass lock before the first call if dormant.
+void   _mulle_objc_infraclass_call_initialize_self( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_metaclass         *meta;
+   struct _mulle_objc_class             *cls;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_searchresult      result;
+   int                                  inheritance;
+   int                                  first;
+
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_MIXIN))
+      return;
+
+   meta        = _mulle_objc_infraclass_get_metaclass( infra);
+   cls         = _mulle_objc_metaclass_as_class( meta);
+   inheritance = MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS|MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
+   first       = 1;
+
+   search = mulle_objc_searcharguments_make_default( MULLE_OBJC_INITIALIZESELF_METHODID);
+   for(;;)
+   {
+      method = mulle_objc_class_search_method( cls, &search, inheritance, &result);
+      if( ! method)
+         break;
+
+      if( first)
+      {
+         // init lock before first +initializeSelf call
+         if( _mulle_atomic_pointer_read( &meta->classpropertylock._depth) == (void *) -1)
+            mulle_thread_recursive_mutex_init( &meta->classpropertylock);
+         first = 0;
+      }
+
+      mulle_objc_implementation_invoke( _mulle_objc_method_get_implementation( method),
+                                        (struct _mulle_objc_object *) infra,
+                                        MULLE_OBJC_INITIALIZESELF_METHODID,
+                                        (struct _mulle_objc_object *) infra);
+      search = mulle_objc_searcharguments_make_previous( method);
+   }
+}
+
+
+// Call all +deinitializeSelf implementations (main class + all categories).
+// Destroys the metaclass lock after the last call.
+void   _mulle_objc_infraclass_call_deinitialize_self( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_metaclass         *meta;
+   struct _mulle_objc_class             *cls;
+   struct _mulle_objc_method            *method;
+   struct _mulle_objc_searcharguments   search;
+   struct _mulle_objc_searchresult      result;
+   int                                  inheritance;
+
+   if( _mulle_objc_infraclass_get_state_bit( infra, MULLE_OBJC_INFRACLASS_IS_MIXIN))
+      return;
+
+   meta        = _mulle_objc_infraclass_get_metaclass( infra);
+   cls         = _mulle_objc_metaclass_as_class( meta);
+   inheritance = MULLE_OBJC_CLASS_DONT_INHERIT_SUPERCLASS|MULLE_OBJC_CLASS_DONT_INHERIT_PROTOCOLS;
+
+   search = mulle_objc_searcharguments_make_default( MULLE_OBJC_DEINITIALIZESELF_METHODID);
+   for(;;)
+   {
+      method = mulle_objc_class_search_method( cls, &search, inheritance, &result);
+      if( ! method)
+         break;
+
+      mulle_objc_implementation_invoke( _mulle_objc_method_get_implementation( method),
+                                        (struct _mulle_objc_object *) infra,
+                                        MULLE_OBJC_DEINITIALIZESELF_METHODID,
+                                        (struct _mulle_objc_object *) infra);
+      search = mulle_objc_searcharguments_make_previous( method);
+   }
+
+   // Clear class property ivars: walk own classproperties, call setters with nil (v21)
+   {
+      struct _mulle_objc_propertylist   *list;
+      struct _mulle_objc_property       *property;
+      unsigned int                      i;
+
+      mulle_concurrent_pointerarray_for( &meta->propertylists, list)
+      {
+         if( ! list)
+            continue;
+         for( i = 0; i < list->n_properties; i++)
+         {
+            property = &list->properties[ i];
+            if( _mulle_objc_property_get_bits( property) & _mulle_objc_property_setterclear)
+               mulle_objc_object_call_inline_variable( (struct _mulle_objc_object *) infra,
+                                                       property->setter,
+                                                       NULL);
+         }
+      }
+   }
+
+   // destroy lock if it was initialized
+   if( _mulle_atomic_pointer_read( &meta->classpropertylock._depth) != (void *) -1)
+      mulle_thread_recursive_mutex_done( &meta->classpropertylock);
+}
+
+
 
 static void  _mulle_objc_infraclass_setup_superclasses( struct _mulle_objc_infraclass *infra)
 {
@@ -485,6 +588,7 @@ int   _mulle_objc_class_setup( struct _mulle_objc_class *cls)
          _mulle_objc_class_setup_initialize_cache( _mulle_objc_infraclass_as_class( infra));
 
 
+         _mulle_objc_infraclass_call_initialize_self( infra);
          _mulle_objc_infraclass_call_initialize( infra);
 
          //

@@ -87,22 +87,23 @@ After `clean tidy`, re-fetch stashed dependencies (or just craft again):
 mulle-sde fetch
 ```
 
-
 ## Working on ProjectA while building ProjectB
 
-ProjectB's `mulle-sde retest` rebuilds ProjectA from source automatically (via symlink in stash).
+ProjectB's `mulle-sde recraft` rebuilds ProjectA from source automatically (via symlink in stash).
 You should ensure that ProjectA has up to date objc-deps.inc by running a
 `mulle-sde -f craft` there first.
 
 ```bash
 cd ProjectA && mulle-sde -f craft   # updates objc-deps.inc + installs headers
-cd ProjectB && mulle-sde retest     # picks up ProjectA changes automatically
+cd ProjectB && mulle-sde recraft    # picks up ProjectA changes automatically
 ```
 
-> Note: plain `mulle-sde craft` in ProjectB does NOT rebuild ProjectA — it only rebuilds
-> ProjectB itself. Use `retest` or `-f craft` to trigger dependency rebuilds.
+The same goes for tests. You use `retest` to pick up all dependency changes.
 
-### The "Stale Header" Trap
+> Note: plain `mulle-sde craft` in ProjectB does NOT rebuild ProjectA — it only rebuilds
+> ProjectB itself. Use `recraft` to trigger dependency rebuilds.
+
+### The "Stale Header" Trap - as explained with running tests
 
 **Symptom:** You change ProjectA's header, run `mulle-sde test craft` in ProjectB, but the old
 header is still used. Looks like a cmake cache bug.
@@ -112,17 +113,19 @@ test project's `dependency/` cache still has the old ProjectA headers. This is e
 what makes `test craft` fast.
 
 **Fix:** Use `retest` when you've changed a dependency:
+
 ```bash
 cd ProjectB && mulle-sde retest      # rebuilds ProjectA + ProjectB + runs tests (SLOW)
 ```
 
 Or if you only changed ProjectA and want to update ProjectB's test cache:
+
 ```bash
 cd ProjectA && mulle-sde -f craft    # updates objc-deps.inc + installs to its own cache
 cd ProjectB && mulle-sde retest      # picks up ProjectA changes
 ```
 
-If you're stuck with stale headers and `retest` doesn't help:
+If you're really stuck with stale headers and `retest` doesn't help:
 
 ```bash
 mulle-sde -f clean tidy && mulle-sde retest   # wipe dependency/ cache and rebuild

@@ -87,6 +87,13 @@ struct _mulle_objc_classpair
 //   uint32_t                                  taoprotection;
 };
 
+// Offset from &classpair->infraclass to the class property ivar area.
+// Class property ivars are appended after the classpair struct.
+// self in + methods = &classpair->infraclass, so this is the base offset
+// for all class property ivar accesses: (char *)self + MULLE_OBJC_CLASSPAIR_IVAR_BASE + field_offset
+#define MULLE_OBJC_CLASSPAIR_IVAR_BASE  \
+   (sizeof( struct _mulle_objc_classpair) - offsetof( struct _mulle_objc_classpair, infraclass))
+
 
 # pragma mark - init and done
 

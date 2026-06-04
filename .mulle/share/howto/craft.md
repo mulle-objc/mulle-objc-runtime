@@ -53,6 +53,23 @@ mulle-sde craft -g # -- --no-hook
 
 *(`-g` is shorthand for `mulle-sde clean gravetidy`)*
 
+### 1.3 Build with Custom Defines
+
+Pass compile-time flags with `-DCFLAGS`:
+
+```bash
+mulle-sde -DCFLAGS="-DSOME_FLAG=value" craft --clean
+```
+
+Pass cmake variables with `-D`:
+
+```bash
+mulle-sde -DCMAKE_DEBUG_FLAGS=--debug-find craft --clean
+```
+
+**Important:** Use `--clean` when changing defines, otherwise cached objects
+won't be recompiled.
+
 ## Troubleshooting Build Errors
 
 **Rule of thumb**:

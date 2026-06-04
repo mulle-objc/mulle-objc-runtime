@@ -613,4 +613,16 @@ static inline void
 }
 
 
+#pragma mark - class property lock (called by compiler-synthesized +lock/+unlock/+tryLock)
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_infraclass_lock_classproperty( struct _mulle_objc_infraclass *infra);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void   mulle_objc_infraclass_unlock_classproperty( struct _mulle_objc_infraclass *infra);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+int    mulle_objc_infraclass_trylock_classproperty( struct _mulle_objc_infraclass *infra);
+
+
 #endif /* mulle_objc_infraclass_h */

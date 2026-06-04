@@ -1099,3 +1099,32 @@ void   _mulle_objc_infraclass_call_unload( struct _mulle_objc_infraclass *infra)
    }
 }
 
+
+
+#pragma mark - class property lock
+
+void   mulle_objc_infraclass_lock_classproperty( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_metaclass   *meta;
+
+   meta = _mulle_objc_infraclass_get_metaclass( infra);
+   _mulle_objc_metaclass_lock_classproperty( meta);
+}
+
+
+void   mulle_objc_infraclass_unlock_classproperty( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_metaclass   *meta;
+
+   meta = _mulle_objc_infraclass_get_metaclass( infra);
+   _mulle_objc_metaclass_unlock_classproperty( meta);
+}
+
+
+int    mulle_objc_infraclass_trylock_classproperty( struct _mulle_objc_infraclass *infra)
+{
+   struct _mulle_objc_metaclass   *meta;
+
+   meta = _mulle_objc_infraclass_get_metaclass( infra);
+   return( _mulle_objc_metaclass_trylock_classproperty( meta));
+}
