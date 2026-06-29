@@ -107,7 +107,8 @@ enum
    _mulle_objc_property_setterclear       = 0x10000,  // setter clear
    _mulle_objc_property_autoreleaseclear  = 0x20000,  // autorelease clear
 //   _mulle_objc_property_atomic          = 0x40000
-   _mulle_objc_property_fake              = 0x80000   // fake property use by MulleObject
+   _mulle_objc_property_fake              = 0x80000,  // fake property use by MulleObject
+   _mulle_objc_property_forward           = 0x100000  // forwarded property (not synthesized at runtime)
 };
 
 
@@ -345,6 +346,14 @@ static inline uint32_t
    return( property
            ? _mulle_objc_property_get_bits( property)
            : MULLE_OBJC_NO_METHODID);
+}
+
+
+static inline int
+   _mulle_objc_property_is_clearable( struct _mulle_objc_property *property)
+{
+   return( ! (property->bits & _mulle_objc_property_readonly) &&
+             (property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear)));
 }
 
 

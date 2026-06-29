@@ -6,12 +6,7 @@
 #pragma clang diagnostic ignored "-Wobjc-root-class"
 #pragma clang diagnostic ignored "-Wgnu-alignof-expression"
 
-// Can't get rid of:
-// warning: incompatible integer to pointer conversion initializing
-// 'typeof (*(&ptrrval))' (aka 'void *') with an expression of type 'intptr_t'
-// (aka 'long') [-Wint-conversion]
 
-#pragma clang diagnostic ignored "-Wint-conversion"
 
 
 

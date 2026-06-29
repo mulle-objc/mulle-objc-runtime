@@ -433,8 +433,7 @@ static int   _mulle_objc_infraclass_add_propertylist( struct _mulle_objc_infracl
       // backed by an ivar so don't do it
       if( ! bit_isset)
       {
-         if( ! (property->bits & _mulle_objc_property_readonly) &&
-               (property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear)))
+         if( _mulle_objc_property_is_clearable( property))
          {
             _mulle_objc_infraclass_set_state_bit( infra, MULLE_OBJC_INFRACLASS_HAS_CLEARABLE_PROPERTY);
             bit_isset = 1;

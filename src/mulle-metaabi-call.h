@@ -49,13 +49,6 @@
 
 // #pragma clang diagnostic ignored "-Wobjc-root-class"
 // #pragma clang diagnostic ignored "-Wgnu-alignof-expression"
-//
-// // Can't get rid of:
-// // warning: incompatible integer to pointer conversion initializing
-// // 'typeof (*(&ptrrval))' (aka 'void *') with an expression of type 'intptr_t'
-// // (aka 'long') [-Wint-conversion]
-//
-// #pragma clang diagnostic ignored "-Wint-conversion"
 
 
 #define mulle_metaabi_is_int( expr)                                       \
@@ -76,6 +69,25 @@
 #define mulle_metaabi_zero_fp( expr, value)  \
    _Generic( (expr), float: 0, double: 0, long double: 0, default: (value))
 
+
+//
+// Portable helper to assign a truncated intptr_t value to any lvalue.
+// Avoids compound literal `(__typeof__(*dst)){ value }` which triggers
+// -Wmissing-braces for nested struct types in dead code paths.
+// Handles big-endian correctly by copying the low bytes of value.
+//
+static inline void
+_mulle_metaabi_intptr_to_value( void *dst, size_t dst_size, intptr_t value)
+{
+   memset( dst, 0, dst_size);
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+   if( dst_size <= sizeof( value))
+      memcpy( dst, ((char *) &value) + sizeof( value) - dst_size, dst_size);
+#else
+   if( dst_size <= sizeof( value))
+      memcpy( dst, &value, dst_size);
+#endif
+}
 
 
 #define MULLE_METAABI_STRUCT_FIELD( expr, s) __typeof__( expr)  s;
@@ -174,13 +186,13 @@ do                                                                              
       tmp.v = MULLE_C_VA_ARGS_0_WITH_DEFAULT( obj, __VA_ARGS__);                             \
                                                                                              \
    rval.ptr = mulle_objc_object_call( obj, sel, tmp.param);                                  \
+   /* dead code for struct types (is_int is false), but must compile clean */                 \
    if( mulle_metaabi_is_int( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))))              \
-      *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)) =                                     \
-         (__typeof__( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))))                     \
-         {                                                                                   \
-            mulle_metaabi_zero_non_int( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)),    \
-                                        (intptr_t) rval.ptr)                                 \
-         };                                                                                  \
+      _mulle_metaabi_intptr_to_value(                                                        \
+         MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                                      \
+         sizeof( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))),                          \
+         mulle_metaabi_zero_non_int( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)),       \
+                                     (intptr_t) rval.ptr));                                  \
    else                                                                                      \
       memcpy( p_rval, &rval.v, sizeof( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))));   \
 }                                                                                            \
@@ -227,12 +239,25 @@ do                                                                              
       };                                                                                                        \
                                                                                                                 \
    rval = mulle_objc_object_call( obj, sel, &param);                                                            \
-   *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)) =                                                           \
-      (__typeof__(*(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))))                                            \
+   {                                                                                                            \
+      union                                                                                                     \
       {                                                                                                         \
+         __typeof__( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)))  v;                                      \
+         void   *ptr;                                                                                           \
+      } _rval_union;                                                                                            \
                                                                                                                 \
-         mulle_metaabi_zero_fp( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)), (intptr_t) rval)              \
-      };                                                                                                        \
+      _rval_union.ptr = rval;                                                                                   \
+      /* dead code for struct types (is_int is false), but must compile clean */                                 \
+      if( mulle_metaabi_is_int( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))))                              \
+         _mulle_metaabi_intptr_to_value(                                                                        \
+            MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval),                                                      \
+            sizeof( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))),                                          \
+            mulle_metaabi_zero_non_int( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval)),                       \
+                                        (intptr_t) rval));                                                      \
+      else                                                                                                      \
+         memcpy( MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval), &_rval_union.v,                                 \
+                 sizeof( *(MULLE_C_VA_ARGS_WITH_DEFAULT( &dummy, p_rval))));                                    \
+   }                                                                                                            \
 }                                                                                                               \
 while( 0)
 

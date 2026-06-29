@@ -1139,7 +1139,7 @@ static mulle_objc_classid_t
    if( info->classivarhash != infra->ivarhash)
       mulle_objc_universe_fail_generic( universe,
          "error in mulle_objc_universe %p: class %08lx \"%s\" of "
-         "category %08lx \"%s( %s)\" has changed (load:0x%lx->class:0x%lx). Recompile %s\n",
+         "category %08lx \"%s( %s)\" has changed ivar layout (load:0x%lx->class:0x%lx). Recompile %s\n",
             universe,
             (unsigned long) info->classid,
             info->classname,

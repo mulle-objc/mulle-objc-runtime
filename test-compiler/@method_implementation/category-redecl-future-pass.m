@@ -4,30 +4,41 @@
 #pragma clang diagnostic error "-Wmulle-method-implementation"
 
 //
-// Test that a category adopting MulleObjCForwarding does not produce a
+// Test that a category adopting MulleObjCFuture does not produce a
 // "method is already declared in category" warning when another
 // category implements the method.
 //
 
-@protocol MulleObjCForwarding
+@protocol MulleObjCFuture
 @end
 
 @interface Foo
 @end
 
-@interface Foo( Forwarding) <MulleObjCForwarding>
+@interface Foo( Future) <MulleObjCFuture>
 - (int) value;
 @end
 
-@interface Foo( Bar)
+@interface Foo( Actual)
 - (int) value;
 @end
+
 
 @implementation Foo
 @end
 
-@implementation Foo( Bar)
-- (int) value { return 42; }
+@implementation Foo( Actual)
+
+- (int) value
+{
+   return( 48);
+}
+
 @end
 
-int main(void) { return 0; }
+
+int   main( void)
+{
+   printf( "%d\n", 48);
+   return( 0);
+}
