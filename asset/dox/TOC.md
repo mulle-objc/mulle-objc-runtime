@@ -1,19 +1,21 @@
 # mulle-objc-runtime Library Documentation for AI
-<!-- Keywords: objc, runtime, classes, methods, universe, messaging -->
+<!-- Keywords: objc, runtime, classes, methods, mixins, universe, messaging -->
 
 ## 1. Introduction & Purpose
 
 - A lightweight, portable Objective-C runtime implemented in C11. Implements class/object metadata, method dispatch, property/ivar layout, signature parsing, and load-time installation of compiled ObjC class data.
 - Solves: provide an Objective-C runtime for environments without Apple's runtime, with focus on speed (inline calls), multi-threading, and multiple coexisting "universes".
-- Key features: fast inlineable messaging, per-class caches, tagged pointers (TPS), retain/release built-ins, binary load format (loadinfo).
-- Relationship: foundational runtime used by MulleObjC and depends on mulle-core and mulle-core-all-load.
+- Key features: fast inlineable messaging, per-class caches, tagged pointers (TPS), retain/release built-ins, binary load format (loadinfo), mixin support (v21+), class properties/variables on metaclass (v21+), MetaABI call macros.
+- Relationship: foundational runtime used by MulleObjC; depends on mulle-core and mulle-core-all-load.
 
 ## 2. Key Concepts & Design Philosophy
 
-- Universe: multiple independent runtimes can coexist; a universe encapsulates class tables, tagged pointers, and allocators.
+- Universe: multiple independent runtimes can coexist; a universe encapsulates class tables, tagged pointers, allocators, static instances, and foundation config.
 - Inline messaging: the runtime favors inlineable call paths and caches (fastmethod tables, imp caches) for speed.
-- IDs not names: classes/selectors/protocols use unique IDs (hashes) rather than string lookups.
-- Load-time install model: compiler emits binary loadinfo structures which are enqueued into a universe to install classes, categories, methods and strings.
+- IDs not names: classes/selectors/protocols use unique IDs (hashes) rather than string lookups at runtime.
+- Load-time install model: compiler emits binary loadinfo structures (classes, categories, mixins, strings, hashed strings) which are enqueued into a universe to install all metadata.
+- Mixins: v21+ runtime replaces the old "protocol class" concept with mixins — classes that provide method/property implementations adopted by other classes.
+- Metaclass ownership: class properties and class variables live on the metaclass (`_mulle_objc_metaclass`), protected by a per-metaclass recursive lock.
 - Low-level C-first API: headers expose structs and functions for AIs to reason about runtime behavior without Objective-C sugar.
 
 ## 3. Core API & Data Structures
@@ -21,108 +23,248 @@
 ### 3.1. [mulle-objc-runtime.h]
 - Purpose: umbrella header; includes core public headers and compile-time checks (TPS/FCS/TAO flags).
 - Note: compile Objective-C code with the same compile-time flags used to build the runtime.
+- `mulle-metaabi-call.h` is NOT included by default — it requires C23 (`__VA_OPT__`). Include on demand.
 
-### 3.2. [mulle-objc-universe.h | mulle-objc-universe-global.h]
-- struct _mulle_objc_universe
-  - Purpose: runtime instance container (class tables, tagged pointer config, allocators, debug/config).
-  - Key fields: class cache tables, tagged pointer tables, allocator pointers, config flags.
+### 3.2. [mulle-objc-universe.h | mulle-objc-universe-global.h | mulle-objc-universe-struct.h]
+- `struct _mulle_objc_universe`
+  - Purpose: runtime instance container (class tables, tagged pointer config, allocators, debug/config, foundation config, static instances, gifts).
+  - Key fields: class cache tables (`classtable`, `fastclasstable`), tagged pointer tables, allocators, `foundation` (static instance classes, rootclassid, allocator, headerextrasize, utf8staticstrings), `gifts` for external allocations, `waitqueues`.
   - Lifecycle functions:
-    - mulle_objc_global_get_universe_inline / mulle_objc_global_get_defaultuniverse: get universe pointer.
-    - __mulle_objc_global_register_universe / __mulle_objc_global_unregister_universe: register named universes.
-    - mulle_objc_global_reset_universetable: clear registered universes (cleanup).
-  - Core operations: get allocator, lookup/register classes and universes, iterate universes.
+    - `mulle_objc_global_get_universe_inline` / `mulle_objc_global_get_defaultuniverse`: get universe pointer.
+    - `__mulle_objc_global_register_universe` / `__mulle_objc_global_unregister_universe`: register named universes.
+    - `mulle_objc_global_reset_universetable`: clear registered universes (cleanup).
+    - `mulle_objc_global_release_defaultuniverse`: tear down all objects and release default universe.
+  - Core operations: get allocator, lookup/register classes/categories/protocols, iterate universes, add gifts.
+  - Static instances (v21+):
+    - `struct _mulle_objc_foundation` has `staticinstanceclass[ MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS]` (8 slots) replacing the old single `staticstringclass`. Slot 0 is the primary string class; slots 1-2 may be UTF8 classes when `utf8staticstrings` is set.
+    - `_mulle_objc_universe_add_staticinstance( universe, instance)` — add a static instance object.
+    - `_mulle_objc_universe_set_staticinstanceclasses( universe, infra[], constantify)` — merge non-NULL entries into `staticinstanceclass[]` and re-patch queued instances.
+    - `_mulle_objc_universe_didchange_staticinstanceclass( universe, constantify)` — re-runnable scan to patch queued instances.
+    - Backward-compat wrappers: `_mulle_objc_universe_add_staticstring`, `_mulle_objc_universe_set_staticstringclass`, `_mulle_objc_universe_get_staticstringclass` delegate to the multi-slot API (slot 0).
+  - Foundation:
+    - `_mulle_objc_universe_get_foundationallocator()` — get the allocator for objects.
+    - `_mulle_objc_universe_get_rootclassid()` — get root class id.
+    - `_mulle_objc_universe_get_staticinstances()` — get the static instances pointerarray.
 
 ### 3.3. [mulle-objc-class.h | mulle-objc-class-struct.h]
-- struct _mulle_objc_class
+- `struct _mulle_objc_class`
   - Purpose: represents a class (infraclass/metaclass) and its runtime metadata.
-  - Key fields: name, superclass, allocationsize, methodlists pointerarray, classid, inheritance flags, kvc pivot, cache pivot.
-  - Lifecycle functions:
-    - _mulle_objc_class_init / _mulle_objc_class_done: initialize and cleanup class structures.
-    - _mulle_objc_class_setup_pointerarrays: finalize pointer arrays after creation.
+  - Key fields: `name`, `superclass`, `allocationsize`, methodlists pointerarray, `classid`, `inheritance` flags, kvc/cache pivots, `universe`, `infraclass`.
+  - `MULLE_OBJC_CLASS_IS_MIXIN` (0x0100): marks a class as a mixin (replaces old `MULLE_OBJC_CLASS_IS_PROTOCOLCLASS`). Mixins cannot be instantiated directly.
+  - State bits: `IS_BORING_ALLOCATION`, `IS_MIXIN`, `IS_NOT_THREAD_AFFINE`, `INITIALIZING`, `INITIALIZE_DONE`, `FINALIZE_DONE`.
+  - `_mulle_objc_class_is_mixin( cls)` — test if class is a mixin.
+  - `_mulle_objc_class_get_classtypename( cls)` — returns "infraclass", "metaclass", "inframixin", or "metamixin".
+  - Lifecycle: `_mulle_objc_class_init`, `_mulle_objc_class_done`, `_mulle_objc_class_setup_pointerarrays`, `_mulle_objc_class_setup_initial_cache_if_needed`.
   - Core operations:
-    - mulle_objc_class_add_methodlist, _mulle_objc_class_add_methodlist_nocache: add methods/categories.
-    - _mulle_objc_class_lookup_method / mulle_objc_class_lookup_method: method lookup (uses imp caches).
-    - _mulle_objc_class_invalidate_impcache / invalidate_kvccache: cache invalidation.
-    - Accessors: mulle_objc_class_get_name, get_instancesize, get_universe, get_metaclass, is_infraclass/is_metaclass.
-  - Inspection: count depth, get methodlists count, is_sane checks.
+    - `mulle_objc_class_add_methodlist`, `_mulle_objc_class_add_methodlist_nocache`: add methods/categories.
+    - `_mulle_objc_class_lookup_method` / `mulle_objc_class_lookup_method`: method lookup (uses imp caches).
+    - `_mulle_objc_class_lookup_superimplementation_nofail`: super method lookup.
+    - `_mulle_objc_class_invalidate_impcache` / `invalidate_kvccache`: cache invalidation.
+    - Accessors: `mulle_objc_class_get_name`, `get_instancesize`, `get_universe`, `is_infraclass`/`is_metaclass`, `get_metaextrasize`.
 
 ### 3.4. [mulle-objc-object.h | mulle-objc-objectheader.h]
-- struct _mulle_objc_objectheader
-  - Purpose: header prefixed to every instance, contains retain count and isa.
-  - Key fields: _retaincount_1 (atomic), _isa pointer.
-  - Helpers: _mulle_objc_objectheader_init, get/set isa, get_retaincount.
+- `struct _mulle_objc_objectheader`
+  - Header prefixed to every instance, contains `_retaincount_1` (atomic) and `_isa` pointer.
+  - Helpers: `_mulle_objc_objectheader_init`, get/set isa, get_retaincount.
 - Object helpers:
-  - _mulle_objc_object_get_isa, mulle_objc_object_get_universe, object extra pointer accessors, ivar read/write helpers.
-  - Tagged pointers: tagged pointer path exists (TPS); functions handle TPS index and fallback.
+  - `_mulle_objc_object_get_isa(obj)` — get isa, asserts for TAO on missing class.
+  - `__mulle_objc_object_get_isa(obj)` — get isa without TAO assert; does not need a "real" class yet.
+  - `mulle_objc_object_get_universe`, object extra pointer accessors, ivar read/write helpers.
+  - Tagged pointers: TPS path exists; functions handle TPS index and fallback.
 
 ### 3.5. [mulle-objc-method.h | mulle-objc-methodlist.h]
-- struct _mulle_objc_descriptor / _mulle_objc_method
-  - Purpose: describes method id, name, signature and implementation function pointer.
-  - Key fields: methodid, signature, name, bits (attributes), implementation (atomic function pointer).
-  - Operations: get/set implementation, cas_implementation (atomic replace), bsearch/sort utilities, method family helpers.
-- struct _mulle_objc_methodlist
-  - Purpose: contiguous method array (n_methods + methods[]). Category id + origin.
-  - Operations: sort, binary search vs linear search threshold (heuristic), enumeration, adding +load to callqueue.
+- `struct _mulle_objc_descriptor` / `_mulle_objc_method`
+  - Describes method id, name, signature, bits, and implementation.
+  - Key fields: `methodid`, `signature`, `name`, `bits` (attributes + family + MetaABI types), `implementation` (atomic function pointer).
+  - Implementation/alias union: `mulle_objc_implementation_t value` / `mulle_objc_methodid_t alias` / `mulle_atomic_functionpointer_t implementation`.
+  - Method family: extracted from bits via `_mulle_objc_methodfamily_shift` (16). Families: init, dealloc, copy, etc.
+  - MetaABI type bits (v21+): `_mulle_objc_method_metaabi_rtype_mask` (bits 22-23) for return type, `_mulle_objc_method_metaabi_ptype_mask` (bits 24-25) for parameter type. Values: 0=VoidPointer, 1=Void, 2=ParameterBlock. Extract with `_mulle_objc_method_bits_get_metaabi_rtype(ptype/calltype)`, set with `_mulle_objc_method_bits_set_metaabi_types`.
+  - Alias bits (v21+): `_mulle_objc_method_infra_alias_on_load` (0x100) and `_mulle_objc_method_meta_alias_on_load` (0x200) — the method uses its `alias` field to find the target at load time.
+  - Operations: `_mulle_objc_method_get_implementation` / `set_implementation` / `_cas_implementation` (atomic replace), method family helpers, `_mulle_objc_descriptor_get_metaabiparamtype` / `_mulle_objc_descriptor_get_metaabirvaltype`.
+- `struct _mulle_objc_methodlist`
+  - Contiguous method array (`n_methods` + `methods[]`). Category id + origin.
+  - Operations: sort, binary search vs linear search threshold (heuristic, n >= 14), enumeration, adding +load to callqueue.
 
 ### 3.6. [mulle-objc-property.h]
-- struct _mulle_objc_property
-  - Purpose: property descriptor with getter/setter/adder/remover methodids, ivarid and bits.
-  - Operations: accessors for name, signature, getter/setter ids, bit tests (readonly/dynamic/observable/etc.).
+- `struct _mulle_objc_property`
+  - Property descriptor with getter/setter/adder/remover methodids, ivarid and bits.
+  - Operations: accessors for name, signature, getter/setter ids, bit tests.
+  - New v21+ bits: `_mulle_objc_property_forward` (0x100000) — forwarded property not synthesized by runtime.
+  - `_mulle_objc_property_is_clearable(property)` — returns true if writable and has setter-clear or autorelease-clear semantics.
 
 ### 3.7. [mulle-objc-ivar.h]
-- struct _mulle_objc_ivar
-  - Purpose: ivar descriptor for name/signature and offset.
-  - API: get_name, get_signature, get_offset, bsearch and sort helpers.
+- `struct _mulle_objc_ivar`
+  - Ivar descriptor for name/signature and offset.
+  - API: `get_name`, `get_signature`, `get_offset`, bsearch and sort helpers.
 
-### 3.8. [mulle-objc-load.h]
-- load data structures: _mulle_objc_loadinfo, _mulle_objc_loadclass, _mulle_objc_loadcategory
-  - Purpose: describe binary emitted class/category/method/property data to be installed into a universe.
-  - Core operations: mulle_objc_loadinfo_enqueue_nofail(info) — enqueue and install into runtime; mulle_objc_universe_assert_loadinfo for compatibility checks.
-  - Versioning: MULLE_OBJC_RUNTIME_LOAD_VERSION and load version bits in structures.
+### 3.8. [mulle-objc-load.h] — Binary Load Format (v21)
 
-### 3.9. [mulle-objc-signature.h]
-- Signature/type parsing helpers
-  - API: mulle_objc_signature_supply_typeinfo, mulle_objc_signature_next_type, supply_size_and_alignment, signature enumerator helpers.
-  - Purpose: parse ObjC encoded signatures into size/alignment/typeinfo for marshalling and call ABI classification.
+- `MULLE_OBJC_RUNTIME_LOAD_VERSION` = 21
 
-### 3.10. [mulle-objc-retain-release.h]
-- Built-in retain/release mechanisms
-  - Inline retain/release helpers (_mulle_objc_object_retain_inline, _mulle_objc_object_release_inline) for performance and special constants (MULLE_OBJC_NEVER_RELEASE etc.).
-  - API for bulk retain/release of object arrays, finalize/dealloc helpers.
+- `struct _mulle_objc_loadclassbase` (v21+):
+  - Common fields shared by `_mulle_objc_loadclass` and `_mulle_objc_loadmixin`.
+  - Fields: `classid`, `classname`, `classmethods`, `instancemethods`, `classproperties` (→ metaclass propertylist), `properties`, `protocols`, `origin`.
 
-### 3.11. [mulle-objc-protocol.h]
-- struct _mulle_objc_protocol: protocolid + name; sort/bsearch helpers; protocols live in universe tables.
+- `struct _mulle_objc_loadclass`:
+  - Contains `struct _mulle_objc_loadclassbase base` plus: `classivarhash`, `superclassid`, `superclassname`, `superclassivarhash`, `fastclassindex`, `instancesize`, `classinstancesize` (v21: size of class property ivars incl. inherited), `instancevariables`, `classvariables` (v21: → metaclass ivarlist), `mixinids` (v21: replaces `protocolclassids`).
+
+- `struct _mulle_objc_loadmixin` (v21+):
+  - Contains only `struct _mulle_objc_loadclassbase base`. Describes a mixin — provides methods/properties but no instance variables or superclass.
+
+- `struct _mulle_objc_loadcategory`:
+  - Fields: `categoryid`, `categoryname`, `classid`, `classname`, `classivarhash`, `classmethods`, `instancemethods`, `classproperties` (v21: → metaclass propertylist), `properties`, `protocols`, `mixinids` (v21: replaces `protocolclassids`), `origin`.
+
+- `struct _mulle_objc_loadclasslist` / `_mulle_objc_loadmixinlist` (v21+) / `_mulle_objc_loadcategorylist`:
+  - Variable-length arrays of pointers; use `mulle_objc_sizeof_loadclasslist(n)`, `mulle_objc_sizeof_loadmixinlist(n)`, `mulle_objc_sizeof_loadcategorylist(n)` for allocation.
+
+- `struct _mulle_objc_loadstringlist` / `_mulle_objc_loadhashedstringlist`:
+  - For static strings and hashed string maps.
+
+- `struct _mulle_objc_loadinfo`:
+  - Top-level load container: `version`, `loaduniverse`, `loadclasslist`, `loadmixinlist` (v21+), `loadcategorylist`, `loadsuperlist`, `loadstringlist`, `loadhashedstringlist`, `origin`.
+  - `version.bits` flags include `_mulle_objc_loadinfo_utf8_strings` (0x20, v21+) and runtime feature flags.
+  - `mulle_objc_loadinfo_enqueue_nofail(info)` — enqueue and install into runtime; structures must reside in permanent memory until universe destructed.
+  - `mulle_objc_universe_assert_loadinfo(universe, info)` — compatibility check.
+  - `mulle_objc_loadinfo_get_origin(info)` — get source file origin.
+
+### 3.9. [mulle-objc-classpair.h]
+- `struct _mulle_objc_classpair`:
+  - Packs `infraclassheader` + `infraclass` + `metaclassheader` + `metaclass` with aligned padding, followed by shared fields.
+  - Shared fields: `mixins` pointerarray (v21: renamed from `protocolclasses`), `p_protocolids`, `p_categoryids`, `lock` (for +initialize), `thread_id`, `loadclass` (type `struct _mulle_objc_loadclassbase *` in v21), `classindex`.
+  - `MULLE_OBJC_CLASSPAIR_IVAR_BASE` macro (v21+): offset from `&pair->infraclass` to the start of class property ivar area appended after the classpair. Used as `(char *)self + MULLE_OBJC_CLASSPAIR_IVAR_BASE + field_offset` for class property access.
+  - Lifecycle: `_mulle_objc_classpair_plusinit` / `_mulle_objc_classpair_plusdone`, `_mulle_objc_classpair_call_class_finalize`, `mulle_objc_classpair_free`.
+  - Accessors: `_mulle_objc_classpair_get_infraclass`, `_mulle_objc_classpair_get_metaclass`, `_mulle_objc_classpair_get_universe`, `_mulle_objc_classpair_get_name`, `_mulle_objc_classpair_get_classid`.
+  - Reverse: `_mulle_objc_infraclass_get_classpair(infra)`, `_mulle_objc_metaclass_get_classpair(meta)`, `_mulle_objc_class_get_classpair(cls)`.
+- **Mixins** (v21: replaces protocolclasses):
+  - `_mulle_objc_classpair_has_mixin(pair, proto_cls)` — check presence.
+  - `_mulle_objc_classpair_get_mixincount(pair)`.
+  - `_mulle_objc_classpair_walk_mixins(pair, inheritance, callback, userinfo)`.
+  - `_mulle_objc_classpair_add_mixin(pair, proto_cls)`.
+  - `mulle_objc_classpair_add_mixinids_nofail(pair, protocolids)`.
+- **Mixinenumerator** (v21: replaces protocolclassenumerator):
+  - `struct _mulle_objc_mixinenumerator` with `list_rover` and `infra`.
+  - `_mulle_objc_classpair_enumerate_mixins(pair)` / `mulle_objc_classpair_enumerate_mixins(pair)` — create enumerator.
+  - `_mulle_objc_mixinenumerator_next(rover)` — get next mixin infraclass.
+  - `_mulle_objc_mixinenumerator_done(rover)`.
+  - Also: `_mulle_objc_mixinreverseenumerator` for reverse enumeration.
+- **Protocols**: `_mulle_objc_classpair_walk_protocolids`, `__mulle_objc_classpair_conformsto_protocolid`, `mulle_objc_classpair_add_protocollist_nofail`.
+- **Categories**: `_mulle_objc_classpair_has_categoryid`, `_mulle_objc_classpair_walk_categoryids`, `mulle_objc_classpair_add_categoryid_nofail`.
+- **Debug**: `mulle_objc_classpair_walk()`.
+
+### 3.10. [mulle-objc-infraclass.h]
+- `struct _mulle_objc_infraclass` — inherits from `_mulle_objc_class`.
+  - State bits: `MULLE_OBJC_INFRACLASS_IS_MIXIN` (v21: replaces `IS_PROTOCOLCLASS`).
+- Key functions:
+  - `mulle_objc_infraclass_is_mixin(infra)` / `mulle_objc_infraclass_check_mixin(infra)` (v21: renamed).
+  - `mulle_objc_infraclass_lock_classproperty(infra)` / `unlock` / `trylock` (v21+) — lock the metaclass's classpropertylock for atomic class property access.
+  - `_mulle_objc_infraclass_call_initialize_self(infra)` / `_mulle_objc_infraclass_call_deinitialize_self(infra)` (v21+) — invoke +initializeSelf/+deinitializeSelf class methods.
+  - `_mulle_objc_infraclass_call_deinitialize(infra)` — invoke +deinitialize.
+  - Accessors: `_mulle_objc_infraclass_get_universe`, `get_classid`, `get_name`, `get_superclass`, `get_metaclass`, `get_classindex`.
+
+### 3.11. [mulle-objc-metaclass.h]
+- `struct _mulle_objc_metaclass` — inherits from `_mulle_objc_class`.
+  - v21 additions: `classpropertylock` (`mulle_thread_recursive_mutex_t`, dormant until `initializeSelf` is called), `propertylists` (`mulle_concurrent_pointerarray`), `ivarlists` (`mulle_concurrent_pointerarray`).
+- Class property operations (v21+):
+  - `mulle_objc_metaclass_add_propertylist(meta, list)` / `_nofail` — add a class propertylist.
+  - `mulle_objc_metaclass_search_property(meta, propertyid)` — search class properties.
+- Class variable operations (v21+):
+  - `mulle_objc_metaclass_add_ivarlist(meta, list)` / `_nofail` — add a class ivarlist.
+  - `mulle_objc_metaclass_search_ivar(meta, ivarid)` — search class ivars.
+- Class property lock (v21+):
+  - `_mulle_objc_metaclass_lock_classproperty(meta)` / `_unlock` / `_trylock`.
+- Standard metaclass operations:
+  - `mulle_objc_metaclass_add_methodlist_nofail(meta, list)`.
+  - `mulle_objc_metaclass_defaultsearch_method(meta, methodid)`.
+  - `_mulle_objc_metaclass_lookup_superimplementation(meta, superid)`.
+  - `mulle_objc_metaclass_walk(meta, type, callback, parent, userinfo)`.
+  - `mulle_objc_metaclass_is_sane(meta)`.
+  - Init/done: `_mulle_objc_metaclass_plusinit` / `_mulle_objc_metaclass_plusdone`.
+
+### 3.12. [mulle-objc-class-initialize.h]
+- `_mulle_objc_class_warn_recursive_initialize(cls)` — warn on recursive +initialize.
+- `_mulle_objc_infraclass_call_deinitialize(infra)` — call +deinitialize.
+- `_mulle_objc_infraclass_call_initialize_self(infra)` (v21+) — call +initializeSelf.
+- `_mulle_objc_infraclass_call_deinitialize_self(infra)` (v21+) — call +deinitializeSelf.
+- `_mulle_objc_class_setup_initial_cache_if_needed(cls, ...)` — set up impcache if not already done.
+
+### 3.13. [mulle-objc-methodidconstants.h]
+- Built-in method IDs: `MULLE_OBJC_INIT_METHODID`, `MULLE_OBJC_LOAD_METHODID`, `MULLE_OBJC_RELEASE_METHODID`, `MULLE_OBJC_INSTANCE_METHODID`, `MULLE_OBJC_MUTABLECOPY_METHODID`, `MULLE_OBJC_INSTANTIATE_METHODID`.
+- v21 additions: `MULLE_OBJC_INITIALIZESELF_METHODID` ("initializeSelf"), `MULLE_OBJC_DEINITIALIZESELF_METHODID` ("deinitializeSelf").
+
+### 3.14. [mulle-objc-signature.h]
+- Signature/type parsing helpers:
+  - `struct mulle_objc_typeinfo`: contains `type`, `natural_size`, `natural_alignment`, `is_float`, `is_integer`, `is_void_ptr_compatible`, `has_retainable_type`.
+  - `struct mulle_methodsignature_arginfo` (v21+): captures `invocation_offset`, `natural_size`, `type_offset`, `natural_alignment`, `has_retainable_type` per argument for frame layout.
+- Core parsing:
+  - `mulle_objc_signature_supply_typeinfo(type, supplier, info)` — parse one type.
+  - `mulle_objc_signature_next_type(type)` — skip to next encoded type.
+  - `mulle_objc_signature_supply_size_and_alignment(type, supplier, size, alignment)` — compute size/alignment for a struct type.
+  - `mulle_objc_signature_count_typeinfos(types)` — count encoded type descriptors.
+  - `mulle_objc_signature_fill_arginfos(types, infos, count)` (v21+) — fill array of `mulle_methodsignature_arginfo` structs.
+- MetaABI helpers:
+  - `mulle_objc_signature_get_metaabireturntype(type)` — returns `mulle_metaabi_param_error` (-1), `mulle_metaabi_param_void_pointer` (0), `mulle_metaabi_param_void` (1), or `mulle_metaabi_param_struct` (2).
+  - `_mulle_objc_signature_sizeof_metaabistruct(type)` (v21: renamed from `_mulle_objc_signature_sizeof_metabistruct`).
+- Value conversion helpers (v21+):
+  - `_mulle_methodsignature_arginfo_demote_value_to_natural(p, types, dst, src)` — convert from C ABI to natural size (e.g. float → double, char → int).
+  - `_mulle_methodsignature_arginfo_promote_value_from_natural(p, types, dst, src)` — convert from natural size back to C ABI.
+- Signature enumerator: `struct _mulle_objc_signatureenumerator` with helpers for iterating self, _cmd, args, and rval.
+
+### 3.15. [mulle-objc-protocol.h]
+- `struct _mulle_objc_protocol`: protocolid + name; sort/bsearch helpers; protocols live in universe tables.
+
+### 3.16. [mulle-objc-retain-release.h]
+- Built-in retain/release mechanisms:
+  - Inline retain/release helpers: `_mulle_objc_object_retain_inline`, `_mulle_objc_object_release_inline`.
+  - Special constants: `MULLE_OBJC_NEVER_RELEASE` etc.
+  - Bulk retain/release of object arrays, finalize/dealloc helpers.
+
+### 3.17. [mulle-metaabi.h | mulle-metaabi-call.h]
+- `enum mulle_metaabi_param`: `mulle_metaabi_param_error` = -1, `mulle_metaabi_param_void_pointer` = 0, `mulle_metaabi_param_void` = 1, `mulle_metaabi_param_struct` = 2. (v21: swapped void/void_pointer to match MulleObjCMetaABIType.)
+- `mulle_metaabi_call(p_rval, obj, sel, ...)` — macro dispatcher (v21: renamed from `mulle_metaabi_object_call`). Automatically selects the optimal calling convention based on return type and parameter count/types. Use `mulle_metaabi_void` as `p_rval` for void returns.
+- `mulle_metaabi_param_struct(...)` — define a MetaABI parameter struct for multi-arg calls.
+- `mulle_metaabi_call_return_struct(p_rval, obj, sel, param_struct)` — call that returns a struct.
+- `mulle-metaabi-call.h` requires C23 (`__VA_OPT__`), guarded by `#if MULLE_C_HAS_VA_OPT`. Include it explicitly when needed.
+- `mulle_metaabi_is_voidptr_storage_compatible` / `mulle_metaabi_is_voidptr_compatible_expression` / `mulle_metaabi_is_voidptr_compatible_return_expression` (v21+) — static checks for small-enough non-struct types.
+- `mulle_metaabi_is_struct_expression(expr)` (v21+) — uses `__builtin_classify_type` to detect structs for return value handling.
 
 ## 4. Performance Characteristics
 
-- Method dispatch: optimized via per-class imp caches and optional fastmethod tables. Cache hit is effectively O(1). Cold lookup may walk methodlists: cost depends on methodlist size (binary search O(log n) for large lists, linear for small).
-- Methodlist search: binary search used for n_methods >= 14 (heuristic), otherwise linear scan.
+- Method dispatch: optimized via per-class imp caches and optional fastmethod tables. Cache hit is effectively O(1). Cold lookup may walk methodlists: binary search O(log n) for large lists (n >= 14), linear scan O(n) for small.
 - Retain/release: inline atomic increment/decrement for the common case (O(1)). Special states (SLOW_RELEASE, NEVER_RELEASE) trigger method calls.
 - Loading: code loading uses global synchronization but normal operation avoids global locks; per-class +initialize uses per-class synchronization.
+- Class property lock: per-metaclass recursive mutex, dormant (depth = -1 sentinel) until +initializeSelf activates it; O(1) once initialized.
 - Memory vs speed: class structures are sizable (~1 KB/class on 64-bit) to favor runtime speed and cache locality.
 - Thread-safety: designed for multi-threading; many structures use atomic pointers and concurrent maps. Loading and certain initialization paths still require locking.
 
 ## 5. AI Usage Recommendations & Patterns
 
 - Best practices:
-  - Use umbrella header <mulle-objc-runtime/mulle-objc-runtime.h> for high-level operations.
-  - Always use supplied lifecycle functions (_init/_done, enqueue loadinfo) instead of manually mutating structs.
+  - Use umbrella header `<mulle-objc-runtime/mulle-objc-runtime.h>` for high-level operations.
+  - Always use supplied lifecycle functions (`_init`/`_done`, `enqueue_nofail`) instead of manually mutating structs.
   - Respect compile-time options (TPS/FCS/TAO) — mismatch leads to incompatible behavior.
-  - Prefer inline API helpers (mulle_objc_object_get_isa, mulle_objc_method_get_implementation) for performance.
+  - Prefer inline API helpers (`mulle_objc_object_get_isa`, `mulle_objc_method_get_implementation`) for performance.
+  - For class property ivar access at offset, use `(char *)self + MULLE_OBJC_CLASSPAIR_IVAR_BASE + field_offset`.
+  - Use `mulle_metaabi_call()` macro for dynamic dispatch where the compiler doesn't know the signature at compile time.
+  - Use `_mulle_objc_infraclass_call_initialize_self` / `_call_deinitialize_self` to invoke class-property lifecycle methods.
 - Common pitfalls:
   - Do not directly modify struct internals in multi-threaded contexts; use provided functions.
   - Be aware of tagged pointers: some helpers return NULL or different behavior for TPS objects.
-  - loadinfo structures passed to enqueue must reside in permanent memory until universe destructed.
+  - loadinfo structures passed to `enqueue_nofail` must reside in permanent memory until universe destructed.
+  - Mixins (formerly "protocol classes") cannot be instantiated directly — `_mulle_objc_class_is_mixin()` returns true, and `alloc` calloc asserts against mixins.
+  - The metaclass `classpropertylock` is dormant (depth = -1) until `+initializeSelf` is called — accessing class properties before that is unsafe.
+  - `mulle-metaabi-call.h` is NOT in the umbrella; include it explicitly and ensure C23 (`__VA_OPT__`).
 - Idioms:
-  - Use mulle_objc_loadinfo_enqueue_nofail to install compiled class data.
+  - Use `mulle_objc_loadinfo_enqueue_nofail` to install compiled class data.
+  - Use `mulle_objc_universe_new_classpair(...)` to create classes dynamically.
   - Use signature parsing helpers to marshal parameters for manual call dispatch.
+  - Enumerate mixins with `mulle_objc_classpair_enumerate_mixins` / `mulle_objc_mixinenumerator_next`.
+  - For forward declarations, extract loadinfo origin with `mulle_objc_classpair_get_origin()`.
 
 ## 6. Integration Examples
 
 ### Example 1: Getting a class name from an instance
 
 ```c
-// 3-space indent, C89 rules
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
 void
@@ -156,13 +298,78 @@ dump_signature( char *sig)
 }
 ```
 
+### Example 3: Filling method signature arginfos (v21+)
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+void
+dump_arginfo( char *types)
+{
+   unsigned int                           n;
+   struct mulle_methodsignature_arginfo   *infos;
+
+   n     = mulle_objc_signature_count_typeinfos( types);
+   infos = calloc( n, sizeof( struct mulle_methodsignature_arginfo));
+   mulle_objc_signature_fill_arginfos( types, infos, n);
+
+   for( unsigned int i = 0; i < n; i++)
+      printf( "arg[%u]: offset=%u size=%u retainable=%u\n",
+              i, infos[ i].invocation_offset,
+              infos[ i].natural_size, infos[ i].has_retainable_type);
+
+   free( infos);
+}
+```
+
+### Example 4: Enumerating mixins (v21+)
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+
+void
+walk_mixins( struct _mulle_objc_classpair *pair)
+{
+   struct _mulle_objc_mixinenumerator   rover;
+   struct _mulle_objc_infraclass        *infra;
+
+   rover = mulle_objc_classpair_enumerate_mixins( pair);
+   while( (infra = mulle_objc_mixinenumerator_next( &rover)))
+      printf( "mixin: %s\n", mulle_objc_infraclass_get_name( infra));
+   mulle_objc_mixinenumerator_done( &rover);
+}
+```
+
+### Example 5: Using MetaABI call macros (v21+, requires C23)
+
+```c
+#include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <mulle-objc-runtime/mulle-metaabi-call.h>
+
+// void return, one int parameter
+void   call_setFrame( void *obj, int x)
+{
+   mulle_metaabi_call( mulle_metaabi_void, obj,
+                       MULLE_OBJC_METHODID( 0xfeedface),
+                       x);
+}
+
+// int return, no parameters
+int   call_getCount( void *obj)
+{
+   int   count;
+
+   mulle_metaabi_call( &count, obj,
+                       MULLE_OBJC_METHODID( 0xdeadbeef));
+   return( count);
+}
+```
+
 ## 7. Dependencies
 
-- mulle-core (mulle-core amalgamation)
+- mulle-core (mulle-core amalgamation: mulle-c11, mulle-allocator, mulle-concurrent, mulle-thread, mulle-vararg)
 - mulle-core-all-load
-- mulle-allocator (via mulle-core)
-- mulle-sde for build/install integration
 
 ## 8. Shortcut
 
-- If an existing TOC.md is present, prefer to inspect its commit history. This file was generated from README.md and the public headers under src/ to produce an AI-friendly concise API map.
+- If an existing TOC.md is present, prefer to inspect its commit history. This file was updated to reflect v21 runtime changes: mixins replace protocol classes, metaclass class properties/variables, +initializeSelf/+deinitializeSelf lifecycle, method MetaABI bits, static instance multi-slot system, loadinfo v21 fields, MethodSignatureArgInfo for frame layout, and MetaABI call macro modernization.

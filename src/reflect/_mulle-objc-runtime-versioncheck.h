@@ -7,7 +7,7 @@
 
 #if defined( MULLE__CORE_VERSION)
 # ifndef MULLE__CORE_VERSION_MIN
-#  define MULLE__CORE_VERSION_MIN  ((0UL << 20) | (8 << 8) | 0)
+#  define MULLE__CORE_VERSION_MIN  ((0UL << 20) | (8 << 8) | 1)
 # endif
 # ifndef MULLE__CORE_VERSION_MAX
 #  define MULLE__CORE_VERSION_MAX  ((0UL << 20) | (9 << 8) | 0)
@@ -25,7 +25,7 @@
 #endif
 #if defined( MULLE__CORE__ALL__LOAD_VERSION)
 # ifndef MULLE__CORE__ALL__LOAD_VERSION_MIN
-#  define MULLE__CORE__ALL__LOAD_VERSION_MIN  ((0UL << 20) | (8 << 8) | 0)
+#  define MULLE__CORE__ALL__LOAD_VERSION_MIN  ((0UL << 20) | (8 << 8) | 1)
 # endif
 # ifndef MULLE__CORE__ALL__LOAD_VERSION_MAX
 #  define MULLE__CORE__ALL__LOAD_VERSION_MAX  ((0UL << 20) | (9 << 8) | 0)
