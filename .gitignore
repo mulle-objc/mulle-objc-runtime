@@ -91,3 +91,5 @@ perf.data
 .roam
 .graveyard
 *.tmp.*
+*.test.*
+.idea
