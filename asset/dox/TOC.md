@@ -34,7 +34,7 @@
     - `__mulle_objc_global_register_universe` / `__mulle_objc_global_unregister_universe`: register named universes.
     - `mulle_objc_global_reset_universetable`: clear registered universes (cleanup).
     - `mulle_objc_global_release_defaultuniverse`: tear down all objects and release default universe.
-  - Core operations: get allocator, lookup/register classes/categories/protocols, iterate universes, add gifts.
+  - Core operations: get allocator, lookup/register classes/categories/protocols, iterate universes, add gifts (`_mulle_objc_universe_add_gift` for tracking externally-allocated objects).
   - Static instances (v21+):
     - `struct _mulle_objc_foundation` has `staticinstanceclass[ MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS]` (8 slots) replacing the old single `staticstringclass`. Slot 0 is the primary string class; slots 1-2 may be UTF8 classes when `utf8staticstrings` is set.
     - `_mulle_objc_universe_add_staticinstance( universe, instance)` — add a static instance object.
@@ -54,7 +54,7 @@
   - State bits: `IS_BORING_ALLOCATION`, `IS_MIXIN`, `IS_NOT_THREAD_AFFINE`, `INITIALIZING`, `INITIALIZE_DONE`, `FINALIZE_DONE`.
   - `_mulle_objc_class_is_mixin( cls)` — test if class is a mixin.
   - `_mulle_objc_class_get_classtypename( cls)` — returns "infraclass", "metaclass", "inframixin", or "metamixin".
-  - Lifecycle: `_mulle_objc_class_init`, `_mulle_objc_class_done`, `_mulle_objc_class_setup_pointerarrays`, `_mulle_objc_class_setup_initial_cache_if_needed`.
+  - Lifecycle: `_mulle_objc_class_init`, `_mulle_objc_class_done`, `_mulle_objc_class_setup_pointerarrays`, `_mulle_objc_class_setup_initial_cache_if_needed(cls, callback)` (see 3.12).
   - Core operations:
     - `mulle_objc_class_add_methodlist`, `_mulle_objc_class_add_methodlist_nocache`: add methods/categories.
     - `_mulle_objc_class_lookup_method` / `mulle_objc_class_lookup_method`: method lookup (uses imp caches).
@@ -78,18 +78,21 @@
   - Key fields: `methodid`, `signature`, `name`, `bits` (attributes + family + MetaABI types), `implementation` (atomic function pointer).
   - Implementation/alias union: `mulle_objc_implementation_t value` / `mulle_objc_methodid_t alias` / `mulle_atomic_functionpointer_t implementation`.
   - Method family: extracted from bits via `_mulle_objc_methodfamily_shift` (16). Families: init, dealloc, copy, etc.
-  - MetaABI type bits (v21+): `_mulle_objc_method_metaabi_rtype_mask` (bits 22-23) for return type, `_mulle_objc_method_metaabi_ptype_mask` (bits 24-25) for parameter type. Values: 0=VoidPointer, 1=Void, 2=ParameterBlock. Extract with `_mulle_objc_method_bits_get_metaabi_rtype(ptype/calltype)`, set with `_mulle_objc_method_bits_set_metaabi_types`.
+   - MetaABI type bits (v21+): `_mulle_objc_method_metaabi_rtype_mask` (bits 22-23) for return type, `_mulle_objc_method_metaabi_ptype_mask` (bits 24-25) for parameter type. Values: 0=VoidPointer, 1=Void, 2=ParameterBlock. Extract with `_mulle_objc_method_bits_get_metaabi_rtype(bits)` / `_mulle_objc_method_bits_get_metaabi_ptype(bits)`, combined with `_mulle_objc_method_bits_get_metaabi_calltype(bits)`, set with `_mulle_objc_method_bits_set_metaabi_types(bits, rType, pType)`. `_mulle_objc_descriptor_get_metaabiparamtype(desc)` / `_mulle_objc_descriptor_get_metaabirvaltype(desc)` extract from descriptor.
   - Alias bits (v21+): `_mulle_objc_method_infra_alias_on_load` (0x100) and `_mulle_objc_method_meta_alias_on_load` (0x200) — the method uses its `alias` field to find the target at load time.
-  - Operations: `_mulle_objc_method_get_implementation` / `set_implementation` / `_cas_implementation` (atomic replace), method family helpers, `_mulle_objc_descriptor_get_metaabiparamtype` / `_mulle_objc_descriptor_get_metaabirvaltype`.
+   - Operations: `_mulle_objc_method_get_implementation` / `set_implementation` / `_cas_implementation` (atomic replace), method family helpers, descriptor accessors for methodid/signature/name/bits.
+  - Thread affinity: `_mulle_objc_descriptor_is_threadaffine(desc)`, `_mulle_objc_method_is_threadaffine(method)` — check if method requires thread-local processing.
 - `struct _mulle_objc_methodlist`
   - Contiguous method array (`n_methods` + `methods[]`). Category id + origin.
   - Operations: sort, binary search vs linear search threshold (heuristic, n >= 14), enumeration, adding +load to callqueue.
 
 ### 3.6. [mulle-objc-property.h]
 - `struct _mulle_objc_property`
-  - Property descriptor with getter/setter/adder/remover methodids, ivarid and bits.
-  - Operations: accessors for name, signature, getter/setter ids, bit tests.
+  - Property descriptor with `propertyid`, `ivarid`, `name`, `signature`, getter/setter/adder/remover `methodid`s, and `bits`.
+  - Property attribute enum `enum mulle_objc_property_attribute` defines signature characters: `R`=readonly, `C`=copy, `&`=retain, `G`=getter, `S`=setter, `V`=ivar, `D`=dynamic, `N`=nonatomic, `O`=observable, `K`=container/class, etc.
+  - Key property bits: `_mulle_objc_property_readonly`, `_mulle_objc_property_retain`, `_mulle_objc_property_copy`, `_mulle_objc_property_dynamic`, `_mulle_objc_property_container`, `_mulle_objc_property_observable`, `_mulle_objc_property_setterclear`, `_mulle_objc_property_autoreleaseclear`, `_mulle_objc_property_fake`.
   - New v21+ bits: `_mulle_objc_property_forward` (0x100000) — forwarded property not synthesized by runtime.
+  - Operations: `_mulle_objc_property_get_name`, `_get_signature`, `_get_propertyid`, `_get_ivarid`, `_get_getter/setter/adder/remover`, `_get_bits`, `_is_dynamic`, `_is_readonly`, `_is_observable`, `_is_container`, `_is_forward`, etc.
   - `_mulle_objc_property_is_clearable(property)` — returns true if writable and has setter-clear or autorelease-clear semantics.
 
 ### 3.7. [mulle-objc-ivar.h]
@@ -133,7 +136,7 @@
   - Shared fields: `mixins` pointerarray (v21: renamed from `protocolclasses`), `p_protocolids`, `p_categoryids`, `lock` (for +initialize), `thread_id`, `loadclass` (type `struct _mulle_objc_loadclassbase *` in v21), `classindex`.
   - `MULLE_OBJC_CLASSPAIR_IVAR_BASE` macro (v21+): offset from `&pair->infraclass` to the start of class property ivar area appended after the classpair. Used as `(char *)self + MULLE_OBJC_CLASSPAIR_IVAR_BASE + field_offset` for class property access.
   - Lifecycle: `_mulle_objc_classpair_plusinit` / `_mulle_objc_classpair_plusdone`, `_mulle_objc_classpair_call_class_finalize`, `mulle_objc_classpair_free`.
-  - Accessors: `_mulle_objc_classpair_get_infraclass`, `_mulle_objc_classpair_get_metaclass`, `_mulle_objc_classpair_get_universe`, `_mulle_objc_classpair_get_name`, `_mulle_objc_classpair_get_classid`.
+  - Accessors: `_mulle_objc_classpair_get_infraclass`, `_mulle_objc_classpair_get_metaclass`, `_mulle_objc_classpair_get_universe`, `_mulle_objc_classpair_get_name`, `_mulle_objc_classpair_get_classid`, `_mulle_objc_classpair_get_loadclass`, `_mulle_objc_classpair_set_loadclass`, `_mulle_objc_classpair_get_origin`.
   - Reverse: `_mulle_objc_infraclass_get_classpair(infra)`, `_mulle_objc_metaclass_get_classpair(meta)`, `_mulle_objc_class_get_classpair(cls)`.
 - **Mixins** (v21: replaces protocolclasses):
   - `_mulle_objc_classpair_has_mixin(pair, proto_cls)` — check presence.
@@ -155,11 +158,10 @@
 - `struct _mulle_objc_infraclass` — inherits from `_mulle_objc_class`.
   - State bits: `MULLE_OBJC_INFRACLASS_IS_MIXIN` (v21: replaces `IS_PROTOCOLCLASS`).
 - Key functions:
-  - `mulle_objc_infraclass_is_mixin(infra)` / `mulle_objc_infraclass_check_mixin(infra)` (v21: renamed).
+  - `mulle_objc_infraclass_is_mixin(infra)` / `mulle_objc_infraclass_check_mixin(infra)` (v21: renamed from protocolclass versions).
   - `mulle_objc_infraclass_lock_classproperty(infra)` / `unlock` / `trylock` (v21+) — lock the metaclass's classpropertylock for atomic class property access.
-  - `_mulle_objc_infraclass_call_initialize_self(infra)` / `_mulle_objc_infraclass_call_deinitialize_self(infra)` (v21+) — invoke +initializeSelf/+deinitializeSelf class methods.
-  - `_mulle_objc_infraclass_call_deinitialize(infra)` — invoke +deinitialize.
   - Accessors: `_mulle_objc_infraclass_get_universe`, `get_classid`, `get_name`, `get_superclass`, `get_metaclass`, `get_classindex`.
+  - Initialize/deinitialize lifecycle functions are declared in `mulle-objc-class-initialize.h` (see 3.12).
 
 ### 3.11. [mulle-objc-metaclass.h]
 - `struct _mulle_objc_metaclass` — inherits from `_mulle_objc_class`.
@@ -181,20 +183,29 @@
   - Init/done: `_mulle_objc_metaclass_plusinit` / `_mulle_objc_metaclass_plusdone`.
 
 ### 3.12. [mulle-objc-class-initialize.h]
+- `_mulle_objc_class_setup(cls)` — force initialize/setup a class (unlaze).
 - `_mulle_objc_class_warn_recursive_initialize(cls)` — warn on recursive +initialize.
 - `_mulle_objc_infraclass_call_deinitialize(infra)` — call +deinitialize.
 - `_mulle_objc_infraclass_call_initialize_self(infra)` (v21+) — call +initializeSelf.
 - `_mulle_objc_infraclass_call_deinitialize_self(infra)` (v21+) — call +deinitializeSelf.
-- `_mulle_objc_class_setup_initial_cache_if_needed(cls, ...)` — set up impcache if not already done.
+- `_mulle_objc_class_setup_initial_cache_if_needed(cls, struct _mulle_objc_impcache_callback *callback)` — set up impcache if not already done; returns 0 if cache was already set up by someone else.
 
 ### 3.13. [mulle-objc-methodidconstants.h]
-- Built-in method IDs: `MULLE_OBJC_INIT_METHODID`, `MULLE_OBJC_LOAD_METHODID`, `MULLE_OBJC_RELEASE_METHODID`, `MULLE_OBJC_INSTANCE_METHODID`, `MULLE_OBJC_MUTABLECOPY_METHODID`, `MULLE_OBJC_INSTANTIATE_METHODID`.
-- v21 additions: `MULLE_OBJC_INITIALIZESELF_METHODID` ("initializeSelf"), `MULLE_OBJC_DEINITIALIZESELF_METHODID` ("deinitializeSelf").
+- Built-in method IDs and class IDs (hashed from selector/class name strings):
+  - Alloc/init: `MULLE_OBJC_ALLOC_METHODID`, `MULLE_OBJC_INIT_METHODID`, `MULLE_OBJC_INSTANTIATE_METHODID`.
+  - Retain/release: `MULLE_OBJC_RETAIN_METHODID`, `MULLE_OBJC_RELEASE_METHODID`, `MULLE_OBJC_AUTORELEASE_METHODID`, `MULLE_OBJC_RETAINCOUNT_METHODID`.
+  - Lifecycle: `MULLE_OBJC_INITIALIZE_METHODID`, `MULLE_OBJC_LOAD_METHODID`, `MULLE_OBJC_UNLOAD_METHODID`, `MULLE_OBJC_FINALIZE_METHODID`, `MULLE_OBJC_WILLFINALIZE_METHODID`, `MULLE_OBJC_DEALLOC_METHODID`, `MULLE_OBJC_DEINITIALIZE_METHODID`.
+  - v21 additions: `MULLE_OBJC_INITIALIZESELF_METHODID` ("initializeSelf"), `MULLE_OBJC_DEINITIALIZESELF_METHODID` ("deinitializeSelf").
+  - Copy: `MULLE_OBJC_COPY_METHODID`, `MULLE_OBJC_MUTABLECOPY_METHODID`.
+  - Other: `MULLE_OBJC_CLASS_METHODID`, `MULLE_OBJC_INSTANCE_METHODID`, `MULLE_OBJC_FORWARD_METHODID`, `MULLE_OBJC_DEPENDENCIES_METHODID`, `MULLE_OBJC_GENERIC_GETTER_METHODID`.
+  - KVO: `MULLE_OBJC_WILLCHANGE_METHODID`, `MULLE_OBJC_WILLREADRELATIONSHIP_METHODID`.
+  - Container: `MULLE_OBJC_ADDOBJECT_METHODID`, `MULLE_OBJC_REMOVEOBJECT_METHODID`.
+  - Internal: `MULLE_OBJC_MULLE_ALLOCATOR_METHODID`, `MULLE_OBJC_MULLE_COUNT_OBJECT_METHODID`, `MULLE_OBJC_MULLEOBJCDEPS_CLASSID` (class ID for MulleObjCDeps dependency check).
 
 ### 3.14. [mulle-objc-signature.h]
 - Signature/type parsing helpers:
-  - `struct mulle_objc_typeinfo`: contains `type`, `natural_size`, `natural_alignment`, `is_float`, `is_integer`, `is_void_ptr_compatible`, `has_retainable_type`.
-  - `struct mulle_methodsignature_arginfo` (v21+): captures `invocation_offset`, `natural_size`, `type_offset`, `natural_alignment`, `has_retainable_type` per argument for frame layout.
+  - `struct mulle_objc_typeinfo`: contains `type` (pointer into type string), `pure_type_end` (pointer past closed struct/union), `member_type_start` (pointer to first member type), `name`, `n_members` (0 for scalar, n for struct members/array/bitfield), `natural_size`, `bits_size`, `invocation_offset` (NSInvocation byte offset), `bits_struct_alignment`, `natural_alignment`, `has_object`, `has_retainable_type`.
+  - `struct mulle_methodsignature_arginfo` (v21+): captures `invocation_offset`, `natural_size`, `type_offset` (offset into types string), `natural_alignment`, `has_retainable_type` per argument for frame layout.
 - Core parsing:
   - `mulle_objc_signature_supply_typeinfo(type, supplier, info)` — parse one type.
   - `mulle_objc_signature_next_type(type)` — skip to next encoded type.
@@ -202,12 +213,13 @@
   - `mulle_objc_signature_count_typeinfos(types)` — count encoded type descriptors.
   - `mulle_objc_signature_fill_arginfos(types, infos, count)` (v21+) — fill array of `mulle_methodsignature_arginfo` structs.
 - MetaABI helpers:
-  - `mulle_objc_signature_get_metaabireturntype(type)` — returns `mulle_metaabi_param_error` (-1), `mulle_metaabi_param_void_pointer` (0), `mulle_metaabi_param_void` (1), or `mulle_metaabi_param_struct` (2).
+  - `mulle_objc_signature_get_metaabiparamtype(types)` — analyze full method signature to determine if _param is void, void*, or struct.
+  - `mulle_objc_signature_get_metaabireturntype(type)` — inspect return type only (not full signature); returns `mulle_metaabi_param_error` (-1), `mulle_metaabi_param_void_pointer` (0), `mulle_metaabi_param_void` (1), or `mulle_metaabi_param_struct` (2).
   - `_mulle_objc_signature_sizeof_metaabistruct(type)` (v21: renamed from `_mulle_objc_signature_sizeof_metabistruct`).
 - Value conversion helpers (v21+):
-  - `_mulle_methodsignature_arginfo_demote_value_to_natural(p, types, dst, src)` — convert from C ABI to natural size (e.g. float → double, char → int).
-  - `_mulle_methodsignature_arginfo_promote_value_from_natural(p, types, dst, src)` — convert from natural size back to C ABI.
-- Signature enumerator: `struct _mulle_objc_signatureenumerator` with helpers for iterating self, _cmd, args, and rval.
+  - `_mulle_objc_typeinfo_demote_value_to_natural(p, dst, src)` / `_mulle_objc_typeinfo_promote_value_from_natural(p, dst, src)` — convert between C ABI and natural size using typeinfo (e.g. float↔double, char↔int, sel↔methodid).
+  - `_mulle_methodsignature_arginfo_demote_value_to_natural(p, types, dst, src)` / `_mulle_methodsignature_arginfo_promote_value_from_natural(p, types, dst, src)` — same conversions using arginfo structs.
+- Signature enumerator: `struct mulle_objc_signatureenumerator` (no leading underscore) with helpers `mulle_objc_signature_enumerate`, `_mulle_objc_signatureenumerator_next`, `_mulle_objc_signatureenumerator_rval`, `_mulle_objc_signatureenumerator_done` for iterating self, _cmd, args, and rval.
 
 ### 3.15. [mulle-objc-protocol.h]
 - `struct _mulle_objc_protocol`: protocolid + name; sort/bsearch helpers; protocols live in universe tables.
@@ -219,13 +231,22 @@
   - Bulk retain/release of object arrays, finalize/dealloc helpers.
 
 ### 3.17. [mulle-metaabi.h | mulle-metaabi-call.h]
-- `enum mulle_metaabi_param`: `mulle_metaabi_param_error` = -1, `mulle_metaabi_param_void_pointer` = 0, `mulle_metaabi_param_void` = 1, `mulle_metaabi_param_struct` = 2. (v21: swapped void/void_pointer to match MulleObjCMetaABIType.)
-- `mulle_metaabi_call(p_rval, obj, sel, ...)` — macro dispatcher (v21: renamed from `mulle_metaabi_object_call`). Automatically selects the optimal calling convention based on return type and parameter count/types. Use `mulle_metaabi_void` as `p_rval` for void returns.
-- `mulle_metaabi_param_struct(...)` — define a MetaABI parameter struct for multi-arg calls.
-- `mulle_metaabi_call_return_struct(p_rval, obj, sel, param_struct)` — call that returns a struct.
+- `enum mulle_metaabi_param`: `mulle_metaabi_param_error` = -1, `mulle_metaabi_param_void_pointer` = 0, `mulle_metaabi_param_void` = 1, `mulle_metaabi_param_struct` = 2. (v21: values match MulleObjCMetaABIType.)
+- `mulle_metaabi_call(p_rval, obj, sel, ...)` — macro dispatcher (v21: renamed from `mulle_metaabi_object_call`). Automatically selects the optimal calling convention based on return type and parameter count/types. Use `mulle_metaabi_void` as `p_rval` for void returns. Handles void-return, voidptr-return, and struct-return paths transparently via compile-time type analysis — no separate `_call_return_struct` macro needed.
+- `mulle_metaabi_return(rval, _param)` — companion macro for implementing methods that return void*. Handles struct, voidptr, and integer return values in method bodies.
+- `mulle_metaabi_param_struct(...)` — define a MetaABI parameter struct type for multi-arg calls.
+- `mulle_metaabi_get_parameter_n(p_value, _param, ...)` — extract a named parameter from a _param struct.
+- `mulle_metaabi_get_voidptr_parameter(p_value, _param)` — extract a single voidptr-compatible parameter.
+- `MULLE_METAABI_STRUCT_FIELD(expr, s)` / `MULLE_METAABI_STRUCT_VALUE(expr, s)` — helper macros for defining struct fields / initializers within MetaABI parameter structs.
 - `mulle-metaabi-call.h` requires C23 (`__VA_OPT__`), guarded by `#if MULLE_C_HAS_VA_OPT`. Include it explicitly when needed.
-- `mulle_metaabi_is_voidptr_storage_compatible` / `mulle_metaabi_is_voidptr_compatible_expression` / `mulle_metaabi_is_voidptr_compatible_return_expression` (v21+) — static checks for small-enough non-struct types.
+
+From `mulle-metaabi.h` (always available, no C23 required):
+- `mulle_metaabi_is_int(expr)`, `mulle_metaabi_zero_non_int(expr, value)`, `mulle_metaabi_zero_fp(expr, value)` (from call.h, C23 required) — type-generic helpers for MetaABI argument/return packing.
+- `mulle_metaabi_is_fp_expression(expr)` — `_Generic`-based float/double detection.
+- `mulle_metaabi_is_voidptr_storage_compatible(type_or_expr)` — true if type fits in void* and alignment is compatible.
+- `mulle_metaabi_is_voidptr_compatible_expression(expr)` — voidptr-storage-compatible AND not floating-point.
 - `mulle_metaabi_is_struct_expression(expr)` (v21+) — uses `__builtin_classify_type` to detect structs for return value handling.
+- `mulle_metaabi_is_voidptr_compatible_return_expression(expr)` (v21+) — voidptr-compatible AND not a struct (structs always use struct-return convention).
 
 ## 4. Performance Characteristics
 
@@ -372,4 +393,4 @@ int   call_getCount( void *obj)
 
 ## 8. Shortcut
 
-- If an existing TOC.md is present, prefer to inspect its commit history. This file was updated to reflect v21 runtime changes: mixins replace protocol classes, metaclass class properties/variables, +initializeSelf/+deinitializeSelf lifecycle, method MetaABI bits, static instance multi-slot system, loadinfo v21 fields, MethodSignatureArgInfo for frame layout, and MetaABI call macro modernization.
+- If an existing TOC.md is present, prefer to inspect its commit history. This file was last updated at commit e51c9a5 (v21 runtime changes). Corrections applied for accuracy: fixed `struct mulle_objc_typeinfo` fields (had invented `is_float`/`is_integer`/`is_void_ptr_compatible`), fixed signature enumerator name (drop leading `_`), removed non-existent `mulle_metaabi_call_return_struct` macro, moved initializeSelf/deinitializeSelf functions to correct header, fixed `_mulle_objc_class_setup_initial_cache_if_needed` signature, expanded methodID constants list, added missing MetaABI introspection macros, added classpair loadclass/origin accessors and method threadaffine checks.
