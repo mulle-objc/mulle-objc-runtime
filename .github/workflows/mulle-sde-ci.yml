@@ -37,7 +37,7 @@ jobs:
 
     - uses: mulle-sde/github-ci@v2
 
-    - uses: mulle-cc/github-ci@v10
+    - uses: mulle-cc/github-ci@v11
 
     - name: Dump Project Environment
       run:  |
