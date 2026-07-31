@@ -1,0 +1,10 @@
+#!/bin/sh
+
+#
+# when the result is -0.00000000000001 and we print %0.1f then we get -0.0
+# which diffs badly, we transform this into 0.0 (miniscule platform
+# differences)
+#
+exec sed -e 's/-0\.\(0\+\)\([^0-9]\|$\)/0.\1\2/g; s/-0\([^.0-9]\|$\)/0\1/g' \
+         -e 's/-nan/nan/g' \
+         "$@"
