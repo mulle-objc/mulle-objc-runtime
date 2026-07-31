@@ -248,6 +248,305 @@ From `mulle-metaabi.h` (always available, no C23 required):
 - `mulle_metaabi_is_struct_expression(expr)` (v21+) — uses `__builtin_classify_type` to detect structs for return value handling.
 - `mulle_metaabi_is_voidptr_compatible_return_expression(expr)` (v21+) — voidptr-compatible AND not a struct (structs always use struct-return convention).
 
+### 3.18. [mulle-objc-call.h] — Method Call Infrastructure
+
+- Purpose: core dynamic dispatch — generates calls from `obj + methodid + parameter` into the impleentation cache then invokes the resolved IMP.
+
+- Non-inline call:
+  - `void  *mulle_objc_object_call(void *obj, mulle_objc_methodid_t methodid, void *parameter);`
+  - `void  *_mulle_objc_object_call(void *obj, mulle_objc_methodid_t methodid, void *parameter);`
+
+- Inline call variants (increasing aggressiveness; compiler selects based on `-fobjc-inline-method-calls=` level):
+  - `void  *mulle_objc_object_call_inline_minimal(void *obj, mulle_objc_methodid_t methodid, void *parameter);` — nil_check + dispatch.
+  - `void  *mulle_objc_object_call_inline_partial(void *obj, mulle_objc_methodid_t methodid, void *parameter);` — inline FCS check + cache probe with callback fallback.
+  - `void  *mulle_objc_object_call_inline(void *obj, mulle_objc_methodid_t methodid, void *parameter);` — inline cache lookup with collision callback.
+  - `void  *mulle_objc_object_call_inline_full(void *obj, mulle_objc_methodid_t methodid, void *parameter);` — full inline loop through cache until hit/miss.
+  - `void  *mulle_objc_object_call_inline_variable(void *obj, mulle_objc_methodid_t methodid, void *parameter);` — inline but skips FCS (best for variable selectors).
+  - `void  *mulle_objc_object_call_inline_full_variable(void *obj, mulle_objc_methodid_t methodid, void *parameter);`
+
+- Super call variants:
+  - `void  *mulle_objc_object_call_super(void *obj, mulle_objc_methodid_t methodid, void *parameter, mulle_objc_superid_t superid);`
+  - `void  *mulle_objc_object_call_super_inline(void *obj, mulle_objc_methodid_t methodid, void *parameter, mulle_objc_superid_t superid);`
+  - `void  *mulle_objc_object_call_super_inline_full(void *obj, mulle_objc_methodid_t methodid, void *parameter, mulle_objc_superid_t superid);`
+  - `void  *mulle_objc_object_call_super_inline_partial(void *obj, mulle_objc_methodid_t methodid, void *parameter, mulle_objc_superid_t superid);`
+
+- Batch call:
+  - `void  mulle_objc_objects_call(void **objects, unsigned int n, mulle_objc_methodid_t sel, void *params);`
+
+- Implementation invoke:
+  - `void  *mulle_objc_implementation_invoke(mulle_objc_implementation_t imp, void *self, mulle_objc_methodid_t sel, void *parameter);` (inline)
+  - `void  *mulle_objc_implementation_invoke(mulle_objc_implementation_t imp, void *self, mulle_objc_methodid_t sel, void *parameter);` (with debug trace)
+
+- Debug/trace:
+  - `void  mulle_objc_implementation_trace(mulle_objc_implementation_t imp, void *obj, mulle_objc_methodid_t methodid, void *parameter, struct _mulle_objc_class *cls);`
+  - `void  mulle_objc_object_taocheck_call(void *obj, mulle_objc_methodid_t methodid);`
+
+### 3.19. [mulle-objc-builtin.h] — Compiler Builtins & Property Accessors
+
+- Purpose: compiler-facing shortcuts for common operations (copy/retain/release/KVO/container), property accessor strategy flags, and compiler-synthesized property getter/setter logic.
+
+- Standard call shortcuts:
+  - `void  *mulle_objc_object_call_copy(void *self);`
+  - `void  *mulle_objc_object_call_mutablecopy(void *self);`
+  - `void  *mulle_objc_object_call_mulle_allocator(void *self);`
+  - `void  *mulle_objc_object_call_autorelease(void *self);`
+  - `void   mulle_objc_object_call_willchange(void *self);`
+  - `void  *mulle_objc_object_call_willreadrelationship(void *self, void *value);`
+  - `void   mulle_objc_object_call_addobject(void *self, void *value);`
+  - `void   mulle_objc_object_call_removeobject(void *self, void *value);`
+
+- Property accessor strategy enum:
+  - `mulle_objc_property_accessor_autorelease` (0x0), `mulle_objc_property_accessor_noautorelease` (0x1), `mulle_objc_property_accessor_atomic` (0x2), `mulle_objc_property_accessor_copy` (0x4), `mulle_objc_property_accessor_mutable_copy` (0x8).
+
+- Compiler-synthesized property accessors:
+  - `void  mulle_objc_object_set_property_value(void *self, mulle_objc_methodid_t _cmd, ptrdiff_t offset, struct _mulle_objc_object *value, int strategy);`
+  - `void  *mulle_objc_object_get_property_value(void *self, mulle_objc_methodid_t _cmd, ptrdiff_t offset, int strategy);`
+
+- Container (to-many) helpers:
+  - `void  mulle_objc_object_add_to_container(void *self, ptrdiff_t offset, void *value);`
+  - `void  mulle_objc_object_remove_from_container(void *self, ptrdiff_t offset, void *value);`
+
+- KVO helpers:
+  - `void  mulle_objc_object_will_change(void *self);`
+  - `void  mulle_objc_object_will_read_relationship(void *self, ptrdiff_t offset);`
+
+### 3.20. [mulle-objc-cache.h | mulle-objc-impcache.h] — Cache Subsystem
+
+- `struct _mulle_objc_cacheentry`: `key` / `value` union pair for pointer or function-pointer lookups. Fixed-size entries so `mask = (size-1) * sizeof(entry)` (pre-shifted for direct byte-offset AND).
+- `struct _mulle_objc_cache`: `n` (atomic count), `size`, `mask`, `entries[1]` (variable-length). Uses open-addressing / linear-probe hash.
+- `struct _mulle_objc_cachepivot`: `entries` (atomic pointer into cache.entries). Allows atomic cache replacement via CAS.
+  - `_mulle_objc_cachepivot_get_entries_atomic(p)` / `_mulle_objc_cachepivot_get_cache_atomic(p)`.
+  - `_mulle_objc_cachepivot_cas_entries(p, new, old)` — atomic compare-and-swap of entries pointer.
+  - `_mulle_objc_cachepivot_swap(pivot, cache, old_cache, allocator)` — swap pivot to new cache, ABA-safe-free old.
+- Cache operations:
+  - `mulle_objc_cache_new(size, allocator)` / `_mulle_objc_cache_free` / `_mulle_objc_cache_abafree`.
+  - `_mulle_objc_cache_probe_pointer(cache, uniqueid)` / `_mulle_objc_cache_probe_functionpointer`.
+  - `_mulle_objc_cache_add_pointer_entry` / `_mulle_objc_cache_add_functionpointer_entry` (active), and `*_inactive` variants.
+  - `_mulle_objc_cache_get_count/size/mask`.
+  - `mulle_objc_cache_calculate_fillpercentage` / `mulle_objc_cache_calculate_hits` — stats.
+  - `_mulle_objc_cache_grow_with_strategy(cache, strat, allocator)` — grow/shrink cache.
+- `struct _mulle_objc_impcache_callback`: callback vector with `call`, `call_cache_collision`, `call_cache_miss`, `refresh_method_nofail`, `supercall`, `supercall_cache_collision`, `supercall_cache_miss`, `refresh_supermethod_nofail`, `userinfo`.
+- `struct _mulle_objc_impcache`: embeds `callback` + `_mulle_objc_cache cache`.
+- `struct _mulle_objc_impcachepivot`: wraps `_mulle_objc_cachepivot pivot`.
+  - `mulle_objc_impcache_new(size, callback, allocator)` / `_mulle_objc_impcache_free`.
+  - `_mulle_objc_impcachepivot_fill(cachepivot, imp, uniqueid, strategy, universe)` — populate entry, grow if needed.
+  - `_mulle_objc_impcachepivot_convenient_swap(cachepivot, newcache, universe)` — atomic cache swap (preferred).
+  - `_mulle_objc_impcachepivot_probe_inline` / `_mulle_objc_impcachepivot_lookup_inline_full` — inline cache probes without callback fallback.
+- Constants: `MULLE_OBJC_MIN_CACHE_SIZE` (4), `MULLE_OBJC_DEFAULT_CACHE_SIZE` (8), `MULLE_OBJC_MAX_CACHE_SIZE` (4M).
+- `enum mulle_objc_cachesizing_t`: `SHRINK` (-1), `STAGNATE` (0), `GROW` (2).
+
+### 3.21. [mulle-objc-class-lookup.h] — Class Method Lookup (Cache-Aware)
+
+- Purpose: cache-probe-first then search-and-fill-on-miss resolution. Primary interface for getting implementations from a class.
+
+- Cache probe:
+  - `struct _mulle_objc_cacheentry  *_mulle_objc_class_probe_cacheentry_inline(struct _mulle_objc_class *cls, mulle_objc_superid_t methodid);`
+  - `mulle_objc_implementation_t  _mulle_objc_class_probe_implementation_inline(struct _mulle_objc_class *cls, mulle_objc_superid_t methodid);`
+  - `mulle_objc_implementation_t  _mulle_objc_class_probe_implementation(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);` (non-inline)
+
+- Lookup variants:
+  - `mulle_objc_implementation_t  _mulle_objc_class_lookup_implementation(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);` — returns forward: if nothing found.
+  - `mulle_objc_implementation_t  _mulle_objc_class_lookup_implementation_nofail(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);` — no fail if no forward.
+  - `mulle_objc_implementation_t  _mulle_objc_class_lookup_implementation_nofill(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);` — probe only, no cache fill.
+  - `mulle_objc_implementation_t  _mulle_objc_class_lookup_implementation_noforward(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);` — fill cache but no forward:.
+
+- Refresh (search + update cache, bypass probe):
+  - `mulle_objc_implementation_t  _mulle_objc_class_refresh_implementation_nofail(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);`
+  - `struct _mulle_objc_method  *_mulle_objc_class_refresh_method_nofail(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);`
+  - `struct _mulle_objc_method  *_mulle_objc_class_refresh_supermethod_nofail(struct _mulle_objc_class *cls, mulle_objc_superid_t superid);`
+
+- Super lookup:
+  - `mulle_objc_implementation_t  _mulle_objc_class_lookup_superimplementation_nofail(struct _mulle_objc_class *cls, mulle_objc_superid_t superid);`
+  - `mulle_objc_implementation_t  _mulle_objc_class_lookup_superimplementation_inline_nofail(struct _mulle_objc_class *cls, mulle_objc_superid_t superid);`
+  - `mulle_objc_implementation_t  _mulle_objc_object_lookup_superimplementation_nofail(void *obj, mulle_objc_superid_t superid);`
+
+### 3.22. [mulle-objc-class-search.h] — Class Method Search (Uncached)
+
+- Purpose: authoritative uncached method search through the class/methodlist hierarchy. Used for super calls, overridden method lookup, and forwarding setup.
+
+- Search modes:
+  - `MULLE_OBJC_SEARCH_DEFAULT` (0), `MULLE_OBJC_SEARCH_IMP` (1), `MULLE_OBJC_SEARCH_SUPER_METHOD` (2), `MULLE_OBJC_SEARCH_OVERRIDDEN_METHOD` (3), `MULLE_OBJC_SEARCH_SPECIFIC_METHOD` (4), `MULLE_OBJC_SEARCH_PREVIOUS_METHOD` (5).
+
+- `struct _mulle_objc_searchargumentscachable`: `mode`, `methodid`, `classid`, `categoryid` — composable search key.
+- `struct _mulle_objc_searcharguments`: extends cachable with `imp`, `previous_method`, `stop_classid`, `callback`, `userinfo`, `initialize`.
+- `struct _mulle_objc_searchresult`: `class`, `list`, `method`, `error`.
+
+- Factory functions:
+  - `mulle_objc_searcharguments_make_default(methodid)`, `mulle_objc_searcharguments_make_super(methodid, classid)`, `mulle_objc_searcharguments_make_overridden(methodid, classid, category)`, `mulle_objc_searcharguments_make_specific(methodid, classid, category)`, `mulle_objc_searcharguments_make_imp(imp)`.
+
+- Core search:
+  - `struct _mulle_objc_method  *mulle_objc_class_search_method(struct _mulle_objc_class *cls, struct _mulle_objc_searcharguments *search, unsigned int inheritance, struct _mulle_objc_searchresult *result);`
+  - `struct _mulle_objc_method  *mulle_objc_class_defaultsearch_method(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);`
+  - `struct _mulle_objc_method  *mulle_objc_class_search_method_nofail(struct _mulle_objc_class *cls, mulle_objc_methodid_t methodid);` — falls back to forward:.
+
+- Super search:
+  - `struct _mulle_objc_method  *_mulle_objc_class_supersearch_method(struct _mulle_objc_class *cls, mulle_objc_superid_t superid);`
+  - `struct _mulle_objc_method  *_mulle_objc_class_supersearch_method_nofail(struct _mulle_objc_class *cls, mulle_objc_superid_t superid);`
+
+- Forwarding:
+  - `mulle_objc_implementation_t  mulle_objc_class_get_forwardimplementation(struct _mulle_objc_class *cls);`
+  - `struct _mulle_objc_method  *_mulle_objc_class_get_forwardmethod_lazy_nofail(struct _mulle_objc_class *cls, mulle_objc_methodid_t missing_method);`
+
+- Fatal errors:
+  - `MULLE_C_NO_RETURN void  _mulle_objc_class_fail_methodnotfound(struct _mulle_objc_class *cls, mulle_objc_methodid_t missing_method);`
+  - `MULLE_C_NO_RETURN void  _mulle_objc_class_fail_forwardmethodnotfound(struct _mulle_objc_class *cls, mulle_objc_methodid_t missing_method, int error);`
+
+- Clobber-chain enumeration (iterates each override of a method in inheritance order):
+  - `struct mulle_objc_clobberchainenumerator` with `mulle_objc_class_clobberchain_enumerate(cls, methodid)`, `_mulle_objc_clobberchainenumerator_next(rover, &imp)`, `mulle_objc_clobberchainenumerator_done(rover)`.
+  - Macro: `mulle_objc_class_clobberchain_for(cls, sel, item)`.
+
+### 3.23. [mulle-objc-class-convenience.h | mulle-objc-object-convenience.h] — Instance Allocation & Object Convenience
+
+- Purpose: object instance allocation/deallocation helpers and object-level ISA convenience wrappers.
+
+- Instance creation (zeroed / non-zeroed):
+  - `void  *mulle_objc_infraclass_alloc_instance(struct _mulle_objc_infraclass *infra);` — nil-safe, zeroed alloc.
+  - `void  *mulle_objc_infraclass_alloc_instance_extra(struct _mulle_objc_infraclass *infra, size_t extra);`
+  - `void  *_mulle_objc_infraclass_alloc_instance_extra_nonzeroed(struct _mulle_objc_infraclass *infra, size_t extra);`
+  - `void  *_mulle_objc_infraclass_allocator_alloc_instance_extra(struct _mulle_objc_infraclass *infra, size_t extra, struct mulle_allocator *allocator);`
+
+- Instance destruction:
+  - `void  mulle_objc_instance_free(void *obj);` — nil-safe.
+  - `void  _mulle_objc_instance_free(void *obj);` — non-nil.
+  - `void  _mulle_objc_infraclass_allocator_free_instance(struct _mulle_objc_infraclass *infra, void *obj, struct mulle_allocator *allocator);`
+
+- Low-level allocator wrappers (with reuse support):
+  - `void  *_mulle_objc_infraclass_alloc_calloc(struct _mulle_objc_infraclass *infra, size_t size, struct mulle_allocator *allocator);`
+  - `void  *_mulle_objc_infraclass_alloc_malloc(struct _mulle_objc_infraclass *infra, size_t size, struct mulle_allocator *allocator);`
+
+- Object-level conveniences:
+  - `char  *_mulle_objc_object_get_isa_name(void *obj);`
+  - `mulle_objc_implementation_t  _mulle_objc_object_probe_implementation(void *obj, mulle_objc_methodid_t methodid);`
+  - `mulle_objc_implementation_t  _mulle_objc_object_lookup_implementation(void *obj, mulle_objc_methodid_t methodid);` — full lookup with fill.
+  - `mulle_objc_implementation_t  _mulle_objc_object_lookup_implementation_no_forward(void *obj, mulle_objc_methodid_t methodid);`
+  - `struct _mulle_objc_method  *_mulle_objc_object_search_method_default(void *obj, mulle_objc_methodid_t methodid);`
+  - `struct mulle_allocator  *_mulle_objc_instance_get_allocator(void *obj);`
+  - `int  mulle_objc_object_conformsto_protocolid(void *obj, mulle_objc_protocolid_t protocolid);`
+
+### 3.24. [mulle-objc-taggedpointer.h] — Tagged Pointers (TPS)
+
+- Purpose: encode small values (integers, floats, doubles) directly into pointer space. The bottom 2 bits (32-bit) or 3 bits (64-bit) carry the tag index; remaining bits hold the value.
+
+- Configuration:
+  - `unsigned int  mulle_objc_get_taggedpointer_mask(void);` — 0x3 (32-bit) / 0x7 (64-bit).
+  - `unsigned int  mulle_objc_get_taggedpointer_shift(void);` — 2 or 3.
+  - `unsigned int  mulle_objc_taggedpointer_get_index(void *pointer);`
+
+- NSUInteger:
+  - `int  mulle_objc_taggedpointer_is_valid_unsigned_value(uintptr_t value);`
+  - `void  *mulle_objc_create_unsigned_taggedpointer(uintptr_t value, unsigned int index);`
+  - `uintptr_t  mulle_objc_taggedpointer_get_unsigned_value(void *pointer);`
+
+- NSInteger:
+  - `int  mulle_objc_taggedpointer_is_valid_signed_value(intptr_t value);`
+  - `void  *mulle_objc_create_signed_taggedpointer(intptr_t value, unsigned int index);`
+  - `intptr_t  mulle_objc_taggedpointer_get_signed_value(void *pointer);`
+
+- double (64-bit only):
+  - `void  *mulle_objc_create_double_taggedpointer(double d, unsigned int index);`
+  - `double  mulle_objc_taggedpointer_get_double_value(void *pointer);`
+
+- float:
+  - `void  *mulle_objc_create_float_taggedpointer(float f, unsigned int index);`
+  - `float  mulle_objc_taggedpointer_get_float_value(void *pointer);`
+
+### 3.25. [mulle-objc-super.h] — Super Call Structures
+
+- `struct _mulle_objc_super`: `superid` (hash of class+method+category), `name`, `classid`, `methodid`.
+- `struct _mulle_objc_superlist`: `n_supers` + `supers[1]` variable array.
+- Accessors:
+  - `mulle_objc_superid_t  _mulle_objc_super_get_superid(struct _mulle_objc_super *p);`
+  - `mulle_objc_classid_t  _mulle_objc_super_get_classid(struct _mulle_objc_super *p);`
+  - `mulle_objc_methodid_t  _mulle_objc_super_get_methodid(struct _mulle_objc_super *p);`
+  - `char  *_mulle_objc_super_get_name(struct _mulle_objc_super *p);`
+- Hashing: `mulle_objc_superid_t  mulle_objc_superid_from_classid_and_categoryname(mulle_objc_classid_t classid, char *s);`
+- Validation: `int  mulle_objc_super_is_sane(struct _mulle_objc_super *p);`
+
+### 3.26. [mulle-objc-try-catch-finally.h] — Exception Handling
+
+- Purpose: compiler-facing runtime for `@try`/`@catch`/`@finally`. Known as builtins by mulle-clang.
+
+- Functions:
+  - `void  mulle_objc_exception_throw(void *exception, mulle_objc_universeid_t universe);`
+  - `void  mulle_objc_exception_tryenter(void *localExceptionData, mulle_objc_universeid_t universe);`
+  - `void  mulle_objc_exception_tryexit(void *localExceptionData, mulle_objc_universeid_t universe);`
+  - `void  *mulle_objc_exception_extract(void *localExceptionData, mulle_objc_universeid_t universe);`
+  - `int  mulle_objc_exception_match(void *exception, mulle_objc_universeid_t universeid, mulle_objc_classid_t classid);` — short-circuits for NSException classid.
+  - `int  _mulle_objc_exception_match(void *exception, mulle_objc_universeid_t universe, mulle_objc_classid_t classid);`
+
+### 3.27. [mulle-objc-version.h] — Runtime Version
+
+- `MULLE_OBJC_RUNTIME_VERSION` = `((0UL << 20) | (29 << 8) | 0)`
+- `MULLE_OBJC_RUNTIME_VERSION_MAJOR` (0), `MULLE_OBJC_RUNTIME_VERSION_MINOR` (29), `MULLE_OBJC_RUNTIME_VERSION_PATCH` (0) — read by the compiler at compile time.
+- `mulle_objc_version_get_major/minor/patch(uint32_t version)` — extract fields at runtime.
+
+### 3.28. [mulle-objc-universe-class.h] — Universe Class Lookup
+
+- Purpose: 4-stage pipeline to resolve `classid` → `struct _mulle_objc_infraclass *`: FastClass → classcache → classtable → user callback.
+
+- Naming convention: `_probe_` = cache only, no fill; `_refresh_` = fill cache from classtable; `_lookup_` = probe + refresh; `_fill_` = fill directly; `_nofast` = skip fastclass table.
+
+- Core lookup:
+  - `struct _mulle_objc_infraclass  *_mulle_objc_universe_lookup_infraclass(struct _mulle_objc_universe *universe, mulle_objc_classid_t classid);`
+  - `struct _mulle_objc_infraclass  *_mulle_objc_universe_lookup_infraclass_inline(struct _mulle_objc_universe *universe, mulle_objc_classid_t classid);`
+  - `struct _mulle_objc_infraclass  *mulle_objc_universe_lookup_infraclass_nofail(struct _mulle_objc_universe *universe, mulle_objc_classid_t classid);`
+
+- Refresh:
+  - `struct _mulle_objc_cacheentry  *_mulle_objc_universe_fill_classcache(struct _mulle_objc_universe *universe, struct _mulle_objc_infraclass *infra);`
+  - `struct _mulle_objc_cacheentry  *_mulle_objc_universe_refresh_classcache(struct _mulle_objc_universe *universe, mulle_objc_classid_t classid);`
+  - `struct _mulle_objc_cacheentry  *_mulle_objc_universe_refresh_classcache_nofail(...);`
+
+- Global conveniences:
+  - `struct _mulle_objc_infraclass  *mulle_objc_global_lookup_infraclass_inline_nofail(mulle_objc_universeid_t universeid, mulle_objc_classid_t classid);`
+  - `struct _mulle_objc_infraclass  *mulle_objc_global_lookup_infraclass_nofail(mulle_objc_universeid_t universeid, mulle_objc_classid_t classid);`
+
+- Object conveniences:
+  - `struct _mulle_objc_infraclass  *mulle_objc_object_lookup_infraclass_inline_nofail(void *obj, mulle_objc_universeid_t universeid, mulle_objc_classid_t classid);`
+
+### 3.29. [mulle-objc-universe-fail.h] — Fatal Error Handling
+
+- Purpose: runtime crash-printing and vectored failure handlers (can be overridden per universe). All functions are `MULLE_C_NO_RETURN`.
+
+- Generic fails:
+  - `void  mulle_objc_universe_fail_code(struct _mulle_objc_universe *universe, int errnocode);`
+  - `void  mulle_objc_universe_fail_generic(struct _mulle_objc_universe *universe, char *format, ...);`
+  - `void  mulle_objc_universe_fail_inconsistency(struct _mulle_objc_universe *universe, char *format, ...);`
+
+- Vectored fails (can be intercepted):
+  - `void  mulle_objc_universe_fail_classnotfound(struct _mulle_objc_universe *universe, mulle_objc_classid_t classid);`
+  - `void  mulle_objc_universe_fail_methodnotfound(struct _mulle_objc_universe *universe, struct _mulle_objc_class *class, mulle_objc_methodid_t methodid);`
+  - `void  mulle_objc_universe_fail_supernotfound(struct _mulle_objc_universe *universe, mulle_objc_superid_t superid);`
+  - `void  mulle_objc_universe_fail_wrongthread(struct _mulle_objc_universe *universe, struct _mulle_objc_object *obj, mulle_thread_id_t affinity_thread, struct _mulle_objc_descriptor *desc);`
+
+- Low-level abort (non-vectored, cannot be intercepted):
+  - `void  _mulle_objc_printf_abort(char *format, ...);`
+  - `void  _mulle_objc_universe_abort_classnotfound(...);` / `_abort_methodnotfound(...);` / `_abort_supernotfound(...);`
+
+### 3.30. [mulle-objc-fastmethodtable.h | mulle-objc-fastclasstable.h] — Fast Class/Method Tables (FCS)
+
+- Conditionally compiled under `__MULLE_OBJC_FCS__`. Provides O(1) vtable-based dispatch bypassing the cache.
+
+- `struct _mulle_objc_fastmethodtable`: `union _mulle_objc_atomicmethodpointer_t methods[24]` — embedded in every class struct. Slots 0-5: `alloc` (0), `init` (1), `finalize` (2), `dealloc` (3), `instance` (4), `autorelease` (5). Slots 6-23 configurable by Foundation via `MULLE_OBJC_FASTMETHODHASH_n` macros.
+  - `void  _mulle_objc_fastmethodtable_init(struct _mulle_objc_fastmethodtable *table);`
+  - `int  mulle_objc_get_fastmethodtable_index(mulle_objc_methodid_t methodid);` — returns -1 if not a fast method.
+
+- `struct _mulle_objc_fastclasstable`: `union _mulle_objc_atomicclasspointer_t classes[64]` — one per universe. Configurable slots via `MULLE_OBJC_FASTCLASSHASH_n` macros.
+  - `struct _mulle_objc_infraclass  *mulle_objc_fastclasstable_get_infraclass(struct _mulle_objc_fastclasstable *table, unsigned int i);`
+  - `struct _mulle_objc_infraclass  *mulle_objc_fastclasstable_get_infraclass_nofail(struct _mulle_objc_fastclasstable *table, unsigned int i);`
+  - `int  mulle_objc_get_fastclasstable_index(mulle_objc_classid_t classid);` — returns -1 if not a fast class.
+
+### 3.31. [mulle-objc-kvccache.h] — KVC Cache
+
+- Purpose: caches resolved KVC accessor lookups (get/take/storedGet/storedTake) for string keys, used by Foundation's KVO/KVC implementation.
+
+- `struct _mulle_objc_kvcinfo`: `implementation[4]`, `methodid[4]`, `offset`, `valueType[4]`, `cKey[1]` (flexible array).
+  - `struct _mulle_objc_kvcinfo  *_mulle_objc_kvcinfo_new(char *cKey, struct mulle_allocator *allocator);`
+- `struct _mulle_objc_kvccache`: wraps `_mulle_objc_cache base`.
+- `struct _mulle_objc_kvccachepivot`: `entries` (atomic pointer).
+  - `struct _mulle_objc_kvcinfo  *_mulle_objc_kvccache_lookup_kvcinfo(struct _mulle_objc_kvccache *cache, char *key);`
+  - `int  _mulle_objc_kvccachepivot_invalidate(struct _mulle_objc_kvccachepivot *pivot, struct _mulle_objc_kvccache *empty_cache, struct mulle_allocator *allocator);`
+  - `int  _mulle_objc_kvccachepivot_set_kvcinfo(struct _mulle_objc_kvccachepivot *pivot, struct _mulle_objc_kvcinfo *info, struct _mulle_objc_kvccache *empty_cache, struct mulle_allocator *allocator);`
+
 ## 4. Performance Characteristics
 
 - Method dispatch: optimized via per-class imp caches and optional fastmethod tables. Cache hit is effectively O(1). Cold lookup may walk methodlists: binary search O(log n) for large lists (n >= 14), linear scan O(n) for small.
@@ -393,4 +692,4 @@ int   call_getCount( void *obj)
 
 ## 8. Shortcut
 
-- If an existing TOC.md is present, prefer to inspect its commit history. This file was last updated at commit e51c9a5 (v21 runtime changes). Corrections applied for accuracy: fixed `struct mulle_objc_typeinfo` fields (had invented `is_float`/`is_integer`/`is_void_ptr_compatible`), fixed signature enumerator name (drop leading `_`), removed non-existent `mulle_metaabi_call_return_struct` macro, moved initializeSelf/deinitializeSelf functions to correct header, fixed `_mulle_objc_class_setup_initial_cache_if_needed` signature, expanded methodID constants list, added missing MetaABI introspection macros, added classpair loadclass/origin accessors and method threadaffine checks.
+- Last committed at 9cdf1f4. Updated to cover all public headers in the umbrella `<mulle-objc-runtime/mulle-objc-runtime.h>`. Added sections 3.18–3.31 covering: call infrastructure (call.h), compiler builtins (builtin.h), cache/impcache subsystem (cache.h, impcache.h), class method lookup (class-lookup.h), class method search (class-search.h), instance allocation/object convenience (class-convenience.h, object-convenience.h), tagged pointers (taggedpointer.h), super call structures (super.h), exception handling (try-catch-finally.h), runtime version (version.h), universe class lookup (universe-class.h), fatal error handling (universe-fail.h), fast class/method tables FCS (fastmethodtable.h, fastclasstable.h), and KVC cache (kvccache.h).

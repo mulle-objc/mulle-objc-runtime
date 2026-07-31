@@ -2,6 +2,8 @@
 
 
 
+
+
 * support for @property( class) added
 
 * fix poser leak, rename ``_mulle_objc_signature_sizeof_metabistruct`` to ..metaabistruct
