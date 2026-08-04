@@ -1,11 +1,11 @@
 //
-//  mulle_objc_infraclass.h
+//  mulle-objc-infraclass.c
 //  mulle-objc-runtime
 //
-//  Created by Nat! on 17/04/07
-//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2018 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:

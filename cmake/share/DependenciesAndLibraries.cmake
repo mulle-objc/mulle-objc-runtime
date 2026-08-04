@@ -17,7 +17,12 @@ include( _Libraries OPTIONAL)
 # If we are in an IDE like CLion and the dependencies haven't been made yet
 # cmake is unhappy, try to avoid that.
 #
-if( IS_DIRECTORY "${DEPENDENCY_DIR}")
+# When we are added with add_subdirectory there is no DEPENDENCY_DIR and there
+# doesn't need to be one. Our dependencies are then expected to resolve to
+# cmake targets, which _Dependencies looks for before it falls back to
+# find_library. So run it in that case too.
+#
+if( IS_DIRECTORY "${DEPENDENCY_DIR}" OR NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
    include( _Dependencies OPTIONAL)
 else()
    message( STATUS "DEPENDENCY_DIR \"${DEPENDENCY_DIR}\" is missing, so no dependencies")

@@ -1,10 +1,11 @@
 //
-//  mulle_objc_universe_csvdump.c
-//  mulle-objc-debug-universe
+//  mulle-objc-csvdump.c
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 16.05.17.
-//  Copyright © 2017 Mulle kybernetiK. All rights reserved.
-//  Copyright © 2017 Codeon GmbH. All rights reserved.
+//  Copyright (c) 2023 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
+//  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:

@@ -1,5 +1,5 @@
 //
-//  mulle-objc-class-initialize.c
+//  mulle-objc-class-initialize.h
 //  mulle-objc-runtime
 //
 //  Copyright (c) 2021 Nat! - Mulle kybernetiK.

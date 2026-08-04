@@ -1,5 +1,5 @@
 //
-//  mulle-objc-infraclass-reuse.c
+//  mulle-objc-infraclass-reuse.h
 //  mulle-objc-runtime
 //
 //  Copyright (c) 2023 Nat! - Mulle kybernetiK.

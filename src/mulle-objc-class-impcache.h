@@ -1,8 +1,8 @@
 //
-//  mulle-objc-class-impcache.c
+//  mulle-objc-class-impcache.h
 //  mulle-objc-runtime
 //
-//  Copyright (c) 2021-2024 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2024 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2021-2024 Codeon GmbH.
 //  All rights reserved.
 //
