@@ -1,5 +1,5 @@
 //
-//  mulle-objc-class-lookup.c
+//  mulle-objc-class-lookup.h
 //  mulle-objc-runtime
 //
 //  Copyright (c) 2021 Nat! - Mulle kybernetiK.

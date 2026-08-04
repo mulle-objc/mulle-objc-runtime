@@ -1,10 +1,11 @@
 //
-//  mulle_objc_super.h
+//  mulle-objc-super.h
 //  mulle-objc-runtime
 //
-//  Created by Nat! on 12.08.17.
-//  Copyright (c) 2017 Mulle kybernetiK. All rights reserved.
-//  Copyright (c) 2017 Codeon GmbH.All rights reserved.
+//  Copyright (c) 2018 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2017 Codeon GmbH.
+//  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:

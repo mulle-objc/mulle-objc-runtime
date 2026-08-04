@@ -34,7 +34,7 @@ filesystem_task_run()
 {
    log_entry "mulle-sde/c-cmake::filesystem_task_run" "$@"
 
-   log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME:-.}${C_INFO} filesystem"
+   log_info "Reflecting ${C_MAGENTA}${C_BOLD}${PROJECT_NAME:-.}${C_INFO} filesystem ${C_RESET_BOLD}${MULLE_SOURCETREE_CONFIG_NAME}"
 
    local rc
 

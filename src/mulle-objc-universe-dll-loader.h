@@ -1,5 +1,5 @@
 //
-//  mulle-objc-universe-dll-loader.c
+//  mulle-objc-universe-dll-loader.h
 //  mulle-objc-runtime
 //
 //  Copyright (c) 2026 Nat! - Mulle kybernetiK.

@@ -22,6 +22,39 @@ include( _Headers OPTIONAL)
 # === MULLE-SDE END ===
 #
 
+# When multi-reflect is enabled, keep only the selected reflect header tree
+# in build-time include/header lists and ignore all other reflect variants.
+set( _MULLE_ACTIVE_REFLECT_DIR "src/reflect")
+if( MULLE_SOURCETREE_CONFIG_NAME)
+   set( _MULLE_ACTIVE_REFLECT_DIR "src/reflect.${MULLE_SOURCETREE_CONFIG_NAME}")
+endif()
+
+function( _mulle_filter_reflect_entries listname keepdir)
+   unset( _list)
+   foreach( _item ${${listname}})
+      # match src/reflect. at any depth (handles ../src/reflect. too)
+      string( REGEX MATCH "(^|/)src/reflect[.]" _is_reflect "${_item}")
+      if( _is_reflect)
+         # check if it's the active reflect dir or a child of it
+         string( FIND "${_item}" "${keepdir}" _is_keep)
+         if( _is_keep GREATER_EQUAL 0)
+            list( APPEND _list "${_item}")
+         endif()
+      else()
+         list( APPEND _list "${_item}")
+      endif()
+   endforeach()
+   set( ${listname} ${_list} PARENT_SCOPE)
+endfunction()
+
+_mulle_filter_reflect_entries( INCLUDE_DIRS "${_MULLE_ACTIVE_REFLECT_DIR}")
+_mulle_filter_reflect_entries( PRIVATE_HEADERS "${_MULLE_ACTIVE_REFLECT_DIR}")
+_mulle_filter_reflect_entries( PRIVATE_GENERATED_HEADERS "${_MULLE_ACTIVE_REFLECT_DIR}")
+_mulle_filter_reflect_entries( PUBLIC_HEADERS "${_MULLE_ACTIVE_REFLECT_DIR}")
+_mulle_filter_reflect_entries( PUBLIC_GENERATED_HEADERS "${_MULLE_ACTIVE_REFLECT_DIR}")
+
+list( REMOVE_DUPLICATES INCLUDE_DIRS)
+
 #
 # If you don't like the "automatic" way of generating _Headers
 #

@@ -49,6 +49,12 @@ The runtime builds at least on the following platform/compiler combinations:
 
 
 
+
+## Documentation & Guides
+
+* [API Summary](asset/dox/api/toc)
+* [Coder Guide](asset/howto/coder/mulle-objc-runtime)
+
 ## Usage
 
 If you haven't used an Objective-C runtime before, it is useful to get to know

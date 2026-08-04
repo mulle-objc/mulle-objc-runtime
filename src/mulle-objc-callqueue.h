@@ -1,11 +1,11 @@
 //
-//  mulle_objc_callqueue.h
+//  mulle-objc-callqueue.h
 //  mulle-objc-runtime
 //
-//  Created by Nat! on 20/11/14.
-//  Copyright (c) 2014 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2018 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2014 Codeon GmbH.
 //  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:

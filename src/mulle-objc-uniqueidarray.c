@@ -1,11 +1,11 @@
 //
-//  mulle_objc_uniqueidarray.c
-//  mulle-objc-runtime-universe
+//  mulle-objc-uniqueidarray.c
+//  mulle-objc-runtime
 //
-//  Created by Nat! on 28.05.17
-//  Copyright (c) 2017 Nat! - Mulle kybernetiK.
+//  Copyright (c) 2018 Nat! - Mulle kybernetiK.
 //  Copyright (c) 2017 Codeon GmbH.
 //  All rights reserved.
+//
 //
 //  Redistribution and use in source and binary forms, with or without
 //  modification, are permitted provided that the following conditions are met:
@@ -33,7 +33,6 @@
 //  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 //  POSSIBILITY OF SUCH DAMAGE.
 //
-
 #include "mulle-objc-uniqueidarray.h"
 
 #include <stdlib.h>
