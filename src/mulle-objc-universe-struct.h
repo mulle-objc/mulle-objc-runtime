@@ -38,6 +38,8 @@
 
 #include "include.h"
 
+#include <stdio.h>
+
 #include "mulle-objc-cache.h"
 #include "mulle-objc-fastclasstable.h"
 #include "mulle-objc-fastmethodtable.h"
@@ -58,6 +60,8 @@
 struct _mulle_objc_class;
 struct _mulle_objc_universe;
 struct mulle_objc_loadversion;
+
+typedef void   mulle_objc_stacktrace_callback_t( FILE *fp);
 
 
 //
@@ -155,7 +159,7 @@ struct _mulle_objc_universedebug
 
    struct
    {
-      unsigned   mixin            : 1;
+      unsigned   mixin                    : 1;
       unsigned   stuck_loadable           : 1;  // set by default
       unsigned   method_type              : 2;
       unsigned   method_bits              : 1;
@@ -211,6 +215,8 @@ struct _mulle_objc_universefailures
    void   (*wrongthread)( struct _mulle_objc_object *obj,
                           mulle_thread_id_t affinity_thread,
                           struct _mulle_objc_descriptor *desc)  _MULLE_C_NO_RETURN;
+   // optional diagnostics, installed by a higher-level component
+   mulle_objc_stacktrace_callback_t   *stacktrace;
 };
 
 
@@ -313,6 +319,9 @@ struct _mulle_objc_foundation
    size_t                               headerextrasize;           // usually 0, will be copied into each class
    mulle_objc_classid_t                 rootclassid;               // NSObject = e9e78cbd
    char                                 utf8staticstrings;         // 0: ASCII in staticinstanceclass[ 0]  1: UTF8 (slots 1-2 can be NULL)
+   mulle_objc_implementation_t          standardimps[ 16];         // standard IMPs per method family
+   mulle_objc_methodid_t                standardselectors[ 16];    // selectors indexed by method family
+   uint16_t                             standardmetamask;          // bit set = class method (look up on meta)
 };
 
 
@@ -335,8 +344,8 @@ struct _mulle_objc_taggedpointers
 struct _mulle_objc_waitqueues
 {
    mulle_thread_mutex_t              lock;  // used for
-   struct mulle_concurrent_hashmap   classestoload;
-   struct mulle_concurrent_hashmap   categoriestoload;
+   struct mulle_concurrent_hashtable  classestoload;
+   struct mulle_concurrent_hashtable  categoriestoload;
 };
 
 // size in bytes

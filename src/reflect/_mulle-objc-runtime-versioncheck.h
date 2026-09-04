@@ -25,7 +25,7 @@
 #endif
 #if defined( MULLE__CORE__ALL__LOAD_VERSION)
 # ifndef MULLE__CORE__ALL__LOAD_VERSION_MIN
-#  define MULLE__CORE__ALL__LOAD_VERSION_MIN  ((0UL << 20) | (8 << 8) | 1)
+#  define MULLE__CORE__ALL__LOAD_VERSION_MIN  ((0UL << 20) | (8 << 8) | 2)
 # endif
 # ifndef MULLE__CORE__ALL__LOAD_VERSION_MAX
 #  define MULLE__CORE__ALL__LOAD_VERSION_MAX  ((0UL << 20) | (9 << 8) | 0)

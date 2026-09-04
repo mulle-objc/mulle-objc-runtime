@@ -14,9 +14,6 @@ mulle-sde retest
 - Do not run `mulle-test` directly when working inside a mulle-sde project. Use
   `mulle-sde test ...` so the test environment, paths, and wrappers stay correct.
 
-- Always use absolute paths with `--golden-stdout`. Relative paths can gold the
-  wrong file because the runner CWD is not always the test file directory.
-
 - Do not run test executables directly. They may be stale and they bypass the
   managed test environment.
 

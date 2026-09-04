@@ -42,6 +42,7 @@
 #include "mulle-objc-infraclass.h"
 #include "mulle-objc-ivar.h"
 #include "mulle-objc-ivarlist.h"
+#include "mulle-objc-metaclass.h"
 #include "mulle-objc-object-convenience.h"
 #include "mulle-objc-property.h"
 #include "mulle-objc-propertylist.h"
@@ -53,7 +54,6 @@
 /*
  *
  */
-
 void    _mulle_objc_infraclass_plusinit( struct _mulle_objc_infraclass *infra,
                                          struct mulle_allocator *allocator)
 {
@@ -1126,4 +1126,75 @@ int    mulle_objc_infraclass_trylock_classproperty( struct _mulle_objc_infraclas
 
    meta = _mulle_objc_infraclass_get_metaclass( infra);
    return( _mulle_objc_metaclass_trylock_classproperty( meta));
+}
+
+
+
+# pragma mark - standardimpmask
+
+//
+// Called before cache invalidation. Recomputes the mask using cacheless
+// lookups and atomic-ANDs the result (bits can only go 1→0, never 0→1).
+//
+void
+   _mulle_objc_infraclass_invalidate_standardimpmask(
+      struct _mulle_objc_infraclass *infra,
+      struct _mulle_objc_universe *universe)
+{
+   struct _mulle_objc_foundation   *foundation;
+   uint16_t                        new_bits;
+
+   foundation = _mulle_objc_universe_get_foundation( universe);
+   if( ! foundation || ! foundation->standardimps[ 1])
+      return;
+
+   new_bits = _mulle_objc_infraclass_compute_standardimpmask( infra, foundation);
+   _mulle_objc_infraclass_and_standardimpmask( infra, new_bits);
+}
+
+
+//
+// Compute which method families still have the standard IMP.
+// Returns a bitmask: bit N set means family N uses the standard implementation.
+// Uses cacheless lookup (_nofill) so it can be called during cache invalidation.
+//
+uint16_t
+   _mulle_objc_infraclass_compute_standardimpmask(
+      struct _mulle_objc_infraclass *infra,
+      struct _mulle_objc_foundation *foundation)
+{
+   struct _mulle_objc_class        *cls;
+   struct _mulle_objc_metaclass    *metaclass;
+   struct _mulle_objc_class        *meta;
+   mulle_objc_implementation_t     imp;
+   mulle_objc_methodid_t           sel;
+   uint16_t                        bits;
+   uint16_t                        metamask;
+   int                             i;
+
+   bits      = 0;
+   cls       = _mulle_objc_infraclass_as_class( infra);
+   metaclass = _mulle_objc_class_get_metaclass( cls);
+   meta      = _mulle_objc_metaclass_as_class( metaclass);
+   metamask  = foundation->standardmetamask;
+
+   for( i = 1; i < 16; i++)
+   {
+      if( ! foundation->standardimps[ i])
+         continue;
+
+      sel = foundation->standardselectors[ i];
+      if( ! sel)
+         continue;
+
+      if( metamask & (1 << i))
+         imp = _mulle_objc_class_lookup_implementation_noforward_nofill( meta, sel);
+      else
+         imp = _mulle_objc_class_lookup_implementation_noforward_nofill( cls, sel);
+
+      if( imp == foundation->standardimps[ i])
+         bits |= (1 << i);
+   }
+
+   return( bits);
 }

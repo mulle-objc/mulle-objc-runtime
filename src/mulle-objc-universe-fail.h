@@ -118,6 +118,28 @@ MULLE_OBJC_RUNTIME_GLOBAL
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe);
 
 MULLE_OBJC_RUNTIME_GLOBAL
+void
+   mulle_objc_universe_set_stacktrace_callback(
+      struct _mulle_objc_universe *universe,
+      mulle_objc_stacktrace_callback_t *callback);
+
+static inline void
+   _mulle_objc_universe_set_stacktrace_callback_inline(
+      struct _mulle_objc_universe *universe,
+      mulle_objc_stacktrace_callback_t *callback)
+{
+   if( universe)
+      universe->failures.stacktrace = callback;
+}
+
+static inline mulle_objc_stacktrace_callback_t *
+   _mulle_objc_universe_get_stacktrace_callback(
+      struct _mulle_objc_universe *universe)
+{
+   return( universe ? universe->failures.stacktrace : NULL);
+}
+
+MULLE_OBJC_RUNTIME_GLOBAL
 MULLE_C_NO_RETURN
 void   _mulle_objc_printf_abort( char *format, ...);
 

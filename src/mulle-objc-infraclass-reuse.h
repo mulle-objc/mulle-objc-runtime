@@ -110,7 +110,7 @@ static inline void  *_mulle_objc_infraclass_reuse_alloc_thread( struct _mulle_ob
 
    universe   = _mulle_objc_infraclass_get_universe( infra);
    threadinfo = _mulle_objc_thread_get_threadinfo( universe);
-   if( MULLE_C_UNLIKELY( threadinfo->allocator != allocator))
+   if( MULLE_C_UNLIKELY( threadinfo->objectallocator != allocator))
       return( NULL);
 
    assert( sizeof( void *) >= sizeof( struct _mulle_linkedlistentry *));

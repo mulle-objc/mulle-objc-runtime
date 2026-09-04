@@ -1,7 +1,7 @@
 #
 #
 #
-export MULLE_SDE_TEST_PATH="test:test-startup:test-compiler:test-compiler-runtime"
+export MULLE_SDE_TEST_PATH="test:test-compiler:test-compiler-runtime:test-startup"
 
 
 #
@@ -55,6 +55,6 @@ export MULLE_MATCH_TO_CMAKE_RESOURCES_FILE="DISABLE"
 #
 #
 #
-export vibecoding="off"
+
 
 

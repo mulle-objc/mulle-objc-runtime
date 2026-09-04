@@ -65,11 +65,6 @@ static void   __mulle_objc_puts_abort( char *s)
    mulle_objc_parting_words = s;
    fputs( s, stderr);
 
-   // could improve this with symbolification but, it's a) debug
-   // only and b) you get better a one in the debugger
-#if defined( DEBUG) && defined( MULLE_STACKTRACE_VERSION)
-   mulle_stacktrace_once( stderr);
-#endif
    abort();
 }
 
@@ -81,11 +76,6 @@ static void   __mulle_objc_perror_abort( char *s)
    mulle_objc_parting_words = s;
    perror( s);
 
-   // could improve this with symbolification but, it's a) debug
-   // only and b) you get better a one in the debugger
-#if defined( DEBUG) && defined( MULLE_STACKTRACE_VERSION)
-   mulle_stacktrace_once( stderr);
-#endif
    abort();
 }
 
@@ -390,6 +380,16 @@ MULLE_C_NO_RETURN void
 
 #pragma mark - vectoring failures
 
+void
+   mulle_objc_universe_set_stacktrace_callback(
+      struct _mulle_objc_universe *universe,
+      mulle_objc_stacktrace_callback_t *callback)
+{
+   if( universe)
+      universe->failures.stacktrace = callback;
+}
+
+
 void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe)
 {
    universe->failures.fail           = _mulle_objc_vprintf_abort;
@@ -398,6 +398,7 @@ void   _mulle_objc_universe_init_fail( struct _mulle_objc_universe  *universe)
    universe->failures.methodnotfound = _mulle_objc_universe_abort_methodnotfound;
    universe->failures.supernotfound  = _mulle_objc_universe_abort_supernotfound;
    universe->failures.wrongthread    = _mulle_objc_object_abort_wrongthread;
+   universe->failures.stacktrace     = NULL;
 }
 
 
@@ -408,6 +409,8 @@ MULLE_C_NO_RETURN void
 {
    if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
       _mulle_objc_vprintf_abort( format, args);
+   if( universe->failures.stacktrace)
+      (*universe->failures.stacktrace)( stderr);
    (*universe->failures.fail)( format, args);
 
    abort();  // just make sure if fail returns
@@ -457,6 +460,8 @@ MULLE_C_NO_RETURN void
       vfprintf( stderr, format, args);
       abort();;
    }
+   if( universe->failures.stacktrace)
+      (*universe->failures.stacktrace)( stderr);
    (*universe->failures.inconsistency)( format, args);
 
    abort();  // just make sure if fail returns
@@ -482,6 +487,8 @@ MULLE_C_NO_RETURN void
    if ( ! universe || _mulle_objc_universe_is_uninitialized(universe))
       _mulle_objc_universe_abort_supernotfound( universe, superid);
 
+   if( universe->failures.stacktrace)
+      (*universe->failures.stacktrace)( stderr);
    (*universe->failures.supernotfound)(universe, superid);
    abort();  // just make sure if fail returns
 }
@@ -494,6 +501,8 @@ MULLE_C_NO_RETURN void
    if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
       _mulle_objc_universe_abort_classnotfound( universe, classid);
 
+   if( universe->failures.stacktrace)
+      (*universe->failures.stacktrace)( stderr);
    (*universe->failures.classnotfound)( universe, classid);
    abort();  // just make sure if fail returns
 }
@@ -507,6 +516,8 @@ MULLE_C_NO_RETURN void
    if (! universe || _mulle_objc_universe_is_uninitialized(universe))
       _mulle_objc_universe_abort_methodnotfound( universe, cls, methodid);
 
+   if( universe->failures.stacktrace)
+      (*universe->failures.stacktrace)( stderr);
    (*universe->failures.methodnotfound)( universe, cls, methodid);
    abort();  // just make sure if fail returns
 }
@@ -521,6 +532,8 @@ MULLE_C_NO_RETURN void
    if( ! universe || _mulle_objc_universe_is_uninitialized( universe))
       _mulle_objc_object_abort_wrongthread( obj, affinity_thread, desc);
 
+   if( universe->failures.stacktrace)
+      (*universe->failures.stacktrace)( stderr);
    (*universe->failures.wrongthread)( obj, affinity_thread, desc);
    abort();  // just make sure if fail returns
 }

@@ -23,8 +23,16 @@ endif()
 install( TARGETS ${LIBRARY_NAME}
          EXPORT ${LIBRARY_NAME}-targets)
 
+# Only add a source-tree BUILD_INTERFACE include if the project actually ships
+# an <include> directory. Most mulle projects keep headers under src/ and rely
+# on InstallCMakeInclude to expose the generated "${CMAKE_BINARY_DIR}/include",
+# so pointing at a nonexistent source include/ would leak a phantom -I to
+# add_subdirectory consumers.
+if( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/include")
+   target_include_directories( ${LIBRARY_NAME} PUBLIC
+       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+endif()
 target_include_directories( ${LIBRARY_NAME} PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 # Set target properties
