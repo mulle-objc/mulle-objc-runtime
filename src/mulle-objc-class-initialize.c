@@ -44,6 +44,7 @@
 #include "mulle-objc-class-impcache.h"
 #include "mulle-objc-call.h"
 #include "mulle-objc-impcache.h"
+#include "mulle-objc-infraclass.h"
 #include "mulle-objc-object.h"
 #include "mulle-objc-universe.h"
 
@@ -153,6 +154,26 @@ int   _mulle_objc_class_setup_initial_cache_if_needed( struct _mulle_objc_class 
 
    // this marks the class as ready to run
    _mulle_objc_class_set_state_bit( cls, MULLE_OBJC_CLASS_CACHE_READY);
+
+   // Set initial standardimpmask for infraclasses (bits start at 0 = safe).
+   // Only set if foundation standard IMPs are already registered.
+   if( _mulle_objc_class_is_infraclass( cls))
+   {
+      struct _mulle_objc_universe     *universe;
+      struct _mulle_objc_foundation   *foundation;
+
+      universe   = _mulle_objc_class_get_universe( cls);
+      foundation = _mulle_objc_universe_get_foundation( universe);
+      if( foundation && foundation->standardimps[ 1])
+      {
+         struct _mulle_objc_infraclass   *infra;
+         uint16_t                        bits;
+
+         infra = (struct _mulle_objc_infraclass *) cls;
+         bits  = _mulle_objc_infraclass_compute_standardimpmask( infra, foundation);
+         _mulle_objc_infraclass_set_standardimpmask( infra, bits);
+      }
+   }
    return( 1);
 }
 

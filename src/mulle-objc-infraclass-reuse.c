@@ -100,10 +100,10 @@ void   *_mulle_objc_infraclass_keep_alloc_thread( struct _mulle_objc_infraclass 
 
    universe   = _mulle_objc_infraclass_get_universe( infra);
    threadinfo = _mulle_objc_thread_get_threadinfo( universe);
-   if( MULLE_C_UNLIKELY( threadinfo->allocator != allocator))
+   if( MULLE_C_UNLIKELY( threadinfo->objectallocator != allocator))
       return( alloc);
 
-   size = _mulle_objc_infraclass_get_instancesize( infra);
+   size = _mulle_objc_infraclass_get_allocationsize( infra);
    memset( alloc, 0, size);
 
    index = _mulle_objc_infraclass_get_classindex( infra);
@@ -138,7 +138,7 @@ void   _mulle_objc_infraclass_free_reuseallocs_thread( struct _mulle_objc_infrac
 
       mulle_linkedlistentry_walk( linkedlist,
                                   (mulle_linkedlistentry_walk_callback_t *) mulle_allocator_free,
-                                  threadinfo->allocator);
+                                  threadinfo->objectallocator);
       _mulle__pointerarray_set( &threadinfo->reuseallocsperclassindex, index, NULL);
    }
 }

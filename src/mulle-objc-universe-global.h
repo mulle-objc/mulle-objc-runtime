@@ -83,20 +83,75 @@ MULLE_C_STATIC_ALWAYS_INLINE struct _mulle_objc_universe  *
 
 struct mulle_objc_universe_init_wrapper_for_windows
 {
-   struct mulle_concurrent_hashmap   map;
-   int                               initvalue;
+   struct mulle_concurrent_hashtable  map;
+   mulle_atomic_pointer_t             mapinitvalue;
+   int                                initvalue;
 };
 
 
 MULLE_OBJC_RUNTIME_GLOBAL
 struct mulle_objc_universe_init_wrapper_for_windows   mulle_objc_universetable;
 
+
+static inline struct mulle_concurrent_hashtable  *
+   _mulle_objc_global_get_universe_table( void)
+{
+   return( &mulle_objc_universetable.map);
+}
+
+
+static inline void
+   _mulle_objc_global_ensure_universe_table( void)
+{
+   struct mulle_concurrent_hashtable  *table;
+   void                               *actual;
+
+   table  = _mulle_objc_global_get_universe_table();
+   actual = _mulle_atomic_pointer_read( &mulle_objc_universetable.mapinitvalue);
+   if( actual == (void *) 2)
+      return;
+
+   actual = __mulle_atomic_pointer_cas( &mulle_objc_universetable.mapinitvalue,
+                                        (void *) 1,
+                                        (void *) 0);
+   if( actual == (void *) 0)
+   {
+      // This registry has only a handful of live universes. On ILP32 we
+      // deliberately accept the positive hashtable's top-bit aliasing rather
+      // than maintaining a second registry for that negligible case.
+      _mulle_concurrent_hashtable_init_positive( table, 8, &mulle_stdlib_allocator);
+      _mulle_atomic_pointer_write( &mulle_objc_universetable.mapinitvalue,
+                                   (void *) 2);
+      return;
+   }
+
+   while( _mulle_atomic_pointer_read( &mulle_objc_universetable.mapinitvalue) != (void *) 2)
+      mulle_thread_yield();
+}
+
+
+static inline intptr_t
+   _mulle_objc_global_get_universe_hash( mulle_objc_universeid_t universeid)
+{
+   uintptr_t   hash;
+
+   hash = (uintptr_t) universeid;
+#if UINTPTR_MAX <= UINT32_MAX
+   hash &= (uintptr_t) INTPTR_MAX;
+#endif
+   if( ! hash)
+      hash = (uintptr_t) INTPTR_MAX;
+   return( (intptr_t) hash);
+}
+
 // only __mulle_objc_global_get_universe should use this
 static inline struct _mulle_objc_universe  *
    __mulle_objc_global_lookup_universe( mulle_objc_universeid_t universeid)
 {
-
-   return( mulle_concurrent_hashmap_lookup( &mulle_objc_universetable.map, universeid));
+   _mulle_objc_global_ensure_universe_table();
+   return( mulle_concurrent_hashtable_lookup(
+      _mulle_objc_global_get_universe_table(),
+      _mulle_objc_global_get_universe_hash( universeid)));
 }
 
 
@@ -107,7 +162,10 @@ static inline struct _mulle_objc_universe  *
 
    assert( universeid && "lookup would fail for default universe (use mulle_objc_global_get_universe)");
 
-   universe = mulle_concurrent_hashmap_lookup( &mulle_objc_universetable.map, universeid);
+   _mulle_objc_global_ensure_universe_table();
+   universe = mulle_concurrent_hashtable_lookup(
+      _mulle_objc_global_get_universe_table(),
+      _mulle_objc_global_get_universe_hash( universeid));
    assert( ! universe || ! _mulle_objc_universe_is_uninitialized( universe) \
                && "universe not initialized yet");
    return( universe);

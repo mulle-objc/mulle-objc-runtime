@@ -309,6 +309,14 @@ void  _mulle_objc_class_invalidate_impcache( struct _mulle_objc_class *cls,
 void  _mulle_objc_class_invalidate_caches_default( struct _mulle_objc_class *cls,
                                                    struct _mulle_objc_methodlist *list)
 {
+   struct _mulle_objc_infraclass   *infra;
+
+   // Update standardimpmask before cache rebuild. Works for both infra
+   // and meta calls — we always reach the infra via cls->infraclass.
+   infra = _mulle_objc_class_get_infraclass( cls);
+   if( infra)
+      _mulle_objc_infraclass_invalidate_standardimpmask( infra, cls->universe);
+
    _mulle_objc_class_invalidate_kvccache( cls);
    _mulle_objc_class_invalidate_impcache( cls, list);
 }

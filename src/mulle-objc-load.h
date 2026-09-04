@@ -65,6 +65,24 @@ struct _mulle_objc_dependency
 
 
 //
+// mulle_concurrent_hashtable positive mode reserves the top intptr_t bit for
+// migration. Class IDs are 32 bit, so ILP32 necessarily aliases IDs that only
+// differ in that bit. The loader rechecks the full class ID before completing a
+// waiter, making the rare alias a spurious wakeup rather than a wrong load.
+//
+static inline intptr_t
+   _mulle_objc_classid_to_waitqueue_hash( mulle_objc_classid_t classid)
+{
+   uintptr_t   hash;
+
+   hash = (uintptr_t) classid & (uintptr_t) INTPTR_MAX;
+   if( ! hash)
+      hash = (uintptr_t) INTPTR_MAX;
+   return( (intptr_t) hash);
+}
+
+
+//
 // up the number if binary loads are incompatible
 // this is read and checked against by the compiler
 //

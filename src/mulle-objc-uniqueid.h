@@ -68,7 +68,7 @@ typedef uint32_t   mulle_objc_uniqueid_t;
 
 
 // everything is 32 bit since fnv1
-#define MULLE_OBJC_UNIQUEID( x)  ((mulle_objc_uniqueid_t) (x))
+#define MULLE_OBJC_UNIQUEID( x)        ((mulle_objc_uniqueid_t) (x))
 
 #if 0
 # ifdef __LP64__

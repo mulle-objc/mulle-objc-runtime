@@ -62,16 +62,15 @@ else()
          endif()
       endif()
       message( STATUS "MULLE__CORE_LIBRARY is ${MULLE__CORE_LIBRARY}")
-      #
-      # The order looks ascending, but due to the way this file is read
-      # it ends up being descending, which is what we need.
-      #
-      if( MULLE__CORE_LIBRARY)
+   endif()
+   if( MULLE__CORE_LIBRARY)
          #
          # Add MULLE__CORE_LIBRARY to DEPENDENCY_LIBRARIES list.
          # Disable with: `mulle-sourcetree mark mulle-core no-cmake-add`
          #
-         list( APPEND DEPENDENCY_LIBRARIES ${MULLE__CORE_LIBRARY})
+         if( NOT ${MULLE__CORE_LIBRARY} IN_LIST DEPENDENCY_LIBRARIES)
+            list( APPEND DEPENDENCY_LIBRARIES ${MULLE__CORE_LIBRARY})
+         endif()
          #
          # Inherit information from dependency.
          # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
@@ -114,14 +113,13 @@ else()
                message( STATUS "${_TMP_MULLE__CORE_DIR} not found")
             endif()
          endforeach()
-      else()
-         # Disable with: `mulle-sourcetree mark mulle-core no-require-link`
-         message( SEND_ERROR "MULLE__CORE_LIBRARY was not found in ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${MULLE_PREFERRED_LIBRARY_SUFFIX}
+   else()
+      # Disable with: `mulle-sourcetree mark mulle-core no-require-link`
+      message( SEND_ERROR "MULLE__CORE_LIBRARY was not found in ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${MULLE_PREFERRED_LIBRARY_SUFFIX}
 ${MULLE_PREFERRED_LIBRARY_PREFIX}mulle-core${MULLE_PREFERRED_LIBRARY_SUFFIX}
 ${MULLE_FALLBACK_LIBRARY_PREFIX}mulle-core${CMAKE_DEBUG_POSTFIX}${MULLE_FALLBACK_LIBRARY_SUFFIX}
 ${MULLE_FALLBACK_LIBRARY_PREFIX}mulle-core${MULLE_FALLBACK_LIBRARY_SUFFIX}
 mulle-core")
-      endif()
    endif()
 endif()
 
@@ -156,16 +154,15 @@ else()
          endif()
       endif()
       message( STATUS "MULLE__CORE__ALL__LOAD_LIBRARY is ${MULLE__CORE__ALL__LOAD_LIBRARY}")
-      #
-      # The order looks ascending, but due to the way this file is read
-      # it ends up being descending, which is what we need.
-      #
-      if( MULLE__CORE__ALL__LOAD_LIBRARY)
+   endif()
+   if( MULLE__CORE__ALL__LOAD_LIBRARY)
          #
          # Add MULLE__CORE__ALL__LOAD_LIBRARY to STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES list.
          # Disable with: `mulle-sourcetree mark mulle-core-all-load no-cmake-add`
          #
-         list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES ${MULLE__CORE__ALL__LOAD_LIBRARY})
+         if( NOT ${MULLE__CORE__ALL__LOAD_LIBRARY} IN_LIST STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES)
+            list( APPEND STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES ${MULLE__CORE__ALL__LOAD_LIBRARY})
+         endif()
          #
          # Inherit information from dependency.
          # Encompasses: no-cmake-searchpath,no-cmake-dependency,no-cmake-loader
@@ -208,10 +205,9 @@ else()
                message( STATUS "${_TMP_MULLE__CORE__ALL__LOAD_DIR} not found")
             endif()
          endforeach()
-      else()
-         # Disable with: `mulle-sourcetree mark mulle-core-all-load no-require-link`
-         message( SEND_ERROR "MULLE__CORE__ALL__LOAD_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+   else()
+      # Disable with: `mulle-sourcetree mark mulle-core-all-load no-require-link`
+      message( SEND_ERROR "MULLE__CORE__ALL__LOAD_LIBRARY was not found in ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_DEBUG_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
 ${CMAKE_STATIC_LIBRARY_PREFIX}mulle-core-all-load${CMAKE_STATIC_LIBRARY_SUFFIX}")
-      endif()
    endif()
 endif()

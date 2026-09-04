@@ -127,17 +127,38 @@ case "${MULLE_SHELL_MODE}" in
       #
       # show motd, if any
       #
+      # The motd file has ANSI color codes baked in. Strip them when
+      # NO_COLOR is set (https://no-color.org/) or MULLE_NO_COLOR='YES',
+      # otherwise cat verbatim.
+      #
       if [ -z "${NO_MOTD}" ]
       then
+         motdfile=""
          if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle/etc/env/motd" ]
          then
-            cat "${MULLE_VIRTUAL_ROOT}/.mulle/etc/env/motd"
+            motdfile="${MULLE_VIRTUAL_ROOT}/.mulle/etc/env/motd"
          else
             if [ -f "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/motd" ]
             then
-               cat "${MULLE_VIRTUAL_ROOT}/.mulle/share/env/motd"
+               motdfile="${MULLE_VIRTUAL_ROOT}/.mulle/share/env/motd"
             fi
          fi
+
+         if [ ! -z "${motdfile}" ]
+         then
+            if [ -z "${NO_COLOR:-}" ] && [ "${MULLE_NO_COLOR:-}" != 'YES' ]
+            then
+               cat "${motdfile}"
+            else
+               # strip ANSI SGR color codes (printf -v avoids a subshell,
+               # and this rc is already bash/zsh, see printf -v use above)
+               printf -v mulle_esc '\033'
+               sed "s/${mulle_esc}\[[0-9;]*m//g" "${motdfile}"
+               unset mulle_esc
+            fi
+         fi
+
+         unset motdfile
       fi
    ;;
 esac

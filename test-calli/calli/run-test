@@ -179,10 +179,10 @@ main()
          # one failure is enough, because this gets tedious real fast
          if [ ! -f "${stdoutfile}" ]
          then
-            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run ${platform_flag} --no-run-script --golden-stdout "${srcfile}"
+            exekutor mulle-sde ${MULLE_TECHNICAL_FLAGS} test run ${platform_flag} --no-run-script --golden-stdout "${srcfile}"
             rc=$?
          else
-            exekutor mulle-test ${MULLE_TECHNICAL_FLAGS} run ${platform_flag} --no-run-script "${srcfile}"
+            exekutor mulle-sde ${MULLE_TECHNICAL_FLAGS} test run ${platform_flag} --no-run-script "${srcfile}"
             rc=$?
          fi
 

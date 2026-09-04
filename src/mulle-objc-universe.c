@@ -34,6 +34,11 @@
 //  POSSIBILITY OF SUCH DAMAGE.
 //
 #define _GNU_SOURCE     // for <time.h> later on
+
+#ifndef HAVE_MULLE_CONCURRENT_POSEAS_PATCH
+# define HAVE_MULLE_CONCURRENT_POSEAS_PATCH
+#endif
+
 #include "mulle-objc-universe.h"
 
 #include "mulle-objc-builtin.h"
@@ -501,13 +506,22 @@ void   mulle_objc_thread_setup_threadinfo( struct _mulle_objc_universe *universe
    if( ! universe)
       abort();
 
-   // don't use gifting calloc, will be cleaned separately
-
+   // Use the universe allocator for threadinfo infrastructure allocations.
+   // This is typically &mulle_stdlib_allocator (untracked by testallocator),
+   // which is correct since threadinfo lives until universe teardown.
+   //
+   // For per-thread instance reuse, keep_alloc_thread compares
+   // threadinfo->objectallocator against infra->allocator. Both must be
+   // &mulle_default_allocator for reuse to fire. We store this separately
+   // so that infrastructure allocations remain untracked by the testallocator,
+   // while the reuse comparison still works.
+   //
    allocator = _mulle_objc_universe_get_allocator( universe);
    config    = _mulle_allocator_calloc( allocator, 1, sizeof( struct _mulle_objc_threadinfo));
 
-   config->allocator = allocator;
-   config->universe  = universe;
+   config->allocator       = allocator;
+   config->objectallocator = &mulle_default_allocator;
+   config->universe        = universe;
 
    // merely for tracing, main as its first, gets config->nr 0
    config->nr = (uintptr_t) _mulle_atomic_pointer_increment( &universe->debug.thread_counter);
@@ -538,18 +552,6 @@ static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
    if( ! config)
       return;
 
-   // get rid of reuse allocs if there are any
-   // this code is harmless if there aren't any reuse allocs
-   rover = _mulle__pointerarray_enumerate( &config->reuseallocsperclassindex);
-   while( _mulle__pointerarrayenumerator_next( &rover, &linkedlist))
-   {
-      mulle_linkedlistentry_walk( linkedlist,
-                                  (mulle_linkedlistentry_walk_callback_t *) mulle_allocator_free,
-                                  config->allocator);
-   }
-   mulle__pointerarrayenumerator_done( &rover);
-   _mulle__pointerarray_done( &config->reuseallocsperclassindex, config->allocator);
-
    universe = config->universe;
    if( config->userspace_destructor)
    {
@@ -560,6 +562,7 @@ static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
 
       (*config->userspace_destructor)( config, config->userspace);
    }
+
    if( config->foundation_destructor)
    {
       if( universe->debug.trace.thread)
@@ -569,6 +572,22 @@ static void   mulle_objc_threadinfo_free( struct _mulle_objc_threadinfo *config)
 
       (*config->foundation_destructor)( config, config->foundationspace);
    }
+
+   //
+   // get rid of reuse allocs if there are any.
+   // This must happen AFTER the destructors, because the foundation
+   // destructor may drain autorelease pools, freeing instances which
+   // triggers keep_alloc_thread and regrows reuseallocsperclassindex.
+   //
+   rover = _mulle__pointerarray_enumerate( &config->reuseallocsperclassindex);
+   while( _mulle__pointerarrayenumerator_next( &rover, &linkedlist))
+   {
+      mulle_linkedlistentry_walk( linkedlist,
+                                  (mulle_linkedlistentry_walk_callback_t *) mulle_allocator_free,
+                                  config->objectallocator);
+   }
+   mulle__pointerarrayenumerator_done( &rover);
+   _mulle__pointerarray_done( &config->reuseallocsperclassindex, config->allocator);
 
    if( universe->debug.trace.thread)
       mulle_objc_universe_trace( universe, "free threadinfo %p of thread %p (#%ld)",
@@ -800,8 +819,14 @@ void   _mulle_objc_universe_init( struct _mulle_objc_universe *universe,
    _mulle_concurrent_hashmap_init( &universe->supertable, 256, allocator);
    _mulle_concurrent_hashmap_init( &universe->propertyidtable, 1024, allocator);
 
-   _mulle_concurrent_hashmap_init( &universe->waitqueues.classestoload, 64, allocator);
-   _mulle_concurrent_hashmap_init( &universe->waitqueues.categoriestoload, 32, allocator);
+   // Positive mode reserves the top intptr_t bit for migration. Class IDs
+   // are 32 bit, so ILP32 aliases IDs that differ only in that bit. These
+   // tables contain only the loader's missing-dependency subset; the loader
+   // rechecks the full class ID before completing a waiter, so the rare alias
+   // is a spurious wakeup rather than a wrong load. The hashtable is still
+   // preferable here because its remove is multi-threaded.
+   mulle_concurrent_hashtable_init_positive( &universe->waitqueues.classestoload, 64, allocator);
+   mulle_concurrent_hashtable_init_positive( &universe->waitqueues.categoriestoload, 32, allocator);
 
    if( universe->debug.trace.universe)
    {
@@ -1414,17 +1439,25 @@ static inline void
 }
 
 
-static void   pointerarray_in_hashmap_map( struct _mulle_objc_universe *universe,
-                                           struct mulle_concurrent_hashmap *map,
-                                           void (*f)( void *, void *))
+static void   pointerarray_in_hashtable_map( struct _mulle_objc_universe *universe,
+                                              struct mulle_concurrent_hashtable *map,
+                                              void (*f)( void *, void *))
 {
-   struct mulle_concurrent_pointerarray   *list;
-   intptr_t                               key;
+   struct mulle_concurrent_hashtableenumerator   rover;
+   struct mulle_concurrent_pointerarray           *list;
+   intptr_t                                       key;
+   int                                            rval;
 
-   mulle_concurrent_hashmap_for( map, key, list)
-   {
+retry:
+   rover = mulle_concurrent_hashtable_enumerate( map);
+   while( (rval = mulle_concurrent_hashtableenumerator_next( &rover,
+                                                              &key,
+                                                              (void **) &list)) == 1)
       mulle_concurrent_pointerarray_map( list, f, universe);
-   }
+   mulle_concurrent_hashtableenumerator_done( &rover);
+
+   if( rval == ECANCELED)
+      goto retry;
 }
 
 
@@ -1645,37 +1678,6 @@ static void
 
 
 
-static void
-   _mulle_objc_universe_free_classpairs( struct _mulle_objc_universe *universe)
-{
-   unsigned int                    n_classes;
-   struct _mulle_objc_infraclass   **array;
-   struct _mulle_objc_infraclass   **p;
-   struct _mulle_objc_infraclass   **sentinel;
-   struct mulle_allocator          *allocator;
-
-   allocator = _mulle_objc_universe_get_allocator( universe);
-   array     = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
-
-   p        = array;
-   sentinel = &p[ n_classes];
-   while( p < sentinel)
-   {
-      if( universe->debug.trace.class_free)
-         mulle_objc_universe_trace( universe,
-                                    "destroying classpair %p \"%s\"",
-                                    _mulle_objc_infraclass_get_classpair( *p),
-                                    _mulle_objc_infraclass_get_name( *p));
-
-      _mulle_objc_classpair_free( _mulle_objc_infraclass_get_classpair( *p),
-                                  allocator);
-      ++p;
-   }
-
-   mulle_allocator_free( allocator, array);
-}
-
-
 static void   free_gift( void *p, struct mulle_allocator *allocator)
 {
    mulle_allocator_free( allocator, p);
@@ -1692,8 +1694,8 @@ enum mulle_objc_universe_status
 
    rval         = mulle_objc_universe_is_ok;
 retry:
-   n_classes    = mulle_concurrent_hashmap_count( &universe->waitqueues.classestoload);
-   n_categories = mulle_concurrent_hashmap_count( &universe->waitqueues.categoriestoload);
+   n_classes    = (unsigned int) mulle_concurrent_hashtable_count( &universe->waitqueues.classestoload);
+   n_categories = (unsigned int) mulle_concurrent_hashtable_count( &universe->waitqueues.categoriestoload);
    if( ! (n_classes + n_categories))
       return( rval);
 
@@ -1723,9 +1725,9 @@ retry:
          return( mulle_objc_universe_is_locked);
       }
 
-      pointerarray_in_hashmap_map( universe,
-                                   &universe->waitqueues.classestoload,
-                                   (void (*)( void *, void *)) mulle_objc_loadclass_print_unfulfilled_dependency);
+      pointerarray_in_hashtable_map( universe,
+                                     &universe->waitqueues.classestoload,
+                                     (void (*)( void *, void *)) mulle_objc_loadclass_print_unfulfilled_dependency);
       _mulle_objc_universe_unlock_waitqueues( universe);
    }
 
@@ -1744,9 +1746,9 @@ retry:
          return( mulle_objc_universe_is_locked);
       }
 
-      pointerarray_in_hashmap_map( universe,
-                                   &universe->waitqueues.categoriestoload,
-                                   (void (*)( void *, void *)) mulle_objc_loadcategory_print_unfulfilled_dependency);
+      pointerarray_in_hashtable_map( universe,
+                                     &universe->waitqueues.categoriestoload,
+                                     (void (*)( void *, void *)) mulle_objc_loadcategory_print_unfulfilled_dependency);
       _mulle_objc_universe_unlock_waitqueues( universe);
    }
 
@@ -2025,11 +2027,58 @@ enum mulle_objc_universe_status
 static void
    _mulle_objc_universe_free_classgraph( struct _mulle_objc_universe *universe)
 {
-   /* free classes */
-   _mulle_objc_universe_free_classpairs( universe);
+   /* free classes
+    *
+    * The classtable is the single owner of every classpair. Posing does not
+    * create untracked classpairs: a posed-away class is re-registered in the
+    * classtable under a fresh, unique "%"-prefixed classid (see
+    * MulleObjCClassPoseAsSuperclass), so it appears exactly once in the class
+    * enumeration. Therefore we can free each enumerated classpair exactly once.
+    */
+   {
+      unsigned int                    n_classes;
+      struct _mulle_objc_infraclass   **live_array;
+      struct _mulle_objc_infraclass   **p;
+      struct _mulle_objc_infraclass   **sentinel;
+      struct mulle_allocator          *allocator;
 
-   _mulle_concurrent_hashmap_done( &universe->waitqueues.categoriestoload);
-   _mulle_concurrent_hashmap_done( &universe->waitqueues.classestoload);
+      allocator  = _mulle_objc_universe_get_allocator( universe);
+      live_array = _mulle_objc_universe_all_infraclasses( universe, &n_classes, allocator);
+
+      p        = live_array;
+      sentinel = &p[ n_classes];
+      while( p < sentinel)
+      {
+         if( universe->debug.trace.class_free)
+            mulle_objc_universe_trace( universe,
+                                       "destroying classpair %p \"%s\"",
+                                       _mulle_objc_infraclass_get_classpair( *p),
+                                       _mulle_objc_infraclass_get_name( *p));
+
+         _mulle_objc_classpair_free( _mulle_objc_infraclass_get_classpair( *p),
+                                     allocator);
+         ++p;
+      }
+      mulle_allocator_free( allocator, live_array);
+   }
+
+   {
+      intptr_t                               hash;
+      struct mulle_concurrent_pointerarray   *list;
+
+      mulle_concurrent_hashtable_for( &universe->waitqueues.categoriestoload, hash, list)
+      {
+         _mulle_concurrent_pointerarray_done( list);
+         _mulle_allocator_free( &universe->memory.allocator, list);
+      }
+      mulle_concurrent_hashtable_for( &universe->waitqueues.classestoload, hash, list)
+      {
+         _mulle_concurrent_pointerarray_done( list);
+         _mulle_allocator_free( &universe->memory.allocator, list);
+      }
+   }
+   mulle_concurrent_hashtable_done( &universe->waitqueues.categoriestoload);
+   mulle_concurrent_hashtable_done( &universe->waitqueues.classestoload);
    _mulle_concurrent_hashmap_done( &universe->propertyidtable);
    _mulle_concurrent_hashmap_done( &universe->supertable);
    _mulle_concurrent_hashmap_done( &universe->protocoltable);
@@ -2514,7 +2563,7 @@ int   mulle_objc_universe_register_infraclass( struct _mulle_objc_universe *univ
 
 
 //
-// This will use the superclasss of infra, there is no other way
+// This will use the superclass of infra, there is no other way
 // So the next time a class is looked up by "classid" (or via string)
 // this will not find "infra", which means:
 // Foo : Bar and mulle_objc_universe_patch_infraclass( ..., [Foo class])
@@ -2531,6 +2580,7 @@ int   mulle_objc_universe_patch_infraclass( struct _mulle_objc_universe *univers
    uintptr_t                       classindex;
    int                             rval;
    int                             index;
+   mulle_objc_classid_t            superclassid;
 
    if( ! universe || ! infra)
    {
@@ -2546,33 +2596,123 @@ int   mulle_objc_universe_patch_infraclass( struct _mulle_objc_universe *univers
       return( -1);
    }
 
+   // superclass is what we are posing away
    superclass = _mulle_objc_infraclass_get_superclass( infra);
-   if( superclass)
+   if( ! superclass)
    {
-      if( ! _mulle_concurrent_hashmap_lookup( &universe->classtable,
-                                              _mulle_objc_infraclass_get_classid( superclass)))
-      {
-         errno = EFAULT;
-         return( -1);
-      }
+      errno = EINVAL;
+      return( -1);
    }
 
-   index = mulle_objc_get_fastclasstable_index( _mulle_objc_infraclass_get_classid( superclass));
+   // hmm if not yet installed, why you posing ? no extra code for you
+   superclassid = _mulle_objc_infraclass_get_classid( superclass);
+   if( ! _mulle_concurrent_hashmap_lookup( &universe->classtable,
+                                           superclassid))
+   {
+      errno = EFAULT;
+      return( -1);
+   }
+
+   // can't pose away fastclasses sry
+   index = mulle_objc_get_fastclasstable_index( superclassid);
    if( index != -1)
    {
       errno = EDOM;  // TODO: maybe not impossible, but NYI
       return( -1);
    }
 
-
+   // the classindex re-stamp exists to force the poser to the front of the teardown order
+   // would be intere
    classindex = (uintptr_t) _mulle_atomic_pointer_increment( &universe->classindex);
+
    pair       = _mulle_objc_infraclass_get_classpair( infra);
    _mulle_objc_classpair_set_classindex( pair, (uint32_t) classindex);
 
-   rval = mulle_concurrent_hashmap_patch( &universe->classtable,
-                                          _mulle_objc_infraclass_get_classid( superclass),
-                                          infra,
-                                          superclass);
+   // hashmap patch is deliberately single-threaded. Posing changes the
+   // class registry and must therefore not race readers or migration.
+   // poser must be torn down before the class it poses away, i.e. higher classindex
+   //TODO: uncomment next release
+   // assert( _mulle_objc_classpair_get_classindex( pair)
+   //      > _mulle_objc_classpair_get_classindex( _mulle_objc_infraclass_get_classpair( superclass));
+
+   // The class being posed away (the victim) must not become orphaned: after
+   // the patch below, the victim's classpair would no longer be reachable
+   // under any classtable key, which would leak it at teardown. The classtable
+   // is the single owner of every classpair, so we re-register the victim here
+   // under a fresh, unique "%"-prefixed classid.
+   //
+   // A class may be posed away more than once. Because "%" is invalid for the
+   // compiler, a "%"-prefixed classid can only ever collide with another
+   // posed-away victim, never a user class, so we escalate the prefix
+   // (%Bar, %%Bar, %%%Bar, ...) until we find a free classid.
+   //
+   // NOTE: the victim keeps its original base.classid unchanged (see below);
+   // this new classid is only its owning classtable key, not its identity.
+   {
+      char                   *basename;
+      char                   *newname;
+      unsigned int           depth;
+      mulle_objc_classid_t   victimid;
+
+      basename = _mulle_objc_infraclass_get_name( superclass);
+      newname  = NULL;
+      victimid = MULLE_OBJC_NO_CLASSID;
+
+      for( depth = 1; depth <= 32; depth++)
+      {
+         char           stackbuf[ 256];
+         char           *buf;
+         unsigned int   len;
+         unsigned int   i;
+
+         len = depth + (unsigned int) strlen( basename) + 1;
+         buf = (len <= sizeof( stackbuf))
+               ? stackbuf
+               : _mulle_allocator_malloc( _mulle_objc_universe_get_allocator( universe), len);
+         for( i = 0; i < depth; i++)
+            buf[ i] = '%';
+         memcpy( &buf[ depth], basename, strlen( basename) + 1);
+
+         victimid = mulle_objc_classid_from_string( buf);
+         if( ! _mulle_concurrent_hashmap_lookup( &universe->classtable, victimid))
+         {
+            newname = _mulle_objc_universe_strdup( universe, buf);
+            if( buf != stackbuf)
+               _mulle_allocator_free( _mulle_objc_universe_get_allocator( universe), buf);
+            break;
+         }
+         if( buf != stackbuf)
+            _mulle_allocator_free( _mulle_objc_universe_get_allocator( universe), buf);
+      }
+
+      if( ! newname)
+      {
+         errno = ENOSPC;
+         return( -1);
+      }
+
+      // rename victim (name only, for readable diagnostics / teardown). Keep
+      // base.classid unchanged: subclass and category "super" references use
+      // the original classid, changing it would break their method search.
+      {
+         struct _mulle_objc_metaclass   *victim_meta;
+
+         victim_meta                = _mulle_objc_infraclass_get_metaclass( superclass);
+         superclass->base.name      = newname;
+         if( victim_meta)
+            victim_meta->base.name  = newname;
+      }
+
+      if( _mulle_objc_universe_register_infraclass_for_classid( universe, superclass, victimid))
+      {
+         errno = errno ? errno : EFAULT;
+         return( -1);
+      }
+   }
+
+   rval = _mulle_concurrent_hashmap_patch( &universe->classtable,
+                                           _mulle_objc_infraclass_get_classid( superclass),
+                                           infra);
    if( rval)
    {
       errno = rval;
@@ -2630,11 +2770,11 @@ int   mulle_objc_universe_remove_infraclass( struct _mulle_objc_universe *univer
       return( -1);
    }
 
-   // remove from main storage
+   // remove from main storage (single-threaded only, see objc_disposeClassPair)
    // so wont appear in cache again
+   assert( (intptr_t) _mulle_atomic_pointer_read( &universe->retaincount_1) == 0);
    rval = _mulle_concurrent_hashmap_remove( &universe->classtable,
-                                            infra->base.classid,
-                                            infra);
+                                            infra->base.classid);
 
    if( rval)
    {

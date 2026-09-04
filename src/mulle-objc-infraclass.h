@@ -50,6 +50,7 @@ struct _mulle_objc_ivar;
 struct _mulle_objc_ivarlist;
 struct _mulle_objc_property;
 struct _mulle_objc_method;
+struct _mulle_objc_foundation;
 
 //
 // use thread local storage instead of global storage for reusable allocs
@@ -98,6 +99,7 @@ struct _mulle_objc_infraclass
 
    struct mulle_allocator                    *allocator;  // must not be NULL
    mulle_atomic_pointer_t                    allocatedInstances;
+   mulle_atomic_pointer_t                    standardimpmask;  // bit per family: 1 = IMP matches standard
    struct _mulle_concurrent_linkedlist       reuseallocs;
 };
 
@@ -376,6 +378,55 @@ static inline void
 }
 
 
+# pragma mark - standardimpmask (method family fast path bits)
+
+static inline uint16_t
+   _mulle_objc_infraclass_get_standardimpmask( struct _mulle_objc_infraclass *infra)
+{
+   return( (uint16_t) (uintptr_t) _mulle_atomic_pointer_read( &infra->standardimpmask));
+}
+
+
+static inline void
+   _mulle_objc_infraclass_set_standardimpmask( struct _mulle_objc_infraclass *infra,
+                                               uint16_t bits)
+{
+   _mulle_atomic_pointer_write( &infra->standardimpmask, (void *) (uintptr_t) bits);
+}
+
+
+// Atomic AND: can only clear bits, never set. Used during cache invalidation.
+static inline void
+   _mulle_objc_infraclass_and_standardimpmask( struct _mulle_objc_infraclass *infra,
+                                               uint16_t bits)
+{
+   void   *old;
+   void   *new;
+
+   do
+   {
+      old = _mulle_atomic_pointer_read( &infra->standardimpmask);
+      new = (void *) ((uintptr_t) old & (uintptr_t) bits);
+      if( new == old)
+         return;
+   }
+   while( ! _mulle_atomic_pointer_weakcas( &infra->standardimpmask, new, old));
+}
+
+
+MULLE_OBJC_RUNTIME_GLOBAL
+uint16_t
+   _mulle_objc_infraclass_compute_standardimpmask(
+      struct _mulle_objc_infraclass *infra,
+      struct _mulle_objc_foundation *foundation);
+
+MULLE_OBJC_RUNTIME_GLOBAL
+void
+   _mulle_objc_infraclass_invalidate_standardimpmask(
+      struct _mulle_objc_infraclass *infra,
+      struct _mulle_objc_universe *universe);
+
+
 //
 // version is kept in the infraclass
 //
@@ -460,41 +511,6 @@ static inline  int   mulle_objc_infraclass_is_subclass( struct _mulle_objc_infra
    return( 0);
 }
 
-
-#if 0
-
-# pragma mark - class variables
-
-static inline void   *_mulle_objc_infraclass_get_cvar( struct _mulle_objc_infraclass *infra,
-                                                       struct _mulle_objc_object *key)
-{
-   return( _mulle_concurrent_hashmap_lookup( &infra->cvars, (intptr_t) key));
-}
-
-
-static inline int   _mulle_objc_infraclass_set_cvar( struct _mulle_objc_infraclass *infra,
-                                                     struct _mulle_objc_object *key,
-                                                     void *value)
-{
-   return( _mulle_concurrent_hashmap_insert( &infra->cvars, (intptr_t) key, value));
-}
-
-
-static inline int   _mulle_objc_infraclass_remove_cvar( struct _mulle_objc_infraclass *infra,
-                                                        struct _mulle_objc_object *key,
-                                                        void *value)
-{
-   return( _mulle_concurrent_hashmap_remove( &infra->cvars, (intptr_t) key, value));
-}
-
-
-static inline struct mulle_concurrent_hashmapenumerator
-    _mulle_objc_infraclass_enumerate_cvars( struct _mulle_objc_infraclass *infra)
-{
-   return( mulle_concurrent_hashmap_enumerate( &infra->cvars));
-}
-
-#endif
 
 
 # pragma mark - properties

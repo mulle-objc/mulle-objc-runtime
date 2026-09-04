@@ -1,11 +1,9 @@
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0
-#define MULLE_OBJC_RUNTIME_VERSION_MINOR  28
+#define MULLE_OBJC_RUNTIME_VERSION_MINOR  30
 #define MULLE_OBJC_RUNTIME_VERSION_PATCH  0
-#define MULLE_OBJC_RUNTIME_LOAD_VERSION   19
+#define MULLE_OBJC_RUNTIME_LOAD_VERSION   21
 
 #include <mulle-core/mulle-core.h>
-
-#pragma clang diagnostic ignored "-Wobjc-root-class"
 
 @interface NoWarn
 - (void) call:(char *) s;

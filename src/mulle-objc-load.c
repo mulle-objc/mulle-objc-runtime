@@ -79,15 +79,15 @@ static void
 
 static void
    mulle_objc_loadmixin_enqueue_nofail( struct _mulle_objc_loadmixin *info,
-                                                struct _mulle_objc_callqueue *loads,
-                                                struct _mulle_objc_universe *universe);
+                                        struct _mulle_objc_callqueue *loads,
+                                        struct _mulle_objc_universe *universe);
 
 typedef void   map_f_callback_t( void *,
                                  struct _mulle_objc_callqueue *,
                                  struct _mulle_objc_universe *);
 
 // this is destructive
-static void    map_f( struct mulle_concurrent_hashmap *table,
+static void    map_f( struct mulle_concurrent_hashtable *table,
                       mulle_objc_uniqueid_t uniqueid,
                       map_f_callback_t *f,
                       struct _mulle_objc_callqueue *loads,
@@ -95,18 +95,19 @@ static void    map_f( struct mulle_concurrent_hashmap *table,
 {
    struct mulle_concurrent_pointerarray   *list;
    struct mulle_allocator                 *allocator;
+   intptr_t                               hash;
    void                                   *value;
 
    if( ! table)
       return;
 
-   list = _mulle_concurrent_hashmap_lookup( table, uniqueid);
+   hash = _mulle_objc_classid_to_waitqueue_hash( uniqueid);
+   list = mulle_concurrent_hashtable_lookup( table, hash);
    if( ! list)
       return;
 
-   // because we are really single-threaded everything is much easier
-   // just tear out the table (no-one can write into it concurrently)
-   _mulle_concurrent_hashmap_remove( table, uniqueid, list);
+   if( mulle_concurrent_hashtable_remove( table, hash, list))
+      return;
 
    mulle_concurrent_pointerarray_for( list, value)
    {
@@ -243,33 +244,40 @@ static void  loadclass_trace( struct _mulle_objc_loadclass *info,
 
 
 static struct mulle_concurrent_pointerarray   *
-   _mulle_objc_map_append_info( struct mulle_concurrent_hashmap *map,
+   _mulle_objc_map_append_info( struct mulle_concurrent_hashtable *map,
                                 mulle_objc_classid_t missingclassid,
                                 void *info,
                                 struct mulle_allocator *allocator)
 {
-   struct mulle_concurrent_pointerarray   *list;
+   intptr_t                               hash;
    int                                    rval;
+   struct mulle_concurrent_pointerarray   *list;
+   void                                  *old;
 
-   for(;;)
+   // The waitqueue lock serializes list lifetime; register closes the
+   // lookup/allocation race among concurrent appenders.
+   hash = _mulle_objc_classid_to_waitqueue_hash( missingclassid);
+   list = mulle_concurrent_hashtable_lookup( map, hash);
+   if( ! list)
    {
-      list = _mulle_concurrent_hashmap_lookup( map, missingclassid);
-      if( list)
-         break;
       list = _mulle_allocator_calloc( allocator, 1, sizeof( *list));
       _mulle_concurrent_pointerarray_init( list, 1, allocator);
 
-      rval = _mulle_concurrent_hashmap_insert( map, missingclassid, list);
-      if( ! rval)
-         break;
-
-      // this can't really happen anymore can it ?
-      assert( 0);
-
-      _mulle_concurrent_pointerarray_done( list);
-      _mulle_allocator_free( allocator, list);  // assume it was never
-      if( rval != EEXIST)
+      old  = NULL;
+      rval = mulle_concurrent_hashtable_register( map, hash, list, &old);
+      if( rval)
+      {
+         _mulle_concurrent_pointerarray_done( list);
+         _mulle_allocator_free( allocator, list);
+         errno = rval;
          return( NULL);
+      }
+      if( old)
+      {
+         _mulle_concurrent_pointerarray_done( list);
+         _mulle_allocator_free( allocator, list);  // was never published
+         list = old;   // a sibling won, share its list
+      }
    }
 
    _mulle_concurrent_pointerarray_add( list, info);
