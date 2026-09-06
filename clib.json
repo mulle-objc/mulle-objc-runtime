@@ -6,7 +6,7 @@
    "license" : "BSD-3-Clause",
    "repo" : "mulle-objc/mulle-objc-runtime",
    "src" : [
-      "asset/dox/TOC.md",
+      "asset/dox/api/toc/index.md",
       "src/generic/include-private.h",
       "src/generic/include.h",
       "src/minimal.h",

@@ -5,7 +5,7 @@
 
 - A lightweight, portable Objective-C runtime implemented in C11. Implements class/object metadata, method dispatch, property/ivar layout, signature parsing, and load-time installation of compiled ObjC class data.
 - Solves: provide an Objective-C runtime for environments without Apple's runtime, with focus on speed (inline calls), multi-threading, and multiple coexisting "universes".
-- Key features: fast inlineable messaging, per-class caches, tagged pointers (TPS), retain/release built-ins, binary load format (loadinfo), mixin support (v21+), class properties/variables on metaclass (v21+), MetaABI call macros.
+- Key features: fast inlineable messaging, per-class caches, tagged pointers (TPS), retain/release built-ins, binary load format (loadinfo), mixin support (v21+), class properties/variables on metaclass (v21+), MetaABI call macros, standard-implementation fast path (standardimpmask, v0.30+), lock-free class loading and universe registry (v0.30+).
 - Relationship: foundational runtime used by MulleObjC; depends on mulle-core and mulle-core-all-load.
 
 ## 2. Key Concepts & Design Philosophy
@@ -28,12 +28,19 @@
 ### 3.2. [mulle-objc-universe.h | mulle-objc-universe-global.h | mulle-objc-universe-struct.h]
 - `struct _mulle_objc_universe`
   - Purpose: runtime instance container (class tables, tagged pointer config, allocators, debug/config, foundation config, static instances, gifts).
-  - Key fields: class cache tables (`classtable`, `fastclasstable`), tagged pointer tables, allocators, `foundation` (static instance classes, rootclassid, allocator, headerextrasize, utf8staticstrings), `gifts` for external allocations, `waitqueues`.
+  - Key fields: class cache tables (`classtable`, `fastclasstable`), tagged pointer tables, allocators, `foundation` (static instance classes, rootclassid, allocator, headerextrasize, utf8staticstrings, standardimps/standardselectors/standardmetamask), `gifts` for external allocations, `waitqueues` (lock-free `mulle_concurrent_hashtable` registries for pending classes/categories, v0.30+).
   - Lifecycle functions:
     - `mulle_objc_global_get_universe_inline` / `mulle_objc_global_get_defaultuniverse`: get universe pointer.
-    - `__mulle_objc_global_register_universe` / `__mulle_objc_global_unregister_universe`: register named universes.
+    - `__mulle_objc_global_register_universe` / `__mulle_objc_global_unregister_universe`: register named universes (v0.30+: backed by a lazily-initialized lock-free `mulle_concurrent_hashtable`; multi-threaded removal is now allowed).
     - `mulle_objc_global_reset_universetable`: clear registered universes (cleanup).
     - `mulle_objc_global_release_defaultuniverse`: tear down all objects and release default universe.
+  - Universe table helpers (v0.30+, `mulle-objc-universe-global.h`):
+    - `struct mulle_concurrent_hashtable  *_mulle_objc_global_get_universe_table( void)` — get the registry table.
+    - `void  _mulle_objc_global_ensure_universe_table( void)` — lazy one-time init (CAS-guarded); reader-safe.
+    - `intptr_t  _mulle_objc_global_get_universe_hash( mulle_objc_universeid_t universeid)` — normalize a universe id to a positive-mode hashtable hash (top-bit masked on ILP32 to fit `intptr_t`; never returns 0).
+    - `struct mulle_objc_universe_init_wrapper_for_windows` — global wrapper: `map` (`mulle_concurrent_hashtable`), `mapinitvalue` (atomic init state), `initvalue`.
+  - Class posing (v0.30+): `int  mulle_objc_universe_patch_infraclass( struct _mulle_objc_universe *universe, struct _mulle_objc_infraclass *infra)` — patches `infra` into the classtable under its superclass's classid, so `[Bar alloc]` produces a `Foo` when `Foo : Bar`. Now requires a superclass (EINVAL) and refuses fast classes (EDOM); the posed-away victim is re-registered under a fresh unique `%`-prefixed classid (`%Bar`, `%%Bar`, ... up to depth 32, ENOSPC on exhaust) so it stays reachable for teardown. The victim keeps its original `base.classid` — only its classtable key and display name change. Posing is deliberately single-threaded (hashmap patch racing readers is unsafe).
+  - Thread info (v0.30+): `struct _mulle_objc_threadinfo` gains `objectallocator` (in `mulle-objc-universe.h`), separate from `allocator`, so per-thread instance reuse compares against the object allocator while infrastructure allocations stay untracked by a test allocator. `_mulle_objc_infraclass_reuse_alloc_thread` now compares `threadinfo->objectallocator`.
   - Core operations: get allocator, lookup/register classes/categories/protocols, iterate universes, add gifts (`_mulle_objc_universe_add_gift` for tracking externally-allocated objects).
   - Static instances (v21+):
     - `struct _mulle_objc_foundation` has `staticinstanceclass[ MULLE_OBJC_STATICINSTANCE_CLASS_SLOTS]` (8 slots) replacing the old single `staticstringclass`. Slot 0 is the primary string class; slots 1-2 may be UTF8 classes when `utf8staticstrings` is set.
@@ -41,10 +48,11 @@
     - `_mulle_objc_universe_set_staticinstanceclasses( universe, infra[], constantify)` — merge non-NULL entries into `staticinstanceclass[]` and re-patch queued instances.
     - `_mulle_objc_universe_didchange_staticinstanceclass( universe, constantify)` — re-runnable scan to patch queued instances.
     - Backward-compat wrappers: `_mulle_objc_universe_add_staticstring`, `_mulle_objc_universe_set_staticstringclass`, `_mulle_objc_universe_get_staticstringclass` delegate to the multi-slot API (slot 0).
-  - Foundation:
+  - Foundation (v0.30+ adds standard-implementation fast path tables):
     - `_mulle_objc_universe_get_foundationallocator()` — get the allocator for objects.
     - `_mulle_objc_universe_get_rootclassid()` — get root class id.
     - `_mulle_objc_universe_get_staticinstances()` — get the static instances pointerarray.
+    - Standard IMP tables (in `struct _mulle_objc_foundation`): `standardimps[16]` (standard IMP per method family), `standardselectors[16]` (selector per family index), `standardmetamask` (bit set = the family's standard lives on the metaclass). Populated by a higher-level layer; used by `standardimpmask` computation (see 3.10).
 
 ### 3.3. [mulle-objc-class.h | mulle-objc-class-struct.h]
 - `struct _mulle_objc_class`
@@ -59,7 +67,7 @@
     - `mulle_objc_class_add_methodlist`, `_mulle_objc_class_add_methodlist_nocache`: add methods/categories.
     - `_mulle_objc_class_lookup_method` / `mulle_objc_class_lookup_method`: method lookup (uses imp caches).
     - `_mulle_objc_class_lookup_superimplementation_nofail`: super method lookup.
-    - `_mulle_objc_class_invalidate_impcache` / `invalidate_kvccache`: cache invalidation.
+    - `_mulle_objc_class_invalidate_impcache` / `invalidate_kvccache`: cache invalidation (v0.30+: `_mulle_objc_class_invalidate_caches_default` first atomic-ANDs the infraclass `standardimpmask`, see 3.10).
     - Accessors: `mulle_objc_class_get_name`, `get_instancesize`, `get_universe`, `is_infraclass`/`is_metaclass`, `get_metaextrasize`.
 
 ### 3.4. [mulle-objc-object.h | mulle-objc-objectheader.h]
@@ -127,6 +135,8 @@
   - Top-level load container: `version`, `loaduniverse`, `loadclasslist`, `loadmixinlist` (v21+), `loadcategorylist`, `loadsuperlist`, `loadstringlist`, `loadhashedstringlist`, `origin`.
   - `version.bits` flags include `_mulle_objc_loadinfo_utf8_strings` (0x20, v21+) and runtime feature flags.
   - `mulle_objc_loadinfo_enqueue_nofail(info)` — enqueue and install into runtime; structures must reside in permanent memory until universe destructed.
+    - v0.30+: class/category wait queues are lock-free `mulle_concurrent_hashtable`s (positive mode), so waiting threads may be removed/requeued concurrently. Because positive mode reserves the top `intptr_t` bit and class ids are 32-bit, two ids can alias on ILP32; the loader rechecks the full class id before completing a waiter, making a rare alias a spurious wakeup rather than a wrong load. Normalize keys with:
+    - `intptr_t  _mulle_objc_classid_to_waitqueue_hash( mulle_objc_classid_t classid)` — mask classid to `INTPTR_MAX` (ILP32), remap 0 → `INTPTR_MAX`.
   - `mulle_objc_universe_assert_loadinfo(universe, info)` — compatibility check.
   - `mulle_objc_loadinfo_get_origin(info)` — get source file origin.
 
@@ -157,6 +167,13 @@
 ### 3.10. [mulle-objc-infraclass.h]
 - `struct _mulle_objc_infraclass` — inherits from `_mulle_objc_class`.
   - State bits: `MULLE_OBJC_INFRACLASS_IS_MIXIN` (v21: replaces `IS_PROTOCOLCLASS`).
+  - v0.30+ field: `mulle_atomic_pointer_t  standardimpmask` — bit per method family; 1 = the class still uses the standard implementation for that family. Used as a fast path to skip cache probes/invalidation for untouched families.
+- standardimpmask API (v0.30+):
+  - `uint16_t  _mulle_objc_infraclass_get_standardimpmask( struct _mulle_objc_infraclass *infra)` — read the mask (atomic, inline).
+  - `void  _mulle_objc_infraclass_set_standardimpmask( struct _mulle_objc_infraclass *infra, uint16_t bits)` — write the mask (inline).
+  - `void  _mulle_objc_infraclass_and_standardimpmask( struct _mulle_objc_infraclass *infra, uint16_t bits)` — atomic AND with weak-CAS (bytes can only be cleared 1→0, never set).
+  - `uint16_t  _mulle_objc_infraclass_compute_standardimpmask( struct _mulle_objc_infraclass *infra, struct _mulle_objc_foundation *foundation)` — compute fresh mask via cacheless (`_nofill`) lookups per family; uses `standardmetamask` to route to the metaclass.
+  - `void  _mulle_objc_infraclass_invalidate_standardimpmask( struct _mulle_objc_infraclass *infra, struct _mulle_objc_universe *universe)` — recompute and atomic-AND before cache invalidation; no-op if `standardimps[1]` is not yet registered.
 - Key functions:
   - `mulle_objc_infraclass_is_mixin(infra)` / `mulle_objc_infraclass_check_mixin(infra)` (v21: renamed from protocolclass versions).
   - `mulle_objc_infraclass_lock_classproperty(infra)` / `unlock` / `trylock` (v21+) — lock the metaclass's classpropertylock for atomic class property access.
@@ -188,7 +205,7 @@
 - `_mulle_objc_infraclass_call_deinitialize(infra)` — call +deinitialize.
 - `_mulle_objc_infraclass_call_initialize_self(infra)` (v21+) — call +initializeSelf.
 - `_mulle_objc_infraclass_call_deinitialize_self(infra)` (v21+) — call +deinitializeSelf.
-- `_mulle_objc_class_setup_initial_cache_if_needed(cls, struct _mulle_objc_impcache_callback *callback)` — set up impcache if not already done; returns 0 if cache was already set up by someone else.
+- `_mulle_objc_class_setup_initial_cache_if_needed(cls, struct _mulle_objc_impcache_callback *callback)` — set up impcache if not already done; returns 0 if cache was already set up by someone else. (v0.30+: also marks the class cache-ready and seeds the initial `standardimpmask` for infraclasses when the foundation's standard IMPs are registered.)
 
 ### 3.13. [mulle-objc-methodidconstants.h]
 - Built-in method IDs and class IDs (hashed from selector/class name strings):
@@ -476,8 +493,8 @@ From `mulle-metaabi.h` (always available, no C23 required):
 
 ### 3.27. [mulle-objc-version.h] — Runtime Version
 
-- `MULLE_OBJC_RUNTIME_VERSION` = `((0UL << 20) | (29 << 8) | 0)`
-- `MULLE_OBJC_RUNTIME_VERSION_MAJOR` (0), `MULLE_OBJC_RUNTIME_VERSION_MINOR` (29), `MULLE_OBJC_RUNTIME_VERSION_PATCH` (0) — read by the compiler at compile time.
+- `MULLE_OBJC_RUNTIME_VERSION` = `((0UL << 20) | (30 << 8) | 0)`
+- `MULLE_OBJC_RUNTIME_VERSION_MAJOR` (0), `MULLE_OBJC_RUNTIME_VERSION_MINOR` (30), `MULLE_OBJC_RUNTIME_VERSION_PATCH` (0) — read by the compiler at compile time (mirrored in `mulle-objc-jit.inc`).
 - `mulle_objc_version_get_major/minor/patch(uint32_t version)` — extract fields at runtime.
 
 ### 3.28. [mulle-objc-universe-class.h] — Universe Class Lookup
@@ -506,6 +523,13 @@ From `mulle-metaabi.h` (always available, no C23 required):
 ### 3.29. [mulle-objc-universe-fail.h] — Fatal Error Handling
 
 - Purpose: runtime crash-printing and vectored failure handlers (can be overridden per universe). All functions are `MULLE_C_NO_RETURN`.
+
+- Stacktrace callback (v0.30+): optional per-universe diagnostics, installed by a higher-level component. When set, the callback is invoked with `stderr` before the fail handler runs (in all vectored fail, inconsistency, not-found and wrongthread abort paths).
+  - `typedef void  mulle_objc_stacktrace_callback_t( FILE *fp);` — declared in `mulle-objc-universe-struct.h`.
+  - `void  mulle_objc_universe_set_stacktrace_callback( struct _mulle_objc_universe *universe, mulle_objc_stacktrace_callback_t *callback);`
+  - `void  _mulle_objc_universe_set_stacktrace_callback_inline( struct _mulle_objc_universe *universe, mulle_objc_stacktrace_callback_t *callback)` — nil-safe inline variant.
+  - `mulle_objc_stacktrace_callback_t  *_mulle_objc_universe_get_stacktrace_callback( struct _mulle_objc_universe *universe)` — query (NULL if unset).
+  - Stored in `struct _mulle_objc_universefailures.stacktrace`; initialized to NULL by `_mulle_objc_universe_init_fail`.
 
 - Generic fails:
   - `void  mulle_objc_universe_fail_code(struct _mulle_objc_universe *universe, int errnocode);`
@@ -550,11 +574,12 @@ From `mulle-metaabi.h` (always available, no C23 required):
 ## 4. Performance Characteristics
 
 - Method dispatch: optimized via per-class imp caches and optional fastmethod tables. Cache hit is effectively O(1). Cold lookup may walk methodlists: binary search O(log n) for large lists (n >= 14), linear scan O(n) for small.
+- Standard-implementation fast path (v0.30+): `standardimpmask` records which method families still resolve to the class's standard IMP, letting `_mulle_objc_class_invalidate_caches_default` atomic-AND skip work for untouched families. The mask is monotone (bits can only be cleared), computed with cacheless lookups during invalidation.
 - Retain/release: inline atomic increment/decrement for the common case (O(1)). Special states (SLOW_RELEASE, NEVER_RELEASE) trigger method calls.
-- Loading: code loading uses global synchronization but normal operation avoids global locks; per-class +initialize uses per-class synchronization.
+- Loading: code loading uses synchronized wait queues, but the class/category wait queues and the universe registry are lock-free concurrent hashtables (v0.30+), so waiting threads may be removed/requeued concurrently. Per-class +initialize uses per-class synchronization.
 - Class property lock: per-metaclass recursive mutex, dormant (depth = -1 sentinel) until +initializeSelf activates it; O(1) once initialized.
 - Memory vs speed: class structures are sizable (~1 KB/class on 64-bit) to favor runtime speed and cache locality.
-- Thread-safety: designed for multi-threading; many structures use atomic pointers and concurrent maps. Loading and certain initialization paths still require locking.
+- Thread-safety: designed for multi-threading; many structures use atomic pointers and concurrent tables. Class posing (`patch_infraclass`) and certain initialization paths still require locking/single-threaded execution.
 
 ## 5. AI Usage Recommendations & Patterns
 
@@ -573,6 +598,8 @@ From `mulle-metaabi.h` (always available, no C23 required):
   - Mixins (formerly "protocol classes") cannot be instantiated directly — `_mulle_objc_class_is_mixin()` returns true, and `alloc` calloc asserts against mixins.
   - The metaclass `classpropertylock` is dormant (depth = -1) until `+initializeSelf` is called — accessing class properties before that is unsafe.
   - `mulle-metaabi-call.h` is NOT in the umbrella; include it explicitly and ensure C23 (`__VA_OPT__`).
+  - `standardimpmask` bits are monotone: only ever clear them atomically (via `_mulle_objc_infraclass_and_standardimpmask` or the invalidate/compute path). Never write bits directly in threaded context; the initial value is seeded by `_mulle_objc_class_setup_initial_cache_if_needed`.
+  - `%`-prefixed classids (`%Bar`, `%%Bar`, ...) are internal classtable keys for posed-away victims — the victim's `base.classid` and identity are unchanged, and `%` is an invalid compiler class name, so these never collide with user classes.
 - Idioms:
   - Use `mulle_objc_loadinfo_enqueue_nofail` to install compiled class data.
   - Use `mulle_objc_universe_new_classpair(...)` to create classes dynamically.
@@ -692,4 +719,4 @@ int   call_getCount( void *obj)
 
 ## 8. Shortcut
 
-- Last committed at 9cdf1f4. Updated to cover all public headers in the umbrella `<mulle-objc-runtime/mulle-objc-runtime.h>`. Added sections 3.18–3.31 covering: call infrastructure (call.h), compiler builtins (builtin.h), cache/impcache subsystem (cache.h, impcache.h), class method lookup (class-lookup.h), class method search (class-search.h), instance allocation/object convenience (class-convenience.h, object-convenience.h), tagged pointers (taggedpointer.h), super call structures (super.h), exception handling (try-catch-finally.h), runtime version (version.h), universe class lookup (universe-class.h), fatal error handling (universe-fail.h), fast class/method tables FCS (fastmethodtable.h, fastclasstable.h), and KVC cache (kvccache.h).
+- Last committed at 24c1797 (index itself last touched at 9d935dc). Updated for v0.30.0: standardimpmask method-family fast path (infraclass.h halfword + get/set/and/compute/invalidate, class-initialize seeding, class.c invalidation hook, foundation `standardimps[16]`/`standardselectors[16]`/`standardmetamask`), lock-free class-load wait queues and universe registry (`mulle_concurrent_hashtable`, `_mulle_objc_classid_to_waitqueue_hash`, `_mulle_objc_global_get_universe_table`/`_ensure_universe_table`/`_get_universe_hash`), stacktrace callback API (`mulle_objc_universe_set_stacktrace_callback` et al., `failures.stacktrace`), class posing victim re-registration under `%`-prefixed classids plus EINVAL/EDOM guards, `_mulle_objc_threadinfo.objectallocator`, and runtime version bump 0.29 → 0.30 (also `mulle-objc-jit.inc`).
