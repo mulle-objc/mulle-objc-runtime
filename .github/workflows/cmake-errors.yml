@@ -61,8 +61,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # mulle-core and mulle-core-all-load used to be recursive git submodules
+      # under stash/. That recursive-submodule setup was removed, which left the
+      # two "build ... from stash/" steps below dangling (their working-directory
+      # no longer existed). Check them out explicitly instead, from the same ref
+      # as this build (github.ref_name, e.g. prerelease / develop / master).
+      - name: Checkout mulle-core into stash
+        uses: actions/checkout@v4
         with:
-          submodules: recursive
+          repository: mulle-core/mulle-core
+          ref: ${{ github.ref_name }}
+          path: stash/mulle-core
+
+      - name: Checkout mulle-core-all-load into stash
+        uses: actions/checkout@v4
+        with:
+          repository: mulle-core/mulle-core-all-load
+          ref: ${{ github.ref_name }}
+          path: stash/mulle-core-all-load
         
       # Set installation directory based on OS
       - name: Set install directory
