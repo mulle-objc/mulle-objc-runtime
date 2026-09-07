@@ -1,3 +1,4 @@
 # Todo List
 _mulle_objc_methodlistenumerator_next is this really clear it returns a method ?
 @once, @synchronized, @property( class), @signature(), @invocation()
+why not copy for `char *`
