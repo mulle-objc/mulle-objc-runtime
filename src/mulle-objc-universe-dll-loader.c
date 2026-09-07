@@ -59,7 +59,7 @@ static char   *get_module_directory( HMODULE hModule, char *buf, size_t bufsize)
 {
    char   *lastSlash;
 
-   if( ! GetModuleFileNameA( hModule, buf, bufsize))
+   if( ! GetModuleFileNameA( hModule, buf, (DWORD) bufsize))
       return( NULL);
 
    lastSlash = strrchr( buf, '\\');
