@@ -2,6 +2,40 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# MultiPhase.cmake
+#    Turns the single MULLE_MAKE_PHASE value handed over by mulle-craft into
+#    the three phase flags the other modules test. A build with no phase
+#    given runs all three phases, which is what a plain cmake build wants.
+#
+# INPUT
+#    MULLE_MAKE_PHASE     "HEADERS"/"HEADER", "COMPILE" or "LINK". Usually
+#                         passed with -D by mulle-craft. Any other value,
+#                         including unset, enables all three phases
+#    MULLE_TRACE_INCLUDE  trace inclusion of this file
+#
+# OPTIONS
+#    HEADER_PHASE         OFF   install headers only (phase 1)
+#    COMPILE_PHASE        OFF   compile sources only (phase 2)
+#    LINK_PHASE           OFF   link and install only (phase 3)
+#
+#    The defaults are only the starting point; the rules below can switch
+#    them on. Because cmake caches them, a three phase build progresses from
+#    ON OFF OFF to ON ON OFF to ON ON ON.
+#
+# OUTPUT
+#    HEADER_PHASE         also implied by COMPILE_PHASE
+#    COMPILE_PHASE        also implied by LINK_PHASE
+#    LINK_PHASE
+#    HEADERS_PHASE        legacy alias, set when HEADER_PHASE is on
+#
+#    So the flags are cumulative: LINK_PHASE alone results in all three
+#    being on, and no phase at all also results in all three being on.
+#
+# GUARD
+#    __MULTI_PHASE__CMAKE__
+#
+
 if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()

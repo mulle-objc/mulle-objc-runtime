@@ -2,6 +2,38 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# InstallLibrary.cmake
+#    Installs the library targets and the files they ship. Runs during
+#    LINK_PHASE only.
+#
+# INPUT
+#    INSTALL_LIBRARY_TARGETS   the targets to install, from Library
+#    LINK_PHASE                nothing is installed without it
+#    ASSET_DIR                 defaults to <source>/asset, unset again if
+#                              that directory does not exist
+#    INSTALL_<IDENTIFIER>_RESOURCE_DIRS  per target resource directories
+#    INSTALL_<IDENTIFIER>_RESOURCES      per target resource files
+#    MULLE_TRACE_INCLUDE       trace inclusion of this file
+#
+# OPTIONS
+#    INSTALL_PROJECT_ASSET_DIR  ON   copy the contents of the projects
+#                                    "asset" directory to "share" on install
+#
+# OUTPUT
+#    ASSET_DIR                 resolved, or unset when there is none
+#
+#    Installs: TARGETS to bin/lib/lib, the asset directory to share, and the
+#    per target resource directories and files.
+#
+# INCLUDES
+#    PreInstallLibrary (OPTIONAL), StringCase,
+#    PostInstallLibrary (OPTIONAL)
+#
+# GUARD
+#    none. Include once per library
+#
+
 # This in theory can be included multiple times
 
 if( MULLE_TRACE_INCLUDE)

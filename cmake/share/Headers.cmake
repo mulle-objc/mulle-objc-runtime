@@ -31,13 +31,23 @@ endif()
 
 function( _mulle_filter_reflect_entries listname keepdir)
    unset( _list)
+
+   # Build a regex that matches "keepdir" as a full path segment, i.e. the
+   # entry must be "keepdir" itself or a child ("keepdir/..."). A plain
+   # substring test is wrong here, because e.g. "src/reflect.glfw" is a
+   # substring of the sibling "src/reflect.glfw-metal" and would wrongly keep
+   # it (and "src/reflect.sdl" of "src/reflect.sdl-d3d11"). Escape regex
+   # metacharacters ('.') in keepdir before use.
+   string( REGEX REPLACE "([][.*+?^$(){}|\\\\])" "\\\\\\1" _keep_re "${keepdir}")
+
    foreach( _item ${${listname}})
       # match src/reflect. at any depth (handles ../src/reflect. too)
       string( REGEX MATCH "(^|/)src/reflect[.]" _is_reflect "${_item}")
       if( _is_reflect)
-         # check if it's the active reflect dir or a child of it
-         string( FIND "${_item}" "${keepdir}" _is_keep)
-         if( _is_keep GREATER_EQUAL 0)
+         # keep only the active reflect dir or a child of it, matching on a
+         # full path segment boundary (end-of-string or a following slash)
+         string( REGEX MATCH "(^|/)${_keep_re}(/|$)" _is_keep "${_item}")
+         if( _is_keep)
             list( APPEND _list "${_item}")
          endif()
       else()

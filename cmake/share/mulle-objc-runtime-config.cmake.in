@@ -2,21 +2,64 @@
 
 include( CMakeFindDependencyMacro)
 
+#
+# Find our dependencies, so that whatever they export exists before our own
+# targets file is read.
+#
+# The names come from our installed _Dependencies.cmake, included in name
+# collecting mode. That file sits with the headers, in
+# "include/@PROJECT_NAME@/cmake", because that is where the projects
+# CMakeLists.txt installs INSTALL_CMAKE_INCLUDES, and it is the same place
+# a dependency's _Dependencies.cmake looks for its own dependencies. It is
+# not next to this file. PACKAGE_PREFIX_DIR comes from PACKAGE_INIT above.
+#
+# The saved values are kept in variables carrying our name. A dependency's
+# config file runs this very code, and with shared names its save would
+# overwrite ours and its restore would hand our caller the wrong list.
+# COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES is restored rather than set to OFF,
+# for the same reason: our caller may be a config file that needs it ON.
+#
+set( _@PROJECT_UPCASE_IDENTIFIER@_SAVED_COLLECT "${COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES}")
+set( _@PROJECT_UPCASE_IDENTIFIER@_SAVED_LIBRARIES "${DEPENDENCY_LIBRARIES}")
+
 set( COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES ON)
-set( TMP_DEPENDENCY_LIBRARIES "${DEPENDENCY_LIBRARIES}")
-unset( DEPENDENCY_LIBRARIES)
+set( DEPENDENCY_LIBRARIES)
 
-include( "${CMAKE_CURRENT_LIST_DIR}/_Dependencies.cmake" OPTIONAL)
+include( "${PACKAGE_PREFIX_DIR}/include/@PROJECT_NAME@/cmake/_Dependencies.cmake" OPTIONAL)
 
+set( _@PROJECT_UPCASE_IDENTIFIER@_COLLECTED "${DEPENDENCY_LIBRARIES}")
 
-foreach( TMP_NAME ${DEPENDENCY_LIBRARIES})
-   find_dependency( ${TMP_NAME})
+foreach( _@PROJECT_UPCASE_IDENTIFIER@_NAME ${_@PROJECT_UPCASE_IDENTIFIER@_COLLECTED})
+   find_dependency( ${_@PROJECT_UPCASE_IDENTIFIER@_NAME})
 endforeach()
+unset( _@PROJECT_UPCASE_IDENTIFIER@_NAME)
 
 # restore
-set( COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES OFF)
-set( DEPENDENCY_LIBRARIES "${TMP_DEPENDENCY_LIBRARIES}")
+set( COLLECT_DEPENDENCY_LIBRARIES_AS_NAMES "${_@PROJECT_UPCASE_IDENTIFIER@_SAVED_COLLECT}")
+set( DEPENDENCY_LIBRARIES "${_@PROJECT_UPCASE_IDENTIFIER@_SAVED_LIBRARIES}")
+unset( _@PROJECT_UPCASE_IDENTIFIER@_SAVED_COLLECT)
+unset( _@PROJECT_UPCASE_IDENTIFIER@_SAVED_LIBRARIES)
 
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-targets.cmake")
+
+#
+# Say what we link against. Our targets file can not: at build time the
+# dependencies resolved to library file paths, and absolute paths must not
+# leak into a consumers link line, so nothing was exported. Here they exist
+# as imported targets, put there by the find_dependency calls above, and a
+# namespaced target is safe to export. Without this a consumer that links
+# only our target gets undefined symbols from our dependencies.
+#
+if( TARGET @PROJECT_NAME@::@PROJECT_NAME@)
+   foreach( _@PROJECT_UPCASE_IDENTIFIER@_NAME ${_@PROJECT_UPCASE_IDENTIFIER@_COLLECTED})
+      if( TARGET ${_@PROJECT_UPCASE_IDENTIFIER@_NAME}::${_@PROJECT_UPCASE_IDENTIFIER@_NAME})
+         set_property( TARGET @PROJECT_NAME@::@PROJECT_NAME@ APPEND PROPERTY
+                       INTERFACE_LINK_LIBRARIES
+                       ${_@PROJECT_UPCASE_IDENTIFIER@_NAME}::${_@PROJECT_UPCASE_IDENTIFIER@_NAME})
+      endif()
+   endforeach()
+   unset( _@PROJECT_UPCASE_IDENTIFIER@_NAME)
+endif()
+unset( _@PROJECT_UPCASE_IDENTIFIER@_COLLECTED)
 
 check_required_components(@PROJECT_NAME@)

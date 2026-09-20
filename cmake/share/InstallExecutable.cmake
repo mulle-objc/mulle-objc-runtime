@@ -2,6 +2,36 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# InstallExecutable.cmake
+#    Installs the executables into "bin", plus per target resources into
+#    "share/<target>". Runs during LINK_PHASE only.
+#
+# INPUT
+#    INSTALL_EXECUTABLE_TARGETS  the targets installed into "bin"
+#    INSTALL_LIBRARY_TARGETS     the list actually iterated for resources,
+#                                see the MEMO below
+#    INSTALL_<IDENTIFIER>_RESOURCE_DIRS  per target resource directories
+#    INSTALL_<IDENTIFIER>_RESOURCES      per target resource files
+#    LINK_PHASE                  nothing is installed without it
+#    MULLE_TRACE_INCLUDE         trace inclusion of this file
+#
+# OUTPUT
+#    none. Installs only.
+#
+#    MEMO: the resource loop iterates INSTALL_LIBRARY_TARGETS, not
+#          INSTALL_EXECUTABLE_TARGETS. For an executable only project that
+#          list is empty, so executable resources are not installed here.
+#          Documented as it stands, not changed.
+#
+# INCLUDES
+#    PreInstallExecutable (OPTIONAL), StringCase,
+#    PostInstallExecutable (OPTIONAL)
+#
+# GUARD
+#    none, this can be included multiple times
+#
+
 # This can be included multiple times
 
 if( MULLE_TRACE_INCLUDE)

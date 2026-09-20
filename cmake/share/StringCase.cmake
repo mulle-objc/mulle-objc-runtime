@@ -2,6 +2,24 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# StringCase.cmake
+#    Provides the name mangling used to turn project and library names into
+#    cmake variable identifiers. Reads nothing, sets nothing, declares no
+#    options.
+#
+# PROVIDES
+#    snakeCaseString( str var)
+#       Writes the snake cased form of "str" into the variable named by
+#       "var" in the callers scope. "-" becomes "__", so mulle-scion yields
+#       MULLE__SCION and stays distinguishable from MulleScion, which
+#       yields MULLE_SCION. Characters that are not identifier characters
+#       become "_".
+#
+# GUARD
+#    __STRING_CASE__CMAKE__
+#
+
 
 # Original:
 #

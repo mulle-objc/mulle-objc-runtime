@@ -2,6 +2,38 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# Framework.cmake
+#    Creates an Apple framework as a SHARED library with framework
+#    properties. Frameworks do not support the three phase build.
+#
+# INPUT
+#    PROJECT_NAME             fallback for FRAMEWORK_NAME
+#    FRAMEWORK_NAME           name of the framework target
+#    FRAMEWORK_VERSION        bundle version directory, defaults to "A"
+#    FRAMEWORK_FILES          defaults to PROJECT_FILES. An empty list is an
+#                             error
+#    SHARED_LIBRARY_LIST      what to link. Built from DEPENDENCY_LIBRARIES,
+#                             DEPENDENCY_FRAMEWORKS, the OPTIONAL_ and
+#                             OS_SPECIFIC_ variants when not preset
+#    MULLE_TRACE_INCLUDE      trace inclusion of this file
+#
+# OUTPUT
+#    FRAMEWORK_IDENTIFIER           snake cased FRAMEWORK_NAME
+#    FRAMEWORK_UPCASE_IDENTIFIER    upper cased variant
+#    FRAMEWORK_DOWNCASE_IDENTIFIER  lower cased variant
+#    SHARED_LIBRARY_LIST            filled in when it was empty
+#    INSTALL_FRAMEWORK_TARGETS      consumed by InstallFramework
+#
+#    Creates the target ${FRAMEWORK_NAME}.
+#
+# INCLUDES
+#    StringCase, PreFramework (OPTIONAL), FrameworkAux (OPTIONAL)
+#
+# GUARD
+#    none. Include once per framework
+#
+
 # This in theory can be included multiple times
 
 if( MULLE_TRACE_INCLUDE)

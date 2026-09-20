@@ -2,11 +2,62 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# Dependencies.cmake
+#    The main projects entry point into dependency resolution. It runs
+#    DependenciesAndLibraries once, de-duplicates the accumulated lists and
+#    caches them.
+#
+#    Only the main project includes this file. That is why the caching lives
+#    here and not in DependenciesAndLibraries, which is also inherited by
+#    other projects whose cache must not be clobbered.
+#
+# INPUT
+#    All the list variables listed under OUTPUT are appended to by the
+#    generated _Dependencies and _Libraries, reached through
+#    DependenciesAndLibraries. They may be preset.
+#    MULLE_TRACE_INCLUDE       trace inclusion of this file
+#
+# OPTIONS
+#    INHERIT_DEPENDENCY_INCLUDES     OFF  add the dependencies include
+#                                         directories as local -I paths
+#    INHERIT_DEPENDENCY_DEFINITIONS  ON   adopt the compiler flags the
+#                                         dependencies ask for
+#
+# OUTPUT
+#    All of these end up CACHE INTERNAL, de-duplicated:
+#
+#    INHERITED_INCLUDE_DIRS                  used by INHERIT_DEPENDENCY_INCLUDES
+#    INHERITED_DEFINITIONS                   used by INHERIT_DEPENDENCY_DEFINITIONS
+#    HEADER_ONLY_LIBRARIES
+#    DEPENDENCY_LIBRARIES                    consumed by Library/Executable
+#    DEPENDENCY_FRAMEWORKS
+#    OS_SPECIFIC_LIBRARIES
+#    OS_SPECIFIC_FRAMEWORKS
+#    ALL_LOAD_OS_SPECIFIC_LIBRARIES
+#    ALL_LOAD_OS_SPECIFIC_FRAMEWORKS
+#    ALL_LOAD_DEPENDENCY_LIBRARIES
+#    ALL_LOAD_DEPENDENCY_FRAMEWORKS
+#    ALL_LOAD_OPTIONAL_DEPENDENCY_LIBRARIES
+#    ALL_LOAD_OPTIONAL_DEPENDENCY_FRAMEWORKS
+#    STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES
+#    STARTUP_ALL_LOAD_DEPENDENCY_FRAMEWORKS
+#
+#    Side effects: include_directories() and add_compile_definitions() when
+#    the two options above are on.
+#
+# INCLUDES
+#    PreDependencies (OPTIONAL), DependenciesAndLibraries (OPTIONAL)
+#
+# GUARD
+#    __DEPENDENCIES__CMAKE__
+#
+
 ### Dependencies
 
 
-if( NOT __DEPENDENCIES___CMAKE__)
-   set( __DEPENDENCIES___CMAKE__ ON)
+if( NOT __DEPENDENCIES__CMAKE__)
+   set( __DEPENDENCIES__CMAKE__ ON)
 
    if( MULLE_TRACE_INCLUDE)
       message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
@@ -83,7 +134,7 @@ endif()
 
 option( INHERIT_DEPENDENCY_DEFINITIONS "Inherit compiler flags from dependencies" ON)
 
-if( INHERIT_DEPENDENCY_INCLUDES)
+if( INHERIT_DEPENDENCY_DEFINITIONS)
    add_compile_definitions( ${INHERITED_DEFINITIONS})
 endif()
 

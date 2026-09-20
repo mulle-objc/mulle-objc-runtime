@@ -72,8 +72,8 @@ endif()
 include( InstallLibrary)
 
 if( LINK_PHASE)
-   include( InstallCMakeInclude)
-   include( InstallCMakePackage)
+   include( AddSubdirectorySupport)
+   include( FindPackageSupport)
 endif()
 
 if( APPLE)
@@ -94,38 +94,8 @@ endif()
 #    remove_definitions("-DMULLE_INCLUDE_DYNAMIC=1")
 # endif()
 
-#
-# mulle-objc-uniqueid
-#
-set( EXECUTABLE_NAME mulle-objc-uniqueid)
+# The mulle-objc-uniqueid and mulle-objc-signature tools now live in the
+# separate mulle-objc-tools project, which links this library.
 
-# only need the hash function (done like this if runtime is built as shared)
-set( EXECUTABLE_SOURCES  ${UNIQUEID_SOURCES}
-src/mulle-objc-uniqueid.c
-)
-
-set( EXECUTABLE_DEPENDENCY_NAMES "")
-# only need the hash function
-set( EXECUTABLE_LIBRARY_LIST "${MULLE__CORE_LIBRARY}")
-if( LIBBACKTRACE_LIBRARY)
-   # needef when testing with .so
-   list(APPEND EXECUTABLE_LIBRARY_LIST "${LIBBACKTRACE_LIBRARY}")
-endif()
-
-include( Executable)
-
-#
-# mulle-objc-signature
-#
-set( EXECUTABLE_NAME mulle-objc-signature)
-# only need the signature function
-set( EXECUTABLE_SOURCES  ${SIGNATURE_SOURCES}
-src/mulle-objc-signature.c)
-set( EXECUTABLE_LIBRARY_LIST "${MULLE__CORE_LIBRARY}")
-set( EXECUTABLE_DEPENDENCY_NAMES "")
-
-include( Executable)
-
-include( InstallExecutable)
 
 include( FinalOutput OPTIONAL)

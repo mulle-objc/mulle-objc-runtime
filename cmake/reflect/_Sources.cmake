@@ -8,13 +8,6 @@ if( MULLE_TRACE_INCLUDE)
 endif()
 
 #
-# contents selected with patternfile ??-source--signature-sources
-#
-set( SIGNATURE_SOURCES
-src/mulle-objc-signature/main.c
-)
-
-#
 # contents selected with patternfile ??-source--sources
 #
 set( SOURCES
@@ -65,11 +58,4 @@ src/mulle-objc-universe-global.c
 #
 set( STANDALONE_SOURCES
 src/mulle-objc-runtime-standalone.c
-)
-
-#
-# contents selected with patternfile ??-source--uniqueid-sources
-#
-set( UNIQUEID_SOURCES
-src/mulle-objc-uniqueid/main.c
 )

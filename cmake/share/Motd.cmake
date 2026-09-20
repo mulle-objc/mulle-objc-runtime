@@ -2,6 +2,40 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# Motd.cmake
+#    Adds build targets that append a "message of the day" telling the user
+#    where the built executable ended up. Purely cosmetic, and skipped
+#    silently when the mulle-create-build-motd tool is not found.
+#
+#    Executables only, and LINK_PHASE only.
+#
+# INPUT
+#    EXECUTABLE_NAME       nothing happens without it
+#    LINK_PHASE            nothing happens without it
+#    CREATE_MOTD_EXE       path to the tool. Searched for when unset
+#    MULLE_VIRTUAL_ROOT    used to build the tool search path, and passed
+#                          to the tool
+#    MULLE_TRACE_INCLUDE   trace inclusion of this file
+#
+# ENVIRONMENT
+#    MULLE_HOSTNAME             part of the tool search path
+#    MULLE_USERNAME             part of the tool search path
+#    CREATE_BUILD_MOTD_FLAGS    passed to the tool verbatim
+#
+# OUTPUT
+#    CREATE_MOTD_EXE       the located tool, cached by find_program
+#
+#    Creates the targets "__cleanmotd__" and
+#    "_${EXECUTABLE_NAME}__motd__", the latter in ALL.
+#
+# INCLUDES
+#    MotdAux (OPTIONAL)
+#
+# GUARD
+#    none
+#
+
 # this can be included multiple times
 
 if( MULLE_TRACE_INCLUDE)

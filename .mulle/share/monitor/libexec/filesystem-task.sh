@@ -80,7 +80,7 @@ filesystem_task_run()
          case "${PROJECT_DIALECT}" in
             objc)
                exekutor mulle-project-clib-json ${MULLE_TECHNICAL_FLAGS} \
-                                                -a src/reflect/objc-deps.inc \
+                                                -a "${PROJECT_SOURCE_DIR}/${MULLE_SDE_REFLECT_DIR:-reflect}"/objc-deps.inc \
                                                 -o "clib.json"
                rval3=$?
             ;;

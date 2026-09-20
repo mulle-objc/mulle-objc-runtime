@@ -2,6 +2,51 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# Executable.cmake
+#    Creates the executable target. Like Library it compiles into an OBJECT
+#    target first, then links in LINK_PHASE only.
+#
+# INPUT
+#    PROJECT_NAME             fallback for EXECUTABLE_NAME
+#    EXECUTABLE_NAME          name of the executable target
+#    EXECUTABLE_SOURCES       defaults to SOURCES. An empty list is an error
+#    OTHER_EXECUTABLE_OBJECT_FILES                       pre-compiled objects
+#    OTHER_<EXECUTABLE_UPCASE_IDENTIFIER>_OBJECT_FILES   likewise
+#    EXECUTABLE_DEPENDENCY_NAMES  extra add_dependencies targets
+#    PROJECT_HEADERS          added to the target for IDE visibility
+#    CMAKE_EDITABLE_FILES     likewise
+#    LINK_PHASE               gates add_executable and all linking
+#    DEPENDENCY_LIBRARIES     and the other lists from Dependencies
+#    HEADER_ONLY_LIBRARIES    from Dependencies. Entries that are cmake
+#                             targets are linked for their include
+#                             directories and build order only
+#    MULLE_TRACE_INCLUDE      trace inclusion of this file
+#
+# OPTIONS
+#    EXE_EXPORT_ALL   ON   sets CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS
+#
+# OUTPUT
+#    EXECUTABLE_IDENTIFIER           snake cased EXECUTABLE_NAME
+#    EXECUTABLE_UPCASE_IDENTIFIER    upper cased variant
+#    EXECUTABLE_DOWNCASE_IDENTIFIER  lower cased variant
+#    EXECUTABLE_COMPILE_TARGET       target carrying compile options
+#    EXECUTABLE_LINK_TARGET          target carrying link options
+#    INSTALL_EXECUTABLE_TARGETS      consumed by InstallExecutable
+#    CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS  from EXE_EXPORT_ALL
+#
+#    Defines <EXECUTABLE_UPCASE_IDENTIFIER>_BUILD while compiling, sets
+#    ENABLE_EXPORTS, and on APPLE an INSTALL_RPATH/BUILD_RPATH pointing at
+#    ../lib and ../Frameworks.
+#
+# INCLUDES
+#    StringCase, PreExecutable (OPTIONAL), Rpath (OPTIONAL),
+#    ExecutableAux (OPTIONAL)
+#
+# GUARD
+#    none. Include once per executable
+#
+
 # This can be included multiple times
 
 if( MULLE_TRACE_INCLUDE)
@@ -65,10 +110,45 @@ set_target_properties( ${EXECUTABLE_COMPILE_TARGET}
 
 target_compile_definitions( ${EXECUTABLE_COMPILE_TARGET} PRIVATE "${EXECUTABLE_UPCASE_IDENTIFIER}_BUILD")
 
+#
+# add_subdirectory support: same as in Library.cmake.
+#
+# An OBJECT library does not link, so it does not pick up the usage
+# requirements (include directories, definitions) of our dependencies by
+# itself. When a dependency resolved to a cmake target - which is what
+# happens when it was pulled in with add_subdirectory - link against it.
+# That gives us its INTERFACE_INCLUDE_DIRECTORIES and establishes the build
+# order, so the headers are in place before we compile.
+#
+# In a mulle-craft build the dependencies are files, not targets, and their
+# headers come from DEPENDENCY_DIR, so nothing happens here.
+#
+# HEADER_ONLY_LIBRARIES is in the list because a header only dependency is
+# usually an INTERFACE target. Linking one adds nothing to the link line, it
+# only transfers the include directories and the dependency on the targets
+# that stage the headers.
+#
+foreach( _dep_lib
+         ${DEPENDENCY_LIBRARIES}
+         ${OPTIONAL_DEPENDENCY_LIBRARIES}
+         ${ALL_LOAD_DEPENDENCY_LIBRARIES}
+         ${ALL_LOAD_OPTIONAL_DEPENDENCY_LIBRARIES}
+         ${FORCE_ALL_LOAD_DEPENDENCY_LIBRARIES}
+         ${STARTUP_DEPENDENCY_LIBRARIES}
+         ${STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES}
+         ${FORCE_STARTUP_ALL_LOAD_DEPENDENCY_LIBRARIES}
+         ${HEADER_ONLY_LIBRARIES})
+   if( TARGET "${_dep_lib}")
+      message( STATUS "${EXECUTABLE_COMPILE_TARGET} inherits usage requirements of target \"${_dep_lib}\"")
+      target_link_libraries( ${EXECUTABLE_COMPILE_TARGET} PRIVATE "${_dep_lib}")
+   endif()
+endforeach()
+unset( _dep_lib)
+
 
 if( LINK_PHASE)
    # RPATH must be ahead of add_executable
-   include( InstallRpath OPTIONAL)
+   include( Rpath OPTIONAL)
 
    add_executable( "${EXECUTABLE_NAME}"
       ${ALL_OBJECT_FILES}

@@ -230,6 +230,7 @@ static inline void
    }
 }
 
+
 MULLE_C_STATIC_ALWAYS_INLINE
 void   *
    mulle_objc_object_get_property_value( void *self,

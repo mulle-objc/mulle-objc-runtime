@@ -2,6 +2,45 @@
 ### picked up in preference over the one in cmake/share. And it will not get
 ### clobbered with the next upgrade.
 
+#
+# IDESupport.cmake
+#    Convenience for working on the project inside an IDE like CLion. Adds
+#    mulle_sde_* targets, and builds the dependency tree at configure time
+#    when it has not been built yet, so the IDE does not present a project
+#    full of unresolvable includes.
+#
+#    Everything here is skipped when the environment variable
+#    MULLE_VIRTUAL_ROOT is defined, because then the build is already
+#    running inside mulle-sde and does not need any of this.
+#
+#    This file is included by the projects CMakeLists.txt, not by another
+#    share module.
+#
+# INPUT
+#    PROJECT_SOURCE_DIR    looked at for .mulle/etc/sourcetree, which is
+#                          what makes this a mulle-sde project
+#    DEPENDENCY_DIR        the craft is only run when
+#                          ${DEPENDENCY_DIR}/.state-complete is missing
+#    MULLE_SDE             path to the tool, searched for when unset
+#    MULLE_TRACE_INCLUDE   trace inclusion of this file
+#
+# ENVIRONMENT
+#    MULLE_VIRTUAL_ROOT    when defined, this whole file does nothing
+#
+# OPTIONS
+#    IDE_SUPPORT   ON   enable IDE support for CLion
+#
+# OUTPUT
+#    MULLE_SDE     the located tool, cached by find_program
+#
+#    Creates the targets mulle_sde_craft_craftorder, mulle_sde_reflect,
+#    mulle_sde_clean_target, mulle_sde_clean_all, mulle_sde_clean_tidy and
+#    mulle_sde_upgrade. May run `mulle-sde craft craftorder` during configure.
+#
+# GUARD
+#    __IDE_SUPPORT_START__CMAKE__
+#
+
 ### Files
 if( NOT __IDE_SUPPORT_START__CMAKE__)
    set( __IDE_SUPPORT_START__CMAKE__ ON)
@@ -10,7 +49,7 @@ if( MULLE_TRACE_INCLUDE)
    message( STATUS "# Include \"${CMAKE_CURRENT_LIST_FILE}\"" )
 endif()
 
-#default to ON for a while
+
 option( IDE_SUPPORT "Enable IDE support for Clion" ON)
 
 if( IDE_SUPPORT)

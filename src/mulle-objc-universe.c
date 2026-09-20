@@ -711,7 +711,7 @@ static void   _mulle_objc_universe_set_defaults( struct _mulle_objc_universe  *u
 
    assert( allocator->calloc);
    assert( allocator->free);
-   assert( allocator->realloc);
+   assert( allocator->reallocarray);
 
    assert( _mulle_objc_universe_is_transitioning( universe)); // != 0!
    _mulle_atomic_pointer_write_nonatomic( &universe->cachepivot.entries,
