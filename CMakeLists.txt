@@ -95,7 +95,7 @@ endif()
 # endif()
 
 # The mulle-objc-uniqueid and mulle-objc-signature tools now live in the
-# separate mulle-objc-tools project, which links this library.
+# separate mulle-objc-list project, which links this library.
 
 
 include( FinalOutput OPTIONAL)

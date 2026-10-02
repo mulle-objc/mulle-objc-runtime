@@ -24,7 +24,10 @@
 #    MULLE_TRACE_INCLUDE      trace inclusion of this file
 #
 # OPTIONS
-#    EXE_EXPORT_ALL   ON   sets CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS
+#    EXE_EXPORT_ALL     ON  sets CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS
+#    EXE_UTF8_MANIFEST  ON  on Windows embed an application manifest that
+#                           declares the active code page as UTF-8, so that
+#                           argv and the environment arrive as UTF-8
 #
 # OUTPUT
 #    EXECUTABLE_IDENTIFIER           snake cased EXECUTABLE_NAME
@@ -79,6 +82,8 @@ endif()
 option( EXE_EXPORT_ALL "Export all global symbols for executable" ON)
 set( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ${EXE_EXPORT_ALL})
 
+option( EXE_UTF8_MANIFEST "Embed a UTF-8 activeCodePage manifest into the executable" ON)
+
 #
 # must be ahead of AllLoadC
 #
@@ -91,6 +96,16 @@ endif()
 
 set( EXECUTABLE_COMPILE_TARGET "_1_${EXECUTABLE_NAME}")
 set( EXECUTABLE_LINK_TARGET "${EXECUTABLE_NAME}")
+
+#
+# In the compile-only phase the executable target does not exist yet (it is
+# created below under LINK_PHASE). Point the link target at the compile
+# target, so unguarded target_link_options() calls in project CMakeLists.txt
+# do not fail. An OBJECT library does not link, so the options are ignored.
+#
+if( NOT LINK_PHASE)
+   set( EXECUTABLE_LINK_TARGET "${EXECUTABLE_COMPILE_TARGET}")
+endif()
 
 add_library( ${EXECUTABLE_COMPILE_TARGET} OBJECT
    ${EXECUTABLE_SOURCES}
@@ -150,10 +165,51 @@ if( LINK_PHASE)
    # RPATH must be ahead of add_executable
    include( Rpath OPTIONAL)
 
+   #
+   # Windows derives argv and the environment from the wide command line
+   # using the ANSI code page (GetACP), so a program that reads UTF-8 gets
+   # mojibake and the original bytes are already lost. An application
+   # manifest declaring activeCodePage UTF-8 fixes this on Windows 10 1903
+   # and newer. It is embedded as an executable resource (id 1 is the
+   # manifest the loader reads for an executable, type 24 is RT_MANIFEST),
+   # which makes it a per-executable concern, not something a linked library
+   # can provide. Older Windows ignores the setting.
+   #
+   set( UTF8_MANIFEST_SOURCES)
+
+   if( WIN32 AND EXE_UTF8_MANIFEST)
+      enable_language( RC)
+
+      set( _utf8_manifest "${CMAKE_CURRENT_BINARY_DIR}/utf8-executable.manifest")
+      set( _utf8_rc       "${CMAKE_CURRENT_BINARY_DIR}/utf8-executable.rc")
+
+      file( WRITE "${_utf8_manifest}"
+"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>
+<assembly xmlns=\"urn:schemas-microsoft-com:asm.v1\" manifestVersion=\"1.0\">
+  <application>
+    <windowsSettings>
+      <activeCodePage xmlns=\"http://schemas.microsoft.com/SMI/2019/WindowsSettings\">UTF-8</activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>
+")
+
+      # numbers spelled out for any windres, including llvm-windres
+      file( WRITE "${_utf8_rc}"
+"1 24 \"utf8-executable.manifest\"
+")
+
+      set_source_files_properties( "${_utf8_rc}" PROPERTIES
+         COMPILE_OPTIONS "--include-dir=${CMAKE_CURRENT_BINARY_DIR}")
+
+      set( UTF8_MANIFEST_SOURCES "${_utf8_rc}")
+   endif()
+
    add_executable( "${EXECUTABLE_NAME}"
       ${ALL_OBJECT_FILES}
       ${PROJECT_HEADERS}
       ${CMAKE_EDITABLE_FILES}
+      ${UTF8_MANIFEST_SOURCES}
    )
 
    add_dependencies( "${EXECUTABLE_NAME}"

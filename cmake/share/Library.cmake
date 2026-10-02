@@ -142,6 +142,17 @@ if( LIBRARY_SOURCES OR OTHER_LIBRARY_OBJECT_FILES OR OTHER_${LIBRARY_UPCASE_IDEN
       set( LIBRARY_COMPILE_TARGET "_1_${LIBRARY_NAME}")
       set( LIBRARY_LINK_TARGET "${LIBRARY_NAME}")
 
+      #
+      # In the compile-only phase the library target does not exist yet (it
+      # is created below under LINK_PHASE). Point the link target at the
+      # compile target, so unguarded target_link_options() calls in project
+      # CMakeLists.txt do not fail. An OBJECT library does not link, so the
+      # options are simply ignored.
+      #
+      if( NOT LINK_PHASE)
+         set( LIBRARY_LINK_TARGET "${LIBRARY_COMPILE_TARGET}")
+      endif()
+
       add_library( ${LIBRARY_COMPILE_TARGET} OBJECT
          ${LIBRARY_SOURCES}
       )
