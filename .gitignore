@@ -96,3 +96,8 @@ perf.data
 .kiro/
 TODO.md
 REVIEW.md
+.vscode/
+.touch
+*.workspace
+*.*-workspace
+research/
