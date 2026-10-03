@@ -425,9 +425,10 @@ struct _mulle_concurrent_pointerarray  *
 
 //
 // used as default value for the infraclass allocator, which creates
-// objects
+// objects. Can be NULL for a pure runtime without a foundation, so it
+// must not be marked MULLE_C_NONNULL_RETURN, or clang will optimize away
+// the caller's NULL check.
 //
-MULLE_C_NONNULL_RETURN
 static inline struct mulle_allocator   *
    _mulle_objc_foundation_get_allocator( struct _mulle_objc_foundation *foundation)
 {
@@ -435,7 +436,6 @@ static inline struct mulle_allocator   *
 }
 
 
-MULLE_C_NONNULL_RETURN
 static inline struct mulle_allocator   *
    _mulle_objc_universe_get_foundationallocator( struct _mulle_objc_universe *universe)
 {

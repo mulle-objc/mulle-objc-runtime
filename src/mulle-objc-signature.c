@@ -1092,7 +1092,6 @@ int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
    if( c != d)
       return( 0);
 
-   level = 0;
    switch( c)
    {
    case _C_RETAIN_ID :
@@ -1115,6 +1114,7 @@ int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
    case _C_STRUCT_B :
    case _C_UNION_B  :
    case _C_ARY_B    :
+      level = 1;
       for(;;)
       {
          c = *++a;
@@ -1134,7 +1134,7 @@ int   _mulle_objc_type_is_equal_to_type( char *a, char *b)
          case _C_UNION_E  :
          case _C_ARY_E    :
             if( ! --level)
-               return( 0);
+               return( 1);
          }
       }
       return( 1);

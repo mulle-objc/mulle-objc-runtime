@@ -16,4 +16,5 @@
 @method_implementation -immutableCopy = -copy;
 @end
 
+// this will crash at runtime though
 int main(void) { return 0; }

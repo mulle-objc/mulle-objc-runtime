@@ -1,0 +1,13 @@
+scalar same            1
+scalar size opt        1
+scalar different       0
+struct same            1
+struct size opt        1
+struct size opt rev    1
+struct different       0
+nested same            1
+nested size opt        1
+nested different       0
+array same             1
+array different        0
+union same             1
