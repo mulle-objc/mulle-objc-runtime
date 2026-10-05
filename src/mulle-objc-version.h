@@ -48,8 +48,9 @@
 // Change the values below also to match.
 //
 // *** DONT FORGET TO EDIT mulle-objc-jit.inc TOO***
+// *** DONT FORGET TO EDIT test/calli tests TOO***
 //
-#define MULLE_OBJC_RUNTIME_VERSION  ((0UL << 20) | (30 << 8) | 0)
+#define MULLE_OBJC_RUNTIME_VERSION  ((0UL << 20) | (30 << 8) | 1)
 
 //
 // these three values are read by the compiler(!)
@@ -57,7 +58,7 @@
 //
 #define MULLE_OBJC_RUNTIME_VERSION_MAJOR  0   // max 511
 #define MULLE_OBJC_RUNTIME_VERSION_MINOR  30  // max 1023
-#define MULLE_OBJC_RUNTIME_VERSION_PATCH  0   // max 255
+#define MULLE_OBJC_RUNTIME_VERSION_PATCH  1   // max 255
 
 
 static inline unsigned int  mulle_objc_version_get_major( uint32_t version)
@@ -78,7 +79,7 @@ static inline unsigned int  mulle_objc_version_get_minor( uint32_t version)
 
 static inline unsigned int  mulle_objc_version_get_patch( uint32_t version)
 {
-   assert( (MULLE_OBJC_RUNTIME_VERSION_PATCH & 0) == MULLE_OBJC_RUNTIME_VERSION_PATCH);
+   assert( (MULLE_OBJC_RUNTIME_VERSION_PATCH & 1) == MULLE_OBJC_RUNTIME_VERSION_PATCH);
 
    return( (unsigned int) (version & 255));
 }
