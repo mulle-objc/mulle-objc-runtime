@@ -49,7 +49,7 @@
     - `_mulle_objc_universe_didchange_staticinstanceclass( universe, constantify)` — re-runnable scan to patch queued instances.
     - Backward-compat wrappers: `_mulle_objc_universe_add_staticstring`, `_mulle_objc_universe_set_staticstringclass`, `_mulle_objc_universe_get_staticstringclass` delegate to the multi-slot API (slot 0).
   - Foundation (v0.30+ adds standard-implementation fast path tables):
-    - `_mulle_objc_universe_get_foundationallocator()` — get the allocator for objects.
+    - `_mulle_objc_universe_get_foundationallocator()` — get the allocator for objects; may be NULL for a pure runtime without a foundation (no longer annotated `MULLE_C_NONNULL_RETURN`, so callers' NULL checks are preserved).
     - `_mulle_objc_universe_get_rootclassid()` — get root class id.
     - `_mulle_objc_universe_get_staticinstances()` — get the static instances pointerarray.
     - Standard IMP tables (in `struct _mulle_objc_foundation`): `standardimps[16]` (standard IMP per method family), `standardselectors[16]` (selector per family index), `standardmetamask` (bit set = the family's standard lives on the metaclass). Populated by a higher-level layer; used by `standardimpmask` computation (see 3.10).
@@ -87,7 +87,7 @@
   - Implementation/alias union: `mulle_objc_implementation_t value` / `mulle_objc_methodid_t alias` / `mulle_atomic_functionpointer_t implementation`.
   - Method family: extracted from bits via `_mulle_objc_methodfamily_shift` (16). Families: init, dealloc, copy, etc.
    - MetaABI type bits (v21+): `_mulle_objc_method_metaabi_rtype_mask` (bits 22-23) for return type, `_mulle_objc_method_metaabi_ptype_mask` (bits 24-25) for parameter type. Values: 0=VoidPointer, 1=Void, 2=ParameterBlock. Extract with `_mulle_objc_method_bits_get_metaabi_rtype(bits)` / `_mulle_objc_method_bits_get_metaabi_ptype(bits)`, combined with `_mulle_objc_method_bits_get_metaabi_calltype(bits)`, set with `_mulle_objc_method_bits_set_metaabi_types(bits, rType, pType)`. `_mulle_objc_descriptor_get_metaabiparamtype(desc)` / `_mulle_objc_descriptor_get_metaabirvaltype(desc)` extract from descriptor.
-  - Alias bits (v21+): `_mulle_objc_method_infra_alias_on_load` (0x100) and `_mulle_objc_method_meta_alias_on_load` (0x200) — the method uses its `alias` field to find the target at load time.
+  - Alias bits (v21+): `_mulle_objc_method_infra_alias_on_load` (0x100) and `_mulle_objc_method_meta_alias_on_load` (0x200) — the method uses its `alias` field to find the target at load time. Resolution runs in a second pass after the methodlist has been added to the class, so a target contributed by an adopted mixin or superclass is found too (the first pass would dispatch the raw alias id as an IMP).
    - Operations: `_mulle_objc_method_get_implementation` / `set_implementation` / `_cas_implementation` (atomic replace), method family helpers, descriptor accessors for methodid/signature/name/bits.
   - Thread affinity: `_mulle_objc_descriptor_is_threadaffine(desc)`, `_mulle_objc_method_is_threadaffine(method)` — check if method requires thread-local processing.
 - `struct _mulle_objc_methodlist`
@@ -244,6 +244,7 @@
 ### 3.16. [mulle-objc-retain-release.h]
 - Built-in retain/release mechanisms:
   - Inline retain/release helpers: `_mulle_objc_object_retain_inline`, `_mulle_objc_object_release_inline`.
+  - Retain-count atomics: the increment uses relaxed ordering (it only claims another reference, publishing no data); the decrement uses acq_rel so the thread observing zero sees all other owners' writes before it frees.
   - Special constants: `MULLE_OBJC_NEVER_RELEASE` etc.
   - Bulk retain/release of object arrays, finalize/dealloc helpers.
 
@@ -493,8 +494,8 @@ From `mulle-metaabi.h` (always available, no C23 required):
 
 ### 3.27. [mulle-objc-version.h] — Runtime Version
 
-- `MULLE_OBJC_RUNTIME_VERSION` = `((0UL << 20) | (30 << 8) | 0)`
-- `MULLE_OBJC_RUNTIME_VERSION_MAJOR` (0), `MULLE_OBJC_RUNTIME_VERSION_MINOR` (30), `MULLE_OBJC_RUNTIME_VERSION_PATCH` (0) — read by the compiler at compile time (mirrored in `mulle-objc-jit.inc`).
+- `MULLE_OBJC_RUNTIME_VERSION` = `((0UL << 20) | (30 << 8) | 1)`
+- `MULLE_OBJC_RUNTIME_VERSION_MAJOR` (0), `MULLE_OBJC_RUNTIME_VERSION_MINOR` (30), `MULLE_OBJC_RUNTIME_VERSION_PATCH` (1) — read by the compiler at compile time (mirrored in `mulle-objc-jit.inc`).
 - `mulle_objc_version_get_major/minor/patch(uint32_t version)` — extract fields at runtime.
 
 ### 3.28. [mulle-objc-universe-class.h] — Universe Class Lookup
@@ -714,9 +715,9 @@ int   call_getCount( void *obj)
 
 ## 7. Dependencies
 
-- mulle-core (mulle-core amalgamation: mulle-c11, mulle-allocator, mulle-concurrent, mulle-thread, mulle-vararg)
-- mulle-core-all-load
+- mulle-core (mulle-core amalgamation: mulle-c11, mulle-allocator, mulle-concurrent, mulle-thread, mulle-vararg); v0.30.1 runtime version check requires `[0.10.0, 0.11.0)`
+- mulle-core-all-load; v0.30.1 runtime version check requires `[0.9.0, 0.10.0)`
 
 ## 8. Shortcut
 
-- Last committed at 24c1797 (index itself last touched at 9d935dc). Updated for v0.30.0: standardimpmask method-family fast path (infraclass.h halfword + get/set/and/compute/invalidate, class-initialize seeding, class.c invalidation hook, foundation `standardimps[16]`/`standardselectors[16]`/`standardmetamask`), lock-free class-load wait queues and universe registry (`mulle_concurrent_hashtable`, `_mulle_objc_classid_to_waitqueue_hash`, `_mulle_objc_global_get_universe_table`/`_ensure_universe_table`/`_get_universe_hash`), stacktrace callback API (`mulle_objc_universe_set_stacktrace_callback` et al., `failures.stacktrace`), class posing victim re-registration under `%`-prefixed classids plus EINVAL/EDOM guards, `_mulle_objc_threadinfo.objectallocator`, and runtime version bump 0.29 → 0.30 (also `mulle-objc-jit.inc`).
+- Last committed at 05540d5 (index itself last touched at 9d935dc). Updated for v0.30.1: `@method_implementation` alias resolution moved to a second pass after the methodlist is added, so targets provided by adopted mixins or superclasses resolve correctly (class.c; new `test-compiler-runtime/load-alias` tests); retain-count atomics use relaxed increment / acq_rel decrement (`_mulle_atomic_pointer_increment_relaxed`); `_mulle_objc_foundation_get_allocator` and `_mulle_objc_universe_get_foundationallocator` are no longer `MULLE_C_NONNULL_RETURN` (may be NULL without a foundation); `_mulle_objc_type_is_equal_to_type` struct/union/array nesting-level regression fix; command-line tools `mulle-objc-signature` and `mulle-objc-uniqueid` split off into mulle-objc-tools; runtime version bump 0.30.0 → 0.30.1 with mulle-core raised to `[0.10.0, 0.11.0)` and mulle-core-all-load to `[0.9.0, 0.10.0)` (also `mulle-objc-jit.inc`).

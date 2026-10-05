@@ -87,7 +87,7 @@ if( NOT __SDK_ENVIRONMENT__CMAKE__)
       set( item_index -1) # supposedly makes local
       list( FIND ${list_name} "${item}" item_index)
       if( ${item_index} EQUAL -1)
-         if( NOT EXISTS "${item}")
+         if( EXISTS "${item}")
             list( APPEND ${list_name} "${item}")
          endif()
       endif()
@@ -285,13 +285,22 @@ if( NOT __SDK_ENVIRONMENT__CMAKE__)
       endif()
 
       #
-      # add release as fallback if not same as above
+      # add release as fallback if not same as above, but only for pieces the
+      # primary configuration/architecture does not already provide. Otherwise
+      # the fallback pulls in a sibling install (the host or another
+      # configuration) and duplicates headers or escapes the architecture.
       #
       if( NOT "${TMP_MULLE_SDK_FALLBACK_PATH}" STREQUAL "${TMP_MULLE_SDK_PATH}")
-         mulle_append_unique_existing_path( TMP_CMAKE_INCLUDE_PATH "${TMP_MULLE_SDK_FALLBACK_PATH}/include")
-         mulle_append_unique_existing_path( TMP_INCLUDE_DIRS "${TMP_MULLE_SDK_FALLBACK_PATH}/include")
-         mulle_append_unique_existing_path( TMP_CMAKE_LIBRARY_PATH "${TMP_MULLE_SDK_FALLBACK_PATH}/lib")
-         mulle_append_unique_existing_path( TMP_CMAKE_FRAMEWORK_PATH "${TMP_MULLE_SDK_FALLBACK_PATH}/Frameworks")
+         if( NOT EXISTS "${TMP_MULLE_SDK_PATH}/include")
+            mulle_append_unique_existing_path( TMP_CMAKE_INCLUDE_PATH "${TMP_MULLE_SDK_FALLBACK_PATH}/include")
+            mulle_append_unique_existing_path( TMP_INCLUDE_DIRS "${TMP_MULLE_SDK_FALLBACK_PATH}/include")
+         endif()
+         if( NOT EXISTS "${TMP_MULLE_SDK_PATH}/lib")
+            mulle_append_unique_existing_path( TMP_CMAKE_LIBRARY_PATH "${TMP_MULLE_SDK_FALLBACK_PATH}/lib")
+         endif()
+         if( NOT EXISTS "${TMP_MULLE_SDK_PATH}/Frameworks")
+            mulle_append_unique_existing_path( TMP_CMAKE_FRAMEWORK_PATH "${TMP_MULLE_SDK_FALLBACK_PATH}/Frameworks")
+         endif()
       endif()
    endforeach()
 
