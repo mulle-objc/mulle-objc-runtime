@@ -1,4 +1,5 @@
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <stdio.h>
 
 
 //
@@ -62,22 +63,41 @@ static void  clear( size_t size)
 
 
 MULLE_C_NEVER_INLINE
-static void  print( size_t size)
+static int   check( size_t size)
 {
-   mulle_buffer_do( buffer)
+   unsigned char   *p;
+   size_t          i;
+
+   p = (unsigned char *) x;
+   for( i = 0; i < size; i++)
    {
-      mulle_buffer_hexdump( buffer, x, sizeof( x), 0, mulle_buffer_hexdump_default);
-      mulle_printf( "%td:\n%s\n\n", size, mulle_buffer_get_string( buffer));
+      if( p[ i] != 0x00)
+      {
+         fprintf( stderr, "byte %td not cleared (size %td)\n",
+                         (ptrdiff_t) i, (ptrdiff_t) size);
+         return( 1);
+      }
    }
+
+   for( ; i < sizeof( x); i++)
+   {
+      if( p[ i] != 0xff)
+      {
+         fprintf( stderr, "byte %td cleared beyond size %td\n",
+                         (ptrdiff_t) i, (ptrdiff_t) size);
+         return( 1);
+      }
+   }
+   return( 0);
 }
 
 
 MULLE_C_NEVER_INLINE
-static void  test( size_t size)
+static int   test( size_t size)
 {
    prepare( size);
    clear( size);
-   print( size);
+   return( check( size));
 }
 
 
@@ -89,9 +109,11 @@ static void  test( size_t size)
 int   main( void)
 {
    size_t   i;
+   int      rval;
 
+   rval = 0;
    for( i = 0; i <= sizeof( x); i++)
-      test( i);
+      rval |= test( i);
 
-   return( 0);
+   return( rval ? 1 : 0);
 }

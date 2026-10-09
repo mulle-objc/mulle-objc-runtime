@@ -108,7 +108,10 @@ enum
    _mulle_objc_property_autoreleaseclear  = 0x20000,  // autorelease clear
 //   _mulle_objc_property_atomic          = 0x40000
    _mulle_objc_property_fake              = 0x80000,  // fake property use by MulleObject
-   _mulle_objc_property_forward           = 0x100000  // forwarded property (not synthesized at runtime)
+   _mulle_objc_property_forward           = 0x100000, // forwarded property (not synthesized at runtime)
+
+   // MEMO: if we add more to the compiler, shift these up
+   _mulle_objc_property_cstring           = 0x200000  // 'copy' of a C string (char *)
 };
 
 

@@ -100,6 +100,7 @@
   - Property attribute enum `enum mulle_objc_property_attribute` defines signature characters: `R`=readonly, `C`=copy, `&`=retain, `G`=getter, `S`=setter, `V`=ivar, `D`=dynamic, `N`=nonatomic, `O`=observable, `K`=container/class, etc.
   - Key property bits: `_mulle_objc_property_readonly`, `_mulle_objc_property_retain`, `_mulle_objc_property_copy`, `_mulle_objc_property_dynamic`, `_mulle_objc_property_container`, `_mulle_objc_property_observable`, `_mulle_objc_property_setterclear`, `_mulle_objc_property_autoreleaseclear`, `_mulle_objc_property_fake`.
   - New v21+ bits: `_mulle_objc_property_forward` (0x100000) — forwarded property not synthesized by runtime.
+  - New bit: `_mulle_objc_property_cstring` (0x200000) — `copy` of a C string (`char *`).
   - Operations: `_mulle_objc_property_get_name`, `_get_signature`, `_get_propertyid`, `_get_ivarid`, `_get_getter/setter/adder/remover`, `_get_bits`, `_is_dynamic`, `_is_readonly`, `_is_observable`, `_is_container`, `_is_forward`, etc.
   - `_mulle_objc_property_is_clearable(property)` — returns true if writable and has setter-clear or autorelease-clear semantics.
 
@@ -319,6 +320,7 @@ From `mulle-metaabi.h` (always available, no C23 required):
 - Compiler-synthesized property accessors:
   - `void  mulle_objc_object_set_property_value(void *self, mulle_objc_methodid_t _cmd, ptrdiff_t offset, struct _mulle_objc_object *value, int strategy);`
   - `void  *mulle_objc_object_get_property_value(void *self, mulle_objc_methodid_t _cmd, ptrdiff_t offset, int strategy);`
+  - `void  mulle_objc_object_set_property_cstring(void *self, mulle_objc_methodid_t _cmd, ptrdiff_t offset, char *value, int strategy);` — called by the compiler for a `copy` of a C string (`char *`) property: the string is duplicated with an allocator and the old value freed with the same allocator. Atomic properties use the universe allocator (prepared for abafree); non-atomic properties use the instance's allocator.
 
 - Container (to-many) helpers:
   - `void  mulle_objc_object_add_to_container(void *self, ptrdiff_t offset, void *value);`

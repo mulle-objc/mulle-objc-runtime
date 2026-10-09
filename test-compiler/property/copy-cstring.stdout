@@ -1,0 +1,9 @@
+name: 210000
+cname: 210000
+uname: 210000
+name: hello, duplicated
+cname: c-hello, duplicated
+uname: u-hello, duplicated
+name is NULL
+cname is NULL
+uname is NULL

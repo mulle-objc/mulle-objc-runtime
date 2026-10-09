@@ -231,6 +231,80 @@ static inline void
 }
 
 
+//
+// this is called by the compiler for a 'copy' of a C string (char *) property.
+// 'char *' is not an object, so the string can not be copied by sending
+// -copy to it. Instead it is duplicated with an allocator and the old value
+// is freed with the same allocator.
+//
+// For an atomic property the universe allocator is used, because it has been
+// prepared for abafree with mulle_aba_init (a class allocator generally has
+// not). For a non-atomic property the allocator of the instance is used, which
+// is also the allocator that frees instance memory.
+//
+MULLE_C_STATIC_ALWAYS_INLINE
+void
+   mulle_objc_object_set_property_cstring( void *self,
+                                           mulle_objc_methodid_t _cmd,
+                                           ptrdiff_t offset,
+                                           char *value,
+                                           int strategy)
+{
+   char                    **p_ivar;
+   char                    *old;
+   struct mulle_allocator  *allocator;
+
+   MULLE_C_UNUSED( _cmd);
+
+   if( ! self)
+      return;
+
+   // protection against wrap-around to root meta, which then clobbers
+   // the runtime struct !
+   assert( _mulle_objc_class_is_infraclass( _mulle_objc_object_get_isa( self)));
+
+   p_ivar = (char **) &((char *) self)[ offset];
+
+   if( strategy & mulle_objc_property_accessor_atomic)
+   {
+      struct _mulle_objc_universe   *universe;
+      void                          *actual;
+
+      // need universe allocator for abafree
+      universe  = _mulle_objc_object_get_universe( self);
+      allocator = _mulle_objc_universe_get_allocator( universe);
+
+      old = (char *) _mulle_atomic_pointer_read( (mulle_atomic_pointer_t *) p_ivar);
+      if( value == old)
+         return;
+
+      if( value)
+         value = mulle_allocator_strdup( allocator, value);
+
+      actual = __mulle_atomic_pointer_cas( (mulle_atomic_pointer_t *) p_ivar,
+                                           value,
+                                           old);
+      if( actual == old)
+         mulle_allocator_abafree( allocator, old);
+      else
+         mulle_allocator_free( allocator, value);
+      return;
+   }
+
+   if( value == *p_ivar)
+      return;
+
+   allocator = _mulle_objc_infraclass_get_allocator(
+                  _mulle_objc_class_as_infraclass(
+                     _mulle_objc_object_get_isa( self)));
+   if( value)
+      value = mulle_allocator_strdup( allocator, value);
+
+   mulle_allocator_free( allocator, *p_ivar);
+   *p_ivar = value;
+}
+
+
 MULLE_C_STATIC_ALWAYS_INLINE
 void   *
    mulle_objc_object_get_property_value( void *self,
