@@ -355,8 +355,15 @@ static inline uint32_t
 static inline int
    _mulle_objc_property_is_clearable( struct _mulle_objc_property *property)
 {
-   return( ! (property->bits & _mulle_objc_property_readonly) &&
-             (property->bits & (_mulle_objc_property_setterclear|_mulle_objc_property_autoreleaseclear)));
+   //
+   // readonly properties are clearable as well. They have no setter, so
+   // they are cleared through their ivar (MulleObject does that in its
+   // -finalize). A 'copy' of a C string is clearable even when readonly or
+   // '_Nonnull', as it may not have a 'setterclear' bit.
+   //
+   return( (property->bits & (_mulle_objc_property_setterclear
+                             |_mulle_objc_property_autoreleaseclear
+                             |_mulle_objc_property_cstring)) != 0);
 }
 
 
