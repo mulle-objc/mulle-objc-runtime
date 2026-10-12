@@ -715,9 +715,9 @@ int   call_getCount( void *obj)
 
 ## 7. Dependencies
 
-- mulle-core (mulle-core amalgamation: mulle-c11, mulle-allocator, mulle-concurrent, mulle-thread, mulle-vararg); v0.30.1 runtime version check requires `[0.9.0, 0.10.0)`
-- mulle-core-all-load; v0.30.1 runtime version check requires `[0.8.2, 0.9.0)`
+- mulle-core (mulle-core amalgamation: mulle-c11, mulle-allocator, mulle-concurrent, mulle-thread, mulle-vararg); v0.30.1 runtime version check requires `[0.10.0, 0.11.0)`
+- mulle-core-all-load; v0.30.1 runtime version check requires `[0.9.0, 0.10.0)`
 
 ## 8. Shortcut
 
-- Last committed at 05540d5 (index itself last touched at 9d935dc). Updated for v0.30.1: `@method_implementation` alias resolution moved to a second pass after the methodlist is added, so targets provided by adopted mixins or superclasses resolve correctly (class.c; new `test-compiler-runtime/load-alias` tests); retain-count atomics use relaxed increment / acq_rel decrement (`_mulle_atomic_pointer_increment_relaxed`); `_mulle_objc_foundation_get_allocator` and `_mulle_objc_universe_get_foundationallocator` are no longer `MULLE_C_NONNULL_RETURN` (may be NULL without a foundation); `_mulle_objc_type_is_equal_to_type` struct/union/array nesting-level regression fix; command-line tools `mulle-objc-signature` and `mulle-objc-uniqueid` split off into mulle-objc-tools; runtime version bump 0.30.0 → 0.30.1 with mulle-core set to `[0.9.0, 0.10.0)` and mulle-core-all-load to `[0.8.2, 0.9.0)` (also `mulle-objc-jit.inc`).
+- Last committed at 05540d5 (index itself last touched at 9d935dc). Updated for v0.30.1: `@method_implementation` alias resolution moved to a second pass after the methodlist is added, so targets provided by adopted mixins or superclasses resolve correctly (class.c; new `test-compiler-runtime/load-alias` tests); retain-count atomics use relaxed increment / acq_rel decrement (`_mulle_atomic_pointer_increment_relaxed`); `_mulle_objc_foundation_get_allocator` and `_mulle_objc_universe_get_foundationallocator` are no longer `MULLE_C_NONNULL_RETURN` (may be NULL without a foundation); `_mulle_objc_type_is_equal_to_type` struct/union/array nesting-level regression fix; command-line tools `mulle-objc-signature` and `mulle-objc-uniqueid` split off into mulle-objc-tools; runtime version bump 0.30.0 → 0.30.1 with mulle-core set to `[0.10.0, 0.11.0)` and mulle-core-all-load to `[0.9.0, 0.10.0)` (also `mulle-objc-jit.inc`).

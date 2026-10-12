@@ -3,6 +3,7 @@
 
 
 
+
 * Document second-pass ``@method_implementation`` alias resolution so targets from adopted mixins or superclasses are found
 * Document relaxed increment / `acq_rel` decrement retain-count atomics
 * Note ``_mulle_objc_universe_get_foundationallocator`` may be NULL (no longer ``MULLE_C_NONNULL_RETURN`)`
