@@ -170,11 +170,20 @@ if( NOT __ADD_SUBDIRECTORY_SUPPORT__CMAKE__)
    # Hand the include directory to the consumer, or don't. With the option off
    # the consumer names the roots it wants itself - the staged headers above are
    # there to be named.
-   # MEMO: not doing this anymore to no ill effect so far
-   # if( MULLE_TRANSITIVE_SOURCE_INCLUDE AND _MULLE_INTERFACE_INCLUDE)
-   #    target_include_directories( "${LIBRARY_NAME}" INTERFACE
-   #       ${_MULLE_INTERFACE_INCLUDE})
-   # endif()
+   #
+   # This export is what lets a plain `add_subdirectory()` consumer that only
+   # does target_link_libraries( app PRIVATE <library>) find the headers by
+   # their installed-style path, e.g. <mulle-core/mulle-core.h>. Without it the
+   # consumer inherits no include directory at all, so it fails with
+   # "fatal error: 'mulle-core/mulle-core.h' file not found". The staged headers
+   # above do not attach themselves to the target; they exist only so that a
+   # consumer can name them. This is exactly what the submodule integration test
+   # (test-submodule.sh) exercises, and it breaks on every platform once this
+   # export is gone. Do not comment it out again.
+   if( MULLE_TRANSITIVE_SOURCE_INCLUDE AND _MULLE_INTERFACE_INCLUDE)
+      target_include_directories( "${LIBRARY_NAME}" INTERFACE
+         ${_MULLE_INTERFACE_INCLUDE})
+   endif()
 
    #
    # We deliberately do NOT export one INTERFACE include directory per

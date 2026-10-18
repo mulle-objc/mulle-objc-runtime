@@ -146,7 +146,7 @@ If something is unclear, feel free to contact the author.
 
 |   Requirement         | Release Version  | Description
 |-----------------------|------------------|---------------
-| [mulle-core](https://github.com/mulle-core/mulle-core) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core.svg) [![Build Status](https://github.com/mulle-core/mulle-core/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core/actions/workflows/mulle-sde-ci.yml) | 🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c
+| [mulle-core](https://github.com/mulle-core/mulle-core) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core.svg) [![Build Status](https://github.com/mulle-core/mulle-core/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core/actions/workflows/mulle-sde-ci.yml) | 🌋 Amalgamated library of mulle-core + mulle-concurrent + mulle-c
 | [mulle-core-all-load](https://github.com/mulle-core/mulle-core-all-load) | ![Mulle kybernetiK tag](https://img.shields.io/github/tag/mulle-core/mulle-core-all-load.svg) [![Build Status](https://github.com/mulle-core/mulle-core-all-load/workflows/CI/badge.svg?branch=release)](https://github.com/mulle-core/mulle-core-all-load/actions/workflows/mulle-sde-ci.yml) | 🛸 mulle-core-all-load does something
 
 
@@ -187,7 +187,7 @@ Install all requirements
 
 | Requirements                                 | Description
 |----------------------------------------------|-----------------------
-| [mulle-core](https://github.com/mulle-core/mulle-core)             | 🌋 Almagamated library of mulle-core + mulle-concurrent + mulle-c
+| [mulle-core](https://github.com/mulle-core/mulle-core)             | 🌋 Amalgamated library of mulle-core + mulle-concurrent + mulle-c
 | [mulle-core-all-load](https://github.com/mulle-core/mulle-core-all-load)             | 🛸 mulle-core-all-load does something
 
 #### Download & Install

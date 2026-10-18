@@ -58,8 +58,13 @@
 #    key off it.
 #
 # REQUIRES
-#    CMake 3.24, for $<LINK_LIBRARY:WHOLE_ARCHIVE>. Below that the module is a
-#    silent no-op, so it can live in a template that older projects include.
+#    CMake 3.30, for $<LINK_LIBRARY:WHOLE_ARCHIVE> on a directly linked
+#    consumer. The feature exists since 3.24, but only from 3.30 does CMake
+#    accept a target that a consumer links both plainly (DEFAULT) and, through
+#    this wrapper, with the WHOLE_ARCHIVE feature; 3.24-3.29 abort the generate
+#    step with "has already occurred without any feature or 'DEFAULT' feature".
+#    Below 3.30 the module is a silent no-op, so it can live in a template that
+#    older projects include.
 #
 # GUARD
 #    __ALL_LOAD_SUPPORT__CMAKE__
@@ -104,7 +109,7 @@ if( NOT __ALL_LOAD_SUPPORT__CMAKE__)
    set( MULLE_ALL_LOAD_ACTIVE OFF)
 
    if( MULLE_LIBRARY_FORCE_LINK AND MULLE_TRANSITIVE_LINKER_FLAGS AND NOT BUILD_SHARED_LIBS)
-      if( CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
+      if( CMAKE_VERSION VERSION_GREATER_EQUAL "3.30")
          if( NOT LIBRARY_NAME)
             set( LIBRARY_NAME "${LIBRARY_LINK_TARGET}")
          endif()
@@ -131,7 +136,7 @@ if( NOT __ALL_LOAD_SUPPORT__CMAKE__)
          unset( _MULLE_ALL_LOAD_WRAPPER)
          set( MULLE_ALL_LOAD_ACTIVE ON)
       else()
-         message( STATUS "AllLoadSupport: CMake ${CMAKE_VERSION} < 3.24, "
+         message( STATUS "AllLoadSupport: CMake ${CMAKE_VERSION} < 3.30, "
                          "force-link is not propagated")
       endif()
    endif()
