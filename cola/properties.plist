@@ -1,7 +1,7 @@
 {
    project =
    {
-      description="⏩ A fast, portable Objective-C runtime written 100% in C11";
+      description="⏩ A fast, portable Objective-C runtime written 100% in C";
       domain="github";
       language="c";
       dialect="c";

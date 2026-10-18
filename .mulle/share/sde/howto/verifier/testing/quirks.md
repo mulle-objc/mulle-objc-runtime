@@ -14,6 +14,11 @@ mulle-sde retest
 - Do not run `mulle-test` directly when working inside a mulle-sde project. Use
   `mulle-sde test ...` so the test environment, paths, and wrappers stay correct.
 
+- `CC=tcc mulle-sde test ...` does **not** change the compiler. mulle-sde
+  rebuilds its environment and drops inherited variables. Use
+  `mulle-sde -DCC=tcc test ...` or `mulle-sde test craft --cc tcc`, then rebuild
+  with `mulle-sde test clean all` so cmake picks the new compiler up.
+
 - Do not run test executables directly. They may be stale and they bypass the
   managed test environment.
 

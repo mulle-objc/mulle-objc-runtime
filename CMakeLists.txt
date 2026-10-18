@@ -17,6 +17,34 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   add_compile_definitions( _CRT_SECURE_NO_WARNINGS)
 endif()
 
+#
+# The runtime compiles as C11. Compile it as C11 with extensions off and ask
+# for exactly the POSIX.1-2008 namespace: _POSIX_C_SOURCE=200809L gives
+# POSIX.1-2008 and hides X/Open, BSD/SVID and GNU extensions, so anything
+# beyond that is a compile error rather than a silent ratchet. Turning off
+# extensions also stops glibc from implicitly providing _DEFAULT_SOURCE.
+#
+# On Apple, _DARWIN_C_SOURCE is the counterpart of glibc's _DEFAULT_SOURCE:
+# strict C mode hides the POSIX and BSD declarations there.
+#
+# This only affects the runtime project (this directory and below), not the
+# separate test projects that consume it.
+#
+# A standard given on the command line wins, so other dialects remain testable
+# with e.g. -DCMAKE_C_STANDARD=23 or CFLAGS=-std=c23.
+#
+if( NOT CMAKE_C_STANDARD
+    AND NOT CMAKE_C_FLAGS MATCHES "(^| )-std="
+    AND NOT "$ENV{CFLAGS}" MATCHES "(^| )-std=")
+   set( CMAKE_C_STANDARD 11)
+   set( CMAKE_C_EXTENSIONS OFF)
+   if( APPLE)
+      add_compile_definitions( _DARWIN_C_SOURCE)
+   elseif( NOT WIN32)
+      add_compile_definitions( _POSIX_C_SOURCE=200809L)
+   endif()
+endif()
+
 ### mulle-sde environment
 
 # add cmake module paths to search path
