@@ -257,7 +257,7 @@
 - `mulle_metaabi_get_parameter_n(p_value, _param, ...)` — extract a named parameter from a _param struct.
 - `mulle_metaabi_get_voidptr_parameter(p_value, _param)` — extract a single voidptr-compatible parameter.
 - `MULLE_METAABI_STRUCT_FIELD(expr, s)` / `MULLE_METAABI_STRUCT_VALUE(expr, s)` — helper macros for defining struct fields / initializers within MetaABI parameter structs.
-- `mulle-metaabi-call.h` requires C23 (`__VA_OPT__`), guarded by `#if MULLE_C_HAS_VA_OPT`. Include it explicitly when needed.
+- `mulle-metaabi-call.h` requires C23 (`__VA_OPT__`), guarded by `#if MULLE_C_HAS_VA_OPT`. Include it explicitly when needed. It pulls in `<mulle-c11/mulle-c23-eval.h>` (alongside `<mulle-c11/mulle-c11-eval.h>`) for the C23 evaluation macros.
 
 From `mulle-metaabi.h` (always available, no C23 required):
 - `mulle_metaabi_is_int(expr)`, `mulle_metaabi_zero_non_int(expr, value)`, `mulle_metaabi_zero_fp(expr, value)` (from call.h, C23 required) — type-generic helpers for MetaABI argument/return packing.
