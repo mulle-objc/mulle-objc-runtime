@@ -1,6 +1,0 @@
-inotifywait;remove
-fswatch
-dsymutil
-install_name_tool
-otool
-ranlib

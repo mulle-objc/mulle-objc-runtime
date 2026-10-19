@@ -9,8 +9,6 @@
 #include <limits.h>
 #include <stdio.h>
 
-#pragma clang diagnostic ignored "-Wobjc-root-class"
-
 
 @interface Foo
 {
@@ -24,7 +22,7 @@
 
 + (struct _mulle_objc_infraclass *) class
 {
-   return( (struct _mulle_objc_infraclass *) self);
+   return( self);
 }
 
 

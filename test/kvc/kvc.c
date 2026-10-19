@@ -16,8 +16,6 @@
 #endif
 
 
-#define MULLE_OBJC_DEFINE_REGISTER_UNIVERSE
-
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
 
@@ -153,17 +151,16 @@ static void   *Foo_a( struct Foo *self, mulle_objc_methodid_t _cmd, void *_param
 
 static struct _gnu_mulle_objc_ivarlist  Foo_ivarlist =
 {
-   .n_ivars = 1,
+   1,
    // must be sorted by ivarid !!!
-   .ivars   = {
+   {
       {
-         .descriptor =
          {
-            .ivarid    = ___a___ivarid,
-            .name      = "a",
-            .signature = "i"
+            ___a___ivarid,
+            "a",
+            "i"
          },
-         .offset = offsetof( struct Foo, a)
+         offsetof( struct Foo, a)
       }
    }
 };
@@ -171,35 +168,41 @@ static struct _gnu_mulle_objc_ivarlist  Foo_ivarlist =
 
 static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
 {
-   .n_methods = 3,
-   .methods   =
+   3,
+   NULL,
    {
       {
-         .descriptor =
+         // idee make this "197380f3\0setA:b:\0@:ii" as a uniquable string
+         // also saving an additional 2 pointers for method definition
+         // but what if the type differs ?
          {
-            .methodid  = ___a___methodid,
-            .signature = "@:",
-            .name      = "a",
+            ___a___methodid,
+            "@:",
+            "a",
+            0
          },
-         .value = (mulle_objc_implementation_t) Foo_setA_b_
+         (void *) Foo_setA_b_
       },
       {
-         .descriptor =
          {
-            .methodid  = ___init__methodid,
-            .signature = "@:",
-            .name      = "init",
+            ___init__methodid,
+            "@:",
+            "init",
+            0
          },
-         .value = (mulle_objc_implementation_t) Foo_init
+         (void *) Foo_init
       },
       {
-         .descriptor =
+         // idee make this "197380f3\0setA:b:\0@:ii" as a uniquable string
+         // also saving an additional 2 pointers for method definition
+         // but what if the type differs ?
          {
-            .methodid  = ___setA___methodid,
-            .signature = "@:ii",
-            .name      = "setA:",
+            ___setA___methodid,
+            "@:ii",
+            "setA:",
+            0
          },
-         .value = (mulle_objc_implementation_t) Foo_setA_b_
+         (void *) Foo_setA_b_
       }
    }
 };
@@ -207,22 +210,33 @@ static struct _gnu_mulle_objc_methodlist  Foo_instance_methodlist =
 
 static struct _mulle_objc_loadclass  Foo_loadclass =
 {
-   .base.classid         = ___Foo_classid,
-   .base.classname       = "Foo",
+   ___Foo_classid,
+   "Foo",
+   0,
 
-   .fastclassindex       = -1,
-   .instancesize         = sizeof( struct Foo),
+   0,
+   NULL,
+   0,
 
-   .instancevariables    = (struct _mulle_objc_ivarlist *)  &Foo_ivarlist,
-   .base.instancemethods = (struct _mulle_objc_methodlist *) &Foo_instance_methodlist,
+   -1,
+   sizeof( struct Foo),
+
+   (struct _mulle_objc_ivarlist *)  &Foo_ivarlist,
+   NULL,
+   (struct _mulle_objc_methodlist *) &Foo_instance_methodlist,
+   NULL,
+
+   NULL
 };
 
 
 
 struct _gnu_mulle_objc_loadclasslist  class_list =
 {
-   .n_loadclasses = 1,
-   .loadclasses   = { &Foo_loadclass }
+   1,
+   {
+      &Foo_loadclass
+   }
 };
 
 
@@ -250,13 +264,18 @@ struct _gnu_mulle_objc_loadclasslist  class_list =
 
 static struct _mulle_objc_loadinfo  load_info =
 {
-   .version =
    {
-      .load    = MULLE_OBJC_RUNTIME_LOAD_VERSION,
-      .runtime = MULLE_OBJC_RUNTIME_VERSION,
-      .bits    = TPS_BIT | FCS_BIT | TAO_BIT
+      MULLE_OBJC_RUNTIME_LOAD_VERSION,
+      MULLE_OBJC_RUNTIME_VERSION,
+      0,
+      0,
+      TPS_BIT | FCS_BIT | TAO_BIT
    },
-   .loadclasslist = (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
+   NULL,
+   (struct _mulle_objc_loadclasslist *) &class_list,  // let runtime sort for us
+   NULL,
+   NULL,
+   NULL,
 };
 
 
@@ -266,7 +285,7 @@ static void  __load()
 {
    static int  has_loaded;
 
-   mulle_fprintf( stderr, "--> __load\n");
+   fprintf( stderr, "--> __load\n");
 
    // windows w/o mulle-clang
    if( has_loaded)
@@ -277,6 +296,7 @@ static void  __load()
 }
 
 
+MULLE_C_GLOBAL
 MULLE_C_CONST_RETURN 
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,

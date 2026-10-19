@@ -15,10 +15,9 @@
 # endif
 #endif
 
-#define MULLE_OBJC_DEFINE_REGISTER_UNIVERSE
-
 
 #include <mulle-objc-runtime/mulle-objc-runtime.h>
+#include <mulle-objc-debug/mulle-objc-debug.h>
 #include <stdio.h>
 
 
@@ -132,26 +131,26 @@ struct _gnu_mulle_objc_methodlist
 
 static struct _gnu_mulle_objc_methodlist   Object_instance_methodlist =
 {
-   .n_methods = 2,
-   .methods   =
+   2,
+   NULL,
    {
       {
-         .descriptor =
          {
-            .methodid  = ___conforms_to_protocol__methodid,
-            .signature = "@:*i",
-            .name      = "conformsToProtocol:",
+            ___conforms_to_protocol__methodid,
+            "@:*i",
+            "conformsToProtocol:",
+            0
          },
-         .value = (mulle_objc_implementation_t) Object_conforms_to_protocol
+         (mulle_objc_implementation_t) Object_conforms_to_protocol
       },
       {
-         .descriptor =
          {
-            .methodid  = ___init__methodid,
-            .signature = "@:",
-            .name      = "init",
+            ___init__methodid,
+            "@:",
+            "init",
+            0
          },
-         .value = (mulle_objc_implementation_t) Object_init
+         (mulle_objc_implementation_t) Object_init
       },
    }
 };
@@ -170,36 +169,43 @@ struct _gnu_mulle_objc_protocollist
 
 static struct _gnu_mulle_objc_protocollist   Object_protocollist =
 {
-   .n_protocols = 5,
-   .protocols   =
+   5,
    {
       // keep sorted by protocolid
-      { .protocolid = ___E__protocolid, .name = "E" },
-      { .protocolid = ___D__protocolid, .name = "D" },
-      { .protocolid = ___A__protocolid, .name = "A" },
-      { .protocolid = ___C__protocolid, .name = "C" },
-      { .protocolid = ___B__protocolid, .name = "B" },
+      { ___E__protocolid, "E" },
+      { ___D__protocolid, "D" },
+      { ___A__protocolid, "A" },
+      { ___C__protocolid, "C" },
+      { ___B__protocolid, "B" },
    }
 };
 
 
 static struct _mulle_objc_loadclass  Object_loadclass =
 {
-   .base.classid         = ___Object_classid,
-   .base.classname       = "Object",
+   ___Object_classid,
+   "Object",
+   0,
 
-   .fastclassindex       = -1,
-   .instancesize         = 4,
+   0,
+   NULL,
+   0,
 
-   .base.instancemethods = (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
-   .base.protocols       = (struct _mulle_objc_protocollist *) &Object_protocollist
+   -1,
+   4,
+
+   NULL,
+   &Object_class_methodlist,
+   (struct _mulle_objc_methodlist *) &Object_instance_methodlist,
+   NULL,
+   (struct _mulle_objc_protocollist *) &Object_protocollist
 };
 
 
 struct _mulle_objc_loadclasslist class_list =
 {
-   .n_loadclasses = 1,
-   .loadclasses   = { &Object_loadclass }
+   1,
+   &Object_loadclass
 };
 
 
@@ -227,21 +233,22 @@ struct _mulle_objc_loadclasslist class_list =
 
 static struct _mulle_objc_loaduniverse  universe_info =
 {
-   .universeid   = UNIVERSE_ID,
-   .universename = UNIVERSE_NAME
+   UNIVERSE_ID,
+   UNIVERSE_NAME
 };
 
 
 static struct _mulle_objc_loadinfo  load_info =
 {
-   .version =
    {
-      .load    = MULLE_OBJC_RUNTIME_LOAD_VERSION,
-      .runtime = MULLE_OBJC_RUNTIME_VERSION,
-      .bits    = TPS_BIT | FCS_BIT | TAO_BIT
+      MULLE_OBJC_RUNTIME_LOAD_VERSION,
+      MULLE_OBJC_RUNTIME_VERSION,
+      0,
+      0,
+      TPS_BIT | FCS_BIT | TAO_BIT
    },
-   .loaduniverse  = &universe_info,
-   .loadclasslist = &class_list
+   &universe_info,
+   &class_list
 };
 
 
@@ -250,7 +257,7 @@ static void  __load()
 {
    static int  has_loaded;
 
-   mulle_fprintf( stderr, "--> __load\n");
+   fprintf( stderr, "--> __load\n");
 
    // windows w/o mulle-clang
    if( has_loaded)
@@ -261,6 +268,7 @@ static void  __load()
 }
 
 
+MULLE_C_EXTERN_GLOBAL
 MULLE_C_CONST_RETURN 
 struct _mulle_objc_universe  *
    __register_mulle_objc_universe( mulle_objc_universeid_t universeid,
@@ -274,7 +282,7 @@ struct _mulle_objc_universe  *
       _mulle_objc_universe_bang( universe, 0, NULL, NULL);
       universe->config.ignore_ivarhash_mismatch = 1;
    }
-   mulle_fprintf( stderr, "__register_mulle_objc_universe done");
+   fprintf( stderr, "__register_mulle_objc_universe done");
    return( universe);
 }
 
@@ -301,6 +309,7 @@ int   main( int argc, const char * argv[])
    //    printf( "A\n");
 
    universe = mulle_objc_global_get_universe( UNIVERSE_ID);
+   mulle_objc_universe_dotdump_to_directory( universe, ".");
 
    if( mulle_objc_object_call( obj, ___conforms_to_protocol__methodid, &(struct { mulle_objc_protocolid_t a;  }){ .a = ___A__protocolid } ))
       printf( "A\n");
