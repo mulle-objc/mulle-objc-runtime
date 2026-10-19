@@ -44,6 +44,7 @@
 #include <mulle-c11/mulle-c11-eval.h>
 
 #if MULLE_C_HAS_VA_OPT
+#include <mulle-c11/mulle-c23-eval.h>
 ///
 ///
 
