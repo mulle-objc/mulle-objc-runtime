@@ -1,14 +1,23 @@
 ### 0.30.1
 
+
+
+
+
+
+
+
+
+
+
+
+
 feature: add `copy` support for C string properties
 
 * new ``_mulle_objc_property_cstring`` property bit (0x200000) marking a `copy` of a C string (`char *`)
 * new compiler helper ``mulle_objc_object_set_property_cstring`` that duplicates the incoming string with an allocator and frees the previous value with the same allocator
 * atomic C string properties use the universe allocator (abafree-ready); non-atomic ones use the instance's allocator
 * added test-compiler/property/copy-cstring.m exercising the new behaviour
-
-
-
 
 
 
